@@ -8,6 +8,34 @@
       "when": 1757766638904,
       "tag": "0000_overconfident_doctor_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1758462838957,
+      "tag": "0001_chilly_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758464068694,
+      "tag": "0002_fast_prodigy",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1758469153145,
+      "tag": "0003_giant_phil_sheldon",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1758591520241,
+      "tag": "0004_hard_stingray",
+      "breakpoints": true
     }
   ]
 }
