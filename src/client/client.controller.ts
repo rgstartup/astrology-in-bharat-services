@@ -12,13 +12,16 @@ import { ClientService } from './client.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { AuthGuard, Session, UserSession } from '@thallesp/nestjs-better-auth';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guards/role.guard';
 
 @Controller('client')
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}
 
   @Post()
-  @UseGuards(AuthGuard)
+  @Roles('client', 'admin')
+  @UseGuards(AuthGuard, RolesGuard)
   create(
     @Session() session: UserSession,
     @Body() createClientDto: CreateClientDto,

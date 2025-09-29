@@ -3,7 +3,7 @@ import { CreateExpertDto } from './dto/create-expert.dto';
 import { UpdateExpertDto } from './dto/update-expert.dto';
 import { expert, Expert } from 'schema/expert.schema';
 import { DATABASE_CONNECTION, DbType } from 'src/lib/drizzle';
-import { CLIENT_ERRORS } from 'src/common/errors/client.errors';
+import { EXPERT_ERRORS } from 'src/common/errors/expert.errors';
 
 @Injectable()
 export class ExpertService {
@@ -13,7 +13,7 @@ export class ExpertService {
     const existingExpert = await this.findOneBy({ user_id: userId });
 
     if (existingExpert) {
-      throw new ConflictException(CLIENT_ERRORS.ALREADY_EXISTS);
+      throw new ConflictException(EXPERT_ERRORS.ALREADY_EXISTS);
     }
 
     await this.db.insert(expert).values({
