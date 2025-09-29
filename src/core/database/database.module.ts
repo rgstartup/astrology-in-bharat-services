@@ -8,5 +8,6 @@ import { DATABASE_CONNECTION, db } from '../../lib/drizzle';
       useValue: db,
     },
   ],
+  exports: [DATABASE_CONNECTION],
 })
 export class DatabaseModule {}

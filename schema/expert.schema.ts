@@ -12,7 +12,7 @@ import { sql } from 'drizzle-orm';
 
 export const genderEnum = pgEnum('gender', ['male', 'female', 'other']);
 
-export const client = pgTable(
+export const expert = pgTable(
   'expert',
   {
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
@@ -30,3 +30,5 @@ export const client = pgTable(
     ),
   ],
 );
+
+export type Expert = typeof expert.$inferSelect;

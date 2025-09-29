@@ -36,6 +36,27 @@
       "when": 1758591520241,
       "tag": "0004_hard_stingray",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1758950602941,
+      "tag": "0005_classy_drax",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1758958419792,
+      "tag": "0006_sturdy_master_chief",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1758961833667,
+      "tag": "0007_wooden_doctor_strange",
+      "breakpoints": true
     }
   ]
 }
