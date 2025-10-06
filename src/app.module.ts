@@ -1,18 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from '@thallesp/nestjs-better-auth';
-import { auth } from './lib/auth';
+// import { AuthModule } from '@thallesp/nestjs-better-auth';
+// import { auth } from './lib/auth';
 import { UsersModule } from './users/users.module';
-import { ClientModule } from './client/client.module';
 import { CoreModule } from './core/core.module';
-import { ExpertModule } from './expert/expert.module';
+import { AuthModule } from './auth/auth.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
-  imports: [
-    AuthModule.forRoot(auth),
-    UsersModule,
-    ClientModule,
-    CoreModule,
-    ExpertModule,
-  ],
+  imports: [UsersModule, CoreModule, AuthModule, RolesModule],
 })
 export class AppModule {}
