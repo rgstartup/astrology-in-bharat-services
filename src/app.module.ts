@@ -5,8 +5,9 @@ import { UsersModule } from './users/users.module';
 import { CoreModule } from './core/core.module';
 import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
-  imports: [UsersModule, CoreModule, AuthModule, RolesModule],
+  imports: [UsersModule, CoreModule, AuthModule, RolesModule, NotificationModule],
 })
 export class AppModule {}

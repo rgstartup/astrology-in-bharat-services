@@ -8,6 +8,8 @@ import { OAuthUserDto } from '../dto/oauth-user.dto';
 import { OAuthService } from './oauth.service';
 import { DatabaseService } from 'src/core/database/database.service';
 import { instanceToPlain } from 'class-transformer';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UserRegisteredEvent } from 'src/notification/events/user-register.event';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +18,7 @@ export class AuthService {
     private tokenService: TokenService,
     private oauthService: OAuthService,
     private db: DatabaseService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async register(dto: RegisterDto, ip?: string, userAgent?: string) {
@@ -37,6 +40,13 @@ export class AuthService {
         userAgent,
         queryRunner,
       );
+
+      // send email notification
+      this.eventEmitter.emit(
+        'user:register',
+        new UserRegisteredEvent(user.id, user.email, user.name),
+      );
+
       return instanceToPlain({ user, ...tokens });
     });
   }

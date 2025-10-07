@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
+import { AuthConfig } from 'src/core/config/auth.config';
 // import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
@@ -12,9 +13,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     config: ConfigService,
     private usersService: UsersService,
   ) {
+    const authConfig = config.get<AuthConfig>('auth');
+
+    if (!authConfig) {
+      throw new Error('Auth Config not found');
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: config.get('JWT_SECRET'),
+      secretOrKey: authConfig.jwtSecret,
     });
   }
 

@@ -1,3 +1,4 @@
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import configs from './config';
@@ -14,6 +15,7 @@ import { JwtModule } from './jwt/jwt.module';
     }),
     DatabaseModule,
     JwtModule,
+    EventEmitterModule.forRoot(),
   ],
   exports: [DatabaseModule],
 })
