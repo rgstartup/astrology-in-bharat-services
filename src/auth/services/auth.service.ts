@@ -1,7 +1,7 @@
 // src/auth/auth.service.ts
 import * as argon2 from 'argon2';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../../users/users.service';
+import { UsersService } from '@/users/users.service';
 import { TokenService } from './token.service';
 import { RegisterDto, LoginDto } from '../dto';
 import { OAuthUserDto } from '../dto/oauth-user.dto';
@@ -10,6 +10,7 @@ import { DatabaseService } from 'src/core/database/database.service';
 import { instanceToPlain } from 'class-transformer';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRegisteredEvent } from 'src/notification/events/user-register.event';
+// import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {

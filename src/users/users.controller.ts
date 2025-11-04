@@ -25,6 +25,27 @@ import { User } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // 🔹 Self-service: get my profile
+  @Get('/me')
+  async getUser(@CurrentUser() user: User): Promise<User> {
+    return this.usersService.findById(user.id);
+  }
+
+  // 🔹 Self-service: update my profile
+  @Patch('/me')
+  async updateUser(
+    @CurrentUser() user: User,
+    @Body() dto: Partial<CreateUserDto>,
+  ): Promise<User> {
+    return this.usersService.update(user.id, dto);
+  }
+
+  // 🔹 Self-service: delete my account
+  @Delete('/me')
+  async deleteUser(@CurrentUser() user: User) {
+    return this.usersService.remove(user.id);
+  }
+
   // 🔹 Admin: create a new user
   @Post()
   @Roles('admin')
@@ -45,6 +66,7 @@ export class UsersController {
   async findOne(
     @Param('id', new ParseIntPipe()) id: number,
   ): Promise<User | null> {
+    console.log('🔥 findOne handler called');
     return this.usersService.findById(id);
   }
 
@@ -63,26 +85,5 @@ export class UsersController {
   @Roles('admin')
   async remove(@Param('id', new ParseIntPipe()) id: number) {
     return this.usersService.remove(id);
-  }
-
-  // 🔹 Self-service: get my profile
-  @Get('/me')
-  async getProfile(@CurrentUser() user: User): Promise<User> {
-    return this.usersService.findById(user.id);
-  }
-
-  // 🔹 Self-service: update my profile
-  @Patch('/me')
-  async updateProfile(
-    @CurrentUser() user: User,
-    @Body() dto: Partial<CreateUserDto>,
-  ): Promise<User> {
-    return this.usersService.update(user.id, dto);
-  }
-
-  // 🔹 Self-service: delete my account
-  @Delete('/me')
-  async deleteProfile(@CurrentUser() user: User) {
-    return this.usersService.remove(user.id);
   }
 }

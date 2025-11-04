@@ -8,9 +8,9 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { RolesDto } from 'src/roles/dto/roles.dto';
+import { RolesDto } from '@/role/dto/roles.dto';
 
-export class CreateUserDto {
+class UserDto {
   @IsEmail()
   email: string;
 
@@ -32,3 +32,5 @@ export class CreateUserDto {
   @Type(() => RolesDto) // transform plain objects into RolesDto instances
   roles?: RolesDto[]; // role names only, no entity
 }
+
+export class CreateUserDto extends UserDto {}

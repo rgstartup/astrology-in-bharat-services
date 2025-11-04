@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { OAuthAccount } from '../entities/oauth-accounts.entity';
 import { OAuthUserDto } from '../dto/oauth-user.dto';
-import { UsersService } from 'src/users/users.service';
-import { User } from 'src/users/entities/user.entity';
+import { UsersService } from '@/users/users.service';
+import { User } from '@/users/entities/user.entity';
 import { BaseService } from 'src/common/services/transaction.service';
-import { instanceToPlain } from 'class-transformer';
+// import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class OAuthService extends BaseService<OAuthAccount> {

@@ -11,6 +11,7 @@ export const CurrentUser = createParamDecorator(
     ctx: ExecutionContext,
   ) => {
     const req = ctx.switchToHttp().getRequest<{ user?: IUser }>();
+
     const user = req.user;
 
     if (!user) {

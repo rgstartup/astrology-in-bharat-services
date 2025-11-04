@@ -3,7 +3,7 @@ import { AuthService } from './services/auth.service';
 import { AuthController } from './auth.controller';
 import { TokenService } from './services/token.service';
 import { OAuthService } from './services/oauth.service';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '@/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Credential } from './entities/credential.entity';
 import { OAuthAccount } from './entities/oauth-accounts.entity';

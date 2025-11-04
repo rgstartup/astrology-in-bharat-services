@@ -19,11 +19,9 @@ import {
 } from './dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { User } from '../users/entities/user.entity';
 import { Request } from 'express';
 import { TokenService } from './services/token.service';
 // import { OAuthUserDto } from './dto/oauth-user.dto';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller({
   path: 'auth',
@@ -63,24 +61,6 @@ export class AuthController {
   // @Post('reset/password')
   // resetPassword(@Body() dto: ResetPasswordDto) {
   //   return this.authService.resetPassword(dto.token, dto.newPassword);
-  // }
-
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  me(@CurrentUser() user: User) {
-    return user;
-  }
-
-  // @Patch('me')
-  // @UseGuards(JwtAuthGuard)
-  // updateMe(@CurrentUser('id') id: string, @Body() dto: any) {
-  //   return this.authService.updateMe(id, dto);
-  // }
-
-  // @Delete('me')
-  // @UseGuards(JwtAuthGuard)
-  // deleteMe(@CurrentUser('id') id: string) {
-  //   return this.authService.deleteMe(id);
   // }
 
   @Post('refresh')

@@ -5,7 +5,7 @@ import { randomBytes } from 'crypto';
 import * as argon2 from 'argon2';
 import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '@/users/entities/user.entity';
 import { Credential } from '../entities/credential.entity';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from 'src/core/config/auth.config';
