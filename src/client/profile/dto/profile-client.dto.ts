@@ -20,7 +20,23 @@ export class ProfileClientDto {
 
   @IsOptional()
   @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
   preferences?: string;
+
+  @IsOptional()
+  @IsString()
+  language_preference?: string;
+
+  @IsOptional()
+  @IsString()
+  profile_picture?: string;
+
+  @IsOptional()
+  @IsString()
+  full_name?: string;
 
   @IsOptional()
   @IsArray()
