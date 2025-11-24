@@ -7,6 +7,20 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    // Only allow requests from your frontend's exact origin
+    origin: 'http://localhost:3000',
+
+    // Specify the allowed methods (GET and POST are essential for registration)
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+
+    // Allow headers like Content-Type (important for sending JSON)
+    allowedHeaders: 'Content-Type, Accept',
+
+    // Set to true if your frontend needs to send cookies or authorization headers
+    credentials: true,
+  });
+
   app.setGlobalPrefix('api');
 
   app.enableVersioning({
