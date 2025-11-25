@@ -1,9 +1,10 @@
-import { Controller, Get, Patch, Post, Body , UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import {
   CreateProfileExpertDto,
   UpdateProfileExpertDto,
 } from './dto/profile-expert.dto';
+import { QueryExpertDto } from './dto/query-expert.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { IUser , JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
@@ -34,8 +35,8 @@ export class ProfileController {
     return this.expertProfileService.updateProfile(user, dto);
   }
 
-  // @Get('all')
-  // fetchAllProfiles() {
-  //   return this.expertProfileService.fetchAllProfiles();
-  // }
+  @Get('list')
+  listExperts(@Query() query: QueryExpertDto) {
+    return this.expertProfileService.listExperts(query);
+  }
 }
