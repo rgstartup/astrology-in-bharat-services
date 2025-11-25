@@ -24,10 +24,11 @@ export interface IUser extends Omit<IPayload, 'sub'> {
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private reflector: Reflector,
+    private readonly reflector: Reflector,
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
+    // Check if route is public
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [
       context.getHandler(),
       context.getClass(),
@@ -36,16 +37,33 @@ export class JwtAuthGuard implements CanActivate {
     if (isPublic) return true;
 
     const req = context.switchToHttp().getRequest<Request>();
-    const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Read tokens (header + cookies)
+    const bearerHeader = req.headers.authorization;
+    const cookieToken = req.cookies?.accessToken;
+
+    let token: string | undefined;
+
+    // CASE 1 — Authorization header
+    if (bearerHeader && bearerHeader.startsWith('Bearer ')) {
+      token = bearerHeader.split(' ')[1];
+    }
+
+    // CASE 2 — Cookie-based token
+    if (!token && cookieToken) {
+      token = cookieToken;
+    }
+
+    // If no token found anywhere
+    if (!token) {
       throw new UnauthorizedException('Missing token');
     }
 
-    const token = authHeader.split(' ')[1];
-
     try {
+      // Verify token
       const payload = this.jwtService.verify<IPayload>(token);
+
+      // Attach decoded user to request object
       req.user = {
         ...payload,
         id: payload.sub,
@@ -53,7 +71,7 @@ export class JwtAuthGuard implements CanActivate {
 
       return true;
     } catch (err) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Invalid or expired token');
     }
   }
 }
