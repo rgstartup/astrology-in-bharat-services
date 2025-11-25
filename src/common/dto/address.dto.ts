@@ -17,7 +17,8 @@ export class AddressDto {
   @IsString()
   country: string;
 
-  @IsPostalCode()
+  // Allow any postal code format (handles numeric and mixed formats across countries)
+  @IsPostalCode('any')
   zipCode: string;
 
   @IsOptional()

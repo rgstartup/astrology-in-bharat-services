@@ -1,13 +1,15 @@
-import { Controller, Get, Patch, Post, Body } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Body , UseGuards } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import {
   CreateProfileExpertDto,
   UpdateProfileExpertDto,
 } from './dto/profile-expert.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/guards/jwt-auth.guard';
+import { IUser , JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
 @Controller('expert/profile')
+@UseGuards(JwtAuthGuard)
+
 export class ProfileController {
   constructor(private readonly expertProfileService: ProfileService) {}
 
@@ -31,4 +33,9 @@ export class ProfileController {
   ) {
     return this.expertProfileService.updateProfile(user, dto);
   }
+
+  // @Get('all')
+  // fetchAllProfiles() {
+  //   return this.expertProfileService.fetchAllProfiles();
+  // }
 }

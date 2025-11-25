@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,6 +17,7 @@ import { IUser } from '@/common/guards/jwt-auth.guard';
 
 @Injectable()
 export class ProfileService {
+  private readonly logger = new Logger(ProfileService.name);
   constructor(
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
@@ -36,9 +38,12 @@ export class ProfileService {
 
   async createProfile(user: IUser, dto: CreateProfileExpertDto) {
     // check if exists already
-    const exists = await this.profileRepo.findOne({
+    try{
+        const exists = await this.profileRepo.findOne({
       where: { user: { id: user.id } },
     });
+    console.log('createProfile called — user:', user);
+  console.log('createProfile - dto:', dto);
 
     if (exists) {
       throw new BadRequestException('Expert profile already exists');
@@ -48,10 +53,28 @@ export class ProfileService {
       ...dto,
       user: { id: user.id },
       addresses:
-        dto.addresses?.map((addr) => this.addressRepo.create(addr)) ?? [],
+        dto.addresses?.map((addr) =>
+          this.addressRepo.create({
+            // map DTO -> entity fields
+            street: [addr.line1, addr.line2].filter(Boolean).join(', '),
+            city: addr.city,
+            state: addr.state,
+            country: addr.country,
+            postal_code: addr.zipCode,
+          }),
+        ) ?? [],
     });
 
     return this.profileRepo.save(profile);
+
+    } catch (error) {
+       this.logger.error(
+        `Failed to create profile for user: `,
+        error.stack,
+      );
+      throw error;
+    }
+  
   }
 
   async updateProfile(user: IUser, dto: UpdateProfileExpertDto) {
@@ -65,10 +88,22 @@ export class ProfileService {
 
     if (dto.addresses) {
       profile.addresses = dto.addresses.map((addr) =>
-        this.addressRepo.create(addr),
+        this.addressRepo.create({
+          street: [addr.line1, addr.line2].filter(Boolean).join(', '),
+          city: addr.city,
+          state: addr.state,
+          country: addr.country,
+          postal_code: addr.zipCode,
+        }),
       );
     }
 
     return this.profileRepo.save(profile);
   }
+
+  // async fetchAllProfiles() {
+  //   return this.profileRepo.find();
+  // }
 }
+
+

@@ -1,11 +1,15 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Enable global exception filter
+  const httpAdapterHost = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
   app.enableCors({
     // Only allow requests from your frontend's exact origin
@@ -38,7 +42,9 @@ async function bootstrap() {
   );
 
   // Apply global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // Note: `AllExceptionsFilter` is already registered above and will catch and
+  // log all exceptions. Avoid re-registering another global filter here which
+  // could overwrite or suppress the catch-all logging.
 
   await app.listen(process.env.PORT ?? 4000);
 }
