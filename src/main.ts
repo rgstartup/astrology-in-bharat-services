@@ -6,6 +6,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import * as cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import helmet from 'helmet';
+import * as compression from 'compression';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -15,6 +18,10 @@ async function bootstrap() {
   });
 
   app.use(cookieParser()); // << IMPORTANT
+
+  // Security & Performance
+  app.use(helmet());
+  app.use(compression());
 
   app.enableCors({
     // Only allow requests from your frontend's exact origin
@@ -48,6 +55,16 @@ async function bootstrap() {
 
   // Apply global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Swagger Configuration
+  const config = new DocumentBuilder()
+    .setTitle('Astrology Service API')
+    .setDescription('The Astrology Service API description')
+    .setVersion('1.0')
+    .addCookieAuth('Authentication')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(process.env.PORT ?? 4000);
 }
