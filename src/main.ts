@@ -9,7 +9,7 @@ async function bootstrap() {
 
   app.enableCors({
     // Only allow requests from your frontend's exact origin
-    origin: 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
 
     // Specify the allowed methods (GET and POST are essential for registration)
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
