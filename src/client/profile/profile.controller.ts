@@ -74,7 +74,7 @@ export class ProfileController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.service.update(user.id, {
-      profile_picture: file.path,
+      profile_picture: file.path.replace(/\\/g, '/'),
     });
   }
 }
