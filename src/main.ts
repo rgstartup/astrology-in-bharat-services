@@ -1,7 +1,10 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import * as cookieParser from 'cookie-parser';  // 👈 add this
+
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import * as cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -23,17 +26,19 @@ async function bootstrap() {
   app.use(helmet());
   app.use(compression());
 
+  // Enable global exception filter
+  const httpAdapterHost = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
+
+  app.use(cookieParser());
+
   app.enableCors({
-    // Only allow requests from your frontend's exact origin
     origin: 'http://localhost:3000',
 
-    // Specify the allowed methods (GET and POST are essential for registration)
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 
-    // Allow headers like Content-Type (important for sending JSON)
     allowedHeaders: 'Content-Type, Accept',
 
-    // Set to true if your frontend needs to send cookies or authorization headers
     credentials: true,
   });
 
@@ -54,7 +59,9 @@ async function bootstrap() {
   );
 
   // Apply global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // Note: `AllExceptionsFilter` is already registered above and will catch and
+  // log all exceptions. Avoid re-registering another global filter here which
+  // could overwrite or suppress the catch-all logging.
 
   // Swagger Configuration
   const config = new DocumentBuilder()

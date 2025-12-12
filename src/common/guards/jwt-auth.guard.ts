@@ -38,24 +38,15 @@ export class JwtAuthGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest<Request>();
 
-    // Read tokens (header + cookies)
-    const bearerHeader = req.headers.authorization;
-    const cookieToken = req.cookies?.accessToken;
+    // Cookie-only auth
+    const cookies = (req as any).cookies || {};
 
-    let token: string | undefined;
+    // IMPORTANT: use your real cookie name here
+    const token = cookies.access_token || cookies.token || cookies.jwt;
 
-    // CASE 1 — Authorization header
-    if (bearerHeader && bearerHeader.startsWith('Bearer ')) {
-      token = bearerHeader.split(' ')[1];
-    }
-
-    // CASE 2 — Cookie-based token
-    if (!token && cookieToken) {
-      token = cookieToken;
-    }
-
-    // If no token found anywhere
     if (!token) {
+      // You can log once while debugging
+      console.log('JwtAuthGuard: cookies received =', cookies);
       throw new UnauthorizedException('Missing token');
     }
 
@@ -63,8 +54,7 @@ export class JwtAuthGuard implements CanActivate {
       // Verify token
       const payload = this.jwtService.verify<IPayload>(token);
 
-      // Attach decoded user to request object
-      req.user = {
+      (req as any).user = {
         ...payload,
         id: payload.sub,
       };

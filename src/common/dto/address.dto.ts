@@ -14,8 +14,8 @@ export class AddressDto {
   @IsString()
   country: string;
 
-  @IsString()
-  postal_code: string;
+  @IsPostalCode('any')
+  zipCode: string;
 
   @IsOptional()
   @IsEnum(AddressTag)

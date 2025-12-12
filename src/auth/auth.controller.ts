@@ -8,6 +8,7 @@ import {
   UseGuards,
   Query,
   Get,
+  Res, // 👈 added
 } from '@nestjs/common';
 
 import { AuthService } from './services/auth.service';
@@ -37,57 +38,31 @@ export class AuthController {
   ) {}
 
   @Post('email/register')
-  async register(
+  register(
     @Body() dto: RegisterDto,
     @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: Response, // 👈 pass Response
   ) {
-    const result = await this.authService.register(
+    return this.authService.register(
       dto,
       req.ip,
-      req.get('user-agent'),
+      req.get('user-agent') || undefined,
+      res, // 👈 send to service (so it can set cookies)
     );
-
-    // Set tokens as HttpOnly secure cookies
-    res.cookie(
-      COOKIE_NAMES.ACCESS_TOKEN,
-      result.accessToken,
-      getAccessTokenCookieOptions(),
-    );
-    res.cookie(
-      COOKIE_NAMES.REFRESH_TOKEN,
-      result.refreshToken,
-      getRefreshTokenCookieOptions(),
-    );
-
-    return result;
   }
 
   @Post('email/login')
-  async login(
+  login(
     @Body() dto: LoginDto,
     @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: Response, // 👈 pass Response
   ) {
-    const result = await this.authService.login(
+    return this.authService.login(
       dto,
       req.ip,
-      req.get('user-agent'),
+      req.get('user-agent') || undefined,
+      res, // 👈 send to service (so it can set cookies)
     );
-
-    // Set tokens as HttpOnly secure cookies
-    res.cookie(
-      COOKIE_NAMES.ACCESS_TOKEN,
-      result.accessToken,
-      getAccessTokenCookieOptions(),
-    );
-    res.cookie(
-      COOKIE_NAMES.REFRESH_TOKEN,
-      result.refreshToken,
-      getRefreshTokenCookieOptions(),
-    );
-
-    return result;
   }
 
   @Post('email/confirm')
@@ -110,42 +85,21 @@ export class AuthController {
     return this.authService.resetPassword(token, dto.password);
   }
 
-  @Post('refresh')
-  async refresh(
-    @CurrentUser('id') id: number,
-    @Body() dto: RefreshTokenDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const result = await this.tokenService.refreshTokens(id, dto.refreshToken);
 
-    // Set new tokens as HttpOnly secure cookies
-    res.cookie(
-      COOKIE_NAMES.ACCESS_TOKEN,
-      result.accessToken,
-      getAccessTokenCookieOptions(),
-    );
-    res.cookie(
-      COOKIE_NAMES.REFRESH_TOKEN,
-      result.refreshToken,
-      getRefreshTokenCookieOptions(),
-    );
 
-    return result;
+    @Post('refresh')
+  //  @UseGuards(JwtAuthGuard)
+  refresh(@CurrentUser('id') id: number, @Req() req: Request) {
+    const refreshToken = req.cookies?.refreshToken; // cookie name: refreshToken
+    return this.tokenService.refreshTokens(id, refreshToken);
   }
+
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  async logout(
-    @CurrentUser('id') id: number,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    await this.authService.logout(id);
-
-    // Clear cookies on logout
-    res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN);
-    res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN);
-
-    return { message: 'Logged out successfully' };
+  logout(@CurrentUser('id') id: number) {
+    return this.authService.logout(id);
+    // if you later add cookie clearing in AuthService.logout, you can also inject @Res here
   }
 
   @Post('magic/new')
