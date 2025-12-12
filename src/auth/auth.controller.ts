@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import {
   Controller,
   Post,
@@ -7,6 +7,7 @@ import {
   UseGuards,
   Query,
   Get,
+  Res, // 👈 added
 } from '@nestjs/common';
 
 import { AuthService } from './services/auth.service';
@@ -31,13 +32,31 @@ export class AuthController {
   ) {}
 
   @Post('email/register')
-  register(@Body() dto: RegisterDto, @Req() req: Request) {
-    return this.authService.register(dto, req.ip, req.get('user-agent'));
+  register(
+    @Body() dto: RegisterDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response, // 👈 pass Response
+  ) {
+    return this.authService.register(
+      dto,
+      req.ip,
+      req.get('user-agent') || undefined,
+      res, // 👈 send to service (so it can set cookies)
+    );
   }
 
   @Post('email/login')
-  login(@Body() dto: LoginDto, @Req() req: Request) {
-    return this.authService.login(dto, req.ip, req.get('user-agent'));
+  login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response, // 👈 pass Response
+  ) {
+    return this.authService.login(
+      dto,
+      req.ip,
+      req.get('user-agent') || undefined,
+      res, // 👈 send to service (so it can set cookies)
+    );
   }
 
   @Post('email/confirm')
@@ -60,15 +79,21 @@ export class AuthController {
     return this.authService.resetPassword(token, dto.password);
   }
 
-  @Post('refresh')
-  refresh(@CurrentUser('id') id: number, @Body() dto: RefreshTokenDto) {
-    return this.tokenService.refreshTokens(id, dto.refreshToken);
+
+
+    @Post('refresh')
+  //  @UseGuards(JwtAuthGuard)
+  refresh(@CurrentUser('id') id: number, @Req() req: Request) {
+    const refreshToken = req.cookies?.refreshToken; // cookie name: refreshToken
+    return this.tokenService.refreshTokens(id, refreshToken);
   }
+
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   logout(@CurrentUser('id') id: number) {
     return this.authService.logout(id);
+    // if you later add cookie clearing in AuthService.logout, you can also inject @Res here
   }
 
   @Post('magic/new')

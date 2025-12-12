@@ -58,6 +58,19 @@ export class QueryExpertDto {
   @IsString()
   languages?: string;
 
+  // Filter by price range
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  minPrice?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  maxPrice?: number;
+
   // Sorting: 'experience' | 'rating' | 'newest' | 'name'
   @IsOptional()
   @IsIn(['experience', 'rating', 'newest', 'name'])

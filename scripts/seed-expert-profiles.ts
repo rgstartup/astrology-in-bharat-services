@@ -82,6 +82,34 @@ function getRandomRating(): number {
   return parseFloat((Math.random() * 5).toFixed(1));
 }
 
+const languagesPool = [
+  'Hindi',
+  'English',
+  'Bengali',
+  'Tamil',
+  'Telugu',
+  'Marathi',
+  'Gujarati',
+  'Kannada',
+  'Malayalam',
+  'Punjabi',
+];
+
+function getRandomLanguages(): string[] {
+  const count = getRandomNumber(1, 3);
+  const chosen: string[] = [];
+  while (chosen.length < count) {
+    const lang = getRandomItem(languagesPool);
+    if (!chosen.includes(lang)) chosen.push(lang);
+  }
+  return chosen;
+}
+
+function getRandomPrice(min = 100, max = 2000): number {
+  // Price in rupees (or your app currency); integer
+  return getRandomNumber(min, max);
+}
+
 async function seedExpertProfiles() {
   try {
     await AppDataSource.initialize();
@@ -133,6 +161,7 @@ async function seedExpertProfiles() {
       }
 
       // Create profile
+      const chosenLangs = getRandomLanguages();
       const profile = profileRepo.create({
         user: { id: user.id },
         gender: getRandomItem(genders) as 'male' | 'female' | 'other',
@@ -140,6 +169,10 @@ async function seedExpertProfiles() {
         bio: getRandomItem(bioTemplates),
         experience_in_years: getRandomNumber(1, 25),
         rating: getRandomRating(),
+        // store as CSV to match existing entity column (text)
+        languages: chosenLangs.join(','),
+        // price between 1 and 100 as requested
+        price: getRandomPrice(1, 100),
       });
 
       const savedProfile = await profileRepo.save(profile);
@@ -147,11 +180,11 @@ async function seedExpertProfiles() {
       // Create addresses
       const location = getRandomItem(locations);
       const address = addressRepo.create({
-        street: `${getRandomNumber(1, 999)} ${['MG Road', 'Park Street', 'Main Street', 'High Street', 'Central Avenue'][Math.floor(Math.random() * 5)]}`,
+        line1: `${getRandomNumber(1, 999)} ${['MG Road', 'Park Street', 'Main Street', 'High Street', 'Central Avenue'][Math.floor(Math.random() * 5)]}`,
         city: location.city,
         state: location.state,
         country: 'India',
-        postal_code: location.zipCode,
+        zipCode: location.zipCode,
         tag: AddressTag.HOME,
         profile_expert: { id: savedProfile.id },
       });

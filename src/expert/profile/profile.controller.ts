@@ -6,6 +6,7 @@ import {
 } from './dto/profile-expert.dto';
 import { QueryExpertDto } from './dto/query-expert.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { Public } from '@/common/decorators/public.decorator';
 import { IUser , JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
 @Controller('expert/profile')
@@ -36,6 +37,7 @@ export class ProfileController {
   }
 
   @Get('list')
+  @Public()
   listExperts(@Query() query: QueryExpertDto) {
     return this.expertProfileService.listExperts(query);
   }

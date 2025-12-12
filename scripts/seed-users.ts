@@ -234,6 +234,36 @@ async function seedUsers() {
         password: await argon2.hash('password123'),
         emailVerified: true,
       },
+      {
+        email: 'marie.expert@example.com',
+        name: 'Marie Ortiz',
+        password: await argon2.hash('password123'),
+        emailVerified: true,
+      },
+      {
+        email: 'george.expert@example.com',
+        name: 'George Simmons',
+        password: await argon2.hash('password123'),
+        emailVerified: true,
+      },
+      {
+        email: 'olivia.expert@example.com',
+        name: 'Olivia Brooks',
+        password: await argon2.hash('password123'),
+        emailVerified: true,
+      },
+      {
+        email: 'nicholas.expert@example.com',
+        name: 'Nicholas Reed',
+        password: await argon2.hash('password123'),
+        emailVerified: true,
+      },
+      {
+        email: 'veronica.expert@example.com',
+        name: 'Veronica Price',
+        password: await argon2.hash('password123'),
+        emailVerified: true,
+      },
     ];
 
     const existingUsers = await userRepo.find();

@@ -1,7 +1,0 @@
- 
- 
- 
-//  profile
-//  async fetchAllProfiles() {
-//     return this.profileRepo.find();
-//   }

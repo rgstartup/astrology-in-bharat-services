@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import * as cookieParser from 'cookie-parser';  // 👈 add this
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,17 +13,15 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
+  app.use(cookieParser());
+
   app.enableCors({
-    // Only allow requests from your frontend's exact origin
     origin: 'http://localhost:3000',
 
-    // Specify the allowed methods (GET and POST are essential for registration)
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 
-    // Allow headers like Content-Type (important for sending JSON)
     allowedHeaders: 'Content-Type, Accept',
 
-    // Set to true if your frontend needs to send cookies or authorization headers
     credentials: true,
   });
 

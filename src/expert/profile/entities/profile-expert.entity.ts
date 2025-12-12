@@ -48,6 +48,12 @@ export class ProfileExpert {
   @Column({ type: 'float', default: 0 })
   rating: number;
 
+  @Column({ type: 'text', nullable: true })
+  languages?: string;
+
+  @Column({ type: 'float', nullable: true })
+  price?: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

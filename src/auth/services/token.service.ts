@@ -11,6 +11,7 @@ import { Credential } from '../entities/credential.entity';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from 'src/core/config/auth.config';
 import { BaseService } from 'src/common/services/transaction.service';
+import { UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class TokenService extends BaseService<Credential> {
@@ -66,7 +67,11 @@ export class TokenService extends BaseService<Credential> {
     return { accessToken, refreshToken: refreshTokenRaw };
   }
 
-  async refreshTokens(userId: number, refreshToken: string) {
+ async refreshTokens(userId: number, refreshToken?: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not provided');
+    }
+
     const creds = await this.credentialsRepo.find({
       where: { user: { id: userId }, type: 'refresh_token', revoked: false },
     });
@@ -77,7 +82,7 @@ export class TokenService extends BaseService<Credential> {
       if (valid) return this.generateTokens({ id: userId } as User);
     }
 
-    throw new Error('Invalid refresh token');
+    throw new UnauthorizedException('Invalid refresh token');
   }
 
   generate5MinToken<T extends object>(payload: T) {

@@ -29,7 +29,7 @@ export class ProfileService {
 
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-  ) {}
+  ) { }
 
   async getProfile(user: IUser) {
     const profile = await this.profileRepo.findOne({
@@ -43,43 +43,52 @@ export class ProfileService {
 
   async createProfile(user: IUser, dto: CreateProfileExpertDto) {
     // check if exists already
-    try{
-        const exists = await this.profileRepo.findOne({
-      where: { user: { id: user.id } },
-    });
-    console.log('createProfile called — user:', user);
-  console.log('createProfile - dto:', dto);
+    try {
+      const exists = await this.profileRepo.findOne({
+        where: { user: { id: user.id } },
+      });
+      console.log('createProfile called — user:', user);
+      console.log('createProfile - dto:', dto);
 
-    if (exists) {
-      throw new BadRequestException('Expert profile already exists');
-    }
+      if (exists) {
+        throw new BadRequestException('Expert profile already exists');
+      }
 
-    const profile = this.profileRepo.create({
-      ...dto,
-      user: { id: user.id },
-      addresses:
-        dto.addresses?.map((addr) =>
-          this.addressRepo.create({
-            // map DTO -> entity fields
-            street: [addr.line1, addr.line2].filter(Boolean).join(', '),
-            city: addr.city,
-            state: addr.state,
-            country: addr.country,
-            postal_code: addr.zipCode,
-          }),
-        ) ?? [],
-    });
+      const profileData: Partial<ProfileExpert> = {
+        user: { id: user.id } as any,
+        // map simple scalar fields explicitly to avoid type mismatches
+        gender: dto.gender,
+        specialization: dto.specialization,
+        bio: dto.bio,
+        experience_in_years: dto.experience_in_years,
+        // persist languages as CSV string to match entity column type
+        languages: dto.languages ? dto.languages.join(',') : undefined,
+        price: dto.price,
+        addresses:
+          dto.addresses?.map((addr) =>
+            this.addressRepo.create({
+              // map DTO -> entity fields
+              line1: [addr.line1, addr.line2].filter(Boolean).join(", "),
+              city: addr.city,
+              state: addr.state,
+              country: addr.country,
+              zipCode: addr.zipCode,
+            }),
+          ) ?? [],
+      };
 
-    return this.profileRepo.save(profile);
+      const profile = this.profileRepo.create(profileData as any);
+
+      return this.profileRepo.save(profile);
 
     } catch (error) {
-       this.logger.error(
+      this.logger.error(
         `Failed to create profile for user: `,
         error.stack,
       );
       throw error;
     }
-  
+
   }
 
   async updateProfile(user: IUser, dto: UpdateProfileExpertDto) {
@@ -89,16 +98,25 @@ export class ProfileService {
 
     if (!profile) throw new NotFoundException('Expert profile not found');
 
-    Object.assign(profile, dto);
+    // Apply updates but handle `languages` (string[]) -> CSV string explicitly
+    if (dto.gender !== undefined) profile.gender = dto.gender;
+    if (dto.specialization !== undefined) profile.specialization = dto.specialization;
+    if (dto.bio !== undefined) profile.bio = dto.bio;
+    if (dto.experience_in_years !== undefined) profile.experience_in_years = dto.experience_in_years;
+    if (dto.price !== undefined) profile.price = dto.price;
+
+    if ((dto as any).languages) {
+      profile.languages = (dto as any).languages.join(',');
+    }
 
     if (dto.addresses) {
-      profile.addresses = dto.addresses.map((addr) =>
+      profile.addresses = dto.addresses.map((addr: any) =>
         this.addressRepo.create({
-          street: [addr.line1, addr.line2].filter(Boolean).join(', '),
+          line1: [addr.line1, addr.line2].filter(Boolean).join(", "),
           city: addr.city,
           state: addr.state,
           country: addr.country,
-          postal_code: addr.zipCode,
+          zipCode: addr.zipCode,
         }),
       );
     }
@@ -108,178 +126,241 @@ export class ProfileService {
 
 
   async listExperts(query: QueryExpertDto) {
-      const limit = query.limit || 30;
-      const offset = query.offset || 0;
-      const sort = query.sort || 'newest';
-  
-      // Build WHERE conditions
-      const whereConditions: any[] = [];
-  
-      // Search by expert name
-      if (query.q && query.q.trim()) {
-        whereConditions.push({
-          user: {
-            name: ILike(`%${query.q}%`),
-          },
-        });
-      }
-  
-      // Filter by specialization (comma-separated)
-      if (query.specializations && query.specializations.trim()) {
-        const specs = query.specializations
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean);
-  
-        // Match if specialization contains any of these keywords
-        whereConditions.push(
-          ...specs.map((spec) => ({
-            specialization: ILike(`%${spec}%`),
-          })),
-        );
-      }
-  
-      // Filter by minimum rating
-      if (query.minRating && query.minRating > 0) {
-        whereConditions.push({
-          rating: MoreThanOrEqual(query.minRating),
-        });
-      }
-  
-      // Filter by minimum experience
-      if (query.minExperience && query.minExperience >= 0) {
-        whereConditions.push({
-          experience_in_years: MoreThanOrEqual(query.minExperience),
-        });
-      }
-  
-      // Build order by
-      let orderBy: any = { createdAt: 'DESC' }; // default: newest
-      if (sort === 'experience') {
-        orderBy = { experience_in_years: 'DESC' };
-      } else if (sort === 'rating') {
-        orderBy = { rating: 'DESC' };
-      } else if (sort === 'name') {
-        orderBy = { user: { name: 'ASC' } };
-      } else if (sort === 'newest') {
-        orderBy = { createdAt: 'DESC' };
-      }
-  
-      // Query experts with relations
-      let queryBuilder = this.profileRepo
-        .createQueryBuilder('profile')
-        .leftJoinAndSelect('profile.user', 'user')
-        .leftJoinAndSelect('profile.addresses', 'addresses');
-  
-      // Apply search by name
-      if (query.q && query.q.trim()) {
-        queryBuilder = queryBuilder.where('user.name ILIKE :name', {
-          name: `%${query.q}%`,
-        });
-      }
-  
-      // Apply specialization filter
-      if (query.specializations && query.specializations.trim()) {
-        const specs = query.specializations
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean);
-  
-        const specsConditions = specs
-          .map((_, idx) => `profile.specialization ILIKE :spec${idx}`)
-          .join(' OR ');
-  
-        const specParams: any = {};
-        specs.forEach((spec, idx) => {
-          specParams[`spec${idx}`] = `%${spec}%`;
-        });
-  
-        if (queryBuilder.expressionMap.wheres.length > 0) {
-          queryBuilder = queryBuilder.andWhere(`(${specsConditions})`, specParams);
-        } else {
-          queryBuilder = queryBuilder.where(`(${specsConditions})`, specParams);
-        }
-      }
-  
-      // Apply rating filter
-      if (query.minRating && query.minRating > 0) {
-        if (queryBuilder.expressionMap.wheres.length > 0) {
-          queryBuilder = queryBuilder.andWhere('profile.rating >= :minRating', {
-            minRating: query.minRating,
-          });
-        } else {
-          queryBuilder = queryBuilder.where('profile.rating >= :minRating', {
-            minRating: query.minRating,
-          });
-        }
-      }
-  
-      // Apply experience filter
-      if (query.minExperience && query.minExperience >= 0) {
-        if (queryBuilder.expressionMap.wheres.length > 0) {
-          queryBuilder = queryBuilder.andWhere(
-            'profile.experience_in_years >= :minExperience',
-            {
-              minExperience: query.minExperience,
-            },
-          );
-        } else {
-          queryBuilder = queryBuilder.where(
-            'profile.experience_in_years >= :minExperience',
-            {
-              minExperience: query.minExperience,
-            },
-          );
-        }
-      }
-  
-      // Apply location filter (search in addresses.city)
-      if (query.location && query.location.trim()) {
-        if (queryBuilder.expressionMap.wheres.length > 0) {
-          queryBuilder = queryBuilder.andWhere(
-            'addresses.city ILIKE :location',
-            {
-              location: `%${query.location}%`,
-            },
-          );
-        } else {
-          queryBuilder = queryBuilder.where('addresses.city ILIKE :location', {
-            location: `%${query.location}%`,
-          });
-        }
-      }
-  
-      // Apply sorting
-      if (sort === 'experience') {
-        queryBuilder = queryBuilder.orderBy(
-          'profile.experience_in_years',
-          'DESC',
-        );
-      } else if (sort === 'rating') {
-        queryBuilder = queryBuilder.orderBy('profile.rating', 'DESC');
-      } else if (sort === 'name') {
-        queryBuilder = queryBuilder.orderBy('user.name', 'ASC');
-      } else {
-        // default: newest
-        queryBuilder = queryBuilder.orderBy('profile.createdAt', 'DESC');
-      }
-  
-      // Apply pagination
-      const [experts, total] = await queryBuilder
-        .skip(offset)
-        .take(limit)
-        .getManyAndCount();
-  
-      return {
-        data: experts,
-        pagination: {
-          limit,
-          offset,
-          total,
-          hasMore: offset + limit < total,
+    const limit = query.limit || 20;
+    const offset = query.offset || 0;
+    const sort = query.sort || 'newest';
+
+    // Build WHERE conditions
+    const whereConditions: any[] = [];
+
+    // Search by expert name
+    if (query.q && query.q.trim()) {
+      whereConditions.push({
+        user: {
+          name: ILike(`%${query.q}%`),
         },
-      };
+      });
     }
+
+    // Filter by specialization (comma-separated)
+    if (query.specializations && query.specializations.trim()) {
+      const specs = query.specializations
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      // Match if specialization contains any of these keywords
+      whereConditions.push(
+        ...specs.map((spec) => ({
+          specialization: ILike(`%${spec}%`),
+        })),
+      );
+    }
+
+    // Filter by minimum rating
+    if (query.minRating && query.minRating > 0) {
+      whereConditions.push({
+        rating: MoreThanOrEqual(query.minRating),
+      });
+    }
+
+    // Filter by minimum experience
+    if (query.minExperience && query.minExperience >= 0) {
+      whereConditions.push({
+        experience_in_years: MoreThanOrEqual(query.minExperience),
+      });
+    }
+
+    // Build order by
+    let orderBy: any = { createdAt: 'DESC' }; // default: newest
+    if (sort === 'experience') {
+      orderBy = { experience_in_years: 'DESC' };
+    } else if (sort === 'rating') {
+      orderBy = { rating: 'DESC' };
+    } else if (sort === 'name') {
+      orderBy = { user: { name: 'ASC' } };
+    } else if (sort === 'newest') {
+      orderBy = { createdAt: 'DESC' };
+    }
+
+    // Query experts with relations
+    let queryBuilder = this.profileRepo
+      .createQueryBuilder('profile')
+      .leftJoinAndSelect('profile.user', 'user')
+      .leftJoinAndSelect('profile.addresses', 'addresses');
+
+    // Apply search by name
+    if (query.q && query.q.trim()) {
+      queryBuilder = queryBuilder.where('user.name ILIKE :name', {
+        name: `%${query.q}%`,
+      });
+    }
+
+    // Apply specialization filter
+    if (query.specializations && query.specializations.trim()) {
+      const specs = query.specializations
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const specsConditions = specs
+        .map((_, idx) => `profile.specialization ILIKE :spec${idx}`)
+        .join(' OR ');
+
+      const specParams: any = {};
+      specs.forEach((spec, idx) => {
+        specParams[`spec${idx}`] = `%${spec}%`;
+      });
+
+      if (queryBuilder.expressionMap.wheres.length > 0) {
+        queryBuilder = queryBuilder.andWhere(`(${specsConditions})`, specParams);
+      } else {
+        queryBuilder = queryBuilder.where(`(${specsConditions})`, specParams);
+      }
+    }
+
+    // Apply rating filter
+    if (query.minRating && query.minRating > 0) {
+      if (queryBuilder.expressionMap.wheres.length > 0) {
+        queryBuilder = queryBuilder.andWhere('profile.rating >= :minRating', {
+          minRating: query.minRating,
+        });
+      } else {
+        queryBuilder = queryBuilder.where('profile.rating >= :minRating', {
+          minRating: query.minRating,
+        });
+      }
+    }
+
+    // Apply price filters
+    if (query.minPrice !== undefined && query.maxPrice !== undefined) {
+      // both bounds
+      if (queryBuilder.expressionMap.wheres.length > 0) {
+        queryBuilder = queryBuilder.andWhere('profile.price BETWEEN :minPrice AND :maxPrice', {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+        });
+      } else {
+        queryBuilder = queryBuilder.where('profile.price BETWEEN :minPrice AND :maxPrice', {
+          minPrice: query.minPrice,
+          maxPrice: query.maxPrice,
+        });
+      }
+    } else if (query.minPrice !== undefined) {
+      if (queryBuilder.expressionMap.wheres.length > 0) {
+        queryBuilder = queryBuilder.andWhere('profile.price >= :minPrice', {
+          minPrice: query.minPrice,
+        });
+      } else {
+        queryBuilder = queryBuilder.where('profile.price >= :minPrice', {
+          minPrice: query.minPrice,
+        });
+      }
+    } else if (query.maxPrice !== undefined) {
+      if (queryBuilder.expressionMap.wheres.length > 0) {
+        queryBuilder = queryBuilder.andWhere('profile.price <= :maxPrice', {
+          maxPrice: query.maxPrice,
+        });
+      } else {
+        queryBuilder = queryBuilder.where('profile.price <= :maxPrice', {
+          maxPrice: query.maxPrice,
+        });
+      }
+    }
+
+    // Apply experience filter
+    if (query.minExperience && query.minExperience >= 0) {
+      if (queryBuilder.expressionMap.wheres.length > 0) {
+        queryBuilder = queryBuilder.andWhere(
+          'profile.experience_in_years >= :minExperience',
+          {
+            minExperience: query.minExperience,
+          },
+        );
+      } else {
+        queryBuilder = queryBuilder.where(
+          'profile.experience_in_years >= :minExperience',
+          {
+            minExperience: query.minExperience,
+          },
+        );
+      }
+    }
+
+    // Apply location filter (search in addresses.city)
+    if (query.location && query.location.trim()) {
+      if (queryBuilder.expressionMap.wheres.length > 0) {
+        queryBuilder = queryBuilder.andWhere(
+          'addresses.city ILIKE :location',
+          {
+            location: `%${query.location}%`,
+          },
+        );
+      } else {
+        queryBuilder = queryBuilder.where('addresses.city ILIKE :location', {
+          location: `%${query.location}%`,
+        });
+      }
+    }
+
+    // Apply languages filter (comma-separated)
+    if (query.languages && query.languages.trim()) {
+      const langs = query.languages
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const langConditions = langs
+        .map((_, idx) => `profile.languages ILIKE :lang${idx}`)
+        .join(' OR ');
+
+      const langParams: any = {};
+      langs.forEach((lang, idx) => {
+        langParams[`lang${idx}`] = `%${lang}%`;
+      });
+
+      if (queryBuilder.expressionMap.wheres.length > 0) {
+        queryBuilder = queryBuilder.andWhere(`(${langConditions})`, langParams);
+      } else {
+        queryBuilder = queryBuilder.where(`(${langConditions})`, langParams);
+      }
+    }
+
+    // Apply sorting
+    if (sort === 'experience') {
+      queryBuilder = queryBuilder.orderBy(
+        'profile.experience_in_years',
+        'DESC',
+      );
+    } else if (sort === 'rating') {
+      queryBuilder = queryBuilder.orderBy('profile.rating', 'DESC');
+    } else if (sort === 'name') {
+      queryBuilder = queryBuilder.orderBy('user.name', 'ASC');
+    } else {
+      // default: newest
+      queryBuilder = queryBuilder.orderBy('profile.createdAt', 'DESC');
+    }
+
+    // Apply pagination
+    const [experts, total] = await queryBuilder.skip(offset).take(limit).getManyAndCount();
+
+    // convert stored CSV languages -> string[] for API consumers
+    const mapped = experts.map((ex) => {
+      const plain = { ...ex } as any;
+      plain.languages = ex.languages ? ex.languages.split(',').map((s) => s.trim()).filter(Boolean) : [];
+      return plain;
+    });
+
+    return {
+      data: mapped,
+      pagination: {
+        limit,
+        offset,
+        total,
+        hasMore: offset + limit < total,
+      },
+    };
+  }
 
   // async fetchAllProfiles() {
   //   return this.profileRepo.find();

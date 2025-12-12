@@ -31,7 +31,7 @@ export class ProfileExpertDto {
 
   @IsNumber()
   @Min(0)
-  experience_in_years: number;
+  experience_in_years: number;v
 
   @IsOptional()
   @IsDateString()
@@ -42,6 +42,17 @@ export class ProfileExpertDto {
   @ValidateNested({ each: true })
   @Type(() => AddressDto)
   addresses?: AddressDto[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  languages?: string[];
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  price?: number;
 }
 
 export class CreateProfileExpertDto extends ProfileExpertDto {}

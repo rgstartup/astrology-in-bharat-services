@@ -12,7 +12,7 @@ export class ProfileService {
   constructor(
     @InjectRepository(ProfileClient)
     private repo: Repository<ProfileClient>,
-  ) {}
+  ) { }
 
   async findByUserId(user_id: number) {
     return this.repo.findOne({
@@ -28,6 +28,14 @@ export class ProfileService {
     const profile = this.repo.create({
       ...dto,
       user: { id: user_id },
+      addresses: dto.addresses?.map((addr) => ({
+        line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
+        city: addr.city,
+        state: addr.state,
+        country: addr.country,
+        zipCode: addr.zipCode,
+        // map other fields if necessary
+      })),
     });
 
     return this.repo.save(profile);
@@ -38,6 +46,18 @@ export class ProfileService {
     if (!profile) throw new NotFoundException('Profile not found');
 
     Object.assign(profile, dto);
+
+    // Handle address mapping manually to preserve line2
+    if (dto.addresses) {
+      profile.addresses = dto.addresses.map((addr) => ({
+        line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
+        city: addr.city,
+        state: addr.state,
+        country: addr.country,
+        zipCode: addr.zipCode,
+      } as any)); // cast to any or Address if import available
+    }
+
     return this.repo.save(profile);
   }
 }
