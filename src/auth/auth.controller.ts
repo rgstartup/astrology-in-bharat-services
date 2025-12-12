@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Req,
+  Res,
   UseGuards,
   Query,
   Get,
@@ -20,6 +21,11 @@ import {
   ResetPasswordDto,
   SendMagicLinkDto,
 } from './dto/register.dto';
+import {
+  getAccessTokenCookieOptions,
+  getRefreshTokenCookieOptions,
+  COOKIE_NAMES,
+} from './helpers/cookie.helper';
 
 @Controller({
   path: 'auth',
@@ -102,11 +108,29 @@ export class AuthController {
   }
 
   @Get('magic/login')
-  magicLinkLogin(@Query('token') token: string, @Req() req: Request) {
-    return this.authService.magicLinkLogin(
+  async magicLinkLogin(
+    @Query('token') token: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.magicLinkLogin(
       token,
       req.ip,
       req.get('user-agent'),
     );
+
+    // Set tokens as HttpOnly secure cookies
+    res.cookie(
+      COOKIE_NAMES.ACCESS_TOKEN,
+      result.accessToken,
+      getAccessTokenCookieOptions(),
+    );
+    res.cookie(
+      COOKIE_NAMES.REFRESH_TOKEN,
+      result.refreshToken,
+      getRefreshTokenCookieOptions(),
+    );
+
+    return result;
   }
 }

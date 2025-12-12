@@ -33,11 +33,17 @@ export class ProfileClient {
   })
   gender: 'male' | 'female' | 'other';
 
-  //   @Column({ nullable: true })
-  //   phone?: string;
+  @Column({ nullable: true })
+  phone?: string;
 
   @Column({ nullable: true })
   preferences?: string;
+
+  @Column({ nullable: true })
+  language_preference?: string;
+
+  @Column({ nullable: true })
+  profile_picture?: string;
 
   @OneToMany(() => Address, (address) => address.profile_client, {
     cascade: true,

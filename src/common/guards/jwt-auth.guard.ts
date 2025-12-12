@@ -24,10 +24,11 @@ export interface IUser extends Omit<IPayload, 'sub'> {
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private reflector: Reflector,
+    private readonly reflector: Reflector,
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
+    // Check if route is public
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [
       context.getHandler(),
       context.getClass(),
@@ -50,6 +51,7 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
+      // Verify token
       const payload = this.jwtService.verify<IPayload>(token);
 
       (req as any).user = {
@@ -59,7 +61,7 @@ export class JwtAuthGuard implements CanActivate {
 
       return true;
     } catch (err) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Invalid or expired token');
     }
   }
 }
