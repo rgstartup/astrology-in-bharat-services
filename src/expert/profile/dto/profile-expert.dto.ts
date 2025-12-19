@@ -31,7 +31,7 @@ export class ProfileExpertDto {
 
   @IsNumber()
   @Min(0)
-  experience_in_years: number;v
+  experience_in_years: number;
 
   @IsOptional()
   @IsDateString()

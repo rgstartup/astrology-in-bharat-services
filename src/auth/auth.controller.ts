@@ -8,7 +8,6 @@ import {
   UseGuards,
   Query,
   Get,
-  Res, // 👈 added
 } from '@nestjs/common';
 
 import { AuthService } from './services/auth.service';
@@ -85,15 +84,12 @@ export class AuthController {
     return this.authService.resetPassword(token, dto.password);
   }
 
-
-
-    @Post('refresh')
+  @Post('refresh')
   //  @UseGuards(JwtAuthGuard)
   refresh(@CurrentUser('id') id: number, @Req() req: Request) {
     const refreshToken = req.cookies?.refreshToken; // cookie name: refreshToken
     return this.tokenService.refreshTokens(id, refreshToken);
   }
-
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)

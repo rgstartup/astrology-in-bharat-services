@@ -3,10 +3,8 @@ import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import * as cookieParser from 'cookie-parser';  // 👈 add this
-
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import * as cookieParser from 'cookie-parser';
+
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
@@ -20,7 +18,7 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  app.use(cookieParser()); // << IMPORTANT
+  app.use(cookieParser());
 
   // Security & Performance
   app.use(helmet());
@@ -29,8 +27,6 @@ async function bootstrap() {
   // Enable global exception filter
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
-
-  app.use(cookieParser());
 
   app.enableCors({
     origin: 'http://localhost:3000',

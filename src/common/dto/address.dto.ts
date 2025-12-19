@@ -1,9 +1,13 @@
-import { IsOptional, IsString, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsPostalCode } from 'class-validator';
 import { AddressTag } from '../entities/address.entity';
 
 export class AddressDto {
   @IsString()
-  street: string;
+  line1: string;
+
+  @IsOptional()
+  @IsString()
+  line2?: string;
 
   @IsString()
   city: string;

@@ -15,7 +15,6 @@ export class ProfileService extends BaseService<ProfileClient> {
   constructor(
     @InjectRepository(ProfileClient)
     private repo: Repository<ProfileClient>,
-  ) { }
     @InjectRepository(User)
     private userRepo: Repository<User>,
   ) {
@@ -61,32 +60,27 @@ export class ProfileService extends BaseService<ProfileClient> {
     const profile = await this.findByUserId(user_id);
     if (!profile) throw new NotFoundException('Profile not found');
 
-    Object.assign(profile, dto);
-
-    // Handle address mapping manually to preserve line2
-    if (dto.addresses) {
-      profile.addresses = dto.addresses.map((addr) => ({
-        line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
-        city: addr.city,
-        state: addr.state,
-        country: addr.country,
-        zipCode: addr.zipCode,
-      } as any)); // cast to any or Address if import available
-    }
-
-    return this.repo.save(profile);
     const { full_name, ...profileData } = dto;
 
     if (full_name) {
       await this.userRepo.update(user_id, { name: full_name });
     }
 
-    // Ensure all fields are assigned
-    Object.assign(profile, {
-      ...profileData,
-      phone: dto.phone,
-      preferences: dto.preferences,
-    });
+    Object.assign(profile, profileData);
+
+    // Handle address mapping manually to preserve line2
+    if (dto.addresses) {
+      profile.addresses = dto.addresses.map(
+        (addr) =>
+          ({
+            line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
+            city: addr.city,
+            state: addr.state,
+            country: addr.country,
+            zipCode: addr.zipCode,
+          }) as any,
+      ); // cast to any or Address if import available
+    }
 
     await this.repo.save(profile);
     return this.findByUserId(user_id);
