@@ -1,9 +1,10 @@
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import {
   Controller,
   Post,
   Body,
   Req,
+  Res,
   UseGuards,
   Query,
   Get,
@@ -19,6 +20,11 @@ import {
   ResetPasswordDto,
   SendMagicLinkDto,
 } from './dto/register.dto';
+import {
+  getAccessTokenCookieOptions,
+  getRefreshTokenCookieOptions,
+  COOKIE_NAMES,
+} from './helpers/cookie.helper';
 
 @Controller({
   path: 'auth',
@@ -31,13 +37,31 @@ export class AuthController {
   ) {}
 
   @Post('email/register')
-  register(@Body() dto: RegisterDto, @Req() req: Request) {
-    return this.authService.register(dto, req.ip, req.get('user-agent'));
+  register(
+    @Body() dto: RegisterDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response, // 👈 pass Response
+  ) {
+    return this.authService.register(
+      dto,
+      req.ip,
+      req.get('user-agent') || undefined,
+      res, // 👈 send to service (so it can set cookies)
+    );
   }
 
   @Post('email/login')
-  login(@Body() dto: LoginDto, @Req() req: Request) {
-    return this.authService.login(dto, req.ip, req.get('user-agent'));
+  login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response, // 👈 pass Response
+  ) {
+    return this.authService.login(
+      dto,
+      req.ip,
+      req.get('user-agent') || undefined,
+      res, // 👈 send to service (so it can set cookies)
+    );
   }
 
   @Post('email/confirm')
@@ -61,14 +85,17 @@ export class AuthController {
   }
 
   @Post('refresh')
-  refresh(@CurrentUser('id') id: number, @Body() dto: RefreshTokenDto) {
-    return this.tokenService.refreshTokens(id, dto.refreshToken);
+  //  @UseGuards(JwtAuthGuard)
+  refresh(@CurrentUser('id') id: number, @Req() req: Request) {
+    const refreshToken = req.cookies?.refreshToken; // cookie name: refreshToken
+    return this.tokenService.refreshTokens(id, refreshToken);
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   logout(@CurrentUser('id') id: number) {
     return this.authService.logout(id);
+    // if you later add cookie clearing in AuthService.logout, you can also inject @Res here
   }
 
   @Post('magic/new')
@@ -77,11 +104,29 @@ export class AuthController {
   }
 
   @Get('magic/login')
-  magicLinkLogin(@Query('token') token: string, @Req() req: Request) {
-    return this.authService.magicLinkLogin(
+  async magicLinkLogin(
+    @Query('token') token: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.magicLinkLogin(
       token,
       req.ip,
       req.get('user-agent'),
     );
+
+    // Set tokens as HttpOnly secure cookies
+    res.cookie(
+      COOKIE_NAMES.ACCESS_TOKEN,
+      result.accessToken,
+      getAccessTokenCookieOptions(),
+    );
+    res.cookie(
+      COOKIE_NAMES.REFRESH_TOKEN,
+      result.refreshToken,
+      getRefreshTokenCookieOptions(),
+    );
+
+    return result;
   }
 }

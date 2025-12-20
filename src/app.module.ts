@@ -8,6 +8,9 @@ import { RolesModule } from './role/roles.module';
 import { NotificationModule } from './notification/notification.module';
 import { ClientModule } from './client/client.module';
 import { ExpertModule } from './expert/expert.module';
+import { QuotesModule } from './quotes/quotes.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -18,6 +21,19 @@ import { ExpertModule } from './expert/expert.module';
     NotificationModule,
     ClientModule,
     ExpertModule,
+    QuotesModule,
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

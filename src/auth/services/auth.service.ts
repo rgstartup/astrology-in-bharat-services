@@ -21,6 +21,9 @@ import {
 import { JsonWebTokenError } from '@nestjs/jwt';
 import { UsedTokensService } from './used-tokens.service';
 
+// 👇 ADD THIS
+import { Response } from 'express';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -32,7 +35,15 @@ export class AuthService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async register(dto: RegisterDto, ip?: string, userAgent?: string) {
+  // ---------------------------
+  // REGISTER with cookies
+  // ---------------------------
+  async register(
+    dto: RegisterDto,
+    ip?: string,
+    userAgent?: string,
+    res?: Response, // 👈 get Response from controller
+  ) {
     const existingUser = await this.usersService.findByEmail(dto.email);
 
     if (existingUser) {
@@ -46,11 +57,14 @@ export class AuthService {
     const formattedRoles = roles.map((r) => ({
       name: r,
     }));
-    return await this.db.transaction(async (queryRunner) => {
+
+    // 👇 return user + tokens from transaction
+    const { user, tokens } = await this.db.transaction(async (queryRunner) => {
       const user = await this.usersService.create(
         { ...registerDto, roles: formattedRoles, password: hashed },
         queryRunner,
       );
+
       const tokens = await this.tokenService.generateTokens(
         user,
         ip,
@@ -74,8 +88,16 @@ export class AuthService {
         ),
       );
 
-      return instanceToPlain({ user, ...tokens });
+      return { user, tokens };
     });
+
+    // 👇 set cookies (if Response passed)
+    if (res) {
+      this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+    }
+
+    // you can still return the user (tokens not needed on frontend)
+    return instanceToPlain({ user });
   }
 
   async validateUser(email: string, password: string) {
@@ -88,20 +110,31 @@ export class AuthService {
     return user;
   }
 
-  async login(dto: LoginDto, ip?: string, userAgent?: string) {
+  // ---------------------------
+  // LOGIN with cookies
+  // ---------------------------
+  async login(
+    dto: LoginDto,
+    ip?: string,
+    userAgent?: string,
+    res?: Response, // 👈 get Response from controller
+  ) {
     const user = await this.validateUser(dto.email, dto.password);
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
-    return instanceToPlain({ user, ...tokens });
+
+    if (res) {
+      this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+    }
+
+    // just return user, tokens are already in cookies
+    return instanceToPlain({ user });
   }
 
   async oauthLogin(dto: OAuthUserDto, ip?: string, userAgent?: string) {
-    // Find or create the user based on OAuth info
     const user = await this.oauthService.findOrCreateUserFromOAuth(dto);
-
-    // Generate tokens for the user (access + refresh)
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
-    return { user, ...tokens };
+    return { user, ...tokens }; // (you can also move this to cookies later)
   }
 
   async logout(id: number) {
@@ -275,6 +308,7 @@ export class AuthService {
       );
 
       return instanceToPlain({ user, ...tokens });
+      // 👉 you can also switch this to cookies later if you want
     } catch (error) {
       if (error instanceof JsonWebTokenError) {
         throw new BadRequestException('Invalid or expired token');
@@ -290,5 +324,32 @@ export class AuthService {
     if (!usedToken) return;
 
     throw new BadRequestException('Token already used');
+  }
+
+  // ---------------------------
+  // NEW: cookie helper
+  // ---------------------------
+  private setAuthCookies(
+    res: Response,
+    accessToken: string,
+    refreshToken: string,
+  ) {
+    const isProd = process.env.NODE_ENV === 'production';
+
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      path: '/',
+    });
+
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    });
   }
 }

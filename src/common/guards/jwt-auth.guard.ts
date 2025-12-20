@@ -24,10 +24,11 @@ export interface IUser extends Omit<IPayload, 'sub'> {
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private reflector: Reflector,
+    private readonly reflector: Reflector,
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
+    // Check if route is public
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [
       context.getHandler(),
       context.getClass(),
@@ -36,24 +37,31 @@ export class JwtAuthGuard implements CanActivate {
     if (isPublic) return true;
 
     const req = context.switchToHttp().getRequest<Request>();
-    const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Cookie-only auth
+    const cookies = (req as any).cookies || {};
+
+    // IMPORTANT: use your real cookie name here
+    const token = cookies.access_token || cookies.token || cookies.jwt;
+
+    if (!token) {
+      // You can log once while debugging
+      console.log('JwtAuthGuard: cookies received =', cookies);
       throw new UnauthorizedException('Missing token');
     }
 
-    const token = authHeader.split(' ')[1];
-
     try {
+      // Verify token
       const payload = this.jwtService.verify<IPayload>(token);
-      req.user = {
+
+      (req as any).user = {
         ...payload,
         id: payload.sub,
       };
 
       return true;
     } catch (err) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Invalid or expired token');
     }
   }
 }
