@@ -3,15 +3,7 @@ import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-<<<<<<< HEAD
-import * as cookieParser from 'cookie-parser'; // 👈 add this
-
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-// import * as cookieParser from 'cookie-parser';
-=======
 import * as cookieParser from 'cookie-parser';
-
->>>>>>> b17a86780fbf7c57b3e3d48016f4d74752f2e8b3
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';

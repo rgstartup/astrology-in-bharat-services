@@ -67,15 +67,6 @@ export class ProfileService extends BaseService<ProfileClient> {
       await this.userRepo.update(user_id, { name: full_name });
     }
 
-<<<<<<< HEAD
-    // Ensure all fields are assigned, including addresses mapping
-    Object.assign(profile, profileData);
-
-    if (dto.addresses) {
-      profile.addresses = dto.addresses.map(
-        (addr): Address =>
-          this.repo.manager.create(Address, {
-=======
     Object.assign(profile, profileData);
 
     // Handle address mapping manually to preserve line2
@@ -83,19 +74,13 @@ export class ProfileService extends BaseService<ProfileClient> {
       profile.addresses = dto.addresses.map(
         (addr) =>
           ({
->>>>>>> b17a86780fbf7c57b3e3d48016f4d74752f2e8b3
             line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
             city: addr.city,
             state: addr.state,
             country: addr.country,
             zipCode: addr.zipCode,
-<<<<<<< HEAD
-          }),
-      );
-=======
           }) as any,
       ); // cast to any or Address if import available
->>>>>>> b17a86780fbf7c57b3e3d48016f4d74752f2e8b3
     }
 
     await this.repo.save(profile);
