@@ -3,10 +3,15 @@ import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import * as cookieParser from 'cookie-parser';  // 👈 add this
+<<<<<<< HEAD
+import * as cookieParser from 'cookie-parser'; // 👈 add this
 
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+// import * as cookieParser from 'cookie-parser';
+=======
 import * as cookieParser from 'cookie-parser';
+
+>>>>>>> b17a86780fbf7c57b3e3d48016f4d74752f2e8b3
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
@@ -20,7 +25,7 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  app.use(cookieParser()); // << IMPORTANT
+  app.use(cookieParser());
 
   // Security & Performance
   app.use(helmet());
@@ -30,10 +35,9 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
-  app.use(cookieParser());
-
   app.enableCors({
-    origin: 'http://localhost:3000',
+    // Only allow requests from your frontend's exact origin
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
 
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 

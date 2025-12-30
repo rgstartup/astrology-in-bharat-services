@@ -75,7 +75,7 @@ export class UsersService extends BaseService<User> {
   // 🔹 Update user
   async update(id: number, dto: Partial<CreateUserDto>): Promise<User> {
     await this.usersRepo.update(id, dto);
-    return this.findById(id) as Promise<User>;
+    return this.findById(id);
   }
 
   // 🔹 Remove user

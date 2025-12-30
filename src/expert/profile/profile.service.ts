@@ -2,7 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  Logger
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike, MoreThanOrEqual } from 'typeorm';
@@ -29,7 +29,7 @@ export class ProfileService {
 
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-  ) { }
+  ) {}
 
   async getProfile(user: IUser) {
     const profile = await this.profileRepo.findOne({
@@ -68,7 +68,7 @@ export class ProfileService {
           dto.addresses?.map((addr) =>
             this.addressRepo.create({
               // map DTO -> entity fields
-              line1: [addr.line1, addr.line2].filter(Boolean).join(", "),
+              line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
               city: addr.city,
               state: addr.state,
               country: addr.country,
@@ -80,15 +80,10 @@ export class ProfileService {
       const profile = this.profileRepo.create(profileData as any);
 
       return this.profileRepo.save(profile);
-
     } catch (error) {
-      this.logger.error(
-        `Failed to create profile for user: `,
-        error.stack,
-      );
+      this.logger.error(`Failed to create profile for user: `, error.stack);
       throw error;
     }
-
   }
 
   async updateProfile(user: IUser, dto: UpdateProfileExpertDto) {
@@ -100,9 +95,11 @@ export class ProfileService {
 
     // Apply updates but handle `languages` (string[]) -> CSV string explicitly
     if (dto.gender !== undefined) profile.gender = dto.gender;
-    if (dto.specialization !== undefined) profile.specialization = dto.specialization;
+    if (dto.specialization !== undefined)
+      profile.specialization = dto.specialization;
     if (dto.bio !== undefined) profile.bio = dto.bio;
-    if (dto.experience_in_years !== undefined) profile.experience_in_years = dto.experience_in_years;
+    if (dto.experience_in_years !== undefined)
+      profile.experience_in_years = dto.experience_in_years;
     if (dto.price !== undefined) profile.price = dto.price;
 
     if ((dto as any).languages) {
@@ -112,7 +109,7 @@ export class ProfileService {
     if (dto.addresses) {
       profile.addresses = dto.addresses.map((addr: any) =>
         this.addressRepo.create({
-          line1: [addr.line1, addr.line2].filter(Boolean).join(", "),
+          line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
           city: addr.city,
           state: addr.state,
           country: addr.country,
@@ -123,7 +120,6 @@ export class ProfileService {
 
     return this.profileRepo.save(profile);
   }
-
 
   async listExperts(query: QueryExpertDto) {
     const limit = query.limit || 20;
@@ -213,7 +209,10 @@ export class ProfileService {
       });
 
       if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere(`(${specsConditions})`, specParams);
+        queryBuilder = queryBuilder.andWhere(
+          `(${specsConditions})`,
+          specParams,
+        );
       } else {
         queryBuilder = queryBuilder.where(`(${specsConditions})`, specParams);
       }
@@ -236,15 +235,21 @@ export class ProfileService {
     if (query.minPrice !== undefined && query.maxPrice !== undefined) {
       // both bounds
       if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere('profile.price BETWEEN :minPrice AND :maxPrice', {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-        });
+        queryBuilder = queryBuilder.andWhere(
+          'profile.price BETWEEN :minPrice AND :maxPrice',
+          {
+            minPrice: query.minPrice,
+            maxPrice: query.maxPrice,
+          },
+        );
       } else {
-        queryBuilder = queryBuilder.where('profile.price BETWEEN :minPrice AND :maxPrice', {
-          minPrice: query.minPrice,
-          maxPrice: query.maxPrice,
-        });
+        queryBuilder = queryBuilder.where(
+          'profile.price BETWEEN :minPrice AND :maxPrice',
+          {
+            minPrice: query.minPrice,
+            maxPrice: query.maxPrice,
+          },
+        );
       }
     } else if (query.minPrice !== undefined) {
       if (queryBuilder.expressionMap.wheres.length > 0) {
@@ -290,12 +295,9 @@ export class ProfileService {
     // Apply location filter (search in addresses.city)
     if (query.location && query.location.trim()) {
       if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere(
-          'addresses.city ILIKE :location',
-          {
-            location: `%${query.location}%`,
-          },
-        );
+        queryBuilder = queryBuilder.andWhere('addresses.city ILIKE :location', {
+          location: `%${query.location}%`,
+        });
       } else {
         queryBuilder = queryBuilder.where('addresses.city ILIKE :location', {
           location: `%${query.location}%`,
@@ -342,12 +344,20 @@ export class ProfileService {
     }
 
     // Apply pagination
-    const [experts, total] = await queryBuilder.skip(offset).take(limit).getManyAndCount();
+    const [experts, total] = await queryBuilder
+      .skip(offset)
+      .take(limit)
+      .getManyAndCount();
 
     // convert stored CSV languages -> string[] for API consumers
     const mapped = experts.map((ex) => {
       const plain = { ...ex } as any;
-      plain.languages = ex.languages ? ex.languages.split(',').map((s) => s.trim()).filter(Boolean) : [];
+      plain.languages = ex.languages
+        ? ex.languages
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
       return plain;
     });
 
@@ -366,5 +376,3 @@ export class ProfileService {
   //   return this.profileRepo.find();
   // }
 }
-
-

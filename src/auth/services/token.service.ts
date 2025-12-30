@@ -67,7 +67,7 @@ export class TokenService extends BaseService<Credential> {
     return { accessToken, refreshToken: refreshTokenRaw };
   }
 
- async refreshTokens(userId: number, refreshToken?: string) {
+  async refreshTokens(userId: number, refreshToken?: string) {
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not provided');
     }

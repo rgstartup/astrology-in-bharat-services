@@ -36,7 +36,7 @@ export class AuthService {
   ) {}
 
   // ---------------------------
-  // REGISTER with cookies
+  // REGISTER with cookies service
   // ---------------------------
   async register(
     dto: RegisterDto,

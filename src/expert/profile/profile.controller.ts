@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Post, Body, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Body,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import {
   CreateProfileExpertDto,
@@ -7,11 +15,10 @@ import {
 import { QueryExpertDto } from './dto/query-expert.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { Public } from '@/common/decorators/public.decorator';
-import { IUser , JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { IUser, JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
 @Controller('expert/profile')
 @UseGuards(JwtAuthGuard)
-
 export class ProfileController {
   constructor(private readonly expertProfileService: ProfileService) {}
 

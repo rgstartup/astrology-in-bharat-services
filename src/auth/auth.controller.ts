@@ -8,11 +8,10 @@ import {
   UseGuards,
   Query,
   Get,
-  Res, // 👈 added
 } from '@nestjs/common';
 
 import { AuthService } from './services/auth.service';
-import { RegisterDto, LoginDto, RefreshTokenDto } from './dto';
+import { RegisterDto, LoginDto } from './dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { TokenService } from './services/token.service';
@@ -85,15 +84,13 @@ export class AuthController {
     return this.authService.resetPassword(token, dto.password);
   }
 
-
-
-    @Post('refresh')
+  @Post('refresh')
   //  @UseGuards(JwtAuthGuard)
   refresh(@CurrentUser('id') id: number, @Req() req: Request) {
-    const refreshToken = req.cookies?.refreshToken; // cookie name: refreshToken
+    const refreshToken = (req.cookies as { refreshToken?: string } | undefined)
+      ?.refreshToken; // cookie name: refreshToken
     return this.tokenService.refreshTokens(id, refreshToken);
   }
-
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
@@ -103,7 +100,7 @@ export class AuthController {
   }
 
   @Post('magic/new')
-  sendMagicLink(@Body() dto: SendMagicLinkDto, @Req() req: Request) {
+  sendMagicLink(@Body() dto: SendMagicLinkDto) {
     return this.authService.sendMagicLink(dto.email);
   }
 

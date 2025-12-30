@@ -39,7 +39,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
     dto: OAuthUserDto,
     queryRunner?: QueryRunner,
   ): Promise<User> {
-    let oauth = await this.findByProvider(dto.provider, dto.providerId);
+    const oauth = await this.findByProvider(dto.provider, dto.providerId);
 
     if (oauth?.user) return oauth.user;
 
