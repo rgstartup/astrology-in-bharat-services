@@ -29,7 +29,13 @@ async function bootstrap() {
 
   app.enableCors({
     // Only allow requests from your frontend's exact origin
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: [
+    process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    'http://localhost:3003',
+    
+  ].filter(Boolean),
+    
+    // process.env.FRONTEND_URL ?? 'http://localhost:3000',
 
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 
