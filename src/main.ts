@@ -30,12 +30,11 @@ async function bootstrap() {
   app.enableCors({
     // Only allow requests from your frontend's exact origin
     origin: [
-    process.env.FRONTEND_URL ?? 'http://localhost:3000',
-    'http://localhost:3003',
-    
-  ].filter(Boolean),
-    
-    // process.env.FRONTEND_URL ?? 'http://localhost:3000',
+      process.env.FRONTEND_URL ?? 'http://localhost:3000',
+      process.env.ASTROLOGER_FRONTEND_URL,
+    ].filter(Boolean) as string[],
+
+
 
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 

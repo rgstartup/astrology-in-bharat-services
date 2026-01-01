@@ -2,6 +2,7 @@ import { AddressDto } from '@/common/dto/address.dto';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsNumber,
@@ -53,8 +54,16 @@ export class ProfileExpertDto {
   @IsNumber()
   @Min(0)
   price?: number;
+
+  @IsOptional()
+  @IsString()
+  bank_details?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  is_available?: boolean;
 }
 
-export class CreateProfileExpertDto extends ProfileExpertDto {}
+export class CreateProfileExpertDto extends ProfileExpertDto { }
 
-export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) {}
+export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) { }

@@ -54,6 +54,12 @@ export class ProfileExpert {
   @Column({ type: 'float', nullable: true })
   price?: number;
 
+  @Column({ type: 'text', nullable: true })
+  bank_details?: string;
+
+  @Column({ type: 'boolean', default: true })
+  is_available: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

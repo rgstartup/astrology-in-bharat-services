@@ -29,16 +29,15 @@ export class ProfileService {
 
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-  ) {}
+  ) { }
 
   async getProfile(user: IUser) {
     const profile = await this.profileRepo.findOne({
       where: { user: { id: user.id } },
+      relations: ['user', 'addresses'],
     });
 
-    if (!profile) throw new NotFoundException('Expert profile not found');
-
-    return profile;
+    return profile; // Return null if not found instead of throwing
   }
 
   async createProfile(user: IUser, dto: CreateProfileExpertDto) {
@@ -64,6 +63,8 @@ export class ProfileService {
         // persist languages as CSV string to match entity column type
         languages: dto.languages ? dto.languages.join(',') : undefined,
         price: dto.price,
+        bank_details: dto.bank_details,
+        is_available: dto.is_available,
         addresses:
           dto.addresses?.map((addr) =>
             this.addressRepo.create({
@@ -78,8 +79,9 @@ export class ProfileService {
       };
 
       const profile = this.profileRepo.create(profileData as any);
+      await this.profileRepo.save(profile);
 
-      return this.profileRepo.save(profile);
+      return this.getProfile(user);
     } catch (error) {
       this.logger.error(`Failed to create profile for user: `, error.stack);
       throw error;
@@ -101,6 +103,8 @@ export class ProfileService {
     if (dto.experience_in_years !== undefined)
       profile.experience_in_years = dto.experience_in_years;
     if (dto.price !== undefined) profile.price = dto.price;
+    if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
+    if (dto.is_available !== undefined) profile.is_available = dto.is_available;
 
     if ((dto as any).languages) {
       profile.languages = (dto as any).languages.join(',');
@@ -118,7 +122,8 @@ export class ProfileService {
       );
     }
 
-    return this.profileRepo.save(profile);
+    await this.profileRepo.save(profile);
+    return this.getProfile(user);
   }
 
   async listExperts(query: QueryExpertDto) {
@@ -354,9 +359,9 @@ export class ProfileService {
       const plain = { ...ex } as any;
       plain.languages = ex.languages
         ? ex.languages
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [];
       return plain;
     });
