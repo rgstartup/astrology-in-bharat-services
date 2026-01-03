@@ -57,7 +57,7 @@ export class ProfileExpert {
   @Column({ type: 'text', nullable: true })
   bank_details?: string;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', default: false })
   is_available: boolean;
 
   @CreateDateColumn()

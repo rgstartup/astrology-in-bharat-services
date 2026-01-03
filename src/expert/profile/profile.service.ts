@@ -16,6 +16,7 @@ import { QueryExpertDto } from './dto/query-expert.dto';
 import { Address } from '@/common/entities/address.entity';
 import { User } from '@/users/entities/user.entity';
 import { IUser } from '@/common/guards/jwt-auth.guard';
+import { ExpertGateway } from './expert.gateway';
 
 @Injectable()
 export class ProfileService {
@@ -29,6 +30,8 @@ export class ProfileService {
 
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+
+    private readonly expertGateway: ExpertGateway,
   ) { }
 
   async getProfile(user: IUser) {
@@ -81,6 +84,11 @@ export class ProfileService {
       const profile = this.profileRepo.create(profileData as any);
       await this.profileRepo.save(profile);
 
+      // Notify of status change if is_available is set
+      if (dto.is_available !== undefined) {
+        this.expertGateway.notifyStatusChange(user.id, dto.is_available);
+      }
+
       return this.getProfile(user);
     } catch (error) {
       this.logger.error(`Failed to create profile for user: `, error.stack);
@@ -123,7 +131,33 @@ export class ProfileService {
     }
 
     await this.profileRepo.save(profile);
+
+    // Notify of status change if is_available was updated
+    if (dto.is_available !== undefined) {
+      this.expertGateway.notifyStatusChange(user.id, dto.is_available);
+    }
+
     return this.getProfile(user);
+  }
+
+  async updateStatus(user: IUser, isAvailable: boolean) {
+    this.logger.log(`Updating status for expert ${user.id} to ${isAvailable}`);
+    const profile = await this.profileRepo.findOne({
+      where: { user: { id: user.id } },
+    });
+
+    if (!profile) {
+      this.logger.warn(`Failed to update status: Profile not found for user ${user.id}`);
+      throw new BadRequestException('Please complete your profile details first before going online.');
+    }
+
+    profile.is_available = isAvailable;
+    await this.profileRepo.save(profile);
+
+    // Notify of status change
+    this.expertGateway.notifyStatusChange(user.id, isAvailable);
+
+    return { is_available: isAvailable };
   }
 
   async listExperts(query: QueryExpertDto) {
@@ -363,6 +397,8 @@ export class ProfileService {
           .map((s) => s.trim())
           .filter(Boolean)
         : [];
+      plain.userId = ex.user?.id; // Add userId for socket tracking
+      plain.isAvailable = ex.is_available;
       return plain;
     });
 

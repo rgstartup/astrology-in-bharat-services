@@ -20,7 +20,7 @@ import { IUser, JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 @Controller('expert/profile')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
-  constructor(private readonly expertProfileService: ProfileService) {}
+  constructor(private readonly expertProfileService: ProfileService) { }
 
   @Get()
   getProfile(@CurrentUser() user: IUser) {
@@ -41,6 +41,14 @@ export class ProfileController {
     @Body() dto: UpdateProfileExpertDto,
   ) {
     return this.expertProfileService.updateProfile(user, dto);
+  }
+
+  @Patch('status')
+  updateStatus(
+    @CurrentUser() user: IUser,
+    @Body('is_available') is_available: boolean,
+  ) {
+    return this.expertProfileService.updateStatus(user, is_available);
   }
 
   @Get('list')
