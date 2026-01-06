@@ -25,7 +25,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector,
-  ) {}
+  ) { }
 
   canActivate(context: ExecutionContext): boolean {
     // Check if route is public
@@ -38,16 +38,24 @@ export class JwtAuthGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest<Request>();
 
-    // Cookie-only auth
-    const cookies = (req as any).cookies || {};
+    // 1. Check Authorization header
+    const authHeader = req.headers.authorization;
+    let token: string | undefined;
 
-    // IMPORTANT: use your real cookie name here
-    const token = cookies.access_token || cookies.token || cookies.jwt;
+    if (authHeader && authHeader.split(' ')[0] === 'Bearer') {
+      token = authHeader.split(' ')[1];
+    }
 
+    // 2. Fallback to cookies
     if (!token) {
-      // You can log once while debugging
-      console.log('JwtAuthGuard: cookies received =', cookies);
-      throw new UnauthorizedException('Missing token');
+      const cookies = (req as any).cookies || {};
+      token = cookies.access_token || cookies.token || cookies.jwt;
+
+      if (!token) {
+        // You can log once while debugging
+        // console.log('JwtAuthGuard: cookies received =', cookies);
+        throw new UnauthorizedException('Missing token');
+      }
     }
 
     try {

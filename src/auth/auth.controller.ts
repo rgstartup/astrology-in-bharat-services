@@ -8,7 +8,9 @@ import {
   UseGuards,
   Query,
   Get,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 import { AuthService } from './services/auth.service';
 import { RegisterDto, LoginDto } from './dto';
@@ -34,7 +36,10 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
-  ) {}
+    private readonly jwtService: JwtService,
+  ) { }
+
+  // ... (previous methods unchanged)
 
   @Post('email/register')
   register(
@@ -85,11 +90,49 @@ export class AuthController {
   }
 
   @Post('refresh')
-  //  @UseGuards(JwtAuthGuard)
-  refresh(@CurrentUser('id') id: number, @Req() req: Request) {
-    const refreshToken = (req.cookies as { refreshToken?: string } | undefined)
-      ?.refreshToken; // cookie name: refreshToken
-    return this.tokenService.refreshTokens(id, refreshToken);
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshTokenCookie = (req.cookies as { refreshToken?: string } | undefined)
+      ?.refreshToken;
+
+    if (!refreshTokenCookie) {
+      throw new UnauthorizedException('Refresh token not provided');
+    }
+
+    let userId: number;
+    let refreshToken: string;
+
+    // Check if token is in new composite format: "userId.secret"
+    if (refreshTokenCookie.includes('.')) {
+      const parts = refreshTokenCookie.split('.');
+      if (parts.length !== 2) {
+        throw new UnauthorizedException('Invalid refresh token format');
+      }
+      userId = parseInt(parts[0], 10);
+      refreshToken = parts[1];
+
+      if (isNaN(userId)) {
+        throw new UnauthorizedException('Invalid user ID in refresh token');
+      }
+    } else {
+      // Fallback for logic where we might have the user ID from other sources,
+      // but without access token, we can't guess it. 
+      // Legacy tokens: We can't support them for silent refresh without user context.
+      // So we throw. 
+      // (Unless we want to try to use the "access token from header" logic as a secondary fallback?
+      //  But that logic is complex and redundant if we move forward with composite tokens).
+      throw new UnauthorizedException('Legacy refresh token cannot be used for silent refresh. Please login again.');
+    }
+
+    const tokens = await this.tokenService.refreshTokens(userId, refreshToken);
+
+    // Set new refresh token in cookie (this will be the NEW composite token because we updated tokenService.generateTokens)
+    this.authService.setRefreshTokenCookie(res, tokens.refreshToken);
+
+    // Return access token in body
+    return { accessToken: tokens.accessToken };
   }
 
   @Post('logout')

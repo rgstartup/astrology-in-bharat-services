@@ -23,6 +23,9 @@ export class TokenService extends BaseService<Credential> {
 
     @InjectRepository(Credential)
     private credentialsRepo: Repository<Credential>,
+
+    @InjectRepository(User)
+    private usersRepo: Repository<User>,
   ) {
     super(credentialsRepo);
     const config = this.configService.get<AuthConfig>('auth');
@@ -41,7 +44,7 @@ export class TokenService extends BaseService<Credential> {
     queryRunner?: QueryRunner,
   ) {
     const accessToken = await this.jwtService.signAsync(
-      { sub: user.id, roles: user.roles.map((r) => r.name) },
+      { sub: user.id, roles: user.roles?.map((r) => r.name) || [] },
       { expiresIn: this.jwtConfig?.jwtExpiresIn },
     );
 
@@ -64,7 +67,8 @@ export class TokenService extends BaseService<Credential> {
     });
 
     await repo.save(credential);
-    return { accessToken, refreshToken: refreshTokenRaw };
+    // Return composite token: userId.secret
+    return { accessToken, refreshToken: `${user.id}.${refreshTokenRaw}` };
   }
 
   async refreshTokens(userId: number, refreshToken?: string) {
@@ -79,7 +83,17 @@ export class TokenService extends BaseService<Credential> {
     for (const c of creds) {
       if (c.expiresAt < new Date()) continue;
       const valid = await argon2.verify(c.secretHash, refreshToken);
-      if (valid) return this.generateTokens({ id: userId } as User);
+      if (valid) {
+        // Fetch full user with roles to prevent 500 error in generateTokens
+        const user = await this.usersRepo.findOne({
+          where: { id: userId },
+          relations: ['roles'],
+        });
+
+        if (!user) throw new UnauthorizedException('User not found');
+
+        return this.generateTokens(user);
+      }
     }
 
     throw new UnauthorizedException('Invalid refresh token');

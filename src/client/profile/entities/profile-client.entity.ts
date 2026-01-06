@@ -43,6 +43,12 @@ export class ProfileClient {
   language_preference?: string;
 
   @Column({ nullable: true })
+  time_of_birth?: string;
+
+  @Column({ nullable: true })
+  place_of_birth?: string;
+
+  @Column({ nullable: true })
   profile_picture?: string;
 
   @OneToMany(() => Address, (address) => address.profile_client, {

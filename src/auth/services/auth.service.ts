@@ -21,7 +21,6 @@ import {
 import { JsonWebTokenError } from '@nestjs/jwt';
 import { UsedTokensService } from './used-tokens.service';
 
-// 👇 ADD THIS
 import { Response } from 'express';
 
 @Injectable()
@@ -33,7 +32,7 @@ export class AuthService {
     private usedTokenService: UsedTokensService,
     private db: DatabaseService,
     private eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   // ---------------------------
   // REGISTER with cookies service
@@ -93,11 +92,15 @@ export class AuthService {
 
     // 👇 set cookies (if Response passed)
     if (res) {
-      this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+      // ONLY set refresh token in cookie
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
     }
 
-    // you can still return the user (tokens not needed on frontend)
-    return instanceToPlain({ user });
+    // Return user AND access token
+    return {
+      ...instanceToPlain({ user }),
+      accessToken: tokens.accessToken,
+    };
   }
 
   async validateUser(email: string, password: string) {
@@ -123,11 +126,15 @@ export class AuthService {
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
     if (res) {
-      this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+      // ONLY set refresh token in cookie
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
     }
 
-    // just return user, tokens are already in cookies
-    return instanceToPlain({ user });
+    // Return user AND access token
+    return {
+      ...instanceToPlain({ user }),
+      accessToken: tokens.accessToken,
+    };
   }
 
   async oauthLogin(dto: OAuthUserDto, ip?: string, userAgent?: string) {
@@ -329,22 +336,13 @@ export class AuthService {
   // ---------------------------
   // NEW: cookie helper
   // ---------------------------
-  private setAuthCookies(
+  public setRefreshTokenCookie(
     res: Response,
-    accessToken: string,
     refreshToken: string,
   ) {
     const isProd = process.env.NODE_ENV === 'production';
 
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000, // 15 minutes
-      path: '/',
-    });
-
-    res.cookie('refresh_token', refreshToken, {
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
