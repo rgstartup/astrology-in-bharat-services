@@ -101,7 +101,7 @@ export class TokenService extends BaseService<Credential> {
 
   generate5MinToken<T extends object>(payload: T) {
     return this.jwtService.sign(payload, {
-      expiresIn: 5 * 60 * 1000,
+      expiresIn: 15 * 60 * 1000,
       secret: this.jwtConfig.jwtSecret,
     });
   }

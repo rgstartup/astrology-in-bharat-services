@@ -1,31 +1,27 @@
 import { CookieOptions } from 'express';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 /**
  * Cookie configuration for access tokens
- * - HttpOnly: Prevents XSS attacks
- * - Secure: Only sent over HTTPS in production
- * - SameSite: Prevents CSRF attacks
- * - MaxAge: 15 minutes
  */
 export const getAccessTokenCookieOptions = (): CookieOptions => ({
   httpOnly: true,
-  secure: true,
+  secure: isProd,
   sameSite: 'lax',
   maxAge: 15 * 60 * 1000, // 15 minutes
+  path: '/',
 });
 
 /**
  * Cookie configuration for refresh tokens
- * - HttpOnly: Prevents XSS attacks
- * - Secure: Only sent over HTTPS in production
- * - SameSite: Prevents CSRF attacks
- * - MaxAge: 7 days
  */
 export const getRefreshTokenCookieOptions = (): CookieOptions => ({
   httpOnly: true,
-  secure: true,
+  secure: isProd,
   sameSite: 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  path: '/',
 });
 
 /**

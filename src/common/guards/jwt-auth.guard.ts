@@ -46,16 +46,8 @@ export class JwtAuthGuard implements CanActivate {
       token = authHeader.split(' ')[1];
     }
 
-    // 2. Fallback to cookies
     if (!token) {
-      const cookies = (req as any).cookies || {};
-      token = cookies.access_token || cookies.token || cookies.jwt;
-
-      if (!token) {
-        // You can log once while debugging
-        // console.log('JwtAuthGuard: cookies received =', cookies);
-        throw new UnauthorizedException('Missing token');
-      }
+      throw new UnauthorizedException('Missing token');
     }
 
     try {

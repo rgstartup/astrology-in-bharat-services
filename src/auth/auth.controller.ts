@@ -137,9 +137,12 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout(@CurrentUser('id') id: number) {
+  logout(
+    @CurrentUser('id') id: number,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, getRefreshTokenCookieOptions());
     return this.authService.logout(id);
-    // if you later add cookie clearing in AuthService.logout, you can also inject @Res here
   }
 
   @Post('magic/new')
@@ -159,18 +162,14 @@ export class AuthController {
       req.get('user-agent'),
     );
 
-    // Set tokens as HttpOnly secure cookies
-    res.cookie(
-      COOKIE_NAMES.ACCESS_TOKEN,
-      result.accessToken,
-      getAccessTokenCookieOptions(),
-    );
+    // ONLY set refresh token as HttpOnly secure cookie
     res.cookie(
       COOKIE_NAMES.REFRESH_TOKEN,
       result.refreshToken,
       getRefreshTokenCookieOptions(),
     );
 
+    // Access token is returned in the body (result)
     return result;
   }
 }

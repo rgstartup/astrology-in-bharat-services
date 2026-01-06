@@ -22,6 +22,7 @@ import { JsonWebTokenError } from '@nestjs/jwt';
 import { UsedTokensService } from './used-tokens.service';
 
 import { Response } from 'express';
+import { COOKIE_NAMES, getRefreshTokenCookieOptions } from '../helpers/cookie.helper';
 
 @Injectable()
 export class AuthService {
@@ -340,14 +341,6 @@ export class AuthService {
     res: Response,
     refreshToken: string,
   ) {
-    const isProd = process.env.NODE_ENV === 'production';
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: '/',
-    });
+    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, getRefreshTokenCookieOptions());
   }
 }
