@@ -38,6 +38,11 @@ export class QueryExpertDto {
   @IsString()
   location?: string;
 
+  // Filter by state
+  @IsOptional()
+  @IsString()
+  state?: string;
+
   // Filter by minimum rating
   @IsOptional()
   @Type(() => Number)
@@ -71,8 +76,13 @@ export class QueryExpertDto {
   @Min(0)
   maxPrice?: number;
 
-  // Sorting: 'experience' | 'rating' | 'newest' | 'name'
+  // Sorting: 'experience' | 'rating' | 'newest' | 'name' | 'price_asc' | 'price_desc' | 'none'
   @IsOptional()
-  @IsIn(['experience', 'rating', 'newest', 'name'])
+  @IsIn(['experience', 'rating', 'newest', 'name', 'price_asc', 'price_desc', 'none'])
   sort?: string = 'newest';
+
+  // Filter by online/available status
+  @IsOptional()
+  @IsString()
+  onlineOnly?: string;
 }

@@ -333,13 +333,27 @@ export class ProfileService {
 
     // Apply location filter (search in addresses.city)
     if (query.location && query.location.trim()) {
+      queryBuilder = queryBuilder.andWhere('addresses.city ILIKE :location', {
+        location: `%${query.location}%`,
+      });
+    }
+
+    // Apply state filter (search in addresses.state)
+    if (query.state && query.state.trim()) {
+      queryBuilder = queryBuilder.andWhere('addresses.state ILIKE :state', {
+        state: `%${query.state}%`,
+      });
+    }
+
+    // Apply onlineOnly filter (only show available astrologers)
+    if (query.onlineOnly === 'true') {
       if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere('addresses.city ILIKE :location', {
-          location: `%${query.location}%`,
+        queryBuilder = queryBuilder.andWhere('profile.is_available = :isAvailable', {
+          isAvailable: true,
         });
       } else {
-        queryBuilder = queryBuilder.where('addresses.city ILIKE :location', {
-          location: `%${query.location}%`,
+        queryBuilder = queryBuilder.where('profile.is_available = :isAvailable', {
+          isAvailable: true,
         });
       }
     }
@@ -360,23 +374,23 @@ export class ProfileService {
         langParams[`lang${idx}`] = `%${lang}%`;
       });
 
-      if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere(`(${langConditions})`, langParams);
-      } else {
-        queryBuilder = queryBuilder.where(`(${langConditions})`, langParams);
-      }
+      queryBuilder = queryBuilder.andWhere(`(${langConditions})`, langParams);
     }
 
     // Apply sorting
-    if (sort === 'experience') {
-      queryBuilder = queryBuilder.orderBy(
-        'profile.experience_in_years',
-        'DESC',
-      );
+    if (sort === 'none') {
+      // No sorting applied - return in default database order
+      // Don't add any orderBy clause
+    } else if (sort === 'experience') {
+      queryBuilder = queryBuilder.orderBy('profile.experience_in_years', 'DESC');
     } else if (sort === 'rating') {
       queryBuilder = queryBuilder.orderBy('profile.rating', 'DESC');
     } else if (sort === 'name') {
       queryBuilder = queryBuilder.orderBy('user.name', 'ASC');
+    } else if (sort === 'price_asc') {
+      queryBuilder = queryBuilder.orderBy('profile.price', 'ASC');
+    } else if (sort === 'price_desc') {
+      queryBuilder = queryBuilder.orderBy('profile.price', 'DESC');
     } else {
       // default: newest
       queryBuilder = queryBuilder.orderBy('profile.createdAt', 'DESC');
@@ -413,7 +427,27 @@ export class ProfileService {
     };
   }
 
-  // async fetchAllProfiles() {
-  //   return this.profileRepo.find();
-  // }
+  async getExpertById(id: number) {
+    const expert = await this.profileRepo.findOne({
+      where: { id },
+      relations: ['user', 'addresses'],
+    });
+
+    if (!expert) {
+      throw new NotFoundException('Expert profile not found');
+    }
+
+    // convert stored CSV languages -> string[] for API consumers
+    const plain = { ...expert } as any;
+    plain.languages = expert.languages
+      ? expert.languages
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+      : [];
+    plain.userId = expert.user?.id;
+    plain.isAvailable = expert.is_available;
+
+    return plain;
+  }
 }

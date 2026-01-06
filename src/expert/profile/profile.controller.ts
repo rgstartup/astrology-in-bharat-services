@@ -6,6 +6,8 @@ import {
   Body,
   Query,
   UseGuards,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import {
@@ -55,5 +57,11 @@ export class ProfileController {
   @Public()
   listExperts(@Query() query: QueryExpertDto) {
     return this.expertProfileService.listExperts(query);
+  }
+
+  @Get(':id')
+  @Public()
+  getExpertById(@Param('id', ParseIntPipe) id: number) {
+    return this.expertProfileService.getExpertById(id);
   }
 }
