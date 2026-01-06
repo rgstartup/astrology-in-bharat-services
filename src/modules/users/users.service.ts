@@ -60,6 +60,15 @@ export class UsersService extends BaseService<User> {
       .getOne();
   }
 
+  // 🔹 Find all users by role
+  async findAllByRole(roleName: string): Promise<User[]> {
+    return this.usersRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .where('roles.name = :roleName', { roleName })
+      .getMany();
+  }
+
   // 🔹 Find by ID
   async findById(id: number): Promise<User> {
     const existingUser = await this.usersRepo.findOne({

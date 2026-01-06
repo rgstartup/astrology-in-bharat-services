@@ -6,6 +6,8 @@ import { RolesModule } from '@/modules/role/roles.module';
 import { NotificationModule } from '@/notification/notification.module';
 import { ClientModule } from '@/modules/client/client.module';
 import { ExpertModule } from '@/modules/expert/expert.module';
+import { AdminModule } from '@/modules/admin/admin.module';
+
 
 @Module({
   imports: [
@@ -16,6 +18,9 @@ import { ExpertModule } from '@/modules/expert/expert.module';
     NotificationModule,
     ClientModule,
     ExpertModule,
+    AdminModule,
+
   ],
 })
-export class AppModule {}
+
+export class AppModule { }
