@@ -39,10 +39,50 @@ export class UsersService extends BaseService<User> {
   }
 
   // 🔹 Find all users
-  async findAll(): Promise<User[]> {
-    return this.usersRepo.find({
-      relations: ['roles', 'oauthAccounts', 'credentials'],
+  async findAll(search?: string, page: number = 1, limit: number = 10): Promise<{ data: User[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const query = this.usersRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .leftJoinAndSelect('user.oauthAccounts', 'oauthAccounts')
+      .leftJoinAndSelect('user.credentials', 'credentials');
+
+    if (search) {
+      query.where(
+        '(LOWER(user.email) LIKE LOWER(:search) OR LOWER(user.name) LIKE LOWER(:search))',
+        { search: `%${search}%` },
+      );
+    }
+
+    const [data, total] = await query
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return { data, total };
+  }
+
+  // 🔹 Get User Stats
+  async getUserStats() {
+    const totalUsers = await this.usersRepo.count({
+      where: { roles: { name: 'client' } },
+      relations: ['roles'],
     });
+
+    const activeUsers = await this.usersRepo.count({
+      where: {
+        roles: { name: 'client' },
+        emailVerified: true
+      },
+      relations: ['roles'],
+    });
+
+    return {
+      totalUsers,
+      activeUsers,
+      pendingUsers: totalUsers - activeUsers,
+    };
   }
 
   // 🔹 Find user by email
@@ -60,13 +100,69 @@ export class UsersService extends BaseService<User> {
       .getOne();
   }
 
-  // 🔹 Find all users by role
-  async findAllByRole(roleName: string): Promise<User[]> {
-    return this.usersRepo
+  // 🔹 Get Expert Stats
+  async getExpertStats() {
+    console.log('Service: Calculating Expert Stats...');
+    const totalExperts = await this.usersRepo.count({
+      where: { roles: { name: 'expert' } },
+      relations: ['roles'],
+    });
+    console.log('Total Experts:', totalExperts);
+
+    const activeExperts = await this.usersRepo.count({
+      where: {
+        roles: { name: 'expert' },
+        emailVerified: true // Assuming active means email verified for now, adjust logic if needed
+      },
+      relations: ['roles'],
+    });
+
+    const pendingExperts = totalExperts - activeExperts; // Simplified logic
+
+    console.log('Stats Result:', { totalExperts, activeExperts, pendingExperts });
+
+    return {
+      totalExperts,
+      activeExperts,
+      pendingExperts,
+    };
+  }
+
+  // 🔹 Find all users by role with pagination
+  async findAllByRole(
+    roleName: string,
+    search?: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ data: User[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const query = this.usersRepo
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.roles', 'roles')
-      .where('roles.name = :roleName', { roleName })
-      .getMany();
+      .where('roles.name = :roleName', { roleName });
+
+    if (roleName === 'client') {
+      query.leftJoinAndSelect('user.profile_client', 'profile')
+        .leftJoinAndSelect('profile.addresses', 'addresses');
+    } else if (roleName === 'expert') {
+      query.leftJoinAndSelect('user.profile_expert', 'profile')
+        .leftJoinAndSelect('profile.addresses', 'addresses');
+    }
+
+    if (search) {
+      query.andWhere(
+        '(LOWER(user.email) LIKE LOWER(:search) OR LOWER(user.name) LIKE LOWER(:search))',
+        { search: `%${search}%` },
+      );
+    }
+
+    const [data, total] = await query
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return { data, total };
   }
 
   // 🔹 Find by ID

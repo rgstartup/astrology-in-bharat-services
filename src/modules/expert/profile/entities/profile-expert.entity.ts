@@ -48,6 +48,12 @@ export class ProfileExpert {
   @Column({ type: 'float', default: 0 })
   rating: number;
 
+  @Column({ default: 'pending' }) // pending, approved, rejected
+  kycStatus: string;
+
+  @Column({ type: 'int', default: 0 })
+  consultationCount: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

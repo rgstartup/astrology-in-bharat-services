@@ -23,7 +23,7 @@ import { User } from './entities/user.entity';
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   // 🔹 Self-service: get my profile
   @Get('/me')
@@ -57,7 +57,8 @@ export class UsersController {
   @Get()
   @Roles('admin')
   async findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+    const result = await this.usersService.findAll();
+    return result.data;
   }
 
   // 🔹 Admin: get user by ID
