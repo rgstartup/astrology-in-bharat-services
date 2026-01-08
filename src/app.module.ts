@@ -7,6 +7,9 @@ import { NotificationModule } from '@/notification/notification.module';
 import { ClientModule } from '@/modules/client/client.module';
 import { ExpertModule } from '@/modules/expert/expert.module';
 import { AdminModule } from '@/modules/admin/admin.module';
+import { ProductModule } from '@/modules/product/product.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 
 @Module({
@@ -19,6 +22,11 @@ import { AdminModule } from '@/modules/admin/admin.module';
     ClientModule,
     ExpertModule,
     AdminModule,
+    ProductModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
 
   ],
 })
