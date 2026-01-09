@@ -23,6 +23,7 @@ import { UsedTokensService } from './used-tokens.service';
 
 import { Response } from 'express';
 import { COOKIE_NAMES, getRefreshTokenCookieOptions } from '../helpers/cookie.helper';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 
 @Injectable()
 export class AuthService {
@@ -72,6 +73,14 @@ export class AuthService {
         queryRunner,
       );
 
+      // Create Profile for Expert
+      if (roles.includes('expert')) {
+        const profile = new ProfileExpert();
+        profile.user = user;
+        // The entity now allows null gender/specialization, so we can save it directly
+        await queryRunner.manager.save(ProfileExpert, profile);
+      }
+
       const verification_token = this.tokenService.generate5MinToken({
         sub: user.id,
         email: user.email,
@@ -91,13 +100,24 @@ export class AuthService {
       return { user, tokens };
     });
 
-    // 👇 set cookies (if Response passed)
+
+    // CHECK if user is EXPERT
+    const isExpert = roles.includes('expert');
+
+    if (isExpert) {
+      // Return success message WITHOUT logging in
+      return {
+        message: 'Registration successful. Please check your email to verify your account.',
+      };
+    }
+
+    // 👇 set cookies (if Response passed) - CLIENT only
     if (res) {
       // ONLY set refresh token in cookie
       this.setRefreshTokenCookie(res, tokens.refreshToken);
     }
 
-    // Return user AND access token
+    // Return user AND access token - CLIENT only
     return {
       ...instanceToPlain({ user }),
       accessToken: tokens.accessToken,
@@ -109,6 +129,15 @@ export class AuthService {
     if (!user || !user.password)
       throw new UnauthorizedException('Invalid credentials');
 
+    // Check for Expert Verification
+    // Assuming roles are loaded. If not, we might need to fetch them.
+    // user.roles is likely an array of Role objects or strings depending on loading strategy.
+    // Based on User entity, it's ManyToMany Role[].
+    const isExpert = user.roles?.some((r) => r.name === 'expert');
+
+    if (isExpert && !user.emailVerified) {
+      throw new UnauthorizedException('Email not verified. Please verify your email before logging in.');
+    }
     const valid = await argon2.verify(user.password, password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
     return user;

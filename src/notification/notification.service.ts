@@ -10,7 +10,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class NotificationService {
-  constructor(private mailService: MailService) {}
+  constructor(private mailService: MailService) { }
 
   @OnEvent('user:register')
   async handleUserRegistered(event: UserRegisteredEvent) {
@@ -21,7 +21,9 @@ export class NotificationService {
       `<h1>Welcome, ${event.name}</h1>
       <p>Thanks for signing up!</p>
       <hr/>
-      <p><strong>Your token</strong>: ${event.verification_token}</p>
+      <p>Please click the link below to verify your email:</p>
+      <a href="http://localhost:3000/verify-email?token=${event.verification_token}">Verify Email</a>
+      <p>Or use this token: ${event.verification_token}</p>
       `,
     );
   }
