@@ -25,8 +25,9 @@ export class Address {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  street: string;
+  // Map property "line1" to DB column "street"
+  @Column({ name: 'street', type: 'varchar', length: 255 })
+  line1: string;
 
   @Column({ type: 'varchar', length: 100 })
   city: string;
@@ -37,8 +38,9 @@ export class Address {
   @Column({ type: 'varchar', length: 100 })
   country: string;
 
-  @Column({ type: 'varchar', length: 10, nullable: true })
-  postal_code: string;
+  // Map property "zipCode" to DB column "postal_code"
+  @Column({ name: 'postal_code', type: 'varchar', length: 10, nullable: true })
+  zipCode: string;
 
   @Column({
     type: 'enum',

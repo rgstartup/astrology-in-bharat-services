@@ -21,6 +21,9 @@ import {
 import { JsonWebTokenError } from '@nestjs/jwt';
 import { UsedTokensService } from './used-tokens.service';
 
+import { Response } from 'express';
+import { COOKIE_NAMES, getRefreshTokenCookieOptions } from '../helpers/cookie.helper';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -30,9 +33,17 @@ export class AuthService {
     private usedTokenService: UsedTokensService,
     private db: DatabaseService,
     private eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
-  async register(dto: RegisterDto, ip?: string, userAgent?: string) {
+  // ---------------------------
+  // REGISTER with cookies service
+  // ---------------------------
+  async register(
+    dto: RegisterDto,
+    ip?: string,
+    userAgent?: string,
+    res?: Response, // 👈 get Response from controller
+  ) {
     const existingUser = await this.usersService.findByEmail(dto.email);
 
     if (existingUser) {
@@ -46,11 +57,14 @@ export class AuthService {
     const formattedRoles = roles.map((r) => ({
       name: r,
     }));
-    return await this.db.transaction(async (queryRunner) => {
+
+    // 👇 return user + tokens from transaction
+    const { user, tokens } = await this.db.transaction(async (queryRunner) => {
       const user = await this.usersService.create(
         { ...registerDto, roles: formattedRoles, password: hashed },
         queryRunner,
       );
+
       const tokens = await this.tokenService.generateTokens(
         user,
         ip,
@@ -74,8 +88,20 @@ export class AuthService {
         ),
       );
 
-      return instanceToPlain({ user, ...tokens });
+      return { user, tokens };
     });
+
+    // 👇 set cookies (if Response passed)
+    if (res) {
+      // ONLY set refresh token in cookie
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
+    }
+
+    // Return user AND access token
+    return {
+      ...instanceToPlain({ user }),
+      accessToken: tokens.accessToken,
+    };
   }
 
   async validateUser(email: string, password: string) {
@@ -88,20 +114,35 @@ export class AuthService {
     return user;
   }
 
-  async login(dto: LoginDto, ip?: string, userAgent?: string) {
+  // ---------------------------
+  // LOGIN with cookies
+  // ---------------------------
+  async login(
+    dto: LoginDto,
+    ip?: string,
+    userAgent?: string,
+    res?: Response, // 👈 get Response from controller
+  ) {
     const user = await this.validateUser(dto.email, dto.password);
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
-    return instanceToPlain({ user, ...tokens });
+
+    if (res) {
+      // ONLY set refresh token in cookie
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
+    }
+
+    // Return user AND access token
+    return {
+      ...instanceToPlain({ user }),
+      accessToken: tokens.accessToken,
+    };
   }
 
   async oauthLogin(dto: OAuthUserDto, ip?: string, userAgent?: string) {
-    // Find or create the user based on OAuth info
     const user = await this.oauthService.findOrCreateUserFromOAuth(dto);
-
-    // Generate tokens for the user (access + refresh)
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
-    return { user, ...tokens };
+    return { user, ...tokens }; // (you can also move this to cookies later)
   }
 
   async logout(id: number) {
@@ -275,6 +316,7 @@ export class AuthService {
       );
 
       return instanceToPlain({ user, ...tokens });
+      // 👉 you can also switch this to cookies later if you want
     } catch (error) {
       if (error instanceof JsonWebTokenError) {
         throw new BadRequestException('Invalid or expired token');
@@ -290,5 +332,15 @@ export class AuthService {
     if (!usedToken) return;
 
     throw new BadRequestException('Token already used');
+  }
+
+  // ---------------------------
+  // NEW: cookie helper
+  // ---------------------------
+  public setRefreshTokenCookie(
+    res: Response,
+    refreshToken: string,
+  ) {
+    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, getRefreshTokenCookieOptions());
   }
 }

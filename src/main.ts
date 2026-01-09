@@ -1,24 +1,45 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import * as cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import helmet from 'helmet';
+import * as compression from 'compression';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
+
+  app.use(cookieParser());
+
+  // Security & Performance
+  app.use(helmet());
+  app.use(compression());
+
+  // Enable global exception filter
+  const httpAdapterHost = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
   app.enableCors({
     // Only allow requests from your frontend's exact origin
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: [
+      process.env.FRONTEND_URL ?? 'http://localhost:3000',
+      process.env.ASTROLOGER_FRONTEND_URL,
+    ].filter(Boolean) as string[],
 
-    // Specify the allowed methods (GET and POST are essential for registration)
+
+
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 
-    // Allow headers like Content-Type (important for sending JSON)
-    allowedHeaders: 'Content-Type, Accept',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
 
-    // Set to true if your frontend needs to send cookies or authorization headers
     credentials: true,
   });
 
@@ -41,7 +62,19 @@ async function bootstrap() {
   );
 
   // Apply global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // Note: `AllExceptionsFilter` is already registered above and will catch and
+  // log all exceptions. Avoid re-registering another global filter here which
+  // could overwrite or suppress the catch-all logging.
+
+  // Swagger Configuration
+  const config = new DocumentBuilder()
+    .setTitle('Astrology Service API')
+    .setDescription('The Astrology Service API description')
+    .setVersion('1.0')
+    .addCookieAuth('Authentication')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(process.env.PORT ?? 4000);
 }

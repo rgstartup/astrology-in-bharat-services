@@ -54,6 +54,18 @@ export class ProfileExpert {
   @Column({ type: 'int', default: 0 })
   consultationCount: number;
 
+  @Column({ type: 'text', nullable: true })
+  languages?: string;
+
+  @Column({ type: 'float', nullable: true })
+  price?: number;
+
+  @Column({ type: 'text', nullable: true })
+  bank_details?: string;
+
+  @Column({ type: 'boolean', default: false })
+  is_available: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

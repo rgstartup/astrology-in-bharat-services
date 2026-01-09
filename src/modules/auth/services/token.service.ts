@@ -11,6 +11,7 @@ import { Credential } from '../entities/credential.entity';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from 'src/core/config/auth.config';
 import { BaseService } from 'src/common/services/transaction.service';
+import { UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class TokenService extends BaseService<Credential> {
@@ -22,6 +23,9 @@ export class TokenService extends BaseService<Credential> {
 
     @InjectRepository(Credential)
     private credentialsRepo: Repository<Credential>,
+
+    @InjectRepository(User)
+    private usersRepo: Repository<User>,
   ) {
     super(credentialsRepo);
     const config = this.configService.get<AuthConfig>('auth');
@@ -40,7 +44,7 @@ export class TokenService extends BaseService<Credential> {
     queryRunner?: QueryRunner,
   ) {
     const accessToken = await this.jwtService.signAsync(
-      { sub: user.id, roles: user.roles.map((r) => r.name) },
+      { sub: user.id, roles: user.roles?.map((r) => r.name) || [] },
       { expiresIn: this.jwtConfig?.jwtExpiresIn },
     );
 
@@ -63,10 +67,15 @@ export class TokenService extends BaseService<Credential> {
     });
 
     await repo.save(credential);
-    return { accessToken, refreshToken: refreshTokenRaw };
+    // Return composite token: userId.secret
+    return { accessToken, refreshToken: `${user.id}.${refreshTokenRaw}` };
   }
 
-  async refreshTokens(userId: number, refreshToken: string) {
+  async refreshTokens(userId: number, refreshToken?: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not provided');
+    }
+
     const creds = await this.credentialsRepo.find({
       where: { user: { id: userId }, type: 'refresh_token', revoked: false },
     });
@@ -74,15 +83,25 @@ export class TokenService extends BaseService<Credential> {
     for (const c of creds) {
       if (c.expiresAt < new Date()) continue;
       const valid = await argon2.verify(c.secretHash, refreshToken);
-      if (valid) return this.generateTokens({ id: userId } as User);
+      if (valid) {
+        // Fetch full user with roles to prevent 500 error in generateTokens
+        const user = await this.usersRepo.findOne({
+          where: { id: userId },
+          relations: ['roles'],
+        });
+
+        if (!user) throw new UnauthorizedException('User not found');
+
+        return this.generateTokens(user);
+      }
     }
 
-    throw new Error('Invalid refresh token');
+    throw new UnauthorizedException('Invalid refresh token');
   }
 
   generate5MinToken<T extends object>(payload: T) {
     return this.jwtService.sign(payload, {
-      expiresIn: 5 * 60 * 1000,
+      expiresIn: 15 * 60 * 1000,
       secret: this.jwtConfig.jwtSecret,
     });
   }

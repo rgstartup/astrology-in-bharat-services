@@ -7,6 +7,7 @@ import { UsersModule } from '@/modules/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Credential } from './entities/credential.entity';
 import { OAuthAccount } from './entities/oauth-accounts.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { DatabaseModule } from 'src/core/database/database.module';
@@ -17,7 +18,7 @@ import { UsedTokensService } from './services/used-tokens.service';
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([Credential, OAuthAccount, UsedTokens]),
+    TypeOrmModule.forFeature([Credential, OAuthAccount, UsedTokens, User]),
     DatabaseModule,
   ],
   providers: [
@@ -32,4 +33,4 @@ import { UsedTokensService } from './services/used-tokens.service';
   controllers: [AuthController, GoogleAuthController],
   exports: [TokenService, OAuthService],
 })
-export class AuthModule {}
+export class AuthModule { }
