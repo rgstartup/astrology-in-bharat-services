@@ -1,5 +1,6 @@
 onlyBuiltDependencies:
   - '@nestjs/core'
+  - '@scarf/scarf'
   - '@swc/core'
   - argon2
   - esbuild

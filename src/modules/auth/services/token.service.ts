@@ -45,7 +45,7 @@ export class TokenService extends BaseService<Credential> {
   ) {
     const accessToken = await this.jwtService.signAsync(
       { sub: user.id, roles: user.roles?.map((r) => r.name) || [] },
-      { expiresIn: this.jwtConfig?.jwtExpiresIn },
+      { expiresIn: this.jwtConfig?.jwtExpiresIn as any },
     );
 
     const refreshTokenRaw = randomBytes(64).toString('hex');
