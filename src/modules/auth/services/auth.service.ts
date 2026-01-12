@@ -22,7 +22,7 @@ import { JsonWebTokenError } from '@nestjs/jwt';
 import { UsedTokensService } from './used-tokens.service';
 
 import { Response } from 'express';
-import { COOKIE_NAMES, getRefreshTokenCookieOptions } from '../helpers/cookie.helper';
+import { COOKIE_NAMES, getRefreshTokenCookieOptions, getAccessTokenCookieOptions } from '../helpers/cookie.helper';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 
 @Injectable()
@@ -113,8 +113,84 @@ export class AuthService {
 
     // 👇 set cookies (if Response passed) - CLIENT only
     if (res) {
-      // ONLY set refresh token in cookie
+      // Set refresh token in cookie
       this.setRefreshTokenCookie(res, tokens.refreshToken);
+      // Set access token in cookie
+      this.setAccessTokenCookie(res, tokens.accessToken);
+    }
+
+    // Return user AND access token
+    return {
+      ...instanceToPlain({ user }),
+      accessToken: tokens.accessToken,
+    };
+  }
+
+  // ---------------------------
+  // CLIENT REGISTER with cookies service
+  // ---------------------------
+  async clientRegister(
+    dto: RegisterDto,
+    ip?: string,
+    userAgent?: string,
+    res?: Response, // 👈 get Response from controller
+  ) {
+    const existingUser = await this.usersService.findByEmail(dto.email);
+
+    if (existingUser) {
+      throw new BadRequestException('Email already exists!');
+    }
+
+    const hashed = await argon2.hash(dto.password, { type: argon2.argon2id });
+
+    const { roles, ...registerDto } = dto;
+
+    // Ensure client role is assigned
+    const clientRoles = roles && roles.length > 0 ? roles : ['client'];
+
+    const formattedRoles = clientRoles.map((r) => ({
+      name: r,
+    }));
+
+    // 👇 return user + tokens from transaction
+    const { user, tokens } = await this.db.transaction(async (queryRunner) => {
+      const user = await this.usersService.create(
+        { ...registerDto, roles: formattedRoles, password: hashed },
+        queryRunner,
+      );
+
+      const tokens = await this.tokenService.generateTokens(
+        user,
+        ip,
+        userAgent,
+        queryRunner,
+      );
+
+      const verification_token = this.tokenService.generate5MinToken({
+        sub: user.id,
+        email: user.email,
+      });
+
+      // send email notification
+      this.eventEmitter.emit(
+        'user:register',
+        new UserRegisteredEvent(
+          user.id,
+          user.email,
+          user.name,
+          verification_token,
+        ),
+      );
+
+      return { user, tokens };
+    });
+
+    // 👇 set cookies (if Response passed)
+    if (res) {
+      // Set refresh token in cookie
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
+      // Set access token in cookie
+      this.setAccessTokenCookie(res, tokens.accessToken);
     }
 
     // Return user AND access token - CLIENT only
@@ -156,8 +232,36 @@ export class AuthService {
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
     if (res) {
-      // ONLY set refresh token in cookie
+      // Set refresh token in cookie
       this.setRefreshTokenCookie(res, tokens.refreshToken);
+      // Set access token in cookie
+      this.setAccessTokenCookie(res, tokens.accessToken);
+    }
+
+    // Return user AND access token
+    return {
+      ...instanceToPlain({ user }),
+      accessToken: tokens.accessToken,
+    };
+  }
+
+  // ---------------------------
+  // CLIENT LOGIN with cookies
+  // ---------------------------
+  async clientLogin(
+    dto: LoginDto,
+    ip?: string,
+    userAgent?: string,
+    res?: Response, // 👈 get Response from controller
+  ) {
+    const user = await this.validateUser(dto.email, dto.password);
+    const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
+
+    if (res) {
+      // Set refresh token in cookie
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
+      // Set access token in cookie
+      this.setAccessTokenCookie(res, tokens.accessToken);
     }
 
     // Return user AND access token
@@ -175,6 +279,10 @@ export class AuthService {
   }
 
   async logout(id: number) {
+    await this.tokenService.revoke(id);
+  }
+
+  async clientLogout(id: number) {
     await this.tokenService.revoke(id);
   }
 
@@ -371,5 +479,12 @@ export class AuthService {
     refreshToken: string,
   ) {
     res.cookie(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, getRefreshTokenCookieOptions());
+  }
+
+  public setAccessTokenCookie(
+    res: Response,
+    accessToken: string,
+  ) {
+    res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, getAccessTokenCookieOptions());
   }
 }
