@@ -22,6 +22,9 @@ export class ProfileClient {
   @JoinColumn()
   user: User;
 
+  @Column({ nullable: true })
+  username?: string;
+
   @Column({
     type: 'timestamptz',
     nullable: true,
@@ -30,6 +33,7 @@ export class ProfileClient {
 
   @Column({
     type: 'text',
+    default: 'other',
   })
   gender: 'male' | 'female' | 'other';
 

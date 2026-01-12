@@ -170,6 +170,7 @@ export class AuthController {
     @CurrentUser('id') id: number,
     @Res({ passthrough: true }) res: Response,
   ) {
+    res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, getAccessTokenCookieOptions());
     res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, getRefreshTokenCookieOptions());
     return this.authService.logout(id);
   }
@@ -180,6 +181,7 @@ export class AuthController {
     @CurrentUser('id') id: number, // Assuming client ID is also available via CurrentUser decorator
     @Res({ passthrough: true }) res: Response,
   ) {
+    res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, getAccessTokenCookieOptions());
     res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, getRefreshTokenCookieOptions()); // Clear client-specific refresh token cookie
     return this.authService.clientLogout(id); // Call a new client-specific logout method in AuthService
   }

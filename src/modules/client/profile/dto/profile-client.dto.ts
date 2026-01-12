@@ -12,6 +12,10 @@ import { PartialType } from '@nestjs/mapped-types';
 
 export class ProfileClientDto {
   @IsOptional()
+  @IsString()
+  username?: string;
+
+  @IsOptional()
   @IsDateString()
   date_of_birth?: string;
 
@@ -23,8 +27,9 @@ export class ProfileClientDto {
   @IsString()
   place_of_birth?: string;
 
+  @IsOptional()
   @IsEnum(['male', 'female', 'other'])
-  gender: 'male' | 'female' | 'other';
+  gender?: 'male' | 'female' | 'other';
 
   @IsOptional()
   @IsString()
