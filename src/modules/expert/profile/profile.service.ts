@@ -68,6 +68,11 @@ export class ProfileService {
         price: dto.price,
         bank_details: dto.bank_details,
         is_available: dto.is_available,
+        documents: dto.documents,
+        gallery: dto.gallery,
+        videos: dto.videos,
+        certificates: dto.certificates,
+        detailed_experience: dto.detailed_experience,
         addresses:
           dto.addresses?.map((addr) =>
             this.addressRepo.create({
@@ -113,6 +118,12 @@ export class ProfileService {
     if (dto.price !== undefined) profile.price = dto.price;
     if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
     if (dto.is_available !== undefined) profile.is_available = dto.is_available;
+    if (dto.documents !== undefined) profile.documents = dto.documents;
+    if (dto.gallery !== undefined) profile.gallery = dto.gallery;
+    if (dto.videos !== undefined) profile.videos = dto.videos;
+    if (dto.certificates !== undefined) profile.certificates = dto.certificates;
+    if (dto.detailed_experience !== undefined)
+      profile.detailed_experience = dto.detailed_experience;
 
     if ((dto as any).languages) {
       profile.languages = (dto as any).languages.join(',');
@@ -128,6 +139,11 @@ export class ProfileService {
           zipCode: addr.zipCode,
         }),
       );
+    }
+
+    if (dto.avatar !== undefined) {
+      // update user avatar
+      await this.userRepo.update(user.id, { avatar: dto.avatar });
     }
 
     await this.profileRepo.save(profile);

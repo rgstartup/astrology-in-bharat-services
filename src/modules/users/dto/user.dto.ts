@@ -15,6 +15,10 @@ class UserDto {
   email: string;
 
   @IsString()
+  @IsOptional()
+  avatar?: string;
+
+  @IsString()
   @MinLength(6)
   @IsOptional()
   password?: string;
@@ -33,4 +37,4 @@ class UserDto {
   roles?: RolesDto[]; // role names only, no entity
 }
 
-export class CreateUserDto extends UserDto {}
+export class CreateUserDto extends UserDto { }
