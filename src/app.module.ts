@@ -12,7 +12,7 @@ import { QuotesModule } from '@/quotes/quotes.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { join } from 'path';
+import { join } from 'path'; 
 
 @Module({
   imports: [
