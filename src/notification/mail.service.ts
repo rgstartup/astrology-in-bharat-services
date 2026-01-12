@@ -25,6 +25,8 @@ export class MailService {
         pass: this.mailConfig.pass,
       },
     });
+
+    this.logger.log(`MailService initialized with host: ${this.mailConfig.host}, port: ${this.mailConfig.port}, user: ${this.mailConfig.user}`);
   }
 
   async sendMail(to: string, subject: string, text: string, html?: string) {
@@ -38,8 +40,13 @@ export class MailService {
       });
       this.logger.log(`Email sent: ${info.messageId}`);
       return info;
+      return info;
     } catch (err) {
       this.logger.error('Error sending mail', err);
+      if (err instanceof Error) {
+        this.logger.error('Error stack:', err.stack);
+        this.logger.error('Error message:', err.message);
+      }
       throw err;
     }
   }

@@ -26,11 +26,13 @@ export class ProfileExpert {
 
   @Column({
     type: 'text',
+    nullable: true,
   })
   gender: 'male' | 'female' | 'other';
 
   @Column({
     type: 'text',
+    nullable: true,
   })
   specialization: string;
 
