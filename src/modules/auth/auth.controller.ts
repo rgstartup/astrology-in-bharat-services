@@ -55,6 +55,20 @@ export class AuthController {
     );
   }
 
+  @Post('client/login')
+  clientLogin(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response, // 👈 pass Response
+  ) {
+    return this.authService.clientLogin(
+      dto,
+      req.ip,
+      req.get('user-agent') || undefined,
+      res, // 👈 send to service (so it can set cookies)
+    );
+  }
+
   @Post('email/login')
   login(
     @Body() dto: LoginDto,
@@ -62,6 +76,20 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response, // 👈 pass Response
   ) {
     return this.authService.login(
+      dto,
+      req.ip,
+      req.get('user-agent') || undefined,
+      res, // 👈 send to service (so it can set cookies)
+    );
+  }
+
+  @Post('client/register')
+  clientRegister(
+    @Body() dto: RegisterDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response, // 👈 pass Response
+  ) {
+    return this.authService.clientRegister(
       dto,
       req.ip,
       req.get('user-agent') || undefined,
@@ -130,6 +158,7 @@ export class AuthController {
 
     // Set new refresh token in cookie (this will be the NEW composite token because we updated tokenService.generateTokens)
     this.authService.setRefreshTokenCookie(res, tokens.refreshToken);
+    this.authService.setAccessTokenCookie(res, tokens.accessToken);
 
     // Return access token in body
     return { accessToken: tokens.accessToken };
@@ -143,6 +172,16 @@ export class AuthController {
   ) {
     res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, getRefreshTokenCookieOptions());
     return this.authService.logout(id);
+  }
+
+  @Post('client-logout')
+  @UseGuards(JwtAuthGuard) // Assuming clients also use JwtAuthGuard for their sessions
+  clientLogout(
+    @CurrentUser('id') id: number, // Assuming client ID is also available via CurrentUser decorator
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, getRefreshTokenCookieOptions()); // Clear client-specific refresh token cookie
+    return this.authService.clientLogout(id); // Call a new client-specific logout method in AuthService
   }
 
   @Post('magic/new')
@@ -162,12 +201,9 @@ export class AuthController {
       req.get('user-agent'),
     );
 
-    // ONLY set refresh token as HttpOnly secure cookie
-    res.cookie(
-      COOKIE_NAMES.REFRESH_TOKEN,
-      result.refreshToken,
-      getRefreshTokenCookieOptions(),
-    );
+    // Set tokens as cookies
+    this.authService.setRefreshTokenCookie(res, result.refreshToken);
+    this.authService.setAccessTokenCookie(res, result.accessToken);
 
     // Access token is returned in the body (result)
     return result;
