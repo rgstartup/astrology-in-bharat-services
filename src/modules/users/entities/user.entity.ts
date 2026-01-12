@@ -56,6 +56,9 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column({ nullable: true })
+  avatar?: string;
+
   @OneToOne(() => ProfileClient, (p) => p.user, { cascade: true })
   profile_client?: ProfileClient;
 

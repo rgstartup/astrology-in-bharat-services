@@ -65,6 +65,21 @@ export class ProfileExpert {
   @Column({ type: 'text', nullable: true })
   bank_details?: string;
 
+  @Column({ type: 'simple-array', nullable: true })
+  documents?: string[];
+
+  @Column({ type: 'simple-array', nullable: true })
+  gallery?: string[];
+
+  @Column({ type: 'simple-array', nullable: true })
+  videos?: string[];
+
+  @Column({ type: 'simple-array', nullable: true })
+  certificates?: string[];
+
+  @Column({ type: 'json', nullable: true })
+  detailed_experience?: Record<string, any>[];
+
   @Column({ type: 'boolean', default: false })
   is_available: boolean;
 

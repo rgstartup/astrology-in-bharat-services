@@ -28,6 +28,10 @@ export class ProfileExpertDto {
 
   @IsOptional()
   @IsString()
+  avatar?: string;
+
+  @IsOptional()
+  @IsString()
   bio?: string;
 
   @IsNumber()
@@ -62,6 +66,30 @@ export class ProfileExpertDto {
   @IsOptional()
   @IsBoolean()
   is_available?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  documents?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  gallery?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  videos?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  certificates?: string[];
+
+  @IsOptional()
+  @IsArray()
+  detailed_experience?: Record<string, any>[];
 }
 
 export class CreateProfileExpertDto extends ProfileExpertDto { }
