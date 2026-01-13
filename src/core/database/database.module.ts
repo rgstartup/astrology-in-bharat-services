@@ -2,7 +2,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { DatabaseConfig } from '../config/db.config';
+
 import { DatabaseService } from './database.service';
 
 @Module({
@@ -11,21 +11,19 @@ import { DatabaseService } from './database.service';
       imports: [ConfigModule], // import ConfigModule to access ConfigService
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
-        const dbConfig = configService.get<DatabaseConfig>('database');
-
-        if (!dbConfig) throw new Error('Database config not found');
+        const databaseUrl = process.env.DATABASE_URL;
+        if (!databaseUrl) throw new Error('Database config not found: DATABASE_URL is missing');
 
         return {
           type: 'postgres',
-          host: dbConfig.host,
-          port: dbConfig.port,
-          username: dbConfig.username,
-          password: dbConfig.password,
-          database: dbConfig.database,
-          autoLoadEntities: true, // automatically load entities registered in modules
-          synchronize: process.env.NODE_ENV !== 'production', // set to false in production
-          logging: true, // optional
-          poolSize: dbConfig.max_connections,
+          url: databaseUrl,
+          autoLoadEntities: true,
+          synchronize: process.env.NODE_ENV !== 'production',
+          logging: true,
+          schema: 'public', // Force schema to public
+          ssl: {
+            rejectUnauthorized: false, // ✅ Supabase requires SSL
+          },
         };
       },
     }),
@@ -33,4 +31,4 @@ import { DatabaseService } from './database.service';
   providers: [DatabaseService],
   exports: [DatabaseService],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }
