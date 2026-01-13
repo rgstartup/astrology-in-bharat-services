@@ -19,6 +19,44 @@ export enum Gender {
   Other = 'other',
 }
 
+export class DetailedExperienceDto {
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string;
+
+  @IsOptional()
+  @IsString()
+  company?: string;
+
+  @IsOptional()
+  @IsString()
+  organization?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  startDate?: string;
+
+  @IsOptional()
+  @IsString()
+  endDate?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isCurrent?: boolean;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
+}
+
 export class ProfileExpertDto {
   @IsEnum(Gender)
   gender: Gender;
@@ -89,7 +127,9 @@ export class ProfileExpertDto {
 
   @IsOptional()
   @IsArray()
-  detailed_experience?: Record<string, any>[];
+  @ValidateNested({ each: true })
+  @Type(() => DetailedExperienceDto)
+  detailed_experience?: DetailedExperienceDto[];
 }
 
 export class CreateProfileExpertDto extends ProfileExpertDto { }

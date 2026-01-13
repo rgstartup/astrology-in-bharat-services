@@ -113,8 +113,10 @@ export class ProfileService {
     if (dto.specialization !== undefined)
       profile.specialization = dto.specialization;
     if (dto.bio !== undefined) profile.bio = dto.bio;
+
     if (dto.experience_in_years !== undefined)
       profile.experience_in_years = dto.experience_in_years;
+
     if (dto.price !== undefined) profile.price = dto.price;
     if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
     if (dto.is_available !== undefined) profile.is_available = dto.is_available;
@@ -122,6 +124,7 @@ export class ProfileService {
     if (dto.gallery !== undefined) profile.gallery = dto.gallery;
     if (dto.videos !== undefined) profile.videos = dto.videos;
     if (dto.certificates !== undefined) profile.certificates = dto.certificates;
+
     if (dto.detailed_experience !== undefined)
       profile.detailed_experience = dto.detailed_experience;
 
@@ -145,6 +148,7 @@ export class ProfileService {
       // update user avatar
       await this.userRepo.update(user.id, { avatar: dto.avatar });
     }
+
 
     await this.profileRepo.save(profile);
 
