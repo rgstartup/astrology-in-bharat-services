@@ -6,7 +6,7 @@ import {
   CreateProfileClientDto,
   UpdateProfileClientDto,
 } from './dto/profile-client.dto';
-import { Address } from '@/common/entities/address.entity';
+import { Address, AddressTag } from '@/common/entities/address.entity';
 
 import { User } from '@/modules/users/entities/user.entity';
 import { BaseService } from '@/common/services/transaction.service';
@@ -44,12 +44,14 @@ export class ProfileService extends BaseService<ProfileClient> {
       ...profileData,
       user: { id: user_id },
       addresses: dto.addresses?.map((addr) => ({
-        line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
+        id: addr.id,
+        line1: addr.line1,
+        line2: addr.line2, // Store line2 if you want to keep it separate or combine as before
         city: addr.city,
         state: addr.state,
         country: addr.country,
         zipCode: addr.zipCode,
-        // map other fields if necessary
+        tag: addr.tag || AddressTag.OTHER
       })),
     });
 
@@ -67,21 +69,28 @@ export class ProfileService extends BaseService<ProfileClient> {
       await this.userRepo.update(user_id, { name: full_name });
     }
 
-    Object.assign(profile, profileData);
-
-    // Handle address mapping manually to preserve line2
+    // Handle address mapping manually to preserve ID and correct fields
     if (dto.addresses) {
-      profile.addresses = dto.addresses.map(
-        (addr) =>
-          ({
-            line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
-            city: addr.city,
-            state: addr.state,
-            country: addr.country,
-            zipCode: addr.zipCode,
-          }) as any,
-      ); // cast to any or Address if import available
+      profile.addresses = dto.addresses.map((addr) => {
+        const address = new Address();
+        if (addr.id) address.id = addr.id;
+        address.line1 = addr.line1;
+        // If the entity has line1 as combined, then:
+        // address.line1 = [addr.line1, addr.line2].filter(Boolean).join(', ');
+        // But the previous code combined them. Let's see if Address entity has line2.
+        // I checked earlier: Address entity DOES NOT have line2. It has line1 (mapped to street).
+        address.line1 = [addr.line1, addr.line2].filter(Boolean).join(', ');
+        address.city = addr.city;
+        address.state = addr.state;
+        address.country = addr.country;
+        address.zipCode = addr.zipCode;
+        address.tag = addr.tag || AddressTag.OTHER;
+        return address;
+      });
+      delete profileData.addresses; // Don't let Object.assign touch common field name if handled manually
     }
+
+    Object.assign(profile, profileData);
 
     await this.repo.save(profile);
     return this.findByUserId(user_id);
