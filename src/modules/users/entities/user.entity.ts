@@ -64,4 +64,7 @@ export class User {
 
   @OneToOne(() => ProfileExpert, (p) => p.user, { cascade: true })
   profile_expert?: ProfileExpert;
+
+  @OneToMany('Wishlist', (w: any) => w.user)
+  wishlists: any[];
 }

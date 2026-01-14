@@ -15,7 +15,10 @@ import { UpdateCartItemDto } from './dto/update-cart.dto';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 import { IUser } from '@/common/interfaces/user.interface';
 
-@Controller('api/v1/cart')
+@Controller({
+    path: 'cart',
+    version: '1',
+})
 @UseGuards(JwtAuthGuard)
 export class CartController {
     constructor(private readonly cartService: CartService) { }

@@ -5,33 +5,42 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadedFile, UseInterceptors } from '@nestjs/common';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { memoryStorage } from 'multer';
+import { CloudinaryService } from '@/common/cloudinary/cloudinary.service';
+import { UploadApiResponse } from 'cloudinary';
 
 @Controller('products')
 export class ProductController {
-    constructor(private readonly productService: ProductService) { }
+    constructor(
+        private readonly productService: ProductService,
+        private readonly cloudinaryService: CloudinaryService
+    ) { }
 
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
-    @UseInterceptors(FileInterceptor('file', {
-        storage: diskStorage({
-            destination: './uploads',
-            filename: (req, file, callback) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                const ext = extname(file.originalname);
-                const filename = `${uniqueSuffix}${ext}`;
-                callback(null, filename);
-            },
-        }),
+    @UseInterceptors(AnyFilesInterceptor({
+        storage: memoryStorage(),
     }))
-    create(@Body() createProductDto: CreateProductDto, @UploadedFile() file: Express.Multer.File) {
-        if (file) {
-            createProductDto.imageUrl = `/uploads/${file.filename}`;
+    async create(@Body() createProductDto: CreateProductDto, @UploadedFiles() files: Array<Express.Multer.File>) {
+        let imageUrl = createProductDto.imageUrl; // Keep existing if sent
+
+        if (files && files.length > 0) {
+            // Try to pick the first image file
+            const file = files[0];
+            try {
+                const uploadedImage = await this.cloudinaryService.uploadImage(file) as UploadApiResponse;
+                if (uploadedImage?.secure_url) {
+                    imageUrl = uploadedImage.secure_url;
+                }
+            } catch (error) {
+                console.error('Cloudinary Upload Error:', error);
+            }
         }
+
+        createProductDto.imageUrl = imageUrl;
         return this.productService.create(createProductDto);
     }
 
@@ -49,19 +58,14 @@ export class ProductController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     @UseInterceptors(FileInterceptor('file', {
-        storage: diskStorage({
-            destination: './uploads',
-            filename: (req, file, callback) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                const ext = extname(file.originalname);
-                const filename = `${uniqueSuffix}${ext}`;
-                callback(null, filename);
-            },
-        }),
+        storage: memoryStorage(),
     }))
-    update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto, @UploadedFile() file: Express.Multer.File) {
+    async update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto, @UploadedFile() file: Express.Multer.File) {
         if (file) {
-            updateProductDto.imageUrl = `/uploads/${file.filename}`;
+            const uploadedImage = await this.cloudinaryService.uploadImage(file) as UploadApiResponse;
+            if (uploadedImage?.secure_url) {
+                updateProductDto.imageUrl = uploadedImage.secure_url;
+            }
         }
         // If no new file is uploaded, keep the old imageUrl (already in database)
         // updateProductDto will contain other fields

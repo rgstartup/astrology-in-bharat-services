@@ -20,7 +20,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // Security & Performance
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
   app.use(compression());
 
   // Enable global exception filter
@@ -30,7 +30,7 @@ async function bootstrap() {
   app.enableCors({
     // Only allow requests from your frontend's exact origin
     origin: [
-      process.env.FRONTEND_URL ,
+      process.env.FRONTEND_URL,
       process.env.ASTROLOGER_FRONTEND_URL,
       process.env.ADMIN_FRONTEND_URL,
     ].filter(Boolean) as string[],
