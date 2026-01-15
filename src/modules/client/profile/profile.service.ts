@@ -55,6 +55,10 @@ export class ProfileService extends BaseService<ProfileClient> {
       })),
     });
 
+    if (dto.profile_picture) {
+      await this.userRepo.update(user_id, { avatar: dto.profile_picture });
+    }
+
     await this.repo.save(profile);
     return this.findByUserId(user_id);
   }
@@ -88,6 +92,10 @@ export class ProfileService extends BaseService<ProfileClient> {
         return address;
       });
       delete profileData.addresses; // Don't let Object.assign touch common field name if handled manually
+    }
+
+    if (profileData.profile_picture) {
+      await this.userRepo.update(user_id, { avatar: profileData.profile_picture });
     }
 
     Object.assign(profile, profileData);
