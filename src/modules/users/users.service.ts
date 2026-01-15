@@ -32,6 +32,13 @@ export class UsersService extends BaseService<User> {
     if (dto.roles?.length) {
       const roleNames = dto.roles.map((r) => r.name);
       const roles = await this.rolesService.findByNames(roleNames);
+
+      if (roles.length !== roleNames.length) {
+        const foundNames = roles.map(r => r.name);
+        const missing = roleNames.filter(r => !foundNames.includes(r));
+        throw new NotFoundException(`Roles not found: ${missing.join(', ')}. Please ensure database is seeded.`);
+      }
+
       user.roles = roles;
     }
 

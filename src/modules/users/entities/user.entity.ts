@@ -67,4 +67,7 @@ export class User {
 
   @OneToMany('Wishlist', (w: any) => w.user)
   wishlists: any[];
+
+  @OneToMany('Wishlist', (w: any) => w.expert)
+  expertWishlists: any[];
 }

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Wishlist } from './entities/wishlist.entity';
 import { Product } from '@/modules/product/entities/product.entity';
 import { User } from '@/modules/users/entities/user.entity';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 
 @Injectable()
 export class WishlistService {
@@ -14,6 +15,8 @@ export class WishlistService {
         private productRepository: Repository<Product>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        @InjectRepository(ProfileExpert)
+        private profileExpertRepository: Repository<ProfileExpert>,
     ) { }
 
     async findAll(userId: number) {
@@ -74,10 +77,36 @@ export class WishlistService {
     }
 
     async createExpert(userId: number, expertId: number) {
-        const expert = await this.userRepository.findOne({ where: { id: expertId, roles: { name: 'expert' } }, relations: ['roles'] });
-        if (!expert) {
-            throw new NotFoundException('Expert not found');
+        let expertUser = await this.userRepository.findOne({ where: { id: expertId }, relations: ['roles'] });
+        let foundViaProfile = false;
+
+        if (!expertUser) {
+            // Try matching by ProfileExpert ID
+            const profileExpert = await this.profileExpertRepository.findOne({
+                where: { id: expertId },
+                relations: ['user', 'user.roles']
+            });
+
+            if (profileExpert && profileExpert.user) {
+                expertUser = profileExpert.user;
+                expertId = expertUser.id; // Update expertId to User ID for storage
+                foundViaProfile = true;
+            } else {
+                throw new NotFoundException(`Expert with ID ${expertId} not found`);
+            }
         }
+
+        const hasExpertRole = expertUser.roles && expertUser.roles.some(r => r.name === 'expert');
+
+        // If we found the user via their ProfileExpert record, we consider them an expert 
+        // even if the 'expert' role is missing from the roles table (data inconsistency).
+        if (!hasExpertRole && !foundViaProfile) {
+            const roleNames = expertUser.roles ? expertUser.roles.map(r => r.name).join(', ') : 'No roles';
+            throw new NotFoundException(`User with ID ${expertId} is not an expert (Roles: ${roleNames})`);
+        }
+
+        // Use the correct User ID for the wishlist entry
+        const finalExpertId = expertUser.id;
 
         const user = await this.userRepository.findOne({ where: { id: userId } });
         if (!user) {
@@ -85,7 +114,7 @@ export class WishlistService {
         }
 
         const existing = await this.wishlistRepository.findOne({
-            where: { user: { id: userId }, expert: { id: expertId } },
+            where: { user: { id: userId }, expert: { id: finalExpertId } },
         });
 
         if (existing) {
@@ -94,10 +123,18 @@ export class WishlistService {
 
         const wishlist = this.wishlistRepository.create({
             user,
-            expert,
+            expert: expertUser,
         });
 
-        return this.wishlistRepository.save(wishlist);
+        const savedWishlist = await this.wishlistRepository.save(wishlist);
+
+        // Increment total_likes for the expert
+        const profileExpert = await this.profileExpertRepository.findOne({ where: { user: { id: finalExpertId } } });
+        if (profileExpert) {
+            await this.profileExpertRepository.increment({ id: profileExpert.id }, 'total_likes', 1);
+        }
+
+        return savedWishlist;
     }
 
     async removeExpert(userId: number, expertId: number) {
@@ -110,6 +147,13 @@ export class WishlistService {
         }
 
         await this.wishlistRepository.remove(wishlist);
+
+        // Decrement total_likes for the expert
+        const profileExpert = await this.profileExpertRepository.findOne({ where: { user: { id: expertId } } });
+        if (profileExpert) {
+            await this.profileExpertRepository.decrement({ id: profileExpert.id }, 'total_likes', 1);
+        }
+
         return { message: 'Expert removed from wishlist' };
     }
 }

@@ -433,6 +433,7 @@ export class ProfileService {
         : [];
       plain.userId = ex.user?.id; // Add userId for socket tracking
       plain.isAvailable = ex.is_available;
+      plain.total_likes = (ex as any).total_likes || 0;
       return plain;
     });
 
@@ -448,10 +449,12 @@ export class ProfileService {
   }
 
   async getExpertById(id: number) {
-    const expert = await this.profileRepo.findOne({
-      where: { id },
-      relations: ['user', 'addresses'],
-    });
+    const queryBuilder = this.profileRepo.createQueryBuilder('profile')
+      .leftJoinAndSelect('profile.user', 'user')
+      .leftJoinAndSelect('profile.addresses', 'addresses')
+      .where('profile.id = :id', { id });
+
+    const expert = await queryBuilder.getOne();
 
     if (!expert) {
       throw new NotFoundException('Expert profile not found');
@@ -467,6 +470,7 @@ export class ProfileService {
       : [];
     plain.userId = expert.user?.id;
     plain.isAvailable = expert.is_available;
+    plain.total_likes = (expert as any).total_likes || 0;
 
     return plain;
   }
