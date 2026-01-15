@@ -59,4 +59,33 @@ export class ProfileController {
       profile_picture: result.secure_url,
     });
   }
+
+  @Post('upload-document')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadDocument(
+    @CurrentUser() user: User,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    console.log('🚀 [UPLOAD-DOCUMENT] Received request from user:', user?.id);
+    if (!file) {
+      console.warn('⚠️ [UPLOAD-DOCUMENT] No file found in request');
+      throw new Error('No file uploaded');
+    }
+    console.log('📂 [UPLOAD-DOCUMENT] File received:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size
+    });
+    try {
+      const result = await this.cloudinaryService.uploadImage(file);
+      console.log('✅ [UPLOAD-DOCUMENT] Cloudinary upload successful:', result.secure_url);
+      return {
+        message: 'File uploaded successfully',
+        url: result.secure_url,
+      };
+    } catch (error: any) {
+      console.error('❌ [UPLOAD-DOCUMENT] Cloudinary upload failed:', error.message);
+      throw error;
+    }
+  }
 }
