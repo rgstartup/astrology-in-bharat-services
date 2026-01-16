@@ -131,7 +131,13 @@ export class WishlistService {
         // Increment total_likes for the expert
         const profileExpert = await this.profileExpertRepository.findOne({ where: { user: { id: finalExpertId } } });
         if (profileExpert) {
-            await this.profileExpertRepository.increment({ id: profileExpert.id }, 'total_likes', 1);
+            console.log(`[WishlistService] Incrementing likes for expert ${finalExpertId}, current: ${profileExpert.total_likes}, type: ${typeof profileExpert.total_likes}`);
+            const currentLikes = Number(profileExpert.total_likes) || 0;
+            profileExpert.total_likes = currentLikes + 1;
+            await this.profileExpertRepository.save(profileExpert);
+            console.log(`[WishlistService] Incremented likes. New total: ${profileExpert.total_likes}`);
+        } else {
+            console.warn(`[WishlistService] ProfileExpert not found for user ${finalExpertId} when trying to increment likes`);
         }
 
         return savedWishlist;
@@ -151,7 +157,16 @@ export class WishlistService {
         // Decrement total_likes for the expert
         const profileExpert = await this.profileExpertRepository.findOne({ where: { user: { id: expertId } } });
         if (profileExpert) {
-            await this.profileExpertRepository.decrement({ id: profileExpert.id }, 'total_likes', 1);
+            console.log(`[WishlistService] Decrementing likes for expert ${expertId}, current: ${profileExpert.total_likes}`);
+            // Prevent negative likes
+            const currentLikes = profileExpert.total_likes || 0;
+            if (currentLikes > 0) {
+                profileExpert.total_likes = currentLikes - 1;
+                await this.profileExpertRepository.save(profileExpert);
+                console.log(`[WishlistService] Decremented likes. New total: ${profileExpert.total_likes}`);
+            }
+        } else {
+            console.warn(`[WishlistService] ProfileExpert not found for user ${expertId} when trying to decrement likes`);
         }
 
         return { message: 'Expert removed from wishlist' };
