@@ -2,6 +2,7 @@ import { AddressDto } from '@/common/dto/address.dto';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsOptional,
@@ -56,6 +57,10 @@ export class ProfileClientDto {
   @ValidateNested({ each: true })
   @Type(() => AddressDto)
   addresses?: AddressDto[];
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
 }
 
 // Create profile

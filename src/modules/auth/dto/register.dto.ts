@@ -2,6 +2,7 @@
 import { PickType } from '@nestjs/mapped-types';
 import {
   IsArray,
+  IsBoolean,
   IsEmail,
   IsOptional,
   IsString,
@@ -23,10 +24,14 @@ export class RegisterDto {
   @IsArray()
   @IsString({ each: true })
   roles: string[] = ['client'];
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
 }
 
-export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) {}
+export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) { }
 
-export class ResetPasswordDto extends PickType(RegisterDto, ['password']) {}
+export class ResetPasswordDto extends PickType(RegisterDto, ['password']) { }
 
-export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) {}
+export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) { }

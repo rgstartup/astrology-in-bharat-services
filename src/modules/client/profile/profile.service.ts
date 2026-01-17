@@ -64,8 +64,19 @@ export class ProfileService extends BaseService<ProfileClient> {
   }
 
   async update(user_id: number, dto: UpdateProfileClientDto) {
-    const profile = await this.findByUserId(user_id);
-    if (!profile) throw new NotFoundException('Profile not found');
+    let profile = await this.findByUserId(user_id);
+
+    if (!profile) {
+      // If profile doesn't exist (old users), create it on the fly
+      profile = this.repo.create({
+        user: { id: user_id },
+        gender: 'other', // default
+      });
+      await this.repo.save(profile);
+      profile = await this.findByUserId(user_id);
+    }
+
+    if (!profile) throw new NotFoundException('Profile could not be created');
 
     const { full_name, ...profileData } = dto;
 

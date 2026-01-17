@@ -29,7 +29,7 @@ import { User } from '@/modules/users/entities/user.entity';
 import { Public } from '@/common/decorators/public.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 
-@Controller('expert/profile')
+@Controller('expert')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
   constructor(

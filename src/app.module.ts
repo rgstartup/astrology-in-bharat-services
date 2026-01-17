@@ -11,6 +11,7 @@ import { ProductModule } from '@/modules/product/product.module';
 import { QuotesModule } from '@/quotes/quotes.module';
 import { CartModule } from '@/modules/cart/cart.module';
 import { WishlistModule } from '@/modules/wishlist/wishlist.module';
+import { FestivalModule } from '@/modules/festival/festival.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -31,6 +32,7 @@ import { join } from 'path';
 
     CartModule,
     WishlistModule,
+    FestivalModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',

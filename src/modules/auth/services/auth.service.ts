@@ -24,6 +24,7 @@ import { UsedTokensService } from './used-tokens.service';
 import { Response } from 'express';
 import { COOKIE_NAMES, getRefreshTokenCookieOptions, getAccessTokenCookieOptions } from '../helpers/cookie.helper';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
+import { ProfileClient } from '@/modules/client/profile/entities/profile-client.entity';
 
 @Injectable()
 export class AuthService {
@@ -73,12 +74,15 @@ export class AuthService {
         queryRunner,
       );
 
-      // Create Profile for Expert
+      // Create Profile for Expert or Client
       if (roles.includes('expert')) {
         const profile = new ProfileExpert();
         profile.user = user;
-        // The entity now allows null gender/specialization, so we can save it directly
         await queryRunner.manager.save(ProfileExpert, profile);
+      } else {
+        const profile = new ProfileClient();
+        profile.user = user;
+        await queryRunner.manager.save(ProfileClient, profile);
       }
 
       const verification_token = this.tokenService.generate5MinToken({
@@ -166,6 +170,11 @@ export class AuthService {
         queryRunner,
       );
 
+      // Create Profile for Client
+      const profile = new ProfileClient();
+      profile.user = user;
+      await queryRunner.manager.save(ProfileClient, profile);
+
       const verification_token = this.tokenService.generate5MinToken({
         sub: user.id,
         email: user.email,
@@ -229,6 +238,19 @@ export class AuthService {
     res?: Response, // 👈 get Response from controller
   ) {
     const user = await this.validateUser(dto.email, dto.password);
+
+    // If logging in from expert dashboard, verify they are an expert
+    if (dto.expert) {
+      const hasExpertRole = user.roles?.some((r: any) =>
+        typeof r === 'string' ? r === 'expert' : r.name === 'expert',
+      );
+      if (!hasExpertRole) {
+        throw new UnauthorizedException(
+          'Access denied. You do not have an expert account.',
+        );
+      }
+    }
+
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
     if (res) {

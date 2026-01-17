@@ -19,7 +19,7 @@ import {
   UpdateProfileClientDto,
 } from './dto/profile-client.dto';
 
-@Controller('client/profile')
+@Controller('client')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
   constructor(

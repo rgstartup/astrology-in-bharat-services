@@ -130,6 +130,10 @@ export class ProfileExpertDto {
   @ValidateNested({ each: true })
   @Type(() => DetailedExperienceDto)
   detailed_experience?: DetailedExperienceDto[];
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
 }
 
 export class CreateProfileExpertDto extends ProfileExpertDto { }

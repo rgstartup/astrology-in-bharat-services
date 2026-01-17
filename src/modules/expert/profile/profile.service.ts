@@ -102,11 +102,23 @@ export class ProfileService {
   }
 
   async updateProfile(user: User, dto: UpdateProfileExpertDto) {
-    const profile = await this.profileRepo.findOne({
+    let profile = await this.profileRepo.findOne({
       where: { user: { id: user.id } },
     });
 
-    if (!profile) throw new NotFoundException('Expert profile not found');
+    if (!profile) {
+      // If profile doesn't exist (old users), create it on the fly
+      profile = this.profileRepo.create({
+        user: { id: user.id } as any,
+        is_available: false,
+      });
+      await this.profileRepo.save(profile);
+      profile = await this.profileRepo.findOne({
+        where: { user: { id: user.id } },
+      });
+    }
+
+    if (!profile) throw new NotFoundException('Expert profile could not be created');
 
     // Apply updates but handle `languages` (string[]) -> CSV string explicitly
     if (dto.gender !== undefined) profile.gender = dto.gender;
@@ -150,7 +162,7 @@ export class ProfileService {
     }
 
 
-    await this.profileRepo.save(profile);
+    if (profile) await this.profileRepo.save(profile);
 
     // Notify of status change if is_available was updated
     if (dto.is_available !== undefined) {
