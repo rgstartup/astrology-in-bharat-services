@@ -147,7 +147,7 @@ export class AuthService {
 
     const hashed = await argon2.hash(dto.password, { type: argon2.argon2id });
 
-    const { roles, ...registerDto } = dto;
+    const { roles, phone, ...registerDto } = dto;
 
     // Ensure client role is assigned
     const clientRoles = roles && roles.length > 0 ? roles : ['client'];
@@ -170,9 +170,12 @@ export class AuthService {
         queryRunner,
       );
 
-      // Create Profile for Client
+      // Create Profile for Client with phone number
       const profile = new ProfileClient();
       profile.user = user;
+      if (phone) {
+        profile.phone = phone;
+      }
       await queryRunner.manager.save(ProfileClient, profile);
 
       const verification_token = this.tokenService.generate5MinToken({
@@ -194,35 +197,24 @@ export class AuthService {
       return { user, tokens };
     });
 
-    // 👇 set cookies (if Response passed)
-    if (res) {
-      // Set refresh token in cookie
-      this.setRefreshTokenCookie(res, tokens.refreshToken);
-      // Set access token in cookie
-      this.setAccessTokenCookie(res, tokens.accessToken);
-    }
-
-    // Return user AND access token - CLIENT only
+    // CLIENT now requires email verification - NO auto-login
+    // Return success message WITHOUT logging in
     return {
-      ...instanceToPlain({ user }),
-      accessToken: tokens.accessToken,
+      message: 'Registration successful. Please check your email to verify your account.',
     };
   }
+
 
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmailWithPassword(email);
     if (!user || !user.password)
       throw new UnauthorizedException('Invalid credentials');
 
-    // Check for Expert Verification
-    // Assuming roles are loaded. If not, we might need to fetch them.
-    // user.roles is likely an array of Role objects or strings depending on loading strategy.
-    // Based on User entity, it's ManyToMany Role[].
-    const isExpert = user.roles?.some((r) => r.name === 'expert');
-
-    if (isExpert && !user.emailVerified) {
+    // Check for email verification (required for all users now)
+    if (!user.emailVerified) {
       throw new UnauthorizedException('Email not verified. Please verify your email before logging in.');
     }
+
     const valid = await argon2.verify(user.password, password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
     return user;

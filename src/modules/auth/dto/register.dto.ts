@@ -21,6 +21,10 @@ export class RegisterDto {
   name?: string;
 
   @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   roles: string[] = ['client'];

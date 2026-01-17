@@ -16,7 +16,7 @@ export class NotificationService {
   async handleUserRegistered(event: UserRegisteredEvent) {
     await this.mailService.sendMail(
       event.email,
-      'Welcome to MyApp!',
+      'Welcome to Astrology in Bharat!',
       `Hi ${event.name}, thanks for signing up!`,
       `<h1>Welcome, ${event.name}</h1>
       <p>Thanks for signing up!</p>

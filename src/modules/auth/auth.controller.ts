@@ -102,6 +102,11 @@ export class AuthController {
     return this.authService.confirmEmail(dto.token);
   }
 
+  @Get('email/verify')
+  verifyEmail(@Query('token') token: string) {
+    return this.authService.confirmEmail(token);
+  }
+
   @Post('email/confirm/new')
   resendConfirmation(@Body() dto: { email: string }) {
     return this.authService.resendConfirmationEamil(dto.email);
