@@ -48,6 +48,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       throw new Error('Google account did not provide an email');
     }
 
+    let role = 'client';
+    try {
+      const state = req.query.state ? JSON.parse(req.query.state as string) : {};
+      role = state.role || 'client';
+    } catch (e) {
+      console.error('Failed to parse state from Google OAuth:', e);
+    }
+
     return await this.db.transaction(async (queryRunner) => {
       // 1️⃣ Find or create user
       const user = await this.oauthService.findOrCreateUserFromOAuth(
@@ -57,7 +65,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
           email,
           name: profile.displayName,
           profile,
-          roles: ['client'],
+          roles: [role],
         },
         queryRunner,
       );

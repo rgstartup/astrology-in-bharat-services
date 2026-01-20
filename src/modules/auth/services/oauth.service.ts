@@ -21,7 +21,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
   async findByProvider(provider: string, providerId: string) {
     return this.oauthRepo.findOne({
       where: { provider, providerId },
-      relations: ['user'],
+      relations: ['user', 'user.roles'],
     });
   }
 
@@ -40,12 +40,11 @@ export class OAuthService extends BaseService<OAuthAccount> {
     queryRunner?: QueryRunner,
   ): Promise<User> {
     const oauth = await this.findByProvider(dto.provider, dto.providerId);
+    let user: User | null = oauth?.user || null;
 
-    if (oauth?.user) return oauth.user;
-
-    let user = dto.email
-      ? await this.usersService.findByEmail(dto.email)
-      : null;
+    if (!user && dto.email) {
+      user = await this.usersService.findByEmail(dto.email);
+    }
 
     if (!user) {
       const isEmailVerified = dto.profile?._json?.email_verified ?? false;
@@ -59,9 +58,27 @@ export class OAuthService extends BaseService<OAuthAccount> {
         },
         queryRunner,
       );
+    } else {
+      // 🔹 Check if user needs the requested roles
+      const existingRoleNames = user.roles?.map((r) => r.name) || [];
+      const rolesToAssign = dto.roles?.filter(
+        (role) => !existingRoleNames.includes(role),
+      );
+
+      if (rolesToAssign?.length) {
+        for (const roleName of rolesToAssign) {
+          user = (await this.usersService.assignRole(
+            user.id,
+            roleName,
+          )) as User;
+        }
+      }
     }
 
-    await this.linkAccount({ ...dto, user }, queryRunner);
+    if (!oauth) {
+      await this.linkAccount({ ...dto, user }, queryRunner);
+    }
+
     return user;
   }
 }

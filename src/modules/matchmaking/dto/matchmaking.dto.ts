@@ -36,8 +36,19 @@ export class GunaMilanRequestDto {
 }
 
 export class LoveCalculatorDto {
+    @IsString()
+    @IsNotEmpty()
     yourName: string;
+
+    @IsString()
+    @IsNotEmpty()
     partnerName: string;
+
+    @IsString()
+    @IsOptional()
     yourGender?: string;
+
+    @IsString()
+    @IsOptional()
     partnerGender?: string;
 }

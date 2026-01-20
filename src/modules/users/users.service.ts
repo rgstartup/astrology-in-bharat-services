@@ -5,6 +5,8 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/user.dto';
 import { RolesService } from '@/modules/role/roles.service';
 import { BaseService } from 'src/common/services/transaction.service';
+import { ProfileClient } from '@/modules/client/profile/entities/profile-client.entity';
+import { ProfileExpert } from '../expert/profile/entities/profile-expert.entity';
 
 @Injectable()
 export class UsersService extends BaseService<User> {
@@ -34,12 +36,24 @@ export class UsersService extends BaseService<User> {
       const roles = await this.rolesService.findByNames(roleNames);
 
       if (roles.length !== roleNames.length) {
-        const foundNames = roles.map(r => r.name);
-        const missing = roleNames.filter(r => !foundNames.includes(r));
-        throw new NotFoundException(`Roles not found: ${missing.join(', ')}. Please ensure database is seeded.`);
+        const foundNames = roles.map((r) => r.name);
+        const missing = roleNames.filter((r) => !foundNames.includes(r));
+        throw new NotFoundException(
+          `Roles not found: ${missing.join(
+            ', ',
+          )}. Please ensure database is seeded.`,
+        );
       }
 
       user.roles = roles;
+
+      // 🔹 Auto-initialize Profile records
+      if (roleNames.includes('expert')) {
+        user.profile_expert = new ProfileExpert();
+      }
+      if (roleNames.includes('client')) {
+        user.profile_client = new ProfileClient();
+      }
     }
 
     return repo.save(user);
@@ -94,7 +108,7 @@ export class UsersService extends BaseService<User> {
 
   // 🔹 Find user by email
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepo.findOne({ where: { email } });
+    return this.usersRepo.findOne({ where: { email }, relations: ['roles'] });
   }
 
   // 🔹 Find user with password (for login)
@@ -203,7 +217,19 @@ export class UsersService extends BaseService<User> {
     const role = await this.rolesService.findByName(roleName);
     if (!role) return null;
 
+    const existingRoleNames = user.roles?.map((r) => r.name) || [];
+    if (existingRoleNames.includes(roleName)) return user;
+
     user.roles = [...(user.roles || []), role];
+
+    // 🔹 Initialize profiles if needed
+    if (roleName === 'expert' && !user.profile_expert) {
+      user.profile_expert = new ProfileExpert();
+    }
+    if (roleName === 'client' && !user.profile_client) {
+      user.profile_client = new ProfileClient();
+    }
+
     return this.usersRepo.save(user);
   }
 }
