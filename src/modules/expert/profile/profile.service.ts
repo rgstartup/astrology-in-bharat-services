@@ -445,6 +445,7 @@ export class ProfileService {
         : [];
       plain.userId = ex.user?.id; // Add userId for socket tracking
       plain.isAvailable = ex.is_available;
+      plain.is_online = ex.user?.id ? this.expertGateway.isExpertOnline(ex.user.id) : false;
       plain.total_likes = (ex as any).total_likes || 0;
       return plain;
     });
@@ -482,6 +483,7 @@ export class ProfileService {
       : [];
     plain.userId = expert.user?.id;
     plain.isAvailable = expert.is_available;
+    plain.is_online = expert.user?.id ? this.expertGateway.isExpertOnline(expert.user.id) : false;
     plain.total_likes = (expert as any).total_likes || 0;
 
     return plain;

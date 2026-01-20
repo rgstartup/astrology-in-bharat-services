@@ -36,9 +36,10 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 this.logger.log(`Expert ${userId} removed from tracking (disconnected)`);
 
                 // Broadcast to all clients that this expert is now offline
-                this.server.emit('expert_status_changed', {
-                    userId,
-                    status: 'offline'
+                this.server.emit('expertStatusUpdate', {
+                    expert_id: userId,
+                    is_available: false,
+                    status: 'offline' // keeping status for backward compatibility if needed
                 });
                 break;
             }
@@ -51,8 +52,9 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.logger.log(`Expert ${payload.userId} is online via socket ${client.id}`);
 
         // Broadcast to all clients (especially the main frontend)
-        this.server.emit('expert_status_changed', {
-            userId: payload.userId,
+        this.server.emit('expertStatusUpdate', {
+            expert_id: payload.userId,
+            is_available: true,
             status: 'online'
         });
     }
@@ -63,17 +65,24 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.logger.log(`Expert ${payload.userId} is offline via socket ${client.id}`);
 
         // Broadcast to all clients
-        this.server.emit('expert_status_changed', {
-            userId: payload.userId,
+        this.server.emit('expertStatusUpdate', {
+            expert_id: payload.userId,
+            is_available: false,
             status: 'offline'
         });
     }
 
     // Method to manually notify status change (e.g., from ProfileService)
     notifyStatusChange(userId: number, isAvailable: boolean) {
-        this.server.emit('expert_status_changed', {
-            userId,
+        this.server.emit('expertStatusUpdate', {
+            expert_id: userId,
+            is_available: isAvailable,
             status: isAvailable ? 'online' : 'offline'
         });
+    }
+
+    // Method to check if an expert is online
+    isExpertOnline(userId: number): boolean {
+        return this.expertSockets.has(userId);
     }
 }
