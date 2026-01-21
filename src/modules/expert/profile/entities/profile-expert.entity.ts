@@ -65,6 +65,9 @@ export class ProfileExpert {
   @Column({ type: 'text', nullable: true })
   languages?: string;
 
+  @Column({ type: 'text', nullable: true })
+  phoneNumber?: string;
+
   @Column({ type: 'float', nullable: true })
   price?: number;
 
@@ -76,6 +79,12 @@ export class ProfileExpert {
 
   @Column({ type: 'float', nullable: true })
   video_call_price?: number;
+
+  @Column({ type: 'float', nullable: true })
+  report_price?: number;
+
+  @Column({ type: 'float', nullable: true })
+  horoscope_price?: number;
 
   @Column({ type: 'json', nullable: true })
   custom_services?: Record<string, any>[];

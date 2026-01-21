@@ -50,7 +50,7 @@ export class ProfileService extends BaseService<ProfileClient> {
         city: addr.city,
         state: addr.state,
         country: addr.country,
-        zipCode: addr.zipCode,
+        zipCode: addr.zipCode || '',
         tag: addr.tag || AddressTag.OTHER
       })),
     });
@@ -98,7 +98,7 @@ export class ProfileService extends BaseService<ProfileClient> {
         address.city = addr.city;
         address.state = addr.state;
         address.country = addr.country;
-        address.zipCode = addr.zipCode;
+        address.zipCode = addr.zipCode || '';
         address.tag = addr.tag || AddressTag.OTHER;
         return address;
       });

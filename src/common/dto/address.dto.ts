@@ -12,17 +12,33 @@ export class AddressDto {
   @IsString()
   line2?: string;
 
+  @IsOptional()
   @IsString()
-  city: string;
+  houseNo?: string;
 
+  @IsOptional()
   @IsString()
-  state: string;
+  city?: string;
 
+  @IsOptional()
   @IsString()
-  country: string;
+  district?: string;
 
+  @IsOptional()
+  @IsString()
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  country?: string;
+
+  @IsOptional()
   @IsPostalCode('any')
-  zipCode: string;
+  zipCode?: string;
+
+  @IsOptional()
+  @IsString()
+  pincode?: string;
 
   @IsOptional()
   @IsEnum(AddressTag)

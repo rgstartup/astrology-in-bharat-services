@@ -65,10 +65,13 @@ export class ProfileService {
         experience_in_years: dto.experience_in_years,
         // persist languages as CSV string to match entity column type
         languages: dto.languages ? dto.languages.join(',') : undefined,
+        phoneNumber: dto.phoneNumber,
         price: dto.price,
         chat_price: dto.chat_price,
         call_price: dto.call_price,
         video_call_price: dto.video_call_price,
+        report_price: dto.report_price,
+        horoscope_price: dto.horoscope_price,
         custom_services: dto.custom_services,
         bank_details: dto.bank_details,
         is_available: dto.is_available,
@@ -82,11 +85,14 @@ export class ProfileService {
           dto.addresses?.map((addr) =>
             this.addressRepo.create({
               // map DTO -> entity fields
-              line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
+              line1: [addr.line1, addr.line2].filter(Boolean).join(', ') || addr.houseNo || '',
+              houseNo: addr.houseNo,
               city: addr.city,
+              district: addr.district,
               state: addr.state,
               country: addr.country,
-              zipCode: addr.zipCode,
+              zipCode: addr.zipCode || addr.pincode || '',
+              pincode: addr.pincode,
             }),
           ) ?? [],
       };
@@ -139,6 +145,8 @@ export class ProfileService {
     if (dto.chat_price !== undefined) profile.chat_price = dto.chat_price;
     if (dto.call_price !== undefined) profile.call_price = dto.call_price;
     if (dto.video_call_price !== undefined) profile.video_call_price = dto.video_call_price;
+    if (dto.report_price !== undefined) profile.report_price = dto.report_price;
+    if (dto.horoscope_price !== undefined) profile.horoscope_price = dto.horoscope_price;
     if (dto.custom_services !== undefined) profile.custom_services = dto.custom_services;
 
     if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
@@ -156,14 +164,27 @@ export class ProfileService {
       profile.languages = (dto as any).languages.join(',');
     }
 
+    if ((dto as any).phoneNumber !== undefined) {
+      profile.phoneNumber = (dto as any).phoneNumber;
+    }
+
     if (dto.addresses) {
+      // Remove old addresses to prevent unique constraint violation
+      if (profile.addresses && profile.addresses.length > 0) {
+        await this.addressRepo.remove(profile.addresses);
+      }
+
       profile.addresses = dto.addresses.map((addr: any) =>
         this.addressRepo.create({
-          line1: [addr.line1, addr.line2].filter(Boolean).join(', '),
+          line1: [addr.line1, addr.line2].filter(Boolean).join(', ') || addr.houseNo || '',
+          houseNo: addr.houseNo,
           city: addr.city,
+          district: addr.district,
           state: addr.state,
           country: addr.country,
-          zipCode: addr.zipCode,
+          zipCode: addr.zipCode || addr.pincode || '',
+          pincode: addr.pincode,
+          tag: addr.tag || 'other',
         }),
       );
     }
@@ -209,73 +230,36 @@ export class ProfileService {
     const offset = query.offset || 0;
     const sort = query.sort || 'newest';
 
-    // Build WHERE conditions
-    const whereConditions: any[] = [];
-
-    // Search by expert name
-    if (query.q && query.q.trim()) {
-      whereConditions.push({
-        user: {
-          name: ILike(`%${query.q}%`),
-        },
-      });
+    // Determine relevant price column based on service filter
+    let priceColumn = 'profile.price';
+    if (query.service === 'chat') {
+      priceColumn = 'profile.chat_price';
+    } else if (query.service === 'call') {
+      priceColumn = 'profile.call_price';
+    } else if (query.service === 'video_call') {
+      priceColumn = 'profile.video_call_price';
     }
 
-    // Filter by specialization (comma-separated)
-    if (query.specializations && query.specializations.trim()) {
-      const specs = query.specializations
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-      // Match if specialization contains any of these keywords
-      whereConditions.push(
-        ...specs.map((spec) => ({
-          specialization: ILike(`%${spec}%`),
-        })),
-      );
-    }
-
-    // Filter by minimum rating
-    if (query.minRating && query.minRating > 0) {
-      whereConditions.push({
-        rating: MoreThanOrEqual(query.minRating),
-      });
-    }
-
-    // Filter by minimum experience
-    if (query.minExperience && query.minExperience >= 0) {
-      whereConditions.push({
-        experience_in_years: MoreThanOrEqual(query.minExperience),
-      });
-    }
-
-    // Build order by
-    let orderBy: any = { createdAt: 'DESC' }; // default: newest
-    if (sort === 'experience') {
-      orderBy = { experience_in_years: 'DESC' };
-    } else if (sort === 'rating') {
-      orderBy = { rating: 'DESC' };
-    } else if (sort === 'name') {
-      orderBy = { user: { name: 'ASC' } };
-    } else if (sort === 'newest') {
-      orderBy = { createdAt: 'DESC' };
-    }
-
-    // Query experts with relations
+    // Initialize query builder
     let queryBuilder = this.profileRepo
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
-      .leftJoinAndSelect('profile.addresses', 'addresses');
+      .leftJoinAndSelect('profile.addresses', 'addresses')
+      .where('1=1'); // Ensure a valid WHERE clause exists for subsequent AND conditions
 
-    // Apply search by name
+    // Filter: Service Availability (ensure price > 0 for selected service)
+    if (query.service && ['chat', 'call', 'video_call'].includes(query.service)) {
+      queryBuilder.andWhere(`${priceColumn} > 0`);
+    }
+
+    // Filter: Search by expert name
     if (query.q && query.q.trim()) {
-      queryBuilder = queryBuilder.where('user.name ILIKE :name', {
+      queryBuilder.andWhere('user.name ILIKE :name', {
         name: `%${query.q}%`,
       });
     }
 
-    // Apply specialization filter
+    // Filter: Specializations
     if (query.specializations && query.specializations.trim()) {
       const specs = query.specializations
         .split(',')
@@ -291,118 +275,60 @@ export class ProfileService {
         specParams[`spec${idx}`] = `%${spec}%`;
       });
 
-      if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere(
-          `(${specsConditions})`,
-          specParams,
-        );
-      } else {
-        queryBuilder = queryBuilder.where(`(${specsConditions})`, specParams);
-      }
+      queryBuilder.andWhere(`(${specsConditions})`, specParams);
     }
 
-    // Apply rating filter
-    if (query.minRating && query.minRating > 0) {
-      if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere('profile.rating >= :minRating', {
-          minRating: query.minRating,
-        });
-      } else {
-        queryBuilder = queryBuilder.where('profile.rating >= :minRating', {
-          minRating: query.minRating,
-        });
-      }
+    // Filter: Rating (handle both rating and minRating)
+    const rawRating = query.rating || query.minRating;
+    const minRating = rawRating ? Number(rawRating) : undefined;
+    if (minRating && minRating > 0) {
+      queryBuilder.andWhere('profile.rating >= :minRating', {
+        minRating: minRating,
+      });
     }
 
-    // Apply price filters
-    if (query.minPrice !== undefined && query.maxPrice !== undefined) {
-      // both bounds
-      if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere(
-          'profile.price BETWEEN :minPrice AND :maxPrice',
-          {
-            minPrice: query.minPrice,
-            maxPrice: query.maxPrice,
-          },
-        );
-      } else {
-        queryBuilder = queryBuilder.where(
-          'profile.price BETWEEN :minPrice AND :maxPrice',
-          {
-            minPrice: query.minPrice,
-            maxPrice: query.maxPrice,
-          },
-        );
-      }
-    } else if (query.minPrice !== undefined) {
-      if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere('profile.price >= :minPrice', {
-          minPrice: query.minPrice,
-        });
-      } else {
-        queryBuilder = queryBuilder.where('profile.price >= :minPrice', {
-          minPrice: query.minPrice,
-        });
-      }
-    } else if (query.maxPrice !== undefined) {
-      if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere('profile.price <= :maxPrice', {
-          maxPrice: query.maxPrice,
-        });
-      } else {
-        queryBuilder = queryBuilder.where('profile.price <= :maxPrice', {
-          maxPrice: query.maxPrice,
-        });
-      }
+    // Filter: Price Range (uses the relevant price column)
+    if (query.minPrice !== undefined) {
+      queryBuilder.andWhere(`${priceColumn} >= :minPrice`, {
+        minPrice: Number(query.minPrice),
+      });
+    }
+    if (query.maxPrice !== undefined) {
+      queryBuilder.andWhere(`${priceColumn} <= :maxPrice`, {
+        maxPrice: Number(query.maxPrice),
+      });
     }
 
-    // Apply experience filter
+    // Filter: Experience
     if (query.minExperience && query.minExperience >= 0) {
-      if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere(
-          'profile.experience_in_years >= :minExperience',
-          {
-            minExperience: query.minExperience,
-          },
-        );
-      } else {
-        queryBuilder = queryBuilder.where(
-          'profile.experience_in_years >= :minExperience',
-          {
-            minExperience: query.minExperience,
-          },
-        );
-      }
+      queryBuilder.andWhere('profile.experience_in_years >= :minExperience', {
+        minExperience: Number(query.minExperience),
+      });
     }
 
-    // Apply location filter (search in addresses.city)
+    // Filter: Location (city)
     if (query.location && query.location.trim()) {
-      queryBuilder = queryBuilder.andWhere('addresses.city ILIKE :location', {
+      queryBuilder.andWhere('addresses.city ILIKE :location', {
         location: `%${query.location}%`,
       });
     }
 
-    // Apply state filter (search in addresses.state)
+    // Filter: State
     if (query.state && query.state.trim()) {
-      queryBuilder = queryBuilder.andWhere('addresses.state ILIKE :state', {
+      queryBuilder.andWhere('addresses.state ILIKE :state', {
         state: `%${query.state}%`,
       });
     }
 
-    // Apply onlineOnly filter (only show available astrologers)
-    if (query.onlineOnly === 'true') {
-      if (queryBuilder.expressionMap.wheres.length > 0) {
-        queryBuilder = queryBuilder.andWhere('profile.is_available = :isAvailable', {
-          isAvailable: true,
-        });
-      } else {
-        queryBuilder = queryBuilder.where('profile.is_available = :isAvailable', {
-          isAvailable: true,
-        });
-      }
+    // Filter: Online Status (handle online=true or onlineOnly=true)
+    const isOnlineFilter = query.online === 'true' || query.onlineOnly === 'true';
+    if (isOnlineFilter) {
+      queryBuilder.andWhere('profile.is_available = :isAvailable', {
+        isAvailable: true,
+      });
     }
 
-    // Apply languages filter (comma-separated)
+    // Filter: Languages
     if (query.languages && query.languages.trim()) {
       const langs = query.languages
         .split(',')
@@ -418,59 +344,64 @@ export class ProfileService {
         langParams[`lang${idx}`] = `%${lang}%`;
       });
 
-      queryBuilder = queryBuilder.andWhere(`(${langConditions})`, langParams);
+      queryBuilder.andWhere(`(${langConditions})`, langParams);
     }
 
-    // Apply sorting
-    if (sort === 'none') {
-      // No sorting applied - return in default database order
-      // Don't add any orderBy clause
-    } else if (sort === 'experience') {
-      queryBuilder = queryBuilder.orderBy('profile.experience_in_years', 'DESC');
+    // Sorting
+    if (sort === 'experience') {
+      queryBuilder.orderBy('profile.experience_in_years', 'DESC');
     } else if (sort === 'rating') {
-      queryBuilder = queryBuilder.orderBy('profile.rating', 'DESC');
+      queryBuilder.orderBy('profile.rating', 'DESC');
     } else if (sort === 'name') {
-      queryBuilder = queryBuilder.orderBy('user.name', 'ASC');
+      queryBuilder.orderBy('user.name', 'ASC');
     } else if (sort === 'price_asc') {
-      queryBuilder = queryBuilder.orderBy('profile.price', 'ASC');
+      queryBuilder.orderBy(priceColumn, 'ASC');
     } else if (sort === 'price_desc') {
-      queryBuilder = queryBuilder.orderBy('profile.price', 'DESC');
-    } else {
-      // default: newest
-      queryBuilder = queryBuilder.orderBy('profile.createdAt', 'DESC');
+      queryBuilder.orderBy(priceColumn, 'DESC');
+    } else if (sort === 'newest') {
+      queryBuilder.orderBy('profile.createdAt', 'DESC');
     }
+    // 'none' falls through without processing
 
-    // Apply pagination
-    const [experts, total] = await queryBuilder
-      .skip(offset)
-      .take(limit)
-      .getManyAndCount();
+    try {
+      // Apply pagination
+      const [experts, total] = await queryBuilder
+        .skip(offset)
+        .take(limit)
+        .getManyAndCount();
 
-    // convert stored CSV languages -> string[] for API consumers
-    const mapped = experts.map((ex) => {
-      const plain = { ...ex } as any;
-      plain.languages = ex.languages
-        ? ex.languages
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-        : [];
-      plain.userId = ex.user?.id; // Add userId for socket tracking
-      plain.isAvailable = ex.is_available;
-      plain.is_online = ex.user?.id ? this.expertGateway.isExpertOnline(ex.user.id) : false;
-      plain.total_likes = (ex as any).total_likes || 0;
-      return plain;
-    });
+      // Map response
+      const mapped = experts.map((ex) => {
+        const plain = { ...ex } as any;
+        plain.languages = ex.languages
+          ? ex.languages
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+          : [];
+        plain.userId = ex.user?.id;
+        plain.isAvailable = ex.is_available;
+        plain.is_online = ex.user?.id
+          ? this.expertGateway.isExpertOnline(ex.user.id)
+          : false;
+        plain.total_likes = (ex as any).total_likes || 0;
+        plain.custom_services = ex.custom_services || [];
+        return plain;
+      });
 
-    return {
-      data: mapped,
-      pagination: {
-        limit,
-        offset,
-        total,
-        hasMore: offset + limit < total,
-      },
-    };
+      return {
+        data: mapped,
+        pagination: {
+          limit,
+          offset,
+          total,
+          hasMore: offset + limit < total,
+        },
+      };
+    } catch (error) {
+      this.logger.error(`Failed to list experts: ${error.message}`, error.stack);
+      throw new BadRequestException('Failed to load experts');
+    }
   }
 
   async getExpertById(id: number) {
@@ -497,6 +428,7 @@ export class ProfileService {
     plain.isAvailable = expert.is_available;
     plain.is_online = expert.user?.id ? this.expertGateway.isExpertOnline(expert.user.id) : false;
     plain.total_likes = (expert as any).total_likes || 0;
+    plain.custom_services = expert.custom_services || [];
 
     return plain;
   }

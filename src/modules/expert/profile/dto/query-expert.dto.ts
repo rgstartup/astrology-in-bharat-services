@@ -85,4 +85,20 @@ export class QueryExpertDto {
   @IsOptional()
   @IsString()
   onlineOnly?: string;
+
+  // New filters
+  @IsOptional()
+  @IsString()
+  service?: string;
+
+  @IsOptional()
+  @IsString()
+  online?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(5)
+  rating?: number;
 }

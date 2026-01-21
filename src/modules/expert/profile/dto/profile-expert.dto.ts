@@ -62,7 +62,15 @@ export class DetailedExperienceDto {
 export class CustomServiceDto {
   @IsOptional()
   @IsString()
-  title?: string;
+  id?: string;
+
+  @IsOptional()
+  @IsString()
+  title?: string; // keeping for backward compatibility if needed
+
+  @IsOptional()
+  @IsString()
+  name?: string; // frontend sends this
 
   @IsOptional()
   @Type(() => Number)
@@ -73,6 +81,10 @@ export class CustomServiceDto {
   @IsOptional()
   @IsString()
   unit?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
 }
 
 export class ProfileExpertDto {
@@ -110,6 +122,10 @@ export class ProfileExpertDto {
   languages?: string[];
 
   @IsOptional()
+  @IsString()
+  phoneNumber?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
@@ -132,6 +148,18 @@ export class ProfileExpertDto {
   @IsNumber()
   @Min(0)
   video_call_price?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  report_price?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  horoscope_price?: number;
 
   @IsOptional()
   @IsString()
@@ -210,6 +238,20 @@ export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) {
   @Min(0)
   @ApiProperty({ required: false })
   video_call_price?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @ApiProperty({ required: false })
+  report_price?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @ApiProperty({ required: false })
+  horoscope_price?: number;
 
   @IsOptional()
   @IsArray()

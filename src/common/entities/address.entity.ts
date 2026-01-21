@@ -29,18 +29,27 @@ export class Address {
   @Column({ name: 'street', type: 'varchar', length: 255 })
   line1: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  city: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  houseNo?: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  state: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  city?: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  country: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  district?: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  state?: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  country?: string;
 
   // Map property "zipCode" to DB column "postal_code"
   @Column({ name: 'postal_code', type: 'varchar', length: 10, nullable: true })
   zipCode: string;
+
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  pincode?: string;
 
   @Column({
     type: 'enum',
