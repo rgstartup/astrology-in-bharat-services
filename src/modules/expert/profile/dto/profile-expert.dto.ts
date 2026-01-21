@@ -11,7 +11,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { PartialType } from '@nestjs/mapped-types';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export enum Gender {
   Male = 'male',
@@ -54,7 +54,25 @@ export class DetailedExperienceDto {
 
   @IsOptional()
   @IsString()
+  @IsOptional()
+  @IsString()
   location?: string;
+}
+
+export class CustomServiceDto {
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  price?: number;
+
+  @IsOptional()
+  @IsString()
+  unit?: string;
 }
 
 export class ProfileExpertDto {
@@ -98,6 +116,24 @@ export class ProfileExpertDto {
   price?: number;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  chat_price?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  call_price?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  video_call_price?: number;
+
+  @IsOptional()
   @IsString()
   bank_details?: string;
 
@@ -126,6 +162,10 @@ export class ProfileExpertDto {
   certificates?: string[];
 
   @IsOptional()
+  @IsString()
+  video?: string;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => DetailedExperienceDto)
@@ -134,8 +174,47 @@ export class ProfileExpertDto {
   @IsOptional()
   @IsBoolean()
   expert?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CustomServiceDto)
+  custom_services?: CustomServiceDto[];
 }
 
 export class CreateProfileExpertDto extends ProfileExpertDto { }
 
-export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) { }
+export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) {
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ required: false })
+  video?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @ApiProperty({ required: false })
+  chat_price?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @ApiProperty({ required: false })
+  call_price?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @ApiProperty({ required: false })
+  video_call_price?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CustomServiceDto)
+  @ApiProperty({ required: false, type: [CustomServiceDto] })
+  custom_services?: CustomServiceDto[];
+}

@@ -66,11 +66,16 @@ export class ProfileService {
         // persist languages as CSV string to match entity column type
         languages: dto.languages ? dto.languages.join(',') : undefined,
         price: dto.price,
+        chat_price: dto.chat_price,
+        call_price: dto.call_price,
+        video_call_price: dto.video_call_price,
+        custom_services: dto.custom_services,
         bank_details: dto.bank_details,
         is_available: dto.is_available,
         documents: dto.documents,
         gallery: dto.gallery,
         videos: dto.videos,
+        video: dto.video,
         certificates: dto.certificates,
         detailed_experience: dto.detailed_experience,
         addresses:
@@ -129,12 +134,19 @@ export class ProfileService {
     if (dto.experience_in_years !== undefined)
       profile.experience_in_years = dto.experience_in_years;
 
+
     if (dto.price !== undefined) profile.price = dto.price;
+    if (dto.chat_price !== undefined) profile.chat_price = dto.chat_price;
+    if (dto.call_price !== undefined) profile.call_price = dto.call_price;
+    if (dto.video_call_price !== undefined) profile.video_call_price = dto.video_call_price;
+    if (dto.custom_services !== undefined) profile.custom_services = dto.custom_services;
+
     if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
     if (dto.is_available !== undefined) profile.is_available = dto.is_available;
     if (dto.documents !== undefined) profile.documents = dto.documents;
     if (dto.gallery !== undefined) profile.gallery = dto.gallery;
     if (dto.videos !== undefined) profile.videos = dto.videos;
+    if (dto.video !== undefined) profile.video = dto.video;
     if (dto.certificates !== undefined) profile.certificates = dto.certificates;
 
     if (dto.detailed_experience !== undefined)

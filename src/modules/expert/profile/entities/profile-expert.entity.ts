@@ -68,6 +68,18 @@ export class ProfileExpert {
   @Column({ type: 'float', nullable: true })
   price?: number;
 
+  @Column({ type: 'float', nullable: true })
+  chat_price?: number;
+
+  @Column({ type: 'float', nullable: true })
+  call_price?: number;
+
+  @Column({ type: 'float', nullable: true })
+  video_call_price?: number;
+
+  @Column({ type: 'json', nullable: true })
+  custom_services?: Record<string, any>[];
+
   @Column({ type: 'text', nullable: true })
   bank_details?: string;
 
@@ -82,6 +94,9 @@ export class ProfileExpert {
 
   @Column({ type: 'simple-array', nullable: true })
   certificates?: string[];
+
+  @Column({ type: 'text', nullable: true })
+  video?: string;
 
   @Column({ type: 'json', nullable: true })
   detailed_experience?: Record<string, any>[];

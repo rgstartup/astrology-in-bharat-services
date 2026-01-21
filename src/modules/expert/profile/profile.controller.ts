@@ -15,6 +15,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryService } from '@/common/cloudinary/cloudinary.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/guards/role.guard';
@@ -98,12 +99,18 @@ export class ProfileController {
     const result = await this.cloudinaryService.uploadImage(file);
     let finalUrl = result.secure_url;
 
-    // If result has public_id (it should), we might want to return that too, 
-    // but the original code returned a path. 
-    // The previous implementation returned:
-    // path: `/uploads/experts/${file.filename}`
+    // Backend Duration Validation (30-90 seconds)
+    if (file.mimetype.startsWith('video')) {
+      const duration = result.duration; // in seconds
+      if (duration < 30 || duration > 90) {
+        // Delete the invalid video from Cloudinary
+        await cloudinary.uploader.destroy(result.public_id, { resource_type: 'video' });
 
-    // Cloudinary returns a full URL.
+        throw new BadRequestException(
+          `Video duration must be between 30 and 90 seconds. Your video is ${Math.round(duration)} seconds.`,
+        );
+      }
+    }
 
     return {
       message: 'File uploaded successfully',
