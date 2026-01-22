@@ -83,7 +83,10 @@ export class ProfileController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('expert')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadDocument(@UploadedFile() file: Express.Multer.File) {
+  async uploadDocument(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: User,
+  ) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
@@ -111,6 +114,9 @@ export class ProfileController {
         );
       }
     }
+
+    // Automatically add document to profile
+    // await this.expertProfileService.addDocument(user, finalUrl);
 
     return {
       message: 'File uploaded successfully',

@@ -13,6 +13,8 @@ import { CartModule } from '@/modules/cart/cart.module';
 import { WishlistModule } from '@/modules/wishlist/wishlist.module';
 import { FestivalModule } from '@/modules/festival/festival.module';
 import { MatchmakingModule } from '@/modules/matchmaking/matchmaking.module';
+import { WalletModule } from '@/modules/wallet/wallet.module';
+import { ChatModule } from '@/modules/chat/chat.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -35,6 +37,8 @@ import { join } from 'path';
     WishlistModule,
     FestivalModule,
     MatchmakingModule,
+    WalletModule,
+    ChatModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
@@ -42,7 +46,7 @@ import { join } from 'path';
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
-        limit: 10,
+        limit: 100,
       },
     ]),
   ],

@@ -31,6 +31,12 @@ export class ProfileExpert {
   gender: 'male' | 'female' | 'other';
 
   @Column({
+    type: 'timestamptz',
+    nullable: true,
+  })
+  date_of_birth: Date | null;
+
+  @Column({
     type: 'text',
     nullable: true,
   })
@@ -92,8 +98,8 @@ export class ProfileExpert {
   @Column({ type: 'text', nullable: true })
   bank_details?: string;
 
-  @Column({ type: 'simple-array', nullable: true })
-  documents?: string[];
+  @Column({ type: 'json', nullable: true })
+  documents?: Record<string, any>[];
 
   @Column({ type: 'simple-array', nullable: true })
   gallery?: string[];

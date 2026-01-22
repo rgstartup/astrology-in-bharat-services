@@ -59,6 +59,37 @@ export class DetailedExperienceDto {
   location?: string;
 }
 
+export class ExpertDocumentDto {
+  @IsOptional()
+  id?: number | string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  url?: string;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
+  @IsString()
+  category?: 'aadhar' | 'pan' | 'other';
+
+  @IsOptional()
+  @IsString()
+  side?: 'front' | 'back';
+
+  @IsOptional()
+  size?: number | string;
+
+  @IsOptional()
+  uploadedAt?: string | Date;
+}
+
 export class CustomServiceDto {
   @IsOptional()
   @IsString()
@@ -171,8 +202,9 @@ export class ProfileExpertDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  documents?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => ExpertDocumentDto)
+  documents?: ExpertDocumentDto[];
 
   @IsOptional()
   @IsArray()

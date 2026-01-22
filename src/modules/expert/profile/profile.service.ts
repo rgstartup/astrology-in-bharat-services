@@ -40,7 +40,24 @@ export class ProfileService {
       relations: ['user', 'addresses'],
     });
 
-    return profile; // Return null if not found instead of throwing
+    if (!profile) return null;
+
+    const plain = { ...profile } as any;
+    plain.languages = profile.languages
+      ? profile.languages
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+      : [];
+    plain.userId = profile.user?.id;
+    plain.isAvailable = profile.is_available;
+    plain.is_online = profile.user?.id ? this.expertGateway.isExpertOnline(profile.user.id) : false;
+    plain.total_likes = (profile as any).total_likes || 0;
+    plain.custom_services = profile.custom_services || [];
+
+    this.logger.log(`Returning profile for user ${user.id}: ${JSON.stringify({ ...plain, user: undefined, addresses: undefined })}`);
+
+    return plain;
   }
 
   async createProfile(user: User, dto: CreateProfileExpertDto) {
@@ -60,6 +77,7 @@ export class ProfileService {
         user: { id: user.id } as any,
         // map simple scalar fields explicitly to avoid type mismatches
         gender: dto.gender,
+        date_of_birth: dto.date_of_birth ? new Date(dto.date_of_birth) : undefined,
         specialization: dto.specialization,
         bio: dto.bio,
         experience_in_years: dto.experience_in_years,
@@ -132,7 +150,12 @@ export class ProfileService {
     if (!profile) throw new NotFoundException('Expert profile could not be created');
 
     // Apply updates but handle `languages` (string[]) -> CSV string explicitly
+    this.logger.log(`Updating profile for user ${user.id}. DTO: ${JSON.stringify(dto)}`);
     if (dto.gender !== undefined) profile.gender = dto.gender;
+    if (dto.date_of_birth !== undefined) {
+      this.logger.log(`Setting date_of_birth to: ${dto.date_of_birth}`);
+      profile.date_of_birth = dto.date_of_birth ? new Date(dto.date_of_birth) : null;
+    }
     if (dto.specialization !== undefined)
       profile.specialization = dto.specialization;
     if (dto.bio !== undefined) profile.bio = dto.bio;
@@ -224,6 +247,26 @@ export class ProfileService {
 
     return { is_available: isAvailable };
   }
+
+  // async addDocument(user: User, documentUrl: string) {
+  //   const profile = await this.profileRepo.findOne({
+  //     where: { user: { id: user.id } },
+  //   });
+
+  //   if (!profile) {
+  //     throw new NotFoundException('Expert profile not found');
+  //   }
+
+  //   if (!profile.documents) {
+  //     profile.documents = [];
+  //   }
+
+  //   // Append new document URL
+  //   // profile.documents.push(documentUrl);
+
+  //   await this.profileRepo.save(profile);
+  //   return profile;
+  // }
 
   async listExperts(query: QueryExpertDto) {
     const limit = query.limit || 20;
