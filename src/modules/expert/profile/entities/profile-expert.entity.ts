@@ -57,6 +57,12 @@ export class ProfileExpert {
   })
   total_likes: number;
 
+  @Column({
+    type: 'int',
+    default: 0,
+  })
+  totalReviews: number;
+
   //   @Column({ type: 'decimal', nullable: true })
   //   hourlyRate?: number;
   @Column({ type: 'float', default: 0 })

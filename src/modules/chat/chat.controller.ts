@@ -134,6 +134,44 @@ export class ChatController {
         return this.chatService.getCompletedSessionsByExpertUser(user.id);
     }
 
+    @Get('sessions/all')
+    @Header('Cache-Control', 'no-store')
+    async getAllSessions(@CurrentUser() user: User) {
+        const sessions = await this.chatService.getAllSessionsByExpertUser(user.id);
+        const expiryTime = parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || '120000', 10);
+
+        return Promise.all(sessions.map(async (session) => {
+            const userBalance = session.status === 'pending' ? await this.chatGateway.getWalletBalance(session.userId) : 0;
+            const maxMinutes = session.isFree ? session.freeMinutes :
+                (session.pricePerMinute > 0 ? Math.floor(userBalance / session.pricePerMinute) : 5);
+
+            return {
+                ...session,
+                expiresAt: session.status === 'pending' ? new Date(new Date(session.createdAt).getTime() + expiryTime) : null,
+                maxMinutes
+            };
+        }));
+    }
+
+    @Get('sessions/my-sessions')
+    @Header('Cache-Control', 'no-store')
+    async getMySessionsAsClient(@CurrentUser() user: User) {
+        const sessions = await this.chatService.getAllSessionsByClient(user.id);
+        const expiryTime = parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || '120000', 10);
+
+        return Promise.all(sessions.map(async (session) => {
+            const userBalance = await this.chatGateway.getWalletBalance(user.id);
+            const maxMinutes = session.isFree ? session.freeMinutes :
+                (session.pricePerMinute > 0 ? Math.floor(userBalance / session.pricePerMinute) : 0);
+
+            return {
+                ...session,
+                expiresAt: session.status === 'pending' ? new Date(new Date(session.createdAt).getTime() + expiryTime) : null,
+                maxMinutes
+            };
+        }));
+    }
+
     @Get('sessions/active-client')
     @Header('Cache-Control', 'no-store')
     async getActiveClientSession(@CurrentUser() user: User) {

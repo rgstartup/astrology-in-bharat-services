@@ -78,6 +78,27 @@ export class ChatService {
         });
     }
 
+    async getAllSessionsByExpertUser(userId: number) {
+        const expert = await this.expertRepo.findOne({ where: { user: { id: userId } } });
+        if (!expert) {
+            return [];
+        }
+
+        return this.sessionRepo.find({
+            where: { expertId: expert.id },
+            relations: ['user'],
+            order: { createdAt: 'DESC' },
+        });
+    }
+
+    async getAllSessionsByClient(userId: number) {
+        return this.sessionRepo.find({
+            where: { userId },
+            relations: ['expert', 'expert.user'],
+            order: { createdAt: 'DESC' },
+        });
+    }
+
     async initiateChat(userId: number, expertId: number) {
         const expert = await this.expertRepo.findOne({
             where: { id: expertId },
@@ -85,6 +106,10 @@ export class ChatService {
 
         if (!expert) {
             throw new NotFoundException('Expert not found');
+        }
+
+        if (!expert.is_available) {
+            throw new BadRequestException('Expert is currently offline and not accepting chat requests at the moment.');
         }
 
         const chatPrice = expert.chat_price || 0;

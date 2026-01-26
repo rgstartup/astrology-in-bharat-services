@@ -12,6 +12,7 @@ import {
   CreateProfileExpertDto,
   UpdateProfileExpertDto,
 } from './dto/profile-expert.dto';
+import { ChatSession, ChatSessionStatus } from '@/modules/chat/entities/chat-session.entity';
 import { QueryExpertDto } from './dto/query-expert.dto';
 import { Address } from '@/common/entities/address.entity';
 import { User } from '@/modules/users/entities/user.entity';
@@ -30,6 +31,9 @@ export class ProfileService {
 
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+
+    @InjectRepository(ChatSession)
+    private readonly sessionRepo: Repository<ChatSession>,
 
     private readonly expertGateway: ExpertGateway,
   ) { }
@@ -173,7 +177,18 @@ export class ProfileService {
     if (dto.custom_services !== undefined) profile.custom_services = dto.custom_services;
 
     if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
-    if (dto.is_available !== undefined) profile.is_available = dto.is_available;
+    if (dto.is_available !== undefined) {
+      if (dto.is_available === false) {
+        // Prevent going offline if there are active sessions
+        const activeSession = await this.sessionRepo.findOne({
+          where: { expertId: profile.id, status: ChatSessionStatus.ACTIVE }
+        });
+        if (activeSession) {
+          throw new BadRequestException('You cannot go offline while you have an active chat session. Please end the session first.');
+        }
+      }
+      profile.is_available = dto.is_available;
+    }
     if (dto.documents !== undefined) profile.documents = dto.documents;
     if (dto.gallery !== undefined) profile.gallery = dto.gallery;
     if (dto.videos !== undefined) profile.videos = dto.videos;
@@ -237,6 +252,16 @@ export class ProfileService {
     if (!profile) {
       this.logger.warn(`Failed to update status: Profile not found for user ${user.id}`);
       throw new BadRequestException('Please complete your profile details first before going online.');
+    }
+
+    if (isAvailable === false) {
+      // Prevent going offline if there are active sessions
+      const activeSession = await this.sessionRepo.findOne({
+        where: { expertId: profile.id, status: ChatSessionStatus.ACTIVE }
+      });
+      if (activeSession) {
+        throw new BadRequestException('You cannot go offline while you have an active chat session. Please end the session first.');
+      }
     }
 
     profile.is_available = isAvailable;

@@ -15,6 +15,7 @@ import { FestivalModule } from '@/modules/festival/festival.module';
 import { MatchmakingModule } from '@/modules/matchmaking/matchmaking.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ChatModule } from '@/modules/chat/chat.module';
+import { ReviewsModule } from '@/modules/reviews/reviews.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -39,6 +40,7 @@ import { join } from 'path';
     MatchmakingModule,
     WalletModule,
     ChatModule,
+    ReviewsModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
