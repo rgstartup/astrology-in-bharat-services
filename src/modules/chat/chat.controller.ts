@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, ParseIntPipe, Header } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -71,6 +71,7 @@ export class ChatController {
     }
 
     @Get('session/:sessionId')
+    @Header('Cache-Control', 'no-store')
     async getSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
         return this.chatService.getSession(sessionId);
     }
@@ -81,7 +82,14 @@ export class ChatController {
     }
 
     @Get('sessions/pending')
+    @Header('Cache-Control', 'no-store')
     getPendingSessions(@CurrentUser() user: User) {
         return this.chatService.getPendingSessionsByExpertUser(user.id);
+    }
+
+    @Get('sessions/completed')
+    @Header('Cache-Control', 'no-store')
+    getCompletedSessions(@CurrentUser() user: User) {
+        return this.chatService.getCompletedSessionsByExpertUser(user.id);
     }
 }

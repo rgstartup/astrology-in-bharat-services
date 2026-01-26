@@ -50,6 +50,23 @@ export class ChatService {
         return this.getPendingSessionsForExpert(expert.id);
     }
 
+    async getCompletedSessionsByExpertUser(userId: number) {
+        const expert = await this.expertRepo.findOne({ where: { user: { id: userId } } });
+        if (!expert) {
+            return [];
+        }
+
+        return this.sessionRepo.find({
+            where: [
+                { expertId: expert.id, status: ChatSessionStatus.COMPLETED },
+                { expertId: expert.id, status: ChatSessionStatus.EXPIRED },
+                { expertId: expert.id, status: ChatSessionStatus.CANCELLED },
+            ],
+            relations: ['user'],
+            order: { createdAt: 'DESC' },
+        });
+    }
+
     async initiateChat(userId: number, expertId: number) {
         const expert = await this.expertRepo.findOne({
             where: { id: expertId },

@@ -105,6 +105,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const session = await this.chatService.activateSession(payload.sessionId);
         this.server.to(`room_${payload.sessionId}`).emit('session_activated', session);
 
+        // Notify expert dashboard directly
+        if (session.expertId) {
+            this.notifyExpertStatusUpdate(session.expertId, 'session_activated', session);
+        }
+
         // Clear existing timer if any
         if (this.sessionTimers.has(payload.sessionId)) {
             clearInterval(this.sessionTimers.get(payload.sessionId));
@@ -183,6 +188,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     ) {
         const session = await this.chatService.endChat(payload.sessionId);
         this.server.to(`room_${payload.sessionId}`).emit('session_ended', session);
+
+        // Notify expert dashboard directly
+        if (session && session.expertId) {
+            this.notifyExpertStatusUpdate(session.expertId, 'session_ended', session);
+        }
 
         if (this.sessionTimers.has(payload.sessionId)) {
             clearInterval(this.sessionTimers.get(payload.sessionId));
