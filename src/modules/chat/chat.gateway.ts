@@ -62,6 +62,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return { status: 'registered' };
     }
 
+    async getWalletBalance(userId: number): Promise<number> {
+        return this.walletService.getBalance(userId);
+    }
+
     notifyExpertNewRequest(expertId: number, session: any) {
         console.log(`[SocketDebug] Emitting 'new_chat_request' to expert room expert_${expertId}`);
         this.server.to(`expert_${expertId}`).emit('new_chat_request', session);
@@ -128,8 +132,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const durationMs = now.getTime() - currentSession.startTime.getTime();
             const durationMins = Math.floor(durationMs / 60000);
 
-            // Check if wallet can afford another minute beyond the initial 5
-            if (durationMins >= 5) {
+            // 1. Handle Free Session Expiry
+            if (currentSession.isFree && durationMins === currentSession.freeMinutes) {
+                const balance = await this.walletService.getBalance(currentSession.userId);
+                const minReq = currentSession.pricePerMinute * 5;
+
+                this.server.to(`room_${payload.sessionId}`).emit('free_limit_reached', {
+                    message: balance < minReq
+                        ? 'Your free session is ending soon. Please recharge to continue.'
+                        : `Your free session has ended. To continue at ₹${currentSession.pricePerMinute}/min, please confirm.`,
+                    requireRecharge: balance < minReq,
+                    expertPrice: currentSession.pricePerMinute,
+                    balance
+                });
+
+                // Set a 30s grace period to confirm or end
+                setTimeout(async () => {
+                    const s = await this.chatService.getSession(payload.sessionId);
+                    // If still active but no reservation done (we'd need a flag or just check balance again)
+                    // For now, if they don't have balance after 30s, end it.
+                    const b = await this.walletService.getBalance(currentSession.userId);
+                    if (b < minReq && s?.status === ChatSessionStatus.ACTIVE) {
+                        await this.chatService.endChat(payload.sessionId);
+                        this.server.to(`room_${payload.sessionId}`).emit('session_ended', { reason: 'free_limit_ended_no_balance' });
+                    }
+                }, 30000);
+            }
+
+            // 2. Handle Continuous Paid Balance Check (beyond initial 5 mins if not free)
+            const checkThreshold = currentSession.isFree ? currentSession.freeMinutes + 1 : 5;
+            if (durationMins >= checkThreshold) {
                 const balance = await this.walletService.getBalance(currentSession.userId);
                 if (balance < currentSession.pricePerMinute) {
                     this.server.to(`room_${payload.sessionId}`).emit('balance_warning', {
@@ -149,6 +181,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         this.sessionTimers.set(payload.sessionId, timer);
         return session;
+    }
+
+    @SubscribeMessage('confirm_paid_continuation')
+    async handleConfirmContinuation(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: { sessionId: number },
+    ) {
+        try {
+            const session = await this.chatService.convertToPaid(payload.sessionId);
+            this.server.to(`room_${payload.sessionId}`).emit('continuation_confirmed', {
+                message: 'Continuation confirmed. Chat will continue as a paid session.',
+                session
+            });
+            return { status: 'success' };
+        } catch (error) {
+            return { status: 'error', message: error.message };
+        }
     }
 
     @SubscribeMessage('send_message')

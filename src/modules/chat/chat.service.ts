@@ -67,6 +67,17 @@ export class ChatService {
         });
     }
 
+    async getActiveClientSession(userId: number) {
+        return this.sessionRepo.findOne({
+            where: [
+                { userId, status: ChatSessionStatus.PENDING },
+                { userId, status: ChatSessionStatus.ACTIVE },
+            ],
+            relations: ['expert', 'expert.user'],
+            order: { createdAt: 'DESC' },
+        });
+    }
+
     async initiateChat(userId: number, expertId: number) {
         const expert = await this.expertRepo.findOne({
             where: { id: expertId },
@@ -80,9 +91,20 @@ export class ChatService {
         const minMins = 5;
         const minBalanceRequired = chatPrice * minMins;
 
-        const hasBalance = await this.walletService.validateBalance(userId, minBalanceRequired);
-        if (!hasBalance) {
-            throw new BadRequestException(`Insufficient balance. Minimum ${minMins} minutes (₹${minBalanceRequired}) balance is required to start chat.`);
+        // Check for Free Consultation eligibility (First chat ever)
+        const chatCount = await this.sessionRepo.count({
+            where: { userId, status: ChatSessionStatus.COMPLETED }
+        });
+
+        const isFreeEnabled = process.env.FREE_CHAT_ENABLED === 'true';
+        const isEligibleForFree = isFreeEnabled && chatCount === 0;
+        const freeMins = isEligibleForFree ? parseInt(process.env.FREE_CHAT_DURATION_MINS || '5', 10) : 0;
+
+        if (!isEligibleForFree) {
+            const hasBalance = await this.walletService.validateBalance(userId, minBalanceRequired);
+            if (!hasBalance) {
+                throw new BadRequestException(`Insufficient balance. Minimum ${minMins} minutes (₹${minBalanceRequired}) balance is required to start chat.`);
+            }
         }
 
         const session = this.sessionRepo.create({
@@ -90,12 +112,16 @@ export class ChatService {
             expertId,
             pricePerMinute: chatPrice,
             status: ChatSessionStatus.PENDING,
+            isFree: isEligibleForFree,
+            freeMinutes: freeMins,
         });
 
         const savedSession = await this.sessionRepo.save(session);
 
-        // Hold balance
-        await this.walletService.reserveBalance(userId, minBalanceRequired, `chat_${savedSession.id}`);
+        // Hold balance only if not free
+        if (!isEligibleForFree) {
+            await this.walletService.reserveBalance(userId, minBalanceRequired, `chat_${savedSession.id}`);
+        }
 
         // Fetch again with relations to ensure 'user' (client) info is included for the expert dashboard
         const sessionWithUser = await this.sessionRepo.findOne({
@@ -156,8 +182,11 @@ export class ChatService {
         let totalCost = 0;
         if (session.startTime) {
             const durationInMs = now.getTime() - session.startTime.getTime();
-            const durationInMins = Math.ceil(durationInMs / 60000);
-            totalCost = durationInMins * session.pricePerMinute;
+            const actualDurationMins = Math.ceil(durationInMs / 60000);
+
+            // Subtract free minutes if applicable
+            const billableMins = Math.max(0, actualDurationMins - (session.freeMinutes || 0));
+            totalCost = billableMins * session.pricePerMinute;
         }
 
         session.totalCost = totalCost;
@@ -192,6 +221,25 @@ export class ChatService {
             remainingBalance,
             durationMins: session.startTime ? Math.ceil((session.endTime.getTime() - session.startTime.getTime()) / 60000) : 0
         };
+    }
+
+    async convertToPaid(sessionId: number) {
+        const session = await this.sessionRepo.findOne({ where: { id: sessionId } });
+        if (!session) throw new NotFoundException('Session not found');
+
+        const chatPrice = session.pricePerMinute || 0;
+        const minMins = 5;
+        const minBalanceRequired = chatPrice * minMins;
+
+        const hasBalance = await this.walletService.validateBalance(session.userId, minBalanceRequired);
+        if (!hasBalance) {
+            throw new BadRequestException(`Insufficient balance to continue. Minimum 5 minutes (₹${minBalanceRequired}) balance is required.`);
+        }
+
+        // Reserve balance for the continuation
+        await this.walletService.reserveBalance(session.userId, minBalanceRequired, `chat_${session.id}`);
+
+        return session;
     }
 
     async getMessages(sessionId: number) {

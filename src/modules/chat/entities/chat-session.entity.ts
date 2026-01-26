@@ -42,15 +42,21 @@ export class ChatSession {
     })
     status: ChatSessionStatus;
 
+    @Column({ type: 'boolean', default: false })
+    isFree: boolean;
+
+    @Column({ type: 'int', default: 0 })
+    freeMinutes: number;
+
     @Column({ type: 'float' })
     pricePerMinute: number;
 
     @Column({ type: 'float', default: 0 })
     totalCost: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ type: 'timestamptz' })
     updatedAt: Date;
 }

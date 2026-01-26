@@ -24,7 +24,22 @@ export class ChatController {
     ) {
         const session = await this.chatService.initiateChat(user.id, expertId);
 
-        this.chatGateway.notifyExpertNewRequest(expertId, session);
+        const expiryTime = parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || '120000', 10);
+        const expiryMinutes = Math.ceil(expiryTime / 60000);
+
+        const expiresAt = new Date(Date.now() + expiryTime);
+
+        // Calculate affordable minutes for paid chat or use freeMinutes
+        let maxMinutes = session.isFree ? session.freeMinutes : 0;
+        if (!session.isFree && session.pricePerMinute > 0) {
+            const balance = await this.chatGateway.getWalletBalance(user.id);
+            maxMinutes = Math.floor(balance / session.pricePerMinute);
+        }
+
+        const sessionWithExpiry = { ...session, expiresAt, maxMinutes };
+
+        // Notify expert with the full session object (including expiresAt and maxMinutes)
+        this.chatGateway.notifyExpertNewRequest(expertId, sessionWithExpiry);
 
         setTimeout(async () => {
             const expiredSession = await this.chatService.expireSession(session.id);
@@ -33,7 +48,7 @@ export class ChatController {
                 this.chatGateway.server.to(`room_${session.id}`).emit('session_ended', {
                     status: 'expired',
                     id: session.id,
-                    message: 'Session expired as expert did not join within 15 minutes.'
+                    message: `Session expired as expert did not join within ${expiryMinutes} minutes.`
                 });
                 // Also notify expert's dashboard room
                 this.chatGateway.notifyExpertStatusUpdate(session.expertId, 'session_ended', {
@@ -41,9 +56,9 @@ export class ChatController {
                     id: session.id
                 });
             }
-        }, 900000); // 15 minutes
+        }, expiryTime);
 
-        return session;
+        return sessionWithExpiry;
     }
 
     @Post('activate/:sessionId')
@@ -73,7 +88,20 @@ export class ChatController {
     @Get('session/:sessionId')
     @Header('Cache-Control', 'no-store')
     async getSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
-        return this.chatService.getSession(sessionId);
+        const session = await this.chatService.getSession(sessionId);
+        if (session && session.status === 'pending') {
+            const expiryTime = parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || '120000', 10);
+            const userBalance = await this.chatGateway.getWalletBalance(session.userId);
+            const maxMinutes = session.isFree ? session.freeMinutes :
+                (session.pricePerMinute > 0 ? Math.floor(userBalance / session.pricePerMinute) : 0);
+
+            return {
+                ...session,
+                expiresAt: new Date(new Date(session.createdAt).getTime() + expiryTime),
+                maxMinutes
+            };
+        }
+        return session;
     }
 
     @Get('history/:sessionId')
@@ -83,13 +111,45 @@ export class ChatController {
 
     @Get('sessions/pending')
     @Header('Cache-Control', 'no-store')
-    getPendingSessions(@CurrentUser() user: User) {
-        return this.chatService.getPendingSessionsByExpertUser(user.id);
+    async getPendingSessions(@CurrentUser() user: User) {
+        const sessions = await this.chatService.getPendingSessionsByExpertUser(user.id);
+        const expiryTime = parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || '120000', 10);
+
+        return Promise.all(sessions.map(async (session) => {
+            const userBalance = session.status === 'pending' ? await this.chatGateway.getWalletBalance(session.userId) : 0;
+            const maxMinutes = session.isFree ? session.freeMinutes :
+                (session.pricePerMinute > 0 ? Math.floor(userBalance / session.pricePerMinute) : 5); // Default 5 for paid if we don't have balance context
+
+            return {
+                ...session,
+                expiresAt: session.status === 'pending' ? new Date(new Date(session.createdAt).getTime() + expiryTime) : null,
+                maxMinutes
+            };
+        }));
     }
 
     @Get('sessions/completed')
     @Header('Cache-Control', 'no-store')
     getCompletedSessions(@CurrentUser() user: User) {
         return this.chatService.getCompletedSessionsByExpertUser(user.id);
+    }
+
+    @Get('sessions/active-client')
+    @Header('Cache-Control', 'no-store')
+    async getActiveClientSession(@CurrentUser() user: User) {
+        const session = await this.chatService.getActiveClientSession(user.id);
+        if (session) {
+            const expiryTime = parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || '120000', 10);
+            const userBalance = await this.chatGateway.getWalletBalance(session.userId);
+            const maxMinutes = session.isFree ? session.freeMinutes :
+                (session.pricePerMinute > 0 ? Math.floor(userBalance / session.pricePerMinute) : 0);
+
+            return {
+                ...session,
+                expiresAt: session.status === 'pending' ? new Date(new Date(session.createdAt).getTime() + expiryTime) : null,
+                maxMinutes
+            };
+        }
+        return null;
     }
 }
