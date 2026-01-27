@@ -21,7 +21,7 @@ export class ChatService {
     @InjectRepository(ProfileExpert)
     private expertRepo: Repository<ProfileExpert>,
     private walletService: WalletService,
-  ) {}
+  ) { }
 
   async getSession(id: number) {
     return this.sessionRepo.findOne({
@@ -362,14 +362,35 @@ export class ChatService {
           referenceId,
         );
         const excessCost = totalCost - initialReservation;
-        const { TransactionPurpose } =
-          await import('../wallet/entities/transaction.entity');
+        const { TransactionPurpose } = await import(
+          '../wallet/entities/transaction.entity'
+        );
         await this.walletService.debit(
           session.userId,
           excessCost,
           TransactionPurpose.CONSULTATION,
           referenceId,
         );
+      }
+
+      // 💳 Credit Expert
+      if (totalCost > 0) {
+        const sessionWithExpert = await this.sessionRepo.findOne({
+          where: { id: sessionId },
+          relations: ['expert', 'expert.user'],
+        });
+
+        if (sessionWithExpert?.expert?.user?.id) {
+          const { TransactionPurpose } = await import(
+            '../wallet/entities/transaction.entity'
+          );
+          await this.walletService.credit(
+            sessionWithExpert.expert.user.id,
+            totalCost,
+            TransactionPurpose.CONSULTATION,
+            referenceId,
+          );
+        }
       }
     } catch (error) {
       console.error(`Failed to settle wallet for session ${sessionId}:`, error);
@@ -384,8 +405,8 @@ export class ChatService {
       remainingBalance,
       durationMins: session.startTime
         ? Math.ceil(
-            (session.endTime.getTime() - session.startTime.getTime()) / 60000,
-          )
+          (session.endTime.getTime() - session.startTime.getTime()) / 60000,
+        )
         : 0,
     };
   }

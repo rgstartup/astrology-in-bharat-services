@@ -20,7 +20,7 @@ export class WalletService {
     @InjectRepository(Transaction)
     private transactionRepository: Repository<Transaction>,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   async getWallet(userId: number): Promise<Wallet> {
     let wallet = await this.walletRepository.findOne({ where: { userId } });
@@ -50,6 +50,20 @@ export class WalletService {
     amount: number,
     referenceId?: string,
   ): Promise<Wallet> {
+    return this.credit(
+      userId,
+      amount,
+      TransactionPurpose.RECHARGE,
+      referenceId,
+    );
+  }
+
+  async credit(
+    userId: number,
+    amount: number,
+    purpose: TransactionPurpose,
+    referenceId?: string,
+  ): Promise<Wallet> {
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -76,7 +90,7 @@ export class WalletService {
         walletId: wallet.id,
         amount,
         type: TransactionType.CREDIT,
-        purpose: TransactionPurpose.RECHARGE,
+        purpose,
         referenceId,
       });
       await queryRunner.manager.save(transaction);
