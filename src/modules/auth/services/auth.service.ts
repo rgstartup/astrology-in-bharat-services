@@ -22,9 +22,11 @@ import { JsonWebTokenError } from '@nestjs/jwt';
 import { UsedTokensService } from './used-tokens.service';
 
 import { Response } from 'express';
-import { COOKIE_NAMES, getRefreshTokenCookieOptions, getAccessTokenCookieOptions } from '../helpers/cookie.helper';
-import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/entities/profile-client.entity';
+import {
+  COOKIE_NAMES,
+  getRefreshTokenCookieOptions,
+  getAccessTokenCookieOptions,
+} from '../helpers/cookie.helper';
 
 @Injectable()
 export class AuthService {
@@ -54,7 +56,7 @@ export class AuthService {
 
     const hashed = await argon2.hash(dto.password, { type: argon2.argon2id });
 
-    const { roles, ...registerDto } = dto;
+    const { roles = ['client'], phone, ...registerDto } = dto;
 
     const formattedRoles = roles.map((r) => ({
       name: r,
@@ -63,7 +65,7 @@ export class AuthService {
     // 👇 return user + tokens from transaction
     const { user, tokens } = await this.db.transaction(async (queryRunner) => {
       const user = await this.usersService.create(
-        { ...registerDto, roles: formattedRoles, password: hashed },
+        { ...registerDto, roles: formattedRoles, password: hashed, phone },
         queryRunner,
       );
 
@@ -73,17 +75,6 @@ export class AuthService {
         userAgent,
         queryRunner,
       );
-
-      // Create Profile for Expert or Client
-      if (roles.includes('expert')) {
-        const profile = new ProfileExpert();
-        profile.user = user;
-        await queryRunner.manager.save(ProfileExpert, profile);
-      } else {
-        const profile = new ProfileClient();
-        profile.user = user;
-        await queryRunner.manager.save(ProfileClient, profile);
-      }
 
       const verification_token = this.tokenService.generate5MinToken({
         sub: user.id,
@@ -104,14 +95,14 @@ export class AuthService {
       return { user, tokens };
     });
 
-
     // CHECK if user is EXPERT
     const isExpert = roles.includes('expert');
 
     if (isExpert) {
       // Return success message WITHOUT logging in
       return {
-        message: 'Registration successful. Please check your email to verify your account.',
+        message:
+          'Registration successful. Please check your email to verify your account.',
       };
     }
 
@@ -147,6 +138,7 @@ export class AuthService {
 
     const hashed = await argon2.hash(dto.password, { type: argon2.argon2id });
 
+    // Extract roles and phone from DTO, ensure 'client' role is assigned
     const { roles, phone, ...registerDto } = dto;
 
     // Ensure client role is assigned
@@ -159,7 +151,7 @@ export class AuthService {
     // 👇 return user + tokens from transaction
     const { user, tokens } = await this.db.transaction(async (queryRunner) => {
       const user = await this.usersService.create(
-        { ...registerDto, roles: formattedRoles, password: hashed },
+        { ...registerDto, roles: formattedRoles, password: hashed, phone },
         queryRunner,
       );
 
@@ -169,14 +161,6 @@ export class AuthService {
         userAgent,
         queryRunner,
       );
-
-      // Create Profile for Client with phone number
-      const profile = new ProfileClient();
-      profile.user = user;
-      if (phone) {
-        profile.phone = phone;
-      }
-      await queryRunner.manager.save(ProfileClient, profile);
 
       const verification_token = this.tokenService.generate5MinToken({
         sub: user.id,
@@ -200,10 +184,10 @@ export class AuthService {
     // CLIENT now requires email verification - NO auto-login
     // Return success message WITHOUT logging in
     return {
-      message: 'Registration successful. Please check your email to verify your account.',
+      message:
+        'Registration successful. Please check your email to verify your account.',
     };
   }
-
 
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmailWithPassword(email);
@@ -212,7 +196,9 @@ export class AuthService {
 
     // Check for email verification (required for all users now)
     if (!user.emailVerified) {
-      throw new UnauthorizedException('Email not verified. Please verify your email before logging in.');
+      throw new UnauthorizedException(
+        'Email not verified. Please verify your email before logging in.',
+      );
     }
 
     const valid = await argon2.verify(user.password, password);
@@ -488,17 +474,19 @@ export class AuthService {
   // ---------------------------
   // NEW: cookie helper
   // ---------------------------
-  public setRefreshTokenCookie(
-    res: Response,
-    refreshToken: string,
-  ) {
-    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, getRefreshTokenCookieOptions());
+  public setRefreshTokenCookie(res: Response, refreshToken: string) {
+    res.cookie(
+      COOKIE_NAMES.REFRESH_TOKEN,
+      refreshToken,
+      getRefreshTokenCookieOptions(),
+    );
   }
 
-  public setAccessTokenCookie(
-    res: Response,
-    accessToken: string,
-  ) {
-    res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, getAccessTokenCookieOptions());
+  public setAccessTokenCookie(res: Response, accessToken: string) {
+    res.cookie(
+      COOKIE_NAMES.ACCESS_TOKEN,
+      accessToken,
+      getAccessTokenCookieOptions(),
+    );
   }
 }

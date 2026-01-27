@@ -9,7 +9,7 @@ import { AuthConfig } from 'src/core/config/auth.config';
   version: '1',
 })
 export class GoogleAuthController {
-  constructor(private configService: ConfigService) { }
+  constructor(private configService: ConfigService) {}
 
   @Get('login')
   @UseGuards(GoogleAuthGuard)

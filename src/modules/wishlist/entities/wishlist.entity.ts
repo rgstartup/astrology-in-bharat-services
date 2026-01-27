@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, Unique } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  Unique,
+} from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
 import { Product } from '@/modules/product/entities/product.entity';
 
@@ -6,21 +13,25 @@ import { Product } from '@/modules/product/entities/product.entity';
 @Unique(['user', 'product'])
 @Unique(['user', 'expert'])
 export class Wishlist {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @ManyToOne(() => User, (user) => user.wishlists, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'user_id' })
-    user: User;
+  @ManyToOne(() => User, (user) => user.wishlists, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
-    @ManyToOne(() => Product, { onDelete: 'CASCADE', eager: true, nullable: true })
-    @JoinColumn({ name: 'product_id' })
-    product: Product;
+  @ManyToOne(() => Product, {
+    onDelete: 'CASCADE',
+    eager: true,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 
-    @ManyToOne(() => User, { onDelete: 'CASCADE', eager: true, nullable: true })
-    @JoinColumn({ name: 'expert_id' })
-    expert: User;
+  @ManyToOne(() => User, { onDelete: 'CASCADE', eager: true, nullable: true })
+  @JoinColumn({ name: 'expert_id' })
+  expert: User;
 
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 }

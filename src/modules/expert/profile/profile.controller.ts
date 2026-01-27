@@ -36,7 +36,7 @@ export class ProfileController {
   constructor(
     private readonly expertProfileService: ProfileService,
     private readonly cloudinaryService: CloudinaryService,
-  ) { }
+  ) {}
 
   @Get()
   getProfile(@CurrentUser() user: User) {
@@ -100,14 +100,16 @@ export class ProfileController {
     }
 
     const result = await this.cloudinaryService.uploadImage(file);
-    let finalUrl = result.secure_url;
+    const finalUrl = result.secure_url;
 
     // Backend Duration Validation (30-90 seconds)
     if (file.mimetype.startsWith('video')) {
       const duration = result.duration; // in seconds
       if (duration < 30 || duration > 90) {
         // Delete the invalid video from Cloudinary
-        await cloudinary.uploader.destroy(result.public_id, { resource_type: 'video' });
+        await cloudinary.uploader.destroy(result.public_id, {
+          resource_type: 'video',
+        });
 
         throw new BadRequestException(
           `Video duration must be between 30 and 90 seconds. Your video is ${Math.round(duration)} seconds.`,

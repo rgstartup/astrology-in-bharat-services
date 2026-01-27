@@ -10,7 +10,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class NotificationService {
-  constructor(private mailService: MailService) { }
+  constructor(private mailService: MailService) {}
 
   @OnEvent('user:register')
   async handleUserRegistered(event: UserRegisteredEvent) {

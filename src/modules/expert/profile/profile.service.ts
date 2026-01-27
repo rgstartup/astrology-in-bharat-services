@@ -12,7 +12,10 @@ import {
   CreateProfileExpertDto,
   UpdateProfileExpertDto,
 } from './dto/profile-expert.dto';
-import { ChatSession, ChatSessionStatus } from '@/modules/chat/entities/chat-session.entity';
+import {
+  ChatSession,
+  ChatSessionStatus,
+} from '@/modules/chat/entities/chat-session.entity';
 import { QueryExpertDto } from './dto/query-expert.dto';
 import { Address } from '@/common/entities/address.entity';
 import { User } from '@/modules/users/entities/user.entity';
@@ -36,7 +39,7 @@ export class ProfileService {
     private readonly sessionRepo: Repository<ChatSession>,
 
     private readonly expertGateway: ExpertGateway,
-  ) { }
+  ) {}
 
   async getProfile(user: User) {
     const profile = await this.profileRepo.findOne({
@@ -49,17 +52,21 @@ export class ProfileService {
     const plain = { ...profile } as any;
     plain.languages = profile.languages
       ? profile.languages
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [];
     plain.userId = profile.user?.id;
     plain.isAvailable = profile.is_available;
-    plain.is_online = profile.user?.id ? this.expertGateway.isExpertOnline(profile.user.id) : false;
+    plain.is_online = profile.user?.id
+      ? this.expertGateway.isExpertOnline(profile.user.id)
+      : false;
     plain.total_likes = (profile as any).total_likes || 0;
     plain.custom_services = profile.custom_services || [];
 
-    this.logger.log(`Returning profile for user ${user.id}: ${JSON.stringify({ ...plain, user: undefined, addresses: undefined })}`);
+    this.logger.log(
+      `Returning profile for user ${user.id}: ${JSON.stringify({ ...plain, user: undefined, addresses: undefined })}`,
+    );
 
     return plain;
   }
@@ -81,7 +88,9 @@ export class ProfileService {
         user: { id: user.id } as any,
         // map simple scalar fields explicitly to avoid type mismatches
         gender: dto.gender,
-        date_of_birth: dto.date_of_birth ? new Date(dto.date_of_birth) : undefined,
+        date_of_birth: dto.date_of_birth
+          ? new Date(dto.date_of_birth)
+          : undefined,
         specialization: dto.specialization,
         bio: dto.bio,
         experience_in_years: dto.experience_in_years,
@@ -107,7 +116,10 @@ export class ProfileService {
           dto.addresses?.map((addr) =>
             this.addressRepo.create({
               // map DTO -> entity fields
-              line1: [addr.line1, addr.line2].filter(Boolean).join(', ') || addr.houseNo || '',
+              line1:
+                [addr.line1, addr.line2].filter(Boolean).join(', ') ||
+                addr.houseNo ||
+                '',
               houseNo: addr.houseNo,
               city: addr.city,
               district: addr.district,
@@ -151,14 +163,19 @@ export class ProfileService {
       });
     }
 
-    if (!profile) throw new NotFoundException('Expert profile could not be created');
+    if (!profile)
+      throw new NotFoundException('Expert profile could not be created');
 
     // Apply updates but handle `languages` (string[]) -> CSV string explicitly
-    this.logger.log(`Updating profile for user ${user.id}. DTO: ${JSON.stringify(dto)}`);
+    this.logger.log(
+      `Updating profile for user ${user.id}. DTO: ${JSON.stringify(dto)}`,
+    );
     if (dto.gender !== undefined) profile.gender = dto.gender;
     if (dto.date_of_birth !== undefined) {
       this.logger.log(`Setting date_of_birth to: ${dto.date_of_birth}`);
-      profile.date_of_birth = dto.date_of_birth ? new Date(dto.date_of_birth) : null;
+      profile.date_of_birth = dto.date_of_birth
+        ? new Date(dto.date_of_birth)
+        : null;
     }
     if (dto.specialization !== undefined)
       profile.specialization = dto.specialization;
@@ -167,24 +184,28 @@ export class ProfileService {
     if (dto.experience_in_years !== undefined)
       profile.experience_in_years = dto.experience_in_years;
 
-
     if (dto.price !== undefined) profile.price = dto.price;
     if (dto.chat_price !== undefined) profile.chat_price = dto.chat_price;
     if (dto.call_price !== undefined) profile.call_price = dto.call_price;
-    if (dto.video_call_price !== undefined) profile.video_call_price = dto.video_call_price;
+    if (dto.video_call_price !== undefined)
+      profile.video_call_price = dto.video_call_price;
     if (dto.report_price !== undefined) profile.report_price = dto.report_price;
-    if (dto.horoscope_price !== undefined) profile.horoscope_price = dto.horoscope_price;
-    if (dto.custom_services !== undefined) profile.custom_services = dto.custom_services;
+    if (dto.horoscope_price !== undefined)
+      profile.horoscope_price = dto.horoscope_price;
+    if (dto.custom_services !== undefined)
+      profile.custom_services = dto.custom_services;
 
     if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
     if (dto.is_available !== undefined) {
       if (dto.is_available === false) {
         // Prevent going offline if there are active sessions
         const activeSession = await this.sessionRepo.findOne({
-          where: { expertId: profile.id, status: ChatSessionStatus.ACTIVE }
+          where: { expertId: profile.id, status: ChatSessionStatus.ACTIVE },
         });
         if (activeSession) {
-          throw new BadRequestException('You cannot go offline while you have an active chat session. Please end the session first.');
+          throw new BadRequestException(
+            'You cannot go offline while you have an active chat session. Please end the session first.',
+          );
         }
       }
       profile.is_available = dto.is_available;
@@ -214,7 +235,10 @@ export class ProfileService {
 
       profile.addresses = dto.addresses.map((addr: any) =>
         this.addressRepo.create({
-          line1: [addr.line1, addr.line2].filter(Boolean).join(', ') || addr.houseNo || '',
+          line1:
+            [addr.line1, addr.line2].filter(Boolean).join(', ') ||
+            addr.houseNo ||
+            '',
           houseNo: addr.houseNo,
           city: addr.city,
           district: addr.district,
@@ -231,7 +255,6 @@ export class ProfileService {
       // update user avatar
       await this.userRepo.update(user.id, { avatar: dto.avatar });
     }
-
 
     if (profile) await this.profileRepo.save(profile);
 
@@ -250,17 +273,23 @@ export class ProfileService {
     });
 
     if (!profile) {
-      this.logger.warn(`Failed to update status: Profile not found for user ${user.id}`);
-      throw new BadRequestException('Please complete your profile details first before going online.');
+      this.logger.warn(
+        `Failed to update status: Profile not found for user ${user.id}`,
+      );
+      throw new BadRequestException(
+        'Please complete your profile details first before going online.',
+      );
     }
 
     if (isAvailable === false) {
       // Prevent going offline if there are active sessions
       const activeSession = await this.sessionRepo.findOne({
-        where: { expertId: profile.id, status: ChatSessionStatus.ACTIVE }
+        where: { expertId: profile.id, status: ChatSessionStatus.ACTIVE },
       });
       if (activeSession) {
-        throw new BadRequestException('You cannot go offline while you have an active chat session. Please end the session first.');
+        throw new BadRequestException(
+          'You cannot go offline while you have an active chat session. Please end the session first.',
+        );
       }
     }
 
@@ -309,14 +338,17 @@ export class ProfileService {
     }
 
     // Initialize query builder
-    let queryBuilder = this.profileRepo
+    const queryBuilder = this.profileRepo
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
       .leftJoinAndSelect('profile.addresses', 'addresses')
       .where('1=1'); // Ensure a valid WHERE clause exists for subsequent AND conditions
 
     // Filter: Service Availability (ensure price > 0 for selected service)
-    if (query.service && ['chat', 'call', 'video_call'].includes(query.service)) {
+    if (
+      query.service &&
+      ['chat', 'call', 'video_call'].includes(query.service)
+    ) {
       queryBuilder.andWhere(`${priceColumn} > 0`);
     }
 
@@ -389,7 +421,8 @@ export class ProfileService {
     }
 
     // Filter: Online Status (handle online=true or onlineOnly=true)
-    const isOnlineFilter = query.online === 'true' || query.onlineOnly === 'true';
+    const isOnlineFilter =
+      query.online === 'true' || query.onlineOnly === 'true';
     if (isOnlineFilter) {
       queryBuilder.andWhere('profile.is_available = :isAvailable', {
         isAvailable: true,
@@ -443,9 +476,9 @@ export class ProfileService {
         const plain = { ...ex } as any;
         plain.languages = ex.languages
           ? ex.languages
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
           : [];
         plain.userId = ex.user?.id;
         plain.isAvailable = ex.is_available;
@@ -467,13 +500,17 @@ export class ProfileService {
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to list experts: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to list experts: ${error.message}`,
+        error.stack,
+      );
       throw new BadRequestException('Failed to load experts');
     }
   }
 
   async getExpertById(id: number) {
-    const queryBuilder = this.profileRepo.createQueryBuilder('profile')
+    const queryBuilder = this.profileRepo
+      .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
       .leftJoinAndSelect('profile.addresses', 'addresses')
       .where('profile.id = :id', { id });
@@ -488,13 +525,15 @@ export class ProfileService {
     const plain = { ...expert } as any;
     plain.languages = expert.languages
       ? expert.languages
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [];
     plain.userId = expert.user?.id;
     plain.isAvailable = expert.is_available;
-    plain.is_online = expert.user?.id ? this.expertGateway.isExpertOnline(expert.user.id) : false;
+    plain.is_online = expert.user?.id
+      ? this.expertGateway.isExpertOnline(expert.user.id)
+      : false;
     plain.total_likes = (expert as any).total_likes || 0;
     plain.custom_services = expert.custom_services || [];
 

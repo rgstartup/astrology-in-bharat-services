@@ -23,7 +23,7 @@ import { User } from './entities/user.entity';
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   // 🔹 Self-service: get my profile
   @Get('/me')

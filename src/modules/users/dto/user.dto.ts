@@ -32,6 +32,10 @@ class UserDto {
   emailVerified?: boolean;
 
   @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
   @ValidateNested({ each: true }) // validate each role object
   @Type(() => RolesDto) // transform plain objects into RolesDto instances
   roles?: RolesDto[]; // role names only, no entity

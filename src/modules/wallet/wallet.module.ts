@@ -6,9 +6,9 @@ import { WalletService } from './wallet.service';
 import { WalletController } from './wallet.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Wallet, Transaction])],
-    providers: [WalletService],
-    controllers: [WalletController],
-    exports: [WalletService],
+  imports: [TypeOrmModule.forFeature([Wallet, Transaction])],
+  providers: [WalletService],
+  controllers: [WalletController],
+  exports: [WalletService],
 })
-export class WalletModule { }
+export class WalletModule {}

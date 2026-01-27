@@ -242,7 +242,7 @@ export class ProfileExpertDto {
   custom_services?: CustomServiceDto[];
 }
 
-export class CreateProfileExpertDto extends ProfileExpertDto { }
+export class CreateProfileExpertDto extends ProfileExpertDto {}
 
 export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) {
   @IsOptional()

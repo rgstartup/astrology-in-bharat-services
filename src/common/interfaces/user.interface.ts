@@ -1,5 +1,5 @@
 export interface IUser {
-    id: number;
-    email: string;
-    roles?: string[];
+  id: number;
+  email: string;
+  roles?: string[];
 }

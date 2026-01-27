@@ -26,7 +26,9 @@ export class MailService {
       },
     });
 
-    this.logger.log(`MailService initialized with host: ${this.mailConfig.host}, port: ${this.mailConfig.port}, user: ${this.mailConfig.user}`);
+    this.logger.log(
+      `MailService initialized with host: ${this.mailConfig.host}, port: ${this.mailConfig.port}, user: ${this.mailConfig.user}`,
+    );
   }
 
   async sendMail(to: string, subject: string, text: string, html?: string) {

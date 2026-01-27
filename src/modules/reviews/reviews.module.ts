@@ -8,11 +8,9 @@ import { ChatSession } from '@/modules/chat/entities/chat-session.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module'; // Likely needed if we reward users, but skipped for now
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Review, ProfileExpert, ChatSession]),
-    ],
-    controllers: [ReviewsController],
-    providers: [ReviewsService],
-    exports: [ReviewsService],
+  imports: [TypeOrmModule.forFeature([Review, ProfileExpert, ChatSession])],
+  controllers: [ReviewsController],
+  providers: [ReviewsService],
+  exports: [ReviewsService],
 })
-export class ReviewsModule { }
+export class ReviewsModule {}

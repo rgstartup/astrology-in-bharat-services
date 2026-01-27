@@ -51,7 +51,7 @@ export class ProfileService extends BaseService<ProfileClient> {
         state: addr.state,
         country: addr.country,
         zipCode: addr.zipCode || '',
-        tag: addr.tag || AddressTag.OTHER
+        tag: addr.tag || AddressTag.OTHER,
       })),
     });
 
@@ -106,7 +106,9 @@ export class ProfileService extends BaseService<ProfileClient> {
     }
 
     if (profileData.profile_picture) {
-      await this.userRepo.update(user_id, { avatar: profileData.profile_picture });
+      await this.userRepo.update(user_id, {
+        avatar: profileData.profile_picture,
+      });
     }
 
     Object.assign(profile, profileData);

@@ -9,12 +9,12 @@ import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert]),
-        WalletModule,
-    ],
-    providers: [ChatService, ChatGateway],
-    controllers: [ChatController],
-    exports: [ChatService],
+  imports: [
+    TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert]),
+    WalletModule,
+  ],
+  providers: [ChatService, ChatGateway],
+  controllers: [ChatController],
+  exports: [ChatService],
 })
-export class ChatModule { }
+export class ChatModule {}

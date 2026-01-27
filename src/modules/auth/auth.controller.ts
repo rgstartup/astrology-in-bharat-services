@@ -37,7 +37,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   // ... (previous methods unchanged)
 
@@ -127,8 +127,9 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshTokenCookie = (req.cookies as { refreshToken?: string } | undefined)
-      ?.refreshToken;
+    const refreshTokenCookie = (
+      req.cookies as { refreshToken?: string } | undefined
+    )?.refreshToken;
 
     if (!refreshTokenCookie) {
       throw new UnauthorizedException('Refresh token not provided');
@@ -151,12 +152,14 @@ export class AuthController {
       }
     } else {
       // Fallback for logic where we might have the user ID from other sources,
-      // but without access token, we can't guess it. 
+      // but without access token, we can't guess it.
       // Legacy tokens: We can't support them for silent refresh without user context.
-      // So we throw. 
+      // So we throw.
       // (Unless we want to try to use the "access token from header" logic as a secondary fallback?
       //  But that logic is complex and redundant if we move forward with composite tokens).
-      throw new UnauthorizedException('Legacy refresh token cannot be used for silent refresh. Please login again.');
+      throw new UnauthorizedException(
+        'Legacy refresh token cannot be used for silent refresh. Please login again.',
+      );
     }
 
     const tokens = await this.tokenService.refreshTokens(userId, refreshToken);

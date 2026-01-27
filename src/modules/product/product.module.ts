@@ -6,8 +6,8 @@ import { Product } from './entities/product.entity';
 import { CloudinaryModule } from '@/common/cloudinary/cloudinary.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Product]), CloudinaryModule],
-    controllers: [ProductController],
-    providers: [ProductService],
+  imports: [TypeOrmModule.forFeature([Product]), CloudinaryModule],
+  controllers: [ProductController],
+  providers: [ProductService],
 })
-export class ProductModule { }
+export class ProductModule {}

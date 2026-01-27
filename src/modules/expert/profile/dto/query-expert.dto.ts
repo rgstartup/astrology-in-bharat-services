@@ -78,7 +78,15 @@ export class QueryExpertDto {
 
   // Sorting: 'experience' | 'rating' | 'newest' | 'name' | 'price_asc' | 'price_desc' | 'none'
   @IsOptional()
-  @IsIn(['experience', 'rating', 'newest', 'name', 'price_asc', 'price_desc', 'none'])
+  @IsIn([
+    'experience',
+    'rating',
+    'newest',
+    'name',
+    'price_asc',
+    'price_desc',
+    'none',
+  ])
   sort?: string = 'newest';
 
   // Filter by online/available status

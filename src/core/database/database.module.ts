@@ -12,7 +12,8 @@ import { DatabaseService } from './database.service';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         const databaseUrl = process.env.DATABASE_URL;
-        if (!databaseUrl) throw new Error('Database config not found: DATABASE_URL is missing');
+        if (!databaseUrl)
+          throw new Error('Database config not found: DATABASE_URL is missing');
 
         return {
           type: 'postgres',
@@ -31,4 +32,4 @@ import { DatabaseService } from './database.service';
   providers: [DatabaseService],
   exports: [DatabaseService],
 })
-export class DatabaseModule { }
+export class DatabaseModule {}

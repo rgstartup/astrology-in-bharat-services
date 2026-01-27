@@ -33,4 +33,4 @@ import { UsedTokensService } from './services/used-tokens.service';
   controllers: [AuthController, GoogleAuthController],
   exports: [TokenService, OAuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

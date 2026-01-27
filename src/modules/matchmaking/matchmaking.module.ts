@@ -4,8 +4,8 @@ import { ProkeralaService } from './prokerala.service';
 import { LoveCalculatorService } from './love-calculator.service';
 
 @Module({
-    controllers: [MatchmakingController],
-    providers: [ProkeralaService, LoveCalculatorService],
-    exports: [ProkeralaService, LoveCalculatorService],
+  controllers: [MatchmakingController],
+  providers: [ProkeralaService, LoveCalculatorService],
+  exports: [ProkeralaService, LoveCalculatorService],
 })
-export class MatchmakingModule { }
+export class MatchmakingModule {}

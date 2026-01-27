@@ -53,6 +53,9 @@ export class UsersService extends BaseService<User> {
       }
       if (roleNames.includes('client')) {
         user.profile_client = new ProfileClient();
+        if (dto.phone) {
+          user.profile_client.phone = dto.phone;
+        }
       }
     }
 
@@ -60,7 +63,11 @@ export class UsersService extends BaseService<User> {
   }
 
   // 🔹 Find all users
-  async findAll(search?: string, page: number = 1, limit: number = 10): Promise<{ data: User[]; total: number }> {
+  async findAll(
+    search?: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ data: User[]; total: number }> {
     const skip = (page - 1) * limit;
 
     const query = this.usersRepo
@@ -76,10 +83,7 @@ export class UsersService extends BaseService<User> {
       );
     }
 
-    const [data, total] = await query
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
+    const [data, total] = await query.skip(skip).take(limit).getManyAndCount();
 
     return { data, total };
   }
@@ -94,7 +98,7 @@ export class UsersService extends BaseService<User> {
     const activeUsers = await this.usersRepo.count({
       where: {
         roles: { name: 'client' },
-        emailVerified: true
+        emailVerified: true,
       },
       relations: ['roles'],
     });
@@ -133,14 +137,18 @@ export class UsersService extends BaseService<User> {
     const activeExperts = await this.usersRepo.count({
       where: {
         roles: { name: 'expert' },
-        emailVerified: true // Assuming active means email verified for now, adjust logic if needed
+        emailVerified: true, // Assuming active means email verified for now, adjust logic if needed
       },
       relations: ['roles'],
     });
 
     const pendingExperts = totalExperts - activeExperts; // Simplified logic
 
-    console.log('Stats Result:', { totalExperts, activeExperts, pendingExperts });
+    console.log('Stats Result:', {
+      totalExperts,
+      activeExperts,
+      pendingExperts,
+    });
 
     return {
       totalExperts,
@@ -154,7 +162,7 @@ export class UsersService extends BaseService<User> {
     roleName: string,
     search?: string,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<{ data: User[]; total: number }> {
     const skip = (page - 1) * limit;
 
@@ -164,10 +172,12 @@ export class UsersService extends BaseService<User> {
       .where('roles.name = :roleName', { roleName });
 
     if (roleName === 'client') {
-      query.leftJoinAndSelect('user.profile_client', 'profile')
+      query
+        .leftJoinAndSelect('user.profile_client', 'profile')
         .leftJoinAndSelect('profile.addresses', 'addresses');
     } else if (roleName === 'expert') {
-      query.leftJoinAndSelect('user.profile_expert', 'profile')
+      query
+        .leftJoinAndSelect('user.profile_expert', 'profile')
         .leftJoinAndSelect('profile.addresses', 'addresses');
     }
 
@@ -178,10 +188,7 @@ export class UsersService extends BaseService<User> {
       );
     }
 
-    const [data, total] = await query
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
+    const [data, total] = await query.skip(skip).take(limit).getManyAndCount();
 
     return { data, total };
   }
@@ -201,7 +208,7 @@ export class UsersService extends BaseService<User> {
   // 🔹 Update user
   async update(id: number, dto: Partial<CreateUserDto>): Promise<User> {
     await this.usersRepo.update(id, dto);
-    return this.findById(id) as Promise<User>;
+    return this.findById(id);
   }
 
   // 🔹 Remove user

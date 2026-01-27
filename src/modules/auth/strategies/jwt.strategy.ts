@@ -27,7 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
             hasCookie: !!cookieToken,
             hasAuthHeader: !!authHeader,
             url: req?.url,
-            method: req?.method
+            method: req?.method,
           });
           return cookieToken;
         },

@@ -18,4 +18,4 @@ import { CloudinaryModule } from '@/common/cloudinary/cloudinary.module';
   controllers: [ProfileController],
   providers: [ProfileService],
 })
-export class ProfileModule { }
+export class ProfileModule {}

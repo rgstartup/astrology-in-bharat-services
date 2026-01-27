@@ -25,7 +25,7 @@ export class ProfileController {
   constructor(
     private readonly service: ProfileService,
     private readonly cloudinaryService: CloudinaryService,
-  ) { }
+  ) {}
 
   @Get()
   async getProfile(@CurrentUser() user: User) {
@@ -74,17 +74,23 @@ export class ProfileController {
     console.log('📂 [UPLOAD-DOCUMENT] File received:', {
       originalname: file.originalname,
       mimetype: file.mimetype,
-      size: file.size
+      size: file.size,
     });
     try {
       const result = await this.cloudinaryService.uploadImage(file);
-      console.log('✅ [UPLOAD-DOCUMENT] Cloudinary upload successful:', result.secure_url);
+      console.log(
+        '✅ [UPLOAD-DOCUMENT] Cloudinary upload successful:',
+        result.secure_url,
+      );
       return {
         message: 'File uploaded successfully',
         url: result.secure_url,
       };
     } catch (error: any) {
-      console.error('❌ [UPLOAD-DOCUMENT] Cloudinary upload failed:', error.message);
+      console.error(
+        '❌ [UPLOAD-DOCUMENT] Cloudinary upload failed:',
+        error.message,
+      );
       throw error;
     }
   }

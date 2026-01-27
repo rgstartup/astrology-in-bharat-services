@@ -8,7 +8,7 @@ export class RolesService implements OnModuleInit {
   constructor(
     @InjectRepository(Role)
     private roleRepo: Repository<Role>,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     await this.seedRoles();

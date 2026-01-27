@@ -5,9 +5,9 @@ import { FestivalService } from './festival.service';
 import { FestivalController } from './festival.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Festival])],
-    controllers: [FestivalController],
-    providers: [FestivalService],
-    exports: [FestivalService],
+  imports: [TypeOrmModule.forFeature([Festival])],
+  controllers: [FestivalController],
+  providers: [FestivalService],
+  exports: [FestivalService],
 })
-export class FestivalModule { }
+export class FestivalModule {}

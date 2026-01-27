@@ -50,7 +50,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     let role = 'client';
     try {
-      const state = req.query.state ? JSON.parse(req.query.state as string) : {};
+      const state = req.query.state
+        ? JSON.parse(req.query.state as string)
+        : {};
       role = state.role || 'client';
     } catch (e) {
       console.error('Failed to parse state from Google OAuth:', e);
