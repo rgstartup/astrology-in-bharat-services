@@ -13,6 +13,7 @@ import {
   ParseFilePipeBuilder,
   HttpStatus,
   BadRequestException,
+  Ip,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { v2 as cloudinary } from 'cloudinary';
@@ -47,7 +48,9 @@ export class ProfileController {
   createProfile(
     @CurrentUser() user: User,
     @Body() dto: CreateProfileExpertDto,
+    @Ip() ip: string,
   ) {
+    dto.ip_address = ip;
     return this.expertProfileService.createProfile(user, dto);
   }
 
@@ -55,7 +58,9 @@ export class ProfileController {
   updateProfile(
     @CurrentUser() user: User,
     @Body() dto: UpdateProfileExpertDto,
+    @Ip() ip: string,
   ) {
+    dto.ip_address = ip;
     return this.expertProfileService.updateProfile(user, dto);
   }
 

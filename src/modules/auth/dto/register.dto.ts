@@ -34,8 +34,8 @@ export class RegisterDto {
   expert?: boolean;
 }
 
-export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) {}
+export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) { }
 
-export class ResetPasswordDto extends PickType(RegisterDto, ['password']) {}
+export class ResetPasswordDto extends PickType(RegisterDto, ['password']) { }
 
-export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) {}
+export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) { }
