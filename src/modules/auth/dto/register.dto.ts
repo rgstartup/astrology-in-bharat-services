@@ -34,7 +34,11 @@ export class RegisterDto {
   expert?: boolean;
 }
 
-export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) { }
+export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) {
+  @IsOptional()
+  @IsString()
+  origin?: string;
+}
 
 export class ResetPasswordDto extends PickType(RegisterDto, ['password']) { }
 

@@ -39,12 +39,18 @@ export class NotificationService {
 
   @OnEvent('user:reset-password')
   async handleResetPasswordEvent(event: ResetPasswordEvent) {
-    const link = `http://localhost:3000/reset-password?token=${event.password_reset_token}`;
+    const origin = event.origin || 'http://localhost:3000';
+    const link = `${origin}/reset-password?token=${event.password_reset_token}`;
 
     await this.mailService.sendMail(
       event.email,
       `Reset your password`,
       `Click here to reset password: ${link}`,
+      `<h1>Reset Your Password</h1>
+       <p>You requested a password reset. Please click the link below to set a new password:</p>
+       <a href="${link}" style="padding: 10px 20px; background-color: #fd6410; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
+       <p>This link will expire in 5 minutes.</p>
+       <p>If you did not request this, please ignore this email.</p>`
     );
   }
 

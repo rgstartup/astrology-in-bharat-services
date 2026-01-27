@@ -240,6 +240,10 @@ export class ProfileExpertDto {
   @ValidateNested({ each: true })
   @Type(() => CustomServiceDto)
   custom_services?: CustomServiceDto[];
+
+  @IsOptional()
+  @IsString()
+  ip_address?: string;
 }
 
 export class CreateProfileExpertDto extends ProfileExpertDto { }

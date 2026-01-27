@@ -362,7 +362,7 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string, origin?: string) {
     const existingUser = await this.usersService.findByEmail(email);
 
     if (!existingUser) {
@@ -376,7 +376,7 @@ export class AuthService {
 
     this.eventEmitter.emit(
       'user:reset-password',
-      new ResetPasswordEvent(existingUser.email, reset_password_token),
+      new ResetPasswordEvent(existingUser.email, reset_password_token, origin),
     );
 
     return {

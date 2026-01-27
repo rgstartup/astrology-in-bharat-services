@@ -103,6 +103,7 @@ export class ProfileService {
         video: dto.video,
         certificates: dto.certificates,
         detailed_experience: dto.detailed_experience,
+        ip_address: dto.ip_address,
         addresses:
           dto.addresses?.map((addr) =>
             this.addressRepo.create({
@@ -197,6 +198,9 @@ export class ProfileService {
 
     if (dto.detailed_experience !== undefined)
       profile.detailed_experience = dto.detailed_experience;
+
+    if (dto.ip_address !== undefined)
+      profile.ip_address = dto.ip_address;
 
     if ((dto as any).languages) {
       profile.languages = (dto as any).languages.join(',');
