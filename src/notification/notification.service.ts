@@ -7,13 +7,26 @@ import {
   UserRegisteredEvent,
 } from './events/user.event';
 import { OnEvent } from '@nestjs/event-emitter';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NotificationService {
-  constructor(private mailService: MailService) {}
+  constructor(
+    private mailService: MailService,
+    private configService: ConfigService,
+  ) { }
 
   @OnEvent('user:register')
   async handleUserRegistered(event: UserRegisteredEvent) {
+    const clientUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const expertUrl =
+      this.configService.get<string>('ASTROLOGER_FRONTEND_URL') ||
+      'http://localhost:3003';
+
+    const baseUrl = event.role === 'expert' ? expertUrl : clientUrl;
+    const verificationLink = `${baseUrl}/verify-email?token=${event.verification_token}`;
+
     await this.mailService.sendMail(
       event.email,
       'Welcome to Astrology in Bharat!',
@@ -22,7 +35,7 @@ export class NotificationService {
       <p>Thanks for signing up!</p>
       <hr/>
       <p>Please click the link below to verify your email:</p>
-      <a href="http://localhost:3000/verify-email?token=${event.verification_token}">Verify Email</a>
+      <a href="${verificationLink}">Verify Email</a>
       <p>Or use this token: ${event.verification_token}</p>
       `,
     );

@@ -89,6 +89,7 @@ export class AuthService {
           user.email,
           user.name,
           verification_token,
+          roles.includes('expert') ? 'expert' : 'client',
         ),
       );
 
@@ -175,6 +176,7 @@ export class AuthService {
           user.email,
           user.name,
           verification_token,
+          'client',
         ),
       );
 
