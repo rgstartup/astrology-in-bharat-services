@@ -4,6 +4,7 @@ export class UserRegisteredEvent {
     public readonly email: string,
     public readonly name: string = 'user',
     public readonly verification_token: string,
+    public readonly role: string = 'client',
   ) { }
 }
 
@@ -18,6 +19,7 @@ export class ResetPasswordEvent {
   constructor(
     public email: string,
     public password_reset_token: string,
+    public origin?: string,
   ) { }
 }
 
