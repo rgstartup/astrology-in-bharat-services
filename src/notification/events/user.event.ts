@@ -29,3 +29,12 @@ export class SendMagicLinkEvent {
     public token: string,
   ) { }
 }
+
+export class VerifyIpEvent {
+  constructor(
+    public readonly email: string,
+    public readonly name: string,
+    public readonly token: string,
+    public readonly ip: string,
+  ) { }
+}

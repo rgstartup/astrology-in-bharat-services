@@ -59,6 +59,9 @@ export class User {
   @Column({ nullable: true })
   avatar?: string;
 
+  @Column({ type: 'text', nullable: true })
+  ip_address?: string;
+
   @OneToOne(() => ProfileClient, (p) => p.user, { cascade: true })
   profile_client?: ProfileClient;
 

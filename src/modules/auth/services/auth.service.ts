@@ -17,6 +17,7 @@ import {
   ConfirmEmailEvent,
   ResetPasswordEvent,
   SendMagicLinkEvent,
+  VerifyIpEvent,
 } from '@/notification/events/user.event';
 import { JsonWebTokenError } from '@nestjs/jwt';
 import { UsedTokensService } from './used-tokens.service';
@@ -65,7 +66,13 @@ export class AuthService {
     // 👇 return user + tokens from transaction
     const { user, tokens } = await this.db.transaction(async (queryRunner) => {
       const user = await this.usersService.create(
-        { ...registerDto, roles: formattedRoles, password: hashed, phone },
+        {
+          ...registerDto,
+          roles: formattedRoles,
+          password: hashed,
+          phone,
+          ip_address: ip,
+        },
         queryRunner,
       );
 
@@ -87,7 +94,7 @@ export class AuthService {
         new UserRegisteredEvent(
           user.id,
           user.email,
-          user.name,
+          user.name || 'User',
           verification_token,
           roles.includes('expert') ? 'expert' : 'client',
         ),
@@ -152,7 +159,13 @@ export class AuthService {
     // 👇 return user + tokens from transaction
     const { user, tokens } = await this.db.transaction(async (queryRunner) => {
       const user = await this.usersService.create(
-        { ...registerDto, roles: formattedRoles, password: hashed, phone },
+        {
+          ...registerDto,
+          roles: formattedRoles,
+          password: hashed,
+          phone,
+          ip_address: ip,
+        },
         queryRunner,
       );
 
@@ -174,7 +187,7 @@ export class AuthService {
         new UserRegisteredEvent(
           user.id,
           user.email,
-          user.name,
+          user.name || 'User',
           verification_token,
           'client',
         ),
@@ -228,6 +241,29 @@ export class AuthService {
         throw new UnauthorizedException(
           'Access denied. You do not have an expert account.',
         );
+      }
+
+      // 🔹 Fetch expert profile
+      const userWithProfile = await this.usersService.findById(user.id);
+      user.profile_expert = userWithProfile.profile_expert;
+
+      // 🔹 IP Check for Experts
+      if (user.ip_address && ip && user.ip_address !== ip) {
+        const token = this.tokenService.generate5MinToken({
+          sub: user.id,
+          email: user.email,
+          newIp: ip,
+        });
+
+        this.eventEmitter.emit(
+          'user:verify-ip',
+          new VerifyIpEvent(user.email, user.name || 'Expert', token, ip!),
+        );
+
+        throw new UnauthorizedException({
+          message: 'IP_MISMATCH',
+          error: 'Different IP address detected. Please verify via email.',
+        });
       }
     }
 
@@ -461,6 +497,43 @@ export class AuthService {
         throw new BadRequestException('Invalid or expired token');
       }
 
+      throw error;
+    }
+  }
+
+  async verifyIp(token: string, ip?: string, userAgent?: string, res?: Response) {
+    try {
+      const payload = await this.tokenService.verifyToken(token);
+
+      const user = await this.usersService.findById(payload.sub);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      await this.checkTokenUsed(token, user.id);
+
+      // Update Expert IP Address
+      if (payload.newIp) {
+        await this.usersService.update(user.id, { ip_address: payload.newIp });
+      }
+
+      const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
+
+      if (res) {
+        this.setRefreshTokenCookie(res, tokens.refreshToken);
+        this.setAccessTokenCookie(res, tokens.accessToken);
+      }
+
+      await this.usedTokenService.addUsedToken(token, user.id, 'ip verification');
+
+      return {
+        ...instanceToPlain({ user }),
+        accessToken: tokens.accessToken,
+      };
+    } catch (error) {
+      if (error instanceof JsonWebTokenError) {
+        throw new BadRequestException('Invalid or expired token');
+      }
       throw error;
     }
   }

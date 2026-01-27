@@ -37,7 +37,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   // ... (previous methods unchanged)
 
@@ -217,5 +217,33 @@ export class AuthController {
 
     // Access token is returned in the body (result)
     return result;
+  }
+
+  @Get('email/verify-ip')
+  verifyIp(
+    @Query('token') token: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.verifyIp(
+      token,
+      req.ip,
+      req.get('user-agent'),
+      res,
+    );
+  }
+
+  @Post('email/verify-ip')
+  verifyIpPost(
+    @Body('token') token: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.verifyIp(
+      token,
+      req.ip,
+      req.get('user-agent'),
+      res,
+    );
   }
 }

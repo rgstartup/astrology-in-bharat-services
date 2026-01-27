@@ -31,6 +31,10 @@ export class UsersService extends BaseService<User> {
       user.emailVerified = dto.emailVerified;
     }
 
+    if (dto.ip_address) {
+      user.ip_address = dto.ip_address;
+    }
+
     if (dto.roles?.length) {
       const roleNames = dto.roles.map((r) => r.name);
       const roles = await this.rolesService.findByNames(roleNames);
@@ -197,7 +201,7 @@ export class UsersService extends BaseService<User> {
   async findById(id: number): Promise<User> {
     const existingUser = await this.usersRepo.findOne({
       where: { id },
-      relations: ['roles', 'oauthAccounts', 'credentials'],
+      relations: ['roles', 'oauthAccounts', 'credentials', 'profile_expert', 'profile_client'],
     });
 
     if (!existingUser) throw new NotFoundException('User not found');

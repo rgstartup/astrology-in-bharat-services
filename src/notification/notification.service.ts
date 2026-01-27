@@ -5,6 +5,7 @@ import {
   ResetPasswordEvent,
   SendMagicLinkEvent,
   UserRegisteredEvent,
+  VerifyIpEvent,
 } from './events/user.event';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
@@ -79,6 +80,27 @@ export class NotificationService {
       <a href=${link}>Click here to login</a>
       </button>
       `,
+    );
+  }
+
+  @OnEvent('user:verify-ip')
+  async handleVerifyIp(event: VerifyIpEvent) {
+    const expertUrl =
+      this.configService.get<string>('ASTROLOGER_FRONTEND_URL') ||
+      'http://localhost:3003';
+
+    const verifyLink = `${expertUrl}/verify-ip?token=${event.token}`;
+
+    await this.mailService.sendMail(
+      event.email,
+      'Verify Your Login - Astrology in Bharat',
+      `Login attempt from a different IP address: ${event.ip}`,
+      `<h1>Verify Your Login</h1>
+       <p>Hi ${event.name},</p>
+       <p>Your Astrology in Bharat astrologer profile got sign-in by a different IP address: <strong>${event.ip}</strong>.</p>
+       <p>Please verify it's you by clicking the button below:</p>
+       <a href="${verifyLink}" style="padding: 10px 20px; background-color: #fd6410; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">Yes, it's me</a>
+       <p>If this wasn't you, please secure your account immediately.</p>`
     );
   }
 }

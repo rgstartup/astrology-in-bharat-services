@@ -114,7 +114,7 @@ export class TokenService extends BaseService<Credential> {
   }
 
   async verifyToken(token: string) {
-    return this.jwtService.verifyAsync<{ sub: number; email: string }>(token, {
+    return this.jwtService.verifyAsync<any>(token, {
       secret: this.jwtConfig.jwtSecret,
       clockTolerance: 10,
     });

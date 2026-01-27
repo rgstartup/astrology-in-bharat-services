@@ -125,9 +125,6 @@ export class ProfileExpert {
   @Column({ type: 'boolean', default: false })
   is_available: boolean;
 
-  @Column({ type: 'text', nullable: true })
-  ip_address?: string;
-
   @CreateDateColumn()
   createdAt: Date;
 

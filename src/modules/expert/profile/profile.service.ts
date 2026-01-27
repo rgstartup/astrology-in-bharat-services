@@ -39,7 +39,7 @@ export class ProfileService {
     private readonly sessionRepo: Repository<ChatSession>,
 
     private readonly expertGateway: ExpertGateway,
-  ) {}
+  ) { }
 
   async getProfile(user: User) {
     const profile = await this.profileRepo.findOne({
@@ -52,9 +52,9 @@ export class ProfileService {
     const plain = { ...profile } as any;
     plain.languages = profile.languages
       ? profile.languages
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
       : [];
     plain.userId = profile.user?.id;
     plain.isAvailable = profile.is_available;
@@ -112,7 +112,6 @@ export class ProfileService {
         video: dto.video,
         certificates: dto.certificates,
         detailed_experience: dto.detailed_experience,
-        ip_address: dto.ip_address,
         addresses:
           dto.addresses?.map((addr) =>
             this.addressRepo.create({
@@ -219,9 +218,6 @@ export class ProfileService {
 
     if (dto.detailed_experience !== undefined)
       profile.detailed_experience = dto.detailed_experience;
-
-    if (dto.ip_address !== undefined)
-      profile.ip_address = dto.ip_address;
 
     if ((dto as any).languages) {
       profile.languages = (dto as any).languages.join(',');
@@ -480,9 +476,9 @@ export class ProfileService {
         const plain = { ...ex } as any;
         plain.languages = ex.languages
           ? ex.languages
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean)
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
           : [];
         plain.userId = ex.user?.id;
         plain.isAvailable = ex.is_available;
@@ -529,9 +525,9 @@ export class ProfileService {
     const plain = { ...expert } as any;
     plain.languages = expert.languages
       ? expert.languages
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
       : [];
     plain.userId = expert.user?.id;
     plain.isAvailable = expert.is_available;
