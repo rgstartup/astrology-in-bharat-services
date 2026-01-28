@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query, Param, NotFoundException } from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/guards/role.guard';
@@ -8,7 +8,7 @@ import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
 export class AdminController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get('experts/stats')
   async getExpertsStats() {
@@ -36,5 +36,38 @@ export class AdminController {
     @Query('limit') limit: number = 10,
   ) {
     return this.usersService.findAllByRole('expert', search, page, limit);
+  }
+
+  @Get('experts/:id')
+  async getExpertDetail(@Param('id') id: number) {
+    const user = await this.usersService.findById(id);
+    if (!user.profile_expert) {
+      throw new NotFoundException('Expert profile not found for this user');
+    }
+
+    const profile = user.profile_expert;
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      gender: profile.gender,
+      dob: profile.date_of_birth ? new Date(profile.date_of_birth).toISOString().split('T')[0] : null,
+      phone: profile.phoneNumber || user.profile_client?.phone || '',
+      languages: profile.languages ? profile.languages.split(',') : [],
+      bio: profile.bio || '',
+      experience: profile.experience_in_years,
+      specialization: profile.specialization || '',
+      intro_video_url: profile.video || (profile.videos && profile.videos.length > 0 ? profile.videos[0] : ''),
+      gallery: profile.gallery || [],
+      documents: profile.documents || [],
+      certificates: profile.certificates || [],
+      addresses: profile.addresses || [],
+      kyc_details: {
+        status: profile.kycStatus,
+      },
+      rating: profile.rating,
+      consultationCount: profile.consultationCount,
+    };
   }
 }
