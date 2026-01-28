@@ -19,6 +19,7 @@ export enum TransactionPurpose {
   RECHARGE = 'recharge',
   CONSULTATION = 'consultation',
   REFUND = 'refund',
+  WITHDRAWAL = 'withdrawal',
 }
 
 @Entity('transactions')

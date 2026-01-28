@@ -292,3 +292,154 @@ export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) {
   @ApiProperty({ required: false, type: [CustomServiceDto] })
   custom_services?: CustomServiceDto[];
 }
+
+export class UpdatePersonalInfoExpertDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
+
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
+  @IsOptional()
+  @IsString()
+  specialization?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  experience_in_years?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  languages?: string[];
+
+  @IsOptional()
+  @IsDateString()
+  date_of_birth?: string;
+
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AddressDto)
+  addresses?: AddressDto[];
+
+  @IsOptional()
+  @IsString()
+  avatar?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
+}
+
+export class UpdatePricingExpertDto {
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  chat_price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  call_price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  video_call_price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  report_price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  horoscope_price?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
+}
+
+export class UpdateBankDetailsExpertDto {
+  @IsOptional()
+  @IsString()
+  bank_details?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
+}
+
+export class UpdatePortfolioExpertDto {
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  gallery?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  videos?: string[];
+
+  @IsOptional()
+  @IsString()
+  video?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
+}
+
+export class UpdateCertificatesExpertDto {
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  certificates?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
+}
+
+export class UpdateDocumentsExpertDto {
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ExpertDocumentDto)
+  documents?: ExpertDocumentDto[];
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
+}
+
+export class UpdateExperienceExpertDto {
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => DetailedExperienceDto)
+  detailed_experience?: DetailedExperienceDto[];
+
+  @IsOptional()
+  @IsBoolean()
+  expert?: boolean;
+}

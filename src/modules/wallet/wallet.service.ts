@@ -11,6 +11,7 @@ import {
   TransactionType,
   TransactionPurpose,
 } from './entities/transaction.entity';
+import { Withdrawal, WithdrawalStatus } from './entities/withdrawal.entity';
 
 @Injectable()
 export class WalletService {
@@ -19,6 +20,8 @@ export class WalletService {
     private walletRepository: Repository<Wallet>,
     @InjectRepository(Transaction)
     private transactionRepository: Repository<Transaction>,
+    @InjectRepository(Withdrawal)
+    private withdrawalRepository: Repository<Withdrawal>,
     private dataSource: DataSource,
   ) { }
 
@@ -262,6 +265,98 @@ export class WalletService {
       await queryRunner.manager.save(transaction);
 
       await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getTransactions(userId: number, page = 1, limit = 10, type = 'all') {
+    const wallet = await this.getWallet(userId);
+    const query = this.transactionRepository
+      .createQueryBuilder('t')
+      .where('t.walletId = :walletId', { walletId: wallet.id });
+
+    if (type !== 'all') {
+      query.andWhere('t.type = :type', { type });
+    }
+
+    const [items, total] = await query
+      .orderBy('t.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { items, total, page, limit };
+  }
+
+  async getWithdrawalsStatus(userId: number) {
+    const query = this.withdrawalRepository
+      .createQueryBuilder('w')
+      .where('w.userId = :userId', { userId });
+
+    const pendingResult = await query
+      .clone()
+      .andWhere('w.status IN (:...status)', { status: ['pending', 'processing'] })
+      .select('SUM(w.amount)', 'sum')
+      .getRawOne();
+
+    const totalWithdrawnResult = await query
+      .clone()
+      .andWhere('w.status = :status', { status: 'completed' })
+      .select('SUM(w.amount)', 'sum')
+      .getRawOne();
+
+    return {
+      pendingWithdrawals: Number(pendingResult.sum || 0),
+      totalWithdrawn: Number(totalWithdrawnResult.sum || 0),
+    };
+  }
+
+  async requestWithdrawal(
+    userId: number,
+    amount: number,
+    bankAccountId: number,
+  ) {
+    if (amount < 500)
+      throw new BadRequestException('Minimum withdrawal amount is ₹500');
+
+    const wallet = await this.getWallet(userId);
+    if (Number(wallet.balance) < amount) {
+      throw new BadRequestException('Insufficient balance for withdrawal');
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 1. Debit from wallet
+      wallet.balance = Number(wallet.balance) - amount;
+      await queryRunner.manager.save(wallet);
+
+      // 2. Create Transaction record
+      const transaction = queryRunner.manager.create(Transaction, {
+        walletId: wallet.id,
+        amount,
+        type: TransactionType.DEBIT,
+        purpose: TransactionPurpose.WITHDRAWAL,
+      });
+      await queryRunner.manager.save(transaction);
+
+      // 3. Create Withdrawal record
+      const withdrawal = queryRunner.manager.create(Withdrawal, {
+        userId,
+        amount,
+        bankAccountId,
+        status: WithdrawalStatus.PENDING,
+      });
+      await queryRunner.manager.save(withdrawal);
+
+      await queryRunner.commitTransaction();
+      return withdrawal;
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw err;

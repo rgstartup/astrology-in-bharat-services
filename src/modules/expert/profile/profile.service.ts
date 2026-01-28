@@ -256,6 +256,11 @@ export class ProfileService {
       await this.userRepo.update(user.id, { avatar: dto.avatar });
     }
 
+    if ((dto as any).name !== undefined) {
+      // update user name
+      await this.userRepo.update(user.id, { name: (dto as any).name });
+    }
+
     if (profile) await this.profileRepo.save(profile);
 
     // Notify of status change if is_available was updated
