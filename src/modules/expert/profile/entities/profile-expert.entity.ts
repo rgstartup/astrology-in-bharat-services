@@ -71,6 +71,9 @@ export class ProfileExpert {
   @Column({ default: 'pending' }) // pending, approved, rejected
   kycStatus: string;
 
+  @Column({ type: 'text', nullable: true })
+  rejectionReason?: string | null;
+
   @Column({ type: 'int', default: 0 })
   consultationCount: number;
 

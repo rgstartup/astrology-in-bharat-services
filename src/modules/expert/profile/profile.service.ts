@@ -21,6 +21,7 @@ import { Address } from '@/common/entities/address.entity';
 import { User } from '@/modules/users/entities/user.entity';
 
 import { ExpertGateway } from './expert.gateway';
+import { MailService } from '@/notification/mail.service';
 
 @Injectable()
 export class ProfileService {
@@ -39,6 +40,7 @@ export class ProfileService {
     private readonly sessionRepo: Repository<ChatSession>,
 
     private readonly expertGateway: ExpertGateway,
+    private readonly mailService: MailService,
   ) { }
 
   async getProfile(user: User) {
@@ -347,15 +349,7 @@ export class ProfileService {
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
       .leftJoinAndSelect('profile.addresses', 'addresses')
-      .where('1=1'); // Ensure a valid WHERE clause exists for subsequent AND conditions
-
-    // Filter: Service Availability (ensure price > 0 for selected service)
-    if (
-      query.service &&
-      ['chat', 'call', 'video_call'].includes(query.service)
-    ) {
-      queryBuilder.andWhere(`${priceColumn} > 0`);
-    }
+      .where('LOWER(profile.kycStatus) IN (:...statuses)', { statuses: ['approved', 'active'] });
 
     // Filter: Search by expert name
     if (query.q && query.q.trim()) {
@@ -509,7 +503,7 @@ export class ProfileService {
         `Failed to list experts: ${error.message}`,
         error.stack,
       );
-      throw new BadRequestException('Failed to load experts');
+      throw new BadRequestException(`Failed to load experts: ${error.message}`);
     }
   }
 
@@ -518,7 +512,8 @@ export class ProfileService {
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
       .leftJoinAndSelect('profile.addresses', 'addresses')
-      .where('profile.id = :id', { id });
+      .where('profile.id = :id', { id })
+      .andWhere('LOWER(profile.kycStatus) IN (\'approved\', \'active\')');
 
     const expert = await queryBuilder.getOne();
 
@@ -543,5 +538,60 @@ export class ProfileService {
     plain.custom_services = expert.custom_services || [];
 
     return plain;
+  }
+
+  async updateKycStatus(expertId: number, status: string, reason?: string) {
+    const user = await this.userRepo.findOne({
+      where: { id: Number(expertId) },
+      relations: ['profile_expert'],
+    });
+
+    if (!user || !user.profile_expert) {
+      throw new NotFoundException('Expert profile not found for this user');
+    }
+
+    const profile = user.profile_expert;
+
+    // If rejected, do NOT set status to rejected in DB. Reset to pending.
+    if (status === 'rejected') {
+      profile.kycStatus = 'pending';
+    } else {
+      profile.kycStatus = status;
+    }
+
+    profile.rejectionReason = reason || null;
+
+    if (status === 'approved') {
+      await this.userRepo.update(user.id, { emailVerified: true });
+    }
+
+    const savedProfile = await this.profileRepo.save(profile);
+
+    // Notify expert via socket
+    this.expertGateway.notifyKycStatusUpdate(user.id, status, reason);
+
+    // If rejected, send email
+    if (status === 'rejected') {
+      const subject = 'Action Required: Update Your Profile - Astrology in Bharat';
+      const text = `Hello ${user.name},\n\nYour profile verification was not successful.\nReason: ${reason || 'Details not provided.'}\n\nPlease update your profile and resubmit.`;
+      const html = `
+        <h3>Hello ${user.name},</h3>
+        <p>Your profile verification was not successful.</p>
+        <p><strong>Reason:</strong> ${reason || 'Details not provided.'}</p>
+        <p>Please log in to your dashboard to make the necessary changes and resubmit your profile for verification.</p>
+        <p>Best Regards,<br/>Astrology in Bharat Team</p>
+      `;
+
+      try {
+        await this.mailService.sendMail(user.email, subject, text, html);
+      } catch (error) {
+        this.logger.error(
+          `Failed to send rejection email to ${user.email}`,
+          error.stack,
+        );
+      }
+    }
+
+    return savedProfile;
   }
 }

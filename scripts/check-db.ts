@@ -1,17 +1,20 @@
 
-import { DataSource } from 'typeorm';
+import { createConnection } from 'typeorm';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 async function check() {
-    const ds = new DataSource({
+    const connection = await createConnection({
         type: 'postgres',
         url: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false },
+        entities: ['src/**/*.entity.ts'],
+        synchronize: false,
     });
-    await ds.initialize();
-    const res = await ds.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users'");
-    console.log(res.map(c => c.column_name));
-    await ds.destroy();
+
+    const orders = await connection.query('SELECT * FROM payment_orders ORDER BY "createdAt" DESC LIMIT 5');
+    console.log('Recent Orders:', JSON.stringify(orders, null, 2));
+
+    await connection.close();
 }
-check();
+
+check().catch(console.error);

@@ -87,6 +87,13 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  notifyKycStatusUpdate(userId: number, status: string, reason?: string) {
+    this.server.to(`expert_${userId}`).emit('kyc_status_updated', {
+      status,
+      reason,
+    });
+  }
+
   // Method to check if an expert is online
   isExpertOnline(userId: number): boolean {
     return this.expertSockets.has(userId);

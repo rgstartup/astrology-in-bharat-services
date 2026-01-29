@@ -50,6 +50,18 @@ export class ProfileClientDto {
 
   @IsOptional()
   @IsString()
+  marital_status?: string;
+
+  @IsOptional()
+  @IsString()
+  occupation?: string;
+
+  @IsOptional()
+  @IsString()
+  about_me?: string;
+
+  @IsOptional()
+  @IsString()
   full_name?: string;
 
   @IsOptional()
@@ -64,7 +76,7 @@ export class ProfileClientDto {
 }
 
 // Create profile
-export class CreateProfileClientDto extends ProfileClientDto {}
+export class CreateProfileClientDto extends ProfileClientDto { }
 
 // Update profile
-export class UpdateProfileClientDto extends PartialType(ProfileClientDto) {}
+export class UpdateProfileClientDto extends PartialType(ProfileClientDto) { }

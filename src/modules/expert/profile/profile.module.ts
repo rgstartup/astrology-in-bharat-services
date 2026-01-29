@@ -13,13 +13,16 @@ import { ProfileController } from './profile.controller';
 import { Address } from '@/common/entities/address.entity';
 import { ExpertGateway } from './expert.gateway';
 import { CloudinaryModule } from '@/common/cloudinary/cloudinary.module';
+import { NotificationModule } from '@/notification/notification.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProfileExpert, User, Address, ChatSession]),
     CloudinaryModule,
+    NotificationModule,
   ],
   providers: [ProfileService, ExpertGateway],
   controllers: [ProfileController],
+  exports: [ProfileService],
 })
-export class ProfileModule {}
+export class ProfileModule { }

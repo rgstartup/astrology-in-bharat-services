@@ -55,6 +55,15 @@ export class ProfileClient {
   @Column({ nullable: true })
   profile_picture?: string;
 
+  @Column({ nullable: true })
+  marital_status?: string;
+
+  @Column({ nullable: true })
+  occupation?: string;
+
+  @Column({ type: 'text', nullable: true })
+  about_me?: string;
+
   @OneToMany(() => Address, (address) => address.profile_client, {
     cascade: true,
     eager: true,
