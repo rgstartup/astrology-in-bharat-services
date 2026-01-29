@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { QueryRunner, Repository } from 'typeorm';
+import { MoreThanOrEqual, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/user.dto';
@@ -99,18 +99,29 @@ export class UsersService extends BaseService<User> {
       relations: ['roles'],
     });
 
-    const activeUsers = await this.usersRepo.count({
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentUsers = await this.usersRepo.count({
       where: {
         roles: { name: 'client' },
-        emailVerified: true,
+        createdAt: MoreThanOrEqual(sevenDaysAgo),
+      },
+      relations: ['roles'],
+    });
+
+    const blockedUsers = await this.usersRepo.count({
+      where: {
+        roles: { name: 'client' },
+        isBlocked: true,
       },
       relations: ['roles'],
     });
 
     return {
-      totalUsers,
-      activeUsers,
-      pendingUsers: totalUsers - activeUsers,
+      totalUsers: totalUsers || 0,
+      recentUsers: recentUsers || 0,
+      blockedUsers: blockedUsers || 0,
     };
   }
 

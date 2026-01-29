@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Query, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Patch, UseGuards, Query, Param, Body, NotFoundException } from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/guards/role.guard';
@@ -69,5 +69,13 @@ export class AdminController {
       rating: profile.rating,
       consultationCount: profile.consultationCount,
     };
+  }
+
+  @Patch('users/:id/block')
+  async toggleUserBlock(
+    @Param('id') id: number,
+    @Body('isBlocked') isBlocked: boolean,
+  ) {
+    return this.usersService.update(id, { isBlocked });
   }
 }
