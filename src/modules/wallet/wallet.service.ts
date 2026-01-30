@@ -12,6 +12,9 @@ import {
   TransactionPurpose,
 } from './entities/transaction.entity';
 import { Withdrawal, WithdrawalStatus } from './entities/withdrawal.entity';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationGateway } from '../notification/notification.gateway';
+import { NotificationType } from '../notification/entities/notification.entity';
 
 @Injectable()
 export class WalletService {
@@ -23,6 +26,8 @@ export class WalletService {
     @InjectRepository(Withdrawal)
     private withdrawalRepository: Repository<Withdrawal>,
     private dataSource: DataSource,
+    private notificationService: NotificationService,
+    private notificationGateway: NotificationGateway,
   ) { }
 
   async getWallet(userId: number): Promise<Wallet> {
@@ -98,7 +103,30 @@ export class WalletService {
       });
       await queryRunner.manager.save(transaction);
 
+
       await queryRunner.commitTransaction();
+
+      // Send notification for recharge
+      if (purpose === TransactionPurpose.RECHARGE) {
+        const title = 'Wallet Recharged';
+        const message = `Your wallet has been credited with ₹${amount}`;
+
+        await this.notificationService.create(
+          userId,
+          NotificationType.WALLET_RECHARGE,
+          title,
+          message,
+          { amount, referenceId },
+        );
+
+        this.notificationGateway.emitToUser(userId, 'wallet_updated', {
+          type: 'credit',
+          amount,
+          title,
+          message,
+        });
+      }
+
       return wallet;
     } catch (err) {
       await queryRunner.rollbackTransaction();

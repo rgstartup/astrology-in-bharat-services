@@ -14,6 +14,7 @@ export enum NotificationType {
     ORDER_SHIPPED = 'order_shipped',
     ORDER_DELIVERED = 'order_delivered',
     ORDER_CANCELLED = 'order_cancelled',
+    WALLET_RECHARGE = 'wallet_recharge',
 }
 
 @Entity('notifications')

@@ -200,7 +200,7 @@ export class OrderService {
             notificationType,
             title,
             message,
-            { orderId: id, status },
+            { orderId: id, status, amount: order.totalAmount },
         );
 
         // Emit real-time socket event to user
