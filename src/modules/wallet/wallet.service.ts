@@ -273,7 +273,13 @@ export class WalletService {
     }
   }
 
-  async getTransactions(userId: number, page = 1, limit = 10, type = 'all') {
+  async getTransactions(
+    userId: number,
+    page = 1,
+    limit = 10,
+    type = 'all',
+    purpose?: string,
+  ) {
     const wallet = await this.getWallet(userId);
     const query = this.transactionRepository
       .createQueryBuilder('t')
@@ -281,6 +287,10 @@ export class WalletService {
 
     if (type !== 'all') {
       query.andWhere('t.type = :type', { type });
+    }
+
+    if (purpose) {
+      query.andWhere('t.purpose = :purpose', { purpose });
     }
 
     const [items, total] = await query

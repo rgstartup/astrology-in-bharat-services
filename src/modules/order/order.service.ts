@@ -9,6 +9,11 @@ import { Order, OrderStatus } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { CartService } from '@/modules/cart/cart.service';
 import { Cart } from '@/modules/cart/entities/cart.entity';
+import { NotificationService } from '@/modules/notification/notification.service';
+import { NotificationGateway } from '@/modules/notification/notification.gateway';
+import { NotificationType } from '@/modules/notification/entities/notification.entity';
+import { EmailService } from '@/common/services/email.service';
+import { User } from '@/modules/users/entities/user.entity';
 
 @Injectable()
 export class OrderService {
@@ -17,8 +22,13 @@ export class OrderService {
         private orderRepo: Repository<Order>,
         @InjectRepository(OrderItem)
         private orderItemRepo: Repository<OrderItem>,
+        @InjectRepository(User)
+        private userRepo: Repository<User>,
         private cartService: CartService,
         private dataSource: DataSource,
+        private notificationService: NotificationService,
+        private notificationGateway: NotificationGateway,
+        private emailService: EmailService,
     ) { }
 
     async createOrderFromCart(userId: number, shippingAddress: any) {
@@ -62,6 +72,40 @@ export class OrderService {
             await queryRunner.manager.save(orderItems);
 
             await queryRunner.commitTransaction();
+
+            // Emit socket event to all admins about new order
+            this.notificationGateway.emitToAdmins('new_order', {
+                orderId: savedOrder.id,
+                userId,
+                totalAmount,
+                createdAt: savedOrder.createdAt,
+            });
+
+            // Send order confirmation email to user
+            try {
+                const user = await this.userRepo.findOne({ where: { id: userId } });
+                if (user?.email) {
+                    const emailHtml = `
+                        <h2>Order Confirmation</h2>
+                        <p>Dear ${user.name || 'Customer'},</p>
+                        <p>Your order has been placed successfully!</p>
+                        <p><strong>Order ID:</strong> #${savedOrder.id}</p>
+                        <p><strong>Total Amount:</strong> ₹${totalAmount}</p>
+                        <p><strong>Status:</strong> ${savedOrder.status}</p>
+                        <p>We will notify you once your order is shipped.</p>
+                        <p>Thank you for shopping with us!</p>
+                    `;
+                    await this.emailService.sendEmail(
+                        user.email,
+                        'Order Confirmation - Your order has been placed',
+                        emailHtml,
+                    );
+                }
+            } catch (emailError) {
+                // Log email error but don't fail the order creation
+                console.error('Failed to send order confirmation email:', emailError);
+            }
+
             return savedOrder;
         } catch (error) {
             await queryRunner.rollbackTransaction();
@@ -105,5 +149,99 @@ export class OrderService {
 
         if (!order) throw new NotFoundException('Order not found');
         return order;
+    }
+
+    async updateOrderStatus(id: number, status: OrderStatus, cancellationReason?: string) {
+        const order = await this.orderRepo.findOne({ where: { id } });
+        if (!order) throw new NotFoundException('Order not found');
+
+        order.status = status;
+        if (cancellationReason) {
+            order.cancellationReason = cancellationReason;
+        }
+
+        const updatedOrder = await this.orderRepo.save(order);
+
+        // Create notification and emit socket event based on status
+        let notificationType: NotificationType;
+        let title: string;
+        let message: string;
+
+        switch (status) {
+            case OrderStatus.PACKED:
+                notificationType = NotificationType.ORDER_PACKED;
+                title = 'Order Packed';
+                message = `Your order #${id} has been packed and is ready for shipment`;
+                break;
+            case OrderStatus.SHIPPED:
+                notificationType = NotificationType.ORDER_SHIPPED;
+                title = 'Order Shipped';
+                message = `Your order #${id} has been shipped`;
+                break;
+            case OrderStatus.DELIVERED:
+                notificationType = NotificationType.ORDER_DELIVERED;
+                title = 'Order Delivered';
+                message = `Your order #${id} has been delivered`;
+                break;
+            case OrderStatus.CANCELLED:
+                notificationType = NotificationType.ORDER_CANCELLED;
+                title = 'Order Cancelled';
+                message = cancellationReason
+                    ? `Your order #${id} has been cancelled. Reason: ${cancellationReason}`
+                    : `Your order #${id} has been cancelled`;
+                break;
+            default:
+                return updatedOrder; // No notification for other statuses
+        }
+
+        // Save notification to DB
+        await this.notificationService.create(
+            order.userId,
+            notificationType,
+            title,
+            message,
+            { orderId: id, status },
+        );
+
+        // Emit real-time socket event to user
+        this.notificationGateway.emitToUser(order.userId, 'order_status_updated', {
+            orderId: id,
+            status,
+            title,
+            message,
+            cancellationReason,
+        });
+
+        // Send status update email to user
+        try {
+            const user = await this.userRepo.findOne({ where: { id: order.userId } });
+            if (user?.email) {
+                const emailHtml = `
+                    <h2>${title}</h2>
+                    <p>Dear ${user.name || 'Customer'},</p>
+                    <p>${message}</p>
+                    <p><strong>Order ID:</strong> #${id}</p>
+                    <p><strong>New Status:</strong> ${status}</p>
+                    ${cancellationReason ? `<p><strong>Reason:</strong> ${cancellationReason}</p>` : ''}
+                    <p>Thank you for your patience!</p>
+                `;
+                await this.emailService.sendEmail(
+                    user.email,
+                    `Order Update - ${title}`,
+                    emailHtml,
+                );
+            }
+        } catch (emailError) {
+            console.error('Failed to send status update email:', emailError);
+        }
+
+        return updatedOrder;
+    }
+
+    async findAllOrders() {
+        return this.orderRepo.find({
+            relations: ['items', 'items.product', 'user'],
+            order: { createdAt: 'DESC' },
+        });
     }
 }

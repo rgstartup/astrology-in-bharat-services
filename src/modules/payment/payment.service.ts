@@ -37,6 +37,8 @@ export class PaymentService {
     }
 
     async createOrder(userId: number, dto: CreateOrderDto) {
+        this.logger.log(`Creating order for user ${userId} with data:`, JSON.stringify(dto, null, 2));
+
         if (!this.razorpay) {
             throw new BadRequestException('Payment gateway not configured');
         }
@@ -79,7 +81,11 @@ export class PaymentService {
             };
         } catch (error) {
             this.logger.error('Error creating Razorpay order', error.stack);
-            throw new BadRequestException('Failed to create payment order');
+            this.logger.error('Razorpay error details:', JSON.stringify(error, null, 2));
+
+            // Extract more specific error message if available
+            const errorMessage = error?.error?.description || error?.message || 'Failed to create payment order';
+            throw new BadRequestException(`Payment order creation failed: ${errorMessage}`);
         }
     }
 
