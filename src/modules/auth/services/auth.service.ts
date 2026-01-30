@@ -216,6 +216,13 @@ export class AuthService {
       );
     }
 
+    // Check if user is blocked
+    if (user.isBlocked) {
+      throw new UnauthorizedException(
+        'Your account has been blocked. Please contact support.',
+      );
+    }
+
     const valid = await argon2.verify(user.password, password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
     return user;

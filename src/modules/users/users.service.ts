@@ -140,6 +140,32 @@ export class UsersService extends BaseService<User> {
       .getOne();
   }
 
+  // 🔹 Get User and Expert Growth Stats
+  async getUserExpertGrowthStats(days: number) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0);
+
+    const stats = await this.usersRepo
+      .createQueryBuilder('user')
+      .leftJoin('user.roles', 'role')
+      .select([
+        "TO_CHAR(user.createdAt, 'Mon DD') as date",
+        "COUNT(CASE WHEN role.name = 'client' THEN 1 END) as users",
+        "COUNT(CASE WHEN role.name = 'expert' THEN 1 END) as astrologers",
+      ])
+      .where('user.createdAt >= :startDate', { startDate })
+      .groupBy("TO_CHAR(user.createdAt, 'Mon DD'), DATE_TRUNC('day', user.createdAt)")
+      .orderBy("DATE_TRUNC('day', user.createdAt)", 'ASC')
+      .getRawMany();
+
+    return stats.map((s) => ({
+      date: s.date,
+      users: parseInt(s.users) || 0,
+      astrologers: parseInt(s.astrologers) || 0,
+    }));
+  }
+
   // 🔹 Get Expert Stats with Trends
   async getExpertStats() {
     const today = new Date();

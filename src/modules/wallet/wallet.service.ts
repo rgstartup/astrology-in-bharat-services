@@ -316,6 +316,19 @@ export class WalletService {
     return Number(total.sum) || 0;
   }
 
+  async getGlobalEarnings(): Promise<number> {
+    const total = await this.transactionRepository
+      .createQueryBuilder('transaction')
+      .where('transaction.purpose = :purpose AND transaction.type = :type', {
+        purpose: TransactionPurpose.RECHARGE,
+        type: TransactionType.CREDIT,
+      })
+      .select('SUM(transaction.amount)', 'sum')
+      .getRawOne();
+
+    return Number(total.sum) || 0;
+  }
+
   async getWithdrawalsStatus(userId: number) {
     const query = this.withdrawalRepository
       .createQueryBuilder('w')
