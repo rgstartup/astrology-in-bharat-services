@@ -141,6 +141,12 @@ export class ProfileController {
     return this.expertProfileService.listExperts(query);
   }
 
+  @Get('top-rated')
+  @Public()
+  getTopRatedExperts(@Query('limit') limit: number = 3) {
+    return this.expertProfileService.getTopRatedExperts(limit);
+  }
+
   @Get(':id')
   @Public()
   getExpertById(@Param('id', ParseIntPipe) id: number) {

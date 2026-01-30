@@ -594,4 +594,34 @@ export class ProfileService {
 
     return savedProfile;
   }
+
+  async getTopRatedExperts(limit: number = 3) {
+    const queryBuilder = this.profileRepo
+      .createQueryBuilder('profile')
+      .leftJoinAndSelect('profile.user', 'user')
+      .leftJoinAndSelect('profile.addresses', 'addresses')
+      .where('LOWER(profile.kycStatus) IN (:...statuses)', {
+        statuses: ['approved', 'active'],
+      })
+      .orderBy('profile.rating', 'DESC')
+      .take(limit);
+
+    const experts = await queryBuilder.getMany();
+
+    return experts.map((ex) => {
+      const plain = { ...ex } as any;
+      plain.languages = ex.languages
+        ? ex.languages
+          .split(',')
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+        : [];
+      plain.userId = ex.user?.id;
+      plain.isAvailable = ex.is_available;
+      plain.is_online = ex.user?.id
+        ? this.expertGateway.isExpertOnline(ex.user.id)
+        : false;
+      return plain;
+    });
+  }
 }
