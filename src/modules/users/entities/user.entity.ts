@@ -62,6 +62,9 @@ export class User {
   @Column({ type: 'text', nullable: true })
   ip_address?: string;
 
+  @Column({ default: false })
+  isBlocked: boolean;
+
   @OneToOne(() => ProfileClient, (p) => p.user, { cascade: true })
   profile_client?: ProfileClient;
 

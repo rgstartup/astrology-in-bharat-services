@@ -94,4 +94,12 @@ export class AdminController {
   ) {
     return this.profileService.updateKycStatus(id, body.status, body.reason);
   }
+
+  @Patch('users/:id/block')
+  async toggleUserBlock(
+    @Param('id') id: number,
+    @Body('isBlocked') isBlocked: boolean,
+  ) {
+    return this.usersService.update(id, { isBlocked });
+  }
 }
