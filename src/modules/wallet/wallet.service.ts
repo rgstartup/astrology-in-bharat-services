@@ -292,6 +292,20 @@ export class WalletService {
     return { items, total, page, limit };
   }
 
+  async getTotalEarnings(userId: number): Promise<number> {
+    const total = await this.transactionRepository
+      .createQueryBuilder('transaction')
+      .innerJoin('transaction.wallet', 'wallet')
+      .where('wallet.userId = :userId AND transaction.type = :type', {
+        userId,
+        type: TransactionType.CREDIT,
+      })
+      .select('SUM(transaction.amount)', 'sum')
+      .getRawOne();
+
+    return Number(total.sum) || 0;
+  }
+
   async getWithdrawalsStatus(userId: number) {
     const query = this.withdrawalRepository
       .createQueryBuilder('w')

@@ -1,5 +1,7 @@
-import { Controller, Get, Patch, UseGuards, Query, Param, Body, NotFoundException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query, Param, NotFoundException, Patch, Body } from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
+import { WalletService } from '@/modules/wallet/wallet.service';
+import { ProfileService } from '@/modules/expert/profile/profile.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
@@ -8,7 +10,11 @@ import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
 export class AdminController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly walletService: WalletService,
+    private readonly profileService: ProfileService,
+  ) { }
 
   @Get('experts/stats')
   async getExpertsStats() {
@@ -46,29 +52,47 @@ export class AdminController {
     }
 
     const profile = user.profile_expert;
+    const totalEarnings = await this.walletService.getTotalEarnings(user.id);
+
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       avatar: user.avatar,
       gender: profile.gender,
-      dob: profile.date_of_birth ? new Date(profile.date_of_birth).toISOString().split('T')[0] : null,
+      dob: profile.date_of_birth ? new Date(profile.date_of_birth).toISOString() : null,
       phone: profile.phoneNumber || user.profile_client?.phone || '',
       languages: profile.languages ? profile.languages.split(',') : [],
       bio: profile.bio || '',
       experience: profile.experience_in_years,
       specialization: profile.specialization || '',
+      rating: profile.rating,
+      consultationCount: profile.consultationCount,
+      totalEarnings: totalEarnings,
       intro_video_url: profile.video || (profile.videos && profile.videos.length > 0 ? profile.videos[0] : ''),
       gallery: profile.gallery || [],
       documents: profile.documents || [],
-      certificates: profile.certificates || [],
-      addresses: profile.addresses || [],
+      addresses: profile.addresses?.map(addr => ({
+        houseNo: addr.houseNo || '',
+        district: addr.district || '',
+        city: addr.city || '',
+        state: addr.state || '',
+        country: addr.country || '',
+        pincode: addr.pincode || addr.zipCode || ''
+      })) || [],
       kyc_details: {
         status: profile.kycStatus,
+        reason: profile.rejectionReason,
       },
-      rating: profile.rating,
-      consultationCount: profile.consultationCount,
     };
+  }
+
+  @Patch('experts/:id/status')
+  async updateExpertStatus(
+    @Param('id') id: number,
+    @Body() body: { status: string; reason?: string },
+  ) {
+    return this.profileService.updateKycStatus(id, body.status, body.reason);
   }
 
   @Patch('users/:id/block')
