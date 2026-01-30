@@ -14,6 +14,7 @@ import { OrderItem } from './order-item.entity';
 export enum OrderStatus {
     PENDING = 'pending',
     PAID = 'paid',
+    PACKED = 'packed',
     SHIPPED = 'shipped',
     DELIVERED = 'delivered',
     CANCELLED = 'cancelled',

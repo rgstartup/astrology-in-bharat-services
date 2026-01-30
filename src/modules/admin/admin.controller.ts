@@ -2,6 +2,7 @@ import { Controller, Get, UseGuards, Query, Param, NotFoundException, Patch, Bod
 import { UsersService } from '@/modules/users/users.service';
 import { WalletService } from '@/modules/wallet/wallet.service';
 import { ProfileService } from '@/modules/expert/profile/profile.service';
+import { ChatService } from '@/modules/chat/chat.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
@@ -14,7 +15,29 @@ export class AdminController {
     private readonly usersService: UsersService,
     private readonly walletService: WalletService,
     private readonly profileService: ProfileService,
+    private readonly chatService: ChatService,
   ) { }
+
+  @Get('analytics/user-growth')
+  async getUserGrowthStats(@Query('days') days: number = 7) {
+    return this.usersService.getUserExpertGrowthStats(days);
+  }
+
+  @Get('dashboard/stats')
+  async getDashboardStats() {
+    const expertStats = await this.usersService.getExpertStats();
+    const userStats = await this.usersService.getUserStats();
+    const chatSessionsCount = await this.chatService.getTotalSessionsCount();
+    const totalEarnings = await this.walletService.getGlobalEarnings();
+
+    return {
+      totalChatSessions: chatSessionsCount,
+      totalExperts: expertStats.totalExperts,
+      totalUsers: userStats.totalUsers,
+      totalEarnings: totalEarnings,
+      trends: expertStats.trends,
+    };
+  }
 
   @Get('experts/stats')
   async getExpertsStats() {

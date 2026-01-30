@@ -465,4 +465,8 @@ export class ChatService {
 
     return this.messageRepo.save(message);
   }
+
+  async getTotalSessionsCount() {
+    return this.sessionRepo.count();
+  }
 }
