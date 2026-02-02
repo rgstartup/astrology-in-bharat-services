@@ -6,7 +6,10 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
+import { Logger, Inject, forwardRef } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ProfileExpert } from './entities/profile-expert.entity';
 
 @WebSocketGateway({
   cors: {
@@ -14,6 +17,11 @@ import { Logger } from '@nestjs/common';
   },
 })
 export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  constructor(
+    @InjectRepository(ProfileExpert)
+    private readonly profileRepo: Repository<ProfileExpert>,
+  ) { }
+
   @WebSocketServer()
   server: Server;
 
@@ -26,7 +34,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`Client connected: ${client.id}`);
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
 
     // Remove from online experts if it was an expert socket
@@ -36,6 +44,14 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.logger.log(
           `Expert ${userId} removed from tracking (disconnected)`,
         );
+
+        try {
+          // Update database status to offline
+          await this.profileRepo.update({ user: { id: userId } }, { is_available: false });
+          this.logger.log(`Expert ${userId} availability set to false in DB due to disconnect`);
+        } catch (error) {
+          this.logger.error(`Failed to update DB status for expert ${userId} on disconnect:`, error.stack);
+        }
 
         // Broadcast to all clients that this expert is now offline
         this.server.emit('expert_status_changed', {
