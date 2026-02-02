@@ -25,6 +25,8 @@ export class UsersService extends BaseService<User> {
       email: dto.email,
       password: dto.password,
       name: dto.name,
+      role: dto.role || 'client',
+      signinBy: dto.signinBy || 'email&password',
     });
 
     if (dto.emailVerified) {
@@ -50,6 +52,17 @@ export class UsersService extends BaseService<User> {
       }
 
       user.roles = roles;
+
+      // 🔹 Infer role if not provided
+      if (!dto.role) {
+        if (roleNames.includes('expert')) {
+          user.role = 'expert';
+        } else if (roleNames.includes('admin')) {
+          user.role = 'admin';
+        } else {
+          user.role = 'client';
+        }
+      }
 
       // 🔹 Auto-initialize Profile records
       if (roleNames.includes('expert')) {

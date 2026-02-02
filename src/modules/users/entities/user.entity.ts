@@ -65,6 +65,12 @@ export class User {
   @Column({ default: false })
   isBlocked: boolean;
 
+  @Column({ type: 'varchar', length: 20, default: 'client' })
+  role: 'client' | 'expert' | 'admin';
+
+  @Column({ type: 'varchar', length: 20, default: 'email&password' })
+  signinBy: 'email&password' | 'google';
+
   @OneToOne(() => ProfileClient, (p) => p.user, { cascade: true })
   profile_client?: ProfileClient;
 

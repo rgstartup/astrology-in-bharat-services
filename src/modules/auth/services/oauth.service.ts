@@ -55,6 +55,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
           name: dto.name,
           roles: dto.roles?.map((role) => ({ name: role })),
           emailVerified: isEmailVerified,
+          signinBy: 'google',
         },
         queryRunner,
       );

@@ -68,6 +68,8 @@ export class AuthService {
       const user = await this.usersService.create(
         {
           ...registerDto,
+          role: roles.includes('expert') ? 'expert' : 'client',
+          signinBy: 'email&password',
           roles: formattedRoles,
           password: hashed,
           phone,
@@ -161,6 +163,8 @@ export class AuthService {
       const user = await this.usersService.create(
         {
           ...registerDto,
+          role: 'client',
+          signinBy: 'email&password',
           roles: formattedRoles,
           password: hashed,
           phone,
