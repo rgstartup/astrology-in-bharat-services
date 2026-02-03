@@ -310,6 +310,15 @@ export class ChatController {
             ? Math.floor(userBalance / session.pricePerMinute)
             : 0;
 
+        // Calculate durationMins from startTime and endTime
+        let durationMins = 0;
+        if (session.startTime && session.endTime) {
+          const start = new Date(session.startTime);
+          const end = new Date(session.endTime);
+          const durationMs = end.getTime() - start.getTime();
+          durationMins = Math.round(durationMs / 60000); // Convert ms to minutes
+        }
+
         return {
           ...session,
           expiresAt:
@@ -317,6 +326,7 @@ export class ChatController {
               ? new Date(new Date(session.createdAt).getTime() + expiryTime)
               : null,
           maxMinutes,
+          durationMins,
         };
       }),
     );

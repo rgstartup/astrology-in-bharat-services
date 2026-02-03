@@ -31,7 +31,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly chatService: ChatService,
     private readonly walletService: WalletService,
-  ) {}
+  ) { }
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected to chat: ${client.id}`);
@@ -323,10 +323,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { sessionId: number },
   ) {
+    console.log(`[Socket] Received end_chat request for session ${payload.sessionId}`);
     const session = await this.chatService.endChat(payload.sessionId);
-    this.server.to(`room_${payload.sessionId}`).emit('session_ended', session);
 
-    // Notify expert dashboard directly
+    // Broadcast to the room so BOTH User and Expert know immediately
+    this.server.to(`room_${payload.sessionId}`).emit('session_ended', session);
+    console.log(`[Socket] Emitted session_ended to room_${payload.sessionId}`);
+
+    // Notify expert dashboard directly (if they are in dashboard view)
     if (session && session.expertId) {
       this.notifyExpertStatusUpdate(session.expertId, 'session_ended', session);
     }
@@ -335,6 +339,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clearInterval(this.sessionTimers.get(payload.sessionId));
       this.sessionTimers.delete(payload.sessionId);
     }
+
     return session;
   }
 
