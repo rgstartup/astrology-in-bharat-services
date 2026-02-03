@@ -91,7 +91,7 @@ export class WalletService {
         });
       }
 
-      wallet.balance = Number(wallet.balance) + amount;
+      wallet.balance = Number(wallet.balance) + Number(amount);
       await queryRunner.manager.save(wallet);
 
       const transaction = queryRunner.manager.create(Transaction, {
@@ -157,7 +157,7 @@ export class WalletService {
         throw new BadRequestException('Insufficient balance');
       }
 
-      wallet.balance = Number(wallet.balance) - amount;
+      wallet.balance = Number(wallet.balance) - Number(amount);
       await queryRunner.manager.save(wallet);
 
       const transaction = queryRunner.manager.create(Transaction, {
@@ -197,8 +197,8 @@ export class WalletService {
         throw new BadRequestException('Insufficient balance');
       }
 
-      wallet.balance = Number(wallet.balance) - amount;
-      wallet.reservedBalance = Number(wallet.reservedBalance) + amount;
+      wallet.balance = Number(wallet.balance) - Number(amount);
+      wallet.reservedBalance = Number(wallet.reservedBalance) + Number(amount);
       await queryRunner.manager.save(wallet);
 
       const transaction = queryRunner.manager.create(Transaction, {
@@ -238,7 +238,7 @@ export class WalletService {
         throw new BadRequestException('Insufficient reserved balance');
       }
 
-      wallet.reservedBalance = Number(wallet.reservedBalance) - amount;
+      wallet.reservedBalance = Number(wallet.reservedBalance) - Number(amount);
       await queryRunner.manager.save(wallet);
 
       const transaction = queryRunner.manager.create(Transaction, {
@@ -279,8 +279,8 @@ export class WalletService {
         );
       }
 
-      wallet.reservedBalance = Number(wallet.reservedBalance) - amount;
-      wallet.balance = Number(wallet.balance) + amount;
+      wallet.reservedBalance = Number(wallet.reservedBalance) - Number(amount);
+      wallet.balance = Number(wallet.balance) + Number(amount);
       await queryRunner.manager.save(wallet);
 
       const transaction = queryRunner.manager.create(Transaction, {
@@ -399,7 +399,7 @@ export class WalletService {
 
     try {
       // 1. Debit from wallet
-      wallet.balance = Number(wallet.balance) - amount;
+      wallet.balance = Number(wallet.balance) - Number(amount);
       await queryRunner.manager.save(wallet);
 
       // 2. Create Transaction record

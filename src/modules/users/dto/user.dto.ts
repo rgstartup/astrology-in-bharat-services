@@ -44,6 +44,14 @@ class UserDto {
   isBlocked?: boolean;
 
   @IsOptional()
+  @IsString()
+  role?: 'client' | 'expert' | 'admin';
+
+  @IsOptional()
+  @IsString()
+  signinBy?: 'email&password' | 'google';
+
+  @IsOptional()
   @ValidateNested({ each: true }) // validate each role object
   @Type(() => RolesDto) // transform plain objects into RolesDto instances
   roles?: RolesDto[]; // role names only, no entity

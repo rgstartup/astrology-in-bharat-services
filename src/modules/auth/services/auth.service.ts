@@ -68,6 +68,8 @@ export class AuthService {
       const user = await this.usersService.create(
         {
           ...registerDto,
+          role: roles.includes('expert') ? 'expert' : 'client',
+          signinBy: 'email&password',
           roles: formattedRoles,
           password: hashed,
           phone,
@@ -161,6 +163,8 @@ export class AuthService {
       const user = await this.usersService.create(
         {
           ...registerDto,
+          role: 'client',
+          signinBy: 'email&password',
           roles: formattedRoles,
           password: hashed,
           phone,
@@ -246,7 +250,7 @@ export class AuthService {
       );
       if (!hasExpertRole) {
         throw new UnauthorizedException(
-          'Access denied. You do not have an expert account.',
+          'Access denied. You do not have an expert account with this email.',
         );
       }
 
@@ -300,6 +304,17 @@ export class AuthService {
     res?: Response, // 👈 get Response from controller
   ) {
     const user = await this.validateUser(dto.email, dto.password);
+
+    // Verify user has client role
+    const hasClientRole = user.roles?.some((r: any) =>
+      typeof r === 'string' ? r === 'client' : r.name === 'client',
+    );
+
+    if (!hasClientRole) {
+      throw new UnauthorizedException(
+        'Access denied. You do not have a client account with this email.',
+      );
+    }
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
     if (res) {

@@ -15,6 +15,15 @@ export enum PaymentStatus {
     FAILED = 'failed',
 }
 
+export class ColumnNumericTransformer {
+    to(data: number): number {
+        return data;
+    }
+    from(data: string): number {
+        return parseFloat(data);
+    }
+}
+
 @Entity('payment_orders')
 export class PaymentOrder {
     @PrimaryGeneratedColumn()
@@ -36,7 +45,12 @@ export class PaymentOrder {
     @Column({ nullable: true })
     razorpaySignature: string;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    @Column({
+        type: 'decimal',
+        precision: 10,
+        scale: 2,
+        transformer: new ColumnNumericTransformer(),
+    })
     amount: number;
 
     @Column({ default: PaymentStatus.PENDING })
