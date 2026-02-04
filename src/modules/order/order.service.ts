@@ -14,6 +14,7 @@ import { NotificationGateway } from '@/modules/notification/notification.gateway
 import { NotificationType } from '@/modules/notification/entities/notification.entity';
 import { EmailService } from '@/common/services/email.service';
 import { User } from '@/modules/users/entities/user.entity';
+import { CouponService } from '@/modules/coupon/coupon.service';
 
 @Injectable()
 export class OrderService {
@@ -29,9 +30,10 @@ export class OrderService {
         private notificationService: NotificationService,
         private notificationGateway: NotificationGateway,
         private emailService: EmailService,
+        private couponService: CouponService,
     ) { }
 
-    async createOrderFromCart(userId: number, shippingAddress: any) {
+    async createOrderFromCart(userId: number, shippingAddress: any, couponCode?: string) {
         const cart = (await this.cartService.getCart(userId)) as Cart;
 
         if (!cart || !cart.items || cart.items.length === 0) {
@@ -49,10 +51,24 @@ export class OrderService {
                 totalAmount += Number(item.product.price) * item.quantity;
             });
 
+            let discountAmount = 0;
+            if (couponCode) {
+                const coupon = await this.couponService.applyCoupon(couponCode, userId, totalAmount, 'product');
+                if (coupon.type === 'percentage') {
+                    discountAmount = (totalAmount * Number(coupon.value)) / 100;
+                } else {
+                    discountAmount = Number(coupon.value);
+                }
+            }
+
+            const finalAmount = Math.max(0, totalAmount - discountAmount);
+
             // 2. Create Order
             const order = this.orderRepo.create({
                 userId,
-                totalAmount,
+                totalAmount: finalAmount,
+                discountAmount,
+                couponCode,
                 shippingAddress,
                 status: OrderStatus.PENDING,
             });
@@ -77,7 +93,7 @@ export class OrderService {
             this.notificationGateway.emitToAdmins('new_order', {
                 orderId: savedOrder.id,
                 userId,
-                totalAmount,
+                totalAmount: finalAmount,
                 createdAt: savedOrder.createdAt,
             });
 
@@ -90,7 +106,8 @@ export class OrderService {
                         <p>Dear ${user.name || 'Customer'},</p>
                         <p>Your order has been placed successfully!</p>
                         <p><strong>Order ID:</strong> #${savedOrder.id}</p>
-                        <p><strong>Total Amount:</strong> ₹${totalAmount}</p>
+                        <p><strong>Total Amount:</strong> ₹${finalAmount}</p>
+                        ${discountAmount > 0 ? `<p><strong>Discount Applied:</strong> ₹${discountAmount}</p>` : ''}
                         <p><strong>Status:</strong> ${savedOrder.status}</p>
                         <p>We will notify you once your order is shipped.</p>
                         <p>Thank you for shopping with us!</p>
@@ -102,7 +119,6 @@ export class OrderService {
                     );
                 }
             } catch (emailError) {
-                // Log email error but don't fail the order creation
                 console.error('Failed to send order confirmation email:', emailError);
             }
 
@@ -121,12 +137,16 @@ export class OrderService {
         });
 
         if (!order) {
-            // This might be okay if it's a wallet recharge order, handled elsewhere.
             return;
         }
 
         order.status = OrderStatus.PAID;
         await this.orderRepo.save(order);
+
+        // Automate coupon used status
+        if (order.couponCode && order.userId) {
+            await this.couponService.markCouponAsUsed(order.couponCode, order.userId);
+        }
     }
 
     async setRazorpayOrderId(orderId: number, razorpayOrderId: string) {

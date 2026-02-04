@@ -17,6 +17,7 @@ import { Exclude } from 'class-transformer';
 // import { ProfileClient } from './profile-client.entity';
 import { ProfileClient } from '@/modules/client/profile/entities/profile-client.entity';
 import { ProfileExpert } from '../../expert/profile/entities/profile-expert.entity';
+import { UserCoupon } from '@/modules/coupon/entities/user-coupon.entity';
 
 @Entity('users')
 export class User {
@@ -82,4 +83,7 @@ export class User {
 
   @OneToMany('Wishlist', (w: any) => w.expert)
   expertWishlists: any[];
+
+  @OneToMany(() => UserCoupon, (uc) => uc.user)
+  userCoupons: UserCoupon[];
 }

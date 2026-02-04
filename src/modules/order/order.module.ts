@@ -7,12 +7,14 @@ import { OrderItem } from './entities/order-item.entity';
 import { CartModule } from '@/modules/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { User } from '@/modules/users/entities/user.entity';
+import { CouponModule } from '@/modules/coupon/coupon.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Order, OrderItem, User]),
         CartModule,
         NotificationModule,
+        CouponModule,
     ],
     providers: [OrderService],
     controllers: [OrderController, OrderSingularController],

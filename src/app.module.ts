@@ -19,6 +19,7 @@ import { ChatModule } from '@/modules/chat/chat.module';
 import { ReviewsModule } from '@/modules/reviews/reviews.module';
 import { PaymentModule } from '@/modules/payment/payment.module';
 import { OrderModule } from '@/modules/order/order.module';
+import { CouponModule } from '@/modules/coupon/coupon.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -47,6 +48,7 @@ import { join } from 'path';
     ReviewsModule,
     PaymentModule,
     OrderModule,
+    CouponModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',

@@ -31,7 +31,7 @@ export class OrderController {
         @CurrentUser() user: User,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.orderService.createOrderFromCart(user.id, dto.shippingAddress);
+        return this.orderService.createOrderFromCart(user.id, dto.shippingAddress, dto.couponCode);
     }
 
     @Get('my-orders')
@@ -84,7 +84,7 @@ export class OrderSingularController {
         @CurrentUser() user: User,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.orderService.createOrderFromCart(user.id, dto.shippingAddress);
+        return this.orderService.createOrderFromCart(user.id, dto.shippingAddress, dto.couponCode);
     }
 
     @Get('my-orders')

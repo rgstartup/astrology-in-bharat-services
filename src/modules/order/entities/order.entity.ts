@@ -45,6 +45,12 @@ export class Order {
     @Column({ nullable: true })
     razorpayOrderId: string;
 
+    @Column({ nullable: true, name: 'coupon_code' })
+    couponCode: string;
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'discount_amount' })
+    discountAmount: number;
+
     @Column({ type: 'json', nullable: true })
     shippingAddress: any;
 
