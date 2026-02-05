@@ -1,16 +1,30 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { WishlistService } from './wishlist.service';
-import { ProductLikeController } from './product-like.controller';
-import { ExpertLikeController } from './expert-like.controller';
-import { Wishlist } from './entities/wishlist.entity';
-import { Product } from '@/modules/product/entities/product.entity';
-import { User } from '@/modules/users/entities/user.entity';
-import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
+import { WishlistService } from './application/services/wishlist.service';
+import { ProductLikeController } from './interfaces/controllers/product-like.controller';
+import { ExpertLikeController } from './interfaces/controllers/expert-like.controller';
+import { Wishlist } from './domain/entities/wishlist.entity';
+import { ProductModule } from '@/modules/product/product.module';
+import { UsersModule } from '@/modules/users/users.module';
+import { ExpertModule } from '@/modules/expert/expert.module';
+import { IWishlistRepository } from './domain/repositories/wishlist.repository.interface';
+import { TypeOrmWishlistRepository } from './infrastructure/persistence/typeorm-wishlist.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Wishlist, Product, User, ProfileExpert])],
+  imports: [
+    TypeOrmModule.forFeature([Wishlist]),
+    ProductModule,
+    UsersModule,
+    ExpertModule,
+  ],
   controllers: [ProductLikeController, ExpertLikeController],
-  providers: [WishlistService],
+  providers: [
+    WishlistService,
+    {
+      provide: IWishlistRepository,
+      useClass: TypeOrmWishlistRepository,
+    },
+  ],
+  exports: [WishlistService, IWishlistRepository],
 })
-export class WishlistModule {}
+export class WishlistModule { }

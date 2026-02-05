@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
-import { User } from '../src/modules/users/entities/user.entity';
+import { User } from '../src/modules/users';
 import { Role } from '../src/modules/role/entities/roles.entity';
 import { ProfileClient } from '../src/modules/client/profile/entities/profile-client.entity';
 import { ProfileExpert } from '../src/modules/expert/profile/entities/profile-expert.entity';
@@ -205,3 +205,4 @@ async function seedExpertProfiles() {
 }
 
 seedExpertProfiles();
+

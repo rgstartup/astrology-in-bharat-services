@@ -13,13 +13,12 @@ import {
 import { FestivalService } from './festival.service';
 import { CreateFestivalDto, UpdateFestivalDto } from './dto/festival.dto';
 import { Public } from '@/common/decorators/public.decorator';
-import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
-import { RolesGuard } from '@/modules/auth/guards/role.guard';
+import { JwtAuthGuard, RolesGuard } from '@/modules/auth';
 import { Roles } from '@/common/decorators/roles.decorator';
 
 @Controller('festivals')
 export class FestivalController {
-  constructor(private readonly festivalService: FestivalService) {}
+  constructor(private readonly festivalService: FestivalService) { }
 
   @Public()
   @Get()

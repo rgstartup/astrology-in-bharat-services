@@ -9,7 +9,7 @@ import { ClientModule } from '@/modules/client/client.module';
 import { ExpertModule } from '@/modules/expert/expert.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { ProductModule } from '@/modules/product/product.module';
-import { QuotesModule } from '@/quotes/quotes.module';
+import { QuotesModule } from '@/modules/quotes/quotes.module';
 import { CartModule } from '@/modules/cart/cart.module';
 import { WishlistModule } from '@/modules/wishlist/wishlist.module';
 import { FestivalModule } from '@/modules/festival/festival.module';

@@ -1,11 +1,19 @@
 import { Module } from '@nestjs/common';
-import { RolesService } from './roles.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Role } from './entities/roles.entity';
+import { RolesService } from './application/services/roles.service';
+import { Role } from './domain/entities/roles.entity';
+import { IRoleRepository } from './domain/repositories/role.repository.interface';
+import { TypeOrmRoleRepository } from './infrastructure/persistence/typeorm-role.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Role])],
-  providers: [RolesService],
+  providers: [
+    RolesService,
+    {
+      provide: IRoleRepository,
+      useClass: TypeOrmRoleRepository,
+    },
+  ],
   exports: [RolesService],
 })
-export class RolesModule {}
+export class RolesModule { }

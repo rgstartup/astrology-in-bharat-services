@@ -1,0 +1,88 @@
+// src/users/user.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+  OneToOne,
+} from 'typeorm';
+import { OAuthAccount, Credential } from '@/modules/auth';
+import { Role } from '@/modules/role';
+import { Exclude } from 'class-transformer';
+// import { ProfileClient } from './profile-client.entity';
+import { ProfileClient } from '@/modules/client';
+import { ProfileExpert } from '@/modules/expert';
+import { UserCoupon } from '@/modules/coupon';
+
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column({ select: false, nullable: true })
+  @Exclude()
+  password?: string; // argon2 hash
+
+  @Column({ default: false })
+  emailVerified: boolean;
+
+  @Column({ nullable: true })
+  name?: string;
+
+  @ManyToMany(() => Role, (r) => r.users)
+  @JoinTable({
+    name: 'user_roles',
+    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
+  })
+  roles: Role[];
+
+  @OneToMany(() => OAuthAccount, (oa) => oa.user)
+  oauthAccounts: OAuthAccount[];
+
+  @OneToMany(() => Credential, (c) => c.user)
+  credentials: Credential[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @Column({ nullable: true })
+  avatar?: string;
+
+  @Column({ type: 'text', nullable: true })
+  ip_address?: string;
+
+  @Column({ default: false })
+  isBlocked: boolean;
+
+  @Column({ type: 'varchar', length: 20, default: 'client' })
+  role: 'client' | 'expert' | 'admin';
+
+  @Column({ type: 'varchar', length: 20, default: 'email&password' })
+  signinBy: 'email&password' | 'google';
+
+  @OneToOne(() => ProfileClient, (p) => p.user, { cascade: true })
+  profile_client?: ProfileClient;
+
+  @OneToOne(() => ProfileExpert, (p) => p.user, { cascade: true })
+  profile_expert?: ProfileExpert;
+
+  @OneToMany('Wishlist', (w: any) => w.user)
+  wishlists: any[];
+
+  @OneToMany('Wishlist', (w: any) => w.expert)
+  expertWishlists: any[];
+
+  @OneToMany(() => UserCoupon, (uc) => uc.user)
+  userCoupons: UserCoupon[];
+}

@@ -1,16 +1,29 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ReviewsController } from './reviews.controller';
-import { ReviewsService } from './reviews.service';
-import { Review } from './entities/review.entity';
-import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
-import { ChatSession } from '@/modules/chat/entities/chat-session.entity';
-import { WalletModule } from '@/modules/wallet/wallet.module'; // Likely needed if we reward users, but skipped for now
+import { Review } from './domain/entities/review.entity';
+import { ReviewsService } from './application/services/reviews.service';
+import { ReviewsController } from './interfaces/controllers/reviews.controller';
+import { ProfileExpert } from '@/modules/expert';
+import { ChatSession } from '@/modules/chat';
+import { ExpertModule } from '@/modules/expert/expert.module';
+import { ChatModule } from '@/modules/chat/chat.module';
+import { IReviewRepository } from './domain/repositories/review.repository.interface';
+import { TypeOrmReviewRepository } from './infrastructure/persistence/typeorm-review.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, ProfileExpert, ChatSession])],
+  imports: [
+    TypeOrmModule.forFeature([Review, ProfileExpert, ChatSession]),
+    ExpertModule,
+    ChatModule,
+  ],
   controllers: [ReviewsController],
-  providers: [ReviewsService],
+  providers: [
+    ReviewsService,
+    {
+      provide: IReviewRepository,
+      useClass: TypeOrmReviewRepository,
+    },
+  ],
   exports: [ReviewsService],
 })
-export class ReviewsModule {}
+export class ReviewsModule { }

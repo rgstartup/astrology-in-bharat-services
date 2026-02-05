@@ -2,7 +2,7 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { AllExceptionsFilter } from './common/interfaces/filters/all-exceptions.filter';
 import cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
