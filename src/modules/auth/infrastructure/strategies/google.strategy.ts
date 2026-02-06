@@ -1,15 +1,14 @@
-// src/auth/strategies/google.strategy.ts
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-// import { UsersService } from '../../users/users.service';
-import { AuthConfig } from 'src/core/config/auth.config';
-import { TokenService } from '../services/token.service';
-import { OAuthService } from '../services/oauth.service';
-import { DatabaseService } from 'src/core/database/database.service';
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { Request } from 'express';
 import { instanceToPlain } from 'class-transformer';
+import { AuthConfig } from '@/core/config/auth.config';
+import { DatabaseService } from '@/core/database/database.service';
+import { OAuthAccount } from '@/modules/auth/domain/entities/oauth-accounts.entity';
+import { OAuthService } from '../../application/services/oauth.service';
+import { TokenService } from '../../application/services/token.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -41,57 +40,45 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
     done: VerifyCallback,
   ) {
-    const email = profile.emails?.[0]?.value;
-    const providerId = profile.id;
+    const { emails, photos, id, displayName } = profile;
+    const email = emails?.[0]?.value;
 
-    if (!email) {
-      throw new Error('Google account did not provide an email');
-    }
-
+    // Use state for role and other context
     let role = 'client';
     try {
-      const state = req.query.state
-        ? JSON.parse(req.query.state as string)
+      const state = (req.query as any).state
+        ? JSON.parse((req.query as any).state as string)
         : {};
-      role = state.role || 'client';
+      role = state.role === 'expert' ? 'expert' : 'client';
     } catch (e) {
-      console.error('Failed to parse state from Google OAuth:', e);
+      console.error('Error parsing Google OAuth state:', e);
     }
 
-    return await this.db.transaction(async (queryRunner) => {
-      // 1️⃣ Find or create user
+    const { user, tokens } = await this.db.transaction(async (queryRunner) => {
       const user = await this.oauthService.findOrCreateUserFromOAuth(
         {
           provider: 'google',
-          providerId,
-          email,
-          name: profile.displayName,
-          profile,
-          roles: [role],
+          providerId: id,
+          email: email!,
+          name: displayName,
+          avatar: photos?.[0]?.value,
+          role,
         },
-        queryRunner,
+        queryRunner.manager.getRepository(OAuthAccount) as any,
       );
 
-      // 2️⃣ Optionally store Google tokens if needed
-      // Example: store refreshToken in DB if you want to refresh Google API access
-      // await this.usersService.updateOAuthTokens(user.id, accessToken, refreshToken);
-
-      // 2️⃣ Generate access + refresh tokens
       const tokens = await this.tokenService.generateTokens(
         user,
         req.ip,
-        req.headers['user-agent'],
-        queryRunner,
+        req.get('user-agent'),
       );
 
-      // 3️⃣ Return both user and tokens to AuthController via Passport
-      return done(
-        null,
-        instanceToPlain({
-          user,
-          ...tokens,
-        }),
-      );
+      return { user, tokens };
+    });
+
+    done(null, {
+      ...instanceToPlain(user),
+      ...tokens,
     });
   }
 }

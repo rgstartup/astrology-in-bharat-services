@@ -1,13 +1,5 @@
 import { Type } from 'class-transformer';
-import {
-  IsOptional,
-  IsString,
-  IsNumber,
-  Min,
-  Max,
-  IsIn,
-  IsArray,
-} from 'class-validator';
+import { IsOptional, IsString, IsNumber, Min, Max, IsIn, IsArray } from 'class-validator';
 
 export class QueryExpertDto {
   // Pagination

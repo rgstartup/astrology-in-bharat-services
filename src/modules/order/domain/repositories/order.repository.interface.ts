@@ -1,5 +1,5 @@
-import { Order } from '../entities/order.entity';
 import { OrderItem } from '../entities/order-item.entity';
+import { Order } from '../entities/order.entity';
 
 export interface IOrderRepository {
     create(data: Partial<Order>): Order;

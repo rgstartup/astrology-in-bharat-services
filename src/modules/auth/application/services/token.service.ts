@@ -1,14 +1,13 @@
-// src/auth/token.service.ts
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { randomBytes } from 'crypto';
 import * as argon2 from 'argon2';
 import ms from 'ms';
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { randomBytes } from 'crypto';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '@/modules/users';
-import { ConfigService } from '@nestjs/config';
-import { AuthConfig } from 'src/core/config/auth.config';
+import { AuthConfig } from '@/core/config/auth.config';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { ICredentialRepository } from '../../domain/repositories/credential.repository.interface';
 
 @Injectable()
@@ -117,4 +116,3 @@ export class TokenService {
     });
   }
 }
-

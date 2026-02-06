@@ -1,15 +1,15 @@
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
-import { AllExceptionsFilter } from './common/interfaces/filters/all-exceptions.filter';
-import cookieParser from 'cookie-parser';
+import { VersioningType } from '@nestjs/common/enums/version-type.enum';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
-import helmet from 'helmet';
-import compression from 'compression';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'express';
+import helmet from 'helmet';
+import { join } from 'path';
+import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/interfaces/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

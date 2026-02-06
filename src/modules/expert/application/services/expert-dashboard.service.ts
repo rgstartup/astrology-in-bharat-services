@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, MoreThanOrEqual } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '@/modules/chat';
-import { Transaction, TransactionType, TransactionPurpose, Wallet } from '@/modules/wallet';
-import { ProfileExpert } from '../../domain/entities/profile-expert.entity';
-import { User } from '@/modules/users';
+import { ChatSessionStatus } from '@/modules/chat/domain/entities/chat-session.entity';
+import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { Transaction, TransactionType, TransactionPurpose } from '@/modules/wallet/domain/entities/transaction.entity';
+import { Wallet } from '@/modules/wallet/domain/entities/wallet.entity';
 import { IExpertRepository } from '../../domain/repositories/expert.repository.interface';
 
 @Injectable()

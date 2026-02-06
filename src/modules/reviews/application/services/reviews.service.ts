@@ -1,18 +1,13 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Review } from '../../domain/entities/review.entity';
-import { CreateReviewDto } from '../dtos/create-review.dto';
-import { ProfileExpert } from '@/modules/expert';
-import { ChatSession } from '@/modules/chat';
-import { IReviewRepository } from '../../domain/repositories/review.repository.interface';
-import { IExpertRepository } from '@/modules/expert/domain/repositories/expert.repository.interface';
+import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
 import { IChatSessionRepository } from '@/modules/chat/domain/repositories/chat-session.repository.interface';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
+import { IExpertRepository } from '@/modules/expert/domain/repositories/expert.repository.interface';
+import { Review } from '@/modules/reviews/domain/entities/review.entity';
+import { IReviewRepository } from '../../domain/repositories/review.repository.interface';
+import { CreateReviewDto } from '../dtos/create-review.dto';
 
 @Injectable()
 export class ReviewsService {

@@ -1,4 +1,3 @@
-// src/common/services/email.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
@@ -8,16 +7,20 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
-    const emailConfig = this.configService.get('email', { infer: true });
+    const emailHost = this.configService.get<string>('SMTP_HOST');
+    const emailPort = this.configService.get<number>('SMTP_PORT');
+    const emailUser = this.configService.get<string>('SMTP_USER');
+    const emailPass = this.configService.get<string>('SMTP_PASS');
+    const emailSecure = this.configService.get<boolean>('SMTP_SECURE') ?? false;
 
     // Configure the transporter
     this.transporter = nodemailer.createTransport({
-      host: emailConfig.host,
-      port: emailConfig.port,
-      secure: emailConfig.secure,
+      host: emailHost,
+      port: emailPort,
+      secure: emailSecure,
       auth: {
-        user: emailConfig.user,
-        pass: emailConfig.pass,
+        user: emailUser,
+        pass: emailPass,
       },
     });
   }
@@ -30,8 +33,9 @@ export class EmailService {
    */
   async sendEmail(to: string, subject: string, html: string) {
     try {
+      const from = this.configService.get<string>('SMTP_FROM') || '"No Reply" <noreply@example.com>';
       const info = await this.transporter.sendMail({
-        from: `"No Reply" <${process.env.SMTP_FROM}>`,
+        from,
         to,
         subject,
         html,
@@ -49,7 +53,8 @@ export class EmailService {
    * Send email confirmation
    */
   async sendConfirmationEmail(to: string, token: string) {
-    const confirmUrl = `${process.env.FRONTEND_URL}/confirm-email?token=${token}`;
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const confirmUrl = `${frontendUrl}/confirm-email?token=${token}`;
     const html = `
       <p>Hello,</p>
       <p>Please confirm your email by clicking the link below:</p>
@@ -63,7 +68,8 @@ export class EmailService {
    * Send password reset email
    */
   async sendResetPasswordEmail(to: string, token: string) {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
     const html = `
       <p>Hello,</p>
       <p>Click the link below to reset your password:</p>

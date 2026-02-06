@@ -1,8 +1,8 @@
+import { Inject, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { BankAccount } from '../../domain/entities/bank-account.entity';
-import { CreateBankAccountDto, UpdateBankAccountDto } from '../dtos/bank-account.dto';
 import { IBankAccountRepository } from '../../domain/repositories/bank-account.repository.interface';
 import { IExpertRepository } from '../../domain/repositories/expert.repository.interface';
-import { Inject } from '@nestjs/common';
+import { CreateBankAccountDto, UpdateBankAccountDto } from '../dtos/bank-account.dto';
 
 @Injectable()
 export class BankAccountsService {

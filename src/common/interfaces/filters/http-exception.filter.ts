@@ -1,4 +1,3 @@
-// src/common/filters/http-exception.filter.ts
 import {
   ExceptionFilter,
   Catch,
@@ -21,13 +20,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       message = exception.getResponse();
+    } else if (exception instanceof Error) {
+      message = (exception as any).message;
     }
 
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      // message: typeof message === 'string' ? message : message.message,
       message,
     });
   }

@@ -1,13 +1,5 @@
-// src/users/dto/create-user.dto.ts
+import { IsEmail, IsString, IsOptional, MinLength, IsBoolean, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import {
-  IsBoolean,
-  IsEmail,
-  IsOptional,
-  IsString,
-  MinLength,
-  ValidateNested,
-} from 'class-validator';
 import { RolesDto } from '@/modules/role/application/dtos/roles.dto';
 
 class UserDto {
@@ -58,3 +50,4 @@ class UserDto {
 }
 
 export class CreateUserDto extends UserDto { }
+export class UpdateUserDto extends UserDto { }

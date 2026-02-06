@@ -1,10 +1,9 @@
-// src/auth/strategies/jwt.strategy.ts
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
-import { UsersService } from '@/modules/users';
-import { AuthConfig } from 'src/core/config/auth.config';
+import { AuthConfig } from '@/core/config/auth.config';
+import { UsersService } from '@/modules/users/application/services/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -23,12 +22,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         (req) => {
           const cookieToken = req?.cookies?.accessToken;
           const authHeader = req?.headers?.authorization;
-          console.log('🔑 JWT Extraction Debug:', {
-            hasCookie: !!cookieToken,
-            hasAuthHeader: !!authHeader,
-            url: req?.url,
-            method: req?.method,
-          });
           return cookieToken;
         },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -42,4 +35,3 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     return user;
   }
 }
-

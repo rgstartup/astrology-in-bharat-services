@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsEnum, IsPostalCode } from 'class-validator';
-import { AddressTag } from '../entities/address.entity';
+import { AddressTag } from '@/common/domain/entities/address.entity';
 
 export class AddressDto {
   @IsOptional()

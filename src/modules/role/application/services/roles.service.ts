@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
-import { Role } from '../../domain/entities/roles.entity';
+import { Role } from '@/modules/role/domain/entities/roles.entity';
 import { IRoleRepository } from '../../domain/repositories/role.repository.interface';
 
 @Injectable()

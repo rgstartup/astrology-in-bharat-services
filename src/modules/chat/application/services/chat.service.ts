@@ -1,17 +1,15 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '../../domain/entities/chat-session.entity';
-import { ChatMessage, MessageType } from '../../domain/entities/chat-message.entity';
-import { WalletService, TransactionPurpose } from '@/modules/wallet';
-import { ProfileExpert } from '@/modules/expert';
-import { IChatSessionRepository } from '../../domain/repositories/chat-session.repository.interface';
+import { ChatMessage } from '@/modules/chat/domain/entities/chat-message.entity';
+import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
+import { WalletService } from '@/modules/wallet/application/services/wallet.service';
+import { TransactionPurpose } from '@/modules/wallet/domain/entities/transaction.entity';
+import { MessageType } from '../../domain/entities/chat-message.entity';
+import { ChatSessionStatus } from '../../domain/entities/chat-session.entity';
 import { IChatMessageRepository } from '../../domain/repositories/chat-message.repository.interface';
+import { IChatSessionRepository } from '../../domain/repositories/chat-session.repository.interface';
 
 @Injectable()
 export class ChatService {

@@ -1,20 +1,10 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Param,
-  UseGuards,
-  ParseIntPipe,
-  Header as HttpHeader,
-} from '@nestjs/common';
-import { ChatService } from '../../application/services/chat.service';
-import { JwtAuthGuard } from '@/modules/auth';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
-
-import { ChatGateway } from '../gateways/chat.gateway';
+import { Controller, Post, Get, Body, Param, UseGuards, ParseIntPipe, Header as HttpHeader } from '@nestjs/common';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { ChatService } from '@/modules/chat/application/services/chat.service';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { ChatSessionStatus } from '../../domain/entities/chat-session.entity';
+import { ChatGateway } from '../gateways/chat.gateway';
 
 @Controller({
   path: 'chat',

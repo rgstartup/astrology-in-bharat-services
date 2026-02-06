@@ -1,14 +1,6 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    ManyToOne,
-    JoinColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
-} from 'typeorm';
-import { User } from '@/modules/users';
-import { BankAccount } from '@/modules/expert/bank-accounts/entities/bank-account.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { BankAccount } from '@/modules/expert';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 export enum WithdrawalStatus {
     PENDING = 'pending',

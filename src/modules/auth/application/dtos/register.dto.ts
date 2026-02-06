@@ -1,13 +1,5 @@
-// src/auth/dto/register.dto.ts
-import { PickType } from '@nestjs/mapped-types';
-import {
-  IsArray,
-  IsBoolean,
-  IsEmail,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsArray, IsBoolean } from 'class-validator';
+import { PickType } from '@nestjs/swagger';
 
 export class RegisterDto {
   @IsEmail()
@@ -34,12 +26,12 @@ export class RegisterDto {
   expert?: boolean;
 }
 
-export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) {
+export class ForgotPasswordDto extends PickType(RegisterDto, ['email'] as const) {
   @IsOptional()
   @IsString()
   origin?: string;
 }
 
-export class ResetPasswordDto extends PickType(RegisterDto, ['password']) { }
+export class ResetPasswordDto extends PickType(RegisterDto, ['password'] as const) { }
 
-export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) { }
+export class SendMagicLinkDto extends PickType(RegisterDto, ['email'] as const) { }

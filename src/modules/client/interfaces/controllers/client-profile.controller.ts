@@ -1,21 +1,12 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Body,
-  UseGuards,
-  UseInterceptors,
-  UploadedFile,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ClientProfileService } from '../../application/services/client-profile.service';
-import { JwtAuthGuard } from '@/modules/auth';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
-import { CloudinaryService } from '@/common/cloudinary/cloudinary.service';
-import {
-  CreateProfileClientDto,
+import { CloudinaryService } from '@/common/infrastructure/storage/cloudinary/cloudinary.service';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { ClientProfileService } from '@/modules/client/application/services/client-profile.service';
+import { User } from '@/modules/users/domain/entities/user.entity';
+
+import { CreateProfileClientDto,
   UpdateProfileClientDto,
 } from '../../application/dtos/profile-client.dto';
 

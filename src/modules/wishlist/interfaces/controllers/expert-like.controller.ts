@@ -1,17 +1,8 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Body,
-  Param,
-  UseGuards,
-  Req,
-} from '@nestjs/common';
-import { WishlistService } from '../../application/services/wishlist.service';
+import { Controller, Get, Post, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { IUser } from '@/common/interfaces/shared/user.interface';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
 import { AddExpertToWishlistDto } from '../../application/dtos/add-expert-wishlist.dto';
-import { JwtAuthGuard } from '@/modules/auth';
-import { IUser } from '@/common/interfaces/user.interface';
+import { WishlistService } from '../../application/services/wishlist.service';
 
 @Controller({
   path: 'expert-like',

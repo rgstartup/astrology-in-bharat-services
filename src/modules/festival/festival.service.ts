@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { Festival } from './entities/festival.entity';
 import { CreateFestivalDto, UpdateFestivalDto } from './dto/festival.dto';
+import { Festival } from './entities/festival.entity';
 
 @Injectable()
 export class FestivalService {

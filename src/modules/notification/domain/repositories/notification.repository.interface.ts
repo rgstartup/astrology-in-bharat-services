@@ -1,5 +1,4 @@
-import { Notification } from '../entities/notification.entity';
-import { NotificationType } from '../entities/notification.entity';
+import { Notification, NotificationType } from '../entities/notification.entity';
 
 export interface INotificationRepository {
     create(data: {

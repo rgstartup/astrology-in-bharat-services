@@ -1,13 +1,6 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
-  Unique,
-} from 'typeorm';
-import { ProfileClient } from '@/modules/client';
-import { ProfileExpert } from '@/modules/expert';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Unique } from 'typeorm';
+import { ProfileClient } from '@/modules/client/domain/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
 
 export enum AddressTag {
   HOME = 'home',

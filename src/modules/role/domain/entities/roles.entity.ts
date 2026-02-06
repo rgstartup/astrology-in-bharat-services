@@ -1,6 +1,5 @@
-// src/auth/role.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
-import { User } from '@/modules/users';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Entity('roles')
 export class Role {

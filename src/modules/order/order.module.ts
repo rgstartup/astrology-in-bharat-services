@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Order } from './domain/entities/order.entity';
-import { OrderItem } from './domain/entities/order-item.entity';
-import { User } from '@/modules/users';
-import { OrderService } from './application/services/order.service';
-import { OrderController, OrderSingularController } from './interfaces/controllers/order.controller';
-import { CartModule } from '@/modules/cart/cart.module';
-import { NotificationModule } from '@/modules/notification/notification.module';
 import { CommonModule } from '@/common/common.module';
+import { CartModule } from '@/modules/cart/cart.module';
 import { CouponModule } from '@/modules/coupon/coupon.module';
+import { NotificationModule } from '@/modules/notification/notification.module';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { OrderService } from './application/services/order.service';
+import { OrderItem } from './domain/entities/order-item.entity';
+import { Order } from './domain/entities/order.entity';
 import { IOrderRepository, IOrderItemRepository } from './domain/repositories/order.repository.interface';
 import { TypeOrmOrderRepository, TypeOrmOrderItemRepository } from './infrastructure/persistence/typeorm-order.repository';
+import { OrderController, OrderSingularController } from './interfaces/controllers/order.controller';
 
 @Module({
     imports: [

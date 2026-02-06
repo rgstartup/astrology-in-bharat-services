@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UsersService } from '@/modules/users';
-import { WalletService } from '@/modules/wallet';
+import { ChatService } from '@/modules/chat/application/services/chat.service';
 import { ProfileService } from '@/modules/expert/application/services/profile.service';
-import { ChatService } from '@/modules/chat';
+import { UsersService } from '@/modules/users/application/services/users.service';
+import { WalletService } from '@/modules/wallet/application/services/wallet.service';
 
 @Injectable()
 export class AdminService {

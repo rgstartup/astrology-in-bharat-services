@@ -1,24 +1,19 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Wallet } from '../../domain/entities/wallet.entity';
+import { Wallet } from '@/modules/wallet/domain/entities/wallet.entity';
 import {
   Transaction,
   TransactionType,
   TransactionPurpose,
-} from '../../domain/entities/transaction.entity';
-import { Withdrawal, WithdrawalStatus } from '../../domain/entities/withdrawal.entity';
-import { NotificationService } from '../../../notification/notification.service';
-import { NotificationGateway } from '../../../notification/notification.gateway';
-import { NotificationType } from '../../../notification/entities/notification.entity';
-import { IWalletRepository } from '../../domain/repositories/wallet.repository.interface';
-import { ITransactionRepository } from '../../domain/repositories/transaction.repository.interface';
-import { IWithdrawalRepository } from '../../domain/repositories/withdrawal.repository.interface';
+} from '@/modules/wallet/domain/entities/transaction.entity';
+import { Withdrawal, WithdrawalStatus } from '@/modules/wallet/domain/entities/withdrawal.entity';
+import { NotificationService } from '@/modules/notification/application/services/notification.service';
+import { NotificationGateway } from '@/modules/notification/interfaces/gateways/notification.gateway';
+import { NotificationType } from '@/modules/notification/domain/entities/notification.entity';
+import { IWalletRepository } from '@/modules/wallet/domain/repositories/wallet.repository.interface';
+import { ITransactionRepository } from '@/modules/wallet/domain/repositories/transaction.repository.interface';
+import { IWithdrawalRepository } from '@/modules/wallet/domain/repositories/withdrawal.repository.interface';
 
 @Injectable()
 export class WalletService {

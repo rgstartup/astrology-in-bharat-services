@@ -1,7 +1,8 @@
 import { Controller, Get, UseGuards, Req, Query } from '@nestjs/common';
+import { Roles } from '@/common/interfaces/decorators/roles.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
 import { ExpertDashboardService } from '../../application/services/expert-dashboard.service';
-import { JwtAuthGuard, RolesGuard } from '@/modules/auth';
-import { Roles } from '@/common/decorators/roles.decorator';
 
 @Controller({
     path: 'expert-dashboard',

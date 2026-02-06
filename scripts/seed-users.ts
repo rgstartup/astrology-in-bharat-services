@@ -1,15 +1,14 @@
-import 'reflect-metadata';
+import * as argon2 from 'argon2';
 import * as dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
-import { User } from '../src/modules/users';
-import { Role } from '../src/modules/role/entities/roles.entity';
-import { ProfileClient } from '../src/modules/client/profile/entities/profile-client.entity';
-import { ProfileExpert } from '../src/modules/expert/profile/entities/profile-expert.entity';
-import { Address } from '../src/common/entities/address.entity';
-import { OAuthAccount } from '../src/modules/auth/entities/oauth-accounts.entity';
-import { Credential } from '../src/modules/auth/entities/credential.entity';
-import { UsedTokens } from '../src/modules/auth/entities/used-tokens.entity';
-import * as argon2 from 'argon2';
+import { Address } from '../src/common/domain/entities/address.entity';
+import { Credential } from '../src/modules/auth/domain/entities/credential.entity';
+import { OAuthAccount } from '../src/modules/auth/domain/entities/oauth-accounts.entity';
+import { UsedTokens } from '../src/modules/auth/domain/entities/used-tokens.entity';
+import { ProfileClient } from '../src/modules/client/domain/entities/profile-client.entity';
+import { ProfileExpert } from '../src/modules/expert/domain/entities/profile-expert.entity';
+import { Role } from '../src/modules/role/domain/entities/roles.entity';
+import { User } from '../src/modules/users/domain/entities/user.entity';
 
 // Load environment variables
 dotenv.config();

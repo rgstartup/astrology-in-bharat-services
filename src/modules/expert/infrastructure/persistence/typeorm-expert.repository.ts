@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileExpert } from '../../domain/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
 import { IExpertRepository } from '../../domain/repositories/expert.repository.interface';
 
 @Injectable()

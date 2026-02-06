@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Patch, UseGuards, ParseIntPipe } from '@nestjs/common';
-import { NotificationService } from '../../application/services/notification.service';
-import { JwtAuthGuard } from '@/modules/auth';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { NotificationService } from '@/modules/notification/application/services/notification.service';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Controller({
     path: 'notifications',

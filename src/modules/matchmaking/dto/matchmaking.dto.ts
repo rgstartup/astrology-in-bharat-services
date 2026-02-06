@@ -1,12 +1,5 @@
-import {
-  IsString,
-  IsNumber,
-  IsISO8601,
-  ValidateNested,
-  IsNotEmpty,
-  IsOptional,
-} from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsString, IsNumber, IsISO8601, ValidateNested, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class LocationDto {
   @IsNumber()

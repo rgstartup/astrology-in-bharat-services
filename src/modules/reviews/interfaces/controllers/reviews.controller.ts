@@ -1,19 +1,9 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Param,
-  UseGuards,
-  Query,
-  ParseIntPipe,
-  DefaultValuePipe,
-} from '@nestjs/common';
-import { ReviewsService } from '../../application/services/reviews.service';
+import { Controller, Post, Get, Body, Param, UseGuards, Query, ParseIntPipe, DefaultValuePipe } from '@nestjs/common';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { CreateReviewDto } from '../../application/dtos/create-review.dto';
-import { JwtAuthGuard } from '@/modules/auth';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
+import { ReviewsService } from '../../application/services/reviews.service';
 
 @Controller({
   path: 'reviews',

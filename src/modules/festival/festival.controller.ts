@@ -1,20 +1,10 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  ParseIntPipe,
-  UseGuards,
-} from '@nestjs/common';
-import { FestivalService } from './festival.service';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Public } from '@/common/interfaces/decorators/public.decorator';
+import { Roles } from '@/common/interfaces/decorators/roles.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
 import { CreateFestivalDto, UpdateFestivalDto } from './dto/festival.dto';
-import { Public } from '@/common/decorators/public.decorator';
-import { JwtAuthGuard, RolesGuard } from '@/modules/auth';
-import { Roles } from '@/common/decorators/roles.decorator';
+import { FestivalService } from './festival.service';
 
 @Controller('festivals')
 export class FestivalController {

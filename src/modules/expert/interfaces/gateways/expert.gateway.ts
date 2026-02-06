@@ -1,13 +1,7 @@
-import {
-  WebSocketGateway,
-  WebSocketServer,
-  SubscribeMessage,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
 import { Logger, Inject, forwardRef } from '@nestjs/common';
-import { ProfileExpert } from '../../domain/entities/profile-expert.entity';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
 import { IExpertRepository } from '../../domain/repositories/expert.repository.interface';
 
 @WebSocketGateway({

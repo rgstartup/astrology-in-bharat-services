@@ -1,5 +1,5 @@
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { User } from '@/modules/users';
 
 export interface IExpertRepository {
     findByUserId(userId: number): Promise<ProfileExpert | null>;

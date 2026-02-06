@@ -1,5 +1,4 @@
-import { ChatSession } from '../entities/chat-session.entity';
-import { ChatSessionStatus } from '../entities/chat-session.entity';
+import { ChatSession, ChatSessionStatus } from '../entities/chat-session.entity';
 
 export interface IChatSessionRepository {
     findOne(options: any): Promise<ChatSession | null>;

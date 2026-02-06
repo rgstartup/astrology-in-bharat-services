@@ -1,17 +1,10 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Query,
-    UseGuards,
-    ParseIntPipe,
-} from '@nestjs/common';
-import { WalletService } from '@/modules/wallet';
-import { JwtAuthGuard, RolesGuard } from '@/modules/auth';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
+import { Controller, Get, Post, Body, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { Roles } from '@/common/interfaces/decorators/roles.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { WalletService } from '@/modules/wallet/application/services/wallet.service';
 
 @Controller({
     path: 'expert/wallet',

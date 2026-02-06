@@ -1,22 +1,21 @@
-// src/users/user.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  OneToMany,
   ManyToMany,
   JoinTable,
+  OneToMany,
   OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { OAuthAccount, Credential } from '@/modules/auth';
-import { Role } from '@/modules/role';
 import { Exclude } from 'class-transformer';
-// import { ProfileClient } from './profile-client.entity';
-import { ProfileClient } from '@/modules/client';
-import { ProfileExpert } from '@/modules/expert';
-import { UserCoupon } from '@/modules/coupon';
+import { Role } from '@/modules/role/domain/entities/roles.entity';
+import { OAuthAccount } from '@/modules/auth/domain/entities/oauth-accounts.entity';
+import { Credential } from '@/modules/auth/domain/entities/credential.entity';
+import { ProfileClient } from '@/modules/client/domain/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
+import { UserCoupon } from '@/modules/coupon/domain/entities/user-coupon.entity';
 
 @Entity('users')
 export class User {
@@ -57,19 +56,19 @@ export class User {
   updatedAt: Date;
 
   @Column({ nullable: true })
-  avatar?: string;
+  phone?: string;
 
   @Column({ type: 'text', nullable: true })
-  ip_address?: string;
+  avatar?: string;
 
   @Column({ default: false })
   isBlocked: boolean;
 
   @Column({ type: 'varchar', length: 20, default: 'client' })
-  role: 'client' | 'expert' | 'admin';
+  role: string;
 
   @Column({ type: 'varchar', length: 20, default: 'email&password' })
-  signinBy: 'email&password' | 'google';
+  signinBy: string;
 
   @OneToOne(() => ProfileClient, (p) => p.user, { cascade: true })
   profile_client?: ProfileClient;
@@ -81,8 +80,11 @@ export class User {
   wishlists: any[];
 
   @OneToMany('Wishlist', (w: any) => w.expert)
-  expertWishlists: any[];
+  likedBy: any[];
 
   @OneToMany(() => UserCoupon, (uc) => uc.user)
   userCoupons: UserCoupon[];
+
+  @Column({ nullable: true })
+  ip_address?: string;
 }

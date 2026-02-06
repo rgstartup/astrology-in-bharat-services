@@ -1,17 +1,17 @@
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JsonWebTokenError } from 'jsonwebtoken';
+import { Response } from 'express';
+import { UsedTokensService } from './used-tokens.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as argon2 from 'argon2';
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { UsersService } from '@/modules/users';
-import { TokenService } from './token.service';
+import { instanceToPlain } from 'class-transformer';
+import { DatabaseService } from '@/core/database/database.service';
+import { UsersService } from '@/modules/users/application/services/users.service';
 import { RegisterDto, LoginDto } from '../dtos';
 import { OAuthUserDto } from '../dtos/oauth-user.dto';
 import { OAuthService } from './oauth.service';
-import { DatabaseService } from 'src/core/database/database.service';
-import { instanceToPlain } from 'class-transformer';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TokenService } from './token.service';
+
 import {
   UserRegisteredEvent,
   ConfirmEmailEvent,
@@ -19,10 +19,7 @@ import {
   SendMagicLinkEvent,
   VerifyIpEvent,
 } from '@/modules/notification/application/events/user.event';
-import { JsonWebTokenError } from '@nestjs/jwt';
-import { UsedTokensService } from './used-tokens.service';
 
-import { Response } from 'express';
 import {
   COOKIE_NAMES,
   getRefreshTokenCookieOptions,
@@ -568,6 +565,10 @@ export class AuthService {
     if (!usedToken) return;
 
     throw new BadRequestException('Token already used');
+  }
+
+  async refreshTokens(userId: number, refreshToken: string) {
+    return this.tokenService.refreshTokens(userId, refreshToken);
   }
 
   // ---------------------------

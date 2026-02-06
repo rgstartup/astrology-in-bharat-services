@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { Todo } from '../../domain/entities/todo.entity';
-import { CreateTodoDto, UpdateTodoDto } from '../dtos/todo.dto';
-import { User } from '@/modules/users';
-import { ITodoRepository } from '../../domain/repositories/todo.repository.interface';
 import { IExpertRepository } from '../../domain/repositories/expert.repository.interface';
+import { ITodoRepository } from '../../domain/repositories/todo.repository.interface';
+import { CreateTodoDto, UpdateTodoDto } from '../dtos/todo.dto';
 
 @Injectable()
 export class TodosService {

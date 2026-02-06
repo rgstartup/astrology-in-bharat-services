@@ -1,29 +1,18 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike, MoreThanOrEqual } from 'typeorm';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
 
-import { ProfileExpert } from '../../domain/entities/profile-expert.entity';
-import {
-  CreateProfileExpertDto,
-  UpdateProfileExpertDto,
-} from '../dtos/profile-expert.dto';
-import {
-  ChatSession,
-  ChatSessionStatus,
-} from '@/modules/chat';
+import { CreateProfileExpertDto, UpdateProfileExpertDto } from '../dtos/profile-expert.dto';
 import { QueryExpertDto } from '../dtos/query-expert.dto';
+import { ChatSession, ChatSessionStatus } from '@/modules/chat/domain/entities/chat-session.entity';
 import { Address } from '@/common/domain/entities/address.entity';
-import { User } from '@/modules/users';
-
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { ExpertGateway } from '../../interfaces/gateways/expert.gateway';
-import { MailService } from '@/modules/notification';
+import { MailService } from '@/modules/notification/application/services/mail.service';
 import { IExpertRepository } from '../../domain/repositories/expert.repository.interface';
-import { Inject } from '@nestjs/common';
+
+
 
 @Injectable()
 export class ProfileService {

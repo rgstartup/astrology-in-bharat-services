@@ -1,14 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  CreateDateColumn,
-  UpdateDateColumn,
-  JoinColumn,
-} from 'typeorm';
-import { User } from '@/modules/users';
-import { ProfileExpert } from '@/modules/expert';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 export enum ChatSessionStatus {
   PENDING = 'pending',

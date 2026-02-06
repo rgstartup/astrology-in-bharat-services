@@ -1,19 +1,9 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Patch,
-    Delete,
-    Body,
-    Param,
-    UseGuards,
-    ParseIntPipe,
-} from '@nestjs/common';
-import { TodosService } from '../../application/services/todos.service';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { CreateTodoDto, UpdateTodoDto } from '../../application/dtos/todo.dto';
-import { JwtAuthGuard } from '@/modules/auth';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
+import { TodosService } from '../../application/services/todos.service';
 
 @Controller({
     path: 'expert/todos',

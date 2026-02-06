@@ -1,19 +1,10 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
-import { AuthService } from '../../application/services/auth.service';
-import { RegisterDto, LoginDto } from '../../application/dtos';
+import { Body, Controller, Get, Post, Query, Req, Res, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { AuthService } from '@/modules/auth/application/services/auth.service';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { RegisterDto, LoginDto } from '../../application/dtos';
 import { JwtAuthGuard } from '../guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
 
 @Controller({
   path: 'auth',
@@ -78,6 +69,39 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async clientLogout(@CurrentUser() user: User) {
     return this.authService.clientLogout(user.id);
+  }
+
+  @Post('refresh')
+  async refreshToken(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // Extract refresh token from cookie
+    const refreshTokenCookie = req.cookies?.refreshToken;
+
+    if (!refreshTokenCookie) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+
+    // Parse userId from refresh token (format: "userId.token")
+    const [userIdStr, refreshToken] = refreshTokenCookie.split('.');
+    const userId = parseInt(userIdStr, 10);
+
+    if (!userId || !refreshToken) {
+      throw new UnauthorizedException('Invalid refresh token format');
+    }
+
+    // Generate new tokens
+    const tokens = await this.authService.refreshTokens(userId, refreshToken);
+
+    // Set new tokens in cookies
+    this.authService.setRefreshTokenCookie(res, tokens.refreshToken);
+    this.authService.setAccessTokenCookie(res, tokens.accessToken);
+
+    return {
+      accessToken: tokens.accessToken,
+      message: 'Tokens refreshed successfully',
+    };
   }
 
   @Get('confirm-email')

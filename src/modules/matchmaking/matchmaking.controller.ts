@@ -1,8 +1,8 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { ProkeralaService } from './prokerala.service';
-import { LoveCalculatorService } from './love-calculator.service';
+import { Public } from '@/common/interfaces/decorators/public.decorator';
 import { GunaMilanRequestDto, LoveCalculatorDto } from './dto/matchmaking.dto';
-import { Public } from '@/common/decorators/public.decorator';
+import { LoveCalculatorService } from './love-calculator.service';
+import { ProkeralaService } from './prokerala.service';
 
 @Controller('matchmaking')
 export class MatchmakingController {

@@ -1,7 +1,8 @@
 import { Controller, Get, UseGuards, Query, Param, Patch, Body } from '@nestjs/common';
+import { Roles } from '@/common/interfaces/decorators/roles.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
 import { AdminService } from '../../application/services/admin.service';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { RolesGuard, JwtAuthGuard } from '@/modules/auth';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)

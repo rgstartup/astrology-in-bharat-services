@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, In } from 'typeorm';
-import { UserCoupon } from '../../domain/entities/user-coupon.entity';
+import { UserCoupon } from '@/modules/coupon/domain/entities/user-coupon.entity';
 import { IUserCouponRepository } from '../../domain/repositories/user-coupon.repository.interface';
 
 @Injectable()

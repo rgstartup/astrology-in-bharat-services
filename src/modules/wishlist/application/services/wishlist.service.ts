@@ -1,13 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  Inject,
-} from '@nestjs/common';
-import { Wishlist } from '../../domain/entities/wishlist.entity';
-import { Product, IProductRepository } from '@/modules/product';
-import { User, IUserRepository } from '@/modules/users';
+import { Injectable, NotFoundException, ConflictException, Inject } from '@nestjs/common';
 import { IExpertRepository } from '@/modules/expert';
+import { IProductRepository } from '@/modules/product';
+import { Product } from '@/modules/product/domain/entities/product.entity';
+import { IUserRepository } from '@/modules/users';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { Wishlist } from '../../domain/entities/wishlist.entity';
 import { IWishlistRepository } from '../../domain/repositories/wishlist.repository.interface';
 
 @Injectable()

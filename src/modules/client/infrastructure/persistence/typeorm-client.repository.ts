@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileClient } from '../../domain/entities/profile-client.entity';
+import { ProfileClient } from '@/modules/client/domain/entities/profile-client.entity';
 import { IClientRepository } from '../../domain/repositories/client.repository.interface';
 
 @Injectable()

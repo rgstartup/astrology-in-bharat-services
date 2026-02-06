@@ -1,18 +1,10 @@
-import {
-  WebSocketGateway,
-  WebSocketServer,
-  SubscribeMessage,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  MessageBody,
-  ConnectedSocket,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
-import { ChatService } from '../../application/services/chat.service';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { ChatService } from '@/modules/chat/application/services/chat.service';
+import { WalletService } from '@/modules/wallet/application/services/wallet.service';
 import { MessageType } from '../../domain/entities/chat-message.entity';
 import { ChatSessionStatus } from '../../domain/entities/chat-session.entity';
-import { WalletService } from '@/modules/wallet';
 
 @WebSocketGateway({
   cors: {

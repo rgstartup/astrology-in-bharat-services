@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Withdrawal } from '../../domain/entities/withdrawal.entity';
+import { Withdrawal } from '@/modules/wallet/domain/entities/withdrawal.entity';
 import { IWithdrawalRepository } from '../../domain/repositories/withdrawal.repository.interface';
 
 @Injectable()

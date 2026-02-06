@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OAuthAccount } from '../../domain/entities/oauth-accounts.entity';
+import { OAuthAccount } from '@/modules/auth/domain/entities/oauth-accounts.entity';
 import { IOAuthAccountRepository } from '../../domain/repositories/oauth-account.repository.interface';
 
 @Injectable()

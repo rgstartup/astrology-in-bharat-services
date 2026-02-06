@@ -1,27 +1,15 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Post,
-  Body,
-  Query,
-  UseGuards,
-  Param,
-  ParseIntPipe,
-  UseInterceptors,
-  UploadedFile,
-  ParseFilePipeBuilder,
-  HttpStatus,
-  BadRequestException,
-  InternalServerErrorException,
-  Ip,
-} from '@nestjs/common';
+import { Controller, Get, Patch, Post, Body, Query, UseGuards, Param, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryService } from '@/common/cloudinary/cloudinary.service';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { RolesGuard, JwtAuthGuard } from '@/modules/auth';
-import { ProfileService } from '../../application/services/profile.service';
+import { CloudinaryService } from '@/common/infrastructure/storage/cloudinary/cloudinary.service';
+import { Roles } from '@/common/interfaces/decorators/roles.decorator';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { Public } from '@/common/interfaces/decorators/public.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
+import { ProfileService } from '@/modules/expert/application/services/profile.service';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { QueryExpertDto } from '../../application/dtos/query-expert.dto';
 import {
   CreateProfileExpertDto,
   UpdateProfileExpertDto,
@@ -33,11 +21,6 @@ import {
   UpdateDocumentsExpertDto,
   UpdateExperienceExpertDto,
 } from '../../application/dtos/profile-expert.dto';
-import { QueryExpertDto } from '../../application/dtos/query-expert.dto';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
-import { Public } from '@/common/decorators/public.decorator';
-
 
 @Controller({
   path: 'expert',
@@ -153,9 +136,6 @@ export class ProfileController {
     return this.expertProfileService.getExpertById(id);
   }
 
-  @Post('upload-document')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('expert')
   @Post('upload-file')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('expert')
@@ -221,4 +201,3 @@ export class ProfileController {
     return this.uploadFile(file, user);
   }
 }
-

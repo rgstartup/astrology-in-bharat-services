@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { QueryRunner, MoreThanOrEqual } from 'typeorm';
-import { User } from '../../domain/entities/user.entity';
-import { CreateUserDto } from '../dtos/user.dto';
-import { RolesService } from '@/modules/role';
-import { ProfileClient } from '@/modules/client';
-import { ProfileExpert } from '@/modules/expert';
+import { ProfileClient } from '@/modules/client/domain/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
+import { RolesService } from '@/modules/role/application/services/roles.service';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { IUserRepository } from '../../domain/repositories/user.repository.interface';
+import { CreateUserDto } from '../dtos/user.dto';
 
 @Injectable()
 export class UsersService {

@@ -1,9 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '@/modules/chat';
-import { ProfileExpert } from '../../domain/entities/profile-expert.entity';
-import { WalletService } from '@/modules/wallet';
+import { ChatSessionStatus } from '@/modules/chat/domain/entities/chat-session.entity';
+import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
+import { WalletService } from '@/modules/wallet/application/services/wallet.service';
 import { IExpertRepository } from '../../domain/repositories/expert.repository.interface';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class ExpertEarningsService {
         private sessionRepo: Repository<ChatSession>,
         @Inject(IExpertRepository)
         private expertRepository: IExpertRepository,
+        @Inject(forwardRef(() => WalletService))
         private walletService: WalletService,
     ) { }
 

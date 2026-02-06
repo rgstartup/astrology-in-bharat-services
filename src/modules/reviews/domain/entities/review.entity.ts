@@ -1,14 +1,7 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  CreateDateColumn,
-  JoinColumn,
-} from 'typeorm';
-import { User } from '@/modules/users';
-import { ProfileExpert } from '@/modules/expert';
-import { ChatSession } from '@/modules/chat';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn } from 'typeorm';
+import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Entity('reviews')
 export class Review {

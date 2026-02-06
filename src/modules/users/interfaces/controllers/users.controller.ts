@@ -1,20 +1,11 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  Body,
-  UseGuards,
-  ParseIntPipe,
-} from '@nestjs/common';
-import { UsersService } from '../../application/services/users.service';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { Roles } from '@/common/interfaces/decorators/roles.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
+import { UsersService } from '@/modules/users/application/services/users.service';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { CreateUserDto } from '../../application/dtos/user.dto';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { RolesGuard, JwtAuthGuard } from '@/modules/auth';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '../../domain/entities/user.entity';
 
 @Controller({
   path: 'users',

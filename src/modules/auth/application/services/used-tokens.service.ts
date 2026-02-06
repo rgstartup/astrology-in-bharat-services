@@ -1,5 +1,5 @@
-import { createHash } from 'crypto';
 import { Injectable, Inject } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { IUsedTokenRepository } from '../../domain/repositories/used-token.repository.interface';
 
 @Injectable()

@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
-import { WalletService } from '../../application/services/wallet.service';
-import { JwtAuthGuard } from '@/modules/auth';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { WalletService } from '@/modules/wallet/application/services/wallet.service';
 
 @Controller({
   path: 'wallet',

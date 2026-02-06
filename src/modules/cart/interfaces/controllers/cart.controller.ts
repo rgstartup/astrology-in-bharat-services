@@ -1,20 +1,10 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  UseGuards,
-  ParseIntPipe,
-} from '@nestjs/common';
-import { CartService } from '../../application/services/cart.service';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { AddToCartDto } from '../../application/dtos/create-cart.dto';
 import { UpdateCartItemDto } from '../../application/dtos/update-cart.dto';
-import { JwtAuthGuard } from '@/modules/auth';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
+import { CartService } from '../../application/services/cart.service';
 
 @Controller('cart')
 @UseGuards(JwtAuthGuard)

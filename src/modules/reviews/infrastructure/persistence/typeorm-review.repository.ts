@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Review } from '../../domain/entities/review.entity';
+import { Review } from '@/modules/reviews/domain/entities/review.entity';
 import { IReviewRepository } from '../../domain/repositories/review.repository.interface';
 
 @Injectable()

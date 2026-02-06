@@ -1,6 +1,6 @@
-
-import { createConnection } from 'typeorm';
 import * as dotenv from 'dotenv';
+import { createConnection } from 'typeorm';
+
 dotenv.config();
 
 async function check() {

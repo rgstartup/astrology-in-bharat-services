@@ -21,19 +21,4 @@ export default registerAs<Partial<DatabaseConfig>>('database', () => ({
     : 100,
 }));
 
-import 'dotenv/config';
-
-export const dataSource = new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
-  synchronize: process.env.NODE_ENV !== 'production', // set to false in production
-  poolSize: process.env.DB_MAX_CONNECTIONS
-    ? parseInt(process.env.DB_MAX_CONNECTIONS, 10)
-    : 100,
-});
+import 'dotenv/config';

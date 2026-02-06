@@ -1,4 +1,3 @@
-// src/config/auth.config.ts
 import { registerAs } from '@nestjs/config';
 
 export interface AuthConfig {

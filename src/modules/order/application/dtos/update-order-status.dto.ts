@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { OrderStatus } from '../entities/order.entity';
+import { OrderStatus } from '../../domain/entities/order.entity';
 
 export class UpdateOrderStatusDto {
     @IsNotEmpty()

@@ -7,13 +7,20 @@ export class OAuthUserDto {
   @IsString()
   providerId: string; // provider's user ID
 
-  //   @IsOptional()
   @IsEmail()
   email: string;
 
   @IsOptional()
   @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  avatar?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string;
 
   @IsOptional()
   profile?: any; // optional raw provider profile
@@ -27,7 +34,11 @@ export class OAuthUserDto {
     Object.assign(this, partial);
     // Set default roles if not provided
     if (!this.roles || this.roles.length === 0) {
-      this.roles = ['client'];
+      if (this.role) {
+        this.roles = [this.role];
+      } else {
+        this.roles = ['client'];
+      }
     }
   }
 }

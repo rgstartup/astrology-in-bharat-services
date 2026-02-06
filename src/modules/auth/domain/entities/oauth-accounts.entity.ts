@@ -1,12 +1,5 @@
-// src/auth/oauth-account.entity.ts
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
-import { User } from '@/modules/users';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Entity('oauth_accounts')
 export class OAuthAccount {
@@ -26,4 +19,3 @@ export class OAuthAccount {
   @JoinColumn({ name: 'user_id' })
   user: User;
 }
-

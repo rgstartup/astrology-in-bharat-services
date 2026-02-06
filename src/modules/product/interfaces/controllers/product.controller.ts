@@ -1,23 +1,14 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  UseGuards,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
-import { ProductService } from '../../application/services/product.service';
+import { Controller, Get, Post, Body, UseGuards, Patch, Param, Delete, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { UploadApiResponse } from 'cloudinary';
+import { memoryStorage } from 'multer';
+import { CloudinaryService } from '@/common/infrastructure/storage/cloudinary/cloudinary.service';
+import { Roles } from '@/common/interfaces/decorators/roles.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
 import { CreateProductDto } from '../../application/dtos/create-product.dto';
 import { UpdateProductDto } from '../../application/dtos/update-product.dto';
-import { JwtAuthGuard, RolesGuard } from '@/modules/auth';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
-import { memoryStorage } from 'multer';
-import { CloudinaryService } from '@/common/cloudinary/cloudinary.service';
-import { UploadApiResponse } from 'cloudinary';
+import { ProductService } from '../../application/services/product.service';
 
 @Controller('products')
 export class ProductController {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
-import { ChatSession } from '../../domain/entities/chat-session.entity';
+import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
 import { IChatSessionRepository } from '../../domain/repositories/chat-session.repository.interface';
 
 @Injectable()

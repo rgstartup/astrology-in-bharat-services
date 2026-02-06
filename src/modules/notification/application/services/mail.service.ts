@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
-import { EmailConfig } from 'src/core/config/email.config';
+import nodemailer from 'nodemailer';
+import { EmailConfig } from '@/core/config/email.config';
 
 @Injectable()
 export class MailService {

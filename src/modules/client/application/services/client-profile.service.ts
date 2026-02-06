@@ -1,15 +1,11 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileClient } from '../../domain/entities/profile-client.entity';
-import {
-  CreateProfileClientDto,
-  UpdateProfileClientDto,
-} from '../dtos/profile-client.dto';
 import { Address, AddressTag } from '@/common/domain/entities/address.entity';
-
-import { User } from '@/modules/users';
+import { ProfileClient } from '@/modules/client/domain/entities/profile-client.entity';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { IClientRepository } from '../../domain/repositories/client.repository.interface';
+import { CreateProfileClientDto, UpdateProfileClientDto } from '../dtos/profile-client.dto';
 
 @Injectable()
 export class ClientProfileService {
@@ -37,6 +33,7 @@ export class ClientProfileService {
 
     const profile = this.repo.create({
       ...profileData,
+      date_of_birth: profileData.date_of_birth ? new Date(profileData.date_of_birth) : null,
       user: { id: user_id } as any,
       addresses: dto.addresses?.map((addr) => {
         // Fix: Ensure we match Address entity structure
@@ -106,6 +103,10 @@ export class ClientProfileService {
       await this.userRepo.update(user_id, {
         avatar: profileData.profile_picture,
       });
+    }
+
+    if (profileData.date_of_birth) {
+      (profileData as any).date_of_birth = new Date(profileData.date_of_birth);
     }
 
     Object.assign(profile, profileData);

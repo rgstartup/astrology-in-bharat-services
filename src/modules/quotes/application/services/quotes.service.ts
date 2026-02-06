@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
-import { CreateQuoteDto } from '../dtos/create-quote.dto';
-import { UpdateQuoteDto } from '../dtos/update-quote.dto';
 import { Quote } from '../../domain/entities/quote.entity';
 import { IQuoteRepository } from '../../domain/repositories/quote.repository.interface';
+import { CreateQuoteDto } from '../dtos/create-quote.dto';
+import { UpdateQuoteDto } from '../dtos/update-quote.dto';
 
 @Injectable()
 export class QuotesService implements OnModuleInit {

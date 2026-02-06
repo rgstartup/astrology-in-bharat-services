@@ -1,19 +1,17 @@
-import {
-    Injectable,
-    NotFoundException,
-    BadRequestException,
-    Inject,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Order, OrderStatus } from '../../domain/entities/order.entity';
-import { OrderItem } from '../../domain/entities/order-item.entity';
-import { CartService, Cart } from '@/modules/cart';
-import { NotificationService, NotificationGateway } from '@/modules/notification';
-import { NotificationType } from '@/modules/notification/domain/entities/notification.entity';
 import { EmailService } from '@/common/infrastructure/mailing/email.service';
-import { User } from '@/modules/users';
+import { CartService } from '@/modules/cart';
+import { Cart } from '@/modules/cart/domain/entities/cart.entity';
 import { CouponService } from '@/modules/coupon';
+import { NotificationGateway } from '@/modules/notification';
+import { NotificationService } from '@/modules/notification/application/services/notification.service';
+import { NotificationType } from '@/modules/notification/domain/entities/notification.entity';
+import { OrderItem } from '@/modules/order/domain/entities/order-item.entity';
+import { Order } from '@/modules/order/domain/entities/order.entity';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { OrderStatus } from '../../domain/entities/order.entity';
 import { IOrderRepository, IOrderItemRepository } from '../../domain/repositories/order.repository.interface';
 
 @Injectable()

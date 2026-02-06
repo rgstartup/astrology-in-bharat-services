@@ -1,5 +1,5 @@
-import { IsString, IsOptional, IsDateString, IsEnum } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+import { IsString, IsOptional, IsDateString, IsEnum } from 'class-validator';
 
 export enum FestivalType {
   FESTIVAL = 'festival',

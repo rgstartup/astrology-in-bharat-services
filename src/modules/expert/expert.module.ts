@@ -2,13 +2,14 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Entities
-import { ProfileExpert } from './domain/entities/profile-expert.entity';
-import { BankAccount } from './domain/entities/bank-account.entity';
-import { Todo } from './domain/entities/todo.entity';
+import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
+import { BankAccount } from '@/modules/expert/domain/entities/bank-account.entity';
+import { Todo } from '@/modules/expert/domain/entities/todo.entity';
 import { Address } from '@/common/domain/entities/address.entity';
-import { User } from '@/modules/users';
-import { ChatSession } from '@/modules/chat';
-import { Wallet, Transaction } from '@/modules/wallet';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
+import { Wallet } from '@/modules/wallet/domain/entities/wallet.entity';
+import { Transaction } from '@/modules/wallet/domain/entities/transaction.entity';
 
 // Repositories
 import { IExpertRepository } from './domain/repositories/expert.repository.interface';
@@ -77,6 +78,3 @@ import { CloudinaryModule } from '@/common/infrastructure/storage/cloudinary/clo
   exports: [ProfileService, ExpertGateway, IExpertRepository],
 })
 export class ExpertModule { }
-
-
-

@@ -1,11 +1,11 @@
 import { Controller, Post, Get, Patch, Body, Param, UseGuards, Req, Query, Delete } from '@nestjs/common';
-import { CouponService } from '../../coupon.service';
-import { CreateCouponDto } from '../../application/dtos/create-coupon.dto';
+import { Roles } from '@/common/interfaces/decorators/roles.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
 import { AssignCouponDto } from '../../application/dtos/assign-coupon.dto';
 import { BulkAssignCouponDto, UserFilterDto, UserFilterListDto } from '../../application/dtos/bulk-assign-coupon.dto';
-import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
-import { RolesGuard } from '../../../auth/guards/role.guard';
-import { Roles } from '@/common/decorators/roles.decorator';
+import { CreateCouponDto } from '../../application/dtos/create-coupon.dto';
+import { CouponService } from '../../application/services/coupon.service';
 
 @Controller({
     path: 'admin/coupons',

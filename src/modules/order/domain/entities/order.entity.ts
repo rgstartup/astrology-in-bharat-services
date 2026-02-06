@@ -1,14 +1,5 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
-    ManyToOne,
-    OneToMany,
-    JoinColumn,
-} from 'typeorm';
-import { User } from '@/modules/users';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { OrderItem } from './order-item.entity';
 
 export enum OrderStatus {

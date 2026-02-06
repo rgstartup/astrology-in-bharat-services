@@ -1,16 +1,6 @@
-import { User } from '@/modules/users';
-import {
-  Check,
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Check, Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Address } from '@/common/domain/entities/address.entity';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Entity('profile_clients')
 @Check(`"gender" IN ('male', 'female', 'other')`)

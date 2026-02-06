@@ -1,12 +1,5 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    ManyToOne,
-    JoinColumn,
-} from 'typeorm';
-import { User } from '@/modules/users';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 export enum NotificationType {
     ORDER_CREATED = 'order_created',

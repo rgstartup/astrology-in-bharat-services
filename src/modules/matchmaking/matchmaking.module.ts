@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
+import { LoveCalculatorService } from './love-calculator.service';
 import { MatchmakingController } from './matchmaking.controller';
 import { ProkeralaService } from './prokerala.service';
-import { LoveCalculatorService } from './love-calculator.service';
 
 @Module({
   controllers: [MatchmakingController],

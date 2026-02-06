@@ -1,18 +1,11 @@
-import {
-    Controller,
-    Post,
-    Body,
-    UseGuards,
-    Headers,
-    Req,
-} from '@nestjs/common';
-import { PaymentService } from '../../application/services/payment.service';
-import { JwtAuthGuard } from '@/modules/auth';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users';
+import { Controller, Post, Body, UseGuards, Headers, Req } from '@nestjs/common';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { Public } from '@/common/interfaces/decorators/public.decorator';
+import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { CreateOrderDto } from '../../application/dtos/create-order.dto';
 import { VerifyPaymentDto } from '../../application/dtos/verify-payment.dto';
-import { Public } from '@/common/decorators/public.decorator';
+import { PaymentService } from '../../application/services/payment.service';
 
 @Controller({
     path: 'payment',

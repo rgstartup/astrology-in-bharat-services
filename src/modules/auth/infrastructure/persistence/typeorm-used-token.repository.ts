@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UsedTokens } from '../../domain/entities/used-tokens.entity';
+import { UsedTokens } from '@/modules/auth/domain/entities/used-tokens.entity';
 import { IUsedTokenRepository } from '../../domain/repositories/used-token.repository.interface';
 
 @Injectable()

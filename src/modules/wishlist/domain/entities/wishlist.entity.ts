@@ -1,13 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
-  CreateDateColumn,
-  Unique,
-} from 'typeorm';
-import { User } from '@/modules/users';
-import { Product } from '@/modules/product';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, Unique } from 'typeorm';
+import { Product } from '@/modules/product/domain/entities/product.entity';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Entity('wishlists')
 @Unique(['user', 'product'])

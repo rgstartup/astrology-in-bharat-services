@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
-import { OAuthUserDto } from '../dtos/oauth-user.dto';
-import { UsersService } from '@/modules/users';
-import { User } from '@/modules/users';
+import { OAuthAccount } from '@/modules/auth/domain/entities/oauth-accounts.entity';
+import { UsersService } from '@/modules/users/application/services/users.service';
+import { User } from '@/modules/users/domain/entities/user.entity';
 import { IOAuthAccountRepository } from '../../domain/repositories/oauth-account.repository.interface';
-import { OAuthAccount } from '../../domain/entities/oauth-accounts.entity';
+import { OAuthUserDto } from '../dtos/oauth-user.dto';
 
 @Injectable()
 export class OAuthService {

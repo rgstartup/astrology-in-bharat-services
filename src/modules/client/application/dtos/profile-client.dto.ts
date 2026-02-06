@@ -1,15 +1,7 @@
-import { AddressDto } from '@/common/dto/address.dto';
-import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsDateString,
-  IsEnum,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { AddressDto } from '@/common/interfaces/dtos/address.dto';
 
 export class ProfileClientDto {
   @IsOptional()

@@ -1,16 +1,16 @@
 import { Injectable, BadRequestException, NotFoundException, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, In } from 'typeorm';
-import { Coupon } from '../../domain/entities/coupon.entity';
-import { UserCoupon } from '../../domain/entities/user-coupon.entity';
-import { CreateCouponDto } from '../dtos/create-coupon.dto';
-import { User } from '@/modules/users';
-import { BulkAssignCouponDto, UserFilterDto, SpendingPeriod, UserFilterListDto } from '../dtos/bulk-assign-coupon.dto';
-import { Transaction } from '../../../wallet/entities/transaction.entity';
-import { ChatSession, ChatSessionStatus } from '../../../chat/entities/chat-session.entity';
-import { Wallet } from '../../../wallet/entities/wallet.entity';
+import { ChatSession, ChatSessionStatus } from '@/modules/chat/domain/entities/chat-session.entity';
+import { Coupon } from '@/modules/coupon/domain/entities/coupon.entity';
+import { UserCoupon } from '@/modules/coupon/domain/entities/user-coupon.entity';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { Transaction } from '@/modules/wallet/domain/entities/transaction.entity';
+import { Wallet } from '@/modules/wallet/domain/entities/wallet.entity';
 import { ICouponRepository } from '../../domain/repositories/coupon.repository.interface';
 import { IUserCouponRepository } from '../../domain/repositories/user-coupon.repository.interface';
+import { BulkAssignCouponDto, UserFilterDto, SpendingPeriod, UserFilterListDto } from '../dtos/bulk-assign-coupon.dto';
+import { CreateCouponDto } from '../dtos/create-coupon.dto';
 
 @Injectable()
 export class CouponService {

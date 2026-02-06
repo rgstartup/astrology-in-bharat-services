@@ -1,14 +1,13 @@
-// src/database/database.module.ts
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
 import { DatabaseService } from './database.service';
 
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule], // import ConfigModule to access ConfigService
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         const databaseUrl = process.env.DATABASE_URL;
@@ -21,9 +20,9 @@ import { DatabaseService } from './database.service';
           autoLoadEntities: true,
           synchronize: process.env.NODE_ENV !== 'production',
           logging: true,
-          schema: 'public', // Force schema to public
+          schema: 'public',
           ssl: {
-            rejectUnauthorized: false, // ✅ Supabase requires SSL
+            rejectUnauthorized: false,
           },
         };
       },
@@ -32,4 +31,4 @@ import { DatabaseService } from './database.service';
   providers: [DatabaseService],
   exports: [DatabaseService],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }

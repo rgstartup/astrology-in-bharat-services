@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Cart } from '../../domain/entities/cart.entity';
+import { Cart } from '@/modules/cart/domain/entities/cart.entity';
 import { CartItem } from '../../domain/entities/cart-item.entity';
 import { ICartRepository } from '../../domain/repositories/cart.repository.interface';
 

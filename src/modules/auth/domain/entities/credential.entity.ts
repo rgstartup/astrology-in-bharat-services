@@ -1,13 +1,12 @@
-// src/auth/credential.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  CreateDateColumn,
   JoinColumn,
+  CreateDateColumn,
 } from 'typeorm';
-import { User } from '@/modules/users';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Entity('credentials')
 export class Credential {
@@ -41,4 +40,3 @@ export class Credential {
   @CreateDateColumn()
   createdAt: Date;
 }
-

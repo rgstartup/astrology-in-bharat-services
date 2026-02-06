@@ -1,14 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { MailService } from './mail.service';
-import {
-  ConfirmEmailEvent,
-  ResetPasswordEvent,
-  SendMagicLinkEvent,
-  UserRegisteredEvent,
-  VerifyIpEvent,
-} from '../events/user.event';
-import { OnEvent } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
+import { OnEvent } from '@nestjs/event-emitter';
+import { ConfirmEmailEvent, ResetPasswordEvent, SendMagicLinkEvent, UserRegisteredEvent, VerifyIpEvent } from '../events/user.event';
+import { MailService } from './mail.service';
 
 @Injectable()
 export class EmailNotificationService {

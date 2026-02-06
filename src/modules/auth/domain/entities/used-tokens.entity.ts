@@ -1,15 +1,6 @@
-import {
-  BeforeInsert,
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  Unique,
-} from 'typeorm';
-import { User } from '@/modules/users';
 import { createHash } from 'crypto';
+import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Entity()
 @Unique(['user', 'token'])
