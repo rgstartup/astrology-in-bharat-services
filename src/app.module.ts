@@ -24,6 +24,7 @@ import { RolesModule } from '@/modules/role/roles.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { WishlistModule } from '@/modules/wishlist/wishlist.module';
+import { SettingsModule } from '@/modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { WishlistModule } from '@/modules/wishlist/wishlist.module';
     PaymentModule,
     OrderModule,
     CouponModule,
+    SettingsModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
