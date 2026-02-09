@@ -6,6 +6,9 @@ import { WalletService } from '@/modules/wallet/application/services/wallet.serv
 import { MessageType } from '../../domain/entities/chat-message.entity';
 import { ChatSessionStatus } from '../../domain/entities/chat-session.entity';
 
+import { NotificationService } from '@/modules/notification/application/services/notification.service';
+import { NotificationType } from '@/modules/notification/domain/entities/notification.entity';
+
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -23,6 +26,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly chatService: ChatService,
     private readonly walletService: WalletService,
+    private readonly notificationService: NotificationService,
   ) { }
 
   handleConnection(client: Socket) {
@@ -131,13 +135,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const session = await this.chatService.activateSession(payload.sessionId);
 
     // Calculate initial timer values for immediate sync
-    const userBalance = await this.walletService.getBalance(session.userId);
+    const wallet = await this.walletService.getWallet(session.userId);
+    const totalBalance = Number(wallet.balance) + Number(wallet.reservedBalance);
     const price = session.pricePerMinute || 0;
 
     const maxMinutes = session.isFree
       ? session.freeMinutes
       : price > 0
-        ? Math.floor(userBalance / price)
+        ? Math.floor(totalBalance / price)
         : 0;
 
     const serverTime = new Date();
@@ -218,7 +223,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           // If still active but no reservation done (we'd need a flag or just check balance again)
           // For now, if they don't have balance after 30s, end it.
           const b = await this.walletService.getBalance(currentSession.userId);
-          if (b < minReq && s?.status === ChatSessionStatus.ACTIVE) {
+          if (s?.isFree && b < minReq && s?.status === ChatSessionStatus.ACTIVE) {
             await this.chatService.endChat(payload.sessionId);
             this.server
               .to(`room_${payload.sessionId}`)
@@ -232,10 +237,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         ? currentSession.freeMinutes + 1
         : 5;
       if (durationMins >= checkThreshold) {
-        const balance = await this.walletService.getBalance(
-          currentSession.userId,
-        );
-        if (balance < currentSession.pricePerMinute) {
+        const wallet = await this.walletService.getWallet(currentSession.userId);
+        const totalBalance = Number(wallet.balance) + Number(wallet.reservedBalance);
+        if (totalBalance < currentSession.pricePerMinute) {
           this.server.to(`room_${payload.sessionId}`).emit('balance_warning', {
             message: 'Insufficient balance. Session will end in 30 seconds.',
           });
@@ -284,7 +288,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: {
       sessionId: number;
       senderId: number;
-      senderType: 'user' | 'expert';
+      senderType: 'user' | 'expert' | 'admin';
       content: string;
       type?: MessageType;
     },
@@ -308,6 +312,78 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.server.to(`room_${payload.sessionId}`).emit('new_message', savedMsg);
     return savedMsg;
+  }
+
+  @SubscribeMessage('admin_terminate_session')
+  async handleAdminTerminate(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    payload: {
+      sessionId: number;
+      adminId: number;
+      userMessage: string;
+      expertMessage: string;
+    },
+  ) {
+    this.logger.log(`Admin ${payload.adminId} terminating session ${payload.sessionId}`);
+
+    // 1. Save and Emit User Message
+    const msgForUser = await this.chatService.saveMessage(
+      payload.sessionId,
+      payload.adminId,
+      'admin',
+      payload.userMessage
+    );
+    this.server.to(`room_${payload.sessionId}`).emit('new_message', msgForUser);
+
+    // 2. Save and Emit Expert Message
+    const msgForExpert = await this.chatService.saveMessage(
+      payload.sessionId,
+      payload.adminId,
+      'admin',
+      payload.expertMessage
+    );
+    this.server.to(`room_${payload.sessionId}`).emit('new_message', msgForExpert);
+
+    // 3. End the chat
+    const session = await this.chatService.endChat(payload.sessionId);
+    if (!session) return { status: 'error', message: 'Session not found' };
+
+    // Set terminatedBy
+    session.terminatedBy = 'admin';
+    await this.chatService.saveSession(session);
+
+    // 4. Send Notifications
+    await this.notificationService.create(
+      session.userId,
+      NotificationType.CHAT_TERMINATED,
+      'Chat Session Terminated',
+      `Administrator has ended session #${session.id}. Reason: ${payload.userMessage}`
+    );
+
+    if (session.expert?.user?.id) {
+      await this.notificationService.create(
+        session.expert.user.id,
+        NotificationType.CHAT_TERMINATED,
+        'Administrative Intervention',
+        `Administrator has ended session #${session.id} for policy violations. Instruction: ${payload.expertMessage}`
+      );
+    }
+
+    // 5. Notify everyone via socket
+    this.server.to(`room_${payload.sessionId}`).emit('session_ended', {
+      ...session,
+      terminatedBy: 'admin',
+      reason: 'Administrative action taken',
+      interventionMessage: payload.expertMessage
+    });
+
+    if (this.sessionTimers.has(payload.sessionId)) {
+      clearInterval(this.sessionTimers.get(payload.sessionId));
+      this.sessionTimers.delete(payload.sessionId);
+    }
+
+    return { status: 'success' };
   }
 
   @SubscribeMessage('end_chat')

@@ -7,7 +7,7 @@ import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.e
 import { WalletService } from '@/modules/wallet/application/services/wallet.service';
 import { TransactionPurpose } from '@/modules/wallet/domain/entities/transaction.entity';
 import { MessageType } from '../../domain/entities/chat-message.entity';
-import { ChatSessionStatus } from '../../domain/entities/chat-session.entity';
+import { ChatSessionStatus, SessionType } from '../../domain/entities/chat-session.entity';
 import { IChatMessageRepository } from '../../domain/repositories/chat-message.repository.interface';
 import { IChatSessionRepository } from '../../domain/repositories/chat-session.repository.interface';
 
@@ -186,7 +186,7 @@ export class ChatService {
     });
   }
 
-  async initiateChat(userId: number, expertId: number) {
+  async initiateChat(userId: number, expertId: number, type: SessionType = SessionType.CHAT) {
     const expert = await this.expertRepo.findOne({
       where: { id: expertId },
     });
@@ -197,11 +197,14 @@ export class ChatService {
 
     if (!expert.is_available) {
       throw new BadRequestException(
-        'Expert is currently offline and not accepting chat requests at the moment.',
+        'Expert is currently offline and not accepting requests at the moment.',
       );
     }
 
-    const chatPrice = expert.chat_price || 0;
+    let chatPrice = expert.chat_price || 0;
+    if (type === SessionType.VOICE) chatPrice = expert.call_price || expert.chat_price || 0;
+    if (type === SessionType.VIDEO) chatPrice = expert.video_call_price || expert.chat_price || 0;
+
     const minMins = 5;
     const minBalanceRequired = chatPrice * minMins;
 
@@ -223,7 +226,7 @@ export class ChatService {
       );
       if (!hasBalance) {
         throw new BadRequestException(
-          `Insufficient balance. Minimum ${minMins} minutes (₹${minBalanceRequired}) balance is required to start chat.`,
+          `Insufficient balance. Minimum ${minMins} minutes (₹${minBalanceRequired}) balance is required to start ${type}.`,
         );
       }
     }
@@ -233,6 +236,7 @@ export class ChatService {
       expertId,
       pricePerMinute: chatPrice,
       status: ChatSessionStatus.PENDING,
+      sessionType: type,
       isFree: isEligibleForFree,
       freeMinutes: freeMins,
     });
@@ -438,7 +442,9 @@ export class ChatService {
       `chat_${session.id}`,
     );
 
-    return session;
+    session.isFree = false;
+    session.freeMinutes = 0;
+    return this.sessionRepo.save(session);
   }
 
   async getMessages(sessionId: number) {
@@ -451,7 +457,7 @@ export class ChatService {
   async saveMessage(
     sessionId: number,
     senderId: number,
-    senderType: 'user' | 'expert',
+    senderType: 'user' | 'expert' | 'admin',
     content: string,
     type: MessageType = MessageType.TEXT,
   ) {
@@ -466,7 +472,40 @@ export class ChatService {
     return this.messageRepo.save(message);
   }
 
+  async getAllLiveSessions(type?: string) {
+    const query: any = {
+      relations: ['user', 'expert', 'expert.user'],
+      order: { createdAt: 'DESC' },
+    };
+
+    if (type === 'expired') {
+      query.where = { status: ChatSessionStatus.EXPIRED };
+    } else if (type === 'admin_terminated') {
+      query.where = {
+        status: ChatSessionStatus.COMPLETED,
+        terminatedBy: 'admin'
+      };
+    } else if (type === 'chat_live') {
+      query.where = {
+        status: ChatSessionStatus.ACTIVE,
+        sessionType: SessionType.CHAT
+      };
+    } else {
+      // Default: All active/pending
+      query.where = [
+        { status: ChatSessionStatus.ACTIVE },
+        { status: ChatSessionStatus.PENDING },
+      ];
+    }
+
+    return this.sessionRepo.find(query);
+  }
+
   async getTotalSessionsCount() {
     return this.sessionRepo.count();
+  }
+
+  async saveSession(session: ChatSession): Promise<ChatSession> {
+    return this.sessionRepo.save(session);
   }
 }

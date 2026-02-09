@@ -97,5 +97,13 @@ export class AdminService {
     async toggleUserBlock(id: number, isBlocked: boolean) {
         return this.usersService.update(id, { isBlocked });
     }
+
+    async getLiveSessions(type?: string) {
+        return this.chatService.getAllLiveSessions(type);
+    }
+
+    async getChatHistory(sessionId: number) {
+        return this.chatService.getMessages(sessionId);
+    }
 }
 

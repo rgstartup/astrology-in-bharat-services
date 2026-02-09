@@ -23,7 +23,7 @@ export class ChatMessage {
   senderId: number;
 
   @Column({ type: 'text' })
-  senderType: 'user' | 'expert';
+  senderType: 'user' | 'expert' | 'admin';
 
   @Column({ type: 'text' })
   content: string;

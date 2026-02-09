@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
+import { NotificationModule } from '@/modules/notification/notification.module';
 import { ChatService } from './application/services/chat.service';
 import { ChatMessage } from './domain/entities/chat-message.entity';
 import { ChatSession } from './domain/entities/chat-session.entity';
@@ -16,6 +17,7 @@ import { ChatGateway } from './interfaces/gateways/chat.gateway';
   imports: [
     TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert]),
     WalletModule,
+    NotificationModule,
   ],
   providers: [
     ChatService,
