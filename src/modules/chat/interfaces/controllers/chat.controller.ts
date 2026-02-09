@@ -3,7 +3,7 @@ import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorat
 import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
 import { ChatService } from '@/modules/chat/application/services/chat.service';
 import { User } from '@/modules/users/domain/entities/user.entity';
-import { ChatSessionStatus } from '../../domain/entities/chat-session.entity';
+import { ChatSessionStatus, SessionType } from '../../domain/entities/chat-session.entity';
 import { ChatGateway } from '../gateways/chat.gateway';
 
 @Controller({
@@ -21,8 +21,9 @@ export class ChatController {
   async initiateChat(
     @CurrentUser() user: User,
     @Body('expertId', ParseIntPipe) expertId: number,
+    @Body('sessionType') type: SessionType = SessionType.CHAT,
   ) {
-    const session = await this.chatService.initiateChat(user.id, expertId);
+    const session = await this.chatService.initiateChat(user.id, expertId, type);
 
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',

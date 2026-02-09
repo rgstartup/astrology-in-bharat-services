@@ -10,6 +10,12 @@ export enum ChatSessionStatus {
   EXPIRED = 'expired',
 }
 
+export enum SessionType {
+  CHAT = 'chat',
+  VOICE = 'audio',
+  VIDEO = 'video',
+}
+
 @Entity('chat_sessions')
 export class ChatSession {
   @PrimaryGeneratedColumn()
@@ -42,6 +48,13 @@ export class ChatSession {
   })
   status: ChatSessionStatus;
 
+  @Column({
+    type: 'enum',
+    enum: SessionType,
+    default: SessionType.CHAT,
+  })
+  sessionType: SessionType;
+
   @Column({ type: 'boolean', default: false })
   isFree: boolean;
 
@@ -53,6 +66,9 @@ export class ChatSession {
 
   @Column({ type: 'float', default: 0 })
   totalCost: number;
+
+  @Column({ type: 'text', nullable: true })
+  terminatedBy: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;

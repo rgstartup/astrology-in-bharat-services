@@ -70,4 +70,14 @@ export class AdminController {
     ) {
         return this.adminService.toggleUserBlock(id, isBlocked);
     }
+
+    @Get('live-sessions')
+    async getLiveSessions(@Query('type') type?: string) {
+        return this.adminService.getLiveSessions(type);
+    }
+
+    @Get('live-sessions/:id/history')
+    async getChatHistory(@Param('id') id: number) {
+        return this.adminService.getChatHistory(id);
+    }
 }
