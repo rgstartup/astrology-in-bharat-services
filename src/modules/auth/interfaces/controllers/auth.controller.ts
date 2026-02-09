@@ -14,6 +14,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @Post('register')
+  @Post('email/register')
   async register(
     @Body() dto: RegisterDto,
     @Req() req: Request,
@@ -25,6 +26,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Post('email/login')
   async login(
     @Body() dto: LoginDto,
     @Req() req: Request,
