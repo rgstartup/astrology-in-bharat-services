@@ -1,13 +1,14 @@
-import { Coupon } from '../entities/coupon.entity';
+import { Coupon } from "../entities/coupon";
 
 export interface ICouponRepository {
+    save(coupon: Coupon | Omit<Coupon, 'id' | 'createdAt' | 'updatedAt'>): Promise<Coupon>;
     findByCode(code: string): Promise<Coupon | null>;
     findById(id: number): Promise<Coupon | null>;
-    save(coupon: Coupon): Promise<Coupon>;
-    create(couponData: Partial<Coupon>): Coupon;
-    remove(coupon: Coupon): Promise<Coupon>;
     findAll(isActive?: boolean): Promise<Coupon[]>;
-    count(isActive?: boolean): Promise<number>;
-}
+    remove(coupon: Coupon): Promise<void>;
 
-export const ICouponRepository = Symbol('ICouponRepository');
+    // Specific query for admin stats could stay here or be in a separate QueryService
+    countTotal(): Promise<number>;
+    countActive(): Promise<number>;
+    create(data: any): Coupon;
+}

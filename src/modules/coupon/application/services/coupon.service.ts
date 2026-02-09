@@ -2,8 +2,8 @@ import { Injectable, BadRequestException, NotFoundException, Logger, Inject } fr
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, In } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '@/modules/chat/domain/entities/chat-session.entity';
-import { Coupon } from '@/modules/coupon/domain/entities/coupon.entity';
-import { UserCoupon } from '@/modules/coupon/domain/entities/user-coupon.entity';
+import { Coupon } from '../../domain/entities/coupon';
+import { UserCoupon } from '@/modules/coupon/domain/entities/user-coupon';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { Transaction } from '@/modules/wallet/domain/entities/transaction.entity';
 import { Wallet } from '@/modules/wallet/domain/entities/wallet.entity';
@@ -17,9 +17,9 @@ export class CouponService {
     private readonly logger = new Logger(CouponService.name);
 
     constructor(
-        @Inject(ICouponRepository)
+        @Inject('ICouponRepository')
         private couponRepository: ICouponRepository,
-        @Inject(IUserCouponRepository)
+        @Inject('IUserCouponRepository')
         private userCouponRepository: IUserCouponRepository,
         @InjectRepository(User)
         private userRepository: Repository<User>,
@@ -56,8 +56,8 @@ export class CouponService {
         delete (couponData as any).max_usage_limit;
         delete (couponData as any).applicable_to;
 
-        const coupon = this.couponRepository.create(couponData);
-        return this.couponRepository.save(coupon);
+        // Using the create method we added to the repository interface
+        return this.couponRepository.create(couponData);
     }
 
     async update(id: number, updateData: any): Promise<Coupon> {
@@ -81,7 +81,7 @@ export class CouponService {
             if (updateData.expiry_date && updateData.expiry_date.trim() !== "") {
                 const date = new Date(updateData.expiry_date);
                 if (!isNaN(date.getTime())) {
-                    coupon.expiryDate = date;
+                    (coupon as any).expiryDate = date;
                 }
             }
             delete updateData.expiry_date;
@@ -90,7 +90,7 @@ export class CouponService {
         // Robust handling for min_order_value
         if (updateData.min_order_value !== undefined) {
             if (updateData.min_order_value !== null && updateData.min_order_value !== "") {
-                coupon.minOrderValue = Number(updateData.min_order_value);
+                (coupon as any).minOrderValue = Number(updateData.min_order_value);
             }
             delete updateData.min_order_value;
         }
@@ -98,7 +98,7 @@ export class CouponService {
         // Robust handling for max_usage_limit
         if (updateData.max_usage_limit !== undefined) {
             if (updateData.max_usage_limit !== null && updateData.max_usage_limit !== "") {
-                coupon.maxUsageLimit = Number(updateData.max_usage_limit);
+                (coupon as any).maxUsageLimit = Number(updateData.max_usage_limit);
             }
             delete updateData.max_usage_limit;
         }
@@ -106,7 +106,7 @@ export class CouponService {
         // Robust handling for applicable_to
         if (updateData.applicable_to !== undefined) {
             if (updateData.applicable_to && updateData.applicable_to.trim() !== "") {
-                coupon.applicableTo = updateData.applicable_to;
+                (coupon as any).applicableTo = updateData.applicable_to;
             }
             delete updateData.applicable_to;
         }
@@ -130,8 +130,8 @@ export class CouponService {
     }
 
     async getAdminStats() {
-        const totalCoupons = await this.couponRepository.count();
-        const activeCoupons = await this.couponRepository.count(true);
+        const totalCoupons = await this.couponRepository.countTotal();
+        const activeCoupons = await this.couponRepository.countActive();
 
         const coupons = await this.couponRepository.findAll();
         const totalRedemptions = coupons.reduce((sum, c) => sum + Number(c.redemptionsCount || 0), 0);
@@ -376,43 +376,31 @@ export class CouponService {
     }
 
     async applyCoupon(code: string, userId: number, orderValue?: number, serviceType: string = 'all') {
+        // DDD Refactor: Using Domain Repository and Domain Entity Logic
         const coupon = await this.couponRepository.findByCode(code);
 
         // Debug Log
-        this.logger.debug(`Applying coupon: ${code} for user: ${userId}, value: ${orderValue}, type: ${serviceType}`);
+        this.logger.debug(`Applying coupon (DDD): ${code} for user: ${userId}, value: ${orderValue}, type: ${serviceType}`);
 
-        if (!coupon || !coupon.isActive) {
-            this.logger.error(`Coupon not found or inactive: ${code}`);
+        if (!coupon) {
+            this.logger.error(`Coupon not found: ${code}`);
             throw new NotFoundException('Invalid or inactive coupon');
         }
 
-        const now = new Date();
-        if (coupon.expiryDate < now) {
-            this.logger.error(`Coupon expired: ${code}`);
-            throw new BadRequestException('Coupon expired');
-        }
-
-        if (orderValue !== undefined && Number(orderValue) < Number(coupon.minOrderValue)) {
-            this.logger.error(`Min order value check failed: Cart ${orderValue} < Min ${coupon.minOrderValue}`);
-            throw new BadRequestException(`Minimum order value is ${coupon.minOrderValue}`);
-        }
-
-        if (Number(coupon.redemptionsCount) >= Number(coupon.maxUsageLimit)) {
-            this.logger.error(`Usage limit reached for coupon: ${code}`);
-            throw new BadRequestException('Coupon usage limit reached');
-        }
-
-        // Service type check (Mapping 'order' to 'product' temporarily for flexibility)
-        const normalizeType = serviceType === 'order' ? 'product' : serviceType;
-        if (coupon.applicableTo !== 'all' && normalizeType !== 'all' && coupon.applicableTo !== normalizeType) {
-            this.logger.error(`Service type mismatch: Coupon works for ${coupon.applicableTo}, but used for ${normalizeType}`);
-            throw new BadRequestException(`This coupon is only valid for ${coupon.applicableTo} services`);
+        try {
+            // All business rules are now checked inside the Domain Entity
+            // No more "if (expired)" or "if (limit reached)" here.
+            coupon.canBeApplied(Number(orderValue || 0), serviceType);
+        } catch (error) {
+            this.logger.error(`Coupon validation failed: ${error.message}`);
+            throw new BadRequestException(error.message);
         }
 
         if (coupon.isPublic) {
             return coupon;
         }
 
+        // Infrastructure concern (Data access) can remain here or be moved to a Domain Service
         const assignment = await this.userCouponRepository.findByIds(userId, coupon.id);
 
         if (!assignment || assignment.isUsed) {

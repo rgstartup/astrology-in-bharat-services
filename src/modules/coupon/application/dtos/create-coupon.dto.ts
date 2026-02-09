@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsBoolean, IsDateString, IsString, IsOptional, Min } from 'class-validator';
-import { CouponType } from '../../domain/entities/coupon.entity';
+import { CouponType } from '../../domain/entities/coupon';
 
 export class CreateCouponDto {
     @IsString()

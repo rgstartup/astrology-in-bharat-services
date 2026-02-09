@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { User } from '@/modules/users/domain/entities/user.entity';
-import { Coupon } from './coupon.entity';
+import { Coupon } from './coupon';
 
 @Entity('user_coupons')
 export class UserCoupon {

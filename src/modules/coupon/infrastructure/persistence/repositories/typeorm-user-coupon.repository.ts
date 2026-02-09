@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, In } from 'typeorm';
-import { UserCoupon } from '@/modules/coupon/domain/entities/user-coupon.entity';
-import { IUserCouponRepository } from '../../domain/repositories/user-coupon.repository.interface';
+import { Repository, In, Between } from 'typeorm';
+import { IUserCouponRepository } from '../../../domain/repositories/user-coupon.repository.interface';
+import { UserCoupon } from '../../../domain/entities/user-coupon';
 
 @Injectable()
 export class TypeOrmUserCouponRepository implements IUserCouponRepository {
@@ -11,18 +11,13 @@ export class TypeOrmUserCouponRepository implements IUserCouponRepository {
         private readonly repository: Repository<UserCoupon>,
     ) { }
 
-    async findByIds(userId: number, couponId: number): Promise<UserCoupon | null> {
-        return this.repository.findOne({
-            where: { userId, couponId },
+    async findAssignments(couponId: number, userIds: number[]): Promise<UserCoupon[]> {
+        return this.repository.find({
+            where: {
+                couponId,
+                userId: In(userIds),
+            },
         });
-    }
-
-    async save(userCoupon: UserCoupon | UserCoupon[]): Promise<UserCoupon | UserCoupon[]> {
-        return this.repository.save(userCoupon as any);
-    }
-
-    create(data: Partial<UserCoupon>): UserCoupon {
-        return this.repository.create(data);
     }
 
     async deleteByCouponId(couponId: number): Promise<void> {
@@ -38,8 +33,8 @@ export class TypeOrmUserCouponRepository implements IUserCouponRepository {
         return this.repository.count({
             where: {
                 isUsed: true,
-                usedAt: Between(startOfToday, endOfToday)
-            }
+                usedAt: Between(startOfToday, endOfToday),
+            },
         });
     }
 
@@ -50,12 +45,17 @@ export class TypeOrmUserCouponRepository implements IUserCouponRepository {
         });
     }
 
-    async findAssignments(couponId: number, userIds: number[]): Promise<UserCoupon[]> {
-        return this.repository.find({
-            where: {
-                couponId,
-                userId: In(userIds),
-            },
+    async findByIds(userId: number, couponId: number): Promise<UserCoupon | null> {
+        return this.repository.findOne({
+            where: { userId, couponId },
         });
+    }
+
+    create(data: Partial<UserCoupon>): UserCoupon {
+        return this.repository.create(data);
+    }
+
+    async save(userCoupon: UserCoupon | UserCoupon[]): Promise<UserCoupon | UserCoupon[]> {
+        return this.repository.save(userCoupon as any);
     }
 }

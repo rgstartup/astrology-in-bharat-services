@@ -15,7 +15,7 @@ import { OAuthAccount } from '@/modules/auth/domain/entities/oauth-accounts.enti
 import { Credential } from '@/modules/auth/domain/entities/credential.entity';
 import { ProfileClient } from '@/modules/client/domain/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
-import { UserCoupon } from '@/modules/coupon/domain/entities/user-coupon.entity';
+import { UserCoupon } from '@/modules/coupon/domain/entities/user-coupon';
 
 @Entity('users')
 export class User {

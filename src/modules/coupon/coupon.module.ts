@@ -1,17 +1,15 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
-import { User } from '@/modules/users/domain/entities/user.entity';
-import { Transaction } from '@/modules/wallet/domain/entities/transaction.entity';
-import { Wallet } from '@/modules/wallet/domain/entities/wallet.entity';
+import { Coupon } from './domain/entities/coupon';
+import { UserCoupon } from './domain/entities/user-coupon';
+import { User } from '../users/domain/entities/user.entity';
+import { Transaction } from '../wallet/domain/entities/transaction.entity';
+import { ChatSession } from '../chat/domain/entities/chat-session.entity';
+import { Wallet } from '../wallet/domain/entities/wallet.entity';
 import { CouponService } from './application/services/coupon.service';
-import { Coupon } from './domain/entities/coupon.entity';
-import { UserCoupon } from './domain/entities/user-coupon.entity';
-import { ICouponRepository } from './domain/repositories/coupon.repository.interface';
-import { IUserCouponRepository } from './domain/repositories/user-coupon.repository.interface';
-import { TypeOrmCouponRepository } from './infrastructure/persistence/typeorm-coupon.repository';
-import { TypeOrmUserCouponRepository } from './infrastructure/persistence/typeorm-user-coupon.repository';
 import { CouponController, AdminCouponController, AdminUserFilterController } from './interfaces/controllers/coupon.controller';
+import { TypeOrmUserCouponRepository } from './infrastructure/persistence/repositories/typeorm-user-coupon.repository';
+import { TypeOrmCouponRepository } from './infrastructure/persistence/repositories/typeorm-coupon.repository';
 
 @Module({
     imports: [
@@ -28,13 +26,15 @@ import { CouponController, AdminCouponController, AdminUserFilterController } fr
     providers: [
         CouponService,
         {
-            provide: ICouponRepository,
+            provide: 'ICouponRepository',
             useClass: TypeOrmCouponRepository,
         },
         {
-            provide: IUserCouponRepository,
+            provide: 'IUserCouponRepository',
             useClass: TypeOrmUserCouponRepository,
         },
+        TypeOrmCouponRepository,
+        TypeOrmUserCouponRepository
     ],
     exports: [CouponService],
 })
