@@ -25,6 +25,7 @@ import { UsersModule } from '@/modules/users/users.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { WishlistModule } from '@/modules/wishlist/wishlist.module';
 import { SettingsModule } from '@/modules/settings/settings.module';
+import { LiveSessionModule } from '@/modules/liveSession/live-session.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { SettingsModule } from '@/modules/settings/settings.module';
     OrderModule,
     CouponModule,
     SettingsModule,
+    LiveSessionModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
