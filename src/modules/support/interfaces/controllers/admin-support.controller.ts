@@ -1,9 +1,13 @@
-import { Controller, Get, Patch, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, Query, UseGuards, Post } from '@nestjs/common';
 import { SupportService } from '../../application/services/support.service';
+import { DisputeChatService } from '../../application/services/dispute-chat.service';
 import { UpdateDisputeStatusDto } from '../../application/dtos/update-dispute-status.dto';
+import { SendMessageDto } from '../../application/dtos/send-message.dto';
 import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
 import { Roles } from '@/common/interfaces/decorators/roles.decorator';
+import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Controller({
     path: 'admin/support',
@@ -12,7 +16,10 @@ import { Roles } from '@/common/interfaces/decorators/roles.decorator';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
 export class AdminSupportController {
-    constructor(private readonly supportService: SupportService) { }
+    constructor(
+        private readonly supportService: SupportService,
+        private readonly chatService: DisputeChatService,
+    ) { }
 
     @Get('disputes')
     async getAllDisputes(
@@ -46,5 +53,23 @@ export class AdminSupportController {
             message: 'Dispute status updated successfully',
             dispute,
         };
+    }
+
+    @Get('disputes/:id/messages')
+    async getMessages(
+        @Param('id') id: number,
+        @CurrentUser() user: User,
+    ) {
+        return this.chatService.getMessages(id, user);
+    }
+
+    @Post('disputes/:id/messages')
+    async sendMessage(
+        @Param('id') id: number,
+        @CurrentUser() user: User,
+        @Body() dto: SendMessageDto,
+    ) {
+        // Admin messages: forceUserRole=false (default) to use ADMIN senderType
+        return this.chatService.sendMessage(id, user, dto, false);
     }
 }

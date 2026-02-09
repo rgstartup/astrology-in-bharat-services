@@ -40,6 +40,14 @@ export class SupportService {
         return this.disputeRepository.findAll(filters, page, limit);
     }
 
+    async getUserDisputes(
+        userId: number,
+        page: number = 1,
+        limit: number = 10,
+    ): Promise<{ data: Dispute[]; total: number }> {
+        return this.disputeRepository.findAll({ userId }, page, limit);
+    }
+
     async getDisputeById(id: number): Promise<Dispute> {
         const dispute = await this.disputeRepository.findById(id);
         if (!dispute) {
@@ -50,13 +58,79 @@ export class SupportService {
 
     async updateDisputeStatus(id: number, dto: UpdateDisputeStatusDto): Promise<Dispute> {
         const dispute = await this.getDisputeById(id);
-
         await this.disputeRepository.update(id, dto);
-
         return this.getDisputeById(id);
     }
 
     async getDisputeStats(): Promise<any> {
         return this.disputeRepository.getStats();
+    }
+
+    /**
+     * Helper to add computed fields to dispute
+     */
+    enrichDisputeWithMetadata(dispute: Dispute): any {
+        const closedStatuses = [DisputeStatus.CLOSE_REQUESTED, DisputeStatus.CLOSED, DisputeStatus.RESOLVED];
+        return {
+            ...dispute,
+            canSendMessage: !closedStatuses.includes(dispute.status),
+        };
+    }
+
+    /**
+     * User requests to close the dispute
+     */
+    async requestCloseDispute(id: number, userId: number, reason?: string): Promise<Dispute> {
+        const dispute = await this.getDisputeById(id);
+
+        if (dispute.userId !== userId) {
+            throw new NotFoundException('Dispute not found');
+        }
+
+        const userName = dispute.user?.name || 'User';
+
+        await this.disputeRepository.update(id, {
+            status: DisputeStatus.CLOSE_REQUESTED,
+            adminNotes: reason ? `User close request reason: ${reason}` : 'User requested to close this dispute',
+        });
+
+        const updatedDispute = await this.getDisputeById(id);
+
+        this.chatGateway.emitDisputeCloseRequested(id, {
+            disputeId: id,
+            userId: dispute.userId,
+            userName: userName,
+            reason: reason || null,
+        });
+
+        return updatedDispute;
+    }
+
+    /**
+     * Admin closes the dispute with feedback
+     */
+    async closeDispute(id: number, feedback: string, finalStatus: DisputeStatus): Promise<Dispute> {
+        const dispute = await this.getDisputeById(id);
+
+        if (finalStatus !== DisputeStatus.RESOLVED && finalStatus !== DisputeStatus.CLOSED) {
+            throw new Error('Final status must be either RESOLVED or CLOSED');
+        }
+
+        await this.disputeRepository.update(id, {
+            status: finalStatus,
+            adminFeedback: feedback,
+            closedAt: new Date(),
+        });
+
+        const updatedDispute = await this.getDisputeById(id);
+
+        this.chatGateway.emitDisputeClosed(id, {
+            disputeId: id,
+            status: finalStatus,
+            adminFeedback: feedback,
+            closedAt: updatedDispute.closedAt,
+        });
+
+        return updatedDispute;
     }
 }

@@ -5,6 +5,8 @@ import { SendMessageDto } from '../dtos/send-message.dto';
 import { DisputeMessage, SenderType } from '../../domain/entities/dispute-message.entity';
 import { User } from '@/modules/users/domain/entities/user.entity';
 
+import { DisputeChatGateway } from '../../interfaces/gateways/dispute-chat.gateway';
+
 @Injectable()
 export class DisputeChatService {
     constructor(
@@ -12,9 +14,10 @@ export class DisputeChatService {
         private readonly messageRepository: IDisputeMessageRepository,
         @Inject(IDisputeRepository)
         private readonly disputeRepository: IDisputeRepository,
+        private readonly chatGateway: DisputeChatGateway,
     ) { }
 
-    async getMessages(disputeId: number, user: User): Promise<DisputeMessage[]> {
+    async getMessages(disputeId: number, user: User): Promise<any[]> {
         // Verify dispute exists and user has access
         const dispute = await this.disputeRepository.findById(disputeId);
         if (!dispute) {
@@ -27,14 +30,28 @@ export class DisputeChatService {
             throw new ForbiddenException('You do not have access to this dispute');
         }
 
-        return this.messageRepository.findByDisputeId(disputeId);
+        const messages = await this.messageRepository.findByDisputeId(disputeId);
+
+        return messages.map((msg) => {
+            let senderName = 'User';
+            if (msg.senderType === SenderType.ADMIN) {
+                senderName = 'Support Team';
+            } else if (msg.senderId === dispute.userId && dispute.user) {
+                senderName = dispute.user.name || 'User';
+            }
+            return {
+                ...msg,
+                senderName,
+            };
+        });
     }
 
     async sendMessage(
         disputeId: number,
         user: User,
         dto: SendMessageDto,
-    ): Promise<DisputeMessage> {
+        forceUserRole: boolean = false,
+    ): Promise<any> {
         // Verify dispute exists and user has access
         const dispute = await this.disputeRepository.findById(disputeId);
         if (!dispute) {
@@ -51,9 +68,13 @@ export class DisputeChatService {
             throw new Error('Either message or attachment must be provided');
         }
 
+        // Determine senderType: if forceUserRole is true, always use USER
+        // Otherwise, use ADMIN if user has admin role
+        const senderType = forceUserRole ? SenderType.USER : (isAdmin ? SenderType.ADMIN : SenderType.USER);
+
         const message = this.messageRepository.create({
             disputeId,
-            senderType: isAdmin ? SenderType.ADMIN : SenderType.USER,
+            senderType,
             senderId: user.id,
             message: dto.message,
             attachmentUrl: dto.attachmentUrl,
@@ -61,7 +82,13 @@ export class DisputeChatService {
             isRead: false,
         });
 
-        return this.messageRepository.save(message);
+        const savedMessage = await this.messageRepository.save(message);
+
+        const senderName = senderType === SenderType.ADMIN ? 'Support Team' : (user.name || 'User');
+        const enrichedMessage = { ...savedMessage, senderName };
+
+        this.chatGateway.emitNewMessage(disputeId, enrichedMessage as any);
+        return enrichedMessage;
     }
 
     async markMessagesAsRead(disputeId: number, user: User): Promise<number> {
@@ -76,7 +103,11 @@ export class DisputeChatService {
             throw new ForbiddenException('You do not have access to this dispute');
         }
 
-        return this.messageRepository.markAsRead(disputeId, user.id);
+        const count = await this.messageRepository.markAsRead(disputeId, user.id);
+        if (count > 0) {
+            this.chatGateway.emitMessagesRead(disputeId, count);
+        }
+        return count;
     }
 
     async getUnreadCount(disputeId: number, user: User): Promise<number> {

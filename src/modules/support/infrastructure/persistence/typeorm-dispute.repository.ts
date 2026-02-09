@@ -49,6 +49,10 @@ export class TypeOrmDisputeRepository implements IDisputeRepository {
       query.andWhere('dispute.priority = :priority', { priority: filters.priority });
     }
 
+    if (filters?.userId) {
+      query.andWhere('dispute.userId = :userId', { userId: filters.userId });
+    }
+
     query.orderBy('dispute.createdAt', 'DESC');
 
     const [data, total] = await query.skip(skip).take(limit).getManyAndCount();

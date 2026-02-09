@@ -18,7 +18,7 @@ import { DatabaseService } from './database.service';
           type: 'postgres',
           url: databaseUrl,
           autoLoadEntities: true,
-          synchronize: process.env.NODE_ENV !== 'production',
+          synchronize: false, // Temporarily disabled to avoid enum sync issues
           logging: true,
           schema: 'public',
           ssl: {

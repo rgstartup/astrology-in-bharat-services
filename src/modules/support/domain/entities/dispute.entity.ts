@@ -9,8 +9,10 @@ export enum DisputeType {
 export enum DisputeStatus {
     PENDING = 'pending',
     UNDER_REVIEW = 'under_review',
+    CLOSE_REQUESTED = 'close_requested',
     RESOLVED = 'resolved',
     REJECTED = 'rejected',
+    CLOSED = 'closed',
 }
 
 export enum DisputePriority {
@@ -48,6 +50,12 @@ export class Dispute {
 
     @Column({ type: 'text', nullable: true })
     adminNotes: string;
+
+    @Column({ type: 'text', nullable: true })
+    adminFeedback: string;
+
+    @Column({ type: 'timestamp', nullable: true })
+    closedAt: Date;
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })
