@@ -366,9 +366,6 @@ export class ChatService {
           referenceId,
         );
         const excessCost = totalCost - initialReservation;
-        const { TransactionPurpose } = await import(
-          '@/modules/wallet'
-        );
         await this.walletService.debit(
           session.userId,
           excessCost,
@@ -385,15 +382,18 @@ export class ChatService {
         });
 
         if (sessionWithExpert?.expert?.user?.id) {
-          const { TransactionPurpose } = await import(
-            '@/modules/wallet'
-          );
           await this.walletService.credit(
             sessionWithExpert.expert.user.id,
             totalCost,
             TransactionPurpose.CONSULTATION,
             referenceId,
           );
+          console.log(`[ChatService] Credited expert ${sessionWithExpert.expert.user.id} with ₹${totalCost} for session ${sessionId}`);
+        } else {
+          console.error(`[ChatService] Could not credit expert for session ${sessionId}: Expert or User ID missing`, {
+            expert: sessionWithExpert?.expert,
+            userId: sessionWithExpert?.expert?.user?.id
+          });
         }
       }
     } catch (error) {

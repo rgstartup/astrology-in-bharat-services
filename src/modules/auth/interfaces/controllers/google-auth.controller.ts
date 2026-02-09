@@ -33,9 +33,11 @@ export class GoogleAuthController {
 
     // Parse state for redirect
     let redirectUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    let role = 'client';
     try {
       if (req.query.state) {
         const state = JSON.parse(req.query.state as string);
+        role = state.role || 'client';
         if (state.redirect_uri) {
           redirectUrl = state.redirect_uri;
         } else if (state.role === 'expert') {
@@ -48,8 +50,17 @@ export class GoogleAuthController {
       console.error('Error parsing state in callback:', e);
     }
 
+    // Determine target path based on role
+    let targetPath = '/';
+    if (role === 'expert') {
+      targetPath = '/dashboard';
+    } else if (role === 'admin') {
+      targetPath = '/admin/dashboard';
+    }
+
     // Redirect to frontend
-    return res.redirect(`${redirectUrl}/dashboard?token=${accessToken}`);
+    const finalRedirectUrl = `${redirectUrl}${targetPath}${targetPath.includes('?') ? '&' : '?'}token=${accessToken}`;
+    return res.redirect(finalRedirectUrl);
   }
 
   // Fallback for old endpoints if needed
