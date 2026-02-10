@@ -1,8 +1,10 @@
+
 import { Controller, Post, Body, UseGuards, Get, Query, Param, Patch, ForbiddenException } from '@nestjs/common';
 import { SupportService } from '../../application/services/support.service';
 import { DisputeChatService } from '../../application/services/dispute-chat.service';
 import { CreateDisputeDto } from '../../application/dtos/create-dispute.dto';
 import { SendMessageDto } from '../../application/dtos/send-message.dto';
+import { RequestCloseDisputeDto } from '../../application/dtos/request-close-dispute.dto';
 import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
 import { CurrentUser } from '@/common/interfaces/decorators/current-user.decorator';
 import { User } from '@/modules/users/domain/entities/user.entity';
@@ -48,7 +50,13 @@ export class SupportController {
         if (dispute.userId !== user.id && !user.roles?.some((r) => r.name === 'admin')) {
             throw new ForbiddenException('You do not have access to this dispute');
         }
-        return dispute;
+
+        // Add computed field
+        const closedStatuses = ['closed', 'resolved'];
+        return {
+            ...dispute,
+            canSendMessage: !closedStatuses.includes(dispute.status),
+        };
     }
 
     @Get('disputes/:id/messages')
@@ -88,5 +96,19 @@ export class SupportController {
     ) {
         const count = await this.chatService.getUnreadCount(id, user);
         return { count };
+    }
+
+    @Patch('disputes/:id/request-close')
+    async requestCloseDispute(
+        @Param('id') id: number,
+        @CurrentUser() user: User,
+        @Body() dto: RequestCloseDisputeDto,
+    ) {
+        const dispute = await this.supportService.requestCloseDispute(id, user.id, dto.reason);
+        return {
+            id: dispute.id,
+            status: dispute.status,
+            message: 'Close request sent to admin',
+        };
     }
 }

@@ -13,4 +13,8 @@ export class UpdateDisputeStatusDto {
     @IsOptional()
     @IsString()
     adminNotes?: string;
+
+    @IsOptional()
+    @IsString()
+    notes?: string;
 }

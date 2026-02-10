@@ -272,6 +272,17 @@ export class ChatController {
 
         return {
           ...session,
+          duration: session.duration || 0,
+          chatType: session.sessionType,
+          expert: session.expert ? {
+            ...session.expert,
+            rating: session.expert.rating,
+            category: session.expert.specialization,
+            user: session.expert.user ? {
+              ...session.expert.user,
+              profile_picture: session.expert.user.avatar,
+            } : null,
+          } : null,
           expiresAt:
             session.status === 'pending'
               ? new Date(new Date(session.createdAt).getTime() + expiryTime)
@@ -311,6 +322,17 @@ export class ChatController {
 
         return {
           ...session,
+          duration: session.duration || durationMins,
+          chatType: session.sessionType,
+          expert: session.expert ? {
+            ...session.expert,
+            rating: session.expert.rating,
+            category: session.expert.specialization,
+            user: session.expert.user ? {
+              ...session.expert.user,
+              profile_picture: session.expert.user.avatar,
+            } : null,
+          } : null,
           expiresAt:
             session.status === 'pending'
               ? new Date(new Date(session.createdAt).getTime() + expiryTime)

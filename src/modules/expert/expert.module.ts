@@ -33,6 +33,8 @@ import { TodosController } from './interfaces/controllers/todos.controller';
 import { ExpertDashboardController } from './interfaces/controllers/expert-dashboard.controller';
 import { ExpertWalletController } from './interfaces/controllers/expert-wallet.controller';
 
+import { ExpertEarningsController } from './interfaces/controllers/earnings.controller';
+
 // Gateways
 import { ExpertGateway } from './interfaces/gateways/expert.gateway';
 
@@ -69,11 +71,12 @@ import { CloudinaryModule } from '@/common/infrastructure/storage/cloudinary/clo
     { provide: ITodoRepository, useClass: TypeOrmTodoRepository },
   ],
   controllers: [
-    ProfileController,
     BankAccountsController,
     TodosController,
     ExpertDashboardController,
     ExpertWalletController,
+    ExpertEarningsController,
+    ProfileController,
   ],
   exports: [ProfileService, ExpertGateway, IExpertRepository],
 })
