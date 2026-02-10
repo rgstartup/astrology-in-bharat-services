@@ -74,14 +74,16 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { userId } = payload;
 
     // Initialize socket set for user if not exists
-    if (!this.userSockets.has(userId)) {
-      this.userSockets.set(userId, new Set());
+    let sockets = this.userSockets.get(userId);
+    if (!sockets) {
+      sockets = new Set();
+      this.userSockets.set(userId, sockets);
     }
 
-    this.userSockets.get(userId).add(client.id);
+    sockets.add(client.id);
     this.socketToUser.set(client.id, userId);
 
-    this.logger.log(`Expert ${userId} is online via socket ${client.id} (Total tabs: ${this.userSockets.get(userId).size})`);
+    this.logger.log(`Expert ${userId} is online via socket ${client.id} (Total tabs: ${sockets.size})`);
 
     // Broadcast to all clients
     this.server.emit('expert_status_changed', {
@@ -142,6 +144,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Method to check if an expert is online
   isExpertOnline(userId: number): boolean {
-    return this.userSockets.has(userId) && this.userSockets.get(userId).size > 0;
+    const sockets = this.userSockets.get(userId);
+    return !!sockets && sockets.size > 0;
   }
 }
