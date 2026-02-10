@@ -3,12 +3,14 @@ import { IDisputeRepository } from '../../domain/repositories/dispute.repository
 import { CreateDisputeDto } from '../dtos/create-dispute.dto';
 import { UpdateDisputeStatusDto } from '../dtos/update-dispute-status.dto';
 import { Dispute, DisputeStatus } from '../../domain/entities/dispute.entity';
+import { DisputeChatGateway } from '../../interfaces/gateways/dispute-chat.gateway';
 
 @Injectable()
 export class SupportService {
     constructor(
         @Inject(IDisputeRepository)
         private readonly disputeRepository: IDisputeRepository,
+        private readonly chatGateway: DisputeChatGateway,
     ) { }
 
     async createDispute(userId: number, dto: CreateDisputeDto): Promise<Dispute> {

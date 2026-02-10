@@ -63,4 +63,14 @@ export class DisputeChatGateway implements OnGatewayConnection, OnGatewayDisconn
         this.logger.log(`Emitting messages_read to dispute_${disputeId}`);
         this.server.to(`dispute_${disputeId}`).emit('messages_read', { count });
     }
+
+    emitDisputeCloseRequested(disputeId: number, data: any) {
+        this.logger.log(`Emitting dispute_close_requested to dispute_${disputeId}`);
+        this.server.to(`dispute_${disputeId}`).emit('dispute_close_requested', data);
+    }
+
+    emitDisputeClosed(disputeId: number, data: any) {
+        this.logger.log(`Emitting dispute_closed to dispute_${disputeId}`);
+        this.server.to(`dispute_${disputeId}`).emit('dispute_closed', data);
+    }
 }
