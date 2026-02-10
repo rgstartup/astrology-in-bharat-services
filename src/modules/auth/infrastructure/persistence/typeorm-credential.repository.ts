@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, QueryRunner } from 'typeorm';
 import { Credential } from '@/modules/auth/domain/entities/credential.entity';
 import { ICredentialRepository } from '../../domain/repositories/credential.repository.interface';
 
@@ -33,5 +33,12 @@ export class TypeOrmCredentialRepository implements ICredentialRepository {
 
     async delete(id: number): Promise<void> {
         await this.repository.delete(id);
+    }
+
+    getRepo(queryRunner?: QueryRunner): Repository<Credential> {
+        if (queryRunner) {
+            return queryRunner.manager.getRepository(Credential);
+        }
+        return this.repository;
     }
 }

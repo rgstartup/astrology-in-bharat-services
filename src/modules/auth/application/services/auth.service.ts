@@ -60,8 +60,8 @@ export class AuthService {
       name: r,
     }));
 
-    // 👇 return user + tokens from transaction
-    const { user, tokens } = await this.db.transaction(async (queryRunner) => {
+    // 👇 return user from transaction
+    const user = await this.db.transaction(async (queryRunner) => {
       const user = await this.usersService.create(
         {
           ...registerDto,
@@ -73,16 +73,6 @@ export class AuthService {
           ip_address: ip,
         },
         queryRunner,
-      );
-
-      const tokens = await this.tokenService.generateTokens(
-        user,
-        ip,
-        userAgent,
-        // transactionalRepo case handled here? 
-        // TokenService needs to support queryRunner if we want full ACID.
-        // For now, I'll pass it if I can, but Repository interfaces might need it.
-        // I'll skip deep transactional integration for repo patterns for now to keep it simple as requested.
       );
 
       const verification_token = this.tokenService.generate5MinToken({
@@ -102,8 +92,10 @@ export class AuthService {
         ),
       );
 
-      return { user, tokens };
+      return user;
     });
+
+    const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
     // CHECK if user is EXPERT
     const isExpert = roles.includes('expert');
@@ -158,8 +150,8 @@ export class AuthService {
       name: r,
     }));
 
-    // 👇 return user + tokens from transaction
-    const { user, tokens } = await this.db.transaction(async (queryRunner) => {
+    // 👇 return user from transaction
+    const user = await this.db.transaction(async (queryRunner) => {
       const user = await this.usersService.create(
         {
           ...registerDto,
@@ -171,12 +163,6 @@ export class AuthService {
           ip_address: ip,
         },
         queryRunner,
-      );
-
-      const tokens = await this.tokenService.generateTokens(
-        user,
-        ip,
-        userAgent,
       );
 
       const verification_token = this.tokenService.generate5MinToken({
@@ -196,8 +182,10 @@ export class AuthService {
         ),
       );
 
-      return { user, tokens };
+      return user;
     });
+
+    const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
     // CLIENT now requires email verification - NO auto-login
     // Return success message WITHOUT logging in
@@ -590,4 +578,3 @@ export class AuthService {
     );
   }
 }
-

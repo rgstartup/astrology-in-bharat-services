@@ -11,6 +11,8 @@ import { NotificationType } from '@/modules/notification/domain/entities/notific
 import { OrderItem } from '@/modules/order/domain/entities/order-item.entity';
 import { Order } from '@/modules/order/domain/entities/order.entity';
 import { User } from '@/modules/users/domain/entities/user.entity';
+import { WalletService } from '@/modules/wallet/application/services/wallet.service';
+import { TransactionPurpose } from '@/modules/wallet/domain/entities/transaction.entity';
 import { OrderStatus } from '../../domain/entities/order.entity';
 import { IOrderRepository, IOrderItemRepository } from '../../domain/repositories/order.repository.interface';
 
@@ -29,6 +31,7 @@ export class OrderService {
         private notificationGateway: NotificationGateway,
         private emailService: EmailService,
         private couponService: CouponService,
+        private walletService: WalletService,
     ) { }
 
     async createOrderFromCart(userId: number, shippingAddress: any, couponCode?: string) {
@@ -38,30 +41,44 @@ export class OrderService {
             throw new BadRequestException('Cart is empty');
         }
 
+        // 1. Calculate Total Amount
+        let totalAmount = 0;
+        cart.items.forEach((item) => {
+            totalAmount += Number(item.product.price) * item.quantity;
+        });
+
+        let discountAmount = 0;
+        if (couponCode) {
+            const coupon = await this.couponService.applyCoupon(couponCode, userId, totalAmount, 'product');
+            if (coupon.type === 'percentage') {
+                discountAmount = (totalAmount * Number(coupon.value)) / 100;
+            } else {
+                discountAmount = Number(coupon.value);
+            }
+        }
+
+        const finalAmount = Math.max(0, totalAmount - discountAmount);
+
+        // 1.5 Check wallet balance before starting transaction
+        const hasBalance = await this.walletService.validateBalance(userId, finalAmount);
+        if (!hasBalance) {
+            throw new BadRequestException('Insufficient wallet balance. Please recharge your wallet.');
+        }
+
+        // 2. Deduct from wallet FIRST (before creating order)
+        await this.walletService.debit(
+            userId,
+            finalAmount,
+            TransactionPurpose.PRODUCT_PURCHASE,
+            `order_pending_${Date.now()}`,
+        );
+
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            // 1. Calculate Total Amount
-            let totalAmount = 0;
-            cart.items.forEach((item) => {
-                totalAmount += Number(item.product.price) * item.quantity;
-            });
-
-            let discountAmount = 0;
-            if (couponCode) {
-                const coupon = await this.couponService.applyCoupon(couponCode, userId, totalAmount, 'product');
-                if (coupon.type === 'percentage') {
-                    discountAmount = (totalAmount * Number(coupon.value)) / 100;
-                } else {
-                    discountAmount = Number(coupon.value);
-                }
-            }
-
-            const finalAmount = Math.max(0, totalAmount - discountAmount);
-
-            // 2. Create Order
+            // 3. Create Order
             const order = this.orderRepo.create({
                 userId,
                 totalAmount: finalAmount,
@@ -73,7 +90,7 @@ export class OrderService {
 
             const savedOrder = await queryRunner.manager.save(order);
 
-            // 3. Create Order Items
+            // 4. Create Order Items
             const orderItems = cart.items.map((cartItem) => {
                 return this.orderItemRepo.create({
                     order: savedOrder,
@@ -123,6 +140,19 @@ export class OrderService {
             return savedOrder;
         } catch (error) {
             await queryRunner.rollbackTransaction();
+
+            // If order creation failed, refund the wallet deduction
+            try {
+                await this.walletService.credit(
+                    userId,
+                    finalAmount,
+                    TransactionPurpose.REFUND,
+                    `order_failed_${Date.now()}`,
+                );
+            } catch (refundError) {
+                console.error('Failed to refund wallet after order creation failure:', refundError);
+            }
+
             throw error;
         } finally {
             await queryRunner.release();

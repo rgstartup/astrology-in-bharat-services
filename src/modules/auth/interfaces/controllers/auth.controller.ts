@@ -14,7 +14,6 @@ export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @Post('register')
-  @Post('email/register')
   async register(
     @Body() dto: RegisterDto,
     @Req() req: Request,
@@ -25,9 +24,30 @@ export class AuthController {
     return this.authService.register(dto, ip, userAgent, res);
   }
 
+  @Post('email/register')
+  async emailRegister(
+    @Body() dto: RegisterDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const ip = req.ip || req.socket.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    return this.authService.register(dto, ip, userAgent, res);
+  }
+
   @Post('login')
-  @Post('email/login')
   async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const ip = req.ip || req.socket.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    return this.authService.login(dto, ip, userAgent, res);
+  }
+
+  @Post('email/login')
+  async emailLogin(
     @Body() dto: LoginDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
@@ -108,6 +128,11 @@ export class AuthController {
 
   @Get('confirm-email')
   async confirmEmail(@Query('token') token: string) {
+    return this.authService.confirmEmail(token);
+  }
+
+  @Get('email/verify')
+  async verifyEmail(@Query('token') token: string) {
     return this.authService.confirmEmail(token);
   }
 

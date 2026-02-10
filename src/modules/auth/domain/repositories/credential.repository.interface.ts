@@ -7,6 +7,7 @@ export interface ICredentialRepository {
     create(data: Partial<Credential>): Credential;
     update(criteria: any, data: Partial<Credential>): Promise<void>;
     delete(id: number): Promise<void>;
+    getRepo(queryRunner?: any): any;
 }
 
 export const ICredentialRepository = Symbol('ICredentialRepository');

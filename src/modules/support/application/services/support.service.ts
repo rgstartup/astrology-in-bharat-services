@@ -15,6 +15,7 @@ export class SupportService {
         private readonly disputeRepository: IDisputeRepository,
         @Inject(IDisputeMessageRepository)
         private readonly messageRepository: IDisputeMessageRepository,
+
         private readonly chatGateway: DisputeChatGateway,
     ) { }
 
