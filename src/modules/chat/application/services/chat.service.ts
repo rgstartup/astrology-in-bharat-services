@@ -49,7 +49,7 @@ export class ChatService {
           createdAt: MoreThan(oneHourAgo),
         },
       ],
-      relations: ['user'],
+      relations: ['user', 'expert', 'expert.user'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -86,7 +86,7 @@ export class ChatService {
           createdAt: MoreThan(twelveHoursAgo),
         },
       ],
-      relations: ['user'],
+      relations: ['user', 'expert', 'expert.user'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -115,7 +115,7 @@ export class ChatService {
         { expertId: expert.id, status: ChatSessionStatus.EXPIRED },
         { expertId: expert.id, status: ChatSessionStatus.CANCELLED },
       ],
-      relations: ['user'],
+      relations: ['user', 'expert', 'expert.user'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -147,7 +147,7 @@ export class ChatService {
           createdAt: MoreThan(twelveHoursAgo),
         },
       ],
-      relations: ['user'],
+      relations: ['user', 'expert', 'expert.user'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -173,7 +173,7 @@ export class ChatService {
 
     return this.sessionRepo.find({
       where: { expertId: expert.id },
-      relations: ['user'],
+      relations: ['user', 'expert', 'expert.user'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -334,6 +334,7 @@ export class ChatService {
         actualDurationMins - (session.freeMinutes || 0),
       );
       totalCost = billableMins * session.pricePerMinute;
+      session.duration = actualDurationMins;
     }
 
     session.totalCost = totalCost;

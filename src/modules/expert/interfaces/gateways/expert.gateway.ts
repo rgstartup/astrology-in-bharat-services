@@ -1,7 +1,6 @@
-import { Logger, Inject, forwardRef } from '@nestjs/common';
+import { Logger, Inject } from '@nestjs/common';
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
 import { IExpertRepository } from '../../domain/repositories/expert.repository.interface';
 
 @WebSocketGateway({
@@ -20,8 +19,10 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private logger: Logger = new Logger('ExpertGateway');
 
-  // Track online experts: userId -> socketId
-  private expertSockets: Map<number, string> = new Map();
+  // Track online experts: userId -> Set of socketIds (handles multiple tabs)
+  private userSockets: Map<number, Set<string>> = new Map();
+  // Reverse mapping: socketId -> userId for efficient disconnect lookup
+  private socketToUser: Map<string, number> = new Map();
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -30,13 +31,19 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
 
-    // Remove from online experts if it was an expert socket
-    for (const [userId, socketId] of this.expertSockets.entries()) {
-      if (socketId === client.id) {
-        this.expertSockets.delete(userId);
-        this.logger.log(
-          `Expert ${userId} removed from tracking (disconnected)`,
-        );
+    const userId = this.socketToUser.get(client.id);
+    if (!userId) return;
+
+    // Remove this specific socket from the user's set
+    const sockets = this.userSockets.get(userId);
+    if (sockets) {
+      sockets.delete(client.id);
+      this.socketToUser.delete(client.id);
+
+      // If no more sockets are left for this user, they are truly offline
+      if (sockets.size === 0) {
+        this.userSockets.delete(userId);
+        this.logger.log(`Expert ${userId} is now fully offline (all tabs closed)`);
 
         try {
           // Update database status to offline
@@ -44,7 +51,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
           if (profile) {
             profile.is_available = false;
             await this.expertRepository.save(profile);
-            this.logger.log(`Expert ${userId} availability set to false in DB due to disconnect`);
+            this.logger.log(`Expert ${userId} availability set to false in DB due to full disconnect`);
           }
         } catch (error) {
           this.logger.error(`Failed to update DB status for expert ${userId} on disconnect:`, error.stack);
@@ -54,38 +61,66 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.emit('expert_status_changed', {
           expert_id: userId,
           is_available: false,
-          status: 'offline', // keeping status for backward compatibility if needed
+          status: 'offline',
         });
-        break;
+      } else {
+        this.logger.log(`Expert ${userId} closed one tab, but ${sockets.size} tabs still open`);
       }
     }
   }
 
   @SubscribeMessage('expert_online')
   handleExpertOnline(client: Socket, payload: { userId: number }) {
-    this.expertSockets.set(payload.userId, client.id);
-    this.logger.log(
-      `Expert ${payload.userId} is online via socket ${client.id}`,
-    );
+    const { userId } = payload;
 
-    // Broadcast to all clients (especially the main frontend)
+    // Initialize socket set for user if not exists
+    let sockets = this.userSockets.get(userId);
+    if (!sockets) {
+      sockets = new Set();
+      this.userSockets.set(userId, sockets);
+    }
+
+    sockets.add(client.id);
+    this.socketToUser.set(client.id, userId);
+
+    this.logger.log(`Expert ${userId} is online via socket ${client.id} (Total tabs: ${sockets.size})`);
+
+    // Broadcast to all clients
     this.server.emit('expert_status_changed', {
-      expert_id: payload.userId,
+      expert_id: userId,
       is_available: true,
       status: 'online',
     });
   }
 
   @SubscribeMessage('expert_offline')
-  handleExpertOffline(client: Socket, payload: { userId: number }) {
-    this.expertSockets.delete(payload.userId);
-    this.logger.log(
-      `Expert ${payload.userId} is offline via socket ${client.id}`,
-    );
+  async handleExpertOffline(client: Socket, payload: { userId: number }) {
+    const { userId } = payload;
+
+    // Forcefully remove all sockets for this user (user explicitly clicked offline)
+    const sockets = this.userSockets.get(userId);
+    if (sockets) {
+      for (const socketId of sockets) {
+        this.socketToUser.delete(socketId);
+      }
+      this.userSockets.delete(userId);
+    }
+
+    this.logger.log(`Expert ${userId} manually went offline`);
+
+    try {
+      const profile = await this.expertRepository.findByUserId(userId);
+      if (profile) {
+        profile.is_available = false;
+        await this.expertRepository.save(profile);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to update DB status for expert ${userId} on manual offline:`, error.stack);
+    }
 
     // Broadcast to all clients
     this.server.emit('expert_status_changed', {
-      expert_id: payload.userId,
+      expert_id: userId,
       is_available: false,
       status: 'offline',
     });
@@ -109,6 +144,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Method to check if an expert is online
   isExpertOnline(userId: number): boolean {
-    return this.expertSockets.has(userId);
+    const sockets = this.userSockets.get(userId);
+    return !!sockets && sockets.size > 0;
   }
 }

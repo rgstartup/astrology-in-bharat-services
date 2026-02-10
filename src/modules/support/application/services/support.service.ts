@@ -1,8 +1,11 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { IDisputeRepository } from '../../domain/repositories/dispute.repository.interface';
 import { CreateDisputeDto } from '../dtos/create-dispute.dto';
 import { UpdateDisputeStatusDto } from '../dtos/update-dispute-status.dto';
 import { Dispute, DisputeStatus } from '../../domain/entities/dispute.entity';
+import { IDisputeMessageRepository } from '../../domain/repositories/dispute-message.repository.interface';
+import { SenderType } from '../../domain/entities/dispute-message.entity';
+
 import { DisputeChatGateway } from '../../interfaces/gateways/dispute-chat.gateway';
 
 @Injectable()
@@ -10,6 +13,9 @@ export class SupportService {
     constructor(
         @Inject(IDisputeRepository)
         private readonly disputeRepository: IDisputeRepository,
+        @Inject(IDisputeMessageRepository)
+        private readonly messageRepository: IDisputeMessageRepository,
+
         private readonly chatGateway: DisputeChatGateway,
     ) { }
 
@@ -17,21 +23,26 @@ export class SupportService {
         // Map orderId or consultationId to itemId for backward compatibility
         const itemId = dto.itemId || dto.orderId || dto.consultationId;
 
-        if (!itemId) {
-            throw new Error('Either itemId, orderId, or consultationId must be provided');
+        if (!itemId || isNaN(Number(itemId))) {
+            throw new BadRequestException('Invalid itemId, orderId, or consultationId provided');
         }
 
-        const dispute = this.disputeRepository.create({
-            type: dto.type,
-            itemId,
-            category: dto.category,
-            description: dto.description,
-            itemDetails: dto.itemDetails,
-            userId,
-            status: DisputeStatus.PENDING,
-        });
+        try {
+            const dispute = this.disputeRepository.create({
+                type: dto.type,
+                itemId,
+                category: dto.category,
+                description: dto.description,
+                itemDetails: dto.itemDetails,
+                userId,
+                status: DisputeStatus.PENDING,
+            });
 
-        return this.disputeRepository.save(dispute);
+            return await this.disputeRepository.save(dispute);
+        } catch (error) {
+            console.error('Error creating dispute:', error);
+            throw error;
+        }
     }
 
     async getAllDisputes(
@@ -60,7 +71,16 @@ export class SupportService {
 
     async updateDisputeStatus(id: number, dto: UpdateDisputeStatusDto): Promise<Dispute> {
         const dispute = await this.getDisputeById(id);
-        await this.disputeRepository.update(id, dto);
+
+        // Map notes to adminNotes if provided
+        if (dto.notes && !dto.adminNotes) {
+            dto.adminNotes = dto.notes;
+        }
+
+        // Clean up notes from dto before passing to repository if it's strict
+        const { notes, ...updateData } = dto;
+
+        await this.disputeRepository.update(id, updateData);
         return this.getDisputeById(id);
     }
 
@@ -96,6 +116,15 @@ export class SupportService {
             adminNotes: reason ? `User close request reason: ${reason}` : 'User requested to close this dispute',
         });
 
+        // Save system message
+        await this.messageRepository.save(this.messageRepository.create({
+            disputeId: id,
+            senderType: SenderType.USER,
+            senderId: userId,
+            message: reason ? `Reason: ${reason}` : 'User requested to end the chat',
+            // isSystemNote: true,
+        }));
+
         const updatedDispute = await this.getDisputeById(id);
 
         this.chatGateway.emitDisputeCloseRequested(id, {
@@ -123,6 +152,15 @@ export class SupportService {
             adminFeedback: feedback,
             closedAt: new Date(),
         });
+
+        // Save system message
+        await this.messageRepository.save(this.messageRepository.create({
+            disputeId: id,
+            senderType: SenderType.ADMIN,
+            senderId: 0, // System/Admin
+            message: `Dispute ${finalStatus === DisputeStatus.RESOLVED ? 'resolved' : 'closed'}. Admin feedback: ${feedback}`,
+            // isSystemNote: true,
+        }));
 
         const updatedDispute = await this.getDisputeById(id);
 

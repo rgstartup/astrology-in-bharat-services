@@ -34,7 +34,9 @@ export class DisputeChatService {
 
         return messages.map((msg) => {
             let senderName = 'User';
-            if (msg.senderType === SenderType.ADMIN) {
+            /* if (msg.isSystemNote) {
+                senderName = 'System';
+            } else */ if (msg.senderType === SenderType.ADMIN) {
                 senderName = 'Support Team';
             } else if (msg.senderId === dispute.userId && dispute.user) {
                 senderName = dispute.user.name || 'User';
@@ -61,6 +63,11 @@ export class DisputeChatService {
         const isAdmin = user.roles?.some((r) => r.name === 'admin');
         if (!isAdmin && dispute.userId !== user.id) {
             throw new ForbiddenException('You do not have access to this dispute');
+        }
+
+        const closedStatuses = ['closed', 'resolved'];
+        if (closedStatuses.includes(dispute.status)) {
+            throw new ForbiddenException('Cannot send messages to a closed dispute');
         }
 
         // Validate that either message or attachment is provided

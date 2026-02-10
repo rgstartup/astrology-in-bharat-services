@@ -51,10 +51,10 @@ export class Dispute {
     @Column({ type: 'text', nullable: true })
     adminNotes: string;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ name: 'admin_feedback', type: 'text', nullable: true })
     adminFeedback: string;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ name: 'closed_at', type: 'timestamp', nullable: true })
     closedAt: Date;
 
     @ManyToOne(() => User)

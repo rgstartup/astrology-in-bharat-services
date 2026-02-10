@@ -42,6 +42,9 @@ export class DisputeMessage {
     @Column({ default: false })
     isRead: boolean;
 
+    // @Column({ name: 'is_system_note', default: false })
+    // isSystemNote: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 

@@ -70,6 +70,9 @@ export class ChatSession {
   @Column({ type: 'text', nullable: true })
   terminatedBy: string;
 
+  @Column({ type: 'int', default: 0 })
+  duration: number;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
