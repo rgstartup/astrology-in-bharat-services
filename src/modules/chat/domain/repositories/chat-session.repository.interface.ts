@@ -6,6 +6,7 @@ export interface IChatSessionRepository {
     save(session: ChatSession): Promise<ChatSession>;
     create(data: Partial<ChatSession>): ChatSession;
     count(options?: any): Promise<number>;
+    findAllWithFilters(type?: string): Promise<any[]>;
 }
 
 export const IChatSessionRepository = Symbol('IChatSessionRepository');

@@ -474,32 +474,7 @@ export class ChatService {
   }
 
   async getAllLiveSessions(type?: string) {
-    const query: any = {
-      relations: ['user', 'expert', 'expert.user'],
-      order: { createdAt: 'DESC' },
-    };
-
-    if (type === 'expired') {
-      query.where = { status: ChatSessionStatus.EXPIRED };
-    } else if (type === 'admin_terminated') {
-      query.where = {
-        status: ChatSessionStatus.COMPLETED,
-        terminatedBy: 'admin'
-      };
-    } else if (type === 'chat_live') {
-      query.where = {
-        status: ChatSessionStatus.ACTIVE,
-        sessionType: SessionType.CHAT
-      };
-    } else {
-      // Default: All active/pending
-      query.where = [
-        { status: ChatSessionStatus.ACTIVE },
-        { status: ChatSessionStatus.PENDING },
-      ];
-    }
-
-    return this.sessionRepo.find(query);
+    return this.sessionRepo.findAllWithFilters(type);
   }
 
   async getTotalSessionsCount() {

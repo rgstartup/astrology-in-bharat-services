@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
 import { User } from '@/modules/users/domain/entities/user.entity';
+import { ChatMessage } from './chat-message.entity';
 
 export enum ChatSessionStatus {
   PENDING = 'pending',
@@ -75,6 +76,9 @@ export class ChatSession {
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
+
+  @OneToMany(() => ChatMessage, (message) => message.session)
+  messages: ChatMessage[];
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
