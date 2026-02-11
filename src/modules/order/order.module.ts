@@ -5,6 +5,7 @@ import { CartModule } from '@/modules/cart/cart.module';
 import { CouponModule } from '@/modules/coupon/coupon.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
+import { ProductModule } from '@/modules/product/product.module';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { OrderService } from './application/services/order.service';
 import { OrderItem } from './domain/entities/order-item.entity';
@@ -21,6 +22,7 @@ import { OrderController, OrderSingularController } from './interfaces/controlle
         CommonModule,
         CouponModule,
         WalletModule,
+        ProductModule,
     ],
     controllers: [OrderController, OrderSingularController],
     providers: [

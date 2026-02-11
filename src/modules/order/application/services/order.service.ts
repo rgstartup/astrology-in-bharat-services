@@ -15,6 +15,7 @@ import { WalletService } from '@/modules/wallet/application/services/wallet.serv
 import { TransactionPurpose } from '@/modules/wallet/domain/entities/transaction.entity';
 import { OrderStatus } from '../../domain/entities/order.entity';
 import { IOrderRepository, IOrderItemRepository } from '../../domain/repositories/order.repository.interface';
+import { ProductService } from '@/modules/product/application/services/product.service';
 
 @Injectable()
 export class OrderService {
@@ -32,18 +33,29 @@ export class OrderService {
         private emailService: EmailService,
         private couponService: CouponService,
         private walletService: WalletService,
+        private productService: ProductService,
     ) { }
 
-    async createOrderFromCart(userId: number, shippingAddress: any, couponCode?: string) {
-        const cart = (await this.cartService.getCart(userId)) as Cart;
+    async createOrder(userId: number, shippingAddress: any, couponCode?: string, productId?: number, quantity: number = 1) {
+        let items: { product: any, quantity: number }[] = [];
 
-        if (!cart || !cart.items || cart.items.length === 0) {
-            throw new BadRequestException('Cart is empty');
+        if (productId) {
+            const product = await this.productService.findOne(productId);
+            if (!product) {
+                throw new NotFoundException('Product not found');
+            }
+            items = [{ product, quantity }];
+        } else {
+            const cart = (await this.cartService.getCart(userId)) as Cart;
+            if (!cart || !cart.items || cart.items.length === 0) {
+                throw new BadRequestException('Cart is empty');
+            }
+            items = cart.items;
         }
 
         // 1. Calculate Total Amount
         let totalAmount = 0;
-        cart.items.forEach((item) => {
+        items.forEach((item) => {
             totalAmount += Number(item.product.price) * item.quantity;
         });
 
@@ -91,12 +103,12 @@ export class OrderService {
             const savedOrder = await queryRunner.manager.save(order);
 
             // 4. Create Order Items
-            const orderItems = cart.items.map((cartItem) => {
+            const orderItems = items.map((item) => {
                 return this.orderItemRepo.create({
                     order: savedOrder,
-                    productId: cartItem.product.id,
-                    quantity: cartItem.quantity,
-                    price: cartItem.product.price,
+                    productId: item.product.id,
+                    quantity: item.quantity,
+                    price: item.product.price,
                 });
             });
 
