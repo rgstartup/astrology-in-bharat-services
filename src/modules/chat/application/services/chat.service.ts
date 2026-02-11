@@ -173,7 +173,7 @@ export class ChatService {
 
     return this.sessionRepo.find({
       where: { expertId: expert.id },
-      relations: ['user', 'expert', 'expert.user'],
+      relations: ['user', 'expert', 'expert.user', 'review'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -181,7 +181,7 @@ export class ChatService {
   async getAllSessionsByClient(userId: number) {
     return this.sessionRepo.find({
       where: { userId },
-      relations: ['expert', 'expert.user'],
+      relations: ['expert', 'expert.user', 'review'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -461,6 +461,8 @@ export class ChatService {
     senderType: 'user' | 'expert' | 'admin',
     content: string,
     type: MessageType = MessageType.TEXT,
+    attachmentUrl?: string,
+    attachmentType?: string,
   ) {
     const message = this.messageRepo.create({
       sessionId,
@@ -468,6 +470,8 @@ export class ChatService {
       senderType,
       content,
       type,
+      attachmentUrl,
+      attachmentType,
     });
 
     return this.messageRepo.save(message);

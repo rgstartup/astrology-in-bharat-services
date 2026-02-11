@@ -291,6 +291,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       senderType: 'user' | 'expert' | 'admin';
       content: string;
       type?: MessageType;
+      attachmentUrl?: string;
+      attachmentType?: string;
     },
   ) {
     // Validation: Only allow messages if session is active
@@ -308,6 +310,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.senderType,
       payload.content,
       payload.type || MessageType.TEXT,
+      payload.attachmentUrl,
+      payload.attachmentType,
     );
 
     this.server.to(`room_${payload.sessionId}`).emit('new_message', savedMsg);

@@ -35,6 +35,12 @@ export class ChatMessage {
   })
   type: MessageType;
 
+  @Column({ type: 'text', nullable: true })
+  attachmentUrl?: string;
+
+  @Column({ type: 'text', nullable: true })
+  attachmentType?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 }
