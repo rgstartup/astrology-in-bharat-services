@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, CreateDateColumn, JoinColumn } from 'typeorm';
 import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
 import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
 import { User } from '@/modules/users/domain/entities/user.entity';
@@ -25,7 +25,7 @@ export class Review {
   @Column({ type: 'int', nullable: true })
   sessionId: number;
 
-  @ManyToOne(() => ChatSession, { nullable: true })
+  @OneToOne(() => ChatSession, (session) => session.review, { nullable: true })
   @JoinColumn({ name: 'sessionId' })
   session: ChatSession;
 
@@ -38,4 +38,3 @@ export class Review {
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 }
-

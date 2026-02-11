@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession } from '@/modules/chat/domain/entities/chat-session.entity';
@@ -11,6 +11,8 @@ import { CreateReviewDto } from '../dtos/create-review.dto';
 
 @Injectable()
 export class ReviewsService {
+  private readonly logger = new Logger(ReviewsService.name);
+
   constructor(
     @Inject(IReviewRepository)
     private reviewRepo: IReviewRepository,
@@ -59,12 +61,13 @@ export class ReviewsService {
       comment,
     });
 
-    await this.reviewRepo.save(review);
+    const savedReview = await this.reviewRepo.save(review);
+    this.logger.log(`Created Review: ID=${savedReview.id}, SessionID=${sessionId}, ExpertID=${expertId}`);
 
     // Update Expert Rating
     await this.updateExpertRating(expertId);
 
-    return review;
+    return savedReview;
   }
 
   async getExpertReviews(
