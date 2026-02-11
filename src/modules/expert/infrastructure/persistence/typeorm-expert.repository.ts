@@ -34,12 +34,14 @@ export class TypeOrmExpertRepository implements IExpertRepository {
     }
 
     async findTopRated(limit: number): Promise<ProfileExpert[]> {
-        return this.repository.find({
-            where: { kycStatus: 'approved' },
-            order: { rating: 'DESC' },
-            take: limit,
-            relations: ['user', 'addresses'],
-        });
+        return this.repository
+            .createQueryBuilder('profile')
+            .leftJoinAndSelect('profile.user', 'user')
+            .leftJoinAndSelect('profile.addresses', 'addresses')
+            .where('LOWER(profile.kycStatus) IN (:...statuses)', { statuses: ['approved', 'active'] })
+            .orderBy('profile.rating', 'DESC')
+            .take(limit)
+            .getMany();
     }
 
     async listExperts(query: any): Promise<[ProfileExpert[], number]> {
