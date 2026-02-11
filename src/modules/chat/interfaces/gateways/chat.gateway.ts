@@ -373,8 +373,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // 5. Notify everyone via socket
     this.server.to(`room_${payload.sessionId}`).emit('session_ended', {
       ...session,
+      status: 'terminated', // Explicitly set status to 'terminated' for frontend logic
       terminatedBy: 'admin',
-      reason: 'Administrative action taken',
+      reason: payload.userMessage, // Use userMessage as the main reason displayed to the user
+      message: payload.userMessage, // Fallback for some frontend components
       interventionMessage: payload.expertMessage
     });
 
