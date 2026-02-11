@@ -56,7 +56,7 @@ export class EmailService {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
     const confirmUrl = `${frontendUrl}/confirm-email?token=${token}`;
     const html = `
-      <p>Hello,</p>
+      <p>Hello</p>
       <p>Please confirm your email by clicking the link below:</p>
       <a href="${confirmUrl}">Confirm Email</a>
       <p>If you did not request this, you can ignore this email.</p>
