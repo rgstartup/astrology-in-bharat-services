@@ -26,7 +26,7 @@ export class ChatService {
   async getSession(id: number) {
     return this.sessionRepo.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'expert', 'expert.user'],
     });
   }
 

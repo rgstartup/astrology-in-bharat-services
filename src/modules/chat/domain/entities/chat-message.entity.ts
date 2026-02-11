@@ -12,7 +12,7 @@ export class ChatMessage {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ChatSession)
+  @ManyToOne(() => ChatSession, (session) => session.messages)
   @JoinColumn({ name: 'sessionId' })
   session: ChatSession;
 

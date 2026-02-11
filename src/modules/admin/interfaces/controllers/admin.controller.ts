@@ -63,6 +63,11 @@ export class AdminController {
         return this.adminService.updateExpertStatus(id, body.status, body.reason);
     }
 
+    @Get('users/:id')
+    async getUserDetail(@Param('id') id: number) {
+        return this.adminService.getUserDetail(id);
+    }
+
     @Patch('users/:id/block')
     async toggleUserBlock(
         @Param('id') id: number,

@@ -7,6 +7,8 @@ import { IDisputeMessageRepository } from '../../domain/repositories/dispute-mes
 import { SenderType } from '../../domain/entities/dispute-message.entity';
 
 import { DisputeChatGateway } from '../../interfaces/gateways/dispute-chat.gateway';
+import { ChatService } from '@/modules/chat/application/services/chat.service';
+import { OrderService } from '@/modules/order/application/services/order.service';
 
 @Injectable()
 export class SupportService {
@@ -15,8 +17,9 @@ export class SupportService {
         private readonly disputeRepository: IDisputeRepository,
         @Inject(IDisputeMessageRepository)
         private readonly messageRepository: IDisputeMessageRepository,
-
         private readonly chatGateway: DisputeChatGateway,
+        private readonly chatService: ChatService,
+        private readonly orderService: OrderService,
     ) { }
 
     async createDispute(userId: number, dto: CreateDisputeDto): Promise<Dispute> {
@@ -49,24 +52,28 @@ export class SupportService {
         filters?: any,
         page: number = 1,
         limit: number = 10,
-    ): Promise<{ data: Dispute[]; total: number }> {
-        return this.disputeRepository.findAll(filters, page, limit);
+    ): Promise<{ data: any[]; total: number }> {
+        const { data, total } = await this.disputeRepository.findAll(filters, page, limit);
+        const enrichedData = await Promise.all(data.map(d => this.enrichDispute(d)));
+        return { data: enrichedData, total };
     }
 
     async getUserDisputes(
         userId: number,
         page: number = 1,
         limit: number = 10,
-    ): Promise<{ data: Dispute[]; total: number }> {
-        return this.disputeRepository.findAll({ userId }, page, limit);
+    ): Promise<{ data: any[]; total: number }> {
+        const { data, total } = await this.disputeRepository.findAll({ userId }, page, limit);
+        const enrichedData = await Promise.all(data.map(d => this.enrichDispute(d)));
+        return { data: enrichedData, total };
     }
 
-    async getDisputeById(id: number): Promise<Dispute> {
+    async getDisputeById(id: number): Promise<any> {
         const dispute = await this.disputeRepository.findById(id);
         if (!dispute) {
             throw new NotFoundException('Dispute not found');
         }
-        return dispute;
+        return this.enrichDispute(dispute);
     }
 
     async updateDisputeStatus(id: number, dto: UpdateDisputeStatusDto): Promise<Dispute> {
@@ -91,6 +98,40 @@ export class SupportService {
     /**
      * Helper to add computed fields to dispute
      */
+    async enrichDispute(dispute: Dispute): Promise<any> {
+        const closedStatuses = [DisputeStatus.CLOSE_REQUESTED, DisputeStatus.CLOSED, DisputeStatus.RESOLVED];
+        const enriched: any = {
+            ...dispute,
+            canSendMessage: !closedStatuses.includes(dispute.status),
+            amount: 0,
+            expert: 'N/A',
+        };
+
+        try {
+            if (dispute.type === 'consultation') {
+                const session = await this.chatService.getSession(dispute.itemId);
+                if (session) {
+                    enriched.amount = session.totalCost || 0;
+                    // We need expert name. Let's check session relations.
+                    // If session doesn't have expert, we might need a better getSession in ChatService.
+                    // For now let's hope it has it or we can add it.
+                    enriched.expert = (session as any).expert?.user?.name || (session as any).expert?.displayName || 'N/A';
+                }
+            } else if (dispute.type === 'order') {
+                // For orders, we can get totalAmount. 
+                // Orders don't have a single expert usually, so we'll just set amount.
+                const order = await this.orderService.getOrderById(dispute.itemId, dispute.userId);
+                if (order) {
+                    enriched.amount = order.totalAmount || 0;
+                }
+            }
+        } catch (error) {
+            console.error(`Error enriching dispute ${dispute.id}:`, error);
+        }
+
+        return enriched;
+    }
+
     enrichDisputeWithMetadata(dispute: Dispute): any {
         const closedStatuses = [DisputeStatus.CLOSE_REQUESTED, DisputeStatus.CLOSED, DisputeStatus.RESOLVED];
         return {

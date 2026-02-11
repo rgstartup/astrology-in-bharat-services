@@ -14,9 +14,15 @@ import { TypeOrmDisputeMessageRepository } from './infrastructure/persistence/ty
 import { DisputeChatGateway } from './interfaces/gateways/dispute-chat.gateway';
 
 import { User } from '@/modules/users/domain/entities/user.entity';
+import { ChatModule } from '@/modules/chat/chat.module';
+import { OrderModule } from '@/modules/order/order.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage, User])],
+    imports: [
+        TypeOrmModule.forFeature([Dispute, DisputeMessage, User]),
+        ChatModule,
+        OrderModule,
+    ],
     controllers: [SupportController, AdminSupportController],
     providers: [
         SupportService,

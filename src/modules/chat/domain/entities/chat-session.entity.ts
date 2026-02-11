@@ -1,7 +1,8 @@
 import { ProfileExpert } from '@/modules/expert/domain/entities/profile-expert.entity';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { Review } from '@/modules/reviews/domain/entities/review.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, OneToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import { ChatMessage } from './chat-message.entity';
 
 export enum ChatSessionStatus {
   PENDING = 'pending',
