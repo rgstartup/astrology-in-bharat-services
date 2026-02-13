@@ -17,6 +17,7 @@ export enum SessionType {
   VOICE = 'audio',
   VIDEO = 'video',
 }
+// fsdlkjf
 
 @Entity('chat_sessions')
 export class ChatSession {
