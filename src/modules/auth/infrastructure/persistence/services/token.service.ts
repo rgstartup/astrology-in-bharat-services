@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '@/modules/users/entities/user.entity';
 import { Session } from '../entities/session.entity';
 import { ConfigService } from '@nestjs/config';
-import { AuthConfig } from 'src/core/config/auth.config';
+import { AuthConfig } from '@/config/auth.config';
 import { BaseService } from 'src/common/services/transaction.service';
 
 @Injectable()

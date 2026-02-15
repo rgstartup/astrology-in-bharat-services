@@ -1,17 +1,17 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import { EmailService } from '@/common/services/email.service';
+import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { VerifyEmailEvent } from '../../domain/events/verify-email.event';
 
 @Injectable()
 export class VerifyEmailHandler {
   private readonly logger = new Logger(VerifyEmailHandler.name);
-  constructor(private readonly emailService: EmailService) {}
+  constructor(private readonly nodeMailerService: NodeMailerService) {}
 
   @OnEvent('auth.email.verify', { async: true })
   async handle(event: VerifyEmailEvent) {
     this.logger.debug('Email sending to the user');
-    await this.emailService.sendEmail(
+    await this.nodeMailerService.sendEmail(
       event.email,
       'Verify your email',
       this.buildTemplate(event),

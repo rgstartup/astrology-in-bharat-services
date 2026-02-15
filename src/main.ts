@@ -49,7 +49,7 @@ async function bootstrap() {
     new DomainExceptionFilter(), // Business rule failed
   );
 
-  await app.listen(process.env.PORT ?? 4000);
+  await app.listen(process.env.PORT!);
 }
 bootstrap()
   .then(() => console.log(`app started running on port ${process.env.PORT}`))

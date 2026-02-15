@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AuthConfig } from 'src/core/config/auth.config';
+import { AuthConfig } from '@/config/auth.config';
 import { instanceToPlain } from 'class-transformer';
 import { LoginWithGoogleUseCase } from '../../application/use-cases/login-with-google.usecase';
 

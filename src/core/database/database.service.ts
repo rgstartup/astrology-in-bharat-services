@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 
 @Injectable()
 export class DatabaseService {
+  private readonly logger = new Logger(DatabaseService.name);
   constructor(private dataSource: DataSource) {}
 
   getQueryRunner(): QueryRunner {
@@ -22,7 +23,7 @@ export class DatabaseService {
       return result;
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      console.log({ err });
+      this.logger.error('Transaction failed, rolled back.', err);
       throw err;
     } finally {
       await queryRunner.release();

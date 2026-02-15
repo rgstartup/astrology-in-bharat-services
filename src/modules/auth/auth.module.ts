@@ -16,7 +16,6 @@ import { IssueAuthTokensUseCase } from './application/use-cases/issue-auth-token
 import { TokenCryptoService } from './infrastructure/tokens/token-crypto.service';
 import { SessionRepository } from './infrastructure/persistence/repositories/session.repository';
 import { UserRegisteredHandler } from './application/event-handlers/user-registered.handler';
-import { EmailService } from '@/common/services/email.service';
 import { LoginWithGoogleUseCase } from './application/use-cases/login-with-google.usecase';
 import { OAuthService } from './infrastructure/persistence/services/oauth.service';
 import { GoogleStrategy } from './presentation/strategies/google.strategy';
@@ -34,12 +33,14 @@ import { JwtRefreshStrategy } from './presentation/strategies/jwt-refresh.strate
 import { SendMagicLinkEventHandler } from './application/event-handlers/send-magic-link.handler';
 import { SendMagicLinkUseCase } from './application/use-cases/send-magic-link.usecase';
 import { LoginWithMagicLinkUseCase } from './application/use-cases/login-with-magic-link.usecase';
+import { ExternalModule } from '@/external/external.module';
 
 @Module({
   imports: [
     UsersModule,
     TypeOrmModule.forFeature([Session, OAuthAccount, UsedTokens]),
     DatabaseModule,
+    ExternalModule,
   ],
   providers: [
     // AuthService,
@@ -73,7 +74,6 @@ import { LoginWithMagicLinkUseCase } from './application/use-cases/login-with-ma
     ResetPasswordEventHandler,
     VerifyEmailHandler,
     SendMagicLinkEventHandler,
-    EmailService,
   ],
   controllers: [AuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],

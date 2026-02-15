@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
 import { Argon2PasswordHasher } from '../hashing/argon2-password.hasher';
-import { AuthConfig } from '@/core/config/auth.config';
+import { AuthConfig } from '@/config/auth.config';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
