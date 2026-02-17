@@ -41,8 +41,10 @@ async function bootstrap() {
     'https://astrology-in-bharat-app-frontend-ad-six.vercel.app/',
   ].filter(Boolean) as string[];
 
-  // Support comma-separated origins in env vars
-  const expandedOrigins = allowedOrigins.flatMap(o => o.split(',').map(s => s.trim()));
+  // Support comma-separated origins in env vars and remove trailing slashes
+  const expandedOrigins = allowedOrigins.flatMap(o =>
+    o.split(',').map(s => s.trim().replace(/\/+$/, ""))
+  );
 
   app.enableCors({
     origin: (origin, callback) => {
