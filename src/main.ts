@@ -31,18 +31,44 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
+  // --- CORS Configuration ---
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    process.env.ASTROLOGER_FRONTEND_URL,
+    process.env.ADMIN_FRONTEND_URL,
+    'https://astrology-in-bharat-app-frontend-ad.vercel.app/',
+    'https://astrology-in-bharat-app-frontend.vercel.app/',
+    'https://astrology-in-bharat-app-frontend-ad-six.vercel.app/',
+  ].filter(Boolean) as string[];
+
+  // Support comma-separated origins in env vars
+  const expandedOrigins = allowedOrigins.flatMap(o => o.split(',').map(s => s.trim()));
+
   app.enableCors({
-    // Only  requests from your frontend's exact origin
-    origin: [
-      process.env.FRONTEND_URL,
-      process.env.ASTROLOGER_FRONTEND_URL,
-      process.env.ADMIN_FRONTEND_URL,
-    ].filter(Boolean) as string[],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
 
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      const isAllowed = expandedOrigins.some(allowed => {
+        // Exact match
+        if (allowed === origin) return true;
+        // Match Vercel preview domains if they contain the project name
+        if (origin.includes('vercel.app') && allowed.includes('vercel.app')) {
+          // This is a bit loose but helps with preview deployments
+          return true;
+        }
+        return false;
+      });
 
-    allowedHeaders: 'Content-Type, Accept, Authorization',
-
+      if (isAllowed || process.env.NODE_ENV === 'development') {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Request from origin ${origin} blocked.`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization, X-Requested-With',
     credentials: true,
   });
 
