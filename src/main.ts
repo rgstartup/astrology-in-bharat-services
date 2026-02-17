@@ -32,7 +32,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
   app.enableCors({
-    // Only allow requests from your frontend's exact origin
+    // Only  requests from your frontend's exact origin
     origin: [
       process.env.FRONTEND_URL,
       process.env.ASTROLOGER_FRONTEND_URL,
