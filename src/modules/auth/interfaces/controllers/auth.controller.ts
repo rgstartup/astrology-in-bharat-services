@@ -184,5 +184,10 @@ export class AuthController {
     const userAgent = req.headers['user-agent'];
     return this.authService.verifyIp(token, ip, userAgent, res);
   }
-}
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMe(@CurrentUser() user: User) {
+    return user;
+  }
+}

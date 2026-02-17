@@ -75,25 +75,25 @@ export class AuthService {
         queryRunner,
       );
 
-      const verification_token = this.tokenService.generate5MinToken({
-        sub: user.id,
-        email: user.email,
-      });
-
-      // send email notification
-      this.eventEmitter.emit(
-        'user:register',
-        new UserRegisteredEvent(
-          user.id,
-          user.email,
-          user.name || 'User',
-          verification_token,
-          roles.includes('expert') ? 'expert' : 'client',
-        ),
-      );
-
       return user;
     });
+
+    const verification_token = this.tokenService.generate5MinToken({
+      sub: user.id,
+      email: user.email,
+    });
+
+    // send email notification
+    this.eventEmitter.emit(
+      'user:register',
+      new UserRegisteredEvent(
+        user.id,
+        user.email,
+        user.name || 'User',
+        verification_token,
+        roles.includes('expert') ? 'expert' : 'client',
+      ),
+    );
 
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
@@ -165,25 +165,25 @@ export class AuthService {
         queryRunner,
       );
 
-      const verification_token = this.tokenService.generate5MinToken({
-        sub: user.id,
-        email: user.email,
-      });
-
-      // send email notification
-      this.eventEmitter.emit(
-        'user:register',
-        new UserRegisteredEvent(
-          user.id,
-          user.email,
-          user.name || 'User',
-          verification_token,
-          'client',
-        ),
-      );
-
       return user;
     });
+
+    const verification_token = this.tokenService.generate5MinToken({
+      sub: user.id,
+      email: user.email,
+    });
+
+    // send email notification
+    this.eventEmitter.emit(
+      'user:register',
+      new UserRegisteredEvent(
+        user.id,
+        user.email,
+        user.name || 'User',
+        verification_token,
+        'client',
+      ),
+    );
 
     const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 

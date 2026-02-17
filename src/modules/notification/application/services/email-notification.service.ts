@@ -20,7 +20,7 @@ export class EmailNotificationService {
       'http://localhost:3003';
 
     const baseUrl = event.role === 'expert' ? expertUrl : clientUrl;
-    const verificationLink = `${baseUrl}/verify-email?token=${event.verification_token}`;
+    const verificationLink = `${baseUrl}/verify-email?token=${encodeURIComponent(event.verification_token)}`;
 
     await this.mailService.sendMail(
       event.email,
@@ -48,7 +48,7 @@ export class EmailNotificationService {
   @OnEvent('user:reset-password')
   async handleResetPasswordEvent(event: ResetPasswordEvent) {
     const origin = event.origin || 'http://localhost:3000';
-    const link = `${origin}/reset-password?token=${event.password_reset_token}`;
+    const link = `${origin}/reset-password?token=${encodeURIComponent(event.password_reset_token)}`;
 
     await this.mailService.sendMail(
       event.email,
@@ -64,7 +64,7 @@ export class EmailNotificationService {
 
   @OnEvent('user:magic-link')
   async handleSendMagicLink(event: SendMagicLinkEvent) {
-    const link = `http://localhost:3000/login/magic?token=${event.token}`;
+    const link = `http://localhost:3000/login/magic?token=${encodeURIComponent(event.token)}`;
 
     await this.mailService.sendMail(
       event.email,
@@ -83,7 +83,7 @@ export class EmailNotificationService {
       this.configService.get<string>('ASTROLOGER_FRONTEND_URL') ||
       'http://localhost:3003';
 
-    const verifyLink = `${expertUrl}/verify-ip?token=${event.token}`;
+    const verifyLink = `${expertUrl}/verify-ip?token=${encodeURIComponent(event.token)}`;
 
     await this.mailService.sendMail(
       event.email,

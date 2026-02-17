@@ -6,13 +6,26 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'express';
-import helmet from 'helmet';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/interfaces/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // ULTIMATE MANUAL CORS FIX
+  app.use((req, res, next) => {
+    const origin = req.headers.origin || '*';
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
+
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    next();
+  });
 
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb', extended: true }));
@@ -22,54 +35,28 @@ async function bootstrap() {
   });
 
   app.use(cookieParser());
-
-  // Security & Performance
-  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(compression());
 
-  // Enable global exception filter
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
-
-  app.enableCors({
-    // Only allow requests from your frontend's exact origin
-    origin: [
-      process.env.FRONTEND_URL,
-      process.env.ASTROLOGER_FRONTEND_URL,
-      process.env.ADMIN_FRONTEND_URL,
-    ].filter(Boolean) as string[],
-
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-
-    allowedHeaders: 'Content-Type, Accept, Authorization',
-
-    credentials: true,
-  });
-
-  app.use(cookieParser());
 
   app.setGlobalPrefix('api');
 
   app.enableVersioning({
-    type: VersioningType.URI, // options: URI | HEADER | MEDIA_TYPE | CUSTOM
+    type: VersioningType.URI,
     defaultVersion: '1',
   });
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // remove extra properties
-      forbidNonWhitelisted: true, // throw error if extra properties are present
-      transform: true, // automatically transform payloads to DTO instances
-      transformOptions: { enableImplicitConversion: true }, // convert types (e.g., string -> number)
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
     }),
   );
 
-  // Apply global exception filter
-  // Note: `AllExceptionsFilter` is already registered above and will catch and
-  // log all exceptions. Avoid re-registering another global filter here which
-  // could overwrite or suppress the catch-all logging.
-
-  // Swagger Configuration
+  // Swagger
   const config = new DocumentBuilder()
     .setTitle('Astrology Service API')
     .setDescription('The Astrology Service API description')
@@ -79,8 +66,15 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(process.env.PORT ?? 4000);
+  // Force IPv4 and Port
+  const port = process.env.PORT || 7000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`Backend is listening on http://0.0.0.0:${port}`);
 }
+
 bootstrap()
-  .then(() => console.log(`app started running on port ${process.env.PORT}`))
-  .catch((err) => console.error('Something went wrong', err));
+  .then(() => {
+    const port = process.env.PORT || 6543;
+    console.log(`Successfully started on port ${port}`);
+  })
+  .catch((err) => console.error('Bootstrap error', err));
