@@ -48,7 +48,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl)
+      // Allow requestsZ with no origin (like mobile apps or curl)
       if (!origin) return callback(null, true);
 
       const isAllowed = expandedOrigins.some(allowed => {
