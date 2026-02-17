@@ -5,7 +5,7 @@ dotenv.config();
 
 const connectionString = process.env.DATABASE_URL;
 
-async function checkDatabase() {
+async function listUsers() {
     const client = new Client({
         connectionString: connectionString,
         ssl: { rejectUnauthorized: false }
@@ -15,16 +15,8 @@ async function checkDatabase() {
         await client.connect();
         console.log('Connected to database');
 
-        const dbName = await client.query('SELECT current_database()');
-        console.log('Current Database:', dbName.rows[0].current_database);
-
-        const tables = await client.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-    `);
-        console.log('Tables in public schema:');
-        console.table(tables.rows);
+        const res = await client.query('SELECT id, email, role FROM users LIMIT 50');
+        console.table(res.rows);
 
     } catch (err) {
         console.error('Error:', err);
@@ -33,4 +25,4 @@ async function checkDatabase() {
     }
 }
 
-checkDatabase();
+listUsers();
