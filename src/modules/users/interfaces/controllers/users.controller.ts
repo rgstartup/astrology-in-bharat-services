@@ -16,13 +16,13 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   // 🔹 Self-service: get my profile
-  @Get('/me')
+  @Get('me')
   async getUser(@CurrentUser() user: User): Promise<User> {
     return user;
   }
 
   // 🔹 Self-service: update my profile
-  @Patch('/me')
+  @Patch('me')
   async updateUser(
     @CurrentUser() user: User,
     @Body() dto: Partial<CreateUserDto>,
@@ -31,7 +31,7 @@ export class UsersController {
   }
 
   // 🔹 Self-service: delete my account
-  @Delete('/me')
+  @Delete('me')
   async deleteUser(@CurrentUser() user: User) {
     return this.usersService.remove(user.id);
   }

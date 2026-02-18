@@ -4,7 +4,10 @@ import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
 import { AdminService } from '../../application/services/admin.service';
 
-@Controller('admin')
+@Controller({
+    path: 'admin',
+    version: '1',
+})
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
 export class AdminController {
