@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ConfirmEmailEvent, ResetPasswordEvent, SendMagicLinkEvent, UserRegisteredEvent, VerifyIpEvent } from '../events/user.event';
+import { AgentCreatedEvent, SendAgentOtpEvent } from '../events/agent.event';
 import { MailService } from './mail.service';
 
 @Injectable()
@@ -95,6 +96,45 @@ export class EmailNotificationService {
        <p>Please verify it's you by clicking the button below:</p>
        <a href="${verifyLink}" style="padding: 10px 20px; background-color: #fd6410; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">Yes, it's me</a>
        <p>If this wasn't you, please secure your account immediately.</p>`
+    );
+  }
+
+  @OnEvent('agent:created')
+  async handleAgentCreated(event: AgentCreatedEvent) {
+    const agentUrl =
+      this.configService.get<string>('AGENT_FRONTEND_URL') ||
+      'http://localhost:8000';
+
+    await this.mailService.sendMail(
+      event.email,
+      'Welcome to Theology in Bharat - Agent Account Created',
+      `Hi ${event.name}, your agent account has been created successfully.`,
+      `<h1>Welcome, ${event.name}</h1>
+       <p>Your agent account has been set up successfully. Below are your login credentials:</p>
+       <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+         <p><strong>Agent ID:</strong> ${event.agentId}</p>
+         <p><strong>Email:</strong> ${event.email}</p>
+         <p><strong>Temporary Password:</strong> ${event.password}</p>
+       </div>
+       <p>Please login to your dashboard using the link below and change your password immediately.</p>
+       <a href="${agentUrl}/login" style="padding: 10px 20px; background-color: #fd6410; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">Login to Dashboard</a>
+       <p>If you have any questions, please contact the administrator.</p>`
+    );
+  }
+
+  @OnEvent('agent:send-otp')
+  async handleSendAgentOtp(event: SendAgentOtpEvent) {
+    await this.mailService.sendMail(
+      event.email,
+      'Email Verification Code - Astrology in Bharat',
+      `Your verification code is ${event.otp}. It will expire in 10 minutes.`,
+      `<h1>Verify Your Email</h1>
+       <p>Hello,</p>
+       <p>You are receiving this email because an agent account is being created with this email address.</p>
+       <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
+         <h2 style="letter-spacing: 5px; color: #fd6410;">${event.otp}</h2>
+       </div>
+       <p>This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>`
     );
   }
 }

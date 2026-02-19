@@ -9,6 +9,7 @@ import { DatabaseService } from '@/core/database/database.service';
 import { OAuthAccount } from '@/modules/auth/domain/entities/oauth-accounts.entity';
 import { OAuthService } from '../../application/services/oauth.service';
 import { TokenService } from '../../application/services/token.service';
+import { OAuthUserDto } from '../../application/dtos/oauth-user.dto';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -56,14 +57,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     const { user, tokens } = await this.db.transaction(async (queryRunner) => {
       const user = await this.oauthService.findOrCreateUserFromOAuth(
-        {
+        new OAuthUserDto({
           provider: 'google',
           providerId: id,
           email: email!,
           name: displayName,
           avatar: photos?.[0]?.value,
           role,
-        },
+        }),
         queryRunner.manager.getRepository(OAuthAccount) as any,
       );
 

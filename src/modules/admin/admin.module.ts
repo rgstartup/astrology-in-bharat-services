@@ -4,6 +4,7 @@ import { ExpertModule } from '@/modules/expert/expert.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { OrderModule } from '@/modules/order/order.module';
+import { AgentModule } from '@/modules/agent/agent.module';
 import { AdminService } from './application/services/admin.service';
 import { AdminController } from './interfaces/controllers/admin.controller';
 
@@ -14,7 +15,9 @@ import { AdminController } from './interfaces/controllers/admin.controller';
     ExpertModule,
     ChatModule,
     OrderModule,
+    AgentModule,
   ],
+
   controllers: [AdminController],
   providers: [AdminService],
   exports: [AdminService],
