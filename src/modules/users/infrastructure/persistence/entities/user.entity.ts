@@ -14,7 +14,7 @@ import { OAuthAccount } from '@/modules/auth/infrastructure/persistence/entities
 import { Session } from '@/modules/auth/infrastructure/persistence/entities/session.entity';
 import { Role } from '@/modules/role/entities/roles.entity';
 import { Exclude } from 'class-transformer';
-import { ProfileClient } from '@/modules/client/profile/entities/profile-client.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 
 @Entity('users')

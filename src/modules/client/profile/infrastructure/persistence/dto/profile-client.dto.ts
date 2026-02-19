@@ -23,6 +23,10 @@ export class ProfileClientDto {
   preferences?: string;
 
   @IsOptional()
+  @IsString()
+  profile_picture?: string;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AddressDto)
