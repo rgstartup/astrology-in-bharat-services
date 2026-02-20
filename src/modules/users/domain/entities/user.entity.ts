@@ -87,4 +87,8 @@ export class User {
 
   @Column({ nullable: true })
   ip_address?: string;
+
+  // Agent referral tracking — null if user registered themselves
+  @Column({ name: 'referred_by_agent_id', type: 'varchar', nullable: true })
+  referredByAgentId?: string;
 }

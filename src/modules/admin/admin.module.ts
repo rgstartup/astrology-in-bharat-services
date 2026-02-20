@@ -7,6 +7,9 @@ import { OrderModule } from '@/modules/order/order.module';
 import { AgentModule } from '@/modules/agent/agent.module';
 import { AdminService } from './application/services/admin.service';
 import { AdminController } from './interfaces/controllers/admin.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AgentListing } from '@/modules/agent/domain/entities/agent-listing.entity';
+import { AdminJwtStrategy } from './infrastructure/strategies/admin-jwt.strategy';
 
 @Module({
   imports: [
@@ -16,10 +19,11 @@ import { AdminController } from './interfaces/controllers/admin.controller';
     ChatModule,
     OrderModule,
     AgentModule,
+    TypeOrmModule.forFeature([AgentListing]),
   ],
 
   controllers: [AdminController],
-  providers: [AdminService],
+  providers: [AdminService, AdminJwtStrategy],
   exports: [AdminService],
 })
 export class AdminModule { }

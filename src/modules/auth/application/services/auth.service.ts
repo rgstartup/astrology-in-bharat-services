@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException, Inject, forwardRef } from '@nestjs/common';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { Response } from 'express';
 import { UsedTokensService } from './used-tokens.service';
@@ -11,6 +11,7 @@ import { RegisterDto, LoginDto } from '../dtos';
 import { OAuthUserDto } from '../dtos/oauth-user.dto';
 import { OAuthService } from './oauth.service';
 import { TokenService } from './token.service';
+import { AgentService } from '@/modules/agent/application/services/agent.service';
 
 import {
   UserRegisteredEvent,
@@ -35,6 +36,8 @@ export class AuthService {
     private usedTokenService: UsedTokensService,
     private db: DatabaseService,
     private eventEmitter: EventEmitter2,
+    @Inject(forwardRef(() => AgentService))
+    private agentService: AgentService,
   ) { }
 
   // ---------------------------
@@ -49,7 +52,13 @@ export class AuthService {
     const existingUser = await this.usersService.findByEmail(dto.email);
 
     if (existingUser) {
-      throw new BadRequestException('Email already exists!');
+      throw new BadRequestException(`❌ Email '${dto.email}' is already registered. One email = One account only.`);
+    }
+
+    // Cross-table check: block if email already used as Agent
+    const existingAgent = await this.agentService.findByEmail(dto.email);
+    if (existingAgent) {
+      throw new BadRequestException(`❌ Email '${dto.email}' is already registered as an Agent. One email = One account only.`);
     }
 
     const hashed = await argon2.hash(dto.password, { type: argon2.argon2id });
@@ -135,7 +144,13 @@ export class AuthService {
     const existingUser = await this.usersService.findByEmail(dto.email);
 
     if (existingUser) {
-      throw new BadRequestException('Email already exists!');
+      throw new BadRequestException(`❌ Email '${dto.email}' is already registered. One email = One account only.`);
+    }
+
+    // Cross-table check: block if email already used as Agent
+    const existingAgent = await this.agentService.findByEmail(dto.email);
+    if (existingAgent) {
+      throw new BadRequestException(`❌ Email '${dto.email}' is already registered as an Agent. One email = One account only.`);
     }
 
     const hashed = await argon2.hash(dto.password, { type: argon2.argon2id });

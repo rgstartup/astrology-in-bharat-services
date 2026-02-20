@@ -10,6 +10,10 @@ import { AgentCreatedEvent, SendAgentOtpEvent } from '@/modules/notification/app
 import * as crypto from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AgentOtp } from '../../domain/entities/agent-otp.entity';
+import { AgentListing, ListingType } from '../../domain/entities/agent-listing.entity';
+import { CreateListingDto } from '../dtos/create-listing.dto';
+import { AgentRegisterUserDto, RegisterUserType } from '../dtos/agent-register-user.dto';
+import { UsersService } from '@/modules/users/application/services/users.service';
 
 @Injectable()
 export class AgentService {
@@ -20,6 +24,9 @@ export class AgentService {
         private readonly eventEmitter: EventEmitter2,
         @InjectRepository(AgentOtp)
         private readonly otpRepository: Repository<AgentOtp>,
+        @InjectRepository(AgentListing)
+        private readonly listingRepository: Repository<AgentListing>,
+        private readonly usersService: UsersService,
     ) { }
 
     async createAgent(dto: CreateAgentDto, files?: { aadhaar_doc?: Express.Multer.File[], pan_doc?: Express.Multer.File[], profile_pic?: Express.Multer.File[] }) {
@@ -35,7 +42,17 @@ export class AgentService {
 
         const existing = await this.agentRepository.findByEmail(dto.email);
         if (existing) {
-            throw new BadRequestException('Email already exists');
+            throw new BadRequestException(
+                `❌ Email '${dto.email}' is already registered as an Agent. Each email can only have ONE account.`
+            );
+        }
+
+        // Cross-table check: Email should not exist in users table either
+        const existingUser = await this.usersService.findByEmail(dto.email);
+        if (existingUser) {
+            throw new BadRequestException(
+                `❌ Email '${dto.email}' is already registered as a User/Expert. One email = One account only.`
+            );
         }
 
         const agent = new Agent();
@@ -184,5 +201,110 @@ export class AgentService {
         await this.otpRepository.save(otpRecord);
 
         return { message: 'OTP verified successfully' };
+    }
+
+    async getProfile(agentId: string) {
+        return this.getAgentById(agentId);
+    }
+
+    // Cross-table email uniqueness check (used by AuthService)
+    async findByEmail(email: string) {
+        return this.agentRepository.findByEmail(email);
+    }
+
+    async createListing(agentId: string, dto: CreateListingDto) {
+        const listing = this.listingRepository.create({
+            ...dto,
+            agentId,
+        });
+        const saved = await this.listingRepository.save(listing);
+        return {
+            success: true,
+            listing: {
+                id: saved.id,
+                status: saved.status,
+                type: saved.type,
+                name: saved.name,
+            },
+        };
+    }
+
+    async getListings(type: string, search: string = '', page: number = 1, limit: number = 10) {
+        if (type === 'astrologer') {
+            return this.usersService.findAllByRole('expert', search, page, limit);
+        }
+
+        // Use real DB for mandir and puja_shop via agent_listings table
+        const listingType = type as ListingType;
+        const where: any = { type: listingType };
+        if (search) {
+            where.name = Like(`%${search}%`);
+        }
+
+        const [data, total] = await this.listingRepository.findAndCount({
+            where,
+            skip: (page - 1) * limit,
+            take: limit,
+            order: { createdAt: 'DESC' },
+        });
+
+        return { data, total, page, limit };
+    }
+
+    async getDashboardStats(agentId: string) {
+        // TODO: Implement real stats logic aggregating listings, earnings etc.
+        return {
+            totalListings: 0,
+            activeListings: 0,
+            pendingPayouts: 0,
+            totalEarnings: 0,
+            trends: [0, 0, 0, 0, 0, 0, 0] // Mock weekly trend
+        };
+    }
+
+    async registerUserByAgent(agentId: string, dto: AgentRegisterUserDto) {
+        // Check if email already exists in users or agents table
+        const existingUser = await this.usersService.findByEmail(dto.email);
+        if (existingUser) {
+            throw new BadRequestException(`❌ Email '${dto.email}' is already registered.`);
+        }
+        const existingAgent = await this.agentRepository.findByEmail(dto.email);
+        if (existingAgent) {
+            throw new BadRequestException(`❌ Email '${dto.email}' is already registered as an Agent.`);
+        }
+
+        // Generate random password
+        const rawPassword = crypto.randomBytes(6).toString('hex').toUpperCase();
+        const hashedPassword = await argon2.hash(rawPassword);
+
+        const roles = dto.userType === RegisterUserType.EXPERT
+            ? [{ name: 'expert' }]
+            : [{ name: 'client' }];
+
+        // Create user with referredByAgentId
+        const user = await this.usersService.create({
+            name: dto.name,
+            email: dto.email,
+            phone: dto.phone,
+            password: hashedPassword,
+            role: dto.userType,
+            signinBy: 'agent_registered',
+            roles,
+            referredByAgentId: agentId,
+        });
+
+        // TODO: Send welcome email with credentials
+        return {
+            success: true,
+            message: `${dto.userType === RegisterUserType.EXPERT ? 'Expert' : 'User'} registered successfully by agent`,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                referredByAgentId: agentId,
+            },
+            tempPassword: rawPassword, // Frontend should show this once to agent
+        };
     }
 }

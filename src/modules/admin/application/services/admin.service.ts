@@ -4,6 +4,9 @@ import { ProfileService } from '@/modules/expert/application/services/profile.se
 import { UsersService } from '@/modules/users/application/services/users.service';
 import { WalletService } from '@/modules/wallet/application/services/wallet.service';
 import { OrderService } from '@/modules/order/application/services/order.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AgentListing, ListingStatus } from '@/modules/agent/domain/entities/agent-listing.entity';
+import { Like, Repository } from 'typeorm';
 
 @Injectable()
 export class AdminService {
@@ -13,6 +16,8 @@ export class AdminService {
         private readonly profileService: ProfileService,
         private readonly chatService: ChatService,
         private readonly orderService: OrderService,
+        @InjectRepository(AgentListing)
+        private readonly listingRepository: Repository<AgentListing>,
     ) { }
 
     async getUserGrowthStats(days: number) {
@@ -162,6 +167,51 @@ export class AdminService {
 
     async getChatHistory(sessionId: number) {
         return this.chatService.getMessages(sessionId);
+    }
+
+    // --- Listing Management ---
+
+    async getAllListings(search?: string, page: number = 1, limit: number = 10, status?: string) {
+        const query = this.listingRepository.createQueryBuilder('listing')
+            .leftJoinAndSelect('listing.agent', 'agent')
+            .orderBy('listing.createdAt', 'DESC');
+
+        if (status) {
+            query.andWhere('listing.status = :status', { status });
+        }
+
+        if (search) {
+            query.andWhere('listing.name ILIKE :search', { search: `%${search}%` });
+        }
+
+        const [data, total] = await query
+            .skip((page - 1) * limit)
+            .take(limit)
+            .getManyAndCount();
+
+        // 🔹 Final Flattened Mapping for Frontend
+        const mappedData = data.map(item => {
+            return {
+                ...item,
+                agent_name: item.agent?.name || 'Self/Admin',
+                agent_id: item.agent?.agent_id || 'AGT-SYSTEM', // Default fallback
+                // ⚠️ Remove relation objects to keep it clean
+                agent: undefined
+            };
+        });
+
+        return { data: mappedData, total, page, limit };
+    }
+
+    async updateListingStatus(id: string, status: ListingStatus) {
+        const listing = await this.listingRepository.findOne({ where: { id } });
+        if (!listing) {
+            throw new NotFoundException('Listing not found');
+        }
+
+        listing.status = status;
+        await this.listingRepository.save(listing);
+        return { success: true, message: `Listing ${status} successfully` };
     }
 }
 

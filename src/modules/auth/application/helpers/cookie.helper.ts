@@ -6,7 +6,7 @@ const isProd = process.env.NODE_ENV === 'production';
  * Cookie configuration for access tokens
  */
 export const getAccessTokenCookieOptions = (): CookieOptions => ({
-  httpOnly: false, // Set to false to allow frontend JS to read it
+  httpOnly: true, // Only backend can read (more secure)
   secure: isProd,
   sameSite: 'lax',
   maxAge: 15 * 60 * 1000, // 15 minutes
@@ -30,4 +30,20 @@ export const getRefreshTokenCookieOptions = (): CookieOptions => ({
 export const COOKIE_NAMES = {
   ACCESS_TOKEN: 'accessToken',
   REFRESH_TOKEN: 'refreshToken',
+} as const;
+
+/**
+ * Separate cookie names for Agent — avoids collision with user cookies
+ */
+export const AGENT_COOKIE_NAMES = {
+  ACCESS_TOKEN: 'agentAccessToken',
+  REFRESH_TOKEN: 'agentRefreshToken',
+} as const;
+
+/**
+ * Separate cookie names for Admin
+ */
+export const ADMIN_COOKIE_NAMES = {
+  ACCESS_TOKEN: 'adminAccessToken',
+  REFRESH_TOKEN: 'adminRefreshToken',
 } as const;

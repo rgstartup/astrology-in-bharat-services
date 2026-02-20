@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseModule } from '@/core/database/database.module';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { UsersModule } from '@/modules/users/users.module';
+import { AgentModule } from '@/modules/agent/agent.module';
 import { AuthService } from './application/services/auth.service';
 import { OAuthService } from './application/services/oauth.service';
 import { TokenService } from './application/services/token.service';
@@ -27,6 +28,7 @@ import { GoogleAuthController } from './interfaces/controllers/google-auth.contr
     UsersModule,
     TypeOrmModule.forFeature([Credential, OAuthAccount, UsedTokens, User]),
     DatabaseModule,
+    forwardRef(() => AgentModule), // forwardRef to avoid circular dependency
   ],
   providers: [
     AuthService,
@@ -53,4 +55,3 @@ import { GoogleAuthController } from './interfaces/controllers/google-auth.contr
   exports: [TokenService, OAuthService, AuthService],
 })
 export class AuthModule { }
-

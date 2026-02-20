@@ -41,12 +41,16 @@ class UserDto {
 
   @IsOptional()
   @IsString()
-  signinBy?: 'email&password' | 'google';
+  signinBy?: 'email&password' | 'google' | 'agent_registered';
 
   @IsOptional()
   @ValidateNested({ each: true }) // validate each role object
   @Type(() => RolesDto) // transform plain objects into RolesDto instances
   roles?: RolesDto[]; // role names only, no entity
+
+  @IsOptional()
+  @IsString()
+  referredByAgentId?: string; // set when agent registers a user
 }
 
 export class CreateUserDto extends UserDto { }

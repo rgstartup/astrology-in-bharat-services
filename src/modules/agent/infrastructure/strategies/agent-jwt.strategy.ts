@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthConfig } from '@/core/config/auth.config';
 import { IAgentRepository } from '../../domain/repositories/agent.repository.interface';
-import { COOKIE_NAMES } from '@/modules/auth/application/helpers/cookie.helper';
+import { AGENT_COOKIE_NAMES } from '@/modules/auth/application/helpers/cookie.helper';
 
 @Injectable()
 export class AgentJwtStrategy extends PassportStrategy(Strategy, 'agent-jwt') {
@@ -22,7 +22,7 @@ export class AgentJwtStrategy extends PassportStrategy(Strategy, 'agent-jwt') {
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([
                 ExtractJwt.fromAuthHeaderAsBearerToken(),
-                (req) => req?.cookies?.[COOKIE_NAMES.ACCESS_TOKEN] || null,
+                (req) => req?.cookies?.[AGENT_COOKIE_NAMES.ACCESS_TOKEN] || null,
             ]),
             secretOrKey: authConfig.jwtSecret,
             ignoreExpiration: false,

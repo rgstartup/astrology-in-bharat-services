@@ -1,7 +1,8 @@
 import { Controller, Get, UseGuards, Query, Param, Patch, Body, UseInterceptors, UploadedFiles, Post } from '@nestjs/common';
 import { Roles } from '@/common/interfaces/decorators/roles.decorator';
-import { JwtAuthGuard } from '@/modules/auth/interfaces/guards/auth.guard';
+import { AdminAuthGuard } from '../guards/admin-auth.guard';
 import { RolesGuard } from '@/modules/auth/interfaces/guards/role.guard';
+import { ListingStatus } from '@/modules/agent/domain/entities/agent-listing.entity';
 import { AdminService } from '../../application/services/admin.service';
 import { AgentService } from '@/modules/agent/application/services/agent.service';
 import { CreateAgentDto } from '@/modules/agent/application/dtos/create-agent.dto';
@@ -13,7 +14,7 @@ import { ApiConsumes, ApiOperation } from '@nestjs/swagger';
     path: 'admin',
     version: '1',
 })
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(AdminAuthGuard, RolesGuard)
 @Roles('admin')
 export class AdminController {
     constructor(
@@ -25,6 +26,7 @@ export class AdminController {
     async getUserGrowthStats(@Query('days') days: number = 7) {
         return this.adminService.getUserGrowthStats(days);
     }
+
 
     @Get('dashboard/stats')
     async getDashboardStats() {
@@ -156,6 +158,28 @@ export class AdminController {
     @ApiOperation({ summary: 'Get agent details' })
     async getAgentById(@Param('id') id: string) {
         return this.agentService.getAgentById(id);
+    }
+
+    // --- Listing Management ---
+
+    @Get('listings')
+    @ApiOperation({ summary: 'Get all agent listings (mandirs, shops, experts)' })
+    async getAllListings(
+        @Query('search') search?: string,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+        @Query('status') status?: string,
+    ) {
+        return this.adminService.getAllListings(search, page, limit, status);
+    }
+
+    @Patch('listings/:id/status')
+    @ApiOperation({ summary: 'Approve or Reject a listing' })
+    async updateListingStatus(
+        @Param('id') id: string,
+        @Body('status') status: ListingStatus,
+    ) {
+        return this.adminService.updateListingStatus(id, status);
     }
 }
 
