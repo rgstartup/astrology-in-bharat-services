@@ -230,25 +230,37 @@ export class AgentService {
     }
 
     async getListings(type: string, search: string = '', page: number = 1, limit: number = 10) {
-        if (type === 'astrologer') {
-            return this.usersService.findAllByRole('expert', search, page, limit);
+        try {
+            if (type === 'astrologer') {
+                const result = await this.usersService.findAllByRole('expert', search, page, limit);
+                return {
+                    data: result.data || [],
+                    total: result.total || 0,
+                    page,
+                    limit
+                };
+            }
+
+            // Use QueryBuilder for better Postgres support and ILIKE search
+            const query = this.listingRepository.createQueryBuilder('listing')
+                .where('listing.type = :type', { type })
+                .orderBy('listing.createdAt', 'DESC');
+
+            if (search && search.trim() !== '') {
+                query.andWhere('listing.name ILIKE :search', { search: `%${search}%` });
+            }
+
+            const [data, total] = await query
+                .skip((page - 1) * limit)
+                .take(limit)
+                .getManyAndCount();
+
+            return { data, total, page, limit };
+        } catch (error) {
+            console.error('Error fetching agent listings:', error);
+            // Return empty data instead of 500 to keep the dashboard running
+            return { data: [], total: 0, page, limit, error: error.message };
         }
-
-        // Use real DB for mandir and puja_shop via agent_listings table
-        const listingType = type as ListingType;
-        const where: any = { type: listingType };
-        if (search) {
-            where.name = Like(`%${search}%`);
-        }
-
-        const [data, total] = await this.listingRepository.findAndCount({
-            where,
-            skip: (page - 1) * limit,
-            take: limit,
-            order: { createdAt: 'DESC' },
-        });
-
-        return { data, total, page, limit };
     }
 
     async getDashboardStats(agentId: string) {

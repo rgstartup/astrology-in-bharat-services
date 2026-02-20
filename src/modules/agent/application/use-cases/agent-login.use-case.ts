@@ -89,6 +89,12 @@ export class AgentLoginUseCase {
             throw new UnauthorizedException('Refresh token not provided');
         }
 
+        // 🛡️ SECURITY FIX: Ensure agentId is a valid UUID to prevent Postgres syntax errors (like "162" error)
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(agentId)) {
+            throw new UnauthorizedException('Invalid agent session ID format. Please login again.');
+        }
+
         const creds = await this.agentRepository.findCredentials({
             where: { agentId, type: 'refresh_token', revoked: false },
         });
