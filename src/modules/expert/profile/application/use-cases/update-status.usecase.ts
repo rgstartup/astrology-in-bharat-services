@@ -29,7 +29,7 @@ export class UpdateStatusUseCase {
     if (isAvailable === false) {
       // Note: In a full DDD implementation, we might check an ActiveSessionsService or similar
       // For now, we keep it simple or implement as needed.
-      // throw new ActiveSessionOfflineError();
+      throw new ActiveSessionOfflineError();
     }
 
     profile.is_available = isAvailable;
