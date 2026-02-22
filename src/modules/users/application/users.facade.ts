@@ -4,6 +4,10 @@ import { FindUserUseCase } from './use-cases/find-user.usecase';
 import { UpdateUserUseCase } from './use-cases/update-user.usecase';
 import { DeleteUserUseCase } from './use-cases/delete-user.usecase';
 import { AssignRoleToUserUseCase } from './use-cases/assign-role-to-user.usecase';
+import { GetExpertStatsUseCase } from './use-cases/get-expert-stats.usecase';
+import { GetUserStatsUseCase } from './use-cases/get-user-stats.usecase';
+import { GetUserExpertGrowthStatsUseCase } from './use-cases/get-user-expert-growth-stats.usecase';
+import { FindUsersByRoleUseCase } from './use-cases/find-users-by-role.usecase';
 import { CreateUserDto } from '../presentation/dto/user.dto';
 import { User } from '../infrastructure/persistence/entities/user.entity';
 
@@ -17,6 +21,10 @@ export class UsersFacade {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
     private readonly assignRoleToUserUseCase: AssignRoleToUserUseCase,
+    private readonly getExpertStatsUseCase: GetExpertStatsUseCase,
+    private readonly getUserStatsUseCase: GetUserStatsUseCase,
+    private readonly getUserExpertGrowthStatsUseCase: GetUserExpertGrowthStatsUseCase,
+    private readonly findUsersByRoleUseCase: FindUsersByRoleUseCase,
   ) {}
 
   create(dto: CreateUserDto, queryRunner?: QueryRunner) {
@@ -49,5 +57,21 @@ export class UsersFacade {
 
   assignRole(userId: number, roleName: string, queryRunner?: QueryRunner) {
     return this.assignRoleToUserUseCase.execute(userId, roleName, queryRunner);
+  }
+
+  getExpertStats() {
+    return this.getExpertStatsUseCase.execute();
+  }
+
+  getUserStats() {
+    return this.getUserStatsUseCase.execute();
+  }
+
+  getUserExpertGrowthStats(days: number = 7) {
+    return this.getUserExpertGrowthStatsUseCase.execute(days);
+  }
+
+  findAllByRole(role: string, search?: string, page: number = 1, limit: number = 10) {
+    return this.findUsersByRoleUseCase.execute(role, search, page, limit);
   }
 }

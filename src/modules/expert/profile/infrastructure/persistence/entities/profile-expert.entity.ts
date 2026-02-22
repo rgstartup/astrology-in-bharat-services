@@ -16,6 +16,7 @@ import { Address } from '@/common/address/address.entity';
 @Entity('profile_experts')
 @Check(`"gender" IN ('male', 'female', 'other')`)
 @Check(`"experience_in_years" >= 0`)
+@Check(`"kycStatus" IN ('pending', 'approved', 'rejected')`)
 export class ProfileExpert {
   @PrimaryGeneratedColumn()
   id: number;
