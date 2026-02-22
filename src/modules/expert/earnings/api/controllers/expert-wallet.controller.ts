@@ -1,0 +1,49 @@
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Query,
+    UseGuards,
+    ParseIntPipe,
+} from '@nestjs/common';
+import { ExpertEarningsFacade } from '../../application/expert-earnings.facade';
+import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+
+@Controller({
+    path: 'expert/wallet',
+    version: '1',
+})
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('expert')
+export class ExpertWalletController {
+    constructor(private readonly earningsFacade: ExpertEarningsFacade) { }
+
+    @Get('balance')
+    async getBalance(@CurrentUser() user: User) {
+        return this.earningsFacade.getWalletBalance(user.id);
+    }
+
+    @Get('transactions')
+    getTransactions(
+        @CurrentUser() user: User,
+        @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
+        @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 10,
+        @Query('type') type: string = 'all',
+    ) {
+        return this.earningsFacade.getTransactions(user.id, page, limit, type);
+    }
+
+    @Post('withdraw')
+    async withdraw(
+        @CurrentUser() user: User,
+        @Body('amount') amount: number,
+        @Body('bankAccountId') bankAccountId: number,
+    ) {
+        return this.earningsFacade.requestWithdrawal(user.id, amount, bankAccountId);
+    }
+}

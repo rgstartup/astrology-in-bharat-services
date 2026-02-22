@@ -10,6 +10,7 @@ import { ListExpertsUseCase } from './use-cases/list-experts.usecase';
 import { GetExpertByIdUseCase } from './use-cases/get-expert-by-id.usecase';
 import { UpdateKycStatusUseCase } from './use-cases/update-kyc-status.usecase';
 import { GetTopRatedExpertsUseCase } from './use-cases/get-top-rated-experts.usecase';
+import { GetExpertByUserIdUseCase } from './use-cases/get-expert-by-user-id.usecase';
 
 @Injectable()
 export class ProfileFacade {
@@ -22,6 +23,7 @@ export class ProfileFacade {
     private readonly getExpertByIdUseCase: GetExpertByIdUseCase,
     private readonly updateKycStatusUseCase: UpdateKycStatusUseCase,
     private readonly getTopRatedExpertsUseCase: GetTopRatedExpertsUseCase,
+    private readonly getExpertByUserIdUseCase: GetExpertByUserIdUseCase,
   ) {}
 
   async getProfile(user: User) {
@@ -54,5 +56,9 @@ export class ProfileFacade {
 
   async getTopRatedExperts(limit: number = 3) {
     return this.getTopRatedExpertsUseCase.execute(limit);
+  }
+
+  async getExpertByUserId(userId: number) {
+    return this.getExpertByUserIdUseCase.execute(userId);
   }
 }

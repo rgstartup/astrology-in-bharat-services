@@ -19,6 +19,7 @@ import { ListExpertsUseCase } from './application/use-cases/list-experts.usecase
 import { GetExpertByIdUseCase } from './application/use-cases/get-expert-by-id.usecase';
 import { UpdateKycStatusUseCase } from './application/use-cases/update-kyc-status.usecase';
 import { GetTopRatedExpertsUseCase } from './application/use-cases/get-top-rated-experts.usecase';
+import { GetExpertByUserIdUseCase } from './application/use-cases/get-expert-by-user-id.usecase';
 import { KycStatusChangedHandler } from './application/event-handlers/kyc-status-changed.handler';
 import { ExpertStatusChangedHandler } from './application/event-handlers/expert-status-changed.handler';
 
@@ -40,6 +41,7 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     GetExpertByIdUseCase,
     UpdateKycStatusUseCase,
     GetTopRatedExpertsUseCase,
+    GetExpertByUserIdUseCase,
     KycStatusChangedHandler,
     ExpertStatusChangedHandler,
   ],
