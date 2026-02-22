@@ -5,7 +5,7 @@ export class OAuthUserDto {
   provider: string; // "google", "github", etc.
 
   @IsString()
-  providerId: string; // provider's user ID
+  provider_id: string; // provider's user ID
 
   //   @IsOptional()
   @IsEmail()

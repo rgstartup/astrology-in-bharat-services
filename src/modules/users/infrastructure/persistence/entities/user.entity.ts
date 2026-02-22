@@ -38,7 +38,7 @@ export class User {
   @Column({ nullable: true })
   name?: string;
 
-  @Column({type: "text", nullable: true})
+  @Column({ type: 'text', nullable: true })
   avatar?: string;
 
   @ManyToMany(() => Role, (r) => r.users, { eager: true })
@@ -70,7 +70,13 @@ export class User {
   @OneToOne(() => ProfileExpert, (p) => p.user, { cascade: true })
   profile_expert?: ProfileExpert;
 
+  // methods
+
   isVerified() {
     return !!this.email_verified_at;
+  }
+
+  markEmailAsVerified() {
+    this.email_verified_at = new Date();
   }
 }

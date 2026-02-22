@@ -19,16 +19,17 @@ export class LoginWithGoogleUseCase {
     profile: Profile;
     ip?: string;
     userAgent?: string;
+    role?: string;
   }) {
     return this.db.transaction(async (qr) => {
       const user = await this.oauthService.findOrCreateUserFromOAuth(
         {
           provider: 'google',
-          providerId: input.providerId,
+          provider_id: input.providerId,
           email: input.email,
           name: input.name,
           profile: input.profile,
-          roles: ['client'],
+          roles: input.role ? [input.role] : undefined,
         },
         qr,
       );

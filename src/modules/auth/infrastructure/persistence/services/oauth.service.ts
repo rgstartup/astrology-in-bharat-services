@@ -6,14 +6,13 @@ import { OAuthUserDto } from '@/modules/auth/api/dto';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { BaseService } from 'src/common/services/transaction.service';
-// import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class OAuthService extends BaseService<OAuthAccount> {
   constructor(
     @InjectRepository(OAuthAccount)
-    private oauthRepo: Repository<OAuthAccount>,
-    private usersFacade: UsersFacade,
+    private readonly oauthRepo: Repository<OAuthAccount>,
+    private readonly usersFacade: UsersFacade,
   ) {
     super(oauthRepo);
   }
@@ -30,7 +29,9 @@ export class OAuthService extends BaseService<OAuthAccount> {
     queryRunner?: QueryRunner,
   ) {
     const repo = this.getRepo(queryRunner);
+
     const account = repo.create(data);
+
     return repo.save(account);
   }
 
@@ -39,26 +40,22 @@ export class OAuthService extends BaseService<OAuthAccount> {
     dto: OAuthUserDto,
     queryRunner?: QueryRunner,
   ): Promise<User> {
-    let oauth = await this.findByProvider(dto.provider, dto.providerId);
+    let oauth = await this.findByProvider(dto.provider, dto.provider_id);
 
     if (oauth?.user) return oauth.user;
 
-    // eslint-disable-next-line prefer-const
-    let user = dto.email
-      ? await this.usersFacade.findByEmail(dto.email)
-      : null;
+    let user = dto.email ? await this.usersFacade.findByEmail(dto.email) : null;
 
-    if (!user) {
-      user = await this.usersFacade.create(
-        {
-          email: dto.email,
-          name: dto.name,
-          roles: dto.roles?.map((role) => ({ name: role })),
-          email_verified_at: new Date(),
-        },
-        queryRunner,
-      );
-    }
+    user ??= await this.usersFacade.create(
+      {
+        email: dto.email,
+        name: dto.name,
+        roles: dto.roles?.map((role) => ({ name: role })),
+      },
+      queryRunner,
+    );
+
+    user.markEmailAsVerified();
 
     await this.linkAccount({ ...dto, user }, queryRunner);
     return user;

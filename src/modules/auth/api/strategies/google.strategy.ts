@@ -43,6 +43,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       return done(new Error('Google account did not provide an email'));
     }
 
+    const state = JSON.parse(decodeURIComponent(req?.query?.state as string));
+
     const { user, tokens } = await this.loginWithGoogle.execute({
       providerId,
       email,
@@ -50,6 +52,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       profile,
       ip: req?.ip,
       userAgent: req.get('user-agent'),
+      role: state?.role,
     });
     // 3️⃣ Return both user and tokens to AuthController via Passport
     return done(

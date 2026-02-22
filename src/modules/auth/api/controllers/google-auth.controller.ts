@@ -1,6 +1,7 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
+import { GoogleAuthGuard } from '../guards/google-auth.guard';
 
 @Controller({
   path: 'auth/google',
@@ -8,7 +9,7 @@ import { Request } from 'express';
 })
 export class GoogleAuthController {
   @Get('login')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   googleLogin() {
     return;
   }
