@@ -8,9 +8,9 @@ export class SetOrderRazorpayIdUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-  ) {}
+  ) { }
 
   async execute(orderId: number, razorpayOrderId: string) {
-    await this.orderRepo.update(orderId, { razorpayOrderId });
+    await this.orderRepo.update(orderId, { razorpay_order_id: razorpayOrderId });
   }
 }

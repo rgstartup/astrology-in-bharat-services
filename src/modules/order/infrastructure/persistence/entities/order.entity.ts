@@ -30,10 +30,10 @@ export class Order {
     user: User;
 
     @Column({ name: 'user_id' })
-    userId: number;
+    user_id: number;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
-    totalAmount: number;
+    @Column({ name: 'total_amount', type: 'decimal', precision: 10, scale: 2 })
+    total_amount: number;
 
     @Column({
         type: 'enum',
@@ -42,21 +42,21 @@ export class Order {
     })
     status: OrderStatus;
 
-    @Column({ nullable: true })
-    razorpayOrderId: string;
+    @Column({ name: 'razorpay_order_id', nullable: true })
+    razorpay_order_id: string;
 
-    @Column({ type: 'json', nullable: true })
-    shippingAddress: any;
+    @Column({ name: 'shipping_address', type: 'json', nullable: true })
+    shipping_address: any;
 
-    @Column({ type: 'text', nullable: true })
-    cancellationReason?: string;
+    @Column({ name: 'cancellation_reason', type: 'text', nullable: true })
+    cancellation_reason?: string;
 
     @OneToMany(() => OrderItem, (item: OrderItem) => item.order, { cascade: true })
     items: OrderItem[];
 
     @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+    created_at: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
+    updated_at: Date;
 }

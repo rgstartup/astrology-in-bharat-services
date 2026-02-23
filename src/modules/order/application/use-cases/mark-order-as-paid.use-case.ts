@@ -8,11 +8,11 @@ export class MarkOrderAsPaidUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-  ) {}
+  ) { }
 
   async execute(razorpayOrderId: string) {
     const order = await this.orderRepo.findOne({
-      where: { razorpayOrderId },
+      where: { razorpay_order_id: razorpayOrderId },
     });
 
     if (!order) {

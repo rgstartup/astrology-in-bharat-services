@@ -22,7 +22,7 @@ export class CreateOrderFromCartUseCase {
     private dataSource: DataSource,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
-  ) {}
+  ) { }
 
   async execute(userId: number, shippingAddress: any) {
     const cart = (await this.cartFacade.getCart(userId)) as Cart;
@@ -44,19 +44,19 @@ export class CreateOrderFromCartUseCase {
 
       // 2. Create Order
       const order = this.orderRepo.create({
-        userId,
-        totalAmount,
-        shippingAddress,
+        user_id: userId,
+        total_amount: totalAmount,
+        shipping_address: shippingAddress,
         status: OrderStatus.PENDING,
       });
 
-      const savedOrder = await queryRunner.manager.save(order);
+      const savedOrder = (await queryRunner.manager.save(order)) as Order;
 
       // 3. Create Order Items
       const orderItems = cart.items.map((cartItem) => {
         return this.orderItemRepo.create({
-          order: savedOrder,
-          productId: cartItem.product.id,
+          order_id: savedOrder.id,
+          product_id: cartItem.product.id,
           quantity: cartItem.quantity,
           price: cartItem.product.price,
         });
@@ -68,10 +68,10 @@ export class CreateOrderFromCartUseCase {
 
       // Emit socket event to all admins about new order
       this.notificationGateway.emitToAdmins('new_order', {
-        orderId: savedOrder.id,
-        userId,
-        totalAmount,
-        createdAt: savedOrder.createdAt,
+        order_id: savedOrder.id,
+        user_id: userId,
+        total_amount: totalAmount,
+        created_at: savedOrder.created_at,
       });
 
       // Send order confirmation email to user

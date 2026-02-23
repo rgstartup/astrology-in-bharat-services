@@ -139,18 +139,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const session = await this.chatFacade.activateSession(payload.sessionId);
 
     // Calculate initial timer values for immediate sync
-    const userBalance = await this.walletFacade.getBalance(session.userId);
-    const price = session.pricePerMinute || 0;
+    const userBalance = await this.walletFacade.getBalance(session.user_id);
+    const price = session.price_per_minute || 0;
 
-    const maxMinutes = session.isFree
-      ? session.freeMinutes
+    const maxMinutes = session.is_free
+      ? session.free_minutes
       : price > 0
         ? Math.floor(userBalance / price)
         : 0;
 
     const serverTime = new Date();
-    const startTime = session.startTime
-      ? new Date(session.startTime)
+    const startTime = session.start_time
+      ? new Date(session.start_time)
       : serverTime;
     const currentElapsed = Math.max(
       0,
@@ -169,9 +169,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .emit('session_activated', dataWithTimers);
 
     // Notify expert dashboard directly
-    if (session.expertId) {
+    if (session.expert_id) {
       this.notifyExpertStatusUpdate(
-        session.expertId,
+        session.expert_id,
         'session_activated',
         dataWithTimers,
       );
@@ -197,26 +197,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       const now = new Date();
-      const durationMs = now.getTime() - currentSession.startTime.getTime();
+      const durationMs = now.getTime() - currentSession.start_time.getTime();
       const durationMins = Math.floor(durationMs / 60000);
 
       // 1. Handle Free Session Expiry
       if (
-        currentSession.isFree &&
-        durationMins === currentSession.freeMinutes
+        currentSession.is_free &&
+        durationMins === currentSession.free_minutes
       ) {
         const balance = await this.walletFacade.getBalance(
-          currentSession.userId,
+          currentSession.user_id,
         );
-        const minReq = currentSession.pricePerMinute * 5;
+        const minReq = currentSession.price_per_minute * 5;
 
         this.server.to(`room_${payload.sessionId}`).emit('free_limit_reached', {
           message:
             balance < minReq
               ? 'Your free session is ending soon. Please recharge to continue.'
-              : `Your free session has ended. To continue at ₹${currentSession.pricePerMinute}/min, please confirm.`,
+              : `Your free session has ended. To continue at ₹${currentSession.price_per_minute}/min, please confirm.`,
           requireRecharge: balance < minReq,
-          expertPrice: currentSession.pricePerMinute,
+          expertPrice: currentSession.price_per_minute,
           balance,
         });
 
@@ -225,7 +225,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           const s = await this.chatFacade.getSession(payload.sessionId);
           // If still active but no reservation done (we'd need a flag or just check balance again)
           // For now, if they don't have balance after 30s, end it.
-          const b = await this.walletFacade.getBalance(currentSession.userId);
+          const b = await this.walletFacade.getBalance(currentSession.user_id);
           if (b < minReq && s?.status === ChatSessionStatus.ACTIVE) {
             await this.chatFacade.endChat(payload.sessionId);
             this.server
@@ -236,14 +236,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       // 2. Handle Continuous Paid Balance Check (beyond initial 5 mins if not free)
-      const checkThreshold = currentSession.isFree
-        ? currentSession.freeMinutes + 1
+      const checkThreshold = currentSession.is_free
+        ? currentSession.free_minutes + 1
         : 5;
       if (durationMins >= checkThreshold) {
         const balance = await this.walletFacade.getBalance(
-          currentSession.userId,
+          currentSession.user_id,
         );
-        if (balance < currentSession.pricePerMinute) {
+        if (balance < currentSession.price_per_minute) {
           this.server.to(`room_${payload.sessionId}`).emit('balance_warning', {
             message: 'Insufficient balance. Session will end in 30 seconds.',
           });
@@ -331,8 +331,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`[Socket] Emitted session_ended to room_${payload.sessionId}`);
 
     // Notify expert dashboard directly (if they are in dashboard view)
-    if (session && session.expertId) {
-      this.notifyExpertStatusUpdate(session.expertId, 'session_ended', session);
+    if (session && session.expert_id) {
+      this.notifyExpertStatusUpdate(session.expert_id, 'session_ended', session);
     }
 
     if (this.sessionTimers.has(payload.sessionId)) {

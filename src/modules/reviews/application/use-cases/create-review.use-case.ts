@@ -20,7 +20,7 @@ export class CreateReviewUseCase {
     private readonly expertRepository: Repository<ProfileExpert>,
     @InjectRepository(ChatSession)
     private readonly sessionRepository: Repository<ChatSession>,
-  ) {}
+  ) { }
 
   async execute(
     userId: number,
@@ -45,12 +45,12 @@ export class CreateReviewUseCase {
       if (!session) {
         throw new SessionNotFoundError(sessionId);
       }
-      if (session.userId !== userId) {
+      if (session.user_id !== userId) {
         throw new CannotReviewUnparticipatedSessionError();
       }
 
       const existingReview = await this.reviewRepository.findOne({
-        where: { sessionId },
+        where: { session_id: sessionId },
       });
       if (existingReview) {
         throw new SessionAlreadyReviewedError();
@@ -58,9 +58,9 @@ export class CreateReviewUseCase {
     }
 
     const review = this.reviewRepository.create({
-      userId,
-      expertId,
-      sessionId,
+      user_id: userId,
+      expert_id: expertId,
+      session_id: sessionId,
       rating,
       comment,
     });
@@ -77,7 +77,7 @@ export class CreateReviewUseCase {
       .createQueryBuilder('review')
       .select('AVG(review.rating)', 'average')
       .addSelect('COUNT(review.id)', 'count')
-      .where('review.expertId = :expertId', { expertId })
+      .where('review.expert_id = :expertId', { expertId })
       .getRawOne();
 
     const averageRating = result.average ? parseFloat(result.average) : 0;
@@ -85,7 +85,7 @@ export class CreateReviewUseCase {
 
     await this.expertRepository.update(expertId, {
       rating: parseFloat(averageRating.toFixed(1)),
-      totalReviews: totalReviews,
+      total_reviews: totalReviews,
     });
   }
 }

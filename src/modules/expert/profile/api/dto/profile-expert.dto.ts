@@ -58,7 +58,7 @@ export class ProfileExpertDto {
 
   @IsOptional()
   @IsString()
-  phoneNumber?: string;
+  phone_number?: string;
 
   @IsOptional()
   @Type(() => Number)
@@ -145,7 +145,7 @@ export class ProfileExpertDto {
   @Type(() => CustomServiceDto)
   custom_services?: CustomServiceDto[];
 }
-export class CreateProfileExpertDto extends ProfileExpertDto {}
+export class CreateProfileExpertDto extends ProfileExpertDto { }
 
 export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) {
   @IsOptional()

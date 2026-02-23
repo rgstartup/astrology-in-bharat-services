@@ -18,7 +18,7 @@ export class UpdateOrderStatusUseCase {
     private notificationFacade: NotificationFacade,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
-  ) {}
+  ) { }
 
   async execute(id: number, status: OrderStatus, cancellationReason?: string) {
     const order = await this.orderRepo.findOne({ where: { id } });
@@ -26,7 +26,7 @@ export class UpdateOrderStatusUseCase {
 
     order.status = status;
     if (cancellationReason) {
-      order.cancellationReason = cancellationReason;
+      order.cancellation_reason = cancellationReason;
     }
 
     const updatedOrder = await this.orderRepo.save(order);
@@ -65,15 +65,15 @@ export class UpdateOrderStatusUseCase {
 
     // Save notification to DB via facade
     await this.notificationFacade.create(
-      order.userId,
+      order.user_id,
       notificationType,
       title,
       message,
-      { orderId: id, status, amount: order.totalAmount },
+      { orderId: id, status, amount: order.total_amount },
     );
 
     // Emit real-time socket event to user
-    this.notificationGateway.emitToUser(order.userId, 'order_status_updated', {
+    this.notificationGateway.emitToUser(order.user_id, 'order_status_updated', {
       orderId: id,
       status,
       title,
@@ -83,7 +83,7 @@ export class UpdateOrderStatusUseCase {
 
     // Send status update email to user
     try {
-      const user = await this.userRepo.findOne({ where: { id: order.userId } });
+      const user = await this.userRepo.findOne({ where: { id: order.user_id } });
       if (user?.email) {
         const emailHtml = `
           <h2>${title}</h2>

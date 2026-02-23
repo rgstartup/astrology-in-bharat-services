@@ -14,7 +14,7 @@ export class AddressDto {
 
   @IsOptional()
   @IsString()
-  houseNo?: string;
+  house_no?: string;
 
   @IsOptional()
   @IsString()
@@ -34,7 +34,7 @@ export class AddressDto {
 
   @IsOptional()
   @IsPostalCode('any')
-  zipCode?: string;
+  zip_code?: string;
 
   @IsOptional()
   @IsString()

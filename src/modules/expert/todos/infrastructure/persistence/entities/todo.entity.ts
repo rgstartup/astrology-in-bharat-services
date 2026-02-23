@@ -22,12 +22,12 @@ export class Todo {
     @ManyToOne(() => ProfileExpert, { onDelete: 'CASCADE' })
     expert: ProfileExpert;
 
-    @Column()
-    expertId: number;
+    @Column({ name: 'expert_id' })
+    expert_id: number;
 
-    @CreateDateColumn()
-    createdAt: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    created_at: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updated_at: Date;
 }

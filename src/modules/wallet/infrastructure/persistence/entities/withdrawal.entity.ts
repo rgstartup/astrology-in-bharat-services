@@ -23,21 +23,21 @@ export class Withdrawal {
     id: number;
 
     @ManyToOne(() => User)
-    @JoinColumn({ name: 'userId' })
+    @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column({ type: 'int' })
-    userId: number;
+    @Column({ type: 'int', name: 'user_id' })
+    user_id: number;
 
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     amount: number;
 
     @ManyToOne(() => BankAccount)
-    @JoinColumn({ name: 'bankAccountId' })
+    @JoinColumn({ name: 'bank_account_id' })
     bankAccount: BankAccount;
 
-    @Column({ type: 'int' })
-    bankAccountId: number;
+    @Column({ type: 'int', name: 'bank_account_id' })
+    bank_account_id: number;
 
     @Column({
         type: 'enum',
@@ -49,12 +49,12 @@ export class Withdrawal {
     @Column({ nullable: true })
     remark?: string;
 
-    @Column({ nullable: true })
-    transactionReference?: string;
+    @Column({ name: 'transaction_reference', nullable: true })
+    transaction_reference?: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    created_at: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updated_at: Date;
 }

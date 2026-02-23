@@ -8,22 +8,22 @@ export class GetTotalEarningsUseCase {
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
-  ) {}
+  ) { }
 
   async execute(userId: number, options: { startDate?: Date; endDate?: Date } = {}): Promise<number> {
     const query = this.transactionRepository
       .createQueryBuilder('transaction')
       .innerJoin('transaction.wallet', 'wallet')
-      .where('wallet.userId = :userId', { userId })
+      .where('wallet.user_id = :userId', { userId })
       .andWhere('transaction.type = :type', { type: TransactionType.CREDIT })
       .andWhere('transaction.purpose = :purpose', { purpose: TransactionPurpose.CONSULTATION });
 
     if (options.startDate) {
-      query.andWhere('transaction.createdAt >= :startDate', { startDate: options.startDate });
+      query.andWhere('transaction.created_at >= :startDate', { startDate: options.startDate });
     }
 
     if (options.endDate) {
-      query.andWhere('transaction.createdAt <= :endDate', { endDate: options.endDate });
+      query.andWhere('transaction.created_at <= :endDate', { endDate: options.endDate });
     }
 
     const total = await query

@@ -8,13 +8,13 @@ export class GetExpertWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-  ) {}
+  ) { }
 
   async execute(userId: number): Promise<Wishlist[]> {
     const wishlists = await this.wishlistRepository.find({
       where: { user: { id: userId } },
       relations: ['expert'],
-      order: { createdAt: 'DESC' },
+      order: { created_at: 'DESC' },
     });
     return wishlists.filter((item) => item.expert);
   }

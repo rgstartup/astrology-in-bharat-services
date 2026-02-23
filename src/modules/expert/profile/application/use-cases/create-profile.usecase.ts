@@ -20,7 +20,7 @@ export class CreateProfileUseCase {
     private readonly addressRepo: Repository<Address>,
     private readonly getProfileUseCase: GetProfileUseCase,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(user: User, dto: CreateProfileExpertDto) {
     try {
@@ -42,7 +42,7 @@ export class CreateProfileUseCase {
         bio: dto.bio,
         experience_in_years: dto.experience_in_years,
         languages: dto.languages ? dto.languages.join(',') : undefined,
-        phoneNumber: dto.phoneNumber,
+        phone_number: dto.phone_number,
         price: dto.price,
         chat_price: dto.chat_price,
         call_price: dto.call_price,
@@ -63,14 +63,14 @@ export class CreateProfileUseCase {
             this.addressRepo.create({
               line1:
                 [addr.line1, addr.line2].filter(Boolean).join(', ') ||
-                addr.houseNo ||
+                addr.house_no ||
                 '',
-              houseNo: addr.houseNo,
+              house_no: addr.house_no,
               city: addr.city,
               district: addr.district,
               state: addr.state,
               country: addr.country,
-              zipCode: addr.zipCode || addr.pincode || '',
+              zip_code: addr.zip_code || addr.pincode || '',
               pincode: addr.pincode,
             }),
           ) ?? [],

@@ -13,7 +13,7 @@ export class ListExpertsUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly expertGateway: ExpertGateway,
-  ) {}
+  ) { }
 
   async execute(query: QueryExpertDto) {
     const limit = query.limit || 20;
@@ -35,7 +35,7 @@ export class ListExpertsUseCase {
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
       .leftJoinAndSelect('profile.addresses', 'addresses')
-      .where('LOWER(profile.kycStatus) IN (:...statuses)', {
+      .where('LOWER(profile.kyc_status) IN (:...statuses)', {
         statuses: ['approved', 'active'],
       });
 
@@ -147,7 +147,7 @@ export class ListExpertsUseCase {
     } else if (sort === 'price_desc') {
       queryBuilder.orderBy(priceColumn, 'DESC');
     } else if (sort === 'newest') {
-      queryBuilder.orderBy('profile.createdAt', 'DESC');
+      queryBuilder.orderBy('profile.created_at', 'DESC');
     }
 
     try {
@@ -160,9 +160,9 @@ export class ListExpertsUseCase {
         const plain = { ...ex } as any;
         plain.languages = ex.languages
           ? ex.languages
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean)
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
           : [];
         plain.userId = ex.user?.id;
         plain.isAvailable = ex.is_available;

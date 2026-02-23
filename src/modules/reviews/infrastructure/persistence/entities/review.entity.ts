@@ -15,25 +15,25 @@ export class Review {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int' })
-  userId: number;
+  @Column({ type: 'int', name: 'user_id' })
+  user_id: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'int' })
-  expertId: number;
+  @Column({ type: 'int', name: 'expert_id' })
+  expert_id: number;
 
   @ManyToOne(() => ProfileExpert)
-  @JoinColumn({ name: 'expertId' })
+  @JoinColumn({ name: 'expert_id' })
   expert: ProfileExpert;
 
-  @Column({ type: 'int', nullable: true })
-  sessionId: number;
+  @Column({ type: 'int', nullable: true, name: 'session_id' })
+  session_id: number;
 
   @ManyToOne(() => ChatSession, { nullable: true })
-  @JoinColumn({ name: 'sessionId' })
+  @JoinColumn({ name: 'session_id' })
   session: ChatSession;
 
   @Column({ type: 'float' })
@@ -42,6 +42,6 @@ export class Review {
   @Column({ type: 'text', nullable: true })
   comment: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
+  created_at: Date;
 }

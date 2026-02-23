@@ -22,7 +22,7 @@ export class OAuthAccount {
   @Column({ nullable: true })
   email?: string;
 
-  @ManyToOne(() => User, (u) => u.oauthAccounts, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (u) => u.oauth_accounts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 }

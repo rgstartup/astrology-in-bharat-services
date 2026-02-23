@@ -23,7 +23,7 @@ export class UpdateProfileUseCase {
     private readonly userRepo: Repository<User>,
     private readonly getProfileUseCase: GetProfileUseCase,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(user: User, dto: UpdateProfileExpertDto) {
     let profile = await this.profileRepo.findOne({
@@ -77,8 +77,8 @@ export class UpdateProfileUseCase {
       profile.languages = (dto as any).languages.join(',');
     }
 
-    if ((dto as any).phoneNumber !== undefined) {
-      profile.phoneNumber = (dto as any).phoneNumber;
+    if ((dto as any).phone_number !== undefined) {
+      profile.phone_number = (dto as any).phone_number;
     }
 
     if (dto.addresses) {
@@ -88,13 +88,13 @@ export class UpdateProfileUseCase {
 
       profile.addresses = dto.addresses.map((addr: any) =>
         this.addressRepo.create({
-          line1: [addr.line1, addr.line2].filter(Boolean).join(', ') || addr.houseNo || '',
-          houseNo: addr.houseNo,
+          line1: [addr.line1, addr.line2].filter(Boolean).join(', ') || addr.house_no || '',
+          house_no: addr.house_no,
           city: addr.city,
           district: addr.district,
           state: addr.state,
           country: addr.country,
-          zipCode: addr.zipCode || addr.pincode || '',
+          zip_code: addr.zip_code || addr.pincode || '',
           pincode: addr.pincode,
           tag: addr.tag || 'other',
         }),

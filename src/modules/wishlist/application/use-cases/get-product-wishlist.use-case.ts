@@ -8,13 +8,13 @@ export class GetProductWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-  ) {}
+  ) { }
 
   async execute(userId: number): Promise<Wishlist[]> {
     return this.wishlistRepository.find({
       where: { user: { id: userId } },
       relations: ['product', 'expert'],
-      order: { createdAt: 'DESC' },
+      order: { created_at: 'DESC' },
     });
   }
 }

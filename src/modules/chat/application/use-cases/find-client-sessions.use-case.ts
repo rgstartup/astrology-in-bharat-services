@@ -12,9 +12,9 @@ export class FindClientSessionsUseCase {
 
     async execute(userId: number) {
         return this.sessionRepo.find({
-            where: { userId },
+            where: { user_id: userId },
             relations: ['expert', 'expert.user'],
-            order: { createdAt: 'DESC' },
+            order: { created_at: 'DESC' },
         });
     }
 }

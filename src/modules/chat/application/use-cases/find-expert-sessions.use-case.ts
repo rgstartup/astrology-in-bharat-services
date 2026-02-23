@@ -36,62 +36,62 @@ export class FindExpertSessionsUseCase {
             case ExpertSessionFilter.PENDING:
                 return this.sessionRepo.find({
                     where: [
-                        { expertId, status: ChatSessionStatus.PENDING },
-                        { expertId, status: ChatSessionStatus.ACTIVE },
+                        { expert_id: expertId, status: ChatSessionStatus.PENDING },
+                        { expert_id: expertId, status: ChatSessionStatus.ACTIVE },
                         {
-                            expertId,
+                            expert_id: expertId,
                             status: ChatSessionStatus.COMPLETED,
-                            createdAt: MoreThan(oneHourAgo),
+                            created_at: MoreThan(oneHourAgo),
                         },
                         {
-                            expertId,
+                            expert_id: expertId,
                             status: ChatSessionStatus.EXPIRED,
-                            createdAt: MoreThan(oneHourAgo),
+                            created_at: MoreThan(oneHourAgo),
                         },
                     ],
                     relations: ['user'],
-                    order: { createdAt: 'DESC' },
+                    order: { created_at: 'DESC' },
                 });
 
             case ExpertSessionFilter.RECENT_PENDING:
                 return this.sessionRepo.find({
                     where: [
-                        { expertId, status: ChatSessionStatus.PENDING, createdAt: MoreThan(twelveHoursAgo) },
-                        { expertId, status: ChatSessionStatus.ACTIVE, createdAt: MoreThan(twelveHoursAgo) },
-                        { expertId, status: ChatSessionStatus.COMPLETED, createdAt: MoreThan(twelveHoursAgo) },
-                        { expertId, status: ChatSessionStatus.EXPIRED, createdAt: MoreThan(twelveHoursAgo) },
+                        { expert_id: expertId, status: ChatSessionStatus.PENDING, created_at: MoreThan(twelveHoursAgo) },
+                        { expert_id: expertId, status: ChatSessionStatus.ACTIVE, created_at: MoreThan(twelveHoursAgo) },
+                        { expert_id: expertId, status: ChatSessionStatus.COMPLETED, created_at: MoreThan(twelveHoursAgo) },
+                        { expert_id: expertId, status: ChatSessionStatus.EXPIRED, created_at: MoreThan(twelveHoursAgo) },
                     ],
                     relations: ['user'],
-                    order: { createdAt: 'DESC' },
+                    order: { created_at: 'DESC' },
                 });
 
             case ExpertSessionFilter.COMPLETED:
                 return this.sessionRepo.find({
                     where: [
-                        { expertId, status: ChatSessionStatus.COMPLETED },
-                        { expertId, status: ChatSessionStatus.EXPIRED },
-                        { expertId, status: ChatSessionStatus.CANCELLED },
+                        { expert_id: expertId, status: ChatSessionStatus.COMPLETED },
+                        { expert_id: expertId, status: ChatSessionStatus.EXPIRED },
+                        { expert_id: expertId, status: ChatSessionStatus.CANCELLED },
                     ],
                     relations: ['user'],
-                    order: { createdAt: 'DESC' },
+                    order: { created_at: 'DESC' },
                 });
 
             case ExpertSessionFilter.RECENT_COMPLETED:
                 return this.sessionRepo.find({
                     where: [
-                        { expertId, status: ChatSessionStatus.COMPLETED, createdAt: MoreThan(twelveHoursAgo) },
-                        { expertId, status: ChatSessionStatus.EXPIRED, createdAt: MoreThan(twelveHoursAgo) },
-                        { expertId, status: ChatSessionStatus.CANCELLED, createdAt: MoreThan(twelveHoursAgo) },
+                        { expert_id: expertId, status: ChatSessionStatus.COMPLETED, created_at: MoreThan(twelveHoursAgo) },
+                        { expert_id: expertId, status: ChatSessionStatus.EXPIRED, created_at: MoreThan(twelveHoursAgo) },
+                        { expert_id: expertId, status: ChatSessionStatus.CANCELLED, created_at: MoreThan(twelveHoursAgo) },
                     ],
                     relations: ['user'],
-                    order: { createdAt: 'DESC' },
+                    order: { created_at: 'DESC' },
                 });
 
             case ExpertSessionFilter.ALL:
                 return this.sessionRepo.find({
-                    where: { expertId },
+                    where: { expert_id: expertId },
                     relations: ['user'],
-                    order: { createdAt: 'DESC' },
+                    order: { created_at: 'DESC' },
                 });
 
             default:

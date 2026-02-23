@@ -16,7 +16,7 @@ import { Address } from '@/common/address/address.entity';
 @Entity('profile_experts')
 @Check(`"gender" IN ('male', 'female', 'other')`)
 @Check(`"experience_in_years" >= 0`)
-@Check(`"kycStatus" IN ('pending', 'approved', 'rejected')`)
+@Check(`"kyc_status" IN ('pending', 'approved', 'rejected')`)
 export class ProfileExpert {
   @PrimaryGeneratedColumn()
   id: number;
@@ -61,28 +61,29 @@ export class ProfileExpert {
   @Column({
     type: 'int',
     default: 0,
+    name: 'total_reviews'
   })
-  totalReviews: number;
+  total_reviews: number;
 
   //   @Column({ type: 'decimal', nullable: true })
   //   hourlyRate?: number;
   @Column({ type: 'float', default: 0 })
   rating: number;
 
-  @Column({ default: 'pending' }) // pending, approved, rejected
-  kycStatus: string;
+  @Column({ default: 'pending', name: 'kyc_status' }) // pending, approved, rejected
+  kyc_status: string;
 
-  @Column({ type: 'text', nullable: true })
-  rejectionReason?: string | null;
+  @Column({ type: 'text', nullable: true, name: 'rejection_reason' })
+  rejection_reason?: string | null;
 
-  @Column({ type: 'int', default: 0 })
-  consultationCount: number;
+  @Column({ type: 'int', default: 0, name: 'consultation_count' })
+  consultation_count: number;
 
   @Column({ type: 'text', nullable: true })
   languages?: string;
 
-  @Column({ type: 'text', nullable: true })
-  phoneNumber?: string;
+  @Column({ type: 'text', nullable: true, name: 'phone_number' })
+  phone_number?: string;
 
   @Column({ type: 'float', nullable: true })
   price?: number;
@@ -129,11 +130,11 @@ export class ProfileExpert {
   @Column({ type: 'boolean', default: false })
   is_available: boolean;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updated_at: Date;
 
   @OneToMany(() => Address, (address) => address.profile_expert, {
     cascade: true,

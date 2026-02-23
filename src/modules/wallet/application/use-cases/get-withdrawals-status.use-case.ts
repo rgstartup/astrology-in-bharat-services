@@ -8,12 +8,12 @@ export class GetWithdrawalsStatusUseCase {
   constructor(
     @InjectRepository(Withdrawal)
     private readonly withdrawalRepository: Repository<Withdrawal>,
-  ) {}
+  ) { }
 
   async execute(userId: number) {
     const query = this.withdrawalRepository
       .createQueryBuilder('w')
-      .where('w.userId = :userId', { userId });
+      .where('w.user_id = :userId', { userId });
 
     const pendingResult = await query
       .clone()

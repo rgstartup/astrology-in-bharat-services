@@ -10,7 +10,7 @@ export class GetExpertByIdUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly expertGateway: ExpertGateway,
-  ) {}
+  ) { }
 
   async execute(id: number) {
     const queryBuilder = this.profileRepo
@@ -18,7 +18,7 @@ export class GetExpertByIdUseCase {
       .leftJoinAndSelect('profile.user', 'user')
       .leftJoinAndSelect('profile.addresses', 'addresses')
       .where('profile.id = :id', { id })
-      .andWhere("LOWER(profile.kycStatus) IN ('approved', 'active')");
+      .andWhere("LOWER(profile.kyc_status) IN ('approved', 'active')");
 
     const expert = await queryBuilder.getOne();
 
@@ -29,9 +29,9 @@ export class GetExpertByIdUseCase {
     const plain = { ...expert } as any;
     plain.languages = expert.languages
       ? expert.languages
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
       : [];
     plain.userId = expert.user?.id;
     plain.isAvailable = expert.is_available;

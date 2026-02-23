@@ -30,7 +30,7 @@ export class ProductController {
   constructor(
     private readonly productFacade: ProductFacade,
     private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -44,7 +44,7 @@ export class ProductController {
     @Body() createProductDto: CreateProductDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    let imageUrl = createProductDto.imageUrl;
+    let imageUrl = createProductDto.image_url;
 
     if (files && files.length > 0) {
       const file = files[0];
@@ -60,7 +60,7 @@ export class ProductController {
       }
     }
 
-    createProductDto.imageUrl = imageUrl;
+    createProductDto.image_url = imageUrl;
     return this.productFacade.create(createProductDto);
   }
 
@@ -92,7 +92,7 @@ export class ProductController {
         file,
       )) as UploadApiResponse;
       if (uploadedImage?.secure_url) {
-        updateProductDto.imageUrl = uploadedImage.secure_url;
+        updateProductDto.image_url = uploadedImage.secure_url;
       }
     }
     return this.productFacade.update(+id, updateProductDto);

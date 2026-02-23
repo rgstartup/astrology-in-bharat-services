@@ -10,7 +10,7 @@ export class ProfilePolicy {
   }
 
   static ensureCanVerifyKyc(profile: ProfileExpert) {
-    if (profile.kycStatus === 'verified') {
+    if (profile.kyc_status === 'verified') {
       throw new KycAlreadyVerifiedError();
     }
   }

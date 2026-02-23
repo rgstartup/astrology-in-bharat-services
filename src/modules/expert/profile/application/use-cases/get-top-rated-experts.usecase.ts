@@ -10,14 +10,14 @@ export class GetTopRatedExpertsUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly expertGateway: ExpertGateway,
-  ) {}
+  ) { }
 
   async execute(limit: number = 3) {
     const queryBuilder = this.profileRepo
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
       .leftJoinAndSelect('profile.addresses', 'addresses')
-      .where("LOWER(profile.kycStatus) IN ('approved', 'active')")
+      .where("LOWER(profile.kyc_status) IN ('approved', 'active')")
       .orderBy('profile.rating', 'DESC')
       .take(limit);
 
@@ -27,9 +27,9 @@ export class GetTopRatedExpertsUseCase {
       const plain = { ...ex } as any;
       plain.languages = ex.languages
         ? ex.languages
-            .split(',')
-            .map((s: string) => s.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((s: string) => s.trim())
+          .filter(Boolean)
         : [];
       plain.userId = ex.user?.id;
       plain.isAvailable = ex.is_available;

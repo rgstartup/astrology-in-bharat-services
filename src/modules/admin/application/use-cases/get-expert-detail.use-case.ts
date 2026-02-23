@@ -7,14 +7,14 @@ export class GetExpertDetailUseCase {
   constructor(
     private readonly usersFacade: UsersFacade,
     private readonly walletFacade: WalletFacade,
-  ) {}
+  ) { }
 
   async execute(id: number) {
     const user = await this.usersFacade.findById(id);
     if (!user) {
-        throw new NotFoundException('User not found');
+      throw new NotFoundException('User not found');
     }
-    
+
     if (!user.profile_expert) {
       throw new NotFoundException('Expert profile not found for this user');
     }
@@ -29,28 +29,28 @@ export class GetExpertDetailUseCase {
       avatar: user.avatar,
       gender: profile.gender,
       dob: profile.date_of_birth ? new Date(profile.date_of_birth).toISOString() : null,
-      phone: profile.phoneNumber || user.profile_client?.phone || '',
+      phone: profile.phone_number || user.profile_client?.phone || '',
       languages: profile.languages ? profile.languages.split(',') : [],
       bio: profile.bio || '',
       experience: profile.experience_in_years,
       specialization: profile.specialization || '',
       rating: profile.rating,
-      consultationCount: profile.consultationCount,
+      consultationCount: profile.consultation_count,
       totalEarnings: totalEarnings,
       intro_video_url: profile.video || (profile.videos && profile.videos.length > 0 ? profile.videos[0] : ''),
       gallery: profile.gallery || [],
       documents: profile.documents || [],
       addresses: profile.addresses?.map(addr => ({
-        houseNo: addr.houseNo || '',
+        houseNo: addr.house_no || '',
         district: addr.district || '',
         city: addr.city || '',
         state: addr.state || '',
         country: addr.country || '',
-        pincode: addr.pincode || addr.zipCode || ''
+        pincode: addr.pincode || addr.zip_code || ''
       })) || [],
       kyc_details: {
-        status: profile.kycStatus,
-        reason: profile.rejectionReason,
+        status: profile.kyc_status,
+        reason: profile.rejection_reason,
       },
     };
   }

@@ -36,7 +36,7 @@ export class InitiateChatUseCase {
 
         // Check for Free Consultation eligibility (First chat ever)
         const chatCount = await this.sessionRepo.count({
-            where: { userId, status: ChatSessionStatus.COMPLETED },
+            where: { user_id: userId, status: ChatSessionStatus.COMPLETED },
         });
 
         const isFreeEnabled = process.env.FREE_CHAT_ENABLED === 'true';
@@ -58,12 +58,12 @@ export class InitiateChatUseCase {
         }
 
         const session = this.sessionRepo.create({
-            userId,
-            expertId,
-            pricePerMinute: chatPrice,
+            user_id: userId,
+            expert_id: expertId,
+            price_per_minute: chatPrice,
             status: ChatSessionStatus.PENDING,
-            isFree: isEligibleForFree,
-            freeMinutes: freeMins,
+            is_free: isEligibleForFree,
+            free_minutes: freeMins,
         });
 
         const savedSession = await this.sessionRepo.save(session);

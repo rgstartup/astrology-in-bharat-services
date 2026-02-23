@@ -10,7 +10,7 @@ export class GetTransactionsUseCase {
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
     private readonly getWalletUseCase: GetWalletUseCase,
-  ) {}
+  ) { }
 
   async execute(
     userId: number,
@@ -22,7 +22,7 @@ export class GetTransactionsUseCase {
     const wallet = await this.getWalletUseCase.execute(userId);
     const query = this.transactionRepository
       .createQueryBuilder('t')
-      .where('t.walletId = :walletId', { walletId: wallet.id });
+      .where('t.wallet_id = :walletId', { walletId: wallet.id });
 
     if (type !== 'all') {
       query.andWhere('t.type = :type', { type });
@@ -33,7 +33,7 @@ export class GetTransactionsUseCase {
     }
 
     const [items, total] = await query
-      .orderBy('t.createdAt', 'DESC')
+      .orderBy('t.created_at', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();

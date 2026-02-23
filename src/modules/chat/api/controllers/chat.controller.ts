@@ -43,10 +43,10 @@ export class ChatController {
     const expiresAt = new Date(Date.now() + expiryTime);
 
     // Calculate affordable minutes for paid chat or use freeMinutes
-    let maxMinutes = session.isFree ? session.freeMinutes : 0;
-    if (!session.isFree && session.pricePerMinute > 0) {
+    let maxMinutes = session.is_free ? session.free_minutes : 0;
+    if (!session.is_free && session.price_per_minute > 0) {
       const balance = await this.chatGateway.getWalletBalance(user.id);
-      maxMinutes = Math.floor(balance / session.pricePerMinute);
+      maxMinutes = Math.floor(balance / session.price_per_minute);
     }
 
     const sessionWithExpiry = { ...session, expiresAt, maxMinutes };
@@ -65,7 +65,7 @@ export class ChatController {
         });
         // Also notify expert's dashboard room
         this.chatGateway.notifyExpertStatusUpdate(
-          session.expertId,
+          session.expert_id,
           'session_ended',
           {
             status: 'expired',
@@ -88,7 +88,7 @@ export class ChatController {
         .emit('session_activated', session);
       // Notify the expert's dashboard room
       this.chatGateway.notifyExpertStatusUpdate(
-        session.expertId,
+        session.expert_id,
         'session_activated',
         session,
       );
@@ -106,7 +106,7 @@ export class ChatController {
         .emit('session_ended', session);
       // Notify the expert's dashboard room
       this.chatGateway.notifyExpertStatusUpdate(
-        session.expertId,
+        session.expert_id,
         'session_ended',
         session,
       );
@@ -125,7 +125,7 @@ export class ChatController {
       10,
     );
     const serverTime = new Date();
-    const createdAt = new Date(session.createdAt);
+    const createdAt = new Date(session.created_at);
     const expiresAt = new Date(createdAt.getTime() + expiryTimeMs);
 
     // Timer Logic
@@ -139,22 +139,22 @@ export class ChatController {
       );
     } else if (
       session.status === ChatSessionStatus.ACTIVE &&
-      session.startTime
+      session.start_time
     ) {
-      const startTime = new Date(session.startTime);
+      const startTime = new Date(session.start_time);
       elapsedSeconds = Math.max(
         0,
         Math.floor((serverTime.getTime() - startTime.getTime()) / 1000),
       );
 
       // CRITICAL: Get full potential balance (current + reserved for this session)
-      const wallet = await this.chatGateway.getWallet(session.userId);
+      const wallet = await this.chatGateway.getWallet(session.user_id);
       const totalAffordableBalance =
-        Number(wallet.balance) + Number(wallet.reservedBalance);
-      const price = session.pricePerMinute || 0;
+        Number(wallet.balance) + Number(wallet.reserved_balance);
+      const price = session.price_per_minute || 0;
 
-      const maxMinutes = session.isFree
-        ? session.freeMinutes
+      const maxMinutes = session.is_free
+        ? session.free_minutes
         : price > 0
           ? Math.floor(totalAffordableBalance / price)
           : 0;
@@ -193,19 +193,19 @@ export class ChatController {
       sessions.map(async (session) => {
         const userBalance =
           session.status === 'pending'
-            ? await this.chatGateway.getWalletBalance(session.userId)
+            ? await this.chatGateway.getWalletBalance(session.user_id)
             : 0;
-        const maxMinutes = session.isFree
-          ? session.freeMinutes
-          : session.pricePerMinute > 0
-            ? Math.floor(userBalance / session.pricePerMinute)
+        const maxMinutes = session.is_free
+          ? session.free_minutes
+          : session.price_per_minute > 0
+            ? Math.floor(userBalance / session.price_per_minute)
             : 5; // Default 5 for paid if we don't have balance context
 
         return {
           ...session,
           expiresAt:
             session.status === 'pending'
-              ? new Date(new Date(session.createdAt).getTime() + expiryTime)
+              ? new Date(new Date(session.created_at).getTime() + expiryTime)
               : null,
           maxMinutes,
         };
@@ -233,19 +233,19 @@ export class ChatController {
       sessions.map(async (session) => {
         const userBalance =
           session.status === 'pending'
-            ? await this.chatGateway.getWalletBalance(session.userId)
+            ? await this.chatGateway.getWalletBalance(session.user_id)
             : 0;
-        const maxMinutes = session.isFree
-          ? session.freeMinutes
-          : session.pricePerMinute > 0
-            ? Math.floor(userBalance / session.pricePerMinute)
+        const maxMinutes = session.is_free
+          ? session.free_minutes
+          : session.price_per_minute > 0
+            ? Math.floor(userBalance / session.price_per_minute)
             : 5;
 
         return {
           ...session,
           expiresAt:
             session.status === 'pending'
-              ? new Date(new Date(session.createdAt).getTime() + expiryTime)
+              ? new Date(new Date(session.created_at).getTime() + expiryTime)
               : null,
           maxMinutes,
         };
@@ -272,19 +272,19 @@ export class ChatController {
       sessions.map(async (session) => {
         const userBalance =
           session.status === 'pending'
-            ? await this.chatGateway.getWalletBalance(session.userId)
+            ? await this.chatGateway.getWalletBalance(session.user_id)
             : 0;
-        const maxMinutes = session.isFree
-          ? session.freeMinutes
-          : session.pricePerMinute > 0
-            ? Math.floor(userBalance / session.pricePerMinute)
+        const maxMinutes = session.is_free
+          ? session.free_minutes
+          : session.price_per_minute > 0
+            ? Math.floor(userBalance / session.price_per_minute)
             : 5;
 
         return {
           ...session,
           expiresAt:
             session.status === 'pending'
-              ? new Date(new Date(session.createdAt).getTime() + expiryTime)
+              ? new Date(new Date(session.created_at).getTime() + expiryTime)
               : null,
           maxMinutes,
         };
@@ -304,17 +304,17 @@ export class ChatController {
     return Promise.all(
       sessions.map(async (session) => {
         const userBalance = await this.chatGateway.getWalletBalance(user.id);
-        const maxMinutes = session.isFree
-          ? session.freeMinutes
-          : session.pricePerMinute > 0
-            ? Math.floor(userBalance / session.pricePerMinute)
+        const maxMinutes = session.is_free
+          ? session.free_minutes
+          : session.price_per_minute > 0
+            ? Math.floor(userBalance / session.price_per_minute)
             : 0;
 
         // Calculate durationMins from startTime and endTime
         let durationMins = 0;
-        if (session.startTime && session.endTime) {
-          const start = new Date(session.startTime);
-          const end = new Date(session.endTime);
+        if (session.start_time && session.end_time) {
+          const start = new Date(session.start_time);
+          const end = new Date(session.end_time);
           const durationMs = end.getTime() - start.getTime();
           durationMins = Math.round(durationMs / 60000); // Convert ms to minutes
         }
@@ -323,7 +323,7 @@ export class ChatController {
           ...session,
           expiresAt:
             session.status === 'pending'
-              ? new Date(new Date(session.createdAt).getTime() + expiryTime)
+              ? new Date(new Date(session.created_at).getTime() + expiryTime)
               : null,
           maxMinutes,
           durationMins,
@@ -347,7 +347,7 @@ export class ChatController {
     let remainingSeconds = 0;
     let elapsedSeconds = 0;
     const expiresAt = new Date(
-      new Date(session.createdAt).getTime() + expiryTimeMs,
+      new Date(session.created_at).getTime() + expiryTimeMs,
     );
 
     if (session.status === ChatSessionStatus.PENDING) {
@@ -357,22 +357,22 @@ export class ChatController {
       );
     } else if (
       session.status === ChatSessionStatus.ACTIVE &&
-      session.startTime
+      session.start_time
     ) {
-      const startTime = new Date(session.startTime);
+      const startTime = new Date(session.start_time);
       elapsedSeconds = Math.max(
         0,
         Math.floor((serverTime.getTime() - startTime.getTime()) / 1000),
       );
 
       // CRITICAL: Get full potential balance (current + reserved for this session)
-      const wallet = await this.chatGateway.getWallet(session.userId);
+      const wallet = await this.chatGateway.getWallet(session.user_id);
       const totalAffordableBalance =
-        Number(wallet.balance) + Number(wallet.reservedBalance);
-      const price = session.pricePerMinute || 0;
+        Number(wallet.balance) + Number(wallet.reserved_balance);
+      const price = session.price_per_minute || 0;
 
-      const maxMinutes = session.isFree
-        ? session.freeMinutes
+      const maxMinutes = session.is_free
+        ? session.free_minutes
         : price > 0
           ? Math.floor(totalAffordableBalance / price)
           : 0;

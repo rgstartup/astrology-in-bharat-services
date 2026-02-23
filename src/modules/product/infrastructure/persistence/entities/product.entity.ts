@@ -21,33 +21,33 @@ export class Product {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  originalPrice: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'original_price' })
+  original_price: number;
 
-  @Column()
-  imageUrl: string;
+  @Column({ name: 'image_url' })
+  image_url: string;
 
-  @Column({ default: true })
-  isActive: boolean;
+  @Column({ default: true, name: 'is_active' })
+  is_active: boolean;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updated_at: Date;
 
-  percentageOff: number;
+  percentage_off: number;
 
   @AfterLoad()
   calculatePercentageOff() {
     const price = Number(this.price);
-    const originalPrice = Number(this.originalPrice);
+    const original_price = Number(this.original_price);
 
-    if (originalPrice && price && originalPrice > price) {
-      const diff = originalPrice - price;
-      this.percentageOff = Math.round((diff / originalPrice) * 100);
+    if (original_price && price && original_price > price) {
+      const diff = original_price - price;
+      this.percentage_off = Math.round((diff / original_price) * 100);
     } else {
-      this.percentageOff = 0;
+      this.percentage_off = 0;
     }
   }
 }

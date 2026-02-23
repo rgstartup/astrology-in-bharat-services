@@ -20,17 +20,17 @@ export class ChatMessage {
   id: number;
 
   @ManyToOne(() => ChatSession)
-  @JoinColumn({ name: 'sessionId' })
+  @JoinColumn({ name: 'session_id' })
   session: ChatSession;
 
-  @Column({ type: 'int' })
-  sessionId: number;
+  @Column({ type: 'int', name: 'session_id' })
+  session_id: number;
 
-  @Column({ type: 'int' })
-  senderId: number;
+  @Column({ type: 'int', name: 'sender_id' })
+  sender_id: number;
 
-  @Column({ type: 'text' })
-  senderType: 'user' | 'expert';
+  @Column({ type: 'text', name: 'sender_type' })
+  sender_type: 'user' | 'expert';
 
   @Column({ type: 'text' })
   content: string;
@@ -42,6 +42,6 @@ export class ChatMessage {
   })
   type: MessageType;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 }

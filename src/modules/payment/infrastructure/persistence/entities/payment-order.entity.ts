@@ -29,21 +29,21 @@ export class PaymentOrder {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    userId: number;
+    @Column({ name: 'user_id' })
+    user_id: number;
 
     @ManyToOne(() => User)
-    @JoinColumn({ name: 'userId' })
+    @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column({ unique: true })
-    razorpayOrderId: string;
+    @Column({ name: 'razorpay_order_id', unique: true })
+    razorpay_order_id: string;
 
-    @Column({ nullable: true })
-    razorpayPaymentId: string;
+    @Column({ name: 'razorpay_payment_id', nullable: true })
+    razorpay_payment_id: string;
 
-    @Column({ nullable: true })
-    razorpaySignature: string;
+    @Column({ name: 'razorpay_signature', nullable: true })
+    razorpay_signature: string;
 
     @Column({
         type: 'decimal',
@@ -59,9 +59,9 @@ export class PaymentOrder {
     @Column({ type: 'json', nullable: true })
     notes: any;
 
-    @CreateDateColumn()
-    createdAt: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    created_at: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updated_at: Date;
 }

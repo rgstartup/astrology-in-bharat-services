@@ -6,7 +6,7 @@ import { InsufficientBalanceError } from '../../domain/errors/insufficient-balan
 
 @Injectable()
 export class DebitUseCase {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource) { }
 
   async execute(
     userId: number,
@@ -22,7 +22,7 @@ export class DebitUseCase {
 
     try {
       const wallet = await queryRunner.manager.findOne(Wallet, {
-        where: { userId },
+        where: { user_id: userId },
         lock: { mode: 'pessimistic_write' },
       });
       if (!wallet || Number(wallet.balance) < amount) {
@@ -33,11 +33,11 @@ export class DebitUseCase {
       await queryRunner.manager.save(wallet);
 
       const transaction = queryRunner.manager.create(Transaction, {
-        walletId: wallet.id,
+        wallet_id: wallet.id,
         amount,
         type: TransactionType.DEBIT,
         purpose,
-        referenceId,
+        reference_id: referenceId,
       });
       await queryRunner.manager.save(transaction);
 

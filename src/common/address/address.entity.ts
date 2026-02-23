@@ -29,8 +29,8 @@ export class Address {
   @Column({ name: 'street', type: 'varchar', length: 255 })
   line1: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  houseNo?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true, name: 'house_no' })
+  house_no?: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   city?: string;
@@ -44,15 +44,15 @@ export class Address {
   @Column({ type: 'varchar', length: 100, nullable: true })
   country?: string;
 
-  // Map property "zipCode" to DB column "postal_code"
-  @Column({ name: 'postal_code', type: 'varchar', length: 10, nullable: true })
-  zipCode: string;
+  // Map property "zip_code" to DB column "zip_code"
+  @Column({ name: 'zip_code', type: 'varchar', length: 10, nullable: true })
+  zip_code: string;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
   pincode?: string;
 
-  @Column({ type: 'bool', default: false })
-  isPrimary: boolean;
+  @Column({ type: 'bool', default: false, name: 'is_primary' })
+  is_primary: boolean;
 
   @Column({
     type: 'enum',

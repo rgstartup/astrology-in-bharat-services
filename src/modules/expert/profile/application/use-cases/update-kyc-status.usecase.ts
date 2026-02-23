@@ -17,7 +17,7 @@ export class UpdateKycStatusUseCase {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(expertId: number, status: string, reason?: string) {
     const user = await this.userRepo.findOne({
@@ -34,12 +34,12 @@ export class UpdateKycStatusUseCase {
 
     // If rejected, do NOT set status to rejected in DB. Reset to pending.
     if (status === 'rejected') {
-      profile.kycStatus = 'pending';
+      profile.kyc_status = 'pending';
     } else {
-      profile.kycStatus = status;
+      profile.kyc_status = status;
     }
 
-    profile.rejectionReason = reason || null;
+    profile.rejection_reason = reason || null;
 
     if (status === 'approved') {
       await this.userRepo.update(user!.id, { email_verified_at: new Date() });

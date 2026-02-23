@@ -17,6 +17,7 @@ import { DatabaseService } from './database.service';
 
         return {
           type: 'postgres',
+          url: dbConfig.url,
           host: dbConfig.host,
           port: dbConfig.port,
           username: dbConfig.username,
@@ -33,4 +34,4 @@ import { DatabaseService } from './database.service';
   providers: [DatabaseService],
   exports: [DatabaseService],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }

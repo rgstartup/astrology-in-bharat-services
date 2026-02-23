@@ -15,7 +15,7 @@ export class CreateBankAccountUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   private async getExpertProfile(userId: number) {
     const profile = await this.profileRepo.findOne({
@@ -30,7 +30,7 @@ export class CreateBankAccountUseCase {
 
     // If this is the first account, it must be primary
     const count = await this.bankAccountRepo.count({
-      where: { expertId: profile.id },
+      where: { expert_id: profile.id },
     });
     if (count === 0) {
       dto.is_primary = true;
@@ -38,17 +38,17 @@ export class CreateBankAccountUseCase {
 
     if (dto.is_primary) {
       await this.bankAccountRepo.update(
-        { expertId: profile.id },
+        { expert_id: profile.id },
         { is_primary: false },
       );
     }
 
     const account = this.bankAccountRepo.create({
       ...dto,
-      expertId: profile.id,
+      expert_id: profile.id,
     });
 
-    const savedAccount = await this.bankAccountRepo.save(account);
+    const savedAccount = (await this.bankAccountRepo.save(account)) as BankAccount;
 
     // Emit event
     this.eventEmitter.emit(

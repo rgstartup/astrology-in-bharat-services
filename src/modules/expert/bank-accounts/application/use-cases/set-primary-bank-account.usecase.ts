@@ -13,18 +13,18 @@ export class SetPrimaryBankAccountUseCase {
     private readonly bankAccountRepo: Repository<BankAccount>,
     private readonly getBankAccountUseCase: GetBankAccountUseCase,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(userId: number, id: number) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
 
     // Find old primary account
     const oldPrimary = await this.bankAccountRepo.findOne({
-      where: { expertId: account.expertId, is_primary: true },
+      where: { expert_id: account.expert_id, is_primary: true },
     });
 
     await this.bankAccountRepo.update(
-      { expertId: account.expertId },
+      { expert_id: account.expert_id },
       { is_primary: false },
     );
 

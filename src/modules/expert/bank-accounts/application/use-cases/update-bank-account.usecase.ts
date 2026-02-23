@@ -14,14 +14,14 @@ export class UpdateBankAccountUseCase {
     private readonly bankAccountRepo: Repository<BankAccount>,
     private readonly getBankAccountUseCase: GetBankAccountUseCase,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(userId: number, id: number, dto: UpdateBankAccountDto) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
 
     if (dto.is_primary && !account.is_primary) {
       await this.bankAccountRepo.update(
-        { expertId: account.expertId },
+        { expert_id: account.expert_id },
         { is_primary: false },
       );
     }

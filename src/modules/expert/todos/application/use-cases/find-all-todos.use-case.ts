@@ -11,7 +11,7 @@ export class FindAllTodosUseCase {
     private readonly todoRepo: Repository<Todo>,
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-  ) {}
+  ) { }
 
   private async getExpertProfile(userId: number) {
     const profile = await this.profileRepo.findOne({
@@ -26,8 +26,8 @@ export class FindAllTodosUseCase {
   async execute(userId: number) {
     const profile = await this.getExpertProfile(userId);
     return this.todoRepo.find({
-      where: { expertId: profile.id },
-      order: { createdAt: 'DESC' },
+      where: { expert_id: profile.id },
+      order: { created_at: 'DESC' },
     });
   }
 }

@@ -18,7 +18,7 @@ export class CreateNotificationUseCase {
         metadata?: any,
     ) {
         const notification = this.notificationRepo.create({
-            userId,
+            user_id: userId,
             type,
             title,
             message,

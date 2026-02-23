@@ -8,10 +8,10 @@ export class CountExpertSessionsUseCase {
   constructor(
     @InjectRepository(ChatSession)
     private readonly chatSessionRepo: Repository<ChatSession>,
-  ) {}
+  ) { }
 
   async execute(expertId: number, options: { status?: ChatSessionStatus | ChatSessionStatus[], startDate?: Date } = {}) {
-    const where: any = { expertId };
+    const where: any = { expert_id: expertId };
 
     if (options.status) {
       if (Array.isArray(options.status)) {
@@ -22,7 +22,7 @@ export class CountExpertSessionsUseCase {
     }
 
     if (options.startDate) {
-      where.createdAt = MoreThanOrEqual(options.startDate);
+      where.created_at = MoreThanOrEqual(options.startDate);
     }
 
     return this.chatSessionRepo.count({ where });

@@ -8,13 +8,13 @@ export class GetUserOrdersUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-  ) {}
+  ) { }
 
   async execute(userId: number) {
     return this.orderRepo.find({
-      where: { userId },
+      where: { user_id: userId },
       relations: ['items', 'items.product'],
-      order: { createdAt: 'DESC' },
+      order: { created_at: 'DESC' },
     });
   }
 }

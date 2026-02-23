@@ -36,5 +36,5 @@ export class Wishlist {
 
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  created_at: Date;
 }

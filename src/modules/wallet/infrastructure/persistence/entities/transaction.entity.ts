@@ -32,7 +32,7 @@ export class Transaction {
   wallet: Wallet;
 
   @Column({ name: 'wallet_id' })
-  walletId: number;
+  wallet_id: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
@@ -43,9 +43,9 @@ export class Transaction {
   @Column({ type: 'enum', enum: TransactionPurpose })
   purpose: TransactionPurpose;
 
-  @Column({ nullable: true })
-  referenceId: string; // To link with session or external payment ID
+  @Column({ name: 'reference_id', nullable: true })
+  reference_id: string; // To link with session or external payment ID
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 }

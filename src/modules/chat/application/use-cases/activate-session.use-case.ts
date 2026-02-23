@@ -27,7 +27,7 @@ export class ActivateSessionUseCase {
         }
 
         session.status = ChatSessionStatus.ACTIVE;
-        session.startTime = new Date();
+        session.start_time = new Date();
         return this.sessionRepo.save(session);
     }
 }

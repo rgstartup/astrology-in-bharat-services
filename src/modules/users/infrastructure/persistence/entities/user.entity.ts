@@ -50,10 +50,10 @@ export class User {
   roles: Role[];
 
   @Column({ default: false })
-  isBlocked: boolean;
+  is_blocked: boolean;
 
   @OneToMany(() => OAuthAccount, (oa) => oa.user)
-  oauthAccounts: OAuthAccount[];
+  oauth_accounts: OAuthAccount[];
 
   @OneToMany(() => Session, (c) => c.user)
   sessions: Session[];

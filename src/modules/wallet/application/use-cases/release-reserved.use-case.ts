@@ -5,7 +5,7 @@ import { Transaction, TransactionType, TransactionPurpose } from '../../infrastr
 
 @Injectable()
 export class ReleaseReservedUseCase {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource) { }
 
   async execute(
     userId: number,
@@ -18,23 +18,23 @@ export class ReleaseReservedUseCase {
 
     try {
       const wallet = await queryRunner.manager.findOne(Wallet, {
-        where: { userId },
+        where: { user_id: userId },
         lock: { mode: 'pessimistic_write' },
       });
-      if (!wallet || Number(wallet.reservedBalance) < amount) {
+      if (!wallet || Number(wallet.reserved_balance) < amount) {
         throw new BadRequestException('Insufficient reserved balance to release');
       }
 
-      wallet.reservedBalance = Number(wallet.reservedBalance) - Number(amount);
+      wallet.reserved_balance = Number(wallet.reserved_balance) - Number(amount);
       wallet.balance = Number(wallet.balance) + Number(amount);
       await queryRunner.manager.save(wallet);
 
       const transaction = queryRunner.manager.create(Transaction, {
-        walletId: wallet.id,
+        wallet_id: wallet.id,
         amount,
         type: TransactionType.RELEASE,
         purpose: TransactionPurpose.REFUND,
-        referenceId,
+        reference_id: referenceId,
       });
       await queryRunner.manager.save(transaction);
 

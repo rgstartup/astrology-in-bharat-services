@@ -8,7 +8,7 @@ export class GetReviewsStatsUseCase {
   constructor(
     @InjectRepository(ProfileExpert)
     private readonly expertRepository: Repository<ProfileExpert>,
-  ) {}
+  ) { }
 
   async execute(expertId: number) {
     const expert = await this.expertRepository.findOne({ where: { id: expertId } });
@@ -16,7 +16,7 @@ export class GetReviewsStatsUseCase {
 
     return {
       rating: expert.rating,
-      totalReviews: expert.totalReviews,
+      totalReviews: expert.total_reviews,
     };
   }
 }

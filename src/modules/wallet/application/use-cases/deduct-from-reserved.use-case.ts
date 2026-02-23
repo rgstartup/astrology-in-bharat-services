@@ -5,7 +5,7 @@ import { Transaction, TransactionType, TransactionPurpose } from '../../infrastr
 
 @Injectable()
 export class DeductFromReservedUseCase {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource) { }
 
   async execute(
     userId: number,
@@ -18,22 +18,22 @@ export class DeductFromReservedUseCase {
 
     try {
       const wallet = await queryRunner.manager.findOne(Wallet, {
-        where: { userId },
+        where: { user_id: userId },
         lock: { mode: 'pessimistic_write' },
       });
-      if (!wallet || Number(wallet.reservedBalance) < amount) {
+      if (!wallet || Number(wallet.reserved_balance) < amount) {
         throw new BadRequestException('Insufficient reserved balance');
       }
 
-      wallet.reservedBalance = Number(wallet.reservedBalance) - Number(amount);
+      wallet.reserved_balance = Number(wallet.reserved_balance) - Number(amount);
       await queryRunner.manager.save(wallet);
 
       const transaction = queryRunner.manager.create(Transaction, {
-        walletId: wallet.id,
+        wallet_id: wallet.id,
         amount,
         type: TransactionType.DEBIT,
         purpose: TransactionPurpose.CONSULTATION,
-        referenceId,
+        reference_id: referenceId,
       });
       await queryRunner.manager.save(transaction);
 

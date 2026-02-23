@@ -11,7 +11,7 @@ export class MarkAsReadUseCase {
     ) { }
 
     async execute(id: number, userId: number) {
-        await this.notificationRepo.update({ id, userId }, { isRead: true });
+        await this.notificationRepo.update({ id, user_id: userId }, { is_read: true });
         return this.notificationRepo.findOne({ where: { id } });
     }
 }

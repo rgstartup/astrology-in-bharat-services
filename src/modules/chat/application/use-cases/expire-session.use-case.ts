@@ -24,10 +24,10 @@ export class ExpireSessionUseCase {
 
         // Release reserved funds
         const referenceId = `chat_${sessionId}`;
-        const reservedAmount = session.pricePerMinute * 5;
+        const reservedAmount = session.price_per_minute * 5;
         try {
             await this.walletFacade.releaseReserved(
-                session.userId,
+                session.user_id,
                 reservedAmount,
                 referenceId,
             );

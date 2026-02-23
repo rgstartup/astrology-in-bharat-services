@@ -23,13 +23,13 @@ export class CreateProductDto {
   @Min(0)
   @IsOptional()
   @Type(() => Number)
-  originalPrice?: number;
+  original_price?: number;
 
   @IsString()
   @IsOptional()
-  imageUrl?: string;
+  image_url?: string;
 
   @IsBoolean()
   @IsOptional()
-  isActive?: boolean;
+  is_active?: boolean;
 }

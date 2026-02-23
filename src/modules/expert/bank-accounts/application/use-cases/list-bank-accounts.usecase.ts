@@ -11,7 +11,7 @@ export class ListBankAccountsUseCase {
     private readonly bankAccountRepo: Repository<BankAccount>,
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-  ) {}
+  ) { }
 
   private async getExpertProfile(userId: number) {
     const profile = await this.profileRepo.findOne({
@@ -24,8 +24,8 @@ export class ListBankAccountsUseCase {
   async execute(userId: number) {
     const profile = await this.getExpertProfile(userId);
     return this.bankAccountRepo.find({
-      where: { expertId: profile.id },
-      order: { is_primary: 'DESC', createdAt: 'DESC' },
+      where: { expert_id: profile.id },
+      order: { is_primary: 'DESC', created_at: 'DESC' },
     });
   }
 }

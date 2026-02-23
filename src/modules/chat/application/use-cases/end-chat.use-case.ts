@@ -22,54 +22,54 @@ export class EndChatUseCase {
         }
 
         const now = new Date();
-        session.endTime = now;
+        session.end_time = now;
         session.status = ChatSessionStatus.COMPLETED;
 
-        let totalCost = 0;
-        if (session.startTime) {
-            const durationInMs = now.getTime() - session.startTime.getTime();
+        let total_cost = 0;
+        if (session.start_time) {
+            const durationInMs = now.getTime() - session.start_time.getTime();
             const actualDurationMins = Math.ceil(durationInMs / 60000);
 
             // Subtract free minutes if applicable
             const billableMins = Math.max(
                 0,
-                actualDurationMins - (session.freeMinutes || 0),
+                actualDurationMins - (session.free_minutes || 0),
             );
-            totalCost = billableMins * session.pricePerMinute;
+            total_cost = billableMins * session.price_per_minute;
         }
 
-        session.totalCost = totalCost;
+        session.total_cost = total_cost;
         await this.sessionRepo.save(session);
 
         const referenceId = `chat_${sessionId}`;
-        const initialReservation = session.pricePerMinute * 5;
+        const initialReservation = session.price_per_minute * 5;
 
         try {
-            if (totalCost <= initialReservation) {
-                if (totalCost > 0) {
+            if (total_cost <= initialReservation) {
+                if (total_cost > 0) {
                     await this.walletFacade.deductFromReserved(
-                        session.userId,
-                        totalCost,
+                        session.user_id,
+                        total_cost,
                         referenceId,
                     );
                 }
-                const remainingReserved = initialReservation - totalCost;
+                const remainingReserved = initialReservation - total_cost;
                 if (remainingReserved > 0) {
                     await this.walletFacade.releaseReserved(
-                        session.userId,
+                        session.user_id,
                         remainingReserved,
                         referenceId,
                     );
                 }
             } else {
                 await this.walletFacade.deductFromReserved(
-                    session.userId,
+                    session.user_id,
                     initialReservation,
                     referenceId,
                 );
-                const excessCost = totalCost - initialReservation;
+                const excessCost = total_cost - initialReservation;
                 await this.walletFacade.debit(
-                    session.userId,
+                    session.user_id,
                     excessCost,
                     TransactionPurpose.CONSULTATION,
                     referenceId,
@@ -77,7 +77,7 @@ export class EndChatUseCase {
             }
 
             // 💳 Credit Expert
-            if (totalCost > 0) {
+            if (total_cost > 0) {
                 const sessionWithExpert = await this.sessionRepo.findOne({
                     where: { id: sessionId },
                     relations: ['expert', 'expert.user'],
@@ -86,7 +86,7 @@ export class EndChatUseCase {
                 if (sessionWithExpert?.expert?.user?.id) {
                     await this.walletFacade.credit(
                         sessionWithExpert.expert.user.id,
-                        totalCost,
+                        total_cost,
                         TransactionPurpose.CONSULTATION,
                         referenceId,
                     );
@@ -98,14 +98,14 @@ export class EndChatUseCase {
 
         // Return updated session with user's remaining balance for the summary popup
         const remainingBalance = await this.walletFacade.getBalance(
-            session.userId,
+            session.user_id,
         );
         return {
             ...session,
             remainingBalance,
-            durationMins: session.startTime
+            durationMins: session.start_time
                 ? Math.ceil(
-                    (session.endTime.getTime() - session.startTime.getTime()) / 60000,
+                    (session.end_time.getTime() - session.start_time.getTime()) / 60000,
                 )
                 : 0,
         };

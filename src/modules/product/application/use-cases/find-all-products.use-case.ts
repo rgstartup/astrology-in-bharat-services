@@ -8,7 +8,7 @@ export class FindAllProductsUseCase {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-  ) {}
+  ) { }
 
   async execute(): Promise<Product[]> {
     return this.productRepository
@@ -18,11 +18,11 @@ export class FindAllProductsUseCase {
         'product.name',
         'product.description',
         'product.price',
-        'product.originalPrice',
-        'product.imageUrl',
-        'product.isActive',
+        'product.original_price',
+        'product.image_url',
+        'product.is_active',
       ])
-      .where('product.isActive = :isActive', { isActive: true })
+      .where('product.is_active = :isActive', { isActive: true })
       .getMany();
   }
 }

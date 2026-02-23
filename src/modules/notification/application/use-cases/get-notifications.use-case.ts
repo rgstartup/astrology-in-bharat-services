@@ -12,14 +12,14 @@ export class GetNotificationsUseCase {
 
     async execute(userId: number) {
         return this.notificationRepo.find({
-            where: { userId },
-            order: { createdAt: 'DESC' },
+            where: { user_id: userId },
+            order: { created_at: 'DESC' },
         });
     }
 
     async getUnreadCount(userId: number) {
         return this.notificationRepo.count({
-            where: { userId, isRead: false },
+            where: { user_id: userId, is_read: false },
         });
     }
 }

@@ -39,14 +39,14 @@ export class GetEarningsStatsUseCase {
 
         const sessions = await this.sessionRepo.find({
             where: {
-                expertId,
+                expert_id: expertId,
                 status: ChatSessionStatus.COMPLETED,
-                createdAt: Between(startDate, new Date()),
+                created_at: Between(startDate, new Date()),
             },
             relations: ['user'],
         });
 
-        const totalRevenue = sessions.reduce((acc, s) => acc + (s.totalCost || 0), 0);
+        const totalRevenue = sessions.reduce((acc, s) => acc + (s.total_cost || 0), 0);
         const chatRevenue = totalRevenue;
 
         // Service Color Mapping
@@ -73,9 +73,9 @@ export class GetEarningsStatsUseCase {
         }
 
         sessions.forEach(s => {
-            const label = months[s.createdAt.getMonth()];
+            const label = months[s.created_at.getMonth()];
             if (incomeTrendsMap.has(label)) {
-                incomeTrendsMap.set(label, incomeTrendsMap.get(label) + (s.totalCost || 0));
+                incomeTrendsMap.set(label, incomeTrendsMap.get(label) + (s.total_cost || 0));
             }
         });
 
@@ -84,16 +84,16 @@ export class GetEarningsStatsUseCase {
         // Top Users
         const userStats = new Map();
         sessions.forEach(s => {
-            const userData = userStats.get(s.userId) || {
-                id: s.userId,
+            const userData = userStats.get(s.user_id) || {
+                id: s.user_id,
                 name: s.user?.name || 'Unknown',
                 avatar: s.user?.avatar || '',
                 amount: 0,
                 sessions: 0
             };
-            userData.amount += (s.totalCost || 0);
+            userData.amount += (s.total_cost || 0);
             userData.sessions += 1;
-            userStats.set(s.userId, userData);
+            userStats.set(s.user_id, userData);
         });
 
         const topUsers = Array.from(userStats.values())
@@ -201,7 +201,7 @@ export class GetEarningsStatsUseCase {
         const { items: transactions } = await this.walletFacade.getTransactions(userId, 1, 5, 'all');
         const recentTransactions = transactions.map(t => ({
             id: t.id.toString(),
-            date: t.createdAt,
+            date: t.created_at,
             description: t.purpose,
             type: t.type.toLowerCase(),
             amount: Number(t.amount),

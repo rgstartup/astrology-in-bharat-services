@@ -36,7 +36,7 @@ export class UpdatePersonalInfoExpertDto {
 
   @IsOptional()
   @IsString()
-  phoneNumber?: string;
+  phone_number?: string;
 
   @IsOptional()
   @IsArray()

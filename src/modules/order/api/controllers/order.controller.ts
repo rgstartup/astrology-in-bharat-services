@@ -31,7 +31,7 @@ export class OrderController {
         @CurrentUser() user: User,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.orderFacade.createOrderFromCart(user.id, dto.shippingAddress);
+        return this.orderFacade.createOrderFromCart(user.id, dto.shipping_address);
     }
 
     @Get('my-orders')
@@ -58,7 +58,7 @@ export class OrderController {
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateOrderStatusDto,
     ) {
-        return this.orderFacade.updateOrderStatus(id, dto.status, dto.cancellationReason);
+        return this.orderFacade.updateOrderStatus(id, dto.status, dto.cancellation_reason);
     }
 
     @Get(':id')
@@ -84,7 +84,7 @@ export class OrderSingularController {
         @CurrentUser() user: User,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.orderFacade.createOrderFromCart(user.id, dto.shippingAddress);
+        return this.orderFacade.createOrderFromCart(user.id, dto.shipping_address);
     }
 
     @Get('my-orders')
@@ -100,7 +100,7 @@ export class OrderSingularController {
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateOrderStatusDto,
     ) {
-        return this.orderFacade.updateOrderStatus(id, dto.status, dto.cancellationReason);
+        return this.orderFacade.updateOrderStatus(id, dto.status, dto.cancellation_reason);
     }
 
     @Get(':id')

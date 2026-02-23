@@ -11,7 +11,7 @@ export class GetBankAccountUseCase {
     private readonly bankAccountRepo: Repository<BankAccount>,
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-  ) {}
+  ) { }
 
   private async getExpertProfile(userId: number) {
     const profile = await this.profileRepo.findOne({
@@ -24,7 +24,7 @@ export class GetBankAccountUseCase {
   async execute(userId: number, id: number) {
     const profile = await this.getExpertProfile(userId);
     const account = await this.bankAccountRepo.findOne({
-      where: { id, expertId: profile.id },
+      where: { id, expert_id: profile.id },
     });
     if (!account) throw new NotFoundException('Bank account not found');
     return account;

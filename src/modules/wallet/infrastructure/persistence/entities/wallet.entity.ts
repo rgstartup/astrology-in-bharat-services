@@ -28,7 +28,7 @@ export class Wallet {
   user: User;
 
   @Column({ name: 'user_id' })
-  userId: number;
+  user_id: number;
 
   @Column({
     type: 'decimal',
@@ -47,11 +47,11 @@ export class Wallet {
     name: 'reserved_balance',
     transformer: new ColumnNumericTransformer(),
   })
-  reservedBalance: number;
+  reserved_balance: number;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updated_at: Date;
 }

@@ -8,12 +8,12 @@ export class FindAllOrdersUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-  ) {}
+  ) { }
 
   async execute() {
     return this.orderRepo.find({
       relations: ['items', 'items.product', 'user'],
-      order: { createdAt: 'DESC' },
+      order: { created_at: 'DESC' },
     });
   }
 }

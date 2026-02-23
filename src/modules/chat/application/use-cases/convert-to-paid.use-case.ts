@@ -18,12 +18,12 @@ export class ConvertToPaidUseCase {
         });
         if (!session) throw new NotFoundException('Session not found');
 
-        const chatPrice = session.pricePerMinute || 0;
+        const chatPrice = session.price_per_minute || 0;
         const minMins = 5;
         const minBalanceRequired = chatPrice * minMins;
 
         const hasBalance = await this.walletFacade.validateBalance(
-            session.userId,
+            session.user_id,
             minBalanceRequired,
         );
         if (!hasBalance) {
@@ -34,7 +34,7 @@ export class ConvertToPaidUseCase {
 
         // Reserve balance for the continuation
         await this.walletFacade.reserveBalance(
-            session.userId,
+            session.user_id,
             minBalanceRequired,
             `chat_${session.id}`,
         );

@@ -8,11 +8,11 @@ export class GetOrderByIdUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-  ) {}
+  ) { }
 
   async execute(id: number, userId: number) {
     const order = await this.orderRepo.findOne({
-      where: { id, userId },
+      where: { id, user_id: userId },
       relations: ['items', 'items.product'],
     });
 

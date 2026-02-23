@@ -18,7 +18,7 @@ export class VerifyPaymentUseCase {
         private walletFacade: WalletFacade,
         private orderFacade: OrderFacade,
         private dataSource: DataSource,
-    ) {}
+    ) { }
 
     async execute(dto: VerifyPaymentDto) {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = dto;
@@ -32,7 +32,7 @@ export class VerifyPaymentUseCase {
         }
 
         const order = await this.paymentOrderRepo.findOne({
-            where: { razorpayOrderId: razorpay_order_id },
+            where: { razorpay_order_id: razorpay_order_id },
         });
 
         if (!order) {
@@ -49,21 +49,21 @@ export class VerifyPaymentUseCase {
 
         try {
             order.status = PaymentStatus.SUCCESS;
-            order.razorpayPaymentId = razorpay_payment_id;
-            order.razorpaySignature = razorpay_signature || '';
+            order.razorpay_payment_id = razorpay_payment_id;
+            order.razorpay_signature = razorpay_signature || '';
             await queryRunner.manager.save(order);
 
             const isProduct = order.notes?.type === 'product' || order.notes?.isOrder === true;
 
             if (!isProduct) {
                 // Case 1: Wallet Recharge
-                await this.walletFacade.topUp(order.userId, order.amount, `razorpay_${razorpay_payment_id}`);
+                await this.walletFacade.topUp(order.user_id, order.amount, `razorpay_${razorpay_payment_id}`);
                 await queryRunner.commitTransaction();
                 return { success: true, message: 'Payment successful and wallet updated' };
             } else {
                 // Case 2: Product Purchase
-                await this.orderFacade.markAsPaid(order.razorpayOrderId);
-                this.logger.log(`Product payment verified for order ${order.razorpayOrderId}`);
+                await this.orderFacade.markAsPaid(order.razorpay_order_id);
+                this.logger.log(`Product payment verified for order ${order.razorpay_order_id}`);
                 await queryRunner.commitTransaction();
                 return { success: true, message: 'Payment successful for product order' };
             }

@@ -18,9 +18,9 @@ export class SaveMessageUseCase {
         type: MessageType = MessageType.TEXT,
     ) {
         const message = this.messageRepo.create({
-            sessionId,
-            senderId,
-            senderType,
+            session_id: sessionId,
+            sender_id: senderId,
+            sender_type: senderType,
             content,
             type,
         });

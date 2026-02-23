@@ -8,13 +8,13 @@ export class GetExpertReviewsUseCase {
   constructor(
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
-  ) {}
+  ) { }
 
   async execute(expertId: number, page: number = 1, limit: number = 20) {
     const [reviews, total] = await this.reviewRepository.findAndCount({
-      where: { expertId },
+      where: { expert_id: expertId },
       relations: ['user'],
-      order: { createdAt: 'DESC' },
+      order: { created_at: 'DESC' },
       take: limit,
       skip: (page - 1) * limit,
     });

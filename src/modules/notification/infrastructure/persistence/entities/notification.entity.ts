@@ -27,7 +27,7 @@ export class Notification {
     user: User;
 
     @Column({ name: 'user_id' })
-    userId: number;
+    user_id: number;
 
     @Column({
         type: 'enum',
@@ -41,12 +41,12 @@ export class Notification {
     @Column({ type: 'text' })
     message: string;
 
-    @Column({ default: false })
-    isRead: boolean;
+    @Column({ name: 'is_read', default: false })
+    is_read: boolean;
 
     @Column({ type: 'json', nullable: true })
     metadata: any; // orderId, etc.
 
     @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+    created_at: Date;
 }

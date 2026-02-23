@@ -8,15 +8,15 @@ export class GetWalletUseCase {
   constructor(
     @InjectRepository(Wallet)
     private readonly walletRepository: Repository<Wallet>,
-  ) {}
+  ) { }
 
   async execute(userId: number): Promise<Wallet> {
-    let wallet = await this.walletRepository.findOne({ where: { userId } });
+    let wallet = await this.walletRepository.findOne({ where: { user_id: userId } });
     if (!wallet) {
       wallet = this.walletRepository.create({
-        userId,
+        user_id: userId,
         balance: 0,
-        reservedBalance: 0,
+        reserved_balance: 0,
       });
       await this.walletRepository.save(wallet);
     }

@@ -26,24 +26,24 @@ export class ChatSession {
   id: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'int' })
-  userId: number;
+  @Column({ type: 'int', name: 'user_id' })
+  user_id: number;
 
   @ManyToOne(() => ProfileExpert)
-  @JoinColumn({ name: 'expertId' })
+  @JoinColumn({ name: 'expert_id' })
   expert: ProfileExpert;
 
-  @Column({ type: 'int' })
-  expertId: number;
+  @Column({ type: 'int', name: 'expert_id' })
+  expert_id: number;
 
-  @Column({ type: 'timestamptz', nullable: true })
-  startTime: Date;
+  @Column({ type: 'timestamptz', nullable: true, name: 'start_time' })
+  start_time: Date;
 
-  @Column({ type: 'timestamptz', nullable: true })
-  endTime: Date;
+  @Column({ type: 'timestamptz', nullable: true, name: 'end_time' })
+  end_time: Date;
 
   @Column({
     type: 'enum',
@@ -52,21 +52,21 @@ export class ChatSession {
   })
   status: ChatSessionStatus;
 
-  @Column({ type: 'boolean', default: false })
-  isFree: boolean;
+  @Column({ type: 'boolean', default: false, name: 'is_free' })
+  is_free: boolean;
 
-  @Column({ type: 'int', default: 0 })
-  freeMinutes: number;
+  @Column({ type: 'int', default: 0, name: 'free_minutes' })
+  free_minutes: number;
 
-  @Column({ type: 'float' })
-  pricePerMinute: number;
+  @Column({ type: 'float', name: 'price_per_minute' })
+  price_per_minute: number;
 
-  @Column({ type: 'float', default: 0 })
-  totalCost: number;
+  @Column({ type: 'float', default: 0, name: 'total_cost' })
+  total_cost: number;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
+  created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
+  updated_at: Date;
 }

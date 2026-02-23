@@ -2,6 +2,7 @@ import { registerAs } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 
 export interface DatabaseConfig {
+  url?: string;
   host: string;
   port: number;
   username: string;
@@ -11,6 +12,7 @@ export interface DatabaseConfig {
 }
 
 export default registerAs<Partial<DatabaseConfig>>('database', () => ({
+  url: process.env.DATABASE_URL,
   host: process.env.DB_HOST,
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
   username: process.env.DB_USER,

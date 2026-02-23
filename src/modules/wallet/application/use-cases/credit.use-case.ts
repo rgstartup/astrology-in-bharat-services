@@ -12,7 +12,7 @@ export class CreditUseCase {
     private readonly dataSource: DataSource,
     private readonly notificationFacade: NotificationFacade,
     private readonly notificationGateway: NotificationGateway,
-  ) {}
+  ) { }
 
   async execute(
     userId: number,
@@ -28,14 +28,14 @@ export class CreditUseCase {
 
     try {
       let wallet = await queryRunner.manager.findOne(Wallet, {
-        where: { userId },
+        where: { user_id: userId },
         lock: { mode: 'pessimistic_write' },
       });
       if (!wallet) {
         wallet = queryRunner.manager.create(Wallet, {
-          userId,
+          user_id: userId,
           balance: 0,
-          reservedBalance: 0,
+          reserved_balance: 0,
         });
       }
 
@@ -43,11 +43,11 @@ export class CreditUseCase {
       await queryRunner.manager.save(wallet);
 
       const transaction = queryRunner.manager.create(Transaction, {
-        walletId: wallet.id,
+        wallet_id: wallet.id,
         amount,
         type: TransactionType.CREDIT,
         purpose,
-        referenceId,
+        reference_id: referenceId,
       });
       await queryRunner.manager.save(transaction);
 

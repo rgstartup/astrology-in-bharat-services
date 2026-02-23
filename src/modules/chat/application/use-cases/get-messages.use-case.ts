@@ -12,8 +12,8 @@ export class GetMessagesUseCase {
 
     async execute(sessionId: number) {
         return this.messageRepo.find({
-            where: { sessionId },
-            order: { createdAt: 'ASC' },
+            where: { session_id: sessionId },
+            order: { created_at: 'ASC' },
         });
     }
 }

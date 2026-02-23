@@ -19,14 +19,14 @@ export class OrderItem {
     order: Order;
 
     @Column({ name: 'order_id' })
-    orderId: number;
+    order_id: number;
 
     @ManyToOne(() => Product)
     @JoinColumn({ name: 'product_id' })
     product: Product;
 
     @Column({ name: 'product_id' })
-    productId: number;
+    product_id: number;
 
     @Column({ type: 'int' })
     quantity: number;
@@ -35,5 +35,5 @@ export class OrderItem {
     price: number;
 
     @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+    created_at: Date;
 }

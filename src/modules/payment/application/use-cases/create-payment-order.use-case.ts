@@ -17,7 +17,7 @@ export class CreatePaymentOrderUseCase {
         private razorpayService: RazorpayService,
         private orderFacade: OrderFacade,
         private configService: ConfigService,
-    ) {}
+    ) { }
 
     async execute(userId: number, dto: CreateOrderDto) {
         this.logger.log(`Creating order for user ${userId} with data:`, JSON.stringify(dto, null, 2));
@@ -39,8 +39,8 @@ export class CreatePaymentOrderUseCase {
             const order = await this.razorpayService.createOrder(options);
 
             const paymentOrder = this.paymentOrderRepo.create({
-                userId,
-                razorpayOrderId: order.id,
+                user_id: userId,
+                razorpay_order_id: order.id,
                 amount,
                 notes: options.notes,
                 status: PaymentStatus.PENDING,

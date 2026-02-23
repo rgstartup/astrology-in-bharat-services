@@ -14,11 +14,11 @@ export class BankAccount {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'int' })
-    expertId: number;
+    @Column({ type: 'int', name: 'expert_id' })
+    expert_id: number;
 
     @ManyToOne(() => ProfileExpert, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'expertId' })
+    @JoinColumn({ name: 'expert_id' })
     expert: ProfileExpert;
 
     @Column({ type: 'text' })
@@ -39,9 +39,9 @@ export class BankAccount {
     @Column({ type: 'boolean', default: false })
     is_primary: boolean;
 
-    @CreateDateColumn()
-    createdAt: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    created_at: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updated_at: Date;
 }

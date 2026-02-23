@@ -14,7 +14,7 @@ export class HandleWebhookUseCase {
         private paymentOrderRepo: Repository<PaymentOrder>,
         private razorpayService: RazorpayService,
         private verifyPaymentUseCase: VerifyPaymentUseCase,
-    ) {}
+    ) { }
 
     async execute(signature: string, payload: any) {
         // Validate signature
@@ -32,7 +32,7 @@ export class HandleWebhookUseCase {
 
             // Verify if order already processed
             const order = await this.paymentOrderRepo.findOne({
-                where: { razorpayOrderId: orderId },
+                where: { razorpay_order_id: orderId },
             });
 
             if (order && order.status !== PaymentStatus.SUCCESS) {
