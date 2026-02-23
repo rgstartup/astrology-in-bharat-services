@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 
@@ -15,6 +16,8 @@ import { GoogleAuthGuard } from '../guards/google-auth.guard';
   version: '1',
 })
 export class GoogleAuthController {
+  constructor(private readonly config: ConfigService) {}
+
   @Get('login')
   @UseGuards(GoogleAuthGuard)
   googleLogin() {

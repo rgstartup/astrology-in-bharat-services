@@ -31,6 +31,6 @@ import { UsersFacade } from './application/users.facade';
     FindUsersByRoleUseCase,
     UserRepository,
   ],
-  exports: [UsersFacade, UserRepository, TypeOrmModule],
+  exports: [UsersFacade, UserRepository, FindUserUseCase, TypeOrmModule],
 })
-export class UsersModule {}
+export class UsersModule { }

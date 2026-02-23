@@ -11,16 +11,20 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    // Only allow requests from your frontend's exact origin
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: [
+      process.env.FRONTEND_URL ?? 'http://localhost:3000',
+      process.env.ADMIN_FRONTEND_URL ?? 'http://localhost:3001',
+      process.env.ASTROLOGER_FRONTEND_URL ?? 'http://localhost:3003',
+      process.env.AGENT_FRONTEND_URL ?? 'http://localhost:8000',
+    ],
 
-    // Specify the allowed methods (GET and POST are essential for registration)
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 
-    // Allow headers like Content-Type (important for sending JSON)
-    allowedHeaders: 'Content-Type, Accept',
+    // Authorization header is needed for Bearer token auth,
+    // Cookie header is needed for cookie-based auth
+    allowedHeaders: 'Content-Type, Accept, Authorization, Cookie',
 
-    // Set to true if your frontend needs to send cookies or authorization headers
+    // Required for cookies to be sent cross-origin
     credentials: true,
   });
 

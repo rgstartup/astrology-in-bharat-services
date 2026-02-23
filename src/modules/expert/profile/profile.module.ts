@@ -45,6 +45,6 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     KycStatusChangedHandler,
     ExpertStatusChangedHandler,
   ],
-  exports: [ProfileFacade, ExpertGateway],
+  exports: [ProfileFacade, ExpertGateway, GetExpertByIdUseCase, TypeOrmModule],
 })
-export class ProfileModule {}
+export class ProfileModule { }
