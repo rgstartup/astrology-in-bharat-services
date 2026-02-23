@@ -37,7 +37,8 @@ export class AgentController {
 
     return {
       success: result.success,
-      token: result.accessToken,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
       agent: result.agent,
     };
   }
