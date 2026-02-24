@@ -53,7 +53,7 @@ export class RegisterUserUseCase {
 
     this.sendEmail(response);
 
-    return response.tokens;
+    return response;
   }
 
   private sendEmail<T extends { user: User }>(response: T) {

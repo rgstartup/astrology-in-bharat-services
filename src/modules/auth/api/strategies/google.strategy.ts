@@ -5,6 +5,7 @@ import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
+import { instanceToPlain } from 'class-transformer';
 import { LoginWithGoogleUseCase } from '../../application/use-cases/login-with-google.usecase';
 
 @Injectable()
@@ -44,7 +45,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     const state = JSON.parse(decodeURIComponent(req?.query?.state as string));
 
-    const tokens = await this.loginWithGoogle.execute({
+    const { user, tokens } = await this.loginWithGoogle.execute({
       providerId,
       email,
       name: profile.displayName,
@@ -54,6 +55,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       role: state?.role,
     });
     // 3️⃣ Return both user and tokens to AuthController via Passport
-    return done(null, tokens);
+    return done(
+      null,
+      instanceToPlain({
+        user,
+        ...tokens,
+      }),
+    );
   }
 }

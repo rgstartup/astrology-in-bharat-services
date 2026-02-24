@@ -11,15 +11,8 @@ export class GetProfileUseCase {
   ) {}
 
   async execute(userId: number) {
-    const profile = await this.repo.findOne({
+    return this.repo.findOne({
       where: { user: { id: userId } },
-      relations: { user: true },
     });
-
-    if (!profile) return null;
-
-    const response: any = { ...profile, full_name: profile.user?.name ?? null };
-    delete response.user;
-    return response;
   }
 }

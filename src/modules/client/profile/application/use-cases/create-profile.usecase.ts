@@ -5,7 +5,6 @@ import { ProfileClient } from '../../infrastructure/persistence/entities/profile
 import { CreateProfileClientDto } from '../../infrastructure/persistence/dto/profile-client.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileCreatedEvent } from '../../domain/events/profile-events';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Injectable()
 export class CreateProfileUseCase {
@@ -22,19 +21,12 @@ export class CreateProfileUseCase {
     });
     if (exists) return exists;
 
-    const { full_name, ...profileDto } = dto as any;
-
     const profile = this.repo.create({
-      ...profileDto,
+      ...dto,
       user: { id: userId } as any,
-    } as any) as unknown as ProfileClient;
+    });
 
-    const savedProfile = (await this.repo.save(profile as any)) as ProfileClient;
-
-    if (full_name !== undefined) {
-      await this.repo.manager.update(User, { id: userId }, { name: full_name });
-      (savedProfile as any).full_name = full_name;
-    }
+    const savedProfile = await this.repo.save(profile);
 
     this.eventEmitter.emit(
       'client.profile.created',

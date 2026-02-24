@@ -33,7 +33,7 @@ export class LoginWithMagicLinkUseCase {
 
     LoginWithMagicLinkPolicy.ensureTokenIsUnused(isTokenUsed);
 
-    await this.db.transaction(async (qr) => {
+    const [updatedUser] = await this.db.transaction(async (qr) => {
       return Promise.all([
         user.isVerified()
           ? Promise.resolve(user)
@@ -54,7 +54,7 @@ export class LoginWithMagicLinkUseCase {
 
     const tokens = await this.issueAuthTokens.execute(user, ip, ua);
 
-    return tokens;
+    return { user: updatedUser, tokens };
   }
 
   // 🔐 infra → application boundary

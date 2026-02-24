@@ -6,7 +6,6 @@ import { UpdateProfileClientDto } from '../../infrastructure/persistence/dto/pro
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '../../domain/events/profile-events';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Injectable()
 export class UpdateProfileUseCase {
@@ -23,19 +22,12 @@ export class UpdateProfileUseCase {
 
     ProfilePolicy.ensureProfileExists(profile);
 
-    const { full_name, ...profileDto } = dto as any;
-
-    Object.assign(profile, profileDto);
+    Object.assign(profile, dto);
     const updatedProfile = await this.repo.save(profile);
-
-    if (full_name !== undefined) {
-      await this.repo.manager.update(User, { id: userId }, { name: full_name });
-      (updatedProfile as any).full_name = full_name;
-    }
 
     this.eventEmitter.emit(
       'client.profile.updated',
-      new ProfileUpdatedEvent(userId, updatedProfile.id, profileDto as any),
+      new ProfileUpdatedEvent(userId, updatedProfile.id, dto),
     );
 
     return updatedProfile;

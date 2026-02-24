@@ -7,10 +7,7 @@ export interface CloudinaryConfig {
 }
 
 export default registerAs<Partial<CloudinaryConfig>>('cloudinary', () => ({
-  cloudName:
-    process.env.CLOUDINARY_CLOUD_NAME ||
-    process.env.CLOUDINARY_NAME ||
-    '',
+  cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
   apiKey: process.env.CLOUDINARY_API_KEY || '',
   apiSecret: process.env.CLOUDINARY_API_SECRET || '',
 }));
