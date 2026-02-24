@@ -10,6 +10,7 @@ import {
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { ProductFacade } from '../../application/product.facade';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -44,7 +45,9 @@ export class ProductController {
     @Body() createProductDto: CreateProductDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    let imageUrl = createProductDto.image_url;
+    const bodyAsAny = createProductDto as any;
+    let imageUrl =
+      createProductDto.image_url || bodyAsAny?.imageUrl || bodyAsAny?.image;
 
     if (files && files.length > 0) {
       const file = files[0];
@@ -57,6 +60,7 @@ export class ProductController {
         }
       } catch (error) {
         console.error('Cloudinary Upload Error:', error);
+        throw new InternalServerErrorException('Product image upload failed');
       }
     }
 
@@ -87,12 +91,22 @@ export class ProductController {
     @Body() updateProductDto: UpdateProductDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    const bodyAsAny = updateProductDto as any;
+    if (!updateProductDto.image_url) {
+      updateProductDto.image_url = bodyAsAny?.imageUrl || bodyAsAny?.image;
+    }
+
     if (file) {
-      const uploadedImage = (await this.cloudinaryService.uploadImage(
-        file,
-      )) as UploadApiResponse;
-      if (uploadedImage?.secure_url) {
-        updateProductDto.image_url = uploadedImage.secure_url;
+      try {
+        const uploadedImage = (await this.cloudinaryService.uploadImage(
+          file,
+        )) as UploadApiResponse;
+        if (uploadedImage?.secure_url) {
+          updateProductDto.image_url = uploadedImage.secure_url;
+        }
+      } catch (error) {
+        console.error('Cloudinary Upload Error:', error);
+        throw new InternalServerErrorException('Product image upload failed');
       }
     }
     return this.productFacade.update(+id, updateProductDto);
