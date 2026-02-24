@@ -7,7 +7,7 @@ import {
     UpdateDateColumn,
     JoinColumn,
 } from 'typeorm';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '../../../../profile/infrastructure/persistence/entities/profile-expert.entity';
 
 @Entity('expert_bank_accounts')
 export class BankAccount {
@@ -17,7 +17,7 @@ export class BankAccount {
     @Column({ type: 'int', name: 'expert_id' })
     expert_id: number;
 
-    @ManyToOne(() => ProfileExpert, { onDelete: 'CASCADE' })
+    @ManyToOne('ProfileExpert', { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'expert_id' })
     expert: ProfileExpert;
 

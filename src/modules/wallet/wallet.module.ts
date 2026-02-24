@@ -21,10 +21,13 @@ import { GetWithdrawalsStatusUseCase } from './application/use-cases/get-withdra
 import { RequestWithdrawalUseCase } from './application/use-cases/request-withdrawal.use-case';
 import { NotificationModule } from '@/modules/notification/notification.module';
 
+import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([Wallet, Transaction, Withdrawal]),
     NotificationModule,
+    BankAccountsModule,
   ],
   providers: [
     WalletFacade,

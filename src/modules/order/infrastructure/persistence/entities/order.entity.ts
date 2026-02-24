@@ -32,7 +32,7 @@ export class Order {
     @Column({ name: 'user_id' })
     user_id: number;
 
-    @Column({ name: 'total_amount', type: 'decimal', precision: 10, scale: 2 })
+    @Column({ name: 'total_amount', type: 'decimal', precision: 10, scale: 2, default: 0 })
     total_amount: number;
 
     @Column({

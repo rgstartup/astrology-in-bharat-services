@@ -7,8 +7,8 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { BankAccount } from '@/modules/expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity';
+import { User } from '../../../../users/infrastructure/persistence/entities/user.entity';
+import { BankAccount } from '../../../../expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity';
 
 export enum WithdrawalStatus {
     PENDING = 'pending',
@@ -22,7 +22,7 @@ export class Withdrawal {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => User)
+    @ManyToOne('User')
     @JoinColumn({ name: 'user_id' })
     user: User;
 
@@ -32,7 +32,7 @@ export class Withdrawal {
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     amount: number;
 
-    @ManyToOne(() => BankAccount)
+    @ManyToOne('BankAccount', { nullable: true })
     @JoinColumn({ name: 'bank_account_id' })
     bankAccount: BankAccount;
 
