@@ -29,14 +29,14 @@ export class PaymentOrder {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ name: 'user_id' })
+    @Column({ name: 'user_id', nullable: true })
     user_id: number;
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column({ name: 'razorpay_order_id', unique: true })
+    @Column({ name: 'razorpay_order_id', unique: true, nullable: true })
     razorpay_order_id: string;
 
     @Column({ name: 'razorpay_payment_id', nullable: true })

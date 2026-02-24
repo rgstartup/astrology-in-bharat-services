@@ -24,7 +24,7 @@ export class Product {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'original_price' })
   original_price: number;
 
-  @Column({ name: 'image_url' })
+  @Column({ name: 'image_url', nullable: true })
   image_url: string;
 
   @Column({ default: true, name: 'is_active' })
