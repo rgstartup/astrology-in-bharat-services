@@ -11,7 +11,7 @@ import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 export class LoginWithEmailUseCase {
   constructor(
     private readonly usersFacade: UsersFacade,
-    private passwordHasher: Argon2PasswordHasher,
+    private readonly passwordHasher: Argon2PasswordHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
   ) {}
 
@@ -20,7 +20,7 @@ export class LoginWithEmailUseCase {
 
     const isValidPassword = await this.validatePassword(dto, user);
 
-    if (!user || !user.password || !isValidPassword) {
+    if (!user?.password || !isValidPassword) {
       throw new InvalidCredentialsError();
     }
 
@@ -28,7 +28,7 @@ export class LoginWithEmailUseCase {
 
     const tokens = await this.issueTokens.execute(user, ip, userAgent);
 
-    return { user, tokens };
+    return tokens;
   }
 
   private async validatePassword(dto: LoginDto, user?: User | null) {

@@ -41,7 +41,7 @@ export class LoginWithGoogleUseCase {
         qr,
       );
 
-      return { user, tokens };
+      return tokens;
     });
   }
 }
