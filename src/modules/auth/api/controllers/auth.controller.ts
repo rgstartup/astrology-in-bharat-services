@@ -61,6 +61,23 @@ export class AuthController {
     return instanceToPlain({ user, ...tokens });
   }
 
+  // Backward-compatible alias for clients still using /auth/login
+  @Post('login')
+  async loginAlias(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, tokens } = await this.authFacade.loginWithEmail(
+      dto,
+      req.ip,
+      req.get('user-agent'),
+    );
+
+    this.setCookies(res, tokens);
+    return instanceToPlain({ user, ...tokens });
+  }
+
   @Post('email/verify')
   confirmEmail(@Body('token') token: string) {
     return this.authFacade.verifyEmail(token);
