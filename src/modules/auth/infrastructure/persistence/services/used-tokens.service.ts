@@ -1,7 +1,7 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsedTokens } from '../entities/used-tokens.entity';
 import { QueryRunner, Repository } from 'typeorm';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { BaseService } from '@/common/services/transaction.service';
 

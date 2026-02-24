@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import {
   Controller,
   Post,
@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 
 import { RegisterDto, LoginDto } from '../dto';
-import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -27,7 +27,7 @@ import { JwtAuthRefreshGuard } from '../guards/auth-refresh.guard';
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly authFacade: AuthFacade) { }
+  constructor(private readonly authFacade: AuthFacade) {}
 
   @Post('email/register')
   async register(
@@ -104,7 +104,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authFacade.refreshToken(req['refreshToken']!);
+    const tokens = await this.authFacade.refreshToken(req['refreshToken']);
     this.setCookies(res, tokens);
     return tokens;
   }
@@ -147,10 +147,10 @@ export class AuthController {
   ) {
     const isProduction = process.env.NODE_ENV === 'production';
 
-    const cookieOptions = {
+    const cookieOptions: CookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'lax' as const,
+      sameSite: 'lax',
       path: '/',
     };
 
