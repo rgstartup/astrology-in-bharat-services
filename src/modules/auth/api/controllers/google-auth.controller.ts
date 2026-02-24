@@ -7,17 +7,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
+import 'dotenv/config';
 
 @Controller({
   path: 'auth/google',
   version: '1',
 })
 export class GoogleAuthController {
-  constructor(private readonly config: ConfigService) {}
-
   @Get('login')
   @UseGuards(GoogleAuthGuard)
   googleLogin() {
@@ -27,37 +25,51 @@ export class GoogleAuthController {
   @Get('callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req: Request, @Res() res: Response) {
-    const authData = req.user as any;
-    const frontendUrl =
-      this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const rawState = req?.query?.state;
 
-    if (authData && authData.accessToken) {
-      const isProduction = process.env.NODE_ENV === 'production';
-
-      const cookieOptions = {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'lax' as const,
-        path: '/',
-      };
-
-      // Set HttpOnly cookies
-      res.cookie('accessToken', authData.accessToken, {
-        ...cookieOptions,
-        maxAge: 15 * 60 * 1000,
-      });
-
-      res.cookie('refreshToken', authData.refreshToken, {
-        ...cookieOptions,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-
-      // Redirect to frontend with tokens in URL (for frontend middleware to pick up)
-      const redirectUrl = `${frontendUrl}?accessToken=${authData.accessToken}&refreshToken=${authData.refreshToken}`;
-      return res.redirect(redirectUrl);
+    if (typeof rawState !== 'string') {
+      throw new BadRequestException('Missing Google state');
     }
 
-    // If no tokens, redirect to frontend with error
-    return res.redirect(`${frontendUrl}?error=google_auth_failed`);
+    let state: { redirectUrl?: string };
+
+    try {
+      state = JSON.parse(decodeURIComponent(rawState));
+    } catch {
+      throw new BadRequestException('Invalid Google state');
+    }
+
+    state.redirectUrl = state.redirectUrl || process.env.FRONTEND_URL!;
+
+    const redirectUrl = new URL(state.redirectUrl);
+
+    const tokens = req.user as
+      | { accessToken?: string; refreshToken?: string }
+      | undefined;
+
+    if (!tokens?.accessToken || !tokens?.refreshToken) {
+      return res.redirect(`${state.redirectUrl}?error=google_auth_failed`);
+    }
+
+    this.setCookies(tokens, res);
+
+    return res.redirect(redirectUrl.toString());
+  }
+
+  private setCookies(
+    tokens: { accessToken?: string; refreshToken?: string },
+    res: Response,
+  ) {
+    res.cookie('accessToken', tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
   }
 }
