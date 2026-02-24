@@ -5,20 +5,12 @@ import { AuthGuard } from '@nestjs/passport';
 export class GoogleAuthGuard extends AuthGuard('google') {
   getAuthenticateOptions(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
-    const query = request?.query ?? {};
 
-    const role = Array.isArray(query.role) ? query.role[0] : query.role;
-    const referralCode = Array.isArray(query.referralCode)
-      ? query.referralCode[0]
-      : query.referralCode;
-    const redirectUrl = Array.isArray(query.redirect_uri)
-      ? query.redirect_uri[0]
-      : query.redirect_uri;
+    const { role, referralCode } = request;
 
     const statePayload = {
-      role: role ?? null,
-      referralCode: referralCode ?? null,
-      redirectUrl: redirectUrl ?? null,
+      role,
+      referralCode,
     };
 
     return {

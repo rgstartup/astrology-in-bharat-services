@@ -19,6 +19,7 @@ import {
 } from '../dto/register.dto';
 import { JwtAuthGuard } from '../guards/auth.guard';
 import { AuthFacade } from '../../application/auth.facade';
+import { instanceToPlain } from 'class-transformer';
 import { JwtAuthRefreshGuard } from '../guards/auth-refresh.guard';
 
 @Controller({
@@ -29,25 +30,35 @@ export class AuthController {
   constructor(private readonly authFacade: AuthFacade) {}
 
   @Post('email/register')
-  async register(@Body() dto: RegisterDto, @Req() req: Request) {
-    const tokens = await this.authFacade.register(
+  async register(
+    @Body() dto: RegisterDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, tokens } = await this.authFacade.register(
       dto,
       req.ip,
       req.get('user-agent'),
     );
 
-    return tokens;
+    this.setCookies(res, tokens);
+    return instanceToPlain({ user, ...tokens });
   }
 
   @Post('email/login')
-  async login(@Body() dto: LoginDto, @Req() req: Request) {
-    const tokens = await this.authFacade.loginWithEmail(
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, tokens } = await this.authFacade.loginWithEmail(
       dto,
       req.ip,
       req.get('user-agent'),
     );
 
-    return tokens;
+    this.setCookies(res, tokens);
+    return instanceToPlain({ user, ...tokens });
   }
 
   @Post('email/verify')
@@ -98,14 +109,19 @@ export class AuthController {
   }
 
   @Get('magic/login')
-  async magicLinkLogin(@Query('token') token: string, @Req() req: Request) {
-    const tokens = await this.authFacade.loginWithMagicLink(
+  async magicLinkLogin(
+    @Query('token') token: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, tokens } = await this.authFacade.loginWithMagicLink(
       token,
       req.ip,
       req.get('user-agent'),
     );
 
-    return tokens;
+    this.setCookies(res, tokens);
+    return instanceToPlain({ user, ...tokens });
   }
 
   private setCookies(

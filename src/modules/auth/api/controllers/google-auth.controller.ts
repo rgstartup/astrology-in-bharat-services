@@ -27,36 +27,37 @@ export class GoogleAuthController {
   @Get('callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req: Request, @Res() res: Response) {
-    const rawState = req?.query?.state;
+    const authData = req.user as any;
+    const frontendUrl =
+      this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
 
-    if (typeof rawState !== 'string') {
-      throw new BadRequestException('Missing Google state');
+    if (authData && authData.accessToken) {
+      const isProduction = process.env.NODE_ENV === 'production';
+
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax' as const,
+        path: '/',
+      };
+
+      // Set HttpOnly cookies
+      res.cookie('accessToken', authData.accessToken, {
+        ...cookieOptions,
+        maxAge: 15 * 60 * 1000,
+      });
+
+      res.cookie('refreshToken', authData.refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      // Redirect to frontend with tokens in URL (for frontend middleware to pick up)
+      const redirectUrl = `${frontendUrl}?accessToken=${authData.accessToken}&refreshToken=${authData.refreshToken}`;
+      return res.redirect(redirectUrl);
     }
 
-    let state: { redirectUrl?: string };
-
-    try {
-      state = JSON.parse(decodeURIComponent(rawState));
-    } catch {
-      throw new BadRequestException('Invalid Google state');
-    }
-
-    if (!state?.redirectUrl) {
-      throw new BadRequestException('Missing redirect URL in Google state');
-    }
-
-    const tokens = req.user as
-      | { accessToken?: string; refreshToken?: string }
-      | undefined;
-
-    if (!tokens?.accessToken || !tokens?.refreshToken) {
-      throw new BadRequestException('Missing Google auth tokens');
-    }
-
-    const redirectUrl = new URL(state.redirectUrl);
-    redirectUrl.searchParams.set('accessToken', tokens.accessToken);
-    redirectUrl.searchParams.set('refreshToken', tokens.refreshToken);
-
-    return res.redirect(redirectUrl.toString());
+    // If no tokens, redirect to frontend with error
+    return res.redirect(`${frontendUrl}?error=google_auth_failed`);
   }
 }
