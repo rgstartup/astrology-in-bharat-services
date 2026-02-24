@@ -11,7 +11,7 @@ import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 export class LoginWithEmailUseCase {
   constructor(
     private readonly usersFacade: UsersFacade,
-    private passwordHasher: Argon2PasswordHasher,
+    private readonly passwordHasher: Argon2PasswordHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
   ) {}
 

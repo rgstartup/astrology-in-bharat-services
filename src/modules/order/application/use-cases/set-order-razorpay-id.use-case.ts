@@ -7,10 +7,12 @@ import { Order } from '../../infrastructure/persistence/entities/order.entity';
 export class SetOrderRazorpayIdUseCase {
   constructor(
     @InjectRepository(Order)
-    private orderRepo: Repository<Order>,
-  ) { }
+    private readonly orderRepo: Repository<Order>,
+  ) {}
 
   async execute(orderId: number, razorpayOrderId: string) {
-    await this.orderRepo.update(orderId, { razorpay_order_id: razorpayOrderId });
+    await this.orderRepo.update(orderId, {
+      razorpay_order_id: razorpayOrderId,
+    });
   }
 }
