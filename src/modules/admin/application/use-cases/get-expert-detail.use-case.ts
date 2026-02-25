@@ -28,30 +28,28 @@ export class GetExpertDetailUseCase {
       email: user.email,
       avatar: user.avatar,
       gender: profile.gender,
-      dob: profile.date_of_birth ? new Date(profile.date_of_birth).toISOString() : null,
-      phone: profile.phone_number || user.profile_client?.phone || '',
+      date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth).toISOString() : null,
+      phone_number: profile.phone_number || user.profile_client?.phone || '',
       languages: profile.languages ? profile.languages.split(',') : [],
       bio: profile.bio || '',
-      experience: profile.experience_in_years,
+      experience_in_years: profile.experience_in_years,
       specialization: profile.specialization || '',
       rating: profile.rating,
-      consultationCount: profile.consultation_count,
-      totalEarnings: totalEarnings,
+      consultation_count: profile.consultation_count,
+      total_earnings: totalEarnings,
       intro_video_url: profile.video || (profile.videos && profile.videos.length > 0 ? profile.videos[0] : ''),
       gallery: profile.gallery || [],
       documents: profile.documents || [],
       addresses: profile.addresses?.map(addr => ({
-        houseNo: addr.house_no || '',
+        house_no: addr.house_no || '',
         district: addr.district || '',
         city: addr.city || '',
         state: addr.state || '',
         country: addr.country || '',
         pincode: addr.pincode || addr.zip_code || ''
       })) || [],
-      kyc_details: {
-        status: profile.kyc_status,
-        reason: profile.rejection_reason,
-      },
+      kyc_status: profile.kyc_status,
+      rejection_reason: profile.rejection_reason,
     };
   }
 }
