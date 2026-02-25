@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
@@ -22,7 +22,9 @@ export class GetProfileUseCase {
       relations: ['user', 'addresses'],
     });
 
-    if (!profile) return null;
+    if (!profile) {
+      throw new NotFoundException(`Expert profile for user ${user.id} not found`);
+    }
 
     const plain = { ...profile } as any;
     plain.languages = profile.languages

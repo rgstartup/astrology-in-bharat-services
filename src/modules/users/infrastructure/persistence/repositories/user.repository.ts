@@ -26,7 +26,10 @@ export class UserRepository extends BaseService<User> {
   }
 
   async findByEmail(email: string, queryRunner?: QueryRunner): Promise<User | null> {
-    return this.getRepo(queryRunner).findOne({ where: { email } });
+    return this.getRepo(queryRunner).findOne({
+      where: { email },
+      relations: ['roles'],
+    });
   }
 
   async findByEmailWithPassword(email: string, queryRunner?: QueryRunner): Promise<User | null> {

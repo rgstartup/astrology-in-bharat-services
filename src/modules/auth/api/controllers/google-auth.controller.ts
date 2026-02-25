@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Get,
+  Logger,
   Req,
   Res,
   UseGuards,
@@ -17,6 +18,7 @@ import 'dotenv/config';
   version: '1',
 })
 export class GoogleAuthController {
+  private readonly logger = new Logger(GoogleAuthController.name);
   constructor(private readonly config: ConfigService) { }
 
   private resolveFrontendUrl(req: Request, authData: any): string {
@@ -59,8 +61,12 @@ export class GoogleAuthController {
   }
 
   @Get('callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   async googleCallback(@Req() req: Request, @Res() res: Response) {
+    if (res.headersSent) {
+      this.logger.log(`Headers already sent for ${req.url}, skipping controller logic.`);
+      return;
+    }
     const authData = req.user as any;
     const rawState = req?.query?.state;
 

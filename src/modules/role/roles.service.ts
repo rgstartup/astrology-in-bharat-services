@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository, QueryRunner } from 'typeorm';
+import { In, Repository, QueryRunner, Raw } from 'typeorm';
 import { Role } from './entities/roles.entity';
 import { BaseService } from '@/common/services/transaction.service';
 
@@ -14,11 +14,18 @@ export class RolesService extends BaseService<Role> {
   }
 
   async findByName(name: string, queryRunner?: QueryRunner): Promise<Role | null> {
-    return this.getRepo(queryRunner).findOne({ where: { name } });
+    return this.getRepo(queryRunner).findOne({
+      where: { name: Raw(alias => `LOWER(${alias}) = LOWER(:name)`, { name }) }
+    });
   }
 
   async findByNames(names: string[], queryRunner?: QueryRunner): Promise<Role[]> {
-    return this.getRepo(queryRunner).findBy({ name: names.length ? In(names) : In([]) });
+    if (!names.length) return [];
+    return this.getRepo(queryRunner).find({
+      where: {
+        name: Raw(alias => `LOWER(${alias}) IN (:...names)`, { names: names.map(n => n.toLowerCase()) })
+      }
+    });
   }
 
   async create(name: string, description?: string, queryRunner?: QueryRunner): Promise<Role> {

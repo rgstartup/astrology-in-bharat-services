@@ -25,6 +25,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       stack = exception.stack;
     }
 
+    if (response.headersSent) {
+      return;
+    }
+
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),

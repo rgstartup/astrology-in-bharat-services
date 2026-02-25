@@ -21,6 +21,7 @@ import { UserRegisteredHandler } from './application/event-handlers/user-registe
 import { LoginWithGoogleUseCase } from './application/use-cases/login-with-google.usecase';
 import { OAuthService } from './infrastructure/persistence/services/oauth.service';
 import { GoogleStrategy } from './api/strategies/google.strategy';
+import { GoogleAuthGuard } from './api/guards/google-auth.guard';
 import { GoogleAuthController } from './api/controllers/google-auth.controller';
 import { LogoutUserUseCase } from './application/use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.usecase';
@@ -54,6 +55,7 @@ import { ExternalModule } from '@/external/external.module';
     JwtStrategy,
     JwtRefreshStrategy,
     GoogleStrategy,
+    GoogleAuthGuard,
 
     AuthFacade,
     // Use case -  start
