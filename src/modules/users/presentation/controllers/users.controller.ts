@@ -14,6 +14,7 @@ import { UsersFacade } from '../../application/users.facade';
 import { JwtAuthGuard } from '../../../auth/api/guards/auth.guard';
 import { RolesGuard } from '../../../auth/api/guards/role.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 // import { UserRole } from '../../../role/enum/role.enum';
 import { User } from '../../infrastructure/persistence/entities/user.entity';
 
@@ -31,6 +32,12 @@ export class UsersController {
   @Roles('admin')
   findAll() {
     return this.usersFacade.findAll();
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  getMe(@CurrentUser() user: User) {
+    return user;
   }
 
   @Get(':id')

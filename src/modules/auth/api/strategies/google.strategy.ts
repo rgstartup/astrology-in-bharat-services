@@ -43,7 +43,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       return done(new Error('Google account did not provide an email'));
     }
 
-    const state = JSON.parse(decodeURIComponent(req?.query?.state as string));
+    const rawState = req?.query?.state as string | undefined;
+    let state: any = {};
+    if (rawState) {
+      try {
+        state = JSON.parse(decodeURIComponent(rawState));
+      } catch {
+        state = {};
+      }
+    }
 
     const { user, tokens } = await this.loginWithGoogle.execute({
       providerId,

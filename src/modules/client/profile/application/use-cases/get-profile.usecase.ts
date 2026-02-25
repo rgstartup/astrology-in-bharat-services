@@ -13,6 +13,7 @@ export class GetProfileUseCase {
   async execute(userId: number) {
     return this.repo.findOne({
       where: { user: { id: userId } },
+      relations: ['user'],
     });
   }
 }

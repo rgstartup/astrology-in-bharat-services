@@ -59,8 +59,14 @@ export class ProductController {
           imageUrl = uploadedImage.secure_url;
         }
       } catch (error) {
+        const reason =
+          error instanceof Error ? error.message : 'Unknown Cloudinary error';
         console.error('Cloudinary Upload Error:', error);
-        throw new InternalServerErrorException('Product image upload failed');
+        throw new InternalServerErrorException(
+          process.env.NODE_ENV === 'production'
+            ? 'Product image upload failed'
+            : `Product image upload failed: ${reason}`,
+        );
       }
     }
 
@@ -105,8 +111,14 @@ export class ProductController {
           updateProductDto.image_url = uploadedImage.secure_url;
         }
       } catch (error) {
+        const reason =
+          error instanceof Error ? error.message : 'Unknown Cloudinary error';
         console.error('Cloudinary Upload Error:', error);
-        throw new InternalServerErrorException('Product image upload failed');
+        throw new InternalServerErrorException(
+          process.env.NODE_ENV === 'production'
+            ? 'Product image upload failed'
+            : `Product image upload failed: ${reason}`,
+        );
       }
     }
     return this.productFacade.update(+id, updateProductDto);
