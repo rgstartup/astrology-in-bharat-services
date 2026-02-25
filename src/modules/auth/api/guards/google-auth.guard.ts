@@ -6,11 +6,12 @@ export class GoogleAuthGuard extends AuthGuard('google') {
   getAuthenticateOptions(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
 
-    const { role, referralCode } = request;
+    const { role, referralCode, redirect_uri } = request.query;
 
     const statePayload = {
       role,
       referralCode,
+      redirect_uri,
     };
 
     return {

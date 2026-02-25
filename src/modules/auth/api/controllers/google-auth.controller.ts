@@ -24,9 +24,6 @@ export class GoogleAuthController {
     @Res() res: Response,
   ) {
     const authData = req.user as any;
-    const frontendUrl =
-      this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-
     if (authData && authData.accessToken) {
       const isProduction = process.env.NODE_ENV === 'production';
 
@@ -48,12 +45,28 @@ export class GoogleAuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
+      // Determine redirection URL
+      let frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+
+      // 1. Check if a specific redirect_uri was provided by the frontend
+      if (authData.redirectUri) {
+        frontendUrl = authData.redirectUri;
+      }
+      // 2. Otherwise, check user role for dashboard redirection
+      else if (authData.user?.roles?.some((r: any) => r.name === 'expert')) {
+        frontendUrl = this.config.get<string>('ASTROLOGER_FRONTEND_URL') || 'http://localhost:3003';
+      }
+      else if (authData.user?.roles?.some((r: any) => r.name === 'admin')) {
+        frontendUrl = this.config.get<string>('ADMIN_FRONTEND_URL') || 'http://localhost:3001';
+      }
+
       // Redirect to frontend with tokens in URL (for frontend middleware to pick up)
       const redirectUrl = `${frontendUrl}?accessToken=${authData.accessToken}&refreshToken=${authData.refreshToken}`;
       return res.redirect(redirectUrl);
     }
 
+    const defaultFrontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
     // If no tokens, redirect to frontend with error
-    return res.redirect(`${frontendUrl}?error=google_auth_failed`);
+    return res.redirect(`${defaultFrontendUrl}?error=google_auth_failed`);
   }
 }

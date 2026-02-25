@@ -54,12 +54,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       userAgent: req.get('user-agent'),
       role: state?.role,
     });
-    // 3️⃣ Return both user and tokens to AuthController via Passport
+    // 3️⃣ Return user, tokens, and redirect_uri to AuthController via Passport
     return done(
       null,
       instanceToPlain({
         user,
         ...tokens,
+        redirectUri: state?.redirect_uri,
       }),
     );
   }
