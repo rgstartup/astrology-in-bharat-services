@@ -19,7 +19,7 @@ export class TwimlController {
         dial.conference({
             startConferenceOnEnter: true,
             endConferenceOnExit: true,
-        });
+        }, 'AstroCallConference');
 
         res.type('text/xml');
         res.send(response.toString());

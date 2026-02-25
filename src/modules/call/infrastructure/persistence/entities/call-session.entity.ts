@@ -84,6 +84,12 @@ export class CallSession {
     @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
     created_at: Date;
 
+    @Column({ type: 'int', default: 0, name: 'duration_seconds' })
+    duration_seconds: number;
+
+    @Column({ type: 'float', default: 0, name: 'final_price' })
+    final_price: number;
+
     @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
     updated_at: Date;
 }
