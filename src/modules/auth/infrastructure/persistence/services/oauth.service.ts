@@ -50,6 +50,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
       {
         email: dto.email,
         name: dto.name,
+        avatar: dto.profile?.photos?.[0]?.value,
         roles: dto.roles?.map((role) => ({ name: role })),
       },
       queryRunner,

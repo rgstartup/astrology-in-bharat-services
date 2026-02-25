@@ -13,7 +13,7 @@ export class UpdateProfileUseCase {
     @InjectRepository(ProfileClient)
     private readonly repo: Repository<ProfileClient>,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(userId: number, dto: UpdateProfileClientDto) {
     const profile = await this.repo.findOne({
@@ -22,7 +22,13 @@ export class UpdateProfileUseCase {
 
     ProfilePolicy.ensureProfileExists(profile);
 
-    Object.assign(profile, dto);
+    const { full_name, ...profileDto } = dto;
+
+    if (full_name && profile.user) {
+      profile.user.name = full_name;
+    }
+
+    Object.assign(profile, profileDto);
     const updatedProfile = await this.repo.save(profile);
 
     this.eventEmitter.emit(

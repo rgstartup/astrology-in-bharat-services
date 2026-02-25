@@ -15,13 +15,16 @@ import { CartModule } from '@/modules/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
+import { ProductModule } from '@/modules/product/product.module';
 
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, User]),
+    TypeOrmModule.forFeature([Order, OrderItem, User, Product]),
     CartModule,
+    ProductModule,
     NotificationModule,
     UsersModule,
     NodemailerModule,

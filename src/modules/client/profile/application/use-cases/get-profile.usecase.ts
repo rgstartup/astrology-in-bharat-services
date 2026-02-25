@@ -8,7 +8,7 @@ export class GetProfileUseCase {
   constructor(
     @InjectRepository(ProfileClient)
     private readonly repo: Repository<ProfileClient>,
-  ) {}
+  ) { }
 
   async execute(userId: number) {
     return this.repo.findOne({

@@ -32,6 +32,10 @@ class UserDto {
   @ValidateNested({ each: true }) // validate each role object
   @Type(() => RolesDto) // transform plain objects into RolesDto instances
   roles?: RolesDto[]; // role names only, no entity
+
+  @IsString()
+  @IsOptional()
+  avatar?: string;
 }
 
-export class CreateUserDto extends UserDto {}
+export class CreateUserDto extends UserDto { }

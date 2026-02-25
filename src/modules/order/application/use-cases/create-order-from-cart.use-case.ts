@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/persistence/entities/order.entity';
@@ -8,6 +8,8 @@ import { Cart } from '@/modules/cart/infrastructure/persistence/entities/cart.en
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
+import { CreateOrderDto } from '../../api/dto/create-order.dto';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {
@@ -18,17 +20,19 @@ export class CreateOrderFromCartUseCase {
     private orderItemRepo: Repository<OrderItem>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    @InjectRepository(Product)
+    private productRepo: Repository<Product>,
     private cartFacade: CartFacade,
     private dataSource: DataSource,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
   ) { }
 
-  async execute(userId: number, shippingAddress: any) {
-    const cart = (await this.cartFacade.getCart(userId)) as Cart;
+  async execute(userId: number, dto: CreateOrderDto) {
+    const shipping_address = dto.shipping_address;
 
-    if (!cart || !cart.items || cart.items.length === 0) {
-      throw new BadRequestException('Cart is empty');
+    if (!shipping_address) {
+      throw new BadRequestException('Shipping address is required');
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -36,43 +40,80 @@ export class CreateOrderFromCartUseCase {
     await queryRunner.startTransaction();
 
     try {
-      // 1. Calculate Total Amount
       let totalAmount = 0;
-      cart.items.forEach((item) => {
-        totalAmount += Number(item.product.price) * item.quantity;
-      });
+      let itemsToCreate: { product_id: number; quantity: number; price: number }[] = [];
 
-      // 2. Create Order
+      if (dto.product_id) {
+        // 1. Handle Single Product Order (Buy Now)
+        const product = await this.productRepo.findOne({ where: { id: dto.product_id } });
+        if (!product) {
+          throw new NotFoundException('Product not found');
+        }
+
+        const quantity = dto.quantity || 1;
+        totalAmount = Number(product.price) * quantity;
+        itemsToCreate.push({
+          product_id: product.id,
+          quantity: quantity,
+          price: Number(product.price),
+        });
+      } else {
+        // 2. Handle Cart-based Order
+        const cart = (await this.cartFacade.getCart(userId)) as Cart;
+        if (!cart || !cart.items || cart.items.length === 0) {
+          throw new BadRequestException('Cart is empty');
+        }
+
+        cart.items.forEach((item) => {
+          totalAmount += Number(item.product.price) * item.quantity;
+          itemsToCreate.push({
+            product_id: item.product.id,
+            quantity: item.quantity,
+            price: Number(item.product.price),
+          });
+        });
+      }
+
+      // 3. Create Order
       const order = this.orderRepo.create({
         user_id: userId,
         total_amount: totalAmount,
-        shipping_address: shippingAddress,
+        shipping_address: shipping_address,
         status: OrderStatus.PENDING,
       });
 
       const savedOrder = (await queryRunner.manager.save(order)) as Order;
 
-      // 3. Create Order Items
-      const orderItems = cart.items.map((cartItem) => {
+      // 4. Create Order Items
+      const orderItems = itemsToCreate.map((item) => {
         return this.orderItemRepo.create({
           order_id: savedOrder.id,
-          product_id: cartItem.product.id,
-          quantity: cartItem.quantity,
-          price: cartItem.product.price,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.price,
         });
       });
 
       await queryRunner.manager.save(orderItems);
 
+      // 5. Clear Cart if it was a cart-based order
+      if (!dto.product_id) {
+        await this.cartFacade.clearCart(userId);
+      }
+
       await queryRunner.commitTransaction();
 
       // Emit socket event to all admins about new order
-      this.notificationGateway.emitToAdmins('new_order', {
-        order_id: savedOrder.id,
-        user_id: userId,
-        total_amount: totalAmount,
-        created_at: savedOrder.created_at,
-      });
+      try {
+        this.notificationGateway.emitToAdmins('new_order', {
+          order_id: savedOrder.id,
+          user_id: userId,
+          total_amount: totalAmount,
+          created_at: savedOrder.created_at,
+        });
+      } catch (notifError) {
+        console.error('Failed to emit admin notification:', notifError);
+      }
 
       // Send order confirmation email to user
       try {
@@ -100,7 +141,9 @@ export class CreateOrderFromCartUseCase {
 
       return savedOrder;
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
       throw error;
     } finally {
       await queryRunner.release();

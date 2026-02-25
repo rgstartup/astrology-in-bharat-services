@@ -31,7 +31,7 @@ export class OrderController {
         @CurrentUser() user: User,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.orderFacade.createOrderFromCart(user.id, dto.shipping_address);
+        return this.orderFacade.createOrder(user.id, dto);
     }
 
     @Get('my-orders')
@@ -84,7 +84,7 @@ export class OrderSingularController {
         @CurrentUser() user: User,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.orderFacade.createOrderFromCart(user.id, dto.shipping_address);
+        return this.orderFacade.createOrder(user.id, dto);
     }
 
     @Get('my-orders')

@@ -12,7 +12,7 @@ export class VerifyPaymentDto {
     razorpay_signature?: string;
 
     @IsOptional()
-    shippingAddress?: any;
+    shipping_address?: any;
 
     @IsOptional()
     notes?: any;

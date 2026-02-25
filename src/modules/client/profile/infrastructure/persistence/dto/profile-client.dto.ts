@@ -12,15 +12,52 @@ import { PartialType } from '@nestjs/mapped-types';
 
 export class ProfileClientDto {
   @IsOptional()
+  @IsString()
+  full_name?: string;
+
+  @IsOptional()
+  @IsString()
+  username?: string;
+
+  @IsOptional()
   @IsDateString()
   date_of_birth?: string;
 
+  @IsOptional()
+  @IsString()
+  time_of_birth?: string;
+
+  @IsOptional()
+  @IsString()
+  place_of_birth?: string;
+
   @IsEnum(['male', 'female', 'other'])
-  gender: 'male' | 'female' | 'other';
+  @IsOptional()
+  gender?: 'male' | 'female' | 'other';
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  marital_status?: string;
+
+  @IsOptional()
+  @IsString()
+  occupation?: string;
+
+  @IsOptional()
+  @IsString()
+  about_me?: string;
 
   @IsOptional()
   @IsString()
   preferences?: string;
+
+  @IsOptional()
+  @IsString()
+  language_preference?: string;
 
   @IsOptional()
   @IsString()
@@ -34,7 +71,7 @@ export class ProfileClientDto {
 }
 
 // Create profile
-export class CreateProfileClientDto extends ProfileClientDto {}
+export class CreateProfileClientDto extends ProfileClientDto { }
 
 // Update profile
-export class UpdateProfileClientDto extends PartialType(ProfileClientDto) {}
+export class UpdateProfileClientDto extends PartialType(ProfileClientDto) { }

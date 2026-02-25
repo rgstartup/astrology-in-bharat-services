@@ -13,7 +13,7 @@ export class NodeMailerService {
     @Inject(NODEMAILER_TRANSPORTER)
     private transporter: nodemailer.Transporter,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async sendEmail(to: string, subject: string, html: string) {
     try {
@@ -23,7 +23,8 @@ export class NodeMailerService {
         subject,
         html,
       });
-    } catch {
+    } catch (error) {
+      console.error('NodeMailer error:', error);
       throw new InternalServerErrorException('Failed to send email');
     }
   }

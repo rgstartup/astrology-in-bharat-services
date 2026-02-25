@@ -10,5 +10,9 @@ export class CreateOrderDto {
     type?: string;
 
     @IsOptional()
+    @IsString()
+    coupon_code?: string;
+
+    @IsOptional()
     notes?: Record<string, any>;
 }

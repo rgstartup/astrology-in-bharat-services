@@ -10,13 +10,14 @@ export class CreateUserUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly rolesService: RolesService,
-  ) {}
+  ) { }
 
   async execute(dto: CreateUserDto, queryRunner?: QueryRunner): Promise<User> {
     const user = new User();
     user.email = dto.email;
     user.password = dto.password;
     user.name = dto.name;
+    user.avatar = dto.avatar;
 
     if (dto.roles?.length) {
       const roleNames = dto.roles.map((r) => r.name);

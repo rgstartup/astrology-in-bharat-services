@@ -18,10 +18,17 @@ export class OrderFacade {
     private readonly getOrderByIdUseCase: GetOrderByIdUseCase,
     private readonly updateOrderStatusUseCase: UpdateOrderStatusUseCase,
     private readonly findAllOrdersUseCase: FindAllOrdersUseCase,
-  ) {}
+  ) { }
+
+  async createOrder(userId: number, dto: any) {
+    if (dto.product_id) {
+      // Logic for single product order will be added to the use case
+    }
+    return this.createOrderFromCartUseCase.execute(userId, dto);
+  }
 
   async createOrderFromCart(userId: number, shippingAddress: any) {
-    return this.createOrderFromCartUseCase.execute(userId, shippingAddress);
+    return this.createOrderFromCartUseCase.execute(userId, { shipping_address: shippingAddress });
   }
 
   async markAsPaid(razorpayOrderId: string) {

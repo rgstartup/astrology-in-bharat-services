@@ -3,6 +3,7 @@ import { GetCartUseCase } from './use-cases/get-cart.use-case';
 import { AddToCartUseCase } from './use-cases/add-to-cart.use-case';
 import { UpdateCartItemUseCase } from './use-cases/update-cart-item.use-case';
 import { RemoveCartItemUseCase } from './use-cases/remove-cart-item.use-case';
+import { ClearCartUseCase } from './use-cases/clear-cart.use-case';
 import { AddToCartDto } from '../api/dto/create-cart.dto';
 import { UpdateCartItemDto } from '../api/dto/update-cart.dto';
 
@@ -13,7 +14,8 @@ export class CartFacade {
     private readonly addToCartUseCase: AddToCartUseCase,
     private readonly updateCartItemUseCase: UpdateCartItemUseCase,
     private readonly removeCartItemUseCase: RemoveCartItemUseCase,
-  ) {}
+    private readonly clearCartUseCase: ClearCartUseCase,
+  ) { }
 
   async getCart(userId: number) {
     return this.getCartUseCase.execute(userId);
@@ -29,5 +31,9 @@ export class CartFacade {
 
   async removeCartItem(userId: number, productId: number) {
     return this.removeCartItemUseCase.execute(userId, productId);
+  }
+
+  async clearCart(userId: number) {
+    return this.clearCartUseCase.execute(userId);
   }
 }
