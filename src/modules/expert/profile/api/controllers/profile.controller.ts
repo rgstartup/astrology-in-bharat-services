@@ -151,9 +151,6 @@ export class ProfileController {
     return this.profileFacade.getExpertById(id);
   }
 
-  @Post('upload-document')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('agent')
   @Post('upload-file')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('agent')
@@ -196,7 +193,7 @@ export class ProfileController {
       return {
         message: 'File uploaded successfully',
         path: finalUrl,
-        url: finalUrl, // Adding url as alias
+        url: finalUrl,
       };
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
