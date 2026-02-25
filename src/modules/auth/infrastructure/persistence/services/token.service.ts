@@ -3,7 +3,7 @@ import * as argon2 from 'argon2';
 import * as ms from 'ms';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
@@ -14,14 +14,14 @@ import { BaseService } from 'src/common/services/transaction.service';
 
 @Injectable()
 export class TokenService extends BaseService<Session> {
-  private jwtConfig: AuthConfig;
+  private readonly jwtConfig: AuthConfig;
 
   constructor(
-    private jwtService: JwtService,
-    private configService: ConfigService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
 
     @InjectRepository(Session)
-    private sessionRepo: Repository<Session>,
+    private readonly sessionRepo: Repository<Session>,
   ) {
     super(sessionRepo);
     const config = this.configService.get<AuthConfig>('auth');
@@ -39,7 +39,11 @@ export class TokenService extends BaseService<Session> {
     userAgent?: string,
     queryRunner?: QueryRunner,
   ) {
-    const rolesMap: Record<string, string> = { client: 'user', expert: 'agent', admin: 'admin' };
+    const rolesMap: Record<string, string> = {
+      client: 'user',
+      expert: 'agent',
+      admin: 'admin',
+    };
     const primaryRole = user.roles?.[0]?.name || 'client';
     const accessToken = await this.jwtService.signAsync(
       { userId: user.id, role: rolesMap[primaryRole] || primaryRole },
@@ -94,9 +98,12 @@ export class TokenService extends BaseService<Session> {
   }
 
   async verifyToken(token: string) {
-    return this.jwtService.verifyAsync<{ userId: number; email: string }>(token, {
-      secret: this.jwtConfig.jwtSecret,
-      clockTolerance: 10,
-    });
+    return this.jwtService.verifyAsync<{ userId: number; email: string }>(
+      token,
+      {
+        secret: this.jwtConfig.jwtSecret,
+        clockTolerance: 10,
+      },
+    );
   }
 }

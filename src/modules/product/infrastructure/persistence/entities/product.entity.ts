@@ -21,7 +21,13 @@ export class Product {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'original_price' })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    name: 'original_price',
+  })
   original_price: number;
 
   @Column({ name: 'image_url', nullable: true, default: '' })
