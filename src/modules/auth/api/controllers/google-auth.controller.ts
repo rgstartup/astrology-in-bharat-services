@@ -11,6 +11,38 @@ import { GoogleAuthGuard } from '../guards/google-auth.guard';
 export class GoogleAuthController {
   constructor(private readonly config: ConfigService) { }
 
+  private resolveFrontendUrl(req: Request, authData: any): string {
+    const fallbackUrl =
+      this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const allowedOrigins = [
+      this.config.get<string>('FRONTEND_URL'),
+      this.config.get<string>('ADMIN_FRONTEND_URL'),
+      this.config.get<string>('ASTROLOGER_FRONTEND_URL'),
+    ]
+      .filter((v): v is string => Boolean(v))
+      .map((v) => v.replace(/\/+$/, ''));
+
+    const candidate =
+      (authData?.redirect_uri as string | undefined) ||
+      (req?.query?.redirect_uri as string | undefined);
+
+    if (!candidate) {
+      return fallbackUrl;
+    }
+
+    try {
+      const parsed = new URL(candidate);
+      const candidateOrigin = parsed.origin.replace(/\/+$/, '');
+      if (allowedOrigins.includes(candidateOrigin)) {
+        return `${candidateOrigin}${parsed.pathname || ''}`;
+      }
+    } catch {
+      // Ignore invalid URL and fallback safely
+    }
+
+    return fallbackUrl;
+  }
+
   @Get('login')
   @UseGuards(GoogleAuthGuard)
   googleLogin() {
@@ -24,8 +56,7 @@ export class GoogleAuthController {
     @Res() res: Response,
   ) {
     const authData = req.user as any;
-    const frontendUrl =
-      this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const frontendUrl = this.resolveFrontendUrl(req, authData);
 
     if (authData && authData.accessToken) {
       const isProduction = process.env.NODE_ENV === 'production';
