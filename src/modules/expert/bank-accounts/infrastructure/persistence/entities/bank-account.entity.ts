@@ -14,10 +14,10 @@ export class BankAccount {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'int', name: 'expert_id' })
+    @Column({ type: 'int', name: 'expert_id', nullable: true })
     expert_id: number;
 
-    @ManyToOne('ProfileExpert', { onDelete: 'CASCADE' })
+    @ManyToOne(() => ProfileExpert, { onDelete: 'CASCADE', nullable: true })
     @JoinColumn({ name: 'expert_id' })
     expert: ProfileExpert;
 
