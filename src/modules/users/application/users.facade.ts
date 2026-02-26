@@ -25,7 +25,7 @@ export class UsersFacade {
     private readonly getUserStatsUseCase: GetUserStatsUseCase,
     private readonly getUserExpertGrowthStatsUseCase: GetUserExpertGrowthStatsUseCase,
     private readonly findUsersByRoleUseCase: FindUsersByRoleUseCase,
-  ) {}
+  ) { }
 
   create(dto: CreateUserDto, queryRunner?: QueryRunner) {
     return this.createUserUseCase.execute(dto, queryRunner);

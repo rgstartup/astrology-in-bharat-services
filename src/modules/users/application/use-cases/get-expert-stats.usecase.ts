@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from '../../infrastructure/persistence/entities/user.entity';
 
 @Injectable()
@@ -8,7 +8,7 @@ export class GetExpertStatsUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async execute() {
     const totalExperts = await this.userRepository
@@ -31,7 +31,7 @@ export class GetExpertStatsUseCase {
       totalExperts,
       recentExperts, // for trends
       trends: {
-         recent: recentExperts
+        recent: recentExperts
       }
     };
   }
