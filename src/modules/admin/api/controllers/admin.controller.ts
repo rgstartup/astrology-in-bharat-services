@@ -70,8 +70,8 @@ export class AdminController {
   @Patch('users/:id/block')
   async toggleUserBlock(
     @Param('id') id: number,
-    @Body('is_blocked') is_blocked: boolean,
+    @Body() body: { isBlocked: boolean },
   ) {
-    return this.usersFacade.update(id, { is_blocked });
+    return this.usersFacade.update(id, { is_blocked: body.isBlocked });
   }
 }

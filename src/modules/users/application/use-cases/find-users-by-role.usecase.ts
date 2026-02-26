@@ -8,7 +8,7 @@ export class FindUsersByRoleUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async execute(role: string, search?: string, page: number = 1, limit: number = 10) {
     const query = this.userRepository
