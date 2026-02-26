@@ -51,11 +51,13 @@ export class RegisterUserUseCase {
       if (roleNames.includes('expert')) {
         await this.expertProfileFacade.createProfile(user, {
           full_name: user.name || '',
-        } as any);
+          phone_number: dto.phone,
+        } as any, queryRunner);
       } else {
         await this.clientProfileFacade.createProfile(user.id, {
           full_name: user.name || '',
-        } as any);
+          phone: dto.phone,
+        } as any, queryRunner);
       }
 
       const tokens = await this.issueTokens.execute(

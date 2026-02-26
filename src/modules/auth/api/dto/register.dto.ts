@@ -20,13 +20,17 @@ export class RegisterDto {
   name?: string;
 
   @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   roles: string[] = ['client'];
 }
 
-export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) {}
+export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) { }
 
-export class ResetPasswordDto extends PickType(RegisterDto, ['password']) {}
+export class ResetPasswordDto extends PickType(RegisterDto, ['password']) { }
 
-export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) {}
+export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) { }
