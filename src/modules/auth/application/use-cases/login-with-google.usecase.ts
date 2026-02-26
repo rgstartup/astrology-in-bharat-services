@@ -57,7 +57,8 @@ export class LoginWithGoogleUseCase {
       );
 
       // Auto-create profile if it doesn't exist
-      const roles = user.roles?.map((r) => r.name) || [];
+      const roles = user.roles?.map((r) => r.name.toLowerCase()) || [];
+      this.logger.log(`Final user roles for profile check: ${roles.join(', ')}`);
       if (roles.includes('expert')) {
         const profile = await this.expertProfileFacade.getExpertByUserId(user.id, qr);
         if (!profile) {

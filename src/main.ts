@@ -9,6 +9,7 @@ import { UnknownExceptionFilter } from './common/filters/unknown-exception.filte
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  (app.getHttpAdapter().getInstance() as any).set('trust proxy', true);
 
   app.enableCors({
     origin: [

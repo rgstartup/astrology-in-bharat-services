@@ -20,7 +20,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
   async findByProvider(provider: string, providerId: string) {
     return this.oauthRepo.findOne({
       where: { provider, provider_id: providerId },
-      relations: ['user'],
+      relations: ['user', 'user.roles'],
     });
   }
 
