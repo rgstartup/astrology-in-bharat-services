@@ -17,15 +17,23 @@ export class AcceptCallUseCase {
     async execute(expertId: number, sessionId: number) {
         const session = await this.sessionRepo.findOne({
             where: { id: sessionId },
-            relations: ['user', 'expert'],
+            relations: ['user', 'expert', 'expert.user'],
         });
 
         if (!session) {
             throw new NotFoundException('Call session not found');
         }
 
-        if (session.expert_id !== expertId) {
+        if (session.expert.user.id !== expertId) {
             throw new BadRequestException('You are not the expert assigned to this call');
+        }
+
+        if (session.status === CallSessionStatus.ACTIVE) {
+            // If already active and it's the same expert, just return the session/token
+            const identity = `expert_${expertId}_${sessionId}`;
+            const roomName = `call_room_${sessionId}`;
+            const token = this.twilioService.generateToken(identity, session.type, roomName);
+            return { session, token, roomName };
         }
 
         if (session.status !== CallSessionStatus.PENDING) {

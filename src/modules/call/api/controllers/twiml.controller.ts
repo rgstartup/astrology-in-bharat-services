@@ -1,4 +1,4 @@
-import { Controller, Post, Res } from '@nestjs/common';
+import { Controller, Post, Res, Req } from '@nestjs/common';
 import { Response } from 'express';
 import * as twilio from 'twilio';
 
@@ -10,16 +10,19 @@ export class TwimlController {
      * Set this URL as the "Voice Request URL" in your TwiML App on console.twilio.com
      */
     @Post('twiml')
-    twiml(@Res() res: Response) {
+    twiml(@Req() req: any, @Res() res: Response) {
+        // Twilio sends params in Body for POST requests
+        const sessionId = req.body.sessionId || 'DefaultSession';
+
         const VoiceResponse = twilio.twiml.VoiceResponse;
         const response = new VoiceResponse();
 
-        // Dial into a conference room – used for peer-to-peer audio
+        // Dial into a unique conference room for this session
         const dial = response.dial();
         dial.conference({
             startConferenceOnEnter: true,
             endConferenceOnExit: true,
-        }, 'AstroCallConference');
+        }, `call_room_${sessionId}`);
 
         res.type('text/xml');
         res.send(response.toString());
