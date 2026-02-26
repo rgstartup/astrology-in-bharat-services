@@ -22,7 +22,15 @@ export class IssueAuthTokensUseCase {
       expert: 'expert',
       admin: 'admin',
     };
-    const primaryRole = user.roles?.[0]?.name || 'client';
+    
+    // Prioritize admin > expert > client
+    const roleNames = user.roles?.map((r) => r.name) || ['client'];
+    let primaryRole = 'client';
+    if (roleNames.includes('admin')) {
+      primaryRole = 'admin';
+    } else if (roleNames.includes('expert')) {
+      primaryRole = 'expert';
+    }
 
     const accessToken = await this.tokenCrypto.createAccessToken({
       userId: user.id,
