@@ -1,4 +1,4 @@
-import { Controller, Post, Res, Req } from '@nestjs/common';
+import { Controller, Post, Get, Res, Req } from '@nestjs/common';
 import { Response } from 'express';
 import * as twilio from 'twilio';
 
@@ -10,9 +10,15 @@ export class TwimlController {
      * Set this URL as the "Voice Request URL" in your TwiML App on console.twilio.com
      */
     @Post('twiml')
+    @Get('twiml') // Allow GET for easy browser testing
     twiml(@Req() req: any, @Res() res: Response) {
-        // Twilio sends params in Body for POST requests
-        const sessionId = req.body.sessionId || 'DefaultSession';
+        // Twilio sends params in Body for POST, or Query for GET
+        const sessionId = req.body?.sessionId || req.query?.sessionId || 'DefaultSession';
+
+        console.log(`[Twilio] TwiML request received.`);
+        console.log(`[Twilio] Query:`, JSON.stringify(req.query));
+        console.log(`[Twilio] Body:`, JSON.stringify(req.body));
+        console.log(`[Twilio] Using SessionId: ${sessionId}`);
 
         const VoiceResponse = twilio.twiml.VoiceResponse;
         const response = new VoiceResponse();
@@ -22,6 +28,7 @@ export class TwimlController {
         dial.conference({
             startConferenceOnEnter: true,
             endConferenceOnExit: true,
+            waitUrl: '', // Removes the "Thank you for using Twilio" hold music
         }, `call_room_${sessionId}`);
 
         res.type('text/xml');

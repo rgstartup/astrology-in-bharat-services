@@ -63,6 +63,7 @@ export class InitiateCallUseCase {
         });
 
         const savedSession = await this.sessionRepo.save(session);
+        console.log(`[InitiateCallUseCase] Session saved: id=${savedSession.id}`);
 
         // Reserve balance
         await this.walletFacade.reserveBalance(
@@ -70,6 +71,7 @@ export class InitiateCallUseCase {
             minBalanceRequired,
             `call_${savedSession.id}`,
         );
+        console.log(`[InitiateCallUseCase] Balance reserved for sessionId=${savedSession.id}`);
 
         // Generate Twilio Token for the user
         const identity = `user_${userId}_${savedSession.id}`;
@@ -78,8 +80,9 @@ export class InitiateCallUseCase {
         let token: string;
         try {
             token = this.twilioService.generateToken(identity, type, roomName);
+            console.log(`[InitiateCallUseCase] Twilio Token generated for identity=${identity}`);
         } catch (error) {
-            console.error('Twilio Token Generation failed:', error);
+            console.error('[InitiateCallUseCase] Twilio Token Generation failed:', error);
             // Optionally cleanup the reserved balance and session if it's critical
             throw new InternalServerErrorException('Failed to generate call token');
         }
@@ -98,6 +101,7 @@ export class InitiateCallUseCase {
 
         // Notify expert via socket
         this.callGateway.notifyExpertNewCall(expertId, result);
+        console.log(`[InitiateCallUseCase] Expert notified of new call sessionId=${savedSession.id}`);
 
         return result;
     }

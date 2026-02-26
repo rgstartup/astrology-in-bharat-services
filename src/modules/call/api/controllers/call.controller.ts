@@ -19,6 +19,7 @@ export class CallController {
         @Req() req: any,
         @Body() body: { expertId: number; type?: CallType }
     ) {
+        console.log(`[CallController] Initiate call: userId=${req.user.id}, expertId=${body.expertId}, type=${body.type || CallType.AUDIO}`);
         return this.initiateCallUseCase.execute(
             req.user.id,
             body.expertId,
@@ -31,6 +32,7 @@ export class CallController {
         @Req() req: any,
         @Body() body: { sessionId: number }
     ) {
+        console.log(`[CallController] Accept call: userId=${req.user.id}, sessionId=${body.sessionId}`);
         return this.acceptCallUseCase.execute(
             req.user.id,
             body.sessionId
@@ -41,6 +43,7 @@ export class CallController {
     async end(
         @Body() body: { sessionId: number }
     ) {
+        console.log(`[CallController] End call: sessionId=${body.sessionId}`);
         return this.endCallUseCase.execute(body.sessionId);
     }
 }

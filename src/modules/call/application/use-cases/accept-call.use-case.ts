@@ -44,11 +44,13 @@ export class AcceptCallUseCase {
         session.status = CallSessionStatus.ACTIVE;
         session.start_time = new Date();
         const savedSession = await this.sessionRepo.save(session);
+        console.log(`[AcceptCallUseCase] Session activated: id=${savedSession.id}`);
 
         // Generate token for expert
         const identity = `expert_${expertId}_${sessionId}`;
         const roomName = `call_room_${sessionId}`;
         const token = this.twilioService.generateToken(identity, session.type, roomName);
+        console.log(`[AcceptCallUseCase] Twilio Token generated for expert identity=${identity}`);
 
         const result = {
             session: savedSession,
@@ -59,6 +61,7 @@ export class AcceptCallUseCase {
         // Notify user via socket that expert has accepted
         // Note: Users should be in 'call_room_{sessionId}'
         this.callGateway.server.to(`call_room_${sessionId}`).emit('call_accepted', result);
+        console.log(`[AcceptCallUseCase] Client notified of call acceptance sessionId=${sessionId}`);
 
         return result;
     }
