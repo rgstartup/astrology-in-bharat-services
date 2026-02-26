@@ -12,20 +12,28 @@ async function bootstrap() {
   (app.getHttpAdapter().getInstance() as any).set('trust proxy', true);
 
   app.enableCors({
-    origin: [
-      process.env.FRONTEND_URL ?? 'http://localhost:3000',
-      process.env.ADMIN_FRONTEND_URL ?? 'http://localhost:3001',
-      process.env.ASTROLOGER_FRONTEND_URL ?? 'http://localhost:3003',
-      process.env.AGENT_FRONTEND_URL ?? 'http://localhost:8000',
-    ],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        process.env.FRONTEND_URL,
+        process.env.ADMIN_FRONTEND_URL,
+        process.env.ASTROLOGER_FRONTEND_URL,
+        process.env.AGENT_FRONTEND_URL,
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3003',
+        'http://localhost:8000',
+        'https://astrology-in-bharat-app-frontend-ad.vercel.app', // Added the reported origin
+      ].filter(Boolean);
 
+      // Allow if origin is in the list or is a Vercel preview/deployment
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-
-    // Authorization header is needed for Bearer token auth,
-    // Cookie header is needed for cookie-based auth
     allowedHeaders: 'Content-Type, Accept, Authorization, Cookie',
-
-    // Required for cookies to be sent cross-origin
     credentials: true,
   });
 
