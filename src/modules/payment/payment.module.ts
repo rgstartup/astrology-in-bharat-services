@@ -12,19 +12,19 @@ import { WalletModule } from '@/modules/wallet/wallet.module';
 import { OrderModule } from '@/modules/order/order.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([PaymentOrder]),
-        RazorpayModule,
-        WalletModule,
-        OrderModule,
-    ],
-    controllers: [PaymentController, WebhookController],
-    providers: [
-        PaymentFacade,
-        CreatePaymentOrderUseCase,
-        VerifyPaymentUseCase,
-        HandleWebhookUseCase,
-    ],
-    exports: [PaymentFacade],
+  imports: [
+    TypeOrmModule.forFeature([PaymentOrder]),
+    RazorpayModule,
+    WalletModule,
+    OrderModule,
+  ],
+  controllers: [PaymentController, WebhookController],
+  providers: [
+    PaymentFacade,
+    CreatePaymentOrderUseCase,
+    VerifyPaymentUseCase,
+    HandleWebhookUseCase,
+  ],
+  exports: [PaymentFacade],
 })
 export class PaymentModule {}
