@@ -8,6 +8,7 @@ import { UsersModule } from '@/modules/users/users.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ChatModule } from '@/modules/chat/chat.module';
 import { ProfileModule } from '@/modules/expert/profile/profile.module';
+import { CouponModule } from '@/modules/coupon/coupon.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ProfileModule } from '@/modules/expert/profile/profile.module';
     WalletModule,
     ChatModule,
     ProfileModule,
+    CouponModule,
   ],
   controllers: [AdminController],
   providers: [
@@ -24,4 +26,4 @@ import { ProfileModule } from '@/modules/expert/profile/profile.module';
     GetExpertDetailUseCase,
   ],
 })
-export class AdminModule {}
+export class AdminModule { }

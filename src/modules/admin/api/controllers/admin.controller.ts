@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Query, Param, Patch, Body, Post, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query, Param, Patch, Body, Post, ParseIntPipe, Delete } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
@@ -6,6 +6,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
+import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
@@ -21,6 +22,7 @@ export class AdminController {
     private readonly usersFacade: UsersFacade,
     private readonly profileFacade: ExpertProfileFacade,
     private readonly chatFacade: ChatFacade,
+    private readonly couponFacade: CouponFacade,
   ) { }
 
   @Get('analytics/user-growth')
@@ -99,5 +101,31 @@ export class AdminController {
     @Body() body: { userMessage?: string; expertMessage?: string },
   ) {
     return this.adminFacade.terminateSession(id, admin.id, body.userMessage, body.expertMessage);
+  }
+
+  // Coupon Management
+  @Get('coupons')
+  async getCoupons(@Query() query: any) {
+    return this.couponFacade.getCoupons(query);
+  }
+
+  @Get('coupons/stats')
+  async getCouponStats() {
+    return this.couponFacade.getCouponStats();
+  }
+
+  @Post('coupons')
+  async createCoupon(@Body() data: any) {
+    return this.couponFacade.createCoupon(data);
+  }
+
+  @Patch('coupons/:id')
+  async updateCoupon(@Param('id') id: string, @Body() data: any) {
+    return this.couponFacade.updateCoupon(parseInt(id, 10), data);
+  }
+
+  @Delete('coupons/:id')
+  async deleteCoupon(@Param('id') id: string) {
+    return this.couponFacade.deleteCoupon(parseInt(id, 10));
   }
 }
