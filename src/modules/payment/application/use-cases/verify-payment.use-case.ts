@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { RazorpayService } from '@/external/razorpay/razorpay.service';
@@ -6,6 +6,9 @@ import { PaymentOrder, PaymentStatus } from '../../infrastructure/persistence/en
 import { VerifyPaymentDto } from '../../api/dto/verify-payment.dto';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { OrderFacade } from '@/modules/order/application/order.facade';
+import { PaymentPolicy } from '../../domain/policies/payment.policy';
+import { DomainError } from '@/common/types/domain.error';
+import { PaymentVerificationFailedError } from '../../domain/errors/payment.errors';
 
 @Injectable()
 export class VerifyPaymentUseCase {
@@ -26,18 +29,14 @@ export class VerifyPaymentUseCase {
         // Signature is optional if from webhook, but for direct verification we check it
         if (razorpay_signature) {
             const isValid = this.razorpayService.verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
-            if (!isValid) {
-                throw new BadRequestException('Invalid payment signature');
-            }
+            PaymentPolicy.ensurePaymentSignatureValid(isValid);
         }
 
         const order = await this.paymentOrderRepo.findOne({
             where: { razorpay_order_id: razorpay_order_id },
         });
 
-        if (!order) {
-            throw new BadRequestException('Order not found');
-        }
+        PaymentPolicy.ensureOrderExists(order);
 
         if (order.status === PaymentStatus.SUCCESS) {
             return { success: true, message: 'Payment already verified' };
@@ -70,7 +69,10 @@ export class VerifyPaymentUseCase {
         } catch (error) {
             await queryRunner.rollbackTransaction();
             this.logger.error('Error verifying payment', error.stack);
-            throw new BadRequestException('Failed to process payment verification');
+            if (error instanceof DomainError) {
+                throw error;
+            }
+            throw new PaymentVerificationFailedError();
         } finally {
             await queryRunner.release();
         }

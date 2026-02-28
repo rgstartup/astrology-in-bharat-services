@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RazorpayService } from '@/external/razorpay/razorpay.service';
@@ -7,6 +7,7 @@ import {
   PaymentStatus,
 } from '../../infrastructure/persistence/entities/payment-order.entity';
 import { VerifyPaymentUseCase } from './verify-payment.use-case';
+import { PaymentPolicy } from '../../domain/policies/payment.policy';
 
 @Injectable()
 export class HandleWebhookUseCase {
@@ -26,9 +27,7 @@ export class HandleWebhookUseCase {
       signature,
     );
 
-    if (!isValid) {
-      throw new BadRequestException('Invalid webhook signature');
-    }
+    PaymentPolicy.ensureWebhookSignatureValid(isValid);
 
     const event = payload.event;
     if (event === 'payment.captured') {

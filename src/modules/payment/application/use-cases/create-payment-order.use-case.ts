@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RazorpayService } from '@/external/razorpay/razorpay.service';
@@ -9,6 +9,8 @@ import {
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { OrderFacade } from '@/modules/order/application/order.facade';
 import { ConfigService } from '@nestjs/config';
+import { DomainError } from '@/common/types/domain.error';
+import { PaymentOrderCreationFailedError } from '../../domain/errors/payment.errors';
 
 @Injectable()
 export class CreatePaymentOrderUseCase {
@@ -70,9 +72,10 @@ export class CreatePaymentOrderUseCase {
       };
     } catch (error) {
       this.logger.error('Error creating payment order', error.stack);
-      throw new BadRequestException(
-        `Payment order creation failed: ${error.message}`,
-      );
+      if (error instanceof DomainError) {
+        throw error;
+      }
+      throw new PaymentOrderCreationFailedError();
     }
   }
 }
