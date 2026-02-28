@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CallSession, CallSessionStatus, CallType } from '../../infrastructure/persistence/entities/call-session.entity';
@@ -6,9 +6,14 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persisten
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TwilioService } from '../../infrastructure/services/twilio.service';
 import { CallGateway } from '../../call.gateway';
+import { CallPolicy } from '../../domain/policies/call.policy';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CallInitiatedEvent } from '../../domain/events/call.events';
 
 @Injectable()
 export class InitiateCallUseCase {
+    private readonly logger = new Logger(InitiateCallUseCase.name);
+
     constructor(
         @InjectRepository(CallSession)
         private sessionRepo: Repository<CallSession>,
@@ -17,6 +22,7 @@ export class InitiateCallUseCase {
         private walletFacade: WalletFacade,
         private twilioService: TwilioService,
         private callGateway: CallGateway,
+        private eventEmitter: EventEmitter2,
     ) { }
 
     async execute(userId: number, expertId: number, type: CallType = CallType.AUDIO) {
@@ -24,15 +30,8 @@ export class InitiateCallUseCase {
             where: { id: expertId },
         });
 
-        if (!expert) {
-            throw new NotFoundException('Expert not found');
-        }
-
-        if (!expert.is_available) {
-            throw new BadRequestException(
-                'Expert is currently offline and not accepting call requests at the moment.',
-            );
-        }
+        CallPolicy.ensureExpertExists(expert);
+        CallPolicy.ensureExpertAvailable(expert.is_available);
 
         const callPrice = type === CallType.VIDEO
             ? (expert.video_call_price || (expert.price ? expert.price * 2 : 0) || 0)
@@ -47,11 +46,7 @@ export class InitiateCallUseCase {
             minBalanceRequired,
         );
 
-        if (!hasBalance) {
-            throw new BadRequestException(
-                `Insufficient balance. Minimum ${minMins} minutes (₹${minBalanceRequired}) balance is required to start ${type} call.`,
-            );
-        }
+        CallPolicy.ensureSufficientBalance(hasBalance, minMins, minBalanceRequired, type);
 
         const session = this.sessionRepo.create({
             user_id: userId,
@@ -63,7 +58,7 @@ export class InitiateCallUseCase {
         });
 
         const savedSession = await this.sessionRepo.save(session);
-        console.log(`[InitiateCallUseCase] Session saved: id=${savedSession.id}`);
+        this.logger.log(`Session saved: id=${savedSession.id}`);
 
         // Reserve balance
         await this.walletFacade.reserveBalance(
@@ -71,7 +66,7 @@ export class InitiateCallUseCase {
             minBalanceRequired,
             `call_${savedSession.id}`,
         );
-        console.log(`[InitiateCallUseCase] Balance reserved for sessionId=${savedSession.id}`);
+        this.logger.log(`Balance reserved for sessionId=${savedSession.id}`);
 
         // Generate Twilio Token for the user
         const identity = `user_${userId}_${savedSession.id}`;
@@ -80,10 +75,9 @@ export class InitiateCallUseCase {
         let token: string;
         try {
             token = this.twilioService.generateToken(identity, type, roomName);
-            console.log(`[InitiateCallUseCase] Twilio Token generated for identity=${identity}`);
+            this.logger.log(`Twilio token generated for identity=${identity}`);
         } catch (error) {
-            console.error('[InitiateCallUseCase] Twilio Token Generation failed:', error);
-            // Optionally cleanup the reserved balance and session if it's critical
+            this.logger.error('Twilio token generation failed', error);
             throw new InternalServerErrorException('Failed to generate call token');
         }
 
@@ -99,9 +93,12 @@ export class InitiateCallUseCase {
             roomName,
         };
 
-        // Notify expert via socket
         this.callGateway.notifyExpertNewCall(expertId, result);
-        console.log(`[InitiateCallUseCase] Expert notified of new call sessionId=${savedSession.id}`);
+        this.logger.log(`Expert notified of new call sessionId=${savedSession.id}`);
+        this.eventEmitter.emit(
+            'call.initiated',
+            new CallInitiatedEvent(savedSession.id, userId, expertId, type),
+        );
 
         return result;
     }

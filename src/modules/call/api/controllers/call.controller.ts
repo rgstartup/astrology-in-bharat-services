@@ -1,17 +1,13 @@
 import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { InitiateCallUseCase } from '../../application/use-cases/initiate-call.use-case';
-import { AcceptCallUseCase } from '../../application/use-cases/accept-call.use-case';
-import { EndCallUseCase } from '../../application/use-cases/end-call.use-case';
 import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
+import { CallFacade } from '../../application/call.facade';
 
 @Controller('call')
 @UseGuards(JwtAuthGuard)
 export class CallController {
     constructor(
-        private readonly initiateCallUseCase: InitiateCallUseCase,
-        private readonly acceptCallUseCase: AcceptCallUseCase,
-        private readonly endCallUseCase: EndCallUseCase,
+        private readonly callFacade: CallFacade,
     ) { }
 
     @Post('initiate')
@@ -20,7 +16,7 @@ export class CallController {
         @Body() body: { expertId: number; type?: CallType }
     ) {
         console.log(`[CallController] Initiate call: userId=${req.user.id}, expertId=${body.expertId}, type=${body.type || CallType.AUDIO}`);
-        return this.initiateCallUseCase.execute(
+        return this.callFacade.initiate(
             req.user.id,
             body.expertId,
             body.type || CallType.AUDIO
@@ -33,7 +29,7 @@ export class CallController {
         @Body() body: { sessionId: number }
     ) {
         console.log(`[CallController] Accept call: userId=${req.user.id}, sessionId=${body.sessionId}`);
-        return this.acceptCallUseCase.execute(
+        return this.callFacade.accept(
             req.user.id,
             body.sessionId
         );
@@ -44,6 +40,6 @@ export class CallController {
         @Body() body: { sessionId: number }
     ) {
         console.log(`[CallController] End call: sessionId=${body.sessionId}`);
-        return this.endCallUseCase.execute(body.sessionId);
+        return this.callFacade.end(body.sessionId);
     }
 }

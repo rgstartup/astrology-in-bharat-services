@@ -1,68 +1,83 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSession, CallSessionStatus } from '../../infrastructure/persistence/entities/call-session.entity';
+import {
+  CallSession,
+  CallSessionStatus,
+} from '../../infrastructure/persistence/entities/call-session.entity';
 import { TwilioService } from '../../infrastructure/services/twilio.service';
 import { CallGateway } from '../../call.gateway';
+import { CallPolicy } from '../../domain/policies/call.policy';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CallAcceptedEvent } from '../../domain/events/call.events';
 
 @Injectable()
 export class AcceptCallUseCase {
-    constructor(
-        @InjectRepository(CallSession)
-        private sessionRepo: Repository<CallSession>,
-        private twilioService: TwilioService,
-        private callGateway: CallGateway,
-    ) { }
+  private readonly logger = new Logger(AcceptCallUseCase.name);
 
-    async execute(expertId: number, sessionId: number) {
-        const session = await this.sessionRepo.findOne({
-            where: { id: sessionId },
-            relations: ['user', 'expert', 'expert.user'],
-        });
+  constructor(
+    @InjectRepository(CallSession)
+    private readonly sessionRepo: Repository<CallSession>,
+    private readonly twilioService: TwilioService,
+    private readonly callGateway: CallGateway,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
-        if (!session) {
-            throw new NotFoundException('Call session not found');
-        }
+  async execute(expertId: number, sessionId: number) {
+    const session = await this.sessionRepo.findOne({
+      where: { id: sessionId },
+      relations: ['user', 'expert', 'expert.user'],
+    });
 
-        if (session.expert.user.id !== expertId) {
-            throw new BadRequestException('You are not the expert assigned to this call');
-        }
+    CallPolicy.ensureSessionExists(session);
+    CallPolicy.ensureExpertAssignedToSession(session.expert.user.id, expertId);
 
-        if (session.status === CallSessionStatus.ACTIVE) {
-            // If already active and it's the same expert, just return the session/token
-            const identity = `expert_${expertId}_${sessionId}`;
-            const roomName = `call_room_${sessionId}`;
-            const token = this.twilioService.generateToken(identity, session.type, roomName);
-            return { session, token, roomName };
-        }
-
-        if (session.status !== CallSessionStatus.PENDING) {
-            throw new BadRequestException(`Call is already ${session.status}`);
-        }
-
-        // Update session status
-        session.status = CallSessionStatus.ACTIVE;
-        session.start_time = new Date();
-        const savedSession = await this.sessionRepo.save(session);
-        console.log(`[AcceptCallUseCase] Session activated: id=${savedSession.id}`);
-
-        // Generate token for expert
-        const identity = `expert_${expertId}_${sessionId}`;
-        const roomName = `call_room_${sessionId}`;
-        const token = this.twilioService.generateToken(identity, session.type, roomName);
-        console.log(`[AcceptCallUseCase] Twilio Token generated for expert identity=${identity}`);
-
-        const result = {
-            session: savedSession,
-            token,
-            roomName,
-        };
-
-        // Notify user via socket that expert has accepted
-        // Note: Users should be in 'call_room_{sessionId}'
-        this.callGateway.server.to(`call_room_${sessionId}`).emit('call_accepted', result);
-        console.log(`[AcceptCallUseCase] Client notified of call acceptance sessionId=${sessionId}`);
-
-        return result;
+    if (session.status === CallSessionStatus.ACTIVE) {
+      // If already active and it's the same expert, just return the session/token
+      const identity = `expert_${expertId}_${sessionId}`;
+      const roomName = `call_room_${sessionId}`;
+      const token = this.twilioService.generateToken(
+        identity,
+        session.type,
+        roomName,
+      );
+      return { session, token, roomName };
     }
+
+    CallPolicy.ensureSessionCanBeAccepted(session.status);
+
+    session.status = CallSessionStatus.ACTIVE;
+    session.start_time = new Date();
+    const savedSession = await this.sessionRepo.save(session);
+    this.logger.log(`Session activated: id=${savedSession.id}`);
+
+    // Generate token for expert
+    const identity = `expert_${expertId}_${sessionId}`;
+    const roomName = `call_room_${sessionId}`;
+    const token = this.twilioService.generateToken(
+      identity,
+      session.type,
+      roomName,
+    );
+    this.logger.log(`Twilio token generated for expert identity=${identity}`);
+
+    const result = {
+      session: savedSession,
+      token,
+      roomName,
+    };
+
+    this.callGateway.server
+      .to(`call_room_${sessionId}`)
+      .emit('call_accepted', result);
+    this.logger.log(
+      `Client notified of call acceptance sessionId=${sessionId}`,
+    );
+    this.eventEmitter.emit(
+      'call.accepted',
+      new CallAcceptedEvent(savedSession.id, expertId, savedSession.type),
+    );
+
+    return result;
+  }
 }

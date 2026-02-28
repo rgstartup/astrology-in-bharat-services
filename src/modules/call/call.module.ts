@@ -10,6 +10,7 @@ import { EndCallUseCase } from './application/use-cases/end-call.use-case';
 import { CallController } from './api/controllers/call.controller';
 import { TwimlController } from './api/controllers/twiml.controller';
 import { CallGateway } from './call.gateway';
+import { CallFacade } from './application/call.facade';
 
 @Module({
     imports: [
@@ -18,12 +19,13 @@ import { CallGateway } from './call.gateway';
     ],
     controllers: [CallController, TwimlController],
     providers: [
+        CallFacade,
         TwilioService,
         InitiateCallUseCase,
         AcceptCallUseCase,
         EndCallUseCase,
         CallGateway,
     ],
-    exports: [TwilioService, InitiateCallUseCase, AcceptCallUseCase, EndCallUseCase, CallGateway],
+    exports: [CallFacade, TwilioService, CallGateway],
 })
 export class CallModule { }
