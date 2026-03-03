@@ -17,6 +17,7 @@ import {
   CreateProfileClientDto,
   UpdateProfileClientDto,
 } from '../../infrastructure/persistence/dto/profile-client.dto';
+import { SendPhoneOtpDto, VerifyPhoneOtpDto } from '../../infrastructure/persistence/dto/profile-phone-otp.dto';
 
 @Controller('client/profile')
 @UseGuards(JwtAuthGuard)
@@ -60,5 +61,21 @@ export class ProfileController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.profileFacade.uploadDocument(user.id, file);
+  }
+
+  @Post('phone/send-otp')
+  async sendPhoneOtp(
+    @CurrentUser() user: User,
+    @Body() dto: SendPhoneOtpDto,
+  ) {
+    return this.profileFacade.sendPhoneOtp(user.id, dto.phone);
+  }
+
+  @Post('phone/verify-otp')
+  async verifyPhoneOtp(
+    @CurrentUser() user: User,
+    @Body() dto: VerifyPhoneOtpDto,
+  ) {
+    return this.profileFacade.verifyPhoneOtp(user.id, dto.phone, dto.code);
   }
 }

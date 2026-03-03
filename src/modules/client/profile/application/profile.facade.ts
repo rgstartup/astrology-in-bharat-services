@@ -5,6 +5,8 @@ import { CreateProfileUseCase } from './use-cases/create-profile.usecase';
 import { UpdateProfileUseCase } from './use-cases/update-profile.usecase';
 import { UpdateProfilePictureUseCase } from './use-cases/update-profile-picture.usecase';
 import { UploadDocumentUseCase } from './use-cases/upload-document.usecase';
+import { SendPhoneOtpUseCase } from './use-cases/send-phone-otp.usecase';
+import { VerifyPhoneOtpUseCase } from './use-cases/verify-phone-otp.usecase';
 import { CreateProfileClientDto, UpdateProfileClientDto } from '../infrastructure/persistence/dto/profile-client.dto';
 
 @Injectable()
@@ -15,6 +17,8 @@ export class ClientProfileFacade {
     private readonly updateProfileUseCase: UpdateProfileUseCase,
     private readonly updateProfilePictureUseCase: UpdateProfilePictureUseCase,
     private readonly uploadDocumentUseCase: UploadDocumentUseCase,
+    private readonly sendPhoneOtpUseCase: SendPhoneOtpUseCase,
+    private readonly verifyPhoneOtpUseCase: VerifyPhoneOtpUseCase,
   ) { }
 
   async getProfile(userId: number, queryRunner?: QueryRunner) {
@@ -35,5 +39,13 @@ export class ClientProfileFacade {
 
   async uploadDocument(userId: number, file: Express.Multer.File) {
     return this.uploadDocumentUseCase.execute(userId, file);
+  }
+
+  async sendPhoneOtp(userId: number, phone: string) {
+    return this.sendPhoneOtpUseCase.execute(userId, phone);
+  }
+
+  async verifyPhoneOtp(userId: number, phone: string, code: string) {
+    return this.verifyPhoneOtpUseCase.execute(userId, phone, code);
   }
 }

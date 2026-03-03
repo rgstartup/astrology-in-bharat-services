@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../../presentation/dto/user.dto';
 import { User } from '../../infrastructure/persistence/entities/user.entity';
-import { RolesService } from '@/modules/role/roles.service'; // We might need to decouple this later, but for now duplicate logic
+import { RolesService } from '@/modules/role/roles.service';
 import { QueryRunner } from 'typeorm';
 import { UserRepository } from '../../infrastructure/persistence/repositories/user.repository';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -21,13 +22,14 @@ export class CreateUserUseCase {
 
     if (dto.roles?.length) {
       const roleNames = dto.roles.map((r) => r.name);
-      // rolesService might also need queryRunner if it does DB ops? 
-      // But rolesService is injected. Ideally we should pass it there too if supported. 
-      // usersService.create called this.rolesService.findByNames(roleNames). 
-      // RolesService usually is finding read-only data for assignment.
       const roles = await this.rolesService.findByNames(roleNames, queryRunner);
       user.roles = roles;
     }
+
+    // Generate branded unique ID
+    const suffix = crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
+    const isExpert = dto.roles?.some((r) => r.name?.toLowerCase() === 'expert');
+    user.uid = isExpert ? `AIB-EXP-${suffix}` : `AIB-USR-${suffix}`;
 
     return this.userRepository.create(user, queryRunner);
   }

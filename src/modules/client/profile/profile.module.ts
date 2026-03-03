@@ -8,6 +8,8 @@ import { CreateProfileUseCase } from './application/use-cases/create-profile.use
 import { UpdateProfileUseCase } from './application/use-cases/update-profile.usecase';
 import { UpdateProfilePictureUseCase } from './application/use-cases/update-profile-picture.usecase';
 import { UploadDocumentUseCase } from './application/use-cases/upload-document.usecase';
+import { SendPhoneOtpUseCase } from './application/use-cases/send-phone-otp.usecase';
+import { VerifyPhoneOtpUseCase } from './application/use-cases/verify-phone-otp.usecase';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
 
 @Module({
@@ -23,6 +25,8 @@ import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
     UpdateProfileUseCase,
     UpdateProfilePictureUseCase,
     UploadDocumentUseCase,
+    SendPhoneOtpUseCase,
+    VerifyPhoneOtpUseCase,
   ],
   exports: [ClientProfileFacade],
 })

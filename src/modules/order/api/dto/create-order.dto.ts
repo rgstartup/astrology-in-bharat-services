@@ -16,4 +16,8 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   coupon_code?: string;
+
+  @IsOptional()
+  @IsString()
+  payment_method?: string;
 }

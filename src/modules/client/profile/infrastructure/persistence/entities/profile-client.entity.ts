@@ -40,6 +40,12 @@ export class ProfileClient {
   @Column({ nullable: true })
   phone?: string;
 
+  @Column({
+    type: 'timestamptz',
+    nullable: true,
+  })
+  phone_verified_at?: Date | null;
+
   @Column({ nullable: true })
   preferences?: string;
 

@@ -10,6 +10,8 @@ import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {
@@ -23,6 +25,7 @@ export class CreateOrderFromCartUseCase {
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
     private cartFacade: CartFacade,
+    private walletFacade: WalletFacade,
     private dataSource: DataSource,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
@@ -74,12 +77,28 @@ export class CreateOrderFromCartUseCase {
         });
       }
 
+      // 2.5 Handle Wallet Payment
+      if (dto.payment_method === 'wallet') {
+        const hasBalance = await this.walletFacade.validateBalance(userId, totalAmount);
+        if (!hasBalance) {
+          throw new BadRequestException('Insufficient wallet balance');
+        }
+        // Debit wallet
+        await this.walletFacade.debit(
+          userId,
+          totalAmount,
+          TransactionPurpose.PRODUCT_PURCHASE,
+          `order_pending_${Date.now()}`, // Temporary reference, will update after order save if needed
+        );
+      }
+
       // 3. Create Order
       const order = this.orderRepo.create({
         user_id: userId,
         total_amount: totalAmount,
         shipping_address: shipping_address,
-        status: OrderStatus.PENDING,
+        status: dto.payment_method === 'wallet' ? OrderStatus.PAID : OrderStatus.PENDING,
+        payment_method: dto.payment_method || 'razorpay',
       });
 
       const savedOrder = (await queryRunner.manager.save(order)) as Order;

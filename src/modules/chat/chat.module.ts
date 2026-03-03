@@ -4,6 +4,7 @@ import { ChatSession } from './infrastructure/persistence/entities/chat-session.
 import { ChatMessage } from './infrastructure/persistence/entities/chat-message.entity';
 import { ChatGateway } from './chat.gateway';
 import { ChatController } from './api/controllers/chat.controller';
+import { ConsultationController } from './api/controllers/consultation.controller';
 import { ChatFacade } from './application/chat.facade';
 import { InitiateChatUseCase } from './application/use-cases/initiate-chat.use-case';
 import { ActivateSessionUseCase } from './application/use-cases/activate-session.use-case';
@@ -47,7 +48,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persisten
     FindAllSessionsUseCase,
     AdminTerminateSessionUseCase,
   ],
-  controllers: [ChatController],
+  controllers: [ChatController, ConsultationController],
   exports: [ChatFacade, FindAllSessionsUseCase, AdminTerminateSessionUseCase],
 })
 export class ChatModule { }

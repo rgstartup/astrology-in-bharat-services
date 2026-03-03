@@ -17,6 +17,7 @@ import { UsersModule } from '@/modules/users/users.module';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 import { ProductModule } from '@/modules/product/product.module';
+import { WalletModule } from '@/modules/wallet/wallet.module';
 
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 
@@ -28,6 +29,7 @@ import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
     NotificationModule,
     UsersModule,
     NodemailerModule,
+    WalletModule,
   ],
   controllers: [OrderController, OrderSingularController],
   providers: [

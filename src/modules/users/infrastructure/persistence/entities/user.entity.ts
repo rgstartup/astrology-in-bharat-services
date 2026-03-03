@@ -22,6 +22,9 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ unique: true, nullable: true })
+  uid: string; // e.g. AIB-USR-A8K2XP or AIB-EXP-QR91MN
+
   @Column({ unique: true })
   email: string;
 

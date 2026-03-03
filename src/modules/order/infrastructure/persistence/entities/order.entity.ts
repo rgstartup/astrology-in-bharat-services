@@ -42,6 +42,9 @@ export class Order {
     })
     status: OrderStatus;
 
+    @Column({ name: 'payment_method', default: 'razorpay' })
+    payment_method: string;
+
     @Column({ name: 'razorpay_order_id', nullable: true })
     razorpay_order_id: string;
 
