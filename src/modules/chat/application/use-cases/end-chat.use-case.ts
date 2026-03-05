@@ -28,14 +28,15 @@ export class EndChatUseCase {
         let total_cost = 0;
         if (session.start_time) {
             const durationInMs = now.getTime() - session.start_time.getTime();
-            const actualDurationMins = Math.ceil(durationInMs / 60000);
+            const actualDurationMins = durationInMs / 60000;
 
             // Subtract free minutes if applicable
             const billableMins = Math.max(
                 0,
                 actualDurationMins - (session.free_minutes || 0),
             );
-            total_cost = billableMins * session.price_per_minute;
+            // Limit to two decimal places for accurate sub-minute billing
+            total_cost = Number((billableMins * session.price_per_minute).toFixed(2));
         }
 
         session.total_cost = total_cost;
@@ -104,9 +105,7 @@ export class EndChatUseCase {
             ...session,
             remainingBalance,
             durationMins: session.start_time
-                ? Math.ceil(
-                    (session.end_time.getTime() - session.start_time.getTime()) / 60000,
-                )
+                ? Number(((session.end_time.getTime() - session.start_time.getTime()) / 60000).toFixed(2))
                 : 0,
         };
     }

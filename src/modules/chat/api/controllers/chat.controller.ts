@@ -303,30 +303,39 @@ export class ChatController {
 
     return Promise.all(
       sessions.map(async (session) => {
-        const userBalance = await this.chatGateway.getWalletBalance(user.id);
-        const maxMinutes = session.is_free
-          ? session.free_minutes
-          : session.price_per_minute > 0
-            ? Math.floor(userBalance / session.price_per_minute)
-            : 0;
-
-        // Calculate durationMins from startTime and endTime
-        let durationMins = 0;
+        // Calculate precise duration string
+        let durationString = '0s';
         if (session.start_time && session.end_time) {
           const start = new Date(session.start_time);
           const end = new Date(session.end_time);
-          const durationMs = end.getTime() - start.getTime();
-          durationMins = Math.round(durationMs / 60000); // Convert ms to minutes
+          const diffMs = end.getTime() - start.getTime();
+          const totalSeconds = Math.floor(diffMs / 1000);
+          const mins = Math.floor(totalSeconds / 60);
+          const secs = totalSeconds % 60;
+          durationString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
         }
 
+        // Return optimized lean object
         return {
-          ...session,
-          expiresAt:
-            session.status === 'pending'
-              ? new Date(new Date(session.created_at).getTime() + expiryTime)
-              : null,
-          maxMinutes,
-          durationMins,
+          id: session.id,
+          created_at: session.created_at,
+          start_time: session.start_time,
+          end_time: session.end_time,
+          status: session.status,
+          total_cost: session.total_cost,
+          session_type: session.session_type,
+          is_free: session.is_free,
+          terminated_by: session.terminated_by,
+          durationString,
+          expert: {
+            id: session.expert?.id,
+            specialization: session.expert?.specialization,
+            rating: session.expert?.rating,
+            user: {
+              name: session.expert?.user?.name,
+              avatar: session.expert?.user?.avatar,
+            },
+          },
         };
       }),
     );
