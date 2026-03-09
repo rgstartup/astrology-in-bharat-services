@@ -33,6 +33,15 @@ export class Product {
   @Column({ name: 'image_url', nullable: true, default: '' })
   image_url: string;
 
+  @Column({ name: 'short_description', nullable: true, type: 'text' })
+  short_description: string;
+
+  @Column({ default: 0 })
+  stock: number;
+
+  @Column({ name: 'expert_id', nullable: true })
+  expert_id: number;
+
   @Column({ default: true, name: 'is_active' })
   is_active: boolean;
 
