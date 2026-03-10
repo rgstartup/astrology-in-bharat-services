@@ -40,7 +40,7 @@ export class PaymentOrder {
   @Column({ name: 'razorpay_order_id', unique: true, nullable: true })
   razorpay_order_id: string;
 
-  @Column({ name: 'razorpay_payment_id', nullable: true })
+  @Column({ name: 'razorpay_payment_id', unique: true, nullable: true })
   razorpay_payment_id: string;
 
   @Column({ name: 'razorpay_signature', nullable: true })

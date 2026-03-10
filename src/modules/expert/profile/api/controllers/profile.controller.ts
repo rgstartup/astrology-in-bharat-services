@@ -145,11 +145,6 @@ export class ProfileController {
     return this.profileFacade.getTopRatedExperts(limit);
   }
 
-  @Get(':id')
-  @Public()
-  getExpertById(@Param('id', ParseIntPipe) id: number) {
-    return this.profileFacade.getExpertById(id);
-  }
 
   @Post('upload-file')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -214,5 +209,13 @@ export class ProfileController {
     @CurrentUser() user: User,
   ) {
     return this.uploadFile(file, user);
+  }
+
+  // Changed from ':id' to 'details/:id' to prevent route conflict with
+  // other modules like 'bank-accounts' and avoid path-to-regexp v8 crash matching
+  @Get('details/:id')
+  @Public()
+  getExpertById(@Param('id', ParseIntPipe) id: number) {
+    return this.profileFacade.getExpertById(id);
   }
 }

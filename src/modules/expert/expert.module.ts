@@ -7,18 +7,18 @@ import { TodosModule } from './todos/todos.module';
 
 @Module({
   imports: [
-    ProfileModule,
     BankAccountsModule,
     ExpertEarningsModule,
     ExpertDashboardModule,
-    TodosModule
+    TodosModule,
+    ProfileModule
   ],
   exports: [
-    ProfileModule,
     BankAccountsModule,
     ExpertEarningsModule,
     ExpertDashboardModule,
-    TodosModule
+    TodosModule,
+    ProfileModule
   ]
 })
 export class ExpertModule { }

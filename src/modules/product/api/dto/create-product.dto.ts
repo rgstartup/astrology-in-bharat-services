@@ -29,6 +29,21 @@ export class CreateProductDto {
   @IsOptional()
   image_url?: string;
 
+  @IsString()
+  @IsOptional()
+  short_description?: string;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  @Type(() => Number)
+  stock?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  expert_id?: number;
+
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;

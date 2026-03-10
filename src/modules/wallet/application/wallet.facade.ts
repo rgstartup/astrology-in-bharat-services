@@ -13,7 +13,11 @@ import { GetTotalEarningsUseCase } from './use-cases/get-total-earnings.use-case
 import { GetGlobalEarningsUseCase } from './use-cases/get-global-earnings.use-case';
 import { GetWithdrawalsStatusUseCase } from './use-cases/get-withdrawals-status.use-case';
 import { RequestWithdrawalUseCase } from './use-cases/request-withdrawal.use-case';
+import { GetPendingWithdrawalsUseCase } from './use-cases/get-pending-withdrawals.use-case';
+import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-status.use-case';
+import { GetAdminWithdrawalStatsUseCase } from './use-cases/get-admin-withdrawal-stats.use-case';
 import { TransactionPurpose } from '../infrastructure/persistence/entities/transaction.entity';
+import { WithdrawalStatus } from '../infrastructure/persistence/entities/withdrawal.entity';
 
 @Injectable()
 export class WalletFacade {
@@ -32,7 +36,10 @@ export class WalletFacade {
     private readonly getGlobalEarningsUseCase: GetGlobalEarningsUseCase,
     private readonly getWithdrawalsStatusUseCase: GetWithdrawalsStatusUseCase,
     private readonly requestWithdrawalUseCase: RequestWithdrawalUseCase,
-  ) {}
+    private readonly getPendingWithdrawalsUseCase: GetPendingWithdrawalsUseCase,
+    private readonly updateWithdrawalStatusUseCase: UpdateWithdrawalStatusUseCase,
+    private readonly getAdminWithdrawalStatsUseCase: GetAdminWithdrawalStatsUseCase,
+  ) { }
 
   async getWallet(userId: number) {
     return this.getWalletUseCase.execute(userId);
@@ -86,7 +93,19 @@ export class WalletFacade {
     return this.getWithdrawalsStatusUseCase.execute(userId);
   }
 
-  async requestWithdrawal(userId: number, amount: number, bankAccountId: number) {
-    return this.requestWithdrawalUseCase.execute(userId, amount, bankAccountId);
+  async requestWithdrawal(userId: number, amount: number, bank_account_id: number) {
+    return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id);
+  }
+
+  async getPendingWithdrawals(page?: number, limit?: number) {
+    return this.getPendingWithdrawalsUseCase.execute(page, limit);
+  }
+
+  async updateWithdrawalStatus(id: number, status: WithdrawalStatus, adminId: number, remark?: string) {
+    return this.updateWithdrawalStatusUseCase.execute(id, status, adminId, remark);
+  }
+
+  async getAdminWithdrawalStats() {
+    return this.getAdminWithdrawalStatsUseCase.execute();
   }
 }

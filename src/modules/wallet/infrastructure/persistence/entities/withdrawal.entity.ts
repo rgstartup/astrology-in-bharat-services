@@ -15,6 +15,8 @@ export enum WithdrawalStatus {
     PROCESSING = 'processing',
     COMPLETED = 'completed',
     REJECTED = 'rejected',
+    FAILED = 'failed',
+    CANCELLED = 'cancelled',
 }
 
 @Entity('withdrawals')
@@ -22,7 +24,7 @@ export class Withdrawal {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne('User')
+    @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })
     user: User;
 
@@ -32,7 +34,7 @@ export class Withdrawal {
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     amount: number;
 
-    @ManyToOne('BankAccount', { nullable: true })
+    @ManyToOne(() => BankAccount, { nullable: true })
     @JoinColumn({ name: 'bank_account_id' })
     bankAccount: BankAccount;
 
@@ -49,7 +51,7 @@ export class Withdrawal {
     @Column({ nullable: true })
     remark?: string;
 
-    @Column({ name: 'transaction_reference', nullable: true })
+    @Column({ name: 'transaction_reference', unique: true, nullable: true })
     transaction_reference?: string;
 
     @CreateDateColumn({ name: 'created_at' })
@@ -57,4 +59,10 @@ export class Withdrawal {
 
     @UpdateDateColumn({ name: 'updated_at' })
     updated_at: Date;
+
+    @Column({ type: 'int', name: 'admin_id', nullable: true })
+    admin_id?: number;
+
+    @Column({ type: 'timestamp', name: 'approval_date', nullable: true })
+    approval_date?: Date;
 }

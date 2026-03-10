@@ -7,14 +7,14 @@ import { PaymentFacade } from './application/payment.facade';
 import { CreatePaymentOrderUseCase } from './application/use-cases/create-payment-order.use-case';
 import { VerifyPaymentUseCase } from './application/use-cases/verify-payment.use-case';
 import { HandleWebhookUseCase } from './application/use-cases/handle-webhook.use-case';
-import { RazorpayModule } from '@/external/razorpay/razorpay.module';
+import { PaymentGatewayModule } from '@/external/payment/payment-gateway.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { OrderModule } from '@/modules/order/order.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PaymentOrder]),
-    RazorpayModule,
+    PaymentGatewayModule,
     WalletModule,
     OrderModule,
   ],
@@ -27,4 +27,4 @@ import { OrderModule } from '@/modules/order/order.module';
   ],
   exports: [PaymentFacade],
 })
-export class PaymentModule {}
+export class PaymentModule { }

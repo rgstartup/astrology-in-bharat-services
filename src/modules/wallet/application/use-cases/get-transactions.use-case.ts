@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transaction } from '../../infrastructure/persistence/entities/transaction.entity';
+import { Withdrawal } from '../../infrastructure/persistence/entities/withdrawal.entity';
 import { GetWalletUseCase } from './get-wallet.use-case';
 
 @Injectable()
@@ -38,6 +39,31 @@ export class GetTransactionsUseCase {
       .take(limit)
       .getManyAndCount();
 
-    return { items, total, page, limit };
+    // Map withdrawals for the bank account ID
+    const transactionsWithBankAccounts = await Promise.all(items.map(async (tx) => {
+      let bank_account: number | null = null;
+      let status = 'completed'; // Default
+
+      if (tx.purpose === 'withdrawal') {
+        const withdrawal = await this.transactionRepository.manager.findOne(Withdrawal, {
+          where: { user_id: userId, amount: tx.amount },
+          order: { created_at: 'DESC' },
+        });
+
+        if (withdrawal) {
+          bank_account = withdrawal.bank_account_id;
+          status = withdrawal.status;
+        }
+      }
+
+      return {
+        ...tx,
+        bank_account,
+        status,
+        description: tx.purpose.charAt(0).toUpperCase() + tx.purpose.slice(1).replace('_', ' '),
+      };
+    }));
+
+    return { items: transactionsWithBankAccounts, total, page, limit };
   }
 }

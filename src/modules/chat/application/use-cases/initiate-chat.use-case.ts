@@ -16,6 +16,29 @@ export class InitiateChatUseCase {
     ) { }
 
     async execute(userId: number, expertId: number) {
+        // ✅ Check if user already has an ACTIVE or PENDING session
+        const existingSession = await this.sessionRepo.findOne({
+            where: [
+                { user_id: userId, status: ChatSessionStatus.ACTIVE },
+                { user_id: userId, status: ChatSessionStatus.PENDING },
+            ],
+            relations: ['user'],
+        });
+
+        if (existingSession) {
+            // Same expert → return existing session so frontend can redirect back to it
+            if (existingSession.expert_id === expertId) {
+                return { ...existingSession, isResumed: true };
+            }
+
+            // Different expert → block completely
+            throw new BadRequestException(
+                existingSession.status === ChatSessionStatus.ACTIVE
+                    ? 'You already have an ongoing chat session with another astrologer. Please end it before starting a new one.'
+                    : 'You already have a pending chat request with another astrologer. Please wait for it to expire or cancel it first.',
+            );
+        }
+
         const expert = await this.expertRepo.findOne({
             where: { id: expertId },
         });

@@ -39,11 +39,11 @@ export class ExpertWalletController {
     }
 
     @Post('withdraw')
-    async withdraw(
-        @CurrentUser() user: User,
+    async requestWithdrawal(
+        @CurrentUser() user: any,
         @Body('amount') amount: number,
-        @Body('bankAccountId') bankAccountId: number,
+        @Body('bank_account_id') bank_account_id: number,
     ) {
-        return this.earningsFacade.requestWithdrawal(user.id, amount, bankAccountId);
+        return this.earningsFacade.requestWithdrawal(user.id, amount, bank_account_id);
     }
 }

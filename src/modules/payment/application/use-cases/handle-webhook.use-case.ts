@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RazorpayService } from '@/external/razorpay/razorpay.service';
+import { IPaymentGateway, PAYMENT_GATEWAY } from '@/external/payment/payment-gateway.interface';
 import {
   PaymentOrder,
   PaymentStatus,
@@ -16,13 +16,14 @@ export class HandleWebhookUseCase {
   constructor(
     @InjectRepository(PaymentOrder)
     private readonly paymentOrderRepo: Repository<PaymentOrder>,
-    private readonly razorpayService: RazorpayService,
+    @Inject(PAYMENT_GATEWAY)
+    private readonly paymentGateway: IPaymentGateway,
     private readonly verifyPaymentUseCase: VerifyPaymentUseCase,
-  ) {}
+  ) { }
 
   async execute(signature: string, payload: any) {
     // Validate signature
-    const isValid = this.razorpayService.validateWebhookSignature(
+    const isValid = this.paymentGateway.validateWebhookSignature(
       payload,
       signature,
     );

@@ -9,6 +9,7 @@ import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { WithdrawalStatus } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
 
 @Controller({
   path: 'admin',
@@ -127,5 +128,28 @@ export class AdminController {
   @Delete('coupons/:id')
   async deleteCoupon(@Param('id') id: string) {
     return this.couponFacade.deleteCoupon(parseInt(id, 10));
+  }
+
+  // Withdrawal Management
+  @Get('withdrawals/pending')
+  async getPendingWithdrawals(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.adminFacade.getPendingWithdrawals(page, limit);
+  }
+
+  @Get('withdrawals/stats')
+  async getWithdrawalStats() {
+    return this.adminFacade.getWithdrawalStats();
+  }
+
+  @Patch('withdrawals/:id/status')
+  async updateWithdrawalStatus(
+    @Param('id') id: number,
+    @CurrentUser() admin: User,
+    @Body() body: { status: WithdrawalStatus; remark?: string },
+  ) {
+    return this.adminFacade.updateWithdrawalStatus(id, body.status, admin.id, body.remark);
   }
 }
