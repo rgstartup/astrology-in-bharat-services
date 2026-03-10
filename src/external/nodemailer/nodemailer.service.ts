@@ -17,8 +17,11 @@ export class NodeMailerService {
 
   async sendEmail(to: string, subject: string, html: string) {
     try {
+      const fromEmail = this.configService.get('email.from');
+      const authUser = this.configService.get('email.user');
+
       return await this.transporter.sendMail({
-        from: `"No Reply" <${this.configService.get('email.from')}>`,
+        from: fromEmail ? `"Astrology in Bharat" <${fromEmail}>` : authUser,
         to,
         subject,
         html,

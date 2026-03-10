@@ -79,14 +79,18 @@ export class AgentRegisterUserUseCase {
         const roleString = dto.roles.includes('expert') ? 'Astrologer' : 'User';
 
         const html = `
-      <h1>Welcome to Astrology in Bharat, ${createdUser.name}!</h1>
-      <p>An account has been created for you by our team as a ${roleString}.</p>
-      <p>Here are your temporary login credentials:</p>
-      <ul>
-        <li><b>Email:</b> ${createdUser.email}</li>
-        <li><b>Temporary Password:</b> ${generatedPassword}</li>
-      </ul>
-      <p>Please log in and construct a secure password as soon as possible.</p>
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h2 style="color: #333;">Welcome to Astrology in Bharat, ${createdUser.name}!</h2>
+        <p>An account has been created for you by our team as an <strong>${roleString}</strong>.</p>
+        <p>Please use the following temporary credentials to log in:</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <p style="margin: 5px 0;"><strong>Email:</strong> ${createdUser.email}</p>
+          <p style="margin: 5px 0;"><strong>Temporary Password:</strong> <code style="background-color: #eee; padding: 2px 5px; border-radius: 3px;">${generatedPassword}</code></p>
+        </div>
+        <p style="color: #d32f2f; font-size: 14px;"><strong>Important:</strong> For security reasons, please log in and change your password immediately.</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="font-size: 12px; color: #999;">If you have any questions, please contact our support team.</p>
+      </div>
     `;
 
         // Send the email with the credentials

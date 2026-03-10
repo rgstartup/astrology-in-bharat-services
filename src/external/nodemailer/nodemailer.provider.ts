@@ -16,12 +16,14 @@ export const NodemailerProvider: Provider = {
     }
 
     return nodemailer.createTransport({
-      host: email.host,
-      port: email.port,
-      secure: email.secure,
+      ...(email.host?.includes('gmail') ? { service: 'gmail' } : {
+        host: email.host,
+        port: email.port,
+        secure: email.port === 465 ? true : email.secure,
+      }),
       auth: {
         user: email.user,
-        pass: email.pass.replace(/\s+/g, ''),
+        pass: (email.pass || '').replace(/\s+/g, ''),
       },
     });
   },
