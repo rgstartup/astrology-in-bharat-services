@@ -25,7 +25,7 @@ export class ExpertEarningsFacade {
         return this.getWalletTransactionsUseCase.execute(userId, page, limit, type);
     }
 
-    async requestWithdrawal(userId: number, amount: number, bankAccountId: number) {
-        return this.requestWithdrawalUseCase.execute(userId, amount, bankAccountId);
+    async requestWithdrawal(userId: number, amount: number, bank_account_id: number) {
+        return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id);
     }
 }

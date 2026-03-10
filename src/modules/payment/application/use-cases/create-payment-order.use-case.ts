@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RazorpayService } from '@/external/razorpay/razorpay.service';
+import { IPaymentGateway, PAYMENT_GATEWAY } from '@/external/payment/payment-gateway.interface';
 import {
   PaymentOrder,
   PaymentStatus,
@@ -19,10 +19,11 @@ export class CreatePaymentOrderUseCase {
   constructor(
     @InjectRepository(PaymentOrder)
     private readonly paymentOrderRepo: Repository<PaymentOrder>,
-    private readonly razorpayService: RazorpayService,
+    @Inject(PAYMENT_GATEWAY)
+    private readonly paymentGateway: IPaymentGateway,
     private readonly orderFacade: OrderFacade,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async execute(userId: number, dto: CreateOrderDto) {
     this.logger.log(
@@ -44,11 +45,16 @@ export class CreatePaymentOrderUseCase {
         },
       };
 
-      const order = await this.razorpayService.createOrder(options);
+      const order = await this.paymentGateway.createOrder({
+        amount: options.amount,
+        currency: options.currency,
+        receiptId: options.receipt,
+        notes: options.notes,
+      });
 
       const paymentOrder = this.paymentOrderRepo.create({
         user_id: userId,
-        razorpay_order_id: order.id,
+        razorpay_order_id: order.providerOrderId,
         amount,
         notes: options.notes,
         status: PaymentStatus.PENDING,
@@ -60,12 +66,12 @@ export class CreatePaymentOrderUseCase {
       if (type === 'product' && notes?.orderId) {
         await this.orderFacade.setRazorpayOrderId(
           Number(notes.orderId),
-          order.id,
+          order.providerOrderId,
         );
       }
 
       return {
-        id: order.id,
+        id: order.providerOrderId,
         amount: order.amount,
         currency: order.currency,
         key_id: this.configService.get<string>('RAZORPAY_KEY_ID'),

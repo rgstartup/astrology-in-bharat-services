@@ -12,6 +12,7 @@ import {
     UploadedFile,
     InternalServerErrorException,
     Req,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
@@ -21,6 +22,7 @@ import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 import { UploadApiResponse } from 'cloudinary';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { ProductFacade } from '../../application/product.facade';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
@@ -32,13 +34,16 @@ export class ExpertProductController {
     constructor(
         private readonly productFacade: ProductFacade,
         private readonly cloudinaryService: CloudinaryService,
+        private readonly expertProfileFacade: ExpertProfileFacade,
     ) { }
 
     /** GET /api/v1/expert/products — list only this expert's products */
     @Get()
-    findMyProducts(@Req() req: Request) {
+    async findMyProducts(@Req() req: Request) {
         const userId = (req as any).user?.id;
-        return this.productFacade.findByExpert(userId);
+        const expert = await this.expertProfileFacade.getExpertByUserId(userId);
+        if (!expert) throw new UnauthorizedException('Expert profile not found');
+        return this.productFacade.findByExpert(expert.id);
     }
 
     /** POST /api/v1/expert/products — create a product owned by this expert */
@@ -50,7 +55,9 @@ export class ExpertProductController {
         @Req() req: Request,
     ) {
         const userId = (req as any).user?.id;
-        dto.expert_id = userId;
+        const expert = await this.expertProfileFacade.getExpertByUserId(userId);
+        if (!expert) throw new UnauthorizedException('Expert profile not found');
+        dto.expert_id = expert.id;
 
         if (files && files.length > 0) {
             try {
@@ -75,7 +82,9 @@ export class ExpertProductController {
         @Req() req: Request,
     ) {
         const userId = (req as any).user?.id;
-        dto.expert_id = userId;
+        const expert = await this.expertProfileFacade.getExpertByUserId(userId);
+        if (!expert) throw new UnauthorizedException('Expert profile not found');
+        dto.expert_id = expert.id;
 
         if (file) {
             try {

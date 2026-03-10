@@ -3,6 +3,8 @@ import { GetAdminDashboardStatsUseCase } from './use-cases/get-admin-dashboard-s
 import { GetAdminUserGrowthStatsUseCase } from './use-cases/get-admin-user-growth-stats.use-case';
 import { GetExpertDetailUseCase } from './use-cases/get-expert-detail.use-case';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WithdrawalStatus } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
 
 @Injectable()
 export class AdminFacade {
@@ -11,6 +13,7 @@ export class AdminFacade {
     private readonly getUserGrowthStatsUseCase: GetAdminUserGrowthStatsUseCase,
     private readonly getExpertDetailUseCase: GetExpertDetailUseCase,
     private readonly chatFacade: ChatFacade,
+    private readonly walletFacade: WalletFacade,
   ) { }
 
   async getDashboardStats() {
@@ -31,5 +34,17 @@ export class AdminFacade {
 
   async terminateSession(sessionId: number, adminId: number, userMessage?: string, expertMessage?: string) {
     return this.chatFacade.adminTerminateSession(sessionId, adminId, userMessage, expertMessage);
+  }
+
+  async getPendingWithdrawals(page?: number, limit?: number) {
+    return this.walletFacade.getPendingWithdrawals(page, limit);
+  }
+
+  async updateWithdrawalStatus(id: number, status: WithdrawalStatus, adminId: number, remark?: string) {
+    return this.walletFacade.updateWithdrawalStatus(id, status, adminId, remark);
+  }
+
+  async getWithdrawalStats() {
+    return this.walletFacade.getAdminWithdrawalStats();
   }
 }

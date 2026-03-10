@@ -26,6 +26,33 @@ export class InitiateCallUseCase {
     ) { }
 
     async execute(userId: number, expertId: number, type: CallType = CallType.AUDIO) {
+        // ✅ Block duplicate sessions — user can only have ONE active/pending call at a time
+        const existingSession = await this.sessionRepo.findOne({
+            where: [
+                { user_id: userId, status: CallSessionStatus.ACTIVE },
+                { user_id: userId, status: CallSessionStatus.PENDING },
+            ],
+            relations: ['user'],
+        });
+
+        if (existingSession) {
+            // Same expert → return existing session so frontend can redirect/resume
+            if (existingSession.expert_id === expertId) {
+                return {
+                    session: { ...existingSession, isResumed: true },
+                    token: "", // Frontend will handle resume logic
+                    roomName: `call_room_${existingSession.id}`
+                };
+            }
+
+            // Different expert → block completely
+            throw new InternalServerErrorException(
+                existingSession.status === CallSessionStatus.ACTIVE
+                    ? `You already have an ongoing ${existingSession.type} call with another astrologer.`
+                    : `You already have a pending ${existingSession.type} call request with another astrologer. Please wait for them to accept or cancel it.`,
+            );
+        }
+
         const expert = await this.expertRepo.findOne({
             where: { id: expertId },
         });

@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { RazorpayService } from '@/external/razorpay/razorpay.service';
+import { IPaymentGateway, PAYMENT_GATEWAY } from '@/external/payment/payment-gateway.interface';
 import { PaymentOrder, PaymentStatus } from '../../infrastructure/persistence/entities/payment-order.entity';
 import { VerifyPaymentDto } from '../../api/dto/verify-payment.dto';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
@@ -17,7 +17,8 @@ export class VerifyPaymentUseCase {
     constructor(
         @InjectRepository(PaymentOrder)
         private paymentOrderRepo: Repository<PaymentOrder>,
-        private razorpayService: RazorpayService,
+        @Inject(PAYMENT_GATEWAY)
+        private paymentGateway: IPaymentGateway,
         private walletFacade: WalletFacade,
         private orderFacade: OrderFacade,
         private dataSource: DataSource,
@@ -28,7 +29,11 @@ export class VerifyPaymentUseCase {
 
         // Signature is optional if from webhook, but for direct verification we check it
         if (razorpay_signature) {
-            const isValid = this.razorpayService.verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+            const isValid = this.paymentGateway.verifySignature({
+                providerOrderId: razorpay_order_id,
+                providerPaymentId: razorpay_payment_id,
+                signature: razorpay_signature,
+            });
             PaymentPolicy.ensurePaymentSignatureValid(isValid);
         }
 

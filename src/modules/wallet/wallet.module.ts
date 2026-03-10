@@ -3,7 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Wallet } from './infrastructure/persistence/entities/wallet.entity';
 import { Transaction } from './infrastructure/persistence/entities/transaction.entity';
 import { Withdrawal } from './infrastructure/persistence/entities/withdrawal.entity';
+import { User } from '../users/infrastructure/persistence/entities/user.entity';
+import { BankAccount } from '../expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity';
 import { WalletController } from './api/controllers/wallet.controller';
+import { PayoutWebhookController } from './api/controllers/payout-webhook.controller';
 import { WalletFacade } from './application/wallet.facade';
 import { GetWalletUseCase } from './application/use-cases/get-wallet.use-case';
 import { GetBalanceUseCase } from './application/use-cases/get-balance.use-case';
@@ -19,13 +22,16 @@ import { GetTotalEarningsUseCase } from './application/use-cases/get-total-earni
 import { GetGlobalEarningsUseCase } from './application/use-cases/get-global-earnings.use-case';
 import { GetWithdrawalsStatusUseCase } from './application/use-cases/get-withdrawals-status.use-case';
 import { RequestWithdrawalUseCase } from './application/use-cases/request-withdrawal.use-case';
+import { GetPendingWithdrawalsUseCase } from './application/use-cases/get-pending-withdrawals.use-case';
+import { UpdateWithdrawalStatusUseCase } from './application/use-cases/update-withdrawal-status.use-case';
+import { GetAdminWithdrawalStatsUseCase } from './application/use-cases/get-admin-withdrawal-stats.use-case';
 import { NotificationModule } from '@/modules/notification/notification.module';
 
 import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Wallet, Transaction, Withdrawal]),
+    TypeOrmModule.forFeature([Wallet, Transaction, Withdrawal, User, BankAccount]),
     NotificationModule,
     BankAccountsModule,
   ],
@@ -45,8 +51,11 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
     GetGlobalEarningsUseCase,
     GetWithdrawalsStatusUseCase,
     RequestWithdrawalUseCase,
+    GetPendingWithdrawalsUseCase,
+    UpdateWithdrawalStatusUseCase,
+    GetAdminWithdrawalStatsUseCase,
   ],
-  controllers: [WalletController],
+  controllers: [WalletController, PayoutWebhookController],
   exports: [WalletFacade],
 })
 export class WalletModule { }
