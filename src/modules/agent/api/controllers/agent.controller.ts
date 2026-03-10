@@ -50,8 +50,8 @@ export class AgentController {
                 where: { user_id: user.id }
             });
 
-            // Count experts referred by this agent
-            const totalExperts = await queryRunner.manager.count(User, {
+            // Count total users (astrologers + clients) referred by this agent
+            const totalUsers = await queryRunner.manager.count(User, {
                 where: { referred_by_id: user.id }
             });
 
@@ -64,8 +64,8 @@ export class AgentController {
             });
 
             return {
-                totalListings: totalExperts + totalMandirs + totalPujaShops,
-                activeListings: totalExperts,
+                totalListings: totalUsers + totalMandirs + totalPujaShops,
+                activeListings: totalUsers, // For now, assume all referred users are active
                 pendingPayouts: 0,
                 totalEarnings: profile?.total_earnings || 0,
                 totalMandirs,
@@ -143,7 +143,7 @@ export class AgentController {
                 if (type === 'astrologer') {
                     qb.andWhere('role.name = :role', { role: 'expert' });
                 } else if (type === 'client') {
-                    qb.andWhere('role.name = :role', { role: 'user' });
+                    qb.andWhere('role.name = :role', { role: 'client' });
                 }
 
                 if (search && search.trim()) {
@@ -165,9 +165,9 @@ export class AgentController {
                     id: u.id,
                     name: u.name,
                     email: u.email,
-                    phone: (u as any).profile_client?.phone ?? (u as any).profile_expert?.phone ?? null,
+                    phone: (u as any).profile_client?.phone || (u as any).profile_expert?.phone || null,
                     status: 'active',
-                    type: u.roles.some(r => r.name === 'expert') ? 'astrologer' : 'client',
+                    type: (u.roles || []).some(r => r.name === 'expert') ? 'astrologer' : 'client',
                     createdAt: u.created_at,
                     avatar: u.avatar ?? null,
                 }));
@@ -213,8 +213,12 @@ export class AgentController {
                 }));
             }
 
-            // Merge & return
-            const allData = [...userData, ...placeData];
+            // Merge & Sort by date descending
+            const allData = [...userData, ...placeData].sort((a, b) => {
+                const dateA = new Date(a.createdAt).getTime();
+                const dateB = new Date(b.createdAt).getTime();
+                return dateB - dateA;
+            });
             const allTotal = userTotal + placeTotal;
 
             // If paginating "all", slice here

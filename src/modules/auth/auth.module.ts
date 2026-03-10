@@ -8,6 +8,7 @@ import { Session } from './infrastructure/persistence/entities/session.entity';
 import { OAuthAccount } from './infrastructure/persistence/entities/oauth-accounts.entity';
 import { JwtStrategy } from './api/strategies/jwt.strategy';
 import { DatabaseModule } from 'src/core/database/database.module';
+import { AgentProfile } from '../agent/infrastructure/persistence/entities/agent-profile.entity';
 
 import { UsedTokens } from './infrastructure/persistence/entities/used-tokens.entity';
 import { AuthFacade } from './application/auth.facade';
@@ -49,7 +50,7 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([Session, OAuthAccount, UsedTokens]),
+    TypeOrmModule.forFeature([Session, OAuthAccount, UsedTokens, AgentProfile]),
     DatabaseModule,
     ExternalModule,
     ClientProfileModule,

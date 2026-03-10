@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
 import { UsersFacade } from '@/modules/users/application/users.facade';
@@ -7,9 +7,12 @@ import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import * as crypto from 'crypto';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { AgentRegisterUserDto } from '../../api/dto';
+import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
 
 @Injectable()
 export class AgentRegisterUserUseCase {
+    private readonly logger = new Logger(AgentRegisterUserUseCase.name);
+
     constructor(
         private readonly db: DatabaseService,
         private readonly usersFacade: UsersFacade,
@@ -29,36 +32,49 @@ export class AgentRegisterUserUseCase {
 
         let createdUser;
 
-        await this.db.transaction(async (queryRunner) => {
-            const hashedPassword = await this.hasher.hash(generatedPassword);
+        try {
+            await this.db.transaction(async (queryRunner) => {
+                const hashedPassword = await this.hasher.hash(generatedPassword);
 
-            // roles is an array in DTO. Format map to match DB expected roles [{name: 'role'}]
-            const formattedRoles = dto.roles.map((r) => ({ name: r }));
+                // roles is an array in DTO. Format map to match DB expected roles [{name: 'role'}]
+                const formattedRoles = dto.roles.map((r) => ({ name: r }));
 
-            createdUser = await this.usersFacade.create(
-                {
-                    name: dto.name,
-                    email: dto.email,
-                    roles: formattedRoles,
-                    password: hashedPassword,
-                    email_verified_at: new Date(), // verified automatically
-                    referred_by_id: agentId,
-                },
-                queryRunner,
-            );
+                createdUser = await this.usersFacade.create(
+                    {
+                        name: dto.name,
+                        email: dto.email,
+                        roles: formattedRoles,
+                        password: hashedPassword,
+                        email_verified_at: new Date(), // verified automatically
+                        referred_by_id: agentId,
+                    },
+                    queryRunner,
+                );
 
-            await this.profileCreationResolver.ensureProfile(createdUser, queryRunner);
+                await this.profileCreationResolver.ensureProfile(createdUser, queryRunner);
 
-            // Update agent stats
-            await queryRunner.manager.increment(
-                'AgentProfile',
-                { user_id: agentId },
-                'total_registrations',
-                1
-            );
+                // Update agent stats - verify profile exists first
+                const agentProfile = await queryRunner.manager.findOne(AgentProfile, {
+                    where: { user_id: agentId }
+                });
 
-            return createdUser;
-        });
+                if (agentProfile) {
+                    await queryRunner.manager.increment(
+                        AgentProfile,
+                        { user_id: agentId },
+                        'total_registrations',
+                        1
+                    );
+                } else {
+                    this.logger.warn(`Agent profile not found for agent ID: ${agentId}. Skipping registration count increment.`);
+                }
+
+                return createdUser;
+            });
+        } catch (error) {
+            this.logger.error(`Failed to register user/expert by agent: ${agentId}`, error.stack);
+            throw error;
+        }
 
         const roleString = dto.roles.includes('expert') ? 'Astrologer' : 'User';
 
