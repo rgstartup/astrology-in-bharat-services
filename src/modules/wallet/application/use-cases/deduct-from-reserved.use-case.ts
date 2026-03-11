@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
 import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 
 @Injectable()
 export class DeductFromReservedUseCase {
@@ -36,6 +37,18 @@ export class DeductFromReservedUseCase {
         reference_id: referenceId,
       });
       await queryRunner.manager.save(transaction);
+
+      // --- NEW: Tracking Logic ---
+      const clientProfile = await queryRunner.manager.findOne(ProfileClient, {
+        where: { user: { id: userId } },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (clientProfile) {
+        clientProfile.total_spending = Number(clientProfile.total_spending || 0) + Number(amount);
+        await queryRunner.manager.save(clientProfile);
+      }
+      // ---------------------------
 
       await queryRunner.commitTransaction();
     } catch (err) {

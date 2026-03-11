@@ -8,15 +8,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 
-export class ColumnNumericTransformer {
-  to(data: number): number {
-    return data;
-  }
-  from(data: string): number {
-    return parseFloat(data);
-  }
-}
 
 @Entity('wallets')
 export class Wallet {

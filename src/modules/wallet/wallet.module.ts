@@ -5,6 +5,8 @@ import { Transaction } from './infrastructure/persistence/entities/transaction.e
 import { Withdrawal } from './infrastructure/persistence/entities/withdrawal.entity';
 import { User } from '../users/infrastructure/persistence/entities/user.entity';
 import { BankAccount } from '../expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity';
+import { ProfileClient } from '../client/profile/infrastructure/persistence/entities/profile-client.entity';
+import { ProfileExpert } from '../expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { WalletController } from './api/controllers/wallet.controller';
 import { PayoutWebhookController } from './api/controllers/payout-webhook.controller';
 import { WalletFacade } from './application/wallet.facade';
@@ -31,7 +33,7 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Wallet, Transaction, Withdrawal, User, BankAccount]),
+    TypeOrmModule.forFeature([Wallet, Transaction, Withdrawal, User, BankAccount, ProfileClient, ProfileExpert]),
     NotificationModule,
     BankAccountsModule,
   ],

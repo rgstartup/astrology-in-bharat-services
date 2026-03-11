@@ -12,6 +12,7 @@ import {
 
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { Address } from '@/common/address/address.entity';
+import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 
 @Entity('profile_experts')
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -141,4 +142,14 @@ export class ProfileExpert {
     eager: true,
   })
   addresses: Address[];
+
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    name: 'total_earning',
+    transformer: new ColumnNumericTransformer(),
+  })
+  total_earning: number;
 }

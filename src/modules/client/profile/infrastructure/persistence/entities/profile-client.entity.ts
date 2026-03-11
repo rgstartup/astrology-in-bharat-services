@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Address } from '@/common/address/address.entity';
+import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 
 @Entity('profile_clients')
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -75,6 +76,16 @@ export class ProfileClient {
     eager: true,
   })
   addresses: Address[];
+
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    name: 'total_spending',
+    transformer: new ColumnNumericTransformer(),
+  })
+  total_spending: number;
 
   @CreateDateColumn()
   created_at: Date;
