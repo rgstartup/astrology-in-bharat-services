@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileClient } from './infrastructure/persistence/entities/profile-client.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { Address } from '@/common/address/address.entity';
 import { ProfileController } from './api/controllers/profile.controller';
 import { ClientProfileFacade } from './application/profile.facade';
 import { GetProfileUseCase } from './application/use-cases/get-profile.usecase';
@@ -14,7 +16,7 @@ import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProfileClient]),
+    TypeOrmModule.forFeature([ProfileClient, User, Address]),
     CloudinaryModule,
   ],
   controllers: [ProfileController],
@@ -31,3 +33,4 @@ import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
   exports: [ClientProfileFacade],
 })
 export class ProfileModule { }
+

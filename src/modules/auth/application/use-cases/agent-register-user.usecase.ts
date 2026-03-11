@@ -12,6 +12,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { ConfigService } from '@nestjs/config';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 
 @Injectable()
 export class AgentRegisterUserUseCase {
@@ -46,37 +48,33 @@ export class AgentRegisterUserUseCase {
                 // roles is an array in DTO. Format map to match DB expected roles [{name: 'role'}]
                 const formattedRoles = dto.roles.map((r) => ({ name: r }));
 
-                console.log(`[AgentRegister] Registering user for agentId: ${agentId} (Type: ${typeof agentId})`);
                 createdUser = await this.usersFacade.create(
                     {
                         name: dto.name,
                         email: dto.email,
                         roles: formattedRoles,
                         password: hashedPassword,
-                        // email_verified_at: new Date(), // verified automatically - DISABLED
                         referred_by_id: Number(agentId),
                     },
                     queryRunner,
                 );
-                console.log(`[AgentRegister] Created user ID: ${createdUser.id}, referred_by_id: ${createdUser.referred_by_id} (Type: ${typeof createdUser.referred_by_id})`);
 
                 await this.profileCreationResolver.ensureProfile(createdUser, queryRunner);
 
+                // Update phone number in the specific profile if provided
                 if (dto.phone) {
                     if (dto.roles.includes('expert')) {
-                        const ProfileExpert = (await import('@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity')).ProfileExpert;
                         await queryRunner.manager.update(ProfileExpert, { user: { id: createdUser.id } }, {
                             phone_number: dto.phone
                         });
                     } else {
-                        const ProfileClient = (await import('@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity')).ProfileClient;
                         await queryRunner.manager.update(ProfileClient, { user: { id: createdUser.id } }, {
                             phone: dto.phone
                         });
                     }
                 }
 
-                // Update agent stats - verify profile exists first
+                // Update agent stats
                 const agentProfile = await queryRunner.manager.findOne(AgentProfile, {
                     where: { user_id: agentId }
                 });
@@ -139,7 +137,7 @@ export class AgentRegisterUserUseCase {
         try {
             await this.mailer.sendEmail(createdUser.email, 'Verification Required & Account Credentials', html);
         } catch (err: any) {
-            console.error('Registration email failed:', err.message);
+            this.logger.error('Registration email failed:', err.message);
             emailSent = false;
             emailError = err.message;
         }

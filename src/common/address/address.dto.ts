@@ -1,8 +1,8 @@
-import { IsOptional, IsString, IsPostalCode, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsPostalCode, IsEnum, IsBoolean } from 'class-validator';
 import { AddressTag } from './address.entity';
 
 export class AddressDto {
-  @IsOptional()
+  @IsOptional()       
   id?: number;
 
   @IsString()
@@ -39,6 +39,10 @@ export class AddressDto {
   @IsOptional()
   @IsString()
   pincode?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  is_primary?: boolean;
 
   @IsOptional()
   @IsEnum(AddressTag)
