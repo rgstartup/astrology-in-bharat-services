@@ -80,8 +80,8 @@ export class AuthController {
     return instanceToPlain({ user, ...tokens });
   }
 
-  @Post('email/verify')
-  confirmEmail(@Body('token') token: string) {
+  @Get('email/verify')
+  confirmEmail(@Query('token') token: string) {
     return this.authFacade.verifyEmail(token);
   }
 

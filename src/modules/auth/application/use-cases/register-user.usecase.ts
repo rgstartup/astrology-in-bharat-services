@@ -39,8 +39,7 @@ export class RegisterUserUseCase {
           ...dto,
           roles: formattedRoles,
           password: hashedPassword,
-          email_verified_at:
-            process.env.NODE_ENV !== 'production' ? new Date() : undefined,
+          email_verified_at: undefined,
         },
         queryRunner,
       );

@@ -38,7 +38,7 @@ export class TokenCryptoService {
 
   signTemporaryToken(payload: object) {
     return this.jwtService.sign(payload, {
-      expiresIn: 5 * 60 * 1000,
+      expiresIn: '24h',
     });
   }
 }
