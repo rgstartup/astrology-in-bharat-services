@@ -46,6 +46,7 @@ export class AgentRegisterUserUseCase {
                 // roles is an array in DTO. Format map to match DB expected roles [{name: 'role'}]
                 const formattedRoles = dto.roles.map((r) => ({ name: r }));
 
+                console.log(`[AgentRegister] Registering user for agentId: ${agentId} (Type: ${typeof agentId})`);
                 createdUser = await this.usersFacade.create(
                     {
                         name: dto.name,
@@ -53,12 +54,27 @@ export class AgentRegisterUserUseCase {
                         roles: formattedRoles,
                         password: hashedPassword,
                         // email_verified_at: new Date(), // verified automatically - DISABLED
-                        referred_by_id: agentId,
+                        referred_by_id: Number(agentId),
                     },
                     queryRunner,
                 );
+                console.log(`[AgentRegister] Created user ID: ${createdUser.id}, referred_by_id: ${createdUser.referred_by_id} (Type: ${typeof createdUser.referred_by_id})`);
 
                 await this.profileCreationResolver.ensureProfile(createdUser, queryRunner);
+
+                if (dto.phone) {
+                    if (dto.roles.includes('expert')) {
+                        const ProfileExpert = (await import('@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity')).ProfileExpert;
+                        await queryRunner.manager.update(ProfileExpert, { user: { id: createdUser.id } }, {
+                            phone_number: dto.phone
+                        });
+                    } else {
+                        const ProfileClient = (await import('@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity')).ProfileClient;
+                        await queryRunner.manager.update(ProfileClient, { user: { id: createdUser.id } }, {
+                            phone: dto.phone
+                        });
+                    }
+                }
 
                 // Update agent stats - verify profile exists first
                 const agentProfile = await queryRunner.manager.findOne(AgentProfile, {

@@ -133,12 +133,13 @@ export class AgentController {
 
             // ── Fetch referred users (astrologer / client) ──
             if (isUserType || isAll) {
+                console.log(`[AgentListings] Fetching users for agentId: ${user.id} (Type: ${typeof user.id}), type: ${type}, search: ${search}`);
                 const qb = queryRunner.manager
                     .createQueryBuilder(User, 'u')
                     .leftJoinAndSelect('u.roles', 'role')
                     .leftJoinAndSelect('u.profile_expert', 'pe')
                     .leftJoinAndSelect('u.profile_client', 'pc')
-                    .where('u.referred_by_id = :agentId', { agentId: user.id });
+                    .where('u.referred_by_id = :agentId', { agentId: Number(user.id) });
 
                 if (type === 'astrologer') {
                     qb.andWhere('role.name = :role', { role: 'expert' });
@@ -160,14 +161,15 @@ export class AgentController {
                 }
 
                 const [users, total] = await qb.getManyAndCount();
+                console.log(`[AgentListings] Found ${total} users for agentId: ${user.id}`);
                 userTotal = total;
                 userData = users.map(u => ({
                     id: u.id,
                     name: u.name,
                     email: u.email,
-                    phone: (u as any).profile_client?.phone || (u as any).profile_expert?.phone || null,
+                    phone: u.profile_client?.phone || u.profile_expert?.phone_number || null,
                     status: 'active',
-                    type: (u.roles || []).some(r => r.name === 'expert') ? 'astrologer' : 'client',
+                    type: (u.roles || []).some(r => r.name.toLowerCase() === 'expert') ? 'astrologer' : 'client',
                     createdAt: u.created_at,
                     avatar: u.avatar ?? null,
                 }));
@@ -177,7 +179,7 @@ export class AgentController {
             if (isPlaceType || isAll) {
                 const qb = queryRunner.manager
                     .createQueryBuilder(AgentListing, 'al')
-                    .where('al.agent_id = :agentId', { agentId: user.id });
+                    .where('al.agent_id = :agentId', { agentId: Number(user.id) });
 
                 if (isPlaceType) {
                     qb.andWhere('al.type = :type', { type });
