@@ -23,6 +23,12 @@ export class AgentProfile {
     @Column({ type: 'decimal', precision: 5, scale: 2, default: 10.00 })
     commission_rate: number;
 
+    @Column({ type: 'int', array: true, default: '{}' })
+    registered_user_ids: number[];
+
+    @Column({ type: 'int', array: true, default: '{}' })
+    registered_astrologer_ids: number[];
+
     @Column({ nullable: true })
     bank_name: string;
 

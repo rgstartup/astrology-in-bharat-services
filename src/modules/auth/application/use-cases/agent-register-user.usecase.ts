@@ -80,6 +80,19 @@ export class AgentRegisterUserUseCase {
                 });
 
                 if (agentProfile) {
+                    const isExpert = dto.roles.includes('expert');
+                    const arrayField = isExpert ? 'registered_astrologer_ids' : 'registered_user_ids';
+
+                    // Initialize array if null (though default is '{}')
+                    if (!agentProfile[arrayField]) {
+                        agentProfile[arrayField] = [];
+                    }
+
+                    // Add the new ID to the array
+                    agentProfile[arrayField].push(createdUser.id);
+
+                    await queryRunner.manager.save(AgentProfile, agentProfile);
+
                     await queryRunner.manager.increment(
                         AgentProfile,
                         { user_id: agentId },

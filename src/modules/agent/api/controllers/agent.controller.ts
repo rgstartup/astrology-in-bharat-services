@@ -131,6 +131,15 @@ export class AgentController {
             let placeData: any[] = [];
             let placeTotal = 0;
 
+            // Get agent profile to find registered IDs
+            const agentProfile = await queryRunner.manager.findOne(AgentProfile, {
+                where: { user_id: user.id }
+            });
+
+            const registeredUserIds = agentProfile?.registered_user_ids || [];
+            const registeredAstrologerIds = agentProfile?.registered_astrologer_ids || [];
+            const allRegisteredIds = [...registeredUserIds, ...registeredAstrologerIds];
+
             // ── Fetch referred users (astrologer / client) ──
             if (isUserType || isAll) {
                 console.log(`[AgentListings] Fetching users for agentId: ${user.id} (Type: ${typeof user.id}), type: ${type}, search: ${search}`);
@@ -139,7 +148,10 @@ export class AgentController {
                     .leftJoinAndSelect('u.roles', 'role')
                     .leftJoinAndSelect('u.profile_expert', 'pe')
                     .leftJoinAndSelect('u.profile_client', 'pc')
-                    .where('u.referred_by_id = :agentId', { agentId: Number(user.id) });
+                    .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
+                        agentId: Number(user.id),
+                        ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
+                    });
 
                 if (type === 'astrologer') {
                     qb.andWhere('role.name = :role', { role: 'expert' });
