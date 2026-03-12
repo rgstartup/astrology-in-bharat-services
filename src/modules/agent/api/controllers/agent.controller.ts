@@ -8,6 +8,8 @@ import { AgentProfile } from '../../infrastructure/persistence/entities/agent-pr
 import { AgentListing } from '../../infrastructure/persistence/entities/agent-listing.entity';
 import { DatabaseService } from '@/core/database/database.service';
 
+import { ConfigService } from '@nestjs/config';
+
 @Controller({
     path: 'agent',
     version: '1',
@@ -15,7 +17,10 @@ import { DatabaseService } from '@/core/database/database.service';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('agent')
 export class AgentController {
-    constructor(private readonly db: DatabaseService) { }
+    constructor(
+        private readonly db: DatabaseService,
+        private readonly configService: ConfigService
+    ) { }
 
     @Get('profile')
     async getProfile(@CurrentUser() user: User) {
@@ -50,10 +55,18 @@ export class AgentController {
                 where: { user_id: user.id }
             });
 
-            // Count total users (astrologers + clients) referred by this agent
-            const totalUsers = await queryRunner.manager.count(User, {
-                where: { referred_by_id: user.id }
-            });
+            const registeredUserIds = profile?.registered_user_ids || [];
+            const registeredAstrologerIds = profile?.registered_astrologer_ids || [];
+            const allRegisteredIds = [...registeredUserIds, ...registeredAstrologerIds];
+
+            // Count total users (astrologers + clients) referred by this agent or in their registered list
+            const totalUsers = await queryRunner.manager
+                .createQueryBuilder(User, 'u')
+                .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
+                    agentId: Number(user.id),
+                    ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
+                })
+                .getCount();
 
             // Count mandir/puja_shop listings by this agent
             const totalMandirs = await queryRunner.manager.count(AgentListing, {
@@ -63,13 +76,51 @@ export class AgentController {
                 where: { agent_id: user.id, type: 'puja_shop' }
             });
 
+            // Re-fetch all referred users for commission calculation
+            const qbUsers = queryRunner.manager
+                .createQueryBuilder(User, 'u')
+                .leftJoinAndSelect('u.profile_expert', 'pe')
+                .leftJoinAndSelect('u.profile_client', 'pc')
+                .leftJoinAndSelect('u.roles', 'role')
+                .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
+                    agentId: Number(user.id),
+                    ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
+                });
+            const usersForStats = await qbUsers.getMany();
+
+            const clientCommPercent = this.configService.get<number>('COMMISION_FROM_CLIENT') || 0;
+            const expertCommPercent = this.configService.get<number>('COMMISION_FROM_ASTROLOGER') || 0;
+
+
+            let totalAgentCommission = 0;
+            let astrologersCount = 0;
+            let clientsCount = 0;
+
+            usersForStats.forEach(u => {
+                const isExpert = (u.roles || []).some(r => r.name.toLowerCase() === 'expert');
+                if (isExpert) {
+                    astrologersCount++;
+                    if (u.profile_expert) {
+                        totalAgentCommission += (u.profile_expert.total_earning * expertCommPercent) / 100;
+                    }
+                } else {
+                    clientsCount++;
+                    if (u.profile_client) {
+                        totalAgentCommission += (u.profile_client.total_spending * clientCommPercent) / 100;
+                    }
+                }
+            });
+
             return {
                 totalListings: totalUsers + totalMandirs + totalPujaShops,
-                activeListings: totalUsers, // For now, assume all referred users are active
-                pendingPayouts: 0,
-                totalEarnings: profile?.total_earnings || 0,
-                totalMandirs,
-                totalPujaShops,
+                activeListings: totalUsers,
+                astrologersCount,
+                clientsCount,
+                mandirsCount: totalMandirs,
+                pujaShopsCount: totalPujaShops,
+                pendingPayout: 0,
+                totalEarned: profile?.total_earnings || 0,
+                commissionEarned: Number(totalAgentCommission.toFixed(2)),
                 recentActivity: []
             };
         });
@@ -175,16 +226,38 @@ export class AgentController {
                 const [users, total] = await qb.getManyAndCount();
                 console.log(`[AgentListings] Found ${total} users for agentId: ${user.id}`);
                 userTotal = total;
-                userData = users.map(u => ({
-                    id: u.id,
-                    name: u.name,
-                    email: u.email,
-                    phone: u.profile_client?.phone || u.profile_expert?.phone_number || null,
-                    status: 'active',
-                    type: (u.roles || []).some(r => r.name.toLowerCase() === 'expert') ? 'astrologer' : 'client',
-                    createdAt: u.created_at,
-                    avatar: u.avatar ?? null,
-                }));
+
+                const clientCommPercent = this.configService.get<number>('COMMISION_FROM_CLIENT') || 0;
+                const expertCommPercent = this.configService.get<number>('COMMISION_FROM_ASTROLOGER') || 0;
+
+                userData = users.map(u => {
+                    const isExpert = (u.roles || []).some(r => r.name.toLowerCase() === 'expert');
+                    let commission = 0;
+                    let baseAmount = 0;
+
+                    if (isExpert && u.profile_expert) {
+                        baseAmount = u.profile_expert.total_earning;
+                        commission = (baseAmount * expertCommPercent) / 100;
+                    } else if (!isExpert && u.profile_client) {
+                        baseAmount = u.profile_client.total_spending;
+                        commission = (baseAmount * clientCommPercent) / 100;
+                    }
+
+                    return {
+                        id: u.id,
+                        name: u.name,
+                        email: u.email,
+                        phone: u.profile_client?.phone || u.profile_expert?.phone_number || null,
+                        status: 'active',
+                        type: isExpert ? 'astrologer' : 'client',
+                        createdAt: u.created_at,
+                        avatar: u.avatar ?? null,
+                        totalSpending: !isExpert ? baseAmount : null,
+                        totalEarning: isExpert ? baseAmount : null,
+                        commission: Number(commission.toFixed(2)),
+                        commissionPercent: isExpert ? expertCommPercent : clientCommPercent
+                    };
+                });
             }
 
             // ── Fetch mandir / puja_shop listings ──
