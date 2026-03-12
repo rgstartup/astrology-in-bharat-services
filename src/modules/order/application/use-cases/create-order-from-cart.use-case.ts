@@ -89,7 +89,8 @@ export class CreateOrderFromCartUseCase {
           userId,
           totalAmount,
           TransactionPurpose.PRODUCT_PURCHASE,
-          `order_pending_${Date.now()}`, // Temporary reference, will update after order save if needed
+          `order_pending_${Date.now()}`,
+          queryRunner,
         );
       }
 

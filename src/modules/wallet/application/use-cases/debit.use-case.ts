@@ -14,15 +14,19 @@ export class DebitUseCase {
     amount: number,
     purpose: TransactionPurpose,
     referenceId?: string,
+    externalQueryRunner?: any,
   ): Promise<Wallet> {
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const qr = externalQueryRunner || this.dataSource.createQueryRunner();
+    
+    if (!externalQueryRunner) {
+      await qr.connect();
+      await qr.startTransaction();
+    }
 
     try {
-      const wallet = await queryRunner.manager.findOne(Wallet, {
+      const wallet = await qr.manager.findOne(Wallet, {
         where: { user_id: userId },
         lock: { mode: 'pessimistic_write' },
       });
@@ -31,34 +35,34 @@ export class DebitUseCase {
       }
 
       wallet.balance = Number(wallet.balance) - Number(amount);
-      await queryRunner.manager.save(wallet);
+      await qr.manager.save(wallet);
 
-      const transaction = queryRunner.manager.create(Transaction, {
+      const transaction = qr.manager.create(Transaction, {
         wallet_id: wallet.id,
         amount,
         type: TransactionType.DEBIT,
         purpose,
         reference_id: referenceId,
       });
-      await queryRunner.manager.save(transaction);
+      await qr.manager.save(transaction);
 
       // --- NEW: Tracking Logic ---
       if (purpose === TransactionPurpose.CONSULTATION || purpose === TransactionPurpose.PRODUCT_PURCHASE) {
         try {
           // 1. Get or Create Profile
-          let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
+          let clientProfile = await qr.manager.findOne(ProfileClient, {
             where: { user: { id: userId } },
             select: ['id']
           });
 
           if (!clientProfile) {
-             clientProfile = queryRunner.manager.create(ProfileClient, { user: { id: userId } as any, user_id: userId });
-             clientProfile = await queryRunner.manager.save(clientProfile);
+             clientProfile = qr.manager.create(ProfileClient, { user: { id: userId } as any, user_id: userId });
+             clientProfile = await qr.manager.save(clientProfile);
              console.log(`[DEBIT_TRACKING] Created shell profile for user ${userId} for spending tracking`);
           }
 
           // 2. Atomic Update
-          await queryRunner.manager.createQueryBuilder()
+          await qr.manager.createQueryBuilder()
             .update(ProfileClient)
             .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
             .where('id = :id', { id: clientProfile.id })
@@ -71,13 +75,19 @@ export class DebitUseCase {
       }
       // ---------------------------
 
-      await queryRunner.commitTransaction();
+      if (!externalQueryRunner) {
+        await qr.commitTransaction();
+      }
       return wallet;
     } catch (err) {
-      await queryRunner.rollbackTransaction();
+      if (!externalQueryRunner && qr.isTransactionActive) {
+        await qr.rollbackTransaction();
+      }
       throw err;
     } finally {
-      await queryRunner.release();
+      if (!externalQueryRunner) {
+        await qr.release();
+      }
     }
   }
 }

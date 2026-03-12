@@ -61,8 +61,8 @@ export class WalletFacade {
     return this.creditUseCase.execute(userId, amount, purpose, referenceId);
   }
 
-  async debit(userId: number, amount: number, purpose: TransactionPurpose, referenceId?: string) {
-    return this.debitUseCase.execute(userId, amount, purpose, referenceId);
+  async debit(userId: number, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any) {
+    return this.debitUseCase.execute(userId, amount, purpose, referenceId, externalQueryRunner);
   }
 
   async reserveBalance(userId: number, amount: number, referenceId: string) {
