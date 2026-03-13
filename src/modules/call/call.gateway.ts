@@ -57,19 +57,18 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     notifyExpertNewCall(expertId: number, callData: any) {
         const roomName = `expert_${expertId}`;
-        // @ts-ignore - adapter rooms access
-        const rooms = this.server.adapter?.rooms;
-        const expertRoom = rooms?.get(roomName);
-        const socketCount = expertRoom ? expertRoom.size : 0;
-
-        this.logger.log(`[Notification] ExpertID: ${expertId} | Room: ${roomName} | Sockets Online: ${socketCount}`);
-
-        if (socketCount === 0) {
-            this.logger.warn(`[Notification] ⚠️ Targeted expert ${expertId} is NOT online in room ${roomName}. Notification will not be delivered.`);
-        }
-
         this.server.to(roomName).emit('new_call_request', callData);
         this.logger.log(`[Notification] ✅ Emitted new_call_request to ${roomName} for sessionId: ${callData.session.id}`);
+    }
+
+    notifyExpertStatusUpdate(
+        expertId: number,
+        event: 'call_accepted' | 'call_ended',
+        data: any,
+    ) {
+        const roomName = `expert_${expertId}`;
+        this.server.to(roomName).emit(event, data);
+        this.logger.log(`[Notification] ✅ Emitted ${event} to ${roomName} for sessionId: ${data.session?.id || data.sessionId}`);
     }
 
     @SubscribeMessage('join_call_room')

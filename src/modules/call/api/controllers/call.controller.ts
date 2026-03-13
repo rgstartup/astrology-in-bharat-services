@@ -54,6 +54,15 @@ export class CallController {
         return this.callFacade.getSession(sessionId);
     }
 
+    @Get('token/:sessionId')
+    @Header('Cache-Control', 'no-store')
+    async getToken(
+        @Req() req: any,
+        @Param('sessionId', ParseIntPipe) sessionId: number
+    ) {
+        return this.callFacade.getCallToken(req.user.id, sessionId);
+    }
+
     @Get('sessions/appointments/pending')
     @Header('Cache-Control', 'no-store')
     async getPendingAppointments(@Req() req: any) {

@@ -71,6 +71,10 @@ export class AcceptCallUseCase {
     this.callGateway.server
       .to(`call_room_${sessionId}`)
       .emit('call_accepted', result);
+    
+    // Also notify expert dashboard (any open tab)
+    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_accepted', result);
+
     this.logger.log(
       `Client notified of call acceptance sessionId=${sessionId}`,
     );

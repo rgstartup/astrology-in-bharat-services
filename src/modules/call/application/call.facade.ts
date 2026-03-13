@@ -4,6 +4,7 @@ import { AcceptCallUseCase } from './use-cases/accept-call.use-case';
 import { EndCallUseCase } from './use-cases/end-call.use-case';
 import { GetExpertCallSessionsUseCase, CallSessionFilter } from './use-cases/get-expert-sessions.use-case';
 import { GetCallSessionUseCase } from './use-cases/get-call-session.use-case';
+import { GetCallTokenUseCase } from './use-cases/get-call-token.use-case';
 import { CallType } from '../infrastructure/persistence/entities/call-session.entity';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class CallFacade {
         private readonly endCallUseCase: EndCallUseCase,
         private readonly getExpertCallSessionsUseCase: GetExpertCallSessionsUseCase,
         private readonly getCallSessionUseCase: GetCallSessionUseCase,
+        private readonly getCallTokenUseCase: GetCallTokenUseCase,
     ) { }
 
     async initiate(userId: number, expertId: number, type: CallType = CallType.AUDIO) {
@@ -37,5 +39,9 @@ export class CallFacade {
 
     async getSession(sessionId: number) {
         return this.getCallSessionUseCase.execute(sessionId);
+    }
+
+    async getCallToken(userId: number, sessionId: number) {
+        return this.getCallTokenUseCase.execute(userId, sessionId);
     }
 }

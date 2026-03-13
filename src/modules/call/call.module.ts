@@ -9,6 +9,7 @@ import { AcceptCallUseCase } from './application/use-cases/accept-call.use-case'
 import { EndCallUseCase } from './application/use-cases/end-call.use-case';
 import { GetExpertCallSessionsUseCase } from './application/use-cases/get-expert-sessions.use-case';
 import { GetCallSessionUseCase } from './application/use-cases/get-call-session.use-case';
+import { GetCallTokenUseCase } from './application/use-cases/get-call-token.use-case';
 import { CallController } from './api/controllers/call.controller';
 import { TwimlController } from './api/controllers/twiml.controller';
 import { CallGateway } from './call.gateway';
@@ -28,6 +29,7 @@ import { CallFacade } from './application/call.facade';
         EndCallUseCase,
         GetExpertCallSessionsUseCase,
         GetCallSessionUseCase,
+        GetCallTokenUseCase,
         CallGateway,
     ],
     exports: [CallFacade, TwilioService, CallGateway],

@@ -50,6 +50,9 @@ export class EndCallUseCase {
     this.callGateway.server
       .to(`call_room_${sessionId}`)
       .emit('call_ended', { sessionId });
+
+    // Also notify expert dashboard
+    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', { sessionId, session: savedSession });
     this.eventEmitter.emit(
       'call.ended',
       new CallEndedEvent(
