@@ -1,7 +1,8 @@
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Req, Header } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
+import { CallSessionFilter } from '../../application/use-cases/get-expert-sessions.use-case';
 
 @Controller('call')
 @UseGuards(JwtAuthGuard)
@@ -11,6 +12,7 @@ export class CallController {
     ) { }
 
     @Post('initiate')
+    // ... (lines 14-24 remains same)
     async initiate(
         @Req() req: any,
         @Body() body: { expertId: number; type?: CallType }
@@ -41,5 +43,17 @@ export class CallController {
     ) {
         console.log(`[CallController] End call: sessionId=${body.sessionId}`);
         return this.callFacade.end(body.sessionId);
+    }
+
+    @Get('sessions/appointments/pending')
+    @Header('Cache-Control', 'no-store')
+    async getPendingAppointments(@Req() req: any) {
+        return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.RECENT_PENDING);
+    }
+
+    @Get('sessions/appointments/completed')
+    @Header('Cache-Control', 'no-store')
+    async getCompletedAppointments(@Req() req: any) {
+        return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.RECENT_COMPLETED);
     }
 }

@@ -27,7 +27,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(
         @Inject(forwardRef(() => CallFacade))
         private readonly callFacade: CallFacade,
-    ) {}
+    ) { }
 
     handleConnection(client: Socket) {
         this.logger.log(`Client connected to call: ${client.id}`);
@@ -51,11 +51,18 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     ) {
         this.expertSockets.set(payload.expertId, client.id);
         client.join(`expert_${payload.expertId}`);
-        this.logger.log(`Expert ${payload.expertId} registered for calls`);
+        this.logger.log(`Expert ${payload.expertId} registered for calls. Socket ID: ${client.id}`);
         return { status: 'registered' };
     }
 
     notifyExpertNewCall(expertId: number, callData: any) {
+        // @ts-ignore - access internal adapter rooms
+        const rooms = this.server.sockets?.adapter?.rooms;
+        const expertRoom = rooms?.get(`expert_${expertId}`);
+        const socketCount = expertRoom ? expertRoom.size : 0;
+
+        this.logger.log(`Attempting to notify expert room expert_${expertId}. Active sockets in room: ${socketCount}`);
+
         this.server.to(`expert_${expertId}`).emit('new_call_request', callData);
         this.logger.log(`Notified expert room expert_${expertId} of new call ${callData.session.id}`);
     }
