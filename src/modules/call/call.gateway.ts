@@ -8,7 +8,8 @@ import {
     ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger, forwardRef } from '@nestjs/common';
+import { CallFacade } from './application/call.facade';
 
 @WebSocketGateway({
     cors: {
@@ -22,6 +23,11 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     private logger: Logger = new Logger('CallGateway');
     private expertSockets = new Map<number, string>(); // expertId -> socketId
+
+    constructor(
+        @Inject(forwardRef(() => CallFacade))
+        private readonly callFacade: CallFacade,
+    ) {}
 
     handleConnection(client: Socket) {
         this.logger.log(`Client connected to call: ${client.id}`);
@@ -62,5 +68,20 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.join(`call_room_${payload.sessionId}`);
         this.logger.log(`Client ${client.id} joined call_room_${payload.sessionId}`);
         return { status: 'joined' };
+    }
+
+    @SubscribeMessage('end_call')
+    async handleEndCall(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: { sessionId: number },
+    ) {
+        this.logger.log(`end_call received for sessionId=${payload.sessionId} from ${client.id}`);
+        try {
+            await this.callFacade.end(payload.sessionId);
+            return { status: 'ended' };
+        } catch (error) {
+            this.logger.error(`Failed to end call sessionId=${payload.sessionId}`, error);
+            return { status: 'error', message: error.message };
+        }
     }
 }
