@@ -41,6 +41,9 @@ export class CreateReviewUseCase {
       throw new ExpertNotFoundError(expertId);
     }
 
+    let chatSessionId: number | null = null;
+    let callSessionId: number | null = null;
+
     if (sessionId) {
       let sessionUser: number | null = null;
       let sessionExpert: number | null = null;
@@ -51,6 +54,7 @@ export class CreateReviewUseCase {
       if (chatSession) {
         sessionUser = chatSession.user_id;
         sessionExpert = chatSession.expert_id;
+        chatSessionId = sessionId;
       }
 
       if (!sessionUser) {
@@ -60,6 +64,7 @@ export class CreateReviewUseCase {
         if (callSession) {
           sessionUser = callSession.user_id;
           sessionExpert = callSession.expert_id;
+          callSessionId = sessionId;
         }
       }
 
@@ -72,8 +77,9 @@ export class CreateReviewUseCase {
         throw new CannotReviewUnparticipatedSessionError();
       }
 
+      const queryCondition: any = chatSessionId ? { session_id: chatSessionId } : { call_session_id: callSessionId };
       const existingReview = await this.reviewRepository.findOne({
-        where: { session_id: sessionId },
+        where: queryCondition,
       });
       if (existingReview) {
         throw new SessionAlreadyReviewedError();
@@ -83,7 +89,8 @@ export class CreateReviewUseCase {
     const review = this.reviewRepository.create({
       user_id: userId,
       expert_id: expertId,
-      session_id: sessionId,
+      session_id: chatSessionId,
+      call_session_id: callSessionId,
       rating,
       comment,
     });
