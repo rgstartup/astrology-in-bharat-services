@@ -1,5 +1,5 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
 import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
 import { InsufficientBalanceError } from '../../domain/errors/insufficient-balance.error';
@@ -7,6 +7,8 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/persisten
 
 @Injectable()
 export class DebitUseCase {
+  private readonly logger = new Logger(DebitUseCase.name);
+
   constructor(private readonly dataSource: DataSource) { }
 
   async execute(
@@ -14,7 +16,7 @@ export class DebitUseCase {
     amount: number,
     purpose: TransactionPurpose,
     referenceId?: string,
-    externalQueryRunner?: any,
+    externalQueryRunner?: QueryRunner,
   ): Promise<Wallet> {
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
 
@@ -26,63 +28,80 @@ export class DebitUseCase {
     }
 
     try {
+      this.logger.log(`[DEBIT_TX] User: ${userId}, Amount: ${amount}, Reference: ${referenceId}`);
+
+      // 1. Fetch wallet with lock (verify existence)
       const wallet = await qr.manager.findOne(Wallet, {
         where: { user_id: userId },
         lock: { mode: 'pessimistic_write' },
       });
-      if (!wallet || Number(wallet.balance) < amount) {
+
+      if (!wallet) {
+        this.logger.error(`[DEBIT_TX] User ${userId} wallet not found`);
+        throw new BadRequestException('Wallet not found');
+      }
+
+      const balance = Number(wallet.balance) || 0;
+      if (balance < amount) {
+        this.logger.error(`[DEBIT_TX] User ${userId} insufficient balance. Has: ${balance}, Needs: ${amount}`);
         throw new InsufficientBalanceError();
       }
 
-      wallet.balance = Number(wallet.balance) - Number(amount);
-      await qr.manager.save(wallet);
+      // 2. Perform Atomic Balance Update via QueryBuilder
+      // This is the most reliable way to avoid any TypeORM object-state issues
+      await qr.manager.createQueryBuilder()
+        .update(Wallet)
+        .set({ balance: () => `balance - ${Number(amount)}` })
+        .where('user_id = :userId', { userId })
+        .execute();
+      
+      this.logger.log(`[DEBIT_TX] Balance subtracted for user ${userId}`);
 
+      // 3. Create Transaction Record
       const transaction = qr.manager.create(Transaction, {
         wallet_id: wallet.id,
-        amount,
+        amount: amount,
         type: TransactionType.DEBIT,
-        purpose,
+        purpose: purpose,
         reference_id: referenceId,
       });
-      await qr.manager.save(transaction);
+      await qr.manager.save(Transaction, transaction);
 
-      // --- NEW: Tracking Logic ---
+      // 4. Update Client Spending Tracking
       if (purpose === TransactionPurpose.CONSULTATION || purpose === TransactionPurpose.PRODUCT_PURCHASE) {
         try {
-          // 1. Get or Create Profile
           let clientProfile = await qr.manager.findOne(ProfileClient, {
-            where: { user: { id: userId } },
+            where: { user_id: userId },
             select: ['id']
           });
 
           if (!clientProfile) {
-             clientProfile = qr.manager.create(ProfileClient, { user: { id: userId } as any, user_id: userId });
-             clientProfile = await qr.manager.save(clientProfile);
-             console.log(`[DEBIT_TRACKING] Created shell profile for user ${userId} for spending tracking`);
+            clientProfile = qr.manager.create(ProfileClient, { user_id: userId });
+            clientProfile = await qr.manager.save(ProfileClient, clientProfile);
           }
 
-          // 2. Atomic Update
           await qr.manager.createQueryBuilder()
             .update(ProfileClient)
             .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
             .where('id = :id', { id: clientProfile.id })
             .execute();
-          
-          console.log(`[DEBIT_TRACKING] Updated total_spending for client ${clientProfile.id} (user ${userId}) with amount ${amount}`);
-        } catch (trackingError) {
-          console.error('[DEBIT_TRACKING] Failed to track client spending:', trackingError);
+        } catch (e) {
+          this.logger.error(`[DEBIT_TX] Spending tracking failed: ${e.message}`);
         }
       }
-      // ---------------------------
 
       if (!externalQueryRunner) {
         await qr.commitTransaction();
       }
-      return wallet;
+
+      // Refresh and return
+      const refreshedWallet = await qr.manager.findOne(Wallet, { where: { user_id: userId } });
+      return refreshedWallet as Wallet;
     } catch (err) {
       if (!externalQueryRunner && qr.isTransactionActive) {
         await qr.rollbackTransaction();
       }
+      this.logger.error(`[DEBIT_TX] Failed: ${err.message}`);
       throw err;
     } finally {
       if (!externalQueryRunner) {

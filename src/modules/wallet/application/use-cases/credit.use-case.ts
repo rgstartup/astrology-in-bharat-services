@@ -1,5 +1,5 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
 import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
@@ -9,6 +9,8 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persisten
 
 @Injectable()
 export class CreditUseCase {
+  private readonly logger = new Logger(CreditUseCase.name);
+
   constructor(
     private readonly dataSource: DataSource,
     private readonly notificationFacade: NotificationFacade,
@@ -20,96 +22,105 @@ export class CreditUseCase {
     amount: number,
     purpose: TransactionPurpose,
     referenceId?: string,
+    externalQueryRunner?: QueryRunner,
   ): Promise<Wallet> {
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const qr = externalQueryRunner || this.dataSource.createQueryRunner();
+    
+    if (!externalQueryRunner) {
+      await qr.connect();
+      await qr.startTransaction();
+    }
 
     try {
-      let wallet = await queryRunner.manager.findOne(Wallet, {
+      this.logger.log(`[CREDIT_TX] User: ${userId}, Amount: ${amount}, Reference: ${referenceId}`);
+
+      // 1. Get or Create Wallet
+      let wallet = await qr.manager.findOne(Wallet, {
         where: { user_id: userId },
         lock: { mode: 'pessimistic_write' },
       });
+
       if (!wallet) {
-        wallet = queryRunner.manager.create(Wallet, {
+        wallet = qr.manager.create(Wallet, {
           user_id: userId,
           balance: 0,
           reserved_balance: 0,
         });
+        wallet = await qr.manager.save(Wallet, wallet);
       }
 
-      wallet.balance = Number(wallet.balance) + Number(amount);
-      await queryRunner.manager.save(wallet);
+      // 2. Atomic Balance update via QueryBuilder
+      await qr.manager.createQueryBuilder()
+        .update(Wallet)
+        .set({ balance: () => `balance + ${Number(amount)}` })
+        .where('user_id = :userId', { userId })
+        .execute();
+      
+      this.logger.log(`[CREDIT_TX] Balance added for user ${userId}`);
 
-      const transaction = queryRunner.manager.create(Transaction, {
+      // 3. Record Transaction
+      const transaction = qr.manager.create(Transaction, {
         wallet_id: wallet.id,
-        amount,
+        amount: amount,
         type: TransactionType.CREDIT,
-        purpose,
+        purpose: purpose,
         reference_id: referenceId,
       });
-      await queryRunner.manager.save(transaction);
+      await qr.manager.save(Transaction, transaction);
 
-      // --- NEW: Tracking Logic ---
+      // 4. Update Expert Earning Tracking
       if (purpose === TransactionPurpose.CONSULTATION || purpose === TransactionPurpose.PRODUCT_PURCHASE) {
         try {
-          // 1. Get or Create Profile
-          let expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
-            where: { user: { id: userId } },
+          let expertProfile = await qr.manager.findOne(ProfileExpert, {
+            where: { user_id: userId },
             select: ['id']
           });
 
           if (!expertProfile) {
-            expertProfile = queryRunner.manager.create(ProfileExpert, { user: { id: userId } as any, user_id: userId });
-            expertProfile = await queryRunner.manager.save(expertProfile);
-            console.log(`[CREDIT_TRACKING] Created shell profile for expert user ${userId} for earning tracking`);
+            expertProfile = qr.manager.create(ProfileExpert, { user_id: userId });
+            expertProfile = await qr.manager.save(ProfileExpert, expertProfile);
           }
 
-          // 2. Atomic Update
-          await queryRunner.manager.createQueryBuilder()
+          await qr.manager.createQueryBuilder()
             .update(ProfileExpert)
             .set({ total_earning: () => `COALESCE(total_earning, 0) + ${Number(amount)}` })
             .where('id = :id', { id: expertProfile.id })
             .execute();
-          
-          console.log(`[CREDIT_TRACKING] Updated total_earning for expert ${expertProfile.id} (user ${userId}) with amount ${amount}`);
-        } catch (trackingError) {
-          console.error('[CREDIT_TRACKING] Failed to track expert earning:', trackingError);
+        } catch (e) {
+          this.logger.error(`[CREDIT_TX] Earning tracking failed: ${e.message}`);
         }
       }
-      // ---------------------------
 
-      await queryRunner.commitTransaction();
+      if (!externalQueryRunner) {
+        await qr.commitTransaction();
 
-      // Notifications follow commit
-      if (purpose === TransactionPurpose.RECHARGE) {
-        const title = 'Wallet Recharged';
-        const message = `Your wallet has been credited with ₹${amount}`;
-
-        await this.notificationFacade.create(
-          userId,
-          NotificationType.WALLET_RECHARGE,
-          title,
-          message,
-          { amount, referenceId },
-        );
-
-        this.notificationGateway.emitToUser(userId, 'wallet_updated', {
-          type: 'credit',
-          amount,
-          title,
-          message,
-        });
+        // Send notifications ONLY for final commit and specifically for Recharges
+        if (purpose === TransactionPurpose.RECHARGE) {
+          try {
+            const title = 'Wallet Recharged';
+            const message = `Your wallet has been credited with ₹${amount}`;
+            await this.notificationFacade.create(userId, NotificationType.WALLET_RECHARGE, title, message, { amount, referenceId });
+            this.notificationGateway.emitToUser(userId, 'wallet_updated', { type: 'credit', amount, title, message });
+          } catch (notifErr) {
+            this.logger.error(`[CREDIT_TX] Notification failed: ${notifErr.message}`);
+          }
+        }
       }
 
-      return wallet;
+      const refreshedWallet = await qr.manager.findOne(Wallet, { where: { user_id: userId } });
+      return refreshedWallet as Wallet;
     } catch (err) {
-      await queryRunner.rollbackTransaction();
+      if (!externalQueryRunner && qr.isTransactionActive) {
+        await qr.rollbackTransaction();
+      }
+      this.logger.error(`[CREDIT_TX] Failed: ${err.message}`);
       throw err;
     } finally {
-      await queryRunner.release();
+      if (!externalQueryRunner) {
+        await qr.release();
+      }
     }
   }
 }
