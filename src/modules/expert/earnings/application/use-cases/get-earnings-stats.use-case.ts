@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
-// import { ProfileExpert } from '../../profile/entities/profile-expert.entity';
+import { CallSession, CallSessionStatus, CallType } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
+import { Order, OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
@@ -13,6 +15,10 @@ export class GetEarningsStatsUseCase {
     constructor(
         @InjectRepository(ChatSession)
         private sessionRepo: Repository<ChatSession>,
+        @InjectRepository(CallSession)
+        private callRepo: Repository<CallSession>,
+        @InjectRepository(OrderItem)
+        private orderItemRepo: Repository<OrderItem>,
         @InjectRepository(ProfileExpert)
         private expertRepo: Repository<ProfileExpert>,
         private walletFacade: WalletFacade,
@@ -37,23 +43,45 @@ export class GetEarningsStatsUseCase {
             startDate.setHours(0, 0, 0, 0);
         }
 
-        const sessions = await this.sessionRepo.find({
-            where: {
-                expert_id: expertId,
-                status: ChatSessionStatus.COMPLETED,
-                created_at: Between(startDate, new Date()),
-            },
-            relations: ['user'],
-        });
+        const [sessions, calls, orderItems] = await Promise.all([
+            this.sessionRepo.find({
+                where: {
+                    expert_id: expertId,
+                    status: ChatSessionStatus.COMPLETED,
+                    created_at: Between(startDate, new Date()),
+                },
+                relations: ['user'],
+            }),
+            this.callRepo.find({
+                where: {
+                    expert_id: expertId,
+                    status: CallSessionStatus.COMPLETED,
+                    created_at: Between(startDate, new Date()),
+                },
+                relations: ['user'],
+            }),
+            this.orderItemRepo.find({
+                where: {
+                    product: { expert_id: expertId },
+                    order: { status: OrderStatus.PAID },
+                    created_at: Between(startDate, new Date()),
+                },
+                relations: ['order', 'order.user', 'product'],
+            })
+        ]);
 
-        const totalRevenue = sessions.reduce((acc, s) => acc + (s.total_cost || 0), 0);
-        const chatRevenue = totalRevenue;
+        const chatRevenue = sessions.reduce((acc, s) => acc + (s.total_cost || 0), 0);
+        const callRevenue = calls.reduce((acc, c) => acc + (c.final_price || 0), 0);
+        const productRevenue = orderItems.reduce((acc, oi) => acc + (Number(oi.price) * (oi.quantity || 1)), 0);
+        
+        const totalRevenue = chatRevenue + callRevenue + productRevenue;
 
         // Service Color Mapping
         const serviceColors: Record<string, string> = {
             "Chat Consultation": "#f59e0b",      // Amber
             "Video Call Consultation": "#8b5cf6", // Purple
             "Call Consultation": "#10b981",       // Green
+            "Product Sales": "#ec4899",           // Pink
             "Report Generation": "#ef4444",       // Red
             "Horoscope Analysis": "#3b82f6",      // Blue
             "Custom Service": "#6b7280"           // Gray
@@ -79,22 +107,40 @@ export class GetEarningsStatsUseCase {
             }
         });
 
+        calls.forEach(c => {
+            const label = months[c.created_at.getMonth()];
+            if (incomeTrendsMap.has(label)) {
+                incomeTrendsMap.set(label, incomeTrendsMap.get(label) + (c.final_price || 0));
+            }
+        });
+
+        orderItems.forEach(oi => {
+            const label = months[oi.created_at.getMonth()];
+            if (incomeTrendsMap.has(label)) {
+                incomeTrendsMap.set(label, incomeTrendsMap.get(label) + (Number(oi.price) * (oi.quantity || 1)));
+            }
+        });
+
         const incomeTrends = Array.from(incomeTrendsMap, ([label, value]) => ({ label, value }));
 
         // Top Users
         const userStats = new Map();
-        sessions.forEach(s => {
-            const userData = userStats.get(s.user_id) || {
-                id: s.user_id,
-                name: s.user?.name || 'Unknown',
-                avatar: s.user?.avatar || '',
+        const updateTopUser = (userId: number, amount: number, userObj: any) => {
+            const userData = userStats.get(userId) || {
+                id: userId,
+                name: userObj?.name || 'Unknown',
+                avatar: userObj?.avatar || '',
                 amount: 0,
                 sessions: 0
             };
-            userData.amount += (s.total_cost || 0);
+            userData.amount += amount;
             userData.sessions += 1;
-            userStats.set(s.user_id, userData);
-        });
+            userStats.set(userId, userData);
+        };
+
+        sessions.forEach(s => updateTopUser(s.user_id, s.total_cost || 0, s.user));
+        calls.forEach(c => updateTopUser(c.user_id, c.final_price || 0, c.user));
+        orderItems.forEach(oi => updateTopUser(oi.order?.user_id, Number(oi.price) * (oi.quantity || 1), oi.order?.user));
 
         const topUsers = Array.from(userStats.values())
             .sort((a, b) => b.amount - a.amount)
@@ -107,83 +153,65 @@ export class GetEarningsStatsUseCase {
             }))
             .slice(0, 5);
 
-        // Standard Services
-        interface ServiceStat {
-            id: string;
-            name: string;
-            amount: number;
-            usage: number;
-        }
-        const services: ServiceStat[] = [];
+        const serviceStatsMap = new Map();
 
-        if ((expert.chat_price || 0) > 0) {
-            services.push({
-                id: 'srv_chat',
-                name: 'Chat Consultation',
-                amount: chatRevenue,
-                usage: sessions.length
-            });
-        }
-        if ((expert.call_price || 0) > 0) {
-            services.push({
+        // Add Chat
+        serviceStatsMap.set('Chat Consultation', {
+            id: 'srv_chat',
+            name: 'Chat Consultation',
+            amount: chatRevenue,
+            usage: sessions.length
+        });
+
+        // Add Calls
+        const audioCalls = calls.filter(c => c.type === CallType.AUDIO);
+        const videoCalls = calls.filter(c => c.type === CallType.VIDEO);
+
+        if (audioCalls.length > 0 || (expert.call_price || 0) > 0) {
+            serviceStatsMap.set('Call Consultation', {
                 id: 'srv_call',
                 name: 'Call Consultation',
-                amount: 0,
-                usage: 0
+                amount: audioCalls.reduce((acc, c) => acc + (c.final_price || 0), 0),
+                usage: audioCalls.length
             });
         }
-        if ((expert.video_call_price || 0) > 0) {
-            services.push({
+
+        if (videoCalls.length > 0 || (expert.video_call_price || 0) > 0) {
+            serviceStatsMap.set('Video Call Consultation', {
                 id: 'srv_video',
                 name: 'Video Call Consultation',
-                amount: 0,
-                usage: 0
-            });
-        }
-        if ((expert.report_price || 0) > 0) {
-            services.push({
-                id: 'srv_report',
-                name: 'Report Generation',
-                amount: 0,
-                usage: 0
-            });
-        }
-        if ((expert.horoscope_price || 0) > 0) {
-            services.push({
-                id: 'srv_horoscope',
-                name: 'Horoscope Analysis',
-                amount: 0,
-                usage: 0
+                amount: videoCalls.reduce((acc, c) => acc + (c.final_price || 0), 0),
+                usage: videoCalls.length
             });
         }
 
-        // Custom Services
-        if (expert.custom_services && Array.isArray(expert.custom_services)) {
-            expert.custom_services.forEach((cs: any, index: number) => {
-                services.push({
-                    id: `srv_custom_${index}`,
-                    name: cs.name || 'Custom Service',
-                    amount: 0,
-                    usage: 0,
-                });
+        // Add Products
+        if (orderItems.length > 0) {
+            serviceStatsMap.set('Product Sales', {
+                id: 'srv_products',
+                name: 'Product Sales',
+                amount: productRevenue,
+                usage: orderItems.length
             });
+            // Also add individual products if needed, but "Best Performance Service" usually refers to categories
         }
 
-        const sortedServices = services.sort((a, b) => b.amount - a.amount);
-
-        const topServices = sortedServices.map(s => ({
-            id: s.id,
-            name: s.name,
-            revenue: s.amount,
-            usageCount: s.usage,
-            color: getColor(s.name)
-        }));
+        const topServices = Array.from(serviceStatsMap.values())
+            .sort((a, b) => b.amount - a.amount)
+            .map(s => ({
+                id: s.id,
+                name: s.name,
+                revenue: s.amount,
+                usageCount: s.usage,
+                color: getColor(s.name)
+            }));
 
         // Revenue Breakdown
         const breakdownData = [
             { category: 'Chat', amount: chatRevenue, color: getColor('Chat Consultation') },
-            { category: 'Others', amount: 0, color: getColor('Others') }
-        ].filter(item => item.amount >= 0);
+            { category: 'Call', amount: callRevenue, color: getColor('Call Consultation') },
+            { category: 'Products', amount: productRevenue, color: getColor('Product Sales') },
+        ].filter(item => item.amount > 0);
 
         const totalBreakdownAmount = breakdownData.reduce((sum, item) => sum + item.amount, 0);
         const revenueBreakdown = breakdownData

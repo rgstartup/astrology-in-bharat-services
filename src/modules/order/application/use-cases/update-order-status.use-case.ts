@@ -11,6 +11,9 @@ import { NotificationGateway } from '@/modules/notification/api/gateways/notific
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+
 @Injectable()
 export class UpdateOrderStatusUseCase {
   constructor(
@@ -21,6 +24,7 @@ export class UpdateOrderStatusUseCase {
     private notificationFacade: NotificationFacade,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
+    private walletFacade: WalletFacade,
     private dataSource: DataSource,
   ) { }
 
@@ -73,17 +77,25 @@ export class UpdateOrderStatusUseCase {
 
           // 2. Track Expert Earnings
           for (const item of orderWithItems.items) {
-              if (item.product && item.product.expert_id) {
-                const itemTotal = Number(item.price) * (item.quantity || 1);
-                try {
-                  await queryRunner.manager.createQueryBuilder()
-                    .update(ProfileExpert)
-                    .set({ total_earning: () => `COALESCE(total_earning, 0) + ${Number(itemTotal)}` })
-                    .where('id = :id', { id: item.product.expert_id })
-                    .execute();
-                  console.log(`[ORDER_STATUS_TRACKING] Updated earnings for expert profile ${item.product.expert_id} with amount ${itemTotal}`);
-                } catch (e) { console.error('[ORDER_STATUS_TRACKING] Expert earning error:', e); }
-              }
+            if (item.product && item.product.expert_id) {
+              const itemTotal = Number(item.price) * (item.quantity || 1);
+              try {
+                const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
+                  where: { id: item.product.expert_id },
+                  select: ['user_id']
+                });
+
+                if (expertProfile?.user_id) {
+                  await this.walletFacade.credit(
+                    expertProfile.user_id,
+                    itemTotal,
+                    TransactionPurpose.PRODUCT_PURCHASE,
+                    `order_${order.id}_item_${item.id}`
+                  );
+                  console.log(`[ORDER_STATUS_TRACKING] Credited expert user ${expertProfile.user_id} with amount ${itemTotal} for order ${order.id}`);
+                }
+              } catch (e) { console.error('[ORDER_STATUS_TRACKING] Expert earning error:', e); }
+            }
           }
         }
         await queryRunner.commitTransaction();

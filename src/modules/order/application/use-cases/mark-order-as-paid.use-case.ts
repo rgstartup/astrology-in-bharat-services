@@ -4,12 +4,15 @@ import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/persistence/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
 
 @Injectable()
 export class MarkOrderAsPaidUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
+    private walletFacade: WalletFacade,
     private dataSource: DataSource,
   ) { }
 
@@ -60,12 +63,20 @@ export class MarkOrderAsPaidUseCase {
         if (item.product && item.product.expert_id) {
           const itemTotal = Number(item.price) * (item.quantity || 1);
           try {
-            await queryRunner.manager.createQueryBuilder()
-              .update(ProfileExpert)
-              .set({ total_earning: () => `COALESCE(total_earning, 0) + ${Number(itemTotal)}` })
-              .where('id = :id', { id: item.product.expert_id })
-              .execute();
-            console.log(`[MARK_AS_PAID_TRACKING] Updated earnings for expert profile ${item.product.expert_id} with amount ${itemTotal}`);
+            const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
+              where: { id: item.product.expert_id },
+              select: ['user_id']
+            });
+
+            if (expertProfile?.user_id) {
+              await this.walletFacade.credit(
+                expertProfile.user_id,
+                itemTotal,
+                TransactionPurpose.PRODUCT_PURCHASE,
+                `order_${order.id}_item_${item.id}`
+              );
+              console.log(`[MARK_AS_PAID_TRACKING] Credited expert user ${expertProfile.user_id} with amount ${itemTotal} for order ${order.id}`);
+            }
           } catch (e) { console.error('[MARK_AS_PAID_TRACKING] Expert earning error:', e); }
         }
       }

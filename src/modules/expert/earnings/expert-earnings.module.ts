@@ -8,12 +8,15 @@ import { GetWalletBalanceUseCase } from './application/use-cases/get-wallet-bala
 import { GetWalletTransactionsUseCase } from './application/use-cases/get-wallet-transactions.use-case';
 import { RequestWithdrawalUseCase } from './application/use-cases/request-withdrawal.use-case';
 import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
+import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
+import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([ChatSession, ProfileExpert]),
+        TypeOrmModule.forFeature([ChatSession, CallSession, Order, OrderItem, ProfileExpert]),
         WalletModule,
     ],
     controllers: [ExpertEarningsController, ExpertWalletController],
