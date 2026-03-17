@@ -157,4 +157,22 @@ export class AdminController {
   ) {
     return this.adminFacade.updateWithdrawalStatus(id, body.status, admin.id, body.remark);
   }
+
+  // Bulk Coupon Assignment Utilities
+  @Post('users/filter-count')
+  async getFilteredUsersCount(@Body() filters: any) {
+    const count = await this.adminFacade.getFilteredUsersCount(filters);
+    return { count };
+  }
+
+  @Post('users/filtered-list')
+  async getFilteredUsersList(@Body() filters: any) {
+    return this.adminFacade.getFilteredUsersList(filters);
+  }
+
+  @Post('coupons/assign-bulk')
+  async assignCouponBulk(@Body() body: { couponCode: string; filters: any }) {
+    return this.adminFacade.assignCouponBulk(body.couponCode, body.filters);
+  }
 }
+
