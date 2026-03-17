@@ -8,9 +8,14 @@ import { GetCouponsUseCase } from './application/use-cases/get-coupons.use-case'
 import { GetCouponStatsUseCase } from './application/use-cases/get-coupon-stats.use-case';
 import { UpdateCouponUseCase } from './application/use-cases/update-coupon.use-case';
 import { DeleteCouponUseCase } from './application/use-cases/delete-coupon.use-case';
+import { GetMyRewardsUseCase } from './application/use-cases/get-my-rewards.use-case';
+import { ApplyCouponUseCase } from './application/use-cases/apply-coupon.use-case';
+import { CouponController } from './api/controllers/coupon.controller';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Coupon, UserCoupon])],
+
+    controllers: [CouponController],
 
     providers: [
         CouponFacade,
@@ -19,7 +24,10 @@ import { DeleteCouponUseCase } from './application/use-cases/delete-coupon.use-c
         GetCouponStatsUseCase,
         UpdateCouponUseCase,
         DeleteCouponUseCase,
+        GetMyRewardsUseCase,
+        ApplyCouponUseCase,
     ],
     exports: [CouponFacade],
 })
 export class CouponModule { }
+

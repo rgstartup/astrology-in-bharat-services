@@ -25,6 +25,7 @@ import { SupportModule } from '@/modules/support/support.module';
 import { CallModule } from '@/modules/call/call.module';
 import { LiveDarshanModule } from '@/modules/live-darshan/live-darshan.module';
 import { AgentModule } from '@/modules/agent/agent.module';
+import { CouponModule } from '@/modules/coupon/coupon.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { AgentModule } from '@/modules/agent/agent.module';
     CallModule,
     LiveDarshanModule,
     AgentModule,
+    CouponModule,
   ]
 })
 export class AppModule { }
