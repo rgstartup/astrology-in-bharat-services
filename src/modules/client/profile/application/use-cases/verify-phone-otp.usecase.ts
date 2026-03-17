@@ -23,6 +23,23 @@ export class VerifyPhoneOtpUseCase {
         }
 
         if (!serviceSid) {
+            if (process.env.NODE_ENV === 'development') {
+                if (code === '123456') {
+                    // Bypass Twilio check and directly approve
+                    const profile = await this.profileRepo.findOne({ where: { user: { id: userId } } });
+                    if (!profile) {
+                        throw new BadRequestException('Profile not found.');
+                    }
+
+                    profile.phone = phone; 
+                    profile.phone_verified_at = new Date();
+                    await this.profileRepo.save(profile);
+
+                    return { success: true, message: 'Phone number verified successfully (Mock Mode).' };
+                } else {
+                    throw new BadRequestException('Invalid mock OTP. Use 123456.');
+                }
+            }
             throw new BadRequestException('Twilio Verify Service SID is not configured.');
         }
 

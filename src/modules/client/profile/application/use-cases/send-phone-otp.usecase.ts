@@ -22,6 +22,11 @@ export class SendPhoneOtpUseCase {
             throw new BadRequestException('Twilio is not configured on the server. Missing Account SID or Auth Token.');
         }
         if (!serviceSid) {
+            // In development, we can allow bypassing Twilio Verify if SID is missing
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`[Twilio Mock] Service SID missing. Using mock OTP '123456' for ${phone}`);
+                return { success: true, message: 'OTP sent successfully (Mock Mode: 123456)' };
+            }
             throw new BadRequestException('Twilio Verify Service SID is not configured in .env');
         }
 
