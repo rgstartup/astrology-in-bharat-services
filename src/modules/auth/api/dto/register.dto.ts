@@ -29,8 +29,28 @@ export class RegisterDto {
   roles: string[] = ['client'];
 }
 
-export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) { }
+export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) {
+  @IsOptional()
+  @IsString()
+  origin?: string;
+}
 
-export class ResetPasswordDto extends PickType(RegisterDto, ['password']) { }
+export class ResetPasswordDto {
+  @IsString()
+  @MinLength(6)
+  password: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  confirmPassword?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  confirm_password?: string;
+}
 
 export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) { }
+
+
