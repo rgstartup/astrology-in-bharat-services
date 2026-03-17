@@ -10,7 +10,7 @@ export class FindAllSessionsUseCase {
         private sessionRepo: Repository<ChatSession>,
     ) { }
 
-    async execute(filter?: string) {
+    async execute(filter?: string, page: number = 1, limit: number = 10) {
         const query = this.sessionRepo.createQueryBuilder('session')
             .leftJoinAndSelect('session.user', 'user')
             .leftJoinAndSelect('session.expert', 'expert')
@@ -34,11 +34,19 @@ export class FindAllSessionsUseCase {
                 .andWhere('session.terminated_by = :terminatedBy', { terminatedBy: 'admin' });
         }
 
-        const { entities, raw } = await query.getRawAndEntities();
+        const total = await query.getCount();
 
-        return entities.map((entity, index) => ({
+        const { entities, raw } = await query
+            .offset((page - 1) * limit)
+            .limit(limit)
+            .getRawAndEntities();
+
+        const items = entities.map((entity, index) => ({
             ...entity,
             message_count: parseInt(raw[index].message_count, 10) || 0,
         }));
+
+        return { items, total };
     }
+
 }

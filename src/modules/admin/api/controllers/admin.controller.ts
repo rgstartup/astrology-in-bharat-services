@@ -86,9 +86,14 @@ export class AdminController {
   }
 
   @Get('live-sessions')
-  async getLiveSessions(@Query('type') type?: string) {
-    return this.adminFacade.getLiveSessions(type);
+  async getLiveSessions(
+    @Query('type') type?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.adminFacade.getLiveSessions(type, page, limit);
   }
+
 
   @Get('live-sessions/:id/history')
   async getChatHistory(@Param('id', ParseIntPipe) id: number) {

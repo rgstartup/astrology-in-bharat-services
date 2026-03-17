@@ -28,9 +28,10 @@ export class AdminFacade {
     return this.getExpertDetailUseCase.execute(id);
   }
 
-  async getLiveSessions(filter?: string) {
-    return this.chatFacade.findAllSessions(filter);
+  async getLiveSessions(filter?: string, page?: number, limit?: number) {
+    return this.chatFacade.findAllSessions(filter, page, limit);
   }
+
 
   async terminateSession(sessionId: number, adminId: number, userMessage?: string, expertMessage?: string) {
     return this.chatFacade.adminTerminateSession(sessionId, adminId, userMessage, expertMessage);

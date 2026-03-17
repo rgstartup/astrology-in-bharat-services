@@ -95,9 +95,10 @@ export class ChatFacade {
         return this.countExpertSessionsUseCase.execute(expertId, options);
     }
 
-    async findAllSessions(filter?: string) {
-        return this.findAllSessionsUseCase.execute(filter);
+    async findAllSessions(filter?: string, page?: number, limit?: number) {
+        return this.findAllSessionsUseCase.execute(filter, page, limit);
     }
+
 
     async adminTerminateSession(sessionId: number, adminId: number, userMessage?: string, expertMessage?: string) {
         return this.adminTerminateSessionUseCase.execute(sessionId, adminId, userMessage, expertMessage);
