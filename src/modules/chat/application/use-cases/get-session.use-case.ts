@@ -13,7 +13,7 @@ export class GetSessionUseCase {
     async execute(id: number) {
         return this.sessionRepo.findOne({
             where: { id },
-            relations: ['user'],
+            relations: ['user', 'expert', 'expert.user'],
         });
     }
 }
