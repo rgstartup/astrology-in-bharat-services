@@ -34,7 +34,7 @@ export class ReviewsController {
   async getReviews(
     @Param('expertId', ParseIntPipe) expertId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
     return this.reviewsFacade.getExpertReviews(expertId, page, limit);
   }
