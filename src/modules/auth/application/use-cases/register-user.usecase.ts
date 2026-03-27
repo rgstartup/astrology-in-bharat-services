@@ -75,6 +75,7 @@ export class RegisterUserUseCase {
         response.user.email,
         response.user.name,
         verification_token,
+        response.user.roles.map((r) => r.name),
       ),
     );
   }

@@ -38,7 +38,11 @@ export class ResendVerificationEmailUseCase {
 
     this.eventEmitter.emit(
       'auth.email.verify',
-      new VerifyEmailEvent(user.email, verification_token),
+      new VerifyEmailEvent(
+        user.email,
+        verification_token,
+        user.roles.map((r) => r.name),
+      ),
     );
   }
 }

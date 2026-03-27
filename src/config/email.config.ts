@@ -8,6 +8,7 @@ export interface EmailConfig {
   pass: string;
   from: string;
   frontendUrl: string;
+  expertFrontendUrl: string;
 }
 
 export default registerAs<Partial<EmailConfig>>('email', () => ({
@@ -18,4 +19,5 @@ export default registerAs<Partial<EmailConfig>>('email', () => ({
   pass: process.env.SMTP_PASS,
   from: process.env.SMTP_FROM,
   frontendUrl: process.env.FRONTEND_URL,
+  expertFrontendUrl: process.env.ASTROLOGER_FRONTEND_URL,
 }));
