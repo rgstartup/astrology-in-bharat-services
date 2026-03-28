@@ -14,6 +14,7 @@ import { GetTopRatedExpertsUseCase } from './use-cases/get-top-rated-experts.use
 import { GetExpertByUserIdUseCase } from './use-cases/get-expert-by-user-id.usecase';
 import { UpsertPujaUseCase } from './use-cases/puja/upsert-puja.usecase';
 import { DeletePujaUseCase } from './use-cases/puja/delete-puja.usecase';
+import { ListAllPujasUseCase } from './use-cases/puja/list-all-pujas.usecase';
 import { ExpertPujaDto } from '../api/dto/expert-puja.dto';
 
 @Injectable()
@@ -30,6 +31,7 @@ export class ExpertProfileFacade {
     private readonly getExpertByUserIdUseCase: GetExpertByUserIdUseCase,
     private readonly upsertPujaUseCase: UpsertPujaUseCase,
     private readonly deletePujaUseCase: DeletePujaUseCase,
+    private readonly listAllPujasUseCase: ListAllPujasUseCase,
   ) { }
 
   async getProfile(user: User, queryRunner?: QueryRunner) {
@@ -74,5 +76,9 @@ export class ExpertProfileFacade {
 
   async deletePuja(user: User, id: number) {
     return this.deletePujaUseCase.execute(user, id);
+  }
+
+  async listAllPujas() {
+    return this.listAllPujasUseCase.execute();
   }
 }

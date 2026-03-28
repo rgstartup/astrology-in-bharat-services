@@ -166,6 +166,12 @@ export class ProfileController {
     return this.profileFacade.deletePuja(user, id);
   }
 
+  @Get('pujas/all')
+  @Public()
+  listAllPujas() {
+    return this.profileFacade.listAllPujas();
+  }
+
 
   @Post('upload-file')
   @UseGuards(JwtAuthGuard, RolesGuard)
