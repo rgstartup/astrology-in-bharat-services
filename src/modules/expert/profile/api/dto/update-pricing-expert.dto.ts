@@ -38,18 +38,6 @@ export class UpdatePricingExpertDto {
   horoscope_price?: number;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  online_puja_price?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  home_visit_puja_price?: number;
-
-  @IsOptional()
   @IsBoolean()
   expert?: boolean;
 }

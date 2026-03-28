@@ -21,12 +21,15 @@ import { GetExpertByIdUseCase } from './application/use-cases/get-expert-by-id.u
 import { UpdateKycStatusUseCase } from './application/use-cases/update-kyc-status.usecase';
 import { GetTopRatedExpertsUseCase } from './application/use-cases/get-top-rated-experts.usecase';
 import { GetExpertByUserIdUseCase } from './application/use-cases/get-expert-by-user-id.usecase';
+import { UpsertPujaUseCase } from './application/use-cases/puja/upsert-puja.usecase';
+import { DeletePujaUseCase } from './application/use-cases/puja/delete-puja.usecase';
+import { ExpertPuja } from './infrastructure/persistence/entities/expert-puja.entity';
 import { KycStatusChangedHandler } from './application/event-handlers/kyc-status-changed.handler';
 import { ExpertStatusChangedHandler } from './application/event-handlers/expert-status-changed.handler';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProfileExpert, User, Address]),
+    TypeOrmModule.forFeature([ProfileExpert, User, Address, ExpertPuja]),
     NodemailerModule,
     CloudinaryModule,
     ChatModule,
@@ -44,6 +47,8 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     UpdateKycStatusUseCase,
     GetTopRatedExpertsUseCase,
     GetExpertByUserIdUseCase,
+    UpsertPujaUseCase,
+    DeletePujaUseCase,
     KycStatusChangedHandler,
     ExpertStatusChangedHandler,
   ],

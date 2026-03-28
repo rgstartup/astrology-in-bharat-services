@@ -97,18 +97,6 @@ export class ProfileExpertDto {
   horoscope_price?: number;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  online_puja_price?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  home_visit_puja_price?: number;
-
-  @IsOptional()
   @IsString()
   bank_details?: string;
 
@@ -193,18 +181,6 @@ export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) {
   @IsNumber()
   @Min(0)
   horoscope_price?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  online_puja_price?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  home_visit_puja_price?: number;
 
   @IsOptional()
   @IsArray()

@@ -19,7 +19,7 @@ export class GetProfileUseCase {
     const repo = queryRunner ? queryRunner.manager.getRepository(ProfileExpert) : this.profileRepo;
     const profile = await repo.findOne({
       where: { user: { id: user.id } },
-      relations: ['user', 'addresses'],
+      relations: ['user', 'addresses', 'pujas'],
     });
 
     if (!profile) {

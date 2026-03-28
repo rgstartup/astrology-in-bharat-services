@@ -12,6 +12,9 @@ import { GetExpertByIdUseCase } from './use-cases/get-expert-by-id.usecase';
 import { UpdateKycStatusUseCase } from './use-cases/update-kyc-status.usecase';
 import { GetTopRatedExpertsUseCase } from './use-cases/get-top-rated-experts.usecase';
 import { GetExpertByUserIdUseCase } from './use-cases/get-expert-by-user-id.usecase';
+import { UpsertPujaUseCase } from './use-cases/puja/upsert-puja.usecase';
+import { DeletePujaUseCase } from './use-cases/puja/delete-puja.usecase';
+import { ExpertPujaDto } from '../api/dto/expert-puja.dto';
 
 @Injectable()
 export class ExpertProfileFacade {
@@ -25,6 +28,8 @@ export class ExpertProfileFacade {
     private readonly updateKycStatusUseCase: UpdateKycStatusUseCase,
     private readonly getTopRatedExpertsUseCase: GetTopRatedExpertsUseCase,
     private readonly getExpertByUserIdUseCase: GetExpertByUserIdUseCase,
+    private readonly upsertPujaUseCase: UpsertPujaUseCase,
+    private readonly deletePujaUseCase: DeletePujaUseCase,
   ) { }
 
   async getProfile(user: User, queryRunner?: QueryRunner) {
@@ -61,5 +66,13 @@ export class ExpertProfileFacade {
 
   async getExpertByUserId(userId: number, queryRunner?: QueryRunner) {
     return this.getExpertByUserIdUseCase.execute(userId, queryRunner);
+  }
+
+  async upsertPuja(user: User, dto: ExpertPujaDto, id?: number) {
+    return this.upsertPujaUseCase.execute(user, dto, id);
+  }
+
+  async deletePuja(user: User, id: number) {
+    return this.deletePujaUseCase.execute(user, id);
   }
 }

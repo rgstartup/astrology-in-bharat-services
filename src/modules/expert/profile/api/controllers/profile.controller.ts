@@ -3,6 +3,7 @@ import {
   Get,
   Patch,
   Post,
+  Delete,
   Body,
   Query,
   UseGuards,
@@ -24,6 +25,7 @@ import {
   CreateProfileExpertDto,
   UpdateProfileExpertDto,
 } from '../dto/profile-expert.dto';
+import { ExpertPujaDto } from '../dto/expert-puja.dto';
 import { UpdatePersonalInfoExpertDto } from '../dto/update-personal-info-expert.dto';
 import { UpdatePricingExpertDto } from '../dto/update-pricing-expert.dto';
 import { UpdateBankDetailsExpertDto } from '../dto/update-bank-details-expert.dto';
@@ -143,6 +145,25 @@ export class ProfileController {
   @Public()
   getTopRatedExperts(@Query('limit') limit: number = 3) {
     return this.profileFacade.getTopRatedExperts(limit);
+  }
+
+  @Post('puja')
+  @Roles('expert')
+  upsertPuja(
+    @CurrentUser() user: User,
+    @Body() dto: ExpertPujaDto,
+    @Query('id') id?: number,
+  ) {
+    return this.profileFacade.upsertPuja(user, dto, id);
+  }
+
+  @Delete('puja/:id')
+  @Roles('expert')
+  deletePuja(
+    @CurrentUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.profileFacade.deletePuja(user, id);
   }
 
 

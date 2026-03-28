@@ -80,14 +80,6 @@ export class UpdateProfileUseCase {
       this.logger.log(`Updating horoscope_price to ${dto.horoscope_price}`);
       profile.horoscope_price = dto.horoscope_price;
     }
-    if (dto.online_puja_price !== undefined) {
-      this.logger.log(`Updating online_puja_price to ${dto.online_puja_price}`);
-      profile.online_puja_price = dto.online_puja_price;
-    }
-    if (dto.home_visit_puja_price !== undefined) {
-      this.logger.log(`Updating home_visit_puja_price to ${dto.home_visit_puja_price}`);
-      profile.home_visit_puja_price = dto.home_visit_puja_price;
-    }
     if (dto.custom_services !== undefined) {
       this.logger.log(`Updating custom_services: ${JSON.stringify(dto.custom_services)}`);
       profile.custom_services = dto.custom_services;
