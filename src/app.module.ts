@@ -26,6 +26,7 @@ import { CallModule } from '@/modules/call/call.module';
 import { LiveDarshanModule } from '@/modules/live-darshan/live-darshan.module';
 import { AgentModule } from '@/modules/agent/agent.module';
 import { CouponModule } from '@/modules/coupon/coupon.module';
+import { AstrologyModule } from '@/modules/astrology/astrology.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { CouponModule } from '@/modules/coupon/coupon.module';
     LiveDarshanModule,
     AgentModule,
     CouponModule,
+    AstrologyModule,
   ]
 })
 export class AppModule { }
