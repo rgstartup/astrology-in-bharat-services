@@ -3,7 +3,7 @@ import { WalletFacade } from '../../application/wallet.facade';
 import { WithdrawalStatus } from '../../infrastructure/persistence/entities/withdrawal.entity';
 import * as crypto from 'crypto';
 
-@Controller('v1/wallet/webhooks/payouts')
+@Controller('wallet/webhooks/payouts')
 export class PayoutWebhookController {
     constructor(private readonly walletFacade: WalletFacade) { }
 

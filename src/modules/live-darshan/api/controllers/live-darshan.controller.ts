@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { LiveDarshanFacade } from '../../application/live-darshan.facade';
 import { Public } from '@/common/decorators/public.decorator';
 
-@Controller('v1/live-darshan')
+@Controller('live-darshan')
 export class LiveDarshanController {
     constructor(private readonly liveDarshanFacade: LiveDarshanFacade) { }
 
