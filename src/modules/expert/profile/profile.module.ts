@@ -24,6 +24,8 @@ import { GetExpertByUserIdUseCase } from './application/use-cases/get-expert-by-
 import { UpsertPujaUseCase } from './application/use-cases/puja/upsert-puja.usecase';
 import { DeletePujaUseCase } from './application/use-cases/puja/delete-puja.usecase';
 import { ListAllPujasUseCase } from './application/use-cases/puja/list-all-pujas.usecase';
+import { GetPujaByIdUseCase } from './application/use-cases/puja/get-puja-by-id.usecase';
+
 import { ExpertPuja } from './infrastructure/persistence/entities/expert-puja.entity';
 import { KycStatusChangedHandler } from './application/event-handlers/kyc-status-changed.handler';
 import { ExpertStatusChangedHandler } from './application/event-handlers/expert-status-changed.handler';
@@ -51,6 +53,8 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     UpsertPujaUseCase,
     DeletePujaUseCase,
     ListAllPujasUseCase,
+    GetPujaByIdUseCase,
+
     KycStatusChangedHandler,
     ExpertStatusChangedHandler,
   ],
