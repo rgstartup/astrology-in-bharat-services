@@ -6,6 +6,7 @@ import { ProfileExpert } from '../../../infrastructure/persistence/entities/prof
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { ExpertPujaDto } from '../../../api/dto/expert-puja.dto';
 import { GetProfileUseCase } from '../get-profile.usecase';
+import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UpsertPujaUseCase {
@@ -17,6 +18,7 @@ export class UpsertPujaUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly getProfileUseCase: GetProfileUseCase,
+    private readonly cloudinaryService: CloudinaryService,
   ) { }
 
   async execute(user: User, dto: ExpertPujaDto, id?: number) {
@@ -44,13 +46,25 @@ export class UpsertPujaUseCase {
       });
     }
 
-    puja.type = dto.type;
+    if (dto.puja_image) {
+      try {
+        const uploadResult = await this.cloudinaryService.uploadBase64(dto.puja_image, 'pujas');
+        puja.puja_image_url = uploadResult.secure_url;
+      } catch (error) {
+        this.logger.error('Failed to upload puja image:', error);
+      }
+    }
+
+    puja.is_online = dto.is_online ?? false;
+    puja.is_home_visit = dto.is_home_visit ?? false;
     puja.name = dto.name;
     puja.min_duration_hours = dto.min_duration_hours;
     puja.max_duration_hours = dto.max_duration_hours;
-    puja.cost = dto.cost;
+    puja.online_cost = dto.online_cost ?? 0;
+    puja.home_visit_with_samagri_cost = dto.home_visit_with_samagri_cost ?? 0;
+    puja.home_visit_without_samagri_cost = dto.home_visit_without_samagri_cost ?? 0;
     puja.description = dto.description ?? null;
-    puja.districts = dto.type === 'home_visit' ? (dto.districts ?? []) : null;
+    puja.districts = puja.is_home_visit ? (dto.districts ?? []) : null;
     puja.samagri_list = dto.samagri_list ?? [];
 
     await this.pujaRepo.save(puja);
