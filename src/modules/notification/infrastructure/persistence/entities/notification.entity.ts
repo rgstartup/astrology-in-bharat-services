@@ -34,6 +34,7 @@ export class Notification {
     @Column({
         type: 'enum',
         enum: NotificationType,
+        default: NotificationType.GENERAL,
         nullable: true,
     })
     type: NotificationType;

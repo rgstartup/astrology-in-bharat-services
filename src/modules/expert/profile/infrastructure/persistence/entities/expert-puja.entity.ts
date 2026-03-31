@@ -59,6 +59,9 @@ export class ExpertPuja {
   @Column({ type: 'json', nullable: true })
   samagri_list: { name: string; quantity: string }[];
 
+  @Column({ type: 'int', default: 0 })
+  total_likes: number;
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 

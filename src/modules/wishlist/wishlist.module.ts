@@ -6,7 +6,7 @@ import { PujaLikeController } from './api/controllers/puja-like.controller';
 import { Wishlist } from './infrastructure/persistence/entities/wishlist.entity';
 import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/persistence/entities/expert-puja.entity';
-
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { UsersModule } from '../users/users.module';
 import { ExpertModule } from '../expert/expert.module';
 import { WishlistFacade } from './application/wishlist.facade';
@@ -22,12 +22,11 @@ import { GetPujaWishlistUseCase } from './application/use-cases/get-puja-wishlis
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Wishlist, Product, ExpertPuja]),
+    TypeOrmModule.forFeature([Wishlist, Product, ExpertPuja, User]),
     UsersModule,
     ExpertModule,
   ],
   controllers: [ProductLikeController, ExpertLikeController, PujaLikeController],
-
   providers: [
     WishlistFacade,
     AddProductToWishlistUseCase,

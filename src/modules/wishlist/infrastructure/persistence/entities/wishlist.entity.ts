@@ -10,7 +10,6 @@ import { User } from '@/modules/users/infrastructure/persistence/entities/user.e
 import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/persistence/entities/expert-puja.entity';
 
-
 @Entity('wishlists')
 @Unique(['user', 'product'])
 @Unique(['user', 'expert'])

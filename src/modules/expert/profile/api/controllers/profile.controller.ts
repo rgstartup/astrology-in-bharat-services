@@ -52,7 +52,13 @@ export class ProfileController {
 
   @Get()
   getProfile(@CurrentUser() user: User) {
-    return this.profileFacade.getProfile(user);
+    console.log('[ProfileController] GET /expert hit for user:', user.id);
+    try {
+      return this.profileFacade.getProfile(user);
+    } catch (err) {
+      console.error('[ProfileController] GET /expert ERROR:', err);
+      throw err;
+    }
   }
 
   @Post()

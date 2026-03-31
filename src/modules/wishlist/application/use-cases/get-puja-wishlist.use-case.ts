@@ -8,12 +8,14 @@ export class GetPujaWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-  ) {}
+  ) { }
 
   async execute(userId: number): Promise<Wishlist[]> {
-    return await this.wishlistRepository.find({
-      where: { user: { id: userId }, puja: { id: (await import('typeorm')).Not((await import('typeorm')).IsNull()) } },
-      relations: ['puja', 'puja.expert'],
+    const wishlists = await this.wishlistRepository.find({
+      where: { user: { id: userId } },
+      relations: ['puja'],
+      order: { created_at: 'DESC' },
     });
+    return wishlists.filter((item) => item.puja);
   }
 }

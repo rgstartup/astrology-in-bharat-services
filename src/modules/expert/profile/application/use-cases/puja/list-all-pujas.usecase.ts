@@ -11,11 +11,16 @@ export class ListAllPujasUseCase {
   ) {}
 
   async execute() {
-    return this.pujaRepo.find({
-      relations: ['expert', 'expert.user'],
-      order: {
-        id: 'DESC',
-      },
-    });
+    try {
+      return await this.pujaRepo.find({
+        relations: ['expert', 'expert.user'],
+        order: {
+          id: 'DESC',
+        },
+      });
+    } catch (error) {
+      console.error('[ListAllPujasUseCase] ERROR fetching pujas:', error);
+      throw error;
+    }
   }
 }
