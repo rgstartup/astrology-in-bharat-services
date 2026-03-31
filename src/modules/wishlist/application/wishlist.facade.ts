@@ -5,6 +5,10 @@ import { GetProductWishlistUseCase } from './use-cases/get-product-wishlist.use-
 import { AddExpertToWishlistUseCase } from './use-cases/add-expert-to-wishlist.use-case';
 import { RemoveExpertFromWishlistUseCase } from './use-cases/remove-expert-from-wishlist.use-case';
 import { GetExpertWishlistUseCase } from './use-cases/get-expert-wishlist.use-case';
+import { AddPujaToWishlistUseCase } from './use-cases/add-puja-to-wishlist.use-case';
+import { RemovePujaFromWishlistUseCase } from './use-cases/remove-puja-from-wishlist.use-case';
+import { GetPujaWishlistUseCase } from './use-cases/get-puja-wishlist.use-case';
+
 
 @Injectable()
 export class WishlistFacade {
@@ -15,6 +19,9 @@ export class WishlistFacade {
     private readonly addExpertUseCase: AddExpertToWishlistUseCase,
     private readonly removeExpertUseCase: RemoveExpertFromWishlistUseCase,
     private readonly getExpertWishlistUseCase: GetExpertWishlistUseCase,
+    private readonly addPujaUseCase: AddPujaToWishlistUseCase,
+    private readonly removePujaUseCase: RemovePujaFromWishlistUseCase,
+    private readonly getPujaWishlistUseCase: GetPujaWishlistUseCase,
   ) {}
 
   async getProductWishlist(userId: number) {
@@ -39,5 +46,17 @@ export class WishlistFacade {
 
   async removeExpertFromWishlist(userId: number, expertId: number) {
     return this.removeExpertUseCase.execute(userId, expertId);
+  }
+
+  async getPujaWishlist(userId: number) {
+    return this.getPujaWishlistUseCase.execute(userId);
+  }
+
+  async addPujaToWishlist(userId: number, pujaId: number) {
+    return this.addPujaUseCase.execute(userId, pujaId);
+  }
+
+  async removePujaFromWishlist(userId: number, pujaId: number) {
+    return this.removePujaUseCase.execute(userId, pujaId);
   }
 }

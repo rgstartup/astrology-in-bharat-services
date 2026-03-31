@@ -55,3 +55,21 @@ export class NotAnExpertError extends DomainError {
   readonly message: string;
   readonly httpStatus = 404;
 }
+
+export class PujaAlreadyInWishlistError extends DomainError {
+  readonly code = 'PUJA_ALREADY_IN_WISHLIST';
+  readonly message = 'Puja already in wishlist';
+  readonly httpStatus = 409;
+}
+
+export class PujaNotInWishlistError extends DomainError {
+  readonly code = 'PUJA_NOT_IN_WISHLIST';
+  readonly message = 'Puja not found in wishlist';
+  readonly httpStatus = 404;
+}
+
+export class PujaNotFoundError extends DomainError {
+  readonly code = 'PUJA_NOT_FOUND';
+  readonly message = 'Puja not found';
+  readonly httpStatus = 404;
+}

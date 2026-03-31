@@ -15,6 +15,8 @@ export enum NotificationType {
     ORDER_DELIVERED = 'order_delivered',
     ORDER_CANCELLED = 'order_cancelled',
     WALLET_RECHARGE = 'wallet_recharge',
+    PUJA_BOOKING = 'puja_booking',
+    GENERAL = 'general',
 }
 
 @Entity('notifications')
@@ -32,6 +34,7 @@ export class Notification {
     @Column({
         type: 'enum',
         enum: NotificationType,
+        nullable: true,
     })
     type: NotificationType;
 

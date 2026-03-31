@@ -1,0 +1,46 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
+import { WishlistFacade } from '../../application/wishlist.facade';
+import { AddPujaToWishlistDto } from '../dto/add-puja-wishlist.dto';
+import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+
+@Controller({
+  path: 'puja-like',
+  version: '1',
+})
+@UseGuards(JwtAuthGuard)
+export class PujaLikeController {
+  constructor(private readonly wishlistFacade: WishlistFacade) {}
+
+  @Get()
+  findAllPujas(@CurrentUser("id") userId: number) {
+    return this.wishlistFacade.getPujaWishlist(userId);
+  }
+
+  @Post('add')
+  createPuja(
+    @CurrentUser("id") userId: number,
+    @Body() addPujaToWishlistDto: AddPujaToWishlistDto,
+  ) {
+    return this.wishlistFacade.addPujaToWishlist(
+      userId,
+      addPujaToWishlistDto.pujaId,
+    );
+  }
+
+  @Delete('remove/:pujaId')
+  removePuja(
+    @CurrentUser("id") userId: number,
+    @Param('pujaId') pujaId: string,
+  ) {
+    return this.wishlistFacade.removePujaFromWishlist(userId, +pujaId);
+  }
+}

@@ -225,6 +225,83 @@ export class ProkeralaService {
     return this.handleResponse(response);
   }
 
+
+  async getPanchangDaily(params: {
+    datetime: string;
+    lat: string;
+    lon: string;
+    lang?: string;
+  }) {
+    const token = await this.getAccessToken();
+
+    const queryParams = new URLSearchParams({
+      ayanamsa: '1',
+      datetime: params.datetime,
+      coordinates: `${params.lat},${params.lon}`,
+      la: params.lang || 'en',
+    });
+
+    const response = await fetch(
+      `https://api.prokerala.com/v2/astrology/panchang/advanced?${queryParams.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    return this.handleResponse(response);
+  }
+
+  async getPanchangMonthly(params: {
+    datetime: string;
+    locationId: string;
+    lang?: string;
+  }) {
+    const token = await this.getAccessToken();
+
+    const queryParams = new URLSearchParams({
+      ayanamsa: '1',
+      datetime: params.datetime,
+      location_id: params.locationId,
+      la: params.lang || 'en',
+    });
+
+    const response = await fetch(
+      `https://api.prokerala.com/v2/astrology/hindu-calendar?${queryParams.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    return this.handleResponse(response);
+  }
+
+  async getFestivals(year: number, lang?: string) {
+    const token = await this.getAccessToken();
+
+    const queryParams = new URLSearchParams({
+      year: year.toString(),
+      la: lang || 'en',
+    });
+
+    const response = await fetch(
+      `https://api.prokerala.com/v2/astrology/festivals?${queryParams.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    return this.handleResponse(response);
+  }
+
   private async handleResponse(response: Response) {
     if (!response.ok) {
       const errorBody = await response.text();

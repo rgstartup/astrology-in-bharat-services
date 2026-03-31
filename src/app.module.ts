@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
+
 import configs from './config';
 import { UsersModule } from '@/modules/users/users.module';
 import { CoreModule } from '@/core/core.module';
@@ -27,11 +29,14 @@ import { LiveDarshanModule } from '@/modules/live-darshan/live-darshan.module';
 import { AgentModule } from '@/modules/agent/agent.module';
 import { CouponModule } from '@/modules/coupon/coupon.module';
 import { AstrologyModule } from '@/modules/astrology/astrology.module';
+import { CalendarModule } from '@/modules/calendar/calendar.module';
 import { PlacesModule } from '@/modules/places/places.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
+
       isGlobal: true,
       envFilePath: '.env',
       load: configs,
@@ -63,6 +68,7 @@ import { PlacesModule } from '@/modules/places/places.module';
     CouponModule,
     AstrologyModule,
     PlacesModule,
+    CalendarModule,
   ]
 })
 export class AppModule { }
