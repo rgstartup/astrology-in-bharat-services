@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductLikeController } from './api/controllers/product-like.controller';
 import { ExpertLikeController } from './api/controllers/expert-like.controller';
+import { PujaLikeController } from './api/controllers/puja-like.controller';
 import { Wishlist } from './infrastructure/persistence/entities/wishlist.entity';
 import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
+import { ExpertPuja } from '@/modules/expert/profile/infrastructure/persistence/entities/expert-puja.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { UsersModule } from '../users/users.module';
 import { ExpertModule } from '../expert/expert.module';
 import { WishlistFacade } from './application/wishlist.facade';
@@ -13,14 +16,16 @@ import { GetProductWishlistUseCase } from './application/use-cases/get-product-w
 import { AddExpertToWishlistUseCase } from './application/use-cases/add-expert-to-wishlist.use-case';
 import { RemoveExpertFromWishlistUseCase } from './application/use-cases/remove-expert-from-wishlist.use-case';
 import { GetExpertWishlistUseCase } from './application/use-cases/get-expert-wishlist.use-case';
+import { TogglePujaWishlistUseCase } from './application/use-cases/toggle-puja-wishlist.use-case';
+import { GetPujaWishlistUseCase } from './application/use-cases/get-puja-wishlist.use-case';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Wishlist, Product]),
+    TypeOrmModule.forFeature([Wishlist, Product, ExpertPuja, User]),
     UsersModule,
     ExpertModule,
   ],
-  controllers: [ProductLikeController, ExpertLikeController],
+  controllers: [ProductLikeController, ExpertLikeController, PujaLikeController],
   providers: [
     WishlistFacade,
     AddProductToWishlistUseCase,
@@ -29,6 +34,8 @@ import { GetExpertWishlistUseCase } from './application/use-cases/get-expert-wis
     AddExpertToWishlistUseCase,
     RemoveExpertFromWishlistUseCase,
     GetExpertWishlistUseCase,
+    TogglePujaWishlistUseCase,
+    GetPujaWishlistUseCase,
   ],
 })
 export class WishlistModule {}
