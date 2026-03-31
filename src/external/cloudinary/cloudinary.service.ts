@@ -24,4 +24,21 @@ export class CloudinaryService {
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
   }
+
+  async uploadBase64(
+    base64String: string,
+    folder?: string,
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    return new Promise((resolve, reject) => {
+      this.cloudinary.uploader.upload(
+        base64String,
+        { folder, resource_type: 'auto' },
+        (error, result) => {
+          if (error) return reject(error);
+          if (!result) return reject(new Error('Cloudinary upload failed'));
+          resolve(result);
+        },
+      );
+    });
+  }
 }

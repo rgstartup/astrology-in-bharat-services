@@ -23,12 +23,11 @@ export class ExpertPuja {
   @Column({ name: 'expert_id' })
   expert_id: number;
 
-  @Column({
-    type: 'text',
-    enum: ['online', 'home_visit'],
-    default: 'online',
-  })
-  type: 'online' | 'home_visit';
+  @Column({ default: false })
+  is_online: boolean;
+
+  @Column({ default: false })
+  is_home_visit: boolean;
 
   @Column({ type: 'text' })
   name: string;
@@ -40,7 +39,16 @@ export class ExpertPuja {
   max_duration_hours: number;
 
   @Column({ type: 'float', default: 0 })
-  cost: number;
+  online_cost: number;
+
+  @Column({ type: 'float', default: 0 })
+  home_visit_with_samagri_cost: number;
+
+  @Column({ type: 'float', default: 0 })
+  home_visit_without_samagri_cost: number;
+
+  @Column({ type: 'text', nullable: true })
+  puja_image_url: string | null;
 
   @Column({ type: 'text', nullable: true })
   description: string | null;

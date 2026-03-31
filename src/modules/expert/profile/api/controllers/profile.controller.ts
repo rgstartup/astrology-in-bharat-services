@@ -172,6 +172,12 @@ export class ProfileController {
     return this.profileFacade.listAllPujas();
   }
 
+  @Get('puja/info/:id')
+  @Public()
+  getPujaById(@Param('id', ParseIntPipe) id: number) {
+    return this.profileFacade.getPujaById(id);
+  }
+
 
   @Post('upload-file')
   @UseGuards(JwtAuthGuard, RolesGuard)
