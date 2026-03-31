@@ -44,13 +44,17 @@ export class UpdatePujaAppointmentStatusUseCase {
     if (dto.status === PujaAppointmentStatus.ON_HOLD) message = `Your request for ${appointment.puja?.name || 'Puja'} is on hold.`;
     if (dto.status === PujaAppointmentStatus.ACCEPTED) title = 'Puja Request Accepted!';
 
-    await this.notificationFacade.create(
-        appointment.user_id,
-        'info' as NotificationType,
-        title,
-        message,
-        { appointment_id: saved.id, type: 'PUJA_STATUS_UPDATE' }
-    );
+    try {
+        await this.notificationFacade.create(
+            appointment.user_id,
+            NotificationType.GENERAL,
+            title,
+            message,
+            { appointment_id: saved.id, type: 'PUJA_STATUS_UPDATE' }
+        );
+    } catch (error) {
+        console.error('Failed to send status update notification to user:', error);
+    }
 
     return saved;
   }

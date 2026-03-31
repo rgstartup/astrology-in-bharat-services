@@ -51,13 +51,18 @@ export class CreatePujaAppointmentUseCase {
     });
     
     if (expertProfile && expertProfile.user_id) {
-        await this.notificationFacade.create(
-            expertProfile.user_id,
-            'info' as NotificationType,
-            'New Puja Booking Request',
-            `You have received a new booking request for ${puja.name}.`,
-            { appointment_id: saved.id, type: 'PUJA_BOOKING' }
-        );
+        try {
+            await this.notificationFacade.create(
+                expertProfile.user_id,
+                NotificationType.PUJA_BOOKING,
+                'New Puja Booking Request',
+                `You have received a new booking request for ${puja.name}.`,
+                { appointment_id: saved.id, type: 'PUJA_BOOKING' }
+            );
+        } catch (error) {
+            console.error('Failed to send notification to expert:', error);
+            // Non-blocking error
+        }
     }
 
     return saved;
