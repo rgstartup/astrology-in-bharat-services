@@ -40,6 +40,11 @@ async function bootstrap() {
   });
 
   app.use(cookieParser());
+  
+  // Increase payload limit for large base64 strings (images)
+  const express = require('express');
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
   app.setGlobalPrefix('api');
 

@@ -27,6 +27,22 @@ export class GetProfileUseCase {
     }
 
     const plain = { ...profile } as any;
+
+    // Remove circular references from relations to avoid JSON serialization errors
+    if (plain.pujas) {
+      plain.pujas = plain.pujas.map((p: any) => {
+        const { expert, ...rest } = p;
+        return rest;
+      });
+    }
+
+    if (plain.addresses) {
+      plain.addresses = plain.addresses.map((a: any) => {
+        const { profile_expert, profile_client, ...rest } = a;
+        return rest;
+      });
+    }
+
     plain.languages = profile.languages
       ? profile.languages
         .split(',')
@@ -41,13 +57,7 @@ export class GetProfileUseCase {
     plain.total_likes = (profile as any).total_likes || 0;
     plain.custom_services = profile.custom_services || [];
 
-    this.logger.log(
-      `Returning profile for user ${user.id}: ${JSON.stringify({
-        ...plain,
-        user: undefined,
-        addresses: undefined,
-      })}`,
-    );
+    this.logger.log(`Returning profile for user ${user.id}`);
 
     return plain;
   }
