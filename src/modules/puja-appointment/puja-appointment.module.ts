@@ -11,11 +11,15 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persisten
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/persistence/entities/expert-puja.entity';
 
 import { NotificationModule } from '@/modules/notification/notification.module';
+import { WalletModule } from '@/modules/wallet/wallet.module';
+import { TodosModule } from '@/modules/expert/todos/todos.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PujaAppointment, User, ProfileExpert, ExpertPuja]),
-    NotificationModule
+    NotificationModule,
+    WalletModule,
+    TodosModule
   ],
   controllers: [PujaAppointmentController],
   providers: [

@@ -21,6 +21,7 @@ export enum TransactionPurpose {
   REFUND = 'refund',
   WITHDRAWAL = 'withdrawal',
   PRODUCT_PURCHASE = 'product_purchase',
+  PUJA_CONFIRMATION = 'puja_confirmation',
 }
 
 @Entity('transactions')

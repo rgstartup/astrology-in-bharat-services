@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PujaAppointment, PujaAppointmentStatus } from '../../infrastructure/persistence/entities/puja-appointment.entity';
+import { PujaAppointment, PujaAppointmentStatus, PujaMode } from '../../infrastructure/persistence/entities/puja-appointment.entity';
 import { CreatePujaAppointmentDto } from '../dtos/create-puja-appointment.dto';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/persistence/entities/expert-puja.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
@@ -30,6 +30,13 @@ export class CreatePujaAppointmentUseCase {
       throw new NotFoundException('Puja not found');
     }
 
+    let price = dto.price;
+    if (price === undefined || price === null || price === 0) {
+        if (dto.mode === PujaMode.ONLINE) price = puja.online_cost;
+        else if (dto.mode === PujaMode.HOME_VISIT_WITH) price = puja.home_visit_with_samagri_cost;
+        else if (dto.mode === PujaMode.HOME_VISIT_WITHOUT) price = puja.home_visit_without_samagri_cost;
+    }
+
     const appointment = this.pujaAppointmentRepository.create({
       user_id: userId,
       expert_id: puja.expert_id,
@@ -38,7 +45,7 @@ export class CreatePujaAppointmentUseCase {
       scheduled_time: dto.scheduled_time,
       ask_expert_for_date: dto.ask_expert_for_date,
       mode: dto.mode,
-      price: dto.price,
+      price: price || 0,
       user_message: dto.user_message,
       status: PujaAppointmentStatus.PENDING,
     });
