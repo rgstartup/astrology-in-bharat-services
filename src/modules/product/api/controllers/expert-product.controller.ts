@@ -48,10 +48,10 @@ export class ExpertProductController {
 
     /** POST /api/v1/expert/products — create a product owned by this expert */
     @Post()
-    @UseInterceptors(AnyFilesInterceptor({ storage: memoryStorage() }))
+    @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
     async create(
         @Body() dto: CreateProductDto,
-        @UploadedFiles() files: Array<Express.Multer.File>,
+        @UploadedFile() file: Express.Multer.File,
         @Req() req: Request,
     ) {
         const userId = (req as any).user?.id;
@@ -59,9 +59,9 @@ export class ExpertProductController {
         if (!expert) throw new UnauthorizedException('Expert profile not found');
         dto.expert_id = expert.id;
 
-        if (files && files.length > 0) {
+        if (file) {
             try {
-                const uploaded = (await this.cloudinaryService.uploadImage(files[0])) as UploadApiResponse;
+                const uploaded = (await this.cloudinaryService.uploadImage(file)) as UploadApiResponse;
                 if (uploaded?.secure_url) dto.image_url = uploaded.secure_url;
             } catch (error) {
                 const reason = error instanceof Error ? error.message : 'Unknown error';
