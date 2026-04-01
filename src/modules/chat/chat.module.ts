@@ -23,11 +23,13 @@ import { FindAllSessionsUseCase } from './application/use-cases/find-all-session
 import { AdminTerminateSessionUseCase } from './application/use-cases/admin-terminate-session.use-case';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { NotificationModule } from '@/modules/notification/notification.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert]),
     WalletModule,
+    NotificationModule,
   ],
   providers: [
     ChatGateway,

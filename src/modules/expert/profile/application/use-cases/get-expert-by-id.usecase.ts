@@ -21,7 +21,8 @@ export class GetExpertByIdUseCase {
       .andWhere("LOWER(profile.kyc_status) IN ('approved', 'active')");
 
     const expert = await queryBuilder.getOne();
-
+    console.log(`[GetExpertByIdUseCase] ID: ${id}, Expert found: ${!!expert}, Status matches: ${!!expert && ['approved', 'active'].includes(expert.kyc_status?.toLowerCase())}`);
+    
     if (!expert) {
       throw new NotFoundException('Expert profile not found');
     }

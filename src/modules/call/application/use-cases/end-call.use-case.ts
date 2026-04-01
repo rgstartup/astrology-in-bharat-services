@@ -12,6 +12,9 @@ import { CallEndedEvent } from '../../domain/events/call.events';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { NotificationFacade } from '@/modules/notification/application/notification.facade';
+import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
 
 @Injectable()
 export class EndCallUseCase {
@@ -23,6 +26,7 @@ export class EndCallUseCase {
     @Inject(forwardRef(() => CallGateway))
     private readonly callGateway: CallGateway,
     private readonly walletFacade: WalletFacade,
+    private readonly notificationFacade: NotificationFacade,
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
@@ -125,6 +129,35 @@ export class EndCallUseCase {
       }
     } catch (error) {
       console.error(`[EndCall] Failed to settle wallet for session ${sessionId}:`, error);
+    }
+
+    // 🔔 Notify User
+    try {
+      const expert = await this.expertRepo.findOne({
+        where: { id: savedSession.expert_id },
+        relations: ['user'],
+      });
+
+      if (expert) {
+        const startTime = savedSession.start_time ? savedSession.start_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const endTime = savedSession.end_time ? savedSession.end_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const expertName = expert.user?.name || 'Astrologer';
+        const duration = savedSession.duration_seconds ? (savedSession.duration_seconds / 60).toFixed(1) : '0';
+        const typeLabel = savedSession.type === CallType.VIDEO ? 'Video Call' : 'Call';
+        
+        const title = "Consultation Summary";
+        const message = `From ${startTime} to ${endTime} you consulted ${expertName} via ${typeLabel}, total duration: ${duration} mins, total cost: ₹${savedSession.final_price}`;
+        
+        await this.notificationFacade.create(
+          savedSession.user_id,
+          NotificationType.GENERAL,
+          title,
+          message,
+          { sessionId, type: 'CALL_SUMMARY' }
+        );
+      }
+    } catch (error) {
+      console.error(`Failed to send end-call notification for session ${sessionId}:`, error);
     }
 
     return savedSession;

@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { NotificationFacade } from '@/modules/notification/application/notification.facade';
+import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
 
 @Injectable()
 export class EndChatUseCase {
@@ -11,6 +13,7 @@ export class EndChatUseCase {
         @InjectRepository(ChatSession)
         private sessionRepo: Repository<ChatSession>,
         private walletFacade: WalletFacade,
+        private notificationFacade: NotificationFacade,
     ) { }
 
     async execute(sessionId: number) {
@@ -101,6 +104,34 @@ export class EndChatUseCase {
         const remainingBalance = await this.walletFacade.getBalance(
             session.user_id,
         );
+        // 🔔 Notify User
+        try {
+            const sessionWithExpert = await this.sessionRepo.findOne({
+                where: { id: sessionId },
+                relations: ['expert', 'expert.user'],
+            });
+
+            if (sessionWithExpert) {
+                const startTime = sessionWithExpert.start_time ? sessionWithExpert.start_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+                const endTime = sessionWithExpert.end_time ? sessionWithExpert.end_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+                const expertName = sessionWithExpert.expert?.user?.name || 'Astrologer';
+                const duration = sessionWithExpert.start_time ? ((sessionWithExpert.end_time.getTime() - sessionWithExpert.start_time.getTime()) / 60000).toFixed(1) : '0';
+                
+                const title = "Consultation Summary";
+                const message = `From ${startTime} to ${endTime} you consulted ${expertName} via Chat, total duration: ${duration} mins, total cost: ₹${sessionWithExpert.total_cost}`;
+                
+                await this.notificationFacade.create(
+                    sessionWithExpert.user_id,
+                    NotificationType.GENERAL,
+                    title,
+                    message,
+                    { sessionId, type: 'CHAT_SUMMARY' }
+                );
+            }
+        } catch (error) {
+            console.error(`Failed to send end-chat notification for session ${sessionId}:`, error);
+        }
+
         return {
             ...session,
             remainingBalance,
