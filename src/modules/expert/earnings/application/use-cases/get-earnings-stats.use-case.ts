@@ -8,6 +8,7 @@ import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/o
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { PujaAppointment, PujaAppointmentStatus } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
 
 
 @Injectable()
@@ -21,6 +22,8 @@ export class GetEarningsStatsUseCase {
         private orderItemRepo: Repository<OrderItem>,
         @InjectRepository(ProfileExpert)
         private expertRepo: Repository<ProfileExpert>,
+        @InjectRepository(PujaAppointment)
+        private pujaRepo: Repository<PujaAppointment>,
         private walletFacade: WalletFacade,
     ) { }
 
@@ -43,7 +46,7 @@ export class GetEarningsStatsUseCase {
             startDate.setHours(0, 0, 0, 0);
         }
 
-        const [sessions, calls, orderItems] = await Promise.all([
+        const [sessions, calls, orderItems, pujas] = await Promise.all([
             this.sessionRepo.find({
                 where: {
                     expert_id: expertId,
@@ -67,14 +70,23 @@ export class GetEarningsStatsUseCase {
                     created_at: Between(startDate, new Date()),
                 },
                 relations: ['order', 'order.user', 'product'],
+            }),
+            this.pujaRepo.find({
+                where: {
+                    expert_id: expertId,
+                    status: PujaAppointmentStatus.CONFIRMED,
+                    created_at: Between(startDate, new Date()),
+                },
+                relations: ['user', 'puja'],
             })
         ]);
 
         const chatRevenue = sessions.reduce((acc, s) => acc + (s.total_cost || 0), 0);
         const callRevenue = calls.reduce((acc, c) => acc + (c.final_price || 0), 0);
         const productRevenue = orderItems.reduce((acc, oi) => acc + (Number(oi.price) * (oi.quantity || 1)), 0);
+        const pujaRevenue = pujas.reduce((acc, p) => acc + (Number(p.price) || 0), 0);
         
-        const totalRevenue = chatRevenue + callRevenue + productRevenue;
+        const totalRevenue = chatRevenue + callRevenue + productRevenue + pujaRevenue;
 
         // Service Color Mapping
         const serviceColors: Record<string, string> = {
@@ -82,6 +94,7 @@ export class GetEarningsStatsUseCase {
             "Video Call Consultation": "#8b5cf6", // Purple
             "Call Consultation": "#10b981",       // Green
             "Product Sales": "#ec4899",           // Pink
+            "Puja Rituals": "#f97316",            // Orange
             "Report Generation": "#ef4444",       // Red
             "Horoscope Analysis": "#3b82f6",      // Blue
             "Custom Service": "#6b7280"           // Gray
@@ -121,6 +134,13 @@ export class GetEarningsStatsUseCase {
             }
         });
 
+        pujas.forEach(p => {
+            const label = months[p.created_at.getMonth()];
+            if (incomeTrendsMap.has(label)) {
+                incomeTrendsMap.set(label, incomeTrendsMap.get(label) + (Number(p.price) || 0));
+            }
+        });
+
         const incomeTrends = Array.from(incomeTrendsMap, ([label, value]) => ({ label, value }));
 
         // Top Users
@@ -141,6 +161,7 @@ export class GetEarningsStatsUseCase {
         sessions.forEach(s => updateTopUser(s.user_id, s.total_cost || 0, s.user));
         calls.forEach(c => updateTopUser(c.user_id, c.final_price || 0, c.user));
         orderItems.forEach(oi => updateTopUser(oi.order?.user_id, Number(oi.price) * (oi.quantity || 1), oi.order?.user));
+        pujas.forEach(p => updateTopUser(p.user_id, Number(p.price) || 0, p.user));
 
         const topUsers = Array.from(userStats.values())
             .sort((a, b) => b.amount - a.amount)
@@ -193,7 +214,16 @@ export class GetEarningsStatsUseCase {
                 amount: productRevenue,
                 usage: orderItems.length
             });
-            // Also add individual products if needed, but "Best Performance Service" usually refers to categories
+        }
+
+        // Add Pujas
+        if (pujas.length > 0) {
+            serviceStatsMap.set('Puja Rituals', {
+                id: 'srv_pujas',
+                name: 'Puja Rituals',
+                amount: pujaRevenue,
+                usage: pujas.length
+            });
         }
 
         const topServices = Array.from(serviceStatsMap.values())
@@ -211,6 +241,7 @@ export class GetEarningsStatsUseCase {
             { category: 'Chat', amount: chatRevenue, color: getColor('Chat Consultation') },
             { category: 'Call', amount: callRevenue, color: getColor('Call Consultation') },
             { category: 'Products', amount: productRevenue, color: getColor('Product Sales') },
+            { category: 'Puja', amount: pujaRevenue, color: getColor('Puja Rituals') },
         ].filter(item => item.amount > 0);
 
         const totalBreakdownAmount = breakdownData.reduce((sum, item) => sum + item.amount, 0);
@@ -241,6 +272,7 @@ export class GetEarningsStatsUseCase {
                 totalRevenue,
                 walletBalance: walletBalance || 0,
                 totalWithdrawn: totalWithdrawn || 0,
+                pujaRevenue,
                 revenueGrowth: 0,
                 balanceGrowth: 0,
                 withdrawalGrowth: 0,

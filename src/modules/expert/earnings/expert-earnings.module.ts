@@ -13,10 +13,11 @@ import { Order } from '@/modules/order/infrastructure/persistence/entities/order
 import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
+import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([ChatSession, CallSession, Order, OrderItem, ProfileExpert]),
+        TypeOrmModule.forFeature([ChatSession, CallSession, Order, OrderItem, ProfileExpert, PujaAppointment]),
         WalletModule,
     ],
     controllers: [ExpertEarningsController, ExpertWalletController],
