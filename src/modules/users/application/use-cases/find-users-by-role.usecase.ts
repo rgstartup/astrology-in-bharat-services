@@ -10,7 +10,7 @@ export class FindUsersByRoleUseCase {
     private readonly userRepository: Repository<User>,
   ) { }
 
-  async execute(role: string, search?: string, page: number = 1, limit: number = 10) {
+  async execute(role: string, search?: string, page: number = 1, limit: number = 10, status?: string) {
     const query = this.userRepository
       .createQueryBuilder('user')
       .innerJoinAndSelect('user.roles', 'role')
@@ -24,16 +24,21 @@ export class FindUsersByRoleUseCase {
       });
     }
 
+    if (status && role === 'expert') {
+      query.andWhere('profile_expert.kyc_status = :status', { status });
+    }
+
     const [items, total] = await query
-      .skip((page - 1) * limit)
-      .take(limit)
+      .orderBy('user.id', 'DESC')
+      .skip((Number(page) - 1) * Number(limit))
+      .take(Number(limit))
       .getManyAndCount();
 
     return {
       items,
       total,
-      page,
-      lastPage: Math.ceil(total / limit),
+      page: Number(page),
+      lastPage: Math.ceil(total / Number(limit)),
     };
   }
 }

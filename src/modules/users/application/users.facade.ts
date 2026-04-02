@@ -71,7 +71,7 @@ export class UsersFacade {
     return this.getUserExpertGrowthStatsUseCase.execute(days);
   }
 
-  findAllByRole(role: string, search?: string, page: number = 1, limit: number = 10) {
-    return this.findUsersByRoleUseCase.execute(role, search, page, limit);
+  findAllByRole(role: string, search?: string, page: number = 1, limit: number = 10, status?: string) {
+    return this.findUsersByRoleUseCase.execute(role, search, page, limit, status);
   }
 }

@@ -63,8 +63,9 @@ export class AdminController {
     @Query('search') search?: string,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('status') status?: string,
   ) {
-    return this.usersFacade.findAllByRole('expert', search, page, limit);
+    return this.usersFacade.findAllByRole('expert', search, page, limit, status);
   }
 
   @Get('experts/:id')
