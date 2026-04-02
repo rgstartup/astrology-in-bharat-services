@@ -231,7 +231,7 @@ export class ProkeralaService {
     lat: string;
     lon: string;
     lang?: string;
-  }) {
+  }, retries = 3): Promise<any> {
     const token = await this.getAccessToken();
 
     const queryParams = new URLSearchParams({
@@ -251,34 +251,26 @@ export class ProkeralaService {
       },
     );
 
+    // Retry on 429 Too Many Requests with exponential backoff
+    if (response.status === 429 && retries > 0) {
+      const waitMs = (4 - retries) * 2000; // 2s, 4s, 6s
+      console.warn(`[ProkeralaService] Rate limited (429). Retrying in ${waitMs}ms... (${retries} retries left)`);
+      await new Promise(resolve => setTimeout(resolve, waitMs));
+      return this.getPanchangDaily(params, retries - 1);
+    }
+
     return this.handleResponse(response);
   }
 
+  // Deprecated: Prokerala API v2 does not support a monthly endpoint.
+  // Use getPanchangDaily in a loop instead.
   async getPanchangMonthly(params: {
     datetime: string;
-    locationId: string;
+    lat: string;
+    lon: string;
     lang?: string;
   }) {
-    const token = await this.getAccessToken();
-
-    const queryParams = new URLSearchParams({
-      ayanamsa: '1',
-      datetime: params.datetime,
-      location_id: params.locationId,
-      la: params.lang || 'en',
-    });
-
-    const response = await fetch(
-      `https://api.prokerala.com/v2/astrology/hindu-calendar?${queryParams.toString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
-        },
-      },
-    );
-
-    return this.handleResponse(response);
+    throw new Error('Monthly endpoint not supported by Prokerala v2 API. Use daily loop instead.');
   }
 
   async getFestivals(year: number, lang?: string) {
@@ -311,7 +303,14 @@ export class ProkeralaService {
       } catch (e) {
         parsedError = errorBody;
       }
-      console.error('[ProkeralaService] API Error:', parsedError);
+      
+      console.error('[ProkeralaService] API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        error: parsedError
+      });
+
       throw new InternalServerErrorException(
         `Prokerala API call failed: ${JSON.stringify(parsedError)}`,
       );

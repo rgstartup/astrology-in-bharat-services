@@ -11,13 +11,15 @@ export class CalendarController {
   async getMonthly(
     @Query('year') year: string,
     @Query('month') month: string,
-    @Query('location_id') locationId: string,
+    @Query('lat') lat: string,
+    @Query('lon') lon: string,
     @Query('lang') lang: string = 'en',
   ) {
     return this.calendarService.getMonthlyCalendar(
       parseInt(year),
       parseInt(month),
-      locationId,
+      lat,
+      lon,
       lang,
     );
   }
