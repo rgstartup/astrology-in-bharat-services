@@ -161,7 +161,6 @@ export class AgentRegisterUserUseCase {
         return {
             success: true,
             user: createdUser,
-            tempPassword: generatedPassword,
             emailSent,
             emailError
         };
