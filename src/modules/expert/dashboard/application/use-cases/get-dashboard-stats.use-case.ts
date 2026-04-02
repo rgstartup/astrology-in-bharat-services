@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ReviewsFacade } from '@/modules/reviews/application/reviews.facade';
 import { DashboardPolicy } from '../../domain/policies/dashboard.policy';
 import { ChatSessionStatus } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
 import { CallSession, CallSessionStatus } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
@@ -14,6 +15,7 @@ export class GetDashboardStatsUseCase {
     private readonly chatFacade: ChatFacade,
     private readonly walletFacade: WalletFacade,
     private readonly profileFacade: ExpertProfileFacade,
+    private readonly reviewsFacade: ReviewsFacade,
     @InjectRepository(CallSession) private readonly callSessionRepo: Repository<CallSession>,
   ) { }
 
@@ -26,8 +28,10 @@ export class GetDashboardStatsUseCase {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
+    const reviewStats = await this.reviewsFacade.getReviewsStats(expertId);
+
     if (type === 'today') {
-      const todayAppointments = await this.chatFacade.getExpertSessionCount(expertId, {
+      const todayChatAppointments = await this.chatFacade.getExpertSessionCount(expertId, {
         startDate: startOfToday,
       });
       const todayCallAppointments = await this.callSessionRepo.count({
@@ -55,13 +59,16 @@ export class GetDashboardStatsUseCase {
       });
 
       return {
-        today_appointments: todayAppointments + todayCallAppointments,
+        today_appointments: todayChatAppointments + todayCallAppointments,
         completed_today: completedToday + completedCallsToday,
         expired_today: expiredToday + expiredCallsToday,
         today_earnings: todayEarnings,
+        average_rating: reviewStats?.rating || 0,
+        total_reviews: reviewStats?.totalReviews || 0,
+        total_chat_sessions: todayChatAppointments + todayCallAppointments, // Standardized for dashboard cards
       };
     } else {
-      const totalAppointments = await this.chatFacade.getExpertSessionCount(expertId);
+      const totalChatAppointments = await this.chatFacade.getExpertSessionCount(expertId);
       const totalCallAppointments = await this.callSessionRepo.count({
         where: { expert_id: expertId },
       });
@@ -83,10 +90,13 @@ export class GetDashboardStatsUseCase {
       const totalEarnings = await this.walletFacade.getTotalEarnings(userId);
 
       return {
-        total_appointments: totalAppointments + totalCallAppointments,
+        total_appointments: totalChatAppointments + totalCallAppointments,
         total_completed: totalCompleted + totalCompletedCalls,
         total_expired: totalExpired + totalExpiredCalls,
         total_earnings: totalEarnings,
+        average_rating: reviewStats?.rating || 0,
+        total_reviews: reviewStats?.totalReviews || 0,
+        total_chat_sessions: totalChatAppointments + totalCallAppointments, // Standardized for dashboard cards
       };
     }
   }
