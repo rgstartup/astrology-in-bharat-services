@@ -98,6 +98,11 @@ export class AdminController {
     return this.adminFacade.getLiveSessions(type, page, limit);
   }
 
+  @Get('live-sessions/stats')
+  async getLiveSessionStats() {
+    return this.chatFacade.getSessionStats();
+  }
+
 
   @Get('live-sessions/:id/history')
   async getChatHistory(@Param('id', ParseIntPipe) id: number) {

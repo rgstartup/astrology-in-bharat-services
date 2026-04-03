@@ -21,6 +21,7 @@ import { GetTotalSessionsCountUseCase } from './application/use-cases/get-total-
 import { CountExpertSessionsUseCase } from './application/use-cases/count-expert-sessions.use-case';
 import { FindAllSessionsUseCase } from './application/use-cases/find-all-sessions.use-case';
 import { AdminTerminateSessionUseCase } from './application/use-cases/admin-terminate-session.use-case';
+import { GetChatSessionStatsUseCase } from './application/use-cases/get-chat-session-stats.use-case';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { NotificationModule } from '@/modules/notification/notification.module';
@@ -49,8 +50,9 @@ import { NotificationModule } from '@/modules/notification/notification.module';
     CountExpertSessionsUseCase,
     FindAllSessionsUseCase,
     AdminTerminateSessionUseCase,
+    GetChatSessionStatsUseCase,
   ],
   controllers: [ChatController, ConsultationController],
-  exports: [ChatFacade, FindAllSessionsUseCase, AdminTerminateSessionUseCase],
+  exports: [ChatFacade, FindAllSessionsUseCase, AdminTerminateSessionUseCase, GetChatSessionStatsUseCase],
 })
 export class ChatModule { }
