@@ -13,6 +13,7 @@ export class FindAllSessionsUseCase {
     async execute(filter?: string, page: number = 1, limit: number = 10) {
         const query = this.sessionRepo.createQueryBuilder('session')
             .leftJoinAndSelect('session.user', 'user')
+            .leftJoinAndSelect('user.profile_client', 'profile_client')
             .leftJoinAndSelect('session.expert', 'expert')
             .leftJoinAndSelect('expert.user', 'expertUser')
             .addSelect((subQuery) => {
