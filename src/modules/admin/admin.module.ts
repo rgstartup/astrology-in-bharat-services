@@ -27,6 +27,7 @@ import { Role } from '../role/entities/roles.entity';
 import { AgentProfile } from '../agent/infrastructure/persistence/entities/agent-profile.entity';
 import { User } from '../users/infrastructure/persistence/entities/user.entity';
 import { AgentListing } from '../agent/infrastructure/persistence/entities/agent-listing.entity';
+import { ReviewsModule } from '@/modules/reviews/reviews.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AgentListing } from '../agent/infrastructure/persistence/entities/agent
     ChatModule,
     ProfileModule,
     CouponModule,
+    ReviewsModule,
   ],
   controllers: [AdminController],
   providers: [

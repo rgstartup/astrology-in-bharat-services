@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseIntPipe, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseIntPipe, UseInterceptors, UploadedFiles, Delete } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
@@ -14,6 +14,8 @@ import { FilterCriteria } from '../../application/use-cases/get-filtered-users.u
 import { CreateAgentDto } from '../../presentation/dto/create-agent.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
+import { ReviewsFacade } from '@/modules/reviews/application/reviews.facade';
+
 @Controller({
   path: 'admin',
   version: '1',
@@ -27,7 +29,40 @@ export class AdminController {
     private readonly profileFacade: ExpertProfileFacade,
     private readonly chatFacade: ChatFacade,
     private readonly couponFacade: CouponFacade,
+    private readonly reviewsFacade: ReviewsFacade,
   ) { }
+
+  // Review Management
+  @Get('reviews')
+  async getReviews(@Query() query: any) {
+    return this.reviewsFacade.getAdminReviews(query);
+  }
+
+  @Get('reviews/stats')
+  async getReviewStats() {
+    return this.reviewsFacade.getAllReviewsStats();
+  }
+
+  @Patch('reviews/:id/status')
+  async updateReviewStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('status') status: string,
+  ) {
+    return this.reviewsFacade.updateReviewStatus(id, status);
+  }
+
+  @Delete('reviews/:id')
+  async deleteReview(@Param('id', ParseIntPipe) id: number) {
+    return this.reviewsFacade.deleteReview(id);
+  }
+
+  @Post('reviews/:id/response')
+  async sendReviewResponse(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('message') message: string,
+  ) {
+    return this.reviewsFacade.sendReviewResponse(id, message);
+  }
 
   @Get('analytics/user-growth')
   async getUserGrowthStats(@Query('days') days: number = 7) {

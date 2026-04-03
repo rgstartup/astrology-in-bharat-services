@@ -49,6 +49,9 @@ export class Review {
 
   @Column({ type: 'text', nullable: true })
   comment: string;
+  
+  @Column({ type: 'varchar', length: 20, default: 'pending' })
+  status: string;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   created_at: Date;
