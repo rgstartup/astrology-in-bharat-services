@@ -117,7 +117,7 @@ export class AgentController {
             return {
                 totalListings: totalUsers + totalMandirs + totalPujaShops,
                 activeListings: totalUsers,
-                astrologersCount,
+                expertsCount: astrologersCount,
                 clientsCount,
                 mandirsCount: totalMandirs,
                 pujaShopsCount: totalPujaShops,
@@ -177,7 +177,7 @@ export class AgentController {
         const listings = await this.db.transaction(async (queryRunner) => {
             // Determine which data sources to query
             const isPlaceType = type === 'mandir' || type === 'puja_shop';
-            const isUserType = type === 'astrologer' || type === 'client';
+            const isUserType = type === 'astrologer' || type === 'expert' || type === 'client';
             const isAll = !type || type === 'all';
 
             let userData: any[] = [];
@@ -207,7 +207,7 @@ export class AgentController {
                         ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
                     });
 
-                if (type === 'astrologer') {
+                if (type === 'astrologer' || type === 'expert') {
                     qb.andWhere('role.name = :role', { role: 'expert' });
                 } else if (type === 'client') {
                     qb.andWhere('role.name = :role', { role: 'client' });
@@ -250,7 +250,7 @@ export class AgentController {
                         email: u.email,
                         phone: u.profile_client?.phone || u.profile_expert?.phone_number || null,
                         status: 'active',
-                        type: isExpert ? 'astrologer' : 'client',
+                        type: isExpert ? 'expert' : 'client',
                         createdAt: u.created_at,
                         avatar: u.avatar ?? null,
                         totalSpending: u.profile_client?.total_spending || 0,
