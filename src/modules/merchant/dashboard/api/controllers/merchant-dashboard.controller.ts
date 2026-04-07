@@ -16,8 +16,8 @@ import { GetMerchantStatsUseCase } from '../../application/use-cases/get-merchan
 import { GetRecentOrdersUseCase } from '../../application/use-cases/get-recent-orders.usecase';
 import { GetMerchantActivityUseCase } from '../../application/use-cases/get-merchant-activity.usecase';
 import { GetMerchantPerformanceUseCase } from '../../application/use-cases/get-merchant-performance.usecase';
-import { GetMerchantProfileByUserIdUseCase } from '../../../profile/application/use-cases/get-merchant-profile-by-userid.usecase';
-import { UpdateMerchantProfileUseCase } from '../../../profile/application/use-cases/update-merchant-profile.usecase';
+import { GetMerchantProfileUseCase } from '../../../profile/application/use-cases/get-merchant-profile.use-case';
+import { UpdateMerchantProfileUseCase } from '../../../profile/application/use-cases/update-merchant-profile.use-case';
 import { UpdateMerchantProfileDto } from '../../../profile/api/dto/update-merchant-profile.dto';
 
 @Controller({
@@ -31,7 +31,7 @@ export class MerchantDashboardController {
     private readonly getRecentOrders: GetRecentOrdersUseCase,
     private readonly getActivity: GetMerchantActivityUseCase,
     private readonly getPerformance: GetMerchantPerformanceUseCase,
-    private readonly getProfile: GetMerchantProfileByUserIdUseCase,
+    private readonly getProfile: GetMerchantProfileUseCase,
     private readonly updateProfile: UpdateMerchantProfileUseCase,
   ) {}
 
