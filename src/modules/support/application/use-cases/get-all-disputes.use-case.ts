@@ -14,8 +14,13 @@ export class GetAllDisputesUseCase {
         const { status, page = 1, limit = 10 } = params || {};
         const query = this.disputeRepo.createQueryBuilder('dispute')
             .leftJoinAndSelect('dispute.user', 'user')
-            // Expert is not directly related on dispute entity but via itemId usually
-            // However, itemDetails has expert info in current implementation
+            .leftJoinAndSelect('dispute.consultation', 'consultation')
+            .leftJoinAndSelect('consultation.expert', 'consultationExpert')
+            .leftJoinAndSelect('consultationExpert.user', 'consultationExpertUser')
+            .leftJoinAndSelect('dispute.order', 'order')
+            .leftJoinAndSelect('dispute.puja', 'puja')
+            .leftJoinAndSelect('puja.expert', 'pujaExpert')
+            .leftJoinAndSelect('pujaExpert.user', 'pujaExpertUser')
             .orderBy('dispute.created_at', 'DESC');
 
         if (status && status !== 'all') {
