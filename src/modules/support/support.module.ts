@@ -12,11 +12,13 @@ import { MarkMessagesAsReadUseCase } from './application/use-cases/mark-as-read.
 import { GetAllDisputesUseCase } from './application/use-cases/get-all-disputes.use-case';
 import { UpdateDisputeStatusUseCase } from './application/use-cases/update-dispute-status.use-case';
 import { SupportController } from './api/controllers/support.controller';
+import { SupportGateway } from './api/support.gateway';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage])],
     providers: [
         SupportFacade,
+        SupportGateway,
         GetDisputesUseCase,
         CreateDisputeUseCase,
         GetDisputeByIdUseCase,

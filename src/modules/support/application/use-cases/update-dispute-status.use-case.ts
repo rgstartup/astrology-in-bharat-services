@@ -3,11 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Dispute, DisputeStatus } from '../../infrastructure/persistence/entities/dispute.entity';
 
+import { SupportGateway } from '../../api/support.gateway';
+
 @Injectable()
 export class UpdateDisputeStatusUseCase {
     constructor(
         @InjectRepository(Dispute)
         private readonly disputeRepo: Repository<Dispute>,
+        private readonly supportGateway: SupportGateway,
     ) { }
 
     async execute(disputeId: number, data: { status: string; notes?: string }) {
@@ -26,6 +29,8 @@ export class UpdateDisputeStatusUseCase {
             // Actually, we can just save status for now.
         }
 
-        return this.disputeRepo.save(dispute);
+        const saved = await this.disputeRepo.save(dispute);
+        this.supportGateway.notifyStatusUpdate(disputeId, saved.status, saved);
+        return saved;
     }
 }
