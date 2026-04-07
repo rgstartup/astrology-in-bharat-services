@@ -10,9 +10,15 @@ export class GetDisputeByIdUseCase {
         private readonly disputeRepo: Repository<Dispute>,
     ) { }
 
-    async execute(userId: number, disputeId: number) {
+    async execute(userId: number, disputeId: number, isAdmin = false) {
+        const where: any = { id: disputeId };
+        if (!isAdmin) {
+            where.user_id = userId;
+        }
+
         const dispute = await this.disputeRepo.findOne({
-            where: { id: disputeId, user_id: userId },
+            where,
+            relations: ['user'], // Added relation for better details
         });
 
         if (!dispute) {

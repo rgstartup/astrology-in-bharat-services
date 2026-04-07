@@ -1,0 +1,31 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Dispute, DisputeStatus } from '../../infrastructure/persistence/entities/dispute.entity';
+
+@Injectable()
+export class UpdateDisputeStatusUseCase {
+    constructor(
+        @InjectRepository(Dispute)
+        private readonly disputeRepo: Repository<Dispute>,
+    ) { }
+
+    async execute(disputeId: number, data: { status: string; notes?: string }) {
+        const dispute = await this.disputeRepo.findOne({
+            where: { id: disputeId },
+        });
+
+        if (!dispute) {
+            throw new NotFoundException(`Dispute with ID ${disputeId} not found`);
+        }
+
+        // We can cast the status or map it
+        dispute.status = data.status as DisputeStatus;
+        if (data.notes) {
+            // If item_details has notes or description?
+            // Actually, we can just save status for now.
+        }
+
+        return this.disputeRepo.save(dispute);
+    }
+}

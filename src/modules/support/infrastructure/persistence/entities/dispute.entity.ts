@@ -28,14 +28,32 @@ export class Dispute {
     @Column({ name: 'user_id' })
     user_id: number;
 
+    @ManyToOne('ChatSession', { nullable: true })
+    @JoinColumn({ name: 'consultation_id' })
+    consultation: any;
+
+    @Column({ name: 'consultation_id', nullable: true })
+    consultation_id?: number;
+
+    @ManyToOne('Order', { nullable: true })
+    @JoinColumn({ name: 'order_id' })
+    order: any;
+
+    @Column({ name: 'order_id', nullable: true })
+    order_id?: number;
+
+    @ManyToOne('PujaAppointment', { nullable: true })
+    @JoinColumn({ name: 'puja_id' })
+    puja: any;
+
+    @Column({ name: 'puja_id', nullable: true })
+    puja_id?: number;
+
     @Column({ type: 'varchar', length: 50, default: 'order' })
     type: string;
 
     @Column({ name: 'item_id', nullable: true })
     item_id?: number;
-
-    @Column({ name: 'consultation_id', nullable: true })
-    consultation_id?: number;
 
     @Column({ type: 'varchar', length: 255 })
     category: string;
@@ -49,9 +67,6 @@ export class Dispute {
         default: DisputeStatus.OPEN,
     })
     status: DisputeStatus;
-
-    @Column({ name: 'order_id', nullable: true })
-    order_id?: number;
 
     @Column({ type: 'json', nullable: true })
     item_details?: any;

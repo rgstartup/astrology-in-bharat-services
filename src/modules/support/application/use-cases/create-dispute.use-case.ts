@@ -21,6 +21,7 @@ export class CreateDisputeUseCase {
             order_id: dto.orderId,
             item_id: dto.itemId,
             consultation_id: dto.consultationId,
+            puja_id: dto.pujaId,
             item_details: dto.itemDetails,
         });
 

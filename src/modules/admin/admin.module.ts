@@ -33,6 +33,7 @@ import { User } from '../users/infrastructure/persistence/entities/user.entity';
 import { AgentListing } from '../agent/infrastructure/persistence/entities/agent-listing.entity';
 import { ReviewsModule } from '@/modules/reviews/reviews.module';
 import { Transaction } from '../wallet/infrastructure/persistence/entities/transaction.entity';
+import { SupportModule } from '../support/support.module';
 import { CallSession } from '../call/infrastructure/persistence/entities/call-session.entity';
 import { PujaAppointment } from '../puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
 import { OrderItem } from '../order/infrastructure/persistence/entities/order-item.entity';
@@ -65,6 +66,7 @@ import { Product } from '../product/infrastructure/persistence/entities/product.
     ProfileModule,
     CouponModule,
     ReviewsModule,
+    SupportModule,
   ],
   controllers: [AdminController],
   providers: [

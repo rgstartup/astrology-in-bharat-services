@@ -13,10 +13,13 @@ export class GetDisputeMessagesUseCase {
         private readonly messageRepo: Repository<DisputeMessage>,
     ) { }
 
-    async execute(userId: number, disputeId: number) {
-        const dispute = await this.disputeRepo.findOne({
-            where: { id: disputeId, user_id: userId },
-        });
+    async execute(userId: number, disputeId: number, isAdmin = false) {
+        const where: any = { id: disputeId };
+        if (!isAdmin) {
+            where.user_id = userId;
+        }
+
+        const dispute = await this.disputeRepo.findOne({ where });
 
         if (!dispute) {
             throw new NotFoundException(`Dispute with ID ${disputeId} not found`);

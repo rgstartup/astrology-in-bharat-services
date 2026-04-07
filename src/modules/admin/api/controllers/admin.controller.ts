@@ -277,4 +277,42 @@ export class AdminController {
   ) {
     return this.adminFacade.getListings({ type, search, page, limit });
   }
+
+  // --- Support / Disputes Management ---
+  @Get('support/disputes')
+  async getAllDisputes(
+    @Query('status') status?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.adminFacade.getAllDisputes({ status, page: Number(page), limit: Number(limit) });
+  }
+
+  @Get('support/disputes/:id')
+  async getDisputeById(@Param('id', ParseIntPipe) id: number) {
+    return this.adminFacade.getDisputeById(id);
+  }
+
+  @Patch('support/disputes/:id/status')
+  async updateDisputeStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('status') status: string,
+    @Body('notes') notes?: string,
+  ) {
+    return this.adminFacade.updateDisputeStatus(id, status, notes);
+  }
+
+  @Get('support/disputes/:id/messages')
+  async getDisputeMessages(@Param('id', ParseIntPipe) id: number) {
+    return this.adminFacade.getDisputeMessages(id);
+  }
+
+  @Post('support/disputes/:id/messages')
+  async sendDisputeMessage(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() admin: User,
+    @Body() data: { message: string },
+  ) {
+    return this.adminFacade.sendDisputeMessage(id, admin.id, data);
+  }
 }

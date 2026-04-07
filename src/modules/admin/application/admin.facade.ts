@@ -14,6 +14,7 @@ import { GetAdminTopExpertsUseCase } from './use-cases/get-admin-top-experts.use
 import { CreateAgentDto } from '../presentation/dto/create-agent.dto';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { SupportFacade } from '@/modules/support/application/support.facade';
 import { WithdrawalStatus } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
 
 @Injectable()
@@ -33,6 +34,7 @@ export class AdminFacade {
     private readonly getTopExpertsUseCase: GetAdminTopExpertsUseCase,
     private readonly chatFacade: ChatFacade,
     private readonly walletFacade: WalletFacade,
+    private readonly supportFacade: SupportFacade,
   ) { }
 
 
@@ -107,6 +109,27 @@ export class AdminFacade {
 
   async getTopExperts(limit: number = 5) {
     return this.getTopExpertsUseCase.execute(limit);
+  }
+
+  // --- Support / Disputes Management ---
+  async getAllDisputes(params?: { status?: string, page?: number, limit?: number }) {
+    return this.supportFacade.getAllDisputes(params);
+  }
+
+  async getDisputeById(disputeId: number) {
+    return this.supportFacade.getDisputeByIdForAdmin(disputeId);
+  }
+
+  async updateDisputeStatus(disputeId: number, status: string, notes?: string) {
+    return this.supportFacade.updateDisputeStatus(disputeId, { status, notes });
+  }
+
+  async getDisputeMessages(disputeId: number) {
+    return this.supportFacade.getAdminMessages(disputeId);
+  }
+
+  async sendDisputeMessage(disputeId: number, adminId: number, data: { message: string }) {
+    return this.supportFacade.sendAdminMessage(adminId, disputeId, data);
   }
 }
 

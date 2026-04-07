@@ -9,6 +9,8 @@ import { GetDisputeByIdUseCase } from './application/use-cases/get-dispute-by-id
 import { SendDisputeMessageUseCase } from './application/use-cases/send-message.use-case';
 import { GetDisputeMessagesUseCase } from './application/use-cases/get-messages.use-case';
 import { MarkMessagesAsReadUseCase } from './application/use-cases/mark-as-read.use-case';
+import { GetAllDisputesUseCase } from './application/use-cases/get-all-disputes.use-case';
+import { UpdateDisputeStatusUseCase } from './application/use-cases/update-dispute-status.use-case';
 import { SupportController } from './api/controllers/support.controller';
 
 @Module({
@@ -20,7 +22,9 @@ import { SupportController } from './api/controllers/support.controller';
         GetDisputeByIdUseCase,
         SendDisputeMessageUseCase,
         GetDisputeMessagesUseCase,
-        MarkMessagesAsReadUseCase
+        MarkMessagesAsReadUseCase,
+        GetAllDisputesUseCase,
+        UpdateDisputeStatusUseCase
     ],
     controllers: [SupportController],
     exports: [SupportFacade],

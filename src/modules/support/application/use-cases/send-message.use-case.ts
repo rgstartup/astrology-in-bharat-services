@@ -14,10 +14,13 @@ export class SendDisputeMessageUseCase {
         private readonly messageRepo: Repository<DisputeMessage>,
     ) { }
 
-    async execute(userId: number, disputeId: number, dto: SendDisputeMessageDto) {
-        const dispute = await this.disputeRepo.findOne({
-            where: { id: disputeId, user_id: userId },
-        });
+    async execute(userId: number, disputeId: number, dto: SendDisputeMessageDto, isAdmin = false) {
+        const where: any = { id: disputeId };
+        if (!isAdmin) {
+            where.user_id = userId;
+        }
+
+        const dispute = await this.disputeRepo.findOne({ where });
 
         if (!dispute) {
             throw new NotFoundException(`Dispute with ID ${disputeId} not found`);
@@ -26,7 +29,7 @@ export class SendDisputeMessageUseCase {
         const newMessage = this.messageRepo.create({
             dispute_id: disputeId,
             sender_id: userId,
-            sender_type: 'user',
+            sender_type: isAdmin ? 'admin' : 'user',
             message: dto.message,
         });
 

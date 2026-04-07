@@ -17,6 +17,10 @@ export class CreateDisputeDto {
     @IsNumber()
     consultationId?: number;
 
+    @IsOptional()
+    @IsNumber()
+    pujaId?: number;
+
     @IsNotEmpty()
     @IsString()
     category: string;
