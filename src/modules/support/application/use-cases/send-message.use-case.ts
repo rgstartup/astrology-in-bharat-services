@@ -5,6 +5,8 @@ import { Dispute } from '../../infrastructure/persistence/entities/dispute.entit
 import { DisputeMessage } from '../../infrastructure/persistence/entities/dispute-message.entity';
 import { SendDisputeMessageDto } from '../../api/dto/send-dispute-message.dto';
 
+import { SupportGateway } from '../../api/support.gateway';
+
 @Injectable()
 export class SendDisputeMessageUseCase {
     constructor(
@@ -12,6 +14,7 @@ export class SendDisputeMessageUseCase {
         private readonly disputeRepo: Repository<Dispute>,
         @InjectRepository(DisputeMessage)
         private readonly messageRepo: Repository<DisputeMessage>,
+        private readonly supportGateway: SupportGateway,
     ) { }
 
     async execute(userId: number, disputeId: number, dto: SendDisputeMessageDto, isAdmin = false) {
@@ -33,6 +36,8 @@ export class SendDisputeMessageUseCase {
             message: dto.message,
         });
 
-        return this.messageRepo.save(newMessage);
+        const saved = await this.messageRepo.save(newMessage);
+        this.supportGateway.notifyNewMessage(disputeId, saved);
+        return saved;
     }
 }
