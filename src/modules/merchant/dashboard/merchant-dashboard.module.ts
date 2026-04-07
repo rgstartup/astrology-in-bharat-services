@@ -10,10 +10,12 @@ import { GetMerchantActivityUseCase } from './application/use-cases/get-merchant
 import { GetMerchantPerformanceUseCase } from './application/use-cases/get-merchant-performance.usecase';
 import { MerchantProductsUseCase } from './application/use-cases/merchant-products.usecase';
 import { MerchantProductsController } from './api/controllers/merchant-products.controller';
+import { ProfileModule } from '../profile/profile.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([OrderItem, Product, Review]),
+    ProfileModule,
   ],
   controllers: [MerchantDashboardController, MerchantProductsController],
   providers: [

@@ -37,7 +37,25 @@ export class ProfileMerchant {
   shopName?: string;
 
   @Column({ nullable: true })
+  managerName?: string;
+
+  @Column({ nullable: true })
   phone?: string;
+
+  @Column({ nullable: true, type: 'text' })
+  address?: string;
+
+  @Column({ nullable: true })
+  city?: string;
+
+  @Column({ nullable: true })
+  pincode?: string;
+
+  @Column({ nullable: true })
+  image?: string;
+
+  @Column({ nullable: true })
+  video?: string;
 
   @Column({
     type: 'enum',
