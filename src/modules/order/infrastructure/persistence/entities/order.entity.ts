@@ -51,6 +51,9 @@ export class Order {
     @Column({ name: 'shipping_address', type: 'json', nullable: true })
     shipping_address: any;
 
+    @Column({ name: 'delivery_otp', nullable: true })
+    delivery_otp: string;
+
     @Column({ name: 'cancellation_reason', type: 'text', nullable: true })
     cancellation_reason?: string;
 

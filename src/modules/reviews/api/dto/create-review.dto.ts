@@ -1,9 +1,17 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CreateReviewDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  expertId: number;
+  expertId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  merchantId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  orderId?: number;
 
   @IsOptional()
   @IsNumber()

@@ -49,7 +49,7 @@ export class CreateOrderFromCartUseCase {
       this.logger.log(`[CREATE_ORDER] User: ${userId}, PaymentMethod: ${dto.payment_method}`);
 
       let totalAmount = 0;
-      let itemsToCreate: { product_id: number; quantity: number; price: number; expert_id: number | null }[] = [];
+      let itemsToCreate: { product_id: number; quantity: number; price: number; expert_id: number | null; merchant_id: number | null }[] = [];
 
       if (dto.product_id) {
         // 1. Handle Single Product Order (Buy Now)
@@ -66,7 +66,8 @@ export class CreateOrderFromCartUseCase {
           product_id: product.id,
           quantity: quantity,
           price: price,
-          expert_id: product.expert_id
+          expert_id: product.expert_id,
+          merchant_id: product.merchant_id,
         });
       } else {
         // 2. Handle Cart-based Order
@@ -84,7 +85,8 @@ export class CreateOrderFromCartUseCase {
             product_id: item.product.id,
             quantity: qty,
             price: price,
-            expert_id: item.product.expert_id
+            expert_id: item.product.expert_id,
+            merchant_id: item.product.merchant_id,
           });
         });
       }
@@ -115,6 +117,9 @@ export class CreateOrderFromCartUseCase {
         this.logger.log(`[CREATE_ORDER] Debited ₹${totalAmount} from user ${userId}`);
       }
 
+      // 2.7 Generate Delivery OTP (6 digits)
+      const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
       // 3. Create Order record
       const order = queryRunner.manager.create(Order, {
         user_id: userId,
@@ -122,6 +127,7 @@ export class CreateOrderFromCartUseCase {
         shipping_address: shipping_address,
         status: isWalletPayment ? OrderStatus.PAID : OrderStatus.PENDING,
         payment_method: dto.payment_method || 'razorpay',
+        delivery_otp: deliveryOtp,
       });
 
       const savedOrder = await queryRunner.manager.save(Order, order);
@@ -136,10 +142,11 @@ export class CreateOrderFromCartUseCase {
         });
         await queryRunner.manager.save(OrderItem, orderItem);
 
-        // If paid by wallet, credit the expert now
+        // If paid by wallet, credit the handler now (ONLY for Experts)
+        // Merchant payout is now deferred until OTP verification during delivery
         if (isWalletPayment && item.expert_id) {
           const itemTotal = Number(item.price) * (item.quantity || 1);
-          
+
           // Resolve Expert Profile ID to User ID for wallet operation
           const expertProfile = await queryRunner.manager.createQueryBuilder(ProfileExpert, 'expert')
             .select(['expert.user_id'])
@@ -148,15 +155,13 @@ export class CreateOrderFromCartUseCase {
 
           if (expertProfile && expertProfile.user_id) {
             await this.walletFacade.credit(
-              expertProfile.user_id, // Correct User ID for wallet
+              expertProfile.user_id,
               itemTotal,
               TransactionPurpose.PRODUCT_PURCHASE,
               `order_${savedOrder.id}_item_credit`,
               queryRunner
             );
             this.logger.log(`[CREATE_ORDER] Credited ₹${itemTotal} to expert ${item.expert_id} (User: ${expertProfile.user_id})`);
-          } else {
-            this.logger.warn(`[CREATE_ORDER] Could not find User ID for expert profile ${item.expert_id}`);
           }
         }
       }

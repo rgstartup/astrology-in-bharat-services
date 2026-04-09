@@ -19,6 +19,7 @@ import { UpdateReviewStatusUseCase } from './application/use-cases/update-review
 import { DeleteReviewUseCase } from './application/use-cases/delete-review.use-case';
 import { SendReviewResponseUseCase } from './application/use-cases/send-review-response.use-case';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persi
       ChatSession,
       CallSession,
       ProfileMerchant,
+      Order,
     ]),
     WalletModule,
     NotificationModule,

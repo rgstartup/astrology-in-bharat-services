@@ -39,6 +39,10 @@ import { PujaAppointment } from '../puja-appointment/infrastructure/persistence/
 import { OrderItem } from '../order/infrastructure/persistence/entities/order-item.entity';
 import { Product } from '../product/infrastructure/persistence/entities/product.entity';
 
+import { SystemSetting } from './infrastructure/persistence/entities/system-setting.entity';
+import { SettingsController } from './api/controllers/settings.controller';
+import { GetSupportSettingsUseCase } from './application/use-cases/get-support-settings.usecase';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -55,7 +59,8 @@ import { Product } from '../product/infrastructure/persistence/entities/product.
       AgentListing,
       Transaction,
       CallSession,
-      PujaAppointment
+      PujaAppointment,
+      SystemSetting,
     ]),
 
     UsersModule,
@@ -68,7 +73,7 @@ import { Product } from '../product/infrastructure/persistence/entities/product.
     ReviewsModule,
     SupportModule,
   ],
-  controllers: [AdminController],
+  controllers: [AdminController, SettingsController],
   providers: [
     AdminFacade,
     GetAdminDashboardStatsUseCase,
@@ -83,6 +88,7 @@ import { Product } from '../product/infrastructure/persistence/entities/product.
     GetAdminRevenueTrendUseCase,
     GetAdminEarningsBreakdownUseCase,
     GetAdminTopExpertsUseCase,
+    GetSupportSettingsUseCase,
   ],
 })
 export class AdminModule { }

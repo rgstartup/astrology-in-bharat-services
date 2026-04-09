@@ -1,10 +1,14 @@
-import { Controller, Get, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Patch, UseGuards, HttpCode, HttpStatus, Query, DefaultValuePipe, ParseIntPipe, Param, Body } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { GetMerchantStatsUseCase } from '../../application/use-cases/get-merchant-stats.usecase';
 import { GetRecentOrdersUseCase } from '../../application/use-cases/get-recent-orders.usecase';
+import { GetMerchantOrdersUseCase } from '../../application/use-cases/get-merchant-orders.usecase';
 import { GetMerchantActivityUseCase } from '../../application/use-cases/get-merchant-activity.usecase';
 import { GetMerchantPerformanceUseCase } from '../../application/use-cases/get-merchant-performance.usecase';
+import { VerifyOrderOtpUseCase } from '../../application/use-cases/verify-order-otp.usecase';
+import { OrderFacade } from '@/modules/order/application/order.facade';
+import { OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
 
 @Controller({
   path: 'merchant',
@@ -15,14 +19,27 @@ export class MerchantDashboardController {
   constructor(
     private readonly getStats: GetMerchantStatsUseCase,
     private readonly getRecentOrders: GetRecentOrdersUseCase,
+    private readonly getAllOrders: GetMerchantOrdersUseCase,
     private readonly getActivity: GetMerchantActivityUseCase,
     private readonly getPerformance: GetMerchantPerformanceUseCase,
+    private readonly verifyOtp: VerifyOrderOtpUseCase,
+    private readonly orderFacade: OrderFacade,
   ) {}
 
   @Get('stats')
   @HttpCode(HttpStatus.OK)
   async stats(@CurrentUser('id') userId: number) {
     return this.getStats.execute(userId);
+  }
+
+  @Get('orders')
+  @HttpCode(HttpStatus.OK)
+  async orders(
+    @CurrentUser('id') userId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+  ) {
+    return this.getAllOrders.execute(userId, page, limit);
   }
 
   @Get('orders/recent')
@@ -41,5 +58,25 @@ export class MerchantDashboardController {
   @HttpCode(HttpStatus.OK)
   async performance(@CurrentUser('id') userId: number) {
     return this.getPerformance.execute(userId);
+  }
+
+  @Post('orders/:id/verify-otp')
+  @HttpCode(HttpStatus.OK)
+  async verifyOrderOtp(
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) orderId: number,
+    @Body('otp') otp: string,
+  ) {
+    return this.verifyOtp.execute(userId, orderId, otp);
+  }
+
+  @Patch('orders/:id/status')
+  @HttpCode(HttpStatus.OK)
+  async updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('status') status: OrderStatus,
+    @Body('cancellationReason') cancellationReason?: string,
+  ) {
+    return this.orderFacade.updateOrderStatus(id, status, cancellationReason);
   }
 }

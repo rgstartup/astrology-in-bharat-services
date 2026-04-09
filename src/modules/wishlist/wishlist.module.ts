@@ -19,14 +19,19 @@ import { GetExpertWishlistUseCase } from './application/use-cases/get-expert-wis
 import { AddPujaToWishlistUseCase } from './application/use-cases/add-puja-to-wishlist.use-case';
 import { RemovePujaFromWishlistUseCase } from './application/use-cases/remove-puja-from-wishlist.use-case';
 import { GetPujaWishlistUseCase } from './application/use-cases/get-puja-wishlist.use-case';
+import { AddMerchantToWishlistUseCase } from './application/use-cases/add-merchant-to-wishlist.use-case';
+import { RemoveMerchantFromWishlistUseCase } from './application/use-cases/remove-merchant-from-wishlist.use-case';
+import { GetMerchantWishlistUseCase } from './application/use-cases/get-merchant-wishlist.use-case';
+import { MerchantLikeController } from './api/controllers/merchant-like.controller';
+import { ProfileMerchant } from '../merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Wishlist, Product, ExpertPuja, User]),
+    TypeOrmModule.forFeature([Wishlist, Product, ExpertPuja, User, ProfileMerchant]),
     UsersModule,
     ExpertModule,
   ],
-  controllers: [ProductLikeController, ExpertLikeController, PujaLikeController],
+  controllers: [ProductLikeController, ExpertLikeController, PujaLikeController, MerchantLikeController],
   providers: [
     WishlistFacade,
     AddProductToWishlistUseCase,
@@ -38,7 +43,9 @@ import { GetPujaWishlistUseCase } from './application/use-cases/get-puja-wishlis
     AddPujaToWishlistUseCase,
     RemovePujaFromWishlistUseCase,
     GetPujaWishlistUseCase,
+    AddMerchantToWishlistUseCase,
+    RemoveMerchantFromWishlistUseCase,
+    GetMerchantWishlistUseCase,
   ],
-
 })
 export class WishlistModule {}

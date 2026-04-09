@@ -38,6 +38,16 @@ export class MerchantProductsController {
     return this.merchantProducts.findAll(userId, { status, search, page, limit });
   }
 
+  // GET /api/v1/merchant/products/:id
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  async findOne(
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) productId: number,
+  ) {
+    return this.merchantProducts.findOne(userId, productId);
+  }
+
   // POST /api/v1/merchant/products
   @Post()
   @HttpCode(HttpStatus.CREATED)

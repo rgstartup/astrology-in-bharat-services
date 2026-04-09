@@ -2,12 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../../infrastructure/persistence/entities/product.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 
 @Injectable()
 export class FindAllProductsUseCase {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProfileMerchant)
+    private readonly merchantRepository: Repository<ProfileMerchant>,
   ) { }
 
   async execute(filters: { merchantId?: number; expertId?: number; page?: number; limit?: number }) {
@@ -18,7 +21,18 @@ export class FindAllProductsUseCase {
       .where('product.is_active = :isActive', { isActive: true });
 
     if (merchantId) {
-      query.andWhere('product.merchant_id = :merchantId', { merchantId });
+      // Find the user_id associated with this merchant profile id
+      const merchant = await this.merchantRepository.findOne({ where: { id: merchantId } });
+      if (merchant) {
+        query.andWhere('product.merchant_id = :userId', { userId: merchant.user_id });
+      } else {
+        // If merchant not found, we shouldn't return any products for this merchantId
+        return {
+          success: true,
+          data: [],
+          meta: { total: 0, page, limit, totalPages: 0 },
+        };
+      }
     }
 
     if (expertId) {
@@ -33,7 +47,11 @@ export class FindAllProductsUseCase {
 
     return {
       success: true,
-      data: products,
+      data: products.map(p => ({
+        ...p,
+        productName: p.name,
+        productImage: p.image_url ?? ''
+      })),
       meta: {
         total,
         page,

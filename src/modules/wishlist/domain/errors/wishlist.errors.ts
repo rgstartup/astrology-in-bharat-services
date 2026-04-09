@@ -73,3 +73,25 @@ export class PujaNotFoundError extends DomainError {
   readonly message = 'Puja not found';
   readonly httpStatus = 404;
 }
+
+export class MerchantAlreadyInWishlistError extends DomainError {
+  readonly code = 'MERCHANT_ALREADY_IN_WISHLIST';
+  readonly message = 'Merchant already in wishlist';
+  readonly httpStatus = 409;
+}
+
+export class MerchantNotInWishlistError extends DomainError {
+  readonly code = 'MERCHANT_NOT_IN_WISHLIST';
+  readonly message = 'Merchant not found in wishlist';
+  readonly httpStatus = 404;
+}
+
+export class MerchantNotFoundError extends DomainError {
+  constructor(merchantId: number, message?: string) {
+    super();
+    this.message = message || `Merchant with ID ${merchantId} not found`;
+  }
+  readonly code = 'MERCHANT_NOT_FOUND';
+  readonly message: string;
+  readonly httpStatus = 404;
+}

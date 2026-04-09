@@ -29,12 +29,14 @@ export class MerchantProductsUseCase {
     return {
       id: p.id,
       name: p.name,
+      productName: p.name,
       category: p.category ?? 'General',
       sku: p.sku ?? undefined,
       price: Number(p.price),
       stock: p.stock,
       status,
       imageUrl: p.image_url ?? '',
+      productImage: p.image_url ?? '',
       description: p.description,
       original_price: Number(p.original_price ?? p.price),
       created_at: p.created_at,
@@ -153,5 +155,15 @@ export class MerchantProductsUseCase {
     );
 
     return { success: true, message: `${ids.length} products updated to ${status}` };
+  }
+
+  // 6. FIND ONE
+  async findOne(merchantId: number, productId: number) {
+    const p = await this.productRepo.findOneBy({ id: productId });
+    if (!p) throw new NotFoundException('Product not found');
+    if (p.merchant_id !== merchantId) {
+      throw new ForbiddenException('You do not own this product');
+    }
+    return this.toResponse(p);
   }
 }

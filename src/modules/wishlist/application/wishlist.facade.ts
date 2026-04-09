@@ -8,6 +8,9 @@ import { GetExpertWishlistUseCase } from './use-cases/get-expert-wishlist.use-ca
 import { AddPujaToWishlistUseCase } from './use-cases/add-puja-to-wishlist.use-case';
 import { RemovePujaFromWishlistUseCase } from './use-cases/remove-puja-from-wishlist.use-case';
 import { GetPujaWishlistUseCase } from './use-cases/get-puja-wishlist.use-case';
+import { AddMerchantToWishlistUseCase } from './use-cases/add-merchant-to-wishlist.use-case';
+import { RemoveMerchantFromWishlistUseCase } from './use-cases/remove-merchant-from-wishlist.use-case';
+import { GetMerchantWishlistUseCase } from './use-cases/get-merchant-wishlist.use-case';
 
 
 @Injectable()
@@ -22,6 +25,9 @@ export class WishlistFacade {
     private readonly addPujaUseCase: AddPujaToWishlistUseCase,
     private readonly removePujaUseCase: RemovePujaFromWishlistUseCase,
     private readonly getPujaWishlistUseCase: GetPujaWishlistUseCase,
+    private readonly addMerchantUseCase: AddMerchantToWishlistUseCase,
+    private readonly removeMerchantUseCase: RemoveMerchantFromWishlistUseCase,
+    private readonly getMerchantWishlistUseCase: GetMerchantWishlistUseCase,
   ) {}
 
   async getProductWishlist(userId: number) {
@@ -58,5 +64,17 @@ export class WishlistFacade {
 
   async removePujaFromWishlist(userId: number, pujaId: number) {
     return this.removePujaUseCase.execute(userId, pujaId);
+  }
+
+  async getMerchantWishlist(userId: number) {
+    return this.getMerchantWishlistUseCase.execute(userId);
+  }
+
+  async addMerchantToWishlist(userId: number, merchantId: number) {
+    return this.addMerchantUseCase.execute(userId, merchantId);
+  }
+
+  async removeMerchantFromWishlist(userId: number, merchantId: number) {
+    return this.removeMerchantUseCase.execute(userId, merchantId);
   }
 }
