@@ -47,8 +47,8 @@ export class CreateReviewUseCase {
     const expert = await this.expertRepository.findOne({ where: { id: expertId } });
     if (!expert) throw new NotFoundException('Expert not found');
 
-    let chatSessionId: number | null = null;
-    let callSessionId: number | null = null;
+    let chatSessionId: number | undefined = undefined;
+    let callSessionId: number | undefined = undefined;
 
     if (sessionId) {
       const chatSession = await this.chatSessionRepository.findOne({ where: { id: sessionId } });
@@ -65,8 +65,13 @@ export class CreateReviewUseCase {
         throw new ForbiddenException('You can only review sessions you participated in');
       }
 
+      // Use an explicit query object to satisfy TypeScript
+      const queryCondition: any = chatSessionId 
+        ? { session_id: chatSessionId } 
+        : { call_session_id: callSessionId };
+
       const existingReview = await this.reviewRepository.findOne({
-        where: chatSessionId ? { session_id: chatSessionId } : { call_session_id: callSessionId as number }
+        where: queryCondition
       });
       if (existingReview) throw new BadRequestException('Session already reviewed');
     }
