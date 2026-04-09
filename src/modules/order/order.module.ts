@@ -18,12 +18,13 @@ import { User } from '@/modules/users/infrastructure/persistence/entities/user.e
 import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 import { ProductModule } from '@/modules/product/product.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
+import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
 
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, User, Product]),
+    TypeOrmModule.forFeature([Order, OrderItem, User, Product, PujaAppointment]),
     CartModule,
     ProductModule,
     NotificationModule,

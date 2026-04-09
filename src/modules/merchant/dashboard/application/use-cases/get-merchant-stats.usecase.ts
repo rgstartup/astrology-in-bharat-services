@@ -14,19 +14,15 @@ export class GetMerchantStatsUseCase {
   ) {}
 
   async execute(userId: number) {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    // 1. Today's Orders (Distinct order_id where product.merchant_id = userId)
-    const todayOrdersQuery = await this.orderItemRepo
+    // 1. Total Orders - Lifetime (Distinct order_id where product.merchant_id = userId)
+    const totalOrdersQuery = await this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoin('oi.product', 'p')
       .where('p.merchant_id = :userId', { userId })
-      .andWhere('oi.created_at >= :startOfToday', { startOfToday })
       .select('COUNT(DISTINCT oi.order_id)', 'count')
       .getRawOne();
 
@@ -35,7 +31,7 @@ export class GetMerchantStatsUseCase {
       where: { merchant_id: userId },
     });
 
-    // 3. Monthly Earnings (Sum of price * quantity where product.merchant_id = userId)
+    // 3. Monthly Earnings (Sum of price * quantity where product.merchant_id = userId for current month)
     const monthlyEarningsQuery = await this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoin('oi.product', 'p')
@@ -44,12 +40,23 @@ export class GetMerchantStatsUseCase {
       .select('SUM(oi.price * oi.quantity)', 'sum')
       .getRawOne();
 
+    // 4. Total Earnings (Sum of price * quantity where product.merchant_id = userId)
+    const totalEarningsQuery = await this.orderItemRepo
+      .createQueryBuilder('oi')
+      .innerJoin('oi.product', 'p')
+      .where('p.merchant_id = :userId', { userId })
+      .select('SUM(oi.price * oi.quantity)', 'sum')
+      .getRawOne();
+
     return {
-      todayOrders: { value: Number(todayOrdersQuery.count) || 0, trend: '+12%' },
+      totalOrders: { value: Number(totalOrdersQuery.count) || 0, trend: '+10%' },
       totalProducts: { value: totalProducts, trend: '+2 new' },
-      shopFollowers: { value: 1250, trend: '+48' }, // Mocked
+      totalEarnings: {
+        value: Number(totalEarningsQuery.sum) || 0,
+        trend: '+15%',
+      },
       monthlyEarnings: {
-        value: `₹${Number(monthlyEarningsQuery.sum).toLocaleString() || 0}`,
+        value: Number(monthlyEarningsQuery.sum) || 0,
         trend: '+8%',
       },
     };

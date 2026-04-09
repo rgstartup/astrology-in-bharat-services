@@ -122,7 +122,7 @@ export class UpdateOrderStatusUseCase {
       case OrderStatus.SHIPPED:
         notificationType = NotificationType.ORDER_SHIPPED;
         title = 'Order Shipped';
-        message = `Your order #${id} has been shipped`;
+        message = `Your order #${id} has been shipped. Use OTP ${order.delivery_otp} for delivery verification.`;
         break;
       case OrderStatus.DELIVERED:
         notificationType = NotificationType.ORDER_DELIVERED;
@@ -162,14 +162,26 @@ export class UpdateOrderStatusUseCase {
     try {
       const user = await this.userRepo.findOne({ where: { id: order.user_id } });
       if (user?.email) {
+        let otpMessage = '';
+        if (status === OrderStatus.SHIPPED && order.delivery_otp) {
+          otpMessage = `
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 5px solid #007bff;">
+              <p style="margin: 0; color: #333;"><strong>Delivery Verification OTP:</strong></p>
+              <h1 style="margin: 5px 0; color: #007bff; letter-spacing: 5px;">${order.delivery_otp}</h1>
+              <p style="margin: 0; font-size: 0.9em; color: #666;">Please share this OTP with the delivery partner only at the time of delivery.</p>
+            </div>
+          `;
+        }
+
         const emailHtml = `
           <h2>${title}</h2>
           <p>Dear ${user.name || 'Customer'},</p>
           <p>${message}</p>
+          ${otpMessage}
           <p><strong>Order ID:</strong> #${id}</p>
           <p><strong>New Status:</strong> ${status}</p>
           ${cancellationReason ? `<p><strong>Reason:</strong> ${cancellationReason}</p>` : ''}
-          <p>Thank you for your patience!</p>
+          <p>Thank you for choosing Astrology in Bharat!</p>
         `;
         await this.emailService.sendEmail(
           user.email,

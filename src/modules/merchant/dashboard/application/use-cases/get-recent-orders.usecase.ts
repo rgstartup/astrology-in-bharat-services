@@ -11,14 +11,16 @@ export class GetRecentOrdersUseCase {
   ) {}
 
   async execute(userId: number) {
-    const recentOrderItems = await this.orderItemRepo.find({
-      where: { product: { merchant_id: userId } },
-      relations: ['order', 'order.user', 'product'],
-      order: { created_at: 'DESC' },
-      take: 10,
-    });
+    const recentOrderItems = await this.orderItemRepo
+      .createQueryBuilder('oi')
+      .innerJoinAndSelect('oi.order', 'o')
+      .leftJoinAndSelect('o.user', 'u')
+      .innerJoinAndSelect('oi.product', 'p')
+      .where('p.merchant_id = :userId', { userId })
+      .orderBy('oi.created_at', 'DESC')
+      .take(10)
+      .getMany();
 
-    // Map to the requested format, grouping by order naturally via the join
     return recentOrderItems.map((item) => ({
       id: item.order.id.toString(),
       customerName: item.order.user?.name || 'Guest',

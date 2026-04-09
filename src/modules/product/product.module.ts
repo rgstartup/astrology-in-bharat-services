@@ -5,6 +5,7 @@ import { ExpertProductController } from './api/controllers/expert-product.contro
 import { Product } from './infrastructure/persistence/entities/product.entity';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
 import { ProfileModule } from '../expert/profile/profile.module';
+import { ProfileMerchant } from '../merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 import { ProductFacade } from './application/product.facade';
 import { CreateProductUseCase } from './application/use-cases/create-product.use-case';
 import { FindAllProductsUseCase } from './application/use-cases/find-all-products.use-case';
@@ -14,7 +15,7 @@ import { UpdateProductUseCase } from './application/use-cases/update-product.use
 import { RemoveProductUseCase } from './application/use-cases/remove-product.use-case';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product]), CloudinaryModule, ProfileModule],
+  imports: [TypeOrmModule.forFeature([Product, ProfileMerchant]), CloudinaryModule, ProfileModule],
   controllers: [ProductController, ExpertProductController],
   providers: [
     ProductFacade,

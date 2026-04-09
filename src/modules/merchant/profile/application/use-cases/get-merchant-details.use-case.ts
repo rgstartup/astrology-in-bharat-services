@@ -2,15 +2,18 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileMerchant } from '../../infrastructure/persistence/entities/profile-merchant.entity';
+import { Wishlist } from '@/modules/wishlist/infrastructure/persistence/entities/wishlist.entity';
 
 @Injectable()
 export class GetMerchantDetailsUseCase {
   constructor(
     @InjectRepository(ProfileMerchant)
     private readonly merchantRepository: Repository<ProfileMerchant>,
+    @InjectRepository(Wishlist)
+    private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(id: number) {
+  async execute(id: number, currentUserId?: number) {
     const merchant = await this.merchantRepository.findOne({
       where: { id },
       relations: ['user'],
@@ -24,25 +27,57 @@ export class GetMerchantDetailsUseCase {
       });
     }
 
+    // Fetch top 4 active product image URLs for this merchant using its user_id
+    const productsRaw: { image_url: string }[] =
+      await this.merchantRepository.manager.query(
+        `
+        SELECT image_url
+        FROM products
+        WHERE merchant_id = $1
+          AND is_active = true
+          AND image_url IS NOT NULL
+          AND image_url <> ''
+        ORDER BY created_at DESC
+        LIMIT 4
+      `,
+        [merchant.user_id],
+      );
+
+    const popularProducts = productsRaw.map((p) => p.image_url);
+
+    // Check if the merchant is liked by the current user
+    let isLiked = false;
+    if (currentUserId) {
+      const wishlistEntry = await this.wishlistRepository.findOne({
+        where: { user: { id: currentUserId }, merchant: { id: merchant.id } },
+      });
+      isLiked = !!wishlistEntry;
+    }
+
+    // Fetch likesCount using Repository count() for safe column mapping
+    const likesCount = await this.wishlistRepository.count({
+      where: { merchant: { id } },
+    });
+
     return {
-      success: true,
-      data: {
-        id: merchant.id,
-        name: merchant.shopName || merchant.user?.name,
-        image: merchant.user?.avatar,
-        address: merchant.address,
-        city: merchant.city,
-        pincode: merchant.pincode,
-        phone: merchant.phone || merchant.user?.email, // Fallback to email if phone is not available
-        email: merchant.user?.email,
-        rating: merchant.rating,
-        reviewCount: merchant.reviewCount,
-        established: merchant.established,
-        description: merchant.description,
-        isTrusted: merchant.isTrusted,
-        gallery: merchant.gallery || [],
-        features: merchant.features || [],
-      },
+      id: merchant.id,
+      name: merchant.shopName || merchant.user?.name || 'Unnamed Shop',
+      image: merchant.user?.avatar || '',
+      address: merchant.address || '',
+      city: merchant.city || '',
+      pincode: merchant.pincode || '',
+      phone: merchant.phone || merchant.user?.email || '',
+      email: merchant.user?.email || '',
+      rating: merchant.rating ? Number(merchant.rating) : 0,
+      reviewCount: merchant.reviewCount || 0,
+      established: merchant.established || '',
+      description: merchant.description || '',
+      isTrusted: merchant.isTrusted || false,
+      gallery: merchant.gallery || [],
+      features: merchant.features || [],
+      popularProducts: popularProducts,
+      isLiked: isLiked,
+      likesCount: likesCount,
     };
   }
 }

@@ -11,6 +11,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persisten
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
 import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
+import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
 
 @Entity('reviews')
 export class Review {
@@ -23,6 +24,13 @@ export class Review {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @Column({ type: 'int', name: 'order_id', nullable: true })
+  order_id: number | null;
+
+  @ManyToOne(() => Order, { nullable: true })
+  @JoinColumn({ name: 'order_id' })
+  order: Order | null;
 
   @Column({ type: 'int', name: 'expert_id', nullable: true })
   expert_id: number | null;
