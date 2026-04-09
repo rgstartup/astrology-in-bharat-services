@@ -14,7 +14,7 @@ import { uuidv7 } from 'uuidv7';
 @Entity('sessions')
 export class Session {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string; 
 
   // hashed refresh token (or session secret)
   @Column()
