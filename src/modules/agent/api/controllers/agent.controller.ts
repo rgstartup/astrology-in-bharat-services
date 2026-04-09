@@ -90,16 +90,23 @@ export class AgentController {
 
             const clientCommPercent = this.configService.get<number>('COMMISION_FROM_CLIENT') || 0;
             const expertCommPercent = this.configService.get<number>('COMMISION_FROM_ASTROLOGER') || 0;
+            const merchantCommPercent = this.configService.get<number>('COMMISION_FROM_PUJA_SHOP') || 0;
 
 
             let totalAgentCommission = 0;
             let astrologersCount = 0;
             let clientsCount = 0;
+            let merchantsAsPujaShopCount = 0;
 
             usersForStats.forEach(u => {
-                const isExpert = (u.roles || []).some(r => r.name.toLowerCase() === 'expert');
+                const roles = (u.roles || []).map(r => r.name.toLowerCase());
+                const isExpert = roles.includes('expert');
+                const isMerchant = roles.includes('merchant');
+
                 if (isExpert) {
                     astrologersCount++;
+                } else if (isMerchant) {
+                    merchantsAsPujaShopCount++;
                 } else {
                     clientsCount++;
                 }
@@ -112,6 +119,8 @@ export class AgentController {
                 if (u.profile_client) {
                     totalAgentCommission += (Number(u.profile_client.total_spending || 0) * clientCommPercent) / 100;
                 }
+                // Commission from merchant (Puja Shop) sales if implemented later, 
+                // for now we at least track their count.
             });
 
             return {
@@ -120,7 +129,7 @@ export class AgentController {
                 expertsCount: astrologersCount,
                 clientsCount,
                 mandirsCount: totalMandirs,
-                pujaShopsCount: totalPujaShops,
+                pujaShopsCount: totalPujaShops + merchantsAsPujaShopCount,
                 pendingPayout: 0,
                 totalEarned: profile?.total_earnings || 0,
                 commissionEarned: Number(totalAgentCommission.toFixed(2)),
@@ -176,8 +185,8 @@ export class AgentController {
     ) {
         const listings = await this.db.transaction(async (queryRunner) => {
             // Determine which data sources to query
-            const isPlaceType = type === 'mandir' || type === 'puja_shop';
-            const isUserType = type === 'astrologer' || type === 'expert' || type === 'client';
+            const isPlaceType = type === 'mandir' || type === 'puja_shop' || type === 'merchant';
+            const isUserType = type === 'astrologer' || type === 'expert' || type === 'client' || type === 'merchant' || type === 'puja_shop';
             const isAll = !type || type === 'all';
 
             let userData: any[] = [];
@@ -211,6 +220,8 @@ export class AgentController {
                     qb.andWhere('role.name = :role', { role: 'expert' });
                 } else if (type === 'client') {
                     qb.andWhere('role.name = :role', { role: 'client' });
+                } else if (type === 'puja_shop' || type === 'merchant') {
+                    qb.andWhere('role.name = :role', { role: 'merchant' });
                 }
 
                 if (search && search.trim()) {
@@ -232,9 +243,13 @@ export class AgentController {
 
                 const clientCommPercent = this.configService.get<number>('COMMISION_FROM_CLIENT') || 0;
                 const expertCommPercent = this.configService.get<number>('COMMISION_FROM_ASTROLOGER') || 0;
+                const merchantCommPercent = this.configService.get<number>('COMMISION_FROM_PUJA_SHOP') || 0;
 
                 userData = users.map(u => {
-                    const isExpert = (u.roles || []).some(r => r.name.toLowerCase() === 'expert');
+                    const roles = (u.roles || []).map(r => r.name.toLowerCase());
+                    const isExpert = roles.includes('expert');
+                    const isMerchant = roles.includes('merchant');
+                    
                     let commission = 0;
 
                     if (u.profile_expert) {
@@ -243,20 +258,21 @@ export class AgentController {
                     if (u.profile_client) {
                         commission += (Number(u.profile_client.total_spending || 0) * clientCommPercent) / 100;
                     }
+                    // For merchants, commission calculation would go here if they have total_sales etc.
 
                     return {
                         id: u.id,
                         name: u.name,
                         email: u.email,
-                        phone: u.profile_client?.phone || u.profile_expert?.phone_number || null,
+                        phone: u.profile_client?.phone || u.profile_expert?.phone_number || (u as any).profile_merchant?.phone || null,
                         status: 'active',
-                        type: isExpert ? 'expert' : 'client',
+                        type: isExpert ? 'expert' : isMerchant ? 'merchant' : 'client',
                         createdAt: u.created_at,
                         avatar: u.avatar ?? null,
                         totalSpending: u.profile_client?.total_spending || 0,
                         totalEarning: u.profile_expert?.total_earning || 0,
                         commission: Number(commission.toFixed(2)),
-                        commissionPercent: isExpert ? expertCommPercent : clientCommPercent
+                        commissionPercent: isExpert ? expertCommPercent : isMerchant ? merchantCommPercent : clientCommPercent
                     };
                 });
             }

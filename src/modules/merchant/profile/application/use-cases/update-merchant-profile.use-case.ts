@@ -35,7 +35,8 @@ export class UpdateMerchantProfileUseCase {
     if (files?.image?.[0]) {
       try {
         const uploadResult = await this.cloudinary.uploadImage(files.image[0]);
-        // Update user avatar as well
+        profile.image = uploadResult.secure_url;
+        // Also update user avatar as fallback
         await this.usersFacade.update(userId, { avatar: uploadResult.secure_url });
       } catch (error) {
         this.logger.error('Failed to upload shop image', error.stack);

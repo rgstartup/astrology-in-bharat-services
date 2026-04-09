@@ -6,6 +6,10 @@ export class UpdateMerchantProfileDto {
   @IsOptional()
   name?: string;
 
+  @IsOptional()
+  @IsString()
+  shopName?: string;
+
   @IsString({ message: 'Manager name must be a string' })
   @IsOptional()
   managerName?: string;

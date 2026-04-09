@@ -21,8 +21,8 @@ import { OrderModule } from '@/modules/order/order.module';
 import { Transaction } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
 import { Wallet } from '@/modules/wallet/infrastructure/persistence/entities/wallet.entity';
 import { Withdrawal } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
-
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { ProfileModule } from '../profile/profile.module';
 
 @Module({
   imports: [
@@ -38,6 +38,7 @@ import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persi
     ]),
     WalletModule,
     OrderModule,
+    ProfileModule,
   ],
   controllers: [
     MerchantDashboardController,

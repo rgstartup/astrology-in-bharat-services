@@ -1,4 +1,20 @@
-import { Controller, Get, Post, Patch, UseGuards, HttpCode, HttpStatus, Query, DefaultValuePipe, ParseIntPipe, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
+  Param,
+  Body,
+  UseInterceptors,
+  UploadedFiles,
+} from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { GetMerchantStatsUseCase } from '../../application/use-cases/get-merchant-stats.usecase';
@@ -9,6 +25,9 @@ import { GetMerchantPerformanceUseCase } from '../../application/use-cases/get-m
 import { VerifyOrderOtpUseCase } from '../../application/use-cases/verify-order-otp.usecase';
 import { OrderFacade } from '@/modules/order/application/order.facade';
 import { OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { GetMerchantProfileUseCase } from '../../../profile/application/use-cases/get-merchant-profile.use-case';
+import { UpdateMerchantProfileUseCase } from '../../../profile/application/use-cases/update-merchant-profile.use-case';
+import { UpdateMerchantProfileDto } from '../../../profile/api/dto/update-merchant-profile.dto';
 
 @Controller({
   path: 'merchant',
@@ -24,6 +43,8 @@ export class MerchantDashboardController {
     private readonly getPerformance: GetMerchantPerformanceUseCase,
     private readonly verifyOtp: VerifyOrderOtpUseCase,
     private readonly orderFacade: OrderFacade,
+    private readonly getProfile: GetMerchantProfileUseCase,
+    private readonly updateProfile: UpdateMerchantProfileUseCase,
   ) {}
 
   @Get('stats')
@@ -78,5 +99,36 @@ export class MerchantDashboardController {
     @Body('cancellationReason') cancellationReason?: string,
   ) {
     return this.orderFacade.updateOrderStatus(id, status, cancellationReason);
+  }
+
+  @Get('profile')
+  @HttpCode(HttpStatus.OK)
+  async getMerchantProfile(@CurrentUser('id') userId: number) {
+    const profile = await this.getProfile.execute(userId);
+    return {
+      success: true,
+      data: profile,
+    };
+  }
+
+  @Patch('profile')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image', maxCount: 1 },
+      { name: 'video', maxCount: 1 },
+    ]),
+  )
+  async updateMerchantProfile(
+    @CurrentUser('id') userId: number,
+    @Body() dto: UpdateMerchantProfileDto,
+    @UploadedFiles() files: { image?: Express.Multer.File[]; video?: Express.Multer.File[] },
+  ) {
+    const profile = await this.updateProfile.execute(userId, dto, files);
+    return {
+      success: true,
+      message: 'Profile updated successfully',
+      data: profile,
+    };
   }
 }

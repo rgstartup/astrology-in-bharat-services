@@ -42,6 +42,18 @@ export class ProfileMerchant {
   @Column({ nullable: true })
   phone?: string;
 
+  @Column({ nullable: true, type: 'text' })
+  address?: string;
+
+  @Column({ nullable: true })
+  city?: string;
+
+  @Column({ nullable: true })
+  pincode?: string;
+
+  @Column({ nullable: true })
+  image?: string;
+
   @Column({ nullable: true })
   video?: string;
 
@@ -58,15 +70,6 @@ export class ProfileMerchant {
     default: KycStatus.PENDING,
   })
   kycStatus: KycStatus;
-
-  @Column({ nullable: true })
-  address?: string;
-
-  @Column({ nullable: true })
-  city?: string;
-
-  @Column({ nullable: true })
-  pincode?: string;
 
   @Column({ type: 'decimal', precision: 3, scale: 1, default: 0 })
   rating: number;
