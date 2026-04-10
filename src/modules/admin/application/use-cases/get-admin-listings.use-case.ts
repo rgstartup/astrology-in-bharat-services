@@ -113,9 +113,11 @@ export class GetAdminListingsUseCase {
     });
 
     // 4. Combine and Sort
-    const allData = [...mappedPlaces, ...mappedExperts].sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    const allData = [...mappedPlaces, ...mappedExperts].sort((a, b) => {
+      const dateComparison = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (dateComparison !== 0) return dateComparison;
+      return String(b.id).localeCompare(String(a.id));
+    });
 
     // 5. Calculate Stats for the Entire Set (before slicing)
     const stats = {

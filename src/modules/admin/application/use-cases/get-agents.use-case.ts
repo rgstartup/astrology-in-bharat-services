@@ -51,7 +51,8 @@ export class GetAgentsUseCase {
       }
     }
 
-    qb.orderBy('user.created_at', 'DESC');
+    qb.orderBy('user.created_at', 'DESC')
+      .addOrderBy('user.id', 'DESC');
     qb.skip(skip).take(limit);
 
     const [users, total] = await qb.getManyAndCount();

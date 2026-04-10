@@ -58,4 +58,16 @@ export class SettingsController {
     await Promise.all(promises);
     return { success: true };
   }
+
+  @Post('support')
+  @HttpCode(HttpStatus.OK)
+  async updateSupport(@Body() body: { email: string; phone: string; whatsapp: string }) {
+    const promises = [
+      this.updateSystemSetting.execute('support_email', body.email),
+      this.updateSystemSetting.execute('support_phone', body.phone),
+      this.updateSystemSetting.execute('support_whatsapp', body.whatsapp),
+    ];
+    await Promise.all(promises);
+    return { success: true };
+  }
 }
