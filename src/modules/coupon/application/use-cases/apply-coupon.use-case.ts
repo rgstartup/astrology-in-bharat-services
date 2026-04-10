@@ -25,6 +25,9 @@ export class ApplyCouponUseCase {
 
         // 2. Check expiry
         if (coupon.expiry_date && new Date(coupon.expiry_date) < new Date()) {
+            // Update status in DB as well
+            coupon.status = CouponStatus.EXPIRED;
+            await this.couponRepo.save(coupon);
             throw new BadRequestException('This coupon has expired');
         }
 
