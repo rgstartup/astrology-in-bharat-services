@@ -42,20 +42,22 @@ import { Product } from '../product/infrastructure/persistence/entities/product.
 import { SystemSetting } from './infrastructure/persistence/entities/system-setting.entity';
 import { SettingsController } from './api/controllers/settings.controller';
 import { GetSupportSettingsUseCase } from './application/use-cases/get-support-settings.usecase';
+import { GetSystemSettingsUseCase } from './application/use-cases/get-system-settings.use-case';
+import { UpdateSystemSettingUseCase } from './application/use-cases/update-system-setting.use-case';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      AdminAuditLog, 
-      ChatSession, 
-      Order, 
+      AdminAuditLog,
+      ChatSession,
+      Order,
       OrderItem,
       Product,
-      Coupon, 
-      UserCoupon, 
-      Role, 
-      AgentProfile, 
-      User, 
+      Coupon,
+      UserCoupon,
+      Role,
+      AgentProfile,
+      User,
       AgentListing,
       Transaction,
       CallSession,
@@ -89,6 +91,8 @@ import { GetSupportSettingsUseCase } from './application/use-cases/get-support-s
     GetAdminEarningsBreakdownUseCase,
     GetAdminTopExpertsUseCase,
     GetSupportSettingsUseCase,
+    GetSystemSettingsUseCase,
+    UpdateSystemSettingUseCase,
   ],
 })
 export class AdminModule { }
