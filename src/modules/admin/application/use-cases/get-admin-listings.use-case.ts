@@ -12,7 +12,7 @@ export class GetAdminListingsUseCase {
     private readonly listingRepository: Repository<AgentListing>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) { }
+  ) { } 
 
   async execute(params?: {
     type?: string;
