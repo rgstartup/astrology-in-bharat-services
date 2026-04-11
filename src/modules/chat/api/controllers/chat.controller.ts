@@ -18,6 +18,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { ChatGateway } from '../../chat.gateway';
 import { ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
+import { InitiateChatDto } from '../dto/initiate-chat.dto';
 
 @Controller({
   path: 'chat',
@@ -33,9 +34,9 @@ export class ChatController {
   @Post('initiate')
   async initiateChat(
     @CurrentUser() user: User,
-    @Body('expertId', ParseIntPipe) expertId: number,
+    @Body() dto: InitiateChatDto,
   ) {
-    const session = await this.chatFacade.initiateChat(user.id, expertId);
+    const session = await this.chatFacade.initiateChat(user.id, dto.expertId, dto.metadata);
 
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
