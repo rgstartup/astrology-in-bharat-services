@@ -8,7 +8,9 @@ import { AgentProfile } from '../../infrastructure/persistence/entities/agent-pr
 import { AgentListing } from '../../infrastructure/persistence/entities/agent-listing.entity';
 import { DatabaseService } from '@/core/database/database.service';
 
+import { In } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entities/system-setting.entity';
 
 @Controller({
     path: 'agent',
@@ -88,9 +90,21 @@ export class AgentController {
                 });
             const usersForStats = await qbUsers.getMany();
 
-            const clientCommPercent = this.configService.get<number>('COMMISION_FROM_CLIENT') || 0;
-            const expertCommPercent = this.configService.get<number>('COMMISION_FROM_ASTROLOGER') || 0;
-            const merchantCommPercent = this.configService.get<number>('COMMISION_FROM_PUJA_SHOP') || 0;
+            // Fetch commission rates from system settings
+            const settings = await queryRunner.manager.find(SystemSetting, {
+                where: {
+                    key: In(['COMMISION_FROM_CLIENT', 'COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_PUJA_SHOP'])
+                }
+            });
+
+            const getSettingValue = (key: string, defaultValue: number) => {
+                const setting = settings.find(s => s.key === key);
+                return setting ? parseFloat(setting.value) : defaultValue;
+            };
+
+            const clientCommPercent = getSettingValue('COMMISION_FROM_CLIENT', 3);
+            const expertCommPercent = getSettingValue('COMMISION_FROM_ASTROLOGER', 3);
+            const merchantCommPercent = getSettingValue('COMMISION_FROM_PUJA_SHOP', 3);
 
 
             let totalAgentCommission = 0;
@@ -241,15 +255,27 @@ export class AgentController {
                 console.log(`[AgentListings] Found ${total} users for agentId: ${user.id}`);
                 userTotal = total;
 
-                const clientCommPercent = this.configService.get<number>('COMMISION_FROM_CLIENT') || 0;
-                const expertCommPercent = this.configService.get<number>('COMMISION_FROM_ASTROLOGER') || 0;
-                const merchantCommPercent = this.configService.get<number>('COMMISION_FROM_PUJA_SHOP') || 0;
+                // Fetch commission rates from system settings
+                const settings = await queryRunner.manager.find(SystemSetting, {
+                    where: {
+                        key: In(['COMMISION_FROM_CLIENT', 'COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_PUJA_SHOP'])
+                    }
+                });
+
+                const getSettingValue = (key: string, defaultValue: number) => {
+                    const setting = settings.find(s => s.key === key);
+                    return setting ? parseFloat(setting.value) : defaultValue;
+                };
+
+                const clientCommPercent = getSettingValue('COMMISION_FROM_CLIENT', 3);
+                const expertCommPercent = getSettingValue('COMMISION_FROM_ASTROLOGER', 3);
+                const merchantCommPercent = getSettingValue('COMMISION_FROM_PUJA_SHOP', 3);
 
                 userData = users.map(u => {
                     const roles = (u.roles || []).map(r => r.name.toLowerCase());
                     const isExpert = roles.includes('expert');
                     const isMerchant = roles.includes('merchant');
-                    
+
                     let commission = 0;
 
                     if (u.profile_expert) {

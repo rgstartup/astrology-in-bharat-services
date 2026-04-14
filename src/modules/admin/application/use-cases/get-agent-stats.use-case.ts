@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { Role } from '@/modules/role/entities/roles.entity';
 
+import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
+
 @Injectable()
 export class GetAgentStatsUseCase {
   constructor(
@@ -11,6 +13,8 @@ export class GetAgentStatsUseCase {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    @InjectRepository(AgentProfile)
+    private readonly agentProfileRepository: Repository<AgentProfile>,
   ) { }
 
   async execute() {
@@ -30,12 +34,20 @@ export class GetAgentStatsUseCase {
 
     const blockedAgents = totalAgents - activeAgents;
 
+    // Calculate total listings from all agent profiles
+    const listingsResult = await this.agentProfileRepository
+      .createQueryBuilder('profile')
+      .select('SUM(profile.total_registrations)', 'total')
+      .getRawOne();
+
+    const totalListings = Number(listingsResult?.total) || 0;
+
     return {
       totalAgents,
       activeAgents,
       blockedAgents,
-      totalListings: 0, // Will be implemented with commission logic later
-      pendingPayouts: 0, // Will be implemented with payout logic later
+      totalListings,
+      pendingPayouts: 0, // Placeholder
       pendingApproval: 0,
     };
   }

@@ -54,7 +54,7 @@ export class InitiateChatUseCase {
         }
 
         const chatPrice = expert.chat_price || 0;
-        const minMins = 5;
+        const minMins = 1; // Reduced from 5 to 1 for easier entry
         const minBalanceRequired = chatPrice * minMins;
 
         // Check for Free Consultation eligibility (First chat ever)

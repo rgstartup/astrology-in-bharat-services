@@ -11,9 +11,13 @@ export class GetCouponStatsUseCase {
     ) { }
 
     async execute() {
-        const [totalCoupons, activeCoupons, totalRedemptions] = await Promise.all([
+        const now = new Date();
+        const [totalCoupons, activeCouponsCount, totalRedemptions] = await Promise.all([
             this.couponRepository.count(),
-            this.couponRepository.count({ where: { status: CouponStatus.ACTIVE } }),
+            this.couponRepository.createQueryBuilder('coupon')
+                .where('coupon.status = :status', { status: CouponStatus.ACTIVE })
+                .andWhere('(coupon.expiry_date IS NULL OR coupon.expiry_date > :now)', { now })
+                .getCount(),
             this.couponRepository.sum('usage_count'),
         ]);
 
@@ -30,7 +34,7 @@ export class GetCouponStatsUseCase {
 
         return {
             totalCoupons,
-            activeCoupons,
+            activeCoupons: activeCouponsCount,
             totalRedemptions: totalRedemptions || 0,
             usedToday: parseInt(usedToday?.sum || '0', 10),
         };
