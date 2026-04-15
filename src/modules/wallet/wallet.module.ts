@@ -27,6 +27,7 @@ import { RequestWithdrawalUseCase } from './application/use-cases/request-withdr
 import { GetPendingWithdrawalsUseCase } from './application/use-cases/get-pending-withdrawals.use-case';
 import { UpdateWithdrawalStatusUseCase } from './application/use-cases/update-withdrawal-status.use-case';
 import { GetAdminWithdrawalStatsUseCase } from './application/use-cases/get-admin-withdrawal-stats.use-case';
+import { GetAdminCommissionUseCase } from './application/use-cases/get-admin-commission.use-case';
 import { NotificationModule } from '@/modules/notification/notification.module';
 
 import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts.module';
@@ -56,6 +57,7 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
     GetPendingWithdrawalsUseCase,
     UpdateWithdrawalStatusUseCase,
     GetAdminWithdrawalStatsUseCase,
+    GetAdminCommissionUseCase,
   ],
   controllers: [WalletController, PayoutWebhookController],
   exports: [WalletFacade],

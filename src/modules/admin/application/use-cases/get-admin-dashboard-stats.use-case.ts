@@ -57,12 +57,14 @@ export class GetAdminDashboardStatsUseCase {
         time: this.formatTime(activity.createdAt),
       }));
 
+    const adminEarnings = await this.walletFacade.getAdminCommission();
+
     return {
       totalChatSessions: chatSessionsCount,
       totalExperts: expertStats.totalExperts,
       totalUsers: userStats.totalUsers,
       totalEarnings: totalEarnings,
-      adminEarnings: 0, // Placeholder for admin's commission
+      adminEarnings: adminEarnings,
       trends: expertStats.trends,
       activities: activities,
     };

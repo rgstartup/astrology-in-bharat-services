@@ -11,6 +11,7 @@ import { ReleaseReservedUseCase } from './use-cases/release-reserved.use-case';
 import { GetTransactionsUseCase } from './use-cases/get-transactions.use-case';
 import { GetTotalEarningsUseCase } from './use-cases/get-total-earnings.use-case';
 import { GetGlobalEarningsUseCase } from './use-cases/get-global-earnings.use-case';
+import { GetAdminCommissionUseCase } from './use-cases/get-admin-commission.use-case';
 import { GetWithdrawalsStatusUseCase } from './use-cases/get-withdrawals-status.use-case';
 import { RequestWithdrawalUseCase } from './use-cases/request-withdrawal.use-case';
 import { GetPendingWithdrawalsUseCase } from './use-cases/get-pending-withdrawals.use-case';
@@ -39,6 +40,7 @@ export class WalletFacade {
     private readonly getPendingWithdrawalsUseCase: GetPendingWithdrawalsUseCase,
     private readonly updateWithdrawalStatusUseCase: UpdateWithdrawalStatusUseCase,
     private readonly getAdminWithdrawalStatsUseCase: GetAdminWithdrawalStatsUseCase,
+    private readonly getAdminCommissionUseCase: GetAdminCommissionUseCase,
   ) { }
 
   async getWallet(userId: number) {
@@ -107,5 +109,9 @@ export class WalletFacade {
 
   async getAdminWithdrawalStats() {
     return this.getAdminWithdrawalStatsUseCase.execute();
+  }
+
+  async getAdminCommission() {
+    return this.getAdminCommissionUseCase.execute();
   }
 }
