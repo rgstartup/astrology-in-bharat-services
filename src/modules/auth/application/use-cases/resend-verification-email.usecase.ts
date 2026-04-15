@@ -36,12 +36,15 @@ export class ResendVerificationEmailUseCase {
       email: user.email,
     });
 
+    // Extract role names from user.roles if populated, otherwise use empty array
+    const roleNames = user.roles ? user.roles.map((r) => r.name) : [];
+
     this.eventEmitter.emit(
       'auth.email.verify',
       new VerifyEmailEvent(
         user.email,
         verification_token,
-        user.roles.map((r) => r.name),
+        roleNames,
       ),
     );
   }

@@ -35,37 +35,45 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(client: Socket) {
-    this.logger.log(`Client disconnected: ${client.id}`);
+    this.logger.log(`[Socket] 🔴 Client disconnected from ExpertGateway: ${client.id}`);
 
     // Remove from online experts if it was an expert socket
     for (const [userId, socketIds] of this.expertSockets.entries()) {
       if (socketIds.has(client.id)) {
         socketIds.delete(client.id);
         this.logger.log(
-          `Expert ${userId} removed socket ${client.id} from tracking`,
+          `[Socket] 🔄 Expert ${userId} removed socket ${client.id} from tracking. Remaining sockets: ${socketIds.size}`,
         );
 
         if (socketIds.size === 0) {
           this.expertSockets.delete(userId);
-          this.logger.log(`Expert ${userId} is now fully offline (all sockets gone)`);
+          this.logger.log(`[Socket] ⏹️ Expert ${userId} is now fully offline (all tabs closed)`);
 
           try {
             // Update database status to offline
-            const profile = await this.profileRepo.findOne({ where: { user: { id: userId } } });
+            const profile = await this.profileRepo.findOne({ 
+              where: { user: { id: userId } },
+              relations: ['user'] 
+            });
+            
             if (profile) {
               profile.is_available = false;
               await this.profileRepo.save(profile);
-              this.logger.log(`Expert ${userId} availability set to false in DB due to final disconnect`);
+              this.logger.log(`[DB] ✅ Expert ${userId} availability set to false in DB due to final disconnect`);
             }
 
-            // Broadcast to all clients
-            this.server.emit('expert_status_changed', {
+            // Broadcast status change to ALL clients (including User App)
+            const statusPayload = {
               expert_id: userId,
               is_available: false,
               status: 'offline',
-            });
+              timestamp: new Date().toISOString()
+            };
+            
+            this.server.emit('expert_status_changed', statusPayload);
+            this.logger.log(`[Socket] 📢 Broadcasted offline status for expert ${userId}`);
           } catch (error) {
-            this.logger.error(`Failed to update DB status for expert ${userId} on disconnect:`, error.stack);
+            this.logger.error(`[Error] ❌ Failed to update DB status for expert ${userId} on disconnect:`, error.stack);
           }
         }
         break;
@@ -75,74 +83,88 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('expert_online')
   async handleExpertOnline(client: Socket, payload: { userId: number }) {
-    if (!this.expertSockets.has(payload.userId)) {
-      this.expertSockets.set(payload.userId, new Set());
+    const userId = Number(payload.userId);
+    if (!userId) return { status: 'error', message: 'Invalid userId' };
+
+    if (!this.expertSockets.has(userId)) {
+      this.expertSockets.set(userId, new Set());
     }
-    const socketIds = this.expertSockets.get(payload.userId) || new Set<string>();
-    if (!this.expertSockets.has(payload.userId)) {
-      this.expertSockets.set(payload.userId, socketIds);
-    }
+    
+    const socketIds = this.expertSockets.get(userId)!;
     const wasAlreadyOnline = socketIds.size > 0;
     socketIds.add(client.id);
 
     this.logger.log(
-      `Expert ${payload.userId} is online via socket ${client.id} (Total sockets: ${socketIds.size})`,
+      `[Socket] 🟢 Expert ${userId} is online via socket ${client.id} (Total sessions: ${socketIds.size})`,
     );
 
-    // If this is the first socket, or if they were offline in DB, consider setting them to online
-    // However, to respect manual toggle, we only set to true if they just connected and were not in our tracking map
+    // If this is the first session, update DB status
     if (!wasAlreadyOnline) {
       try {
-        const profile = await this.profileRepo.findOne({ where: { user: { id: payload.userId } } });
-        if (profile) {
+        const profile = await this.profileRepo.findOne({ 
+          where: { user: { id: userId } },
+          relations: ['user']
+        });
+        
+        if (profile && !profile.is_available) {
           profile.is_available = true;
           await this.profileRepo.save(profile);
-          this.logger.log(`Expert ${payload.userId} availability set to true in DB due to connection`);
+          this.logger.log(`[DB] ✅ Expert ${userId} availability set to true in DB due to new connection`);
         }
       } catch (error) {
-        this.logger.error(`Failed to update DB status for expert ${payload.userId} on connect:`, error.stack);
+        this.logger.error(`[Error] ❌ Failed to update DB status for expert ${userId} on connect:`, error.stack);
       }
     }
 
-    // Broadcast to all clients
-    this.server.emit('expert_status_changed', {
-      expert_id: payload.userId,
+    // Broadcast ALWAYS when someone announces they are online to ensure UI sync
+    const statusPayload = {
+      expert_id: userId,
       is_available: true,
       status: 'online',
-    });
+      timestamp: new Date().toISOString()
+    };
+    
+    this.server.emit('expert_status_changed', statusPayload);
+    return { status: 'success', userId };
   }
 
   @SubscribeMessage('expert_offline')
   async handleExpertOffline(client: Socket, payload: { userId: number }) {
-    const socketIds = this.expertSockets.get(payload.userId);
+    const userId = Number(payload.userId);
+    if (!userId) return { status: 'error', message: 'Invalid userId' };
+
+    const socketIds = this.expertSockets.get(userId);
     if (socketIds) {
       socketIds.delete(client.id);
       if (socketIds.size === 0) {
-        this.expertSockets.delete(payload.userId);
+        this.expertSockets.delete(userId);
 
         try {
-          const profile = await this.profileRepo.findOne({ where: { user: { id: payload.userId } } });
+          const profile = await this.profileRepo.findOne({ where: { user: { id: userId } } });
           if (profile) {
             profile.is_available = false;
             await this.profileRepo.save(profile);
-            this.logger.log(`Expert ${payload.userId} availability set to false in DB via explicit offline message`);
+            this.logger.log(`[DB] ✅ Expert ${userId} availability set to false in DB via explicit offline message`);
           }
         } catch (error) {
-          this.logger.error(`Failed to update DB status for expert ${payload.userId} on explicit offline:`, error.stack);
+          this.logger.error(`[Error] ❌ Failed to update DB status for expert ${userId} on explicit offline:`, error.stack);
         }
       }
     }
 
     this.logger.log(
-      `Expert ${payload.userId} requested offline via socket ${client.id}`,
+      `[Socket] 🟡 Expert ${userId} requested offline via socket ${client.id}`,
     );
 
     // Broadcast to all clients
     this.server.emit('expert_status_changed', {
-      expert_id: payload.userId,
+      expert_id: userId,
       is_available: false,
       status: 'offline',
+      timestamp: new Date().toISOString()
     });
+    
+    return { status: 'success', userId };
   }
 
   // Method to manually notify status change (e.g., from ProfileService)
@@ -151,6 +173,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
       expert_id: userId,
       is_available: isAvailable,
       status: isAvailable ? 'online' : 'offline',
+      timestamp: new Date().toISOString()
     });
   }
 
@@ -158,6 +181,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(`expert_${userId}`).emit('kyc_status_updated', {
       status,
       reason,
+      timestamp: new Date().toISOString()
     });
   }
 

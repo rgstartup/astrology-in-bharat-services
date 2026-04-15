@@ -23,21 +23,28 @@ export class UserRegisteredHandler {
   }
 
   private buildTemplate(event: UserRegisteredEvent) {
-    const isExpert = event.roles.some((role) => role.toLowerCase() === 'expert');
-    const isMerchant = event.roles.some((role) => role.toLowerCase() === 'merchant');
-    
-    const configKey = isExpert ? 'email.expertFrontendUrl' : 
-                     isMerchant ? 'email.merchantFrontendUrl' : 
-                     'email.frontendUrl';
-                     
+    const roles = event.roles || [];
+    const isExpert = roles.some((role) => role.toLowerCase() === 'expert');
+    const isMerchant = roles.some((role) => role.toLowerCase() === 'merchant');
+
+    this.logger.debug(`User roles: ${roles.join(', ')}. isExpert: ${isExpert}, isMerchant: ${isMerchant}`);
+
+    const configKey = isExpert
+      ? 'email.expertFrontendUrl'
+      : isMerchant
+        ? 'email.merchantFrontendUrl'
+        : 'email.frontendUrl';
+
     let frontendUrl = this.configService.get(configKey);
-    
+
     if (!frontendUrl) {
       if (isExpert) frontendUrl = process.env.ASTROLOGER_FRONTEND_URL;
       else if (isMerchant) frontendUrl = process.env.MERCHANT_FRONTEND_URL;
       else frontendUrl = process.env.FRONTEND_URL;
     }
-    
+
+    this.logger.debug(`Using frontendUrl: ${frontendUrl}`);
+
     const verifyLink = `${frontendUrl}/verify-email?verification_token=${event.verification_token}`;
     
     return `

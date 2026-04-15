@@ -23,12 +23,22 @@ export class VerifyEmailHandler {
   }
 
   private buildTemplate(event: VerifyEmailEvent) {
-    const isExpert = (event.roles || []).some(
-      (role) => role.toLowerCase() === 'expert',
-    );
+    const roles = event.roles || [];
+    const isExpert = roles.some((role) => role.toLowerCase() === 'expert');
+
+    this.logger.debug(`User roles: ${roles.join(', ')}. isExpert: ${isExpert}`);
+
     const configKey = isExpert ? 'email.expertFrontendUrl' : 'email.frontendUrl';
-    const frontendUrl =
-      this.configService.get(configKey) || (isExpert ? process.env.ASTROLOGER_FRONTEND_URL : process.env.FRONTEND_URL);
+    let frontendUrl = this.configService.get(configKey);
+
+    if (!frontendUrl) {
+      frontendUrl = isExpert
+        ? process.env.ASTROLOGER_FRONTEND_URL
+        : process.env.FRONTEND_URL;
+    }
+
+    this.logger.debug(`Using frontendUrl: ${frontendUrl}`);
+
     const confirmUrl = `${frontendUrl}/verify-email?verification_token=${event.verification_token}`;
     return `
       <p>Hello,</p>

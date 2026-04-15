@@ -62,20 +62,24 @@ export class RegisterUserUseCase {
   }
 
   private sendEmail<T extends { user: User }>(response: T) {
+    const { user } = response;
     const verification_token = this.tokenCrypto.signTemporaryToken({
-      userId: response.user.id,
-      email: response.user.email,
+      userId: user.id,
+      email: user.email,
     });
+
+    // Extract role names from user.roles if populated, otherwise use empty array
+    const roleNames = user.roles ? user.roles.map((r) => r.name) : [];
 
     // 📢 domain event
     this.eventEmitter.emit(
       'auth.user.registered',
       new UserRegisteredEvent(
-        response.user.id,
-        response.user.email,
-        response.user.name,
+        user.id,
+        user.email,
+        user.name,
         verification_token,
-        response.user.roles.map((r) => r.name),
+        roleNames,
       ),
     );
   }
