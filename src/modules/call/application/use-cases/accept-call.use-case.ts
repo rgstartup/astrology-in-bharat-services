@@ -10,6 +10,7 @@ import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallAcceptedEvent } from '../../domain/events/call.events';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()
 export class AcceptCallUseCase {
@@ -19,6 +20,7 @@ export class AcceptCallUseCase {
     @InjectRepository(CallSession)
     private readonly sessionRepo: Repository<CallSession>,
     private readonly twilioService: TwilioService,
+    private readonly walletFacade: WalletFacade,
     @Inject(forwardRef(() => CallGateway))
     private readonly callGateway: CallGateway,
     private readonly eventEmitter: EventEmitter2,
@@ -49,6 +51,14 @@ export class AcceptCallUseCase {
 
     session.status = CallSessionStatus.ACTIVE;
     session.start_time = new Date();
+
+    // Calculate Max Duration based on Wallet Balance
+    const balance = await this.walletFacade.getBalance(session.user_id);
+    const maxMinutes = balance / session.price_per_minute;
+    session.max_duration_seconds = Math.floor(maxMinutes * 60);
+    
+    this.logger.log(`Session ${sessionId}: User balance ${balance}, Max duration ${session.max_duration_seconds}s`);
+
     const savedSession = await this.sessionRepo.save(session);
     this.logger.log(`Session activated: id=${savedSession.id}`);
 

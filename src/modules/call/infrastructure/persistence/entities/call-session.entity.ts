@@ -90,6 +90,9 @@ export class CallSession {
     @Column({ type: 'float', default: 0, name: 'final_price' })
     final_price: number;
 
+    @Column({ type: 'int', default: 0, name: 'max_duration_seconds' })
+    max_duration_seconds: number;
+
     @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
     updated_at: Date;
 }
