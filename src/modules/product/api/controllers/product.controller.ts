@@ -80,13 +80,11 @@ export class ProductController {
   @Get()
   findAll(
     @Query('merchantId') merchantId?: string,
-    @Query('expertId') expertId?: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ) {
     return this.productFacade.findAll({
       merchantId: merchantId ? +merchantId : undefined,
-      expertId: expertId ? +expertId : undefined,
       page,
       limit,
     });

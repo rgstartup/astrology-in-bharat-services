@@ -13,8 +13,8 @@ export class ExpertEarningsFacade {
         private readonly requestWithdrawalUseCase: RequestWithdrawalUseCase,
     ) { }
 
-    async getStats(userId: number, range: string) {
-        return this.getEarningsStatsUseCase.execute(userId, range);
+    async getStats(userId: number, period: string, startDate?: string, endDate?: string) {
+        return this.getEarningsStatsUseCase.execute(userId, period, startDate, endDate);
     }
 
     async getWalletBalance(userId: number) {

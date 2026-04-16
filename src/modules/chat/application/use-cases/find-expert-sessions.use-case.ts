@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, MoreThan, Brackets } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 
@@ -12,6 +12,14 @@ export enum ExpertSessionFilter {
     ALL = 'all',
 }
 
+export interface FindExpertSessionsOptions {
+    limit?: number;
+    offset?: number;
+    search?: string;
+    sortBy?: string;
+    order?: 'ASC' | 'DESC' | 'asc' | 'desc';
+}
+
 @Injectable()
 export class FindExpertSessionsUseCase {
     constructor(
@@ -21,81 +29,90 @@ export class FindExpertSessionsUseCase {
         private expertRepo: Repository<ProfileExpert>,
     ) { }
 
-    async execute(userId: number, filter: ExpertSessionFilter) {
+    async execute(userId: number, filter: ExpertSessionFilter, options: FindExpertSessionsOptions = {}) {
         const expert = await this.expertRepo.findOne({
             where: { user: { id: userId } },
         });
-        if (!expert) return [];
+        if (!expert) return { data: [], totalCount: 0 };
 
         const expertId = expert.id;
-        const now = Date.now();
-        const oneHourAgo = new Date(now - 60 * 60 * 1000);
-        const twelveHoursAgo = new Date(now - 12 * 60 * 60 * 1000);
+        const { limit = 20, offset = 0, search, sortBy = 'created_at', order = 'DESC' } = options;
+
+        const query = this.sessionRepo.createQueryBuilder('session')
+            .leftJoinAndSelect('session.user', 'user')
+            .where('session.expert_id = :expertId', { expertId });
+
+        const now = new Date();
+        const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+        const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
 
         switch (filter) {
             case ExpertSessionFilter.PENDING:
-                return this.sessionRepo.find({
-                    where: [
-                        { expert_id: expertId, status: ChatSessionStatus.PENDING },
-                        { expert_id: expertId, status: ChatSessionStatus.ACTIVE },
-                        {
-                            expert_id: expertId,
-                            status: ChatSessionStatus.COMPLETED,
-                            created_at: MoreThan(oneHourAgo),
-                        },
-                        {
-                            expert_id: expertId,
-                            status: ChatSessionStatus.EXPIRED,
-                            created_at: MoreThan(oneHourAgo),
-                        },
-                    ],
-                    relations: ['user'],
-                    order: { created_at: 'DESC' },
-                });
+                query.andWhere(new Brackets(qb => {
+                    qb.where('session.status = :pending', { pending: ChatSessionStatus.PENDING })
+                        .orWhere('session.status = :active', { active: ChatSessionStatus.ACTIVE })
+                        .orWhere('(session.status = :completed AND session.created_at > :oneHourAgo)', { completed: ChatSessionStatus.COMPLETED, oneHourAgo })
+                        .orWhere('(session.status = :expired AND session.created_at > :oneHourAgo)', { expired: ChatSessionStatus.EXPIRED, oneHourAgo });
+                }));
+                break;
 
             case ExpertSessionFilter.RECENT_PENDING:
-                return this.sessionRepo.find({
-                    where: [
-                        { expert_id: expertId, status: ChatSessionStatus.PENDING, created_at: MoreThan(twelveHoursAgo) },
-                        { expert_id: expertId, status: ChatSessionStatus.ACTIVE, created_at: MoreThan(twelveHoursAgo) },
-                        { expert_id: expertId, status: ChatSessionStatus.COMPLETED, created_at: MoreThan(twelveHoursAgo) },
-                        { expert_id: expertId, status: ChatSessionStatus.EXPIRED, created_at: MoreThan(twelveHoursAgo) },
-                    ],
-                    relations: ['user'],
-                    order: { created_at: 'DESC' },
-                });
+                query.andWhere('session.created_at > :twelveHoursAgo', { twelveHoursAgo })
+                    .andWhere('session.status IN (:...statuses)', {
+                        statuses: [
+                            ChatSessionStatus.PENDING,
+                            ChatSessionStatus.ACTIVE,
+                            ChatSessionStatus.COMPLETED,
+                            ChatSessionStatus.EXPIRED
+                        ]
+                    });
+                break;
 
             case ExpertSessionFilter.COMPLETED:
-                return this.sessionRepo.find({
-                    where: [
-                        { expert_id: expertId, status: ChatSessionStatus.COMPLETED },
-                        { expert_id: expertId, status: ChatSessionStatus.EXPIRED },
-                        { expert_id: expertId, status: ChatSessionStatus.CANCELLED },
-                    ],
-                    relations: ['user'],
-                    order: { created_at: 'DESC' },
+                query.andWhere('session.status IN (:...statuses)', {
+                    statuses: [
+                        ChatSessionStatus.COMPLETED,
+                        ChatSessionStatus.EXPIRED,
+                        ChatSessionStatus.CANCELLED
+                    ]
                 });
+                break;
 
             case ExpertSessionFilter.RECENT_COMPLETED:
-                return this.sessionRepo.find({
-                    where: [
-                        { expert_id: expertId, status: ChatSessionStatus.COMPLETED, created_at: MoreThan(twelveHoursAgo) },
-                        { expert_id: expertId, status: ChatSessionStatus.EXPIRED, created_at: MoreThan(twelveHoursAgo) },
-                        { expert_id: expertId, status: ChatSessionStatus.CANCELLED, created_at: MoreThan(twelveHoursAgo) },
-                    ],
-                    relations: ['user'],
-                    order: { created_at: 'DESC' },
-                });
+                query.andWhere('session.created_at > :twelveHoursAgo', { twelveHoursAgo })
+                    .andWhere('session.status IN (:...statuses)', {
+                        statuses: [
+                            ChatSessionStatus.COMPLETED,
+                            ChatSessionStatus.EXPIRED,
+                            ChatSessionStatus.CANCELLED
+                        ]
+                    });
+                break;
 
             case ExpertSessionFilter.ALL:
-                return this.sessionRepo.find({
-                    where: { expert_id: expertId },
-                    relations: ['user'],
-                    order: { created_at: 'DESC' },
-                });
-
-            default:
-                return [];
+                // No additional status filter
+                break;
         }
+
+        if (search) {
+            query.andWhere(new Brackets(qb => {
+                qb.where('CAST(session.id AS TEXT) LIKE :search', { search: `%${search}%` })
+                    .orWhere('user.name ILIKE :search', { search: `%${search}%` })
+                    .orWhere('user.email ILIKE :search', { search: `%${search}%` });
+            }));
+        }
+
+        // Handle dynamic sorting
+        const allowedSortFields = ['created_at', 'total_cost', 'start_time', 'end_time', 'status'];
+        const sortField = allowedSortFields.includes(sortBy) ? `session.${sortBy}` : 'session.created_at';
+        
+        const finalOrder = (order?.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
+        query.orderBy(sortField, finalOrder);
+
+        query.take(limit).skip(offset);
+
+        const [data, totalCount] = await query.getManyAndCount();
+
+        return { data, totalCount };
     }
 }

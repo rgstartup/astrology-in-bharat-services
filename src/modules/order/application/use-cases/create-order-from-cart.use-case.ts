@@ -49,7 +49,7 @@ export class CreateOrderFromCartUseCase {
       this.logger.log(`[CREATE_ORDER] User: ${userId}, PaymentMethod: ${dto.payment_method}`);
 
       let totalAmount = 0;
-      let itemsToCreate: { product_id: number; quantity: number; price: number; expert_id: number | null; merchant_id: number | null }[] = [];
+      let itemsToCreate: { product_id: number; quantity: number; price: number; merchant_id: number | null }[] = [];
 
       if (dto.product_id) {
         // 1. Handle Single Product Order (Buy Now)
@@ -66,7 +66,6 @@ export class CreateOrderFromCartUseCase {
           product_id: product.id,
           quantity: quantity,
           price: price,
-          expert_id: product.expert_id,
           merchant_id: product.merchant_id,
         });
       } else {
@@ -85,7 +84,6 @@ export class CreateOrderFromCartUseCase {
             product_id: item.product.id,
             quantity: qty,
             price: price,
-            expert_id: item.product.expert_id,
             merchant_id: item.product.merchant_id,
           });
         });
@@ -141,29 +139,6 @@ export class CreateOrderFromCartUseCase {
           price: item.price,
         });
         await queryRunner.manager.save(OrderItem, orderItem);
-
-        // If paid by wallet, credit the handler now (ONLY for Experts)
-        // Merchant payout is now deferred until OTP verification during delivery
-        if (isWalletPayment && item.expert_id) {
-          const itemTotal = Number(item.price) * (item.quantity || 1);
-
-          // Resolve Expert Profile ID to User ID for wallet operation
-          const expertProfile = await queryRunner.manager.createQueryBuilder(ProfileExpert, 'expert')
-            .select(['expert.user_id'])
-            .where('expert.id = :id', { id: item.expert_id })
-            .getOne();
-
-          if (expertProfile && expertProfile.user_id) {
-            await this.walletFacade.credit(
-              expertProfile.user_id,
-              itemTotal,
-              TransactionPurpose.PRODUCT_PURCHASE,
-              `order_${savedOrder.id}_item_credit`,
-              queryRunner
-            );
-            this.logger.log(`[CREATE_ORDER] Credited ₹${itemTotal} to expert ${item.expert_id} (User: ${expertProfile.user_id})`);
-          }
-        }
       }
 
       // 5. Clear Cart

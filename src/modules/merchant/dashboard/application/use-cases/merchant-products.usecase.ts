@@ -91,10 +91,9 @@ export class MerchantProductsUseCase {
       stock: dto.stock ?? 0,
       is_active: isActive,
       merchant_id: merchantId,
-      expert_id: null as any,
     });
     const saved = await this.productRepo.save(product);
-    return this.toResponse(saved);
+    return this.toResponse(saved as Product);
   }
 
   // 3. UPDATE

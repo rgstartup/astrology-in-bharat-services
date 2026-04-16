@@ -7,7 +7,7 @@ import { GetSessionUseCase } from './use-cases/get-session.use-case';
 import { GetMessagesUseCase } from './use-cases/get-messages.use-case';
 import { SaveMessageUseCase } from './use-cases/save-message.use-case';
 import { ConvertToPaidUseCase } from './use-cases/convert-to-paid.use-case';
-import { FindExpertSessionsUseCase, ExpertSessionFilter } from './use-cases/find-expert-sessions.use-case';
+import { FindExpertSessionsUseCase, ExpertSessionFilter, FindExpertSessionsOptions } from './use-cases/find-expert-sessions.use-case';
 import { FindClientSessionsUseCase } from './use-cases/find-client-sessions.use-case';
 import { FindActiveClientSessionUseCase } from './use-cases/find-active-client-session.use-case';
 import { GetTotalSessionsCountUseCase } from './use-cases/get-total-sessions-count.use-case';
@@ -77,8 +77,8 @@ export class ChatFacade {
         return this.convertToPaidUseCase.execute(sessionId);
     }
 
-    async getExpertSessions(userId: number, filter: ExpertSessionFilter) {
-        return this.findExpertSessionsUseCase.execute(userId, filter);
+    async getExpertSessions(userId: number, filter: ExpertSessionFilter, options: FindExpertSessionsOptions = {}) {
+        return this.findExpertSessionsUseCase.execute(userId, filter, options);
     }
 
     async getClientSessions(userId: number) {

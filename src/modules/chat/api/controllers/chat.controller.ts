@@ -243,89 +243,101 @@ export class ChatController {
   @Get('sessions/pending')
   @Header('Cache-Control', 'no-store')
   async getPendingSessions(@CurrentUser() user: User) {
-    const sessions = await this.chatFacade.getExpertSessions(
+    const { data: sessions, totalCount } = await this.chatFacade.getExpertSessions(
       user.id,
       ExpertSessionFilter.PENDING,
     );
-    const expiryTime = parseInt(
-      process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
-      10,
-    );
-
-    return Promise.all(
-      sessions.map(async (session) => {
-        const userBalance =
-          session.status === 'pending'
-            ? await this.chatGateway.getWalletBalance(session.user_id)
-            : 0;
-        const maxMinutes = session.is_free
-          ? session.free_minutes
-          : session.price_per_minute > 0
-            ? Math.floor(userBalance / session.price_per_minute)
-            : 5; // Default 5 for paid if we don't have balance context
-
-        return {
-          ...session,
-          expiresAt:
-            session.status === 'pending'
-              ? new Date(new Date(session.created_at).getTime() + expiryTime)
-              : null,
-          maxMinutes,
-        };
-      }),
-    );
+    const data = await this.processSessions(sessions);
+    return {
+      success: true,
+      data,
+      meta: { totalCount, limit: 20, offset: 0 }
+    };
   }
 
   @Get('sessions/completed')
   @Header('Cache-Control', 'no-store')
-  getCompletedSessions(@CurrentUser() user: User) {
-    return this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.COMPLETED);
+  async getCompletedSessions(
+    @CurrentUser() user: User,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    const options = {
+      limit: limit ? parseInt(limit, 10) : 20,
+      offset: offset ? parseInt(offset, 10) : 0,
+      search,
+      sortBy,
+      order,
+    };
+    const { data: sessions, totalCount } = await this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.COMPLETED, options);
+    const data = await this.processSessions(sessions);
+    return {
+      success: true,
+      data,
+      meta: { totalCount, limit: options.limit, offset: options.offset }
+    };
   }
 
   @Get('sessions/appointments/pending')
   @Header('Cache-Control', 'no-store')
   async getRecentPendingSessions(@CurrentUser() user: User) {
-    const sessions =
+    const { data: sessions, totalCount } =
       await this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.RECENT_PENDING);
-    const expiryTime = parseInt(
-      process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
-      10,
-    );
-
-    return Promise.all(
-      sessions.map(async (session) => {
-        const userBalance =
-          session.status === 'pending'
-            ? await this.chatGateway.getWalletBalance(session.user_id)
-            : 0;
-        const maxMinutes = session.is_free
-          ? session.free_minutes
-          : session.price_per_minute > 0
-            ? Math.floor(userBalance / session.price_per_minute)
-            : 5;
-
-        return {
-          ...session,
-          expiresAt:
-            session.status === 'pending'
-              ? new Date(new Date(session.created_at).getTime() + expiryTime)
-              : null,
-          maxMinutes,
-        };
-      }),
-    );
+    const data = await this.processSessions(sessions);
+    return {
+      success: true,
+      data,
+      meta: { totalCount, limit: 20, offset: 0 }
+    };
   }
 
   @Get('sessions/appointments/completed')
   @Header('Cache-Control', 'no-store')
-  getRecentCompletedSessions(@CurrentUser() user: User) {
-    return this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.RECENT_COMPLETED);
+  async getRecentCompletedSessions(@CurrentUser() user: User) {
+    const { data: sessions, totalCount } = await this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.RECENT_COMPLETED);
+    const data = await this.processSessions(sessions);
+    return {
+      success: true,
+      data,
+      meta: { totalCount, limit: 20, offset: 0 }
+    };
   }
 
   @Get('sessions/all')
   @Header('Cache-Control', 'no-store')
-  async getAllSessions(@CurrentUser() user: User) {
-    const sessions = await this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.ALL);
+  async getAllSessions(
+    @CurrentUser() user: User,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    const options = {
+      limit: limit ? parseInt(limit, 10) : 20,
+      offset: offset ? parseInt(offset, 10) : 0,
+      search,
+      sortBy,
+      order,
+    };
+    const { data: sessions, totalCount } = await this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.ALL, options);
+    const data = await this.processSessions(sessions);
+
+    return {
+      success: true,
+      data,
+      meta: {
+        totalCount,
+        limit: options.limit,
+        offset: options.offset,
+      }
+    };
+  }
+
+  private async processSessions(sessions: any[]) {
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
       10,

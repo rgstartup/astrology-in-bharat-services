@@ -58,29 +58,6 @@ export class MarkOrderAsPaidUseCase {
         console.error('[MARK_AS_PAID_TRACKING] Client spending error:', e);
       }
 
-      // 3. Track Expert Earnings (Iterate over items)
-      for (const item of order.items) {
-        if (item.product && item.product.expert_id) {
-          const itemTotal = Number(item.price) * (item.quantity || 1);
-          try {
-            const expertProfile = await queryRunner.manager.createQueryBuilder(ProfileExpert, 'expert')
-              .select(['expert.user_id'])
-              .where('expert.id = :id', { id: item.product.expert_id })
-              .getOne();
-
-            if (expertProfile?.user_id) {
-              await this.walletFacade.credit(
-                expertProfile.user_id,
-                itemTotal,
-                TransactionPurpose.PRODUCT_PURCHASE,
-                `order_${order.id}_item_${item.id}`
-              );
-              console.log(`[MARK_AS_PAID_TRACKING] Credited expert user ${expertProfile.user_id} with amount ${itemTotal} for order ${order.id}`);
-            }
-          } catch (e) { console.error('[MARK_AS_PAID_TRACKING] Expert earning error:', e); }
-        }
-      }
-
       await queryRunner.commitTransaction();
     } catch (error) {
       if (queryRunner.isTransactionActive) {

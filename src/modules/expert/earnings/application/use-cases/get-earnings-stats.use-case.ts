@@ -9,6 +9,7 @@ import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { PujaAppointment, PujaAppointmentStatus } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
+import { Review } from '@/modules/reviews/infrastructure/persistence/entities/review.entity';
 
 
 @Injectable()
@@ -24,128 +25,183 @@ export class GetEarningsStatsUseCase {
         private expertRepo: Repository<ProfileExpert>,
         @InjectRepository(PujaAppointment)
         private pujaRepo: Repository<PujaAppointment>,
+        @InjectRepository(Review)
+        private reviewRepo: Repository<Review>,
         private walletFacade: WalletFacade,
     ) { }
 
-    async execute(userId: number, range: string) {
+    async execute(userId: number, period: string, startDateStr?: string, endDateStr?: string) {
         const expert = await this.expertRepo.findOne({
             where: { user: { id: userId } },
         });
         if (!expert) return null;
 
         const expertId = expert.id;
+        
+        // --- Date Range Calculation ---
         const now = new Date();
         let startDate: Date;
+        let endDate: Date = new Date();
+        let prevStartDate: Date;
+        let prevEndDate: Date;
 
-        if (range === 'today') {
-            startDate = new Date(now.setHours(0, 0, 0, 0));
+        if (period === 'today') {
+            startDate = new Date(now);
+            startDate.setHours(0, 0, 0, 0);
+            
+            prevStartDate = new Date(startDate);
+            prevStartDate.setDate(prevStartDate.getDate() - 1);
+            prevEndDate = new Date(startDate);
+        } else if (period === 'last_month') {
+            startDate = new Date();
+            startDate.setDate(now.getDate() - 30);
+            startDate.setHours(0, 0, 0, 0);
+            
+            prevStartDate = new Date(startDate);
+            prevStartDate.setDate(prevStartDate.getDate() - 30);
+            prevEndDate = new Date(startDate);
+        } else if (period === 'last_6_months') {
+            startDate = new Date();
+            startDate.setMonth(now.getMonth() - 6);
+            startDate.setHours(0, 0, 0, 0);
+            
+            prevStartDate = new Date(startDate);
+            prevStartDate.setMonth(prevStartDate.getMonth() - 6);
+            prevEndDate = new Date(startDate);
+        } else if (period === 'custom' && startDateStr && endDateStr) {
+            startDate = new Date(startDateStr);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date(endDateStr);
+            endDate.setHours(23, 59, 59, 999);
+            
+            const diffMs = endDate.getTime() - startDate.getTime();
+            prevStartDate = new Date(startDate.getTime() - diffMs - 1);
+            prevEndDate = new Date(startDate);
         } else {
             // Default last 6 months
             startDate = new Date();
             startDate.setMonth(now.getMonth() - 6);
             startDate.setHours(0, 0, 0, 0);
+            
+            prevStartDate = new Date(startDate);
+            prevStartDate.setMonth(prevStartDate.getMonth() - 6);
+            prevEndDate = new Date(startDate);
         }
 
-        const [sessions, calls, orderItems, pujas] = await Promise.all([
+        // --- Data Fetching (Current Period) ---
+        const [sessions, calls, pujas, reviews] = await Promise.all([
             this.sessionRepo.find({
-                where: {
-                    expert_id: expertId,
-                    status: ChatSessionStatus.COMPLETED,
-                    created_at: Between(startDate, new Date()),
-                },
+                where: { expert_id: expertId, status: ChatSessionStatus.COMPLETED, created_at: Between(startDate, endDate) },
                 relations: ['user'],
             }),
             this.callRepo.find({
-                where: {
-                    expert_id: expertId,
-                    status: CallSessionStatus.COMPLETED,
-                    created_at: Between(startDate, new Date()),
-                },
+                where: { expert_id: expertId, status: CallSessionStatus.COMPLETED, created_at: Between(startDate, endDate) },
                 relations: ['user'],
             }),
-            this.orderItemRepo.find({
-                where: {
-                    product: { expert_id: expertId },
-                    order: { status: OrderStatus.PAID },
-                    created_at: Between(startDate, new Date()),
-                },
-                relations: ['order', 'order.user', 'product'],
+            this.pujaRepo.find({
+                where: { expert_id: expertId, status: PujaAppointmentStatus.CONFIRMED, created_at: Between(startDate, endDate) },
+                relations: ['user', 'puja'],
+            }),
+            this.reviewRepo.find({
+                where: { expert_id: expertId, created_at: Between(startDate, endDate) },
+            })
+        ]);
+
+        // --- Data Fetching (Previous Period for Growth) ---
+        const [prevSessions, prevCalls, prevPujas] = await Promise.all([
+            this.sessionRepo.find({
+                where: { expert_id: expertId, status: ChatSessionStatus.COMPLETED, created_at: Between(prevStartDate, prevEndDate) },
+            }),
+            this.callRepo.find({
+                where: { expert_id: expertId, status: CallSessionStatus.COMPLETED, created_at: Between(prevStartDate, prevEndDate) },
             }),
             this.pujaRepo.find({
-                where: {
-                    expert_id: expertId,
-                    status: PujaAppointmentStatus.CONFIRMED,
-                    created_at: Between(startDate, new Date()),
-                },
-                relations: ['user', 'puja'],
+                where: { expert_id: expertId, status: PujaAppointmentStatus.CONFIRMED, created_at: Between(prevStartDate, prevEndDate) },
             })
         ]);
 
         const chatRevenue = sessions.reduce((acc, s) => acc + (s.total_cost || 0), 0);
         const callRevenue = calls.reduce((acc, c) => acc + (c.final_price || 0), 0);
-        const productRevenue = orderItems.reduce((acc, oi) => acc + (Number(oi.price) * (oi.quantity || 1)), 0);
         const pujaRevenue = pujas.reduce((acc, p) => acc + (Number(p.price) || 0), 0);
-        
-        const totalRevenue = chatRevenue + callRevenue + productRevenue + pujaRevenue;
+        const totalRevenue = chatRevenue + callRevenue + pujaRevenue;
+
+        const prevChatRevenue = prevSessions.reduce((acc, s) => acc + (s.total_cost || 0), 0);
+        const prevCallRevenue = prevCalls.reduce((acc, c) => acc + (c.final_price || 0), 0);
+        const prevPujaRevenue = prevPujas.reduce((acc, p) => acc + (Number(p.price) || 0), 0);
+        const prevTotalRevenue = prevChatRevenue + prevCallRevenue + prevPujaRevenue;
+
+        const growth = prevTotalRevenue > 0 ? ((totalRevenue - prevTotalRevenue) / prevTotalRevenue) * 100 : 0;
+        const consultationsCount = sessions.length + calls.length + pujas.length;
+        const averageRating = reviews.length > 0 ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 0;
 
         // Service Color Mapping
         const serviceColors: Record<string, string> = {
-            "Chat Consultation": "#f59e0b",      // Amber
-            "Video Call Consultation": "#8b5cf6", // Purple
-            "Call Consultation": "#10b981",       // Green
-            "Product Sales": "#ec4899",           // Pink
-            "Puja Rituals": "#f97316",            // Orange
-            "Report Generation": "#ef4444",       // Red
-            "Horoscope Analysis": "#3b82f6",      // Blue
-            "Custom Service": "#6b7280"           // Gray
+            "Chat Consultation": "#f59e0b",
+            "Video Call Consultation": "#8b5cf6",
+            "Call Consultation": "#10b981",
+            "Product Sales": "#ec4899",
+            "Puja Rituals": "#f97316",
+            "Report Generation": "#ef4444",
+            "Horoscope Analysis": "#3b82f6",
+            "Custom Service": "#6b7280"
         };
         const getColor = (name: string) => serviceColors[name] || "#6b7280";
 
-        // Group by month for chart data
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const incomeTrendsMap = new Map();
+        // Grouping logic for Trends
+        const incomeTrendsMap = new Map<string, number>();
+        const rangeMs = endDate.getTime() - startDate.getTime();
+        const rangeDays = rangeMs / (1000 * 60 * 60 * 24);
 
-        // Initialize last 6 months
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date();
-            d.setMonth(now.getMonth() - i);
-            const label = months[d.getMonth()];
-            incomeTrendsMap.set(label, 0);
+        if (period === 'today') {
+            for (let i = 0; i < 24; i++) {
+                const label = `${i.toString().padStart(2, '0')}:00`;
+                incomeTrendsMap.set(label, 0);
+            }
+        } else if (rangeDays <= 31) {
+            for (let i = 0; i <= Math.ceil(rangeDays); i++) {
+                const d = new Date(startDate);
+                d.setDate(d.getDate() + i);
+                if (d > endDate) break;
+                const label = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+                incomeTrendsMap.set(label, 0);
+            }
+        } else {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            let current = new Date(startDate);
+            while (current <= endDate) {
+                const label = months[current.getMonth()];
+                incomeTrendsMap.set(label, 0);
+                current.setMonth(current.getMonth() + 1);
+            }
         }
 
-        sessions.forEach(s => {
-            const label = months[s.created_at.getMonth()];
-            if (incomeTrendsMap.has(label)) {
-                incomeTrendsMap.set(label, incomeTrendsMap.get(label) + (s.total_cost || 0));
-            }
-        });
+        const addDataToTrends = (items: any[], priceFn: (item: any) => number) => {
+            items.forEach(item => {
+                let label: string;
+                if (period === 'today') {
+                    label = `${item.created_at.getHours().toString().padStart(2, '0')}:00`;
+                } else if (rangeDays <= 31) {
+                    label = item.created_at.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+                } else {
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    label = months[item.created_at.getMonth()];
+                }
+                if (incomeTrendsMap.has(label)) {
+                    incomeTrendsMap.set(label, (incomeTrendsMap.get(label) || 0) + priceFn(item));
+                }
+            });
+        };
 
-        calls.forEach(c => {
-            const label = months[c.created_at.getMonth()];
-            if (incomeTrendsMap.has(label)) {
-                incomeTrendsMap.set(label, incomeTrendsMap.get(label) + (c.final_price || 0));
-            }
-        });
-
-        orderItems.forEach(oi => {
-            const label = months[oi.created_at.getMonth()];
-            if (incomeTrendsMap.has(label)) {
-                incomeTrendsMap.set(label, incomeTrendsMap.get(label) + (Number(oi.price) * (oi.quantity || 1)));
-            }
-        });
-
-        pujas.forEach(p => {
-            const label = months[p.created_at.getMonth()];
-            if (incomeTrendsMap.has(label)) {
-                incomeTrendsMap.set(label, incomeTrendsMap.get(label) + (Number(p.price) || 0));
-            }
-        });
+        addDataToTrends(sessions, s => s.total_cost || 0);
+        addDataToTrends(calls, c => c.final_price || 0);
+        addDataToTrends(pujas, p => Number(p.price) || 0);
 
         const incomeTrends = Array.from(incomeTrendsMap, ([label, value]) => ({ label, value }));
 
         // Top Users
         const userStats = new Map();
         const updateTopUser = (userId: number, amount: number, userObj: any) => {
+            if (!userId) return;
             const userData = userStats.get(userId) || {
                 id: userId,
                 name: userObj?.name || 'Unknown',
@@ -160,7 +216,6 @@ export class GetEarningsStatsUseCase {
 
         sessions.forEach(s => updateTopUser(s.user_id, s.total_cost || 0, s.user));
         calls.forEach(c => updateTopUser(c.user_id, c.final_price || 0, c.user));
-        orderItems.forEach(oi => updateTopUser(oi.order?.user_id, Number(oi.price) * (oi.quantity || 1), oi.order?.user));
         pujas.forEach(p => updateTopUser(p.user_id, Number(p.price) || 0, p.user));
 
         const topUsers = Array.from(userStats.values())
@@ -174,56 +229,20 @@ export class GetEarningsStatsUseCase {
             }))
             .slice(0, 5);
 
+        // Top Services
         const serviceStatsMap = new Map();
-
-        // Add Chat
-        serviceStatsMap.set('Chat Consultation', {
-            id: 'srv_chat',
-            name: 'Chat Consultation',
-            amount: chatRevenue,
-            usage: sessions.length
-        });
-
-        // Add Calls
+        serviceStatsMap.set('Chat Consultation', { id: 'srv_chat', name: 'Chat Consultation', amount: chatRevenue, usage: sessions.length });
+        
         const audioCalls = calls.filter(c => c.type === CallType.AUDIO);
         const videoCalls = calls.filter(c => c.type === CallType.VIDEO);
-
         if (audioCalls.length > 0 || (expert.call_price || 0) > 0) {
-            serviceStatsMap.set('Call Consultation', {
-                id: 'srv_call',
-                name: 'Call Consultation',
-                amount: audioCalls.reduce((acc, c) => acc + (c.final_price || 0), 0),
-                usage: audioCalls.length
-            });
+            serviceStatsMap.set('Call Consultation', { id: 'srv_call', name: 'Call Consultation', amount: audioCalls.reduce((acc, c) => acc + (c.final_price || 0), 0), usage: audioCalls.length });
         }
-
         if (videoCalls.length > 0 || (expert.video_call_price || 0) > 0) {
-            serviceStatsMap.set('Video Call Consultation', {
-                id: 'srv_video',
-                name: 'Video Call Consultation',
-                amount: videoCalls.reduce((acc, c) => acc + (c.final_price || 0), 0),
-                usage: videoCalls.length
-            });
+            serviceStatsMap.set('Video Call Consultation', { id: 'srv_video', name: 'Video Call Consultation', amount: videoCalls.reduce((acc, c) => acc + (c.final_price || 0), 0), usage: videoCalls.length });
         }
-
-        // Add Products
-        if (orderItems.length > 0) {
-            serviceStatsMap.set('Product Sales', {
-                id: 'srv_products',
-                name: 'Product Sales',
-                amount: productRevenue,
-                usage: orderItems.length
-            });
-        }
-
-        // Add Pujas
         if (pujas.length > 0) {
-            serviceStatsMap.set('Puja Rituals', {
-                id: 'srv_pujas',
-                name: 'Puja Rituals',
-                amount: pujaRevenue,
-                usage: pujas.length
-            });
+            serviceStatsMap.set('Puja Rituals', { id: 'srv_pujas', name: 'Puja Rituals', amount: pujaRevenue, usage: pujas.length });
         }
 
         const topServices = Array.from(serviceStatsMap.values())
@@ -240,7 +259,6 @@ export class GetEarningsStatsUseCase {
         const breakdownData = [
             { category: 'Chat', amount: chatRevenue, color: getColor('Chat Consultation') },
             { category: 'Call', amount: callRevenue, color: getColor('Call Consultation') },
-            { category: 'Products', amount: productRevenue, color: getColor('Product Sales') },
             { category: 'Puja', amount: pujaRevenue, color: getColor('Puja Rituals') },
         ].filter(item => item.amount > 0);
 
@@ -252,11 +270,9 @@ export class GetEarningsStatsUseCase {
             }))
             .sort((a, b) => b.amount - a.amount);
 
-        // Wallet Data
+        // Wallet and Stats
         const walletBalance = await this.walletFacade.getBalance(userId);
         const { totalWithdrawn } = await this.walletFacade.getWithdrawalsStatus(userId);
-
-        // Recent Transactions
         const { items: transactions } = await this.walletFacade.getTransactions(userId, 1, 5, 'all');
         const recentTransactions = transactions.map(t => ({
             id: t.id.toString(),
@@ -270,12 +286,13 @@ export class GetEarningsStatsUseCase {
         return {
             stats: {
                 totalRevenue,
+                consultations: consultationsCount,
+                averageRating,
+                growth,
                 walletBalance: walletBalance || 0,
                 totalWithdrawn: totalWithdrawn || 0,
                 pujaRevenue,
-                revenueGrowth: 0,
-                balanceGrowth: 0,
-                withdrawalGrowth: 0,
+                revenueGrowth: growth,
             },
             incomeTrends,
             revenueBreakdown,

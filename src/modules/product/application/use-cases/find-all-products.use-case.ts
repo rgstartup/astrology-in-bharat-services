@@ -13,8 +13,8 @@ export class FindAllProductsUseCase {
     private readonly merchantRepository: Repository<ProfileMerchant>,
   ) { }
 
-  async execute(filters: { merchantId?: number; expertId?: number; page?: number; limit?: number }) {
-    const { merchantId, expertId, page = 1, limit = 10 } = filters;
+  async execute(filters: { merchantId?: number; page?: number; limit?: number }) {
+    const { merchantId, page = 1, limit = 10 } = filters;
     const skip = (page - 1) * limit;
 
     const query = this.productRepository.createQueryBuilder('product')
@@ -33,10 +33,6 @@ export class FindAllProductsUseCase {
           meta: { total: 0, page, limit, totalPages: 0 },
         };
       }
-    }
-
-    if (expertId) {
-      query.andWhere('product.expert_id = :expertId', { expertId });
     }
 
     const [products, total] = await query

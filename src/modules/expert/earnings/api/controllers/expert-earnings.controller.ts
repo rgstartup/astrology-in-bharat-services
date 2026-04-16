@@ -23,8 +23,10 @@ export class ExpertEarningsController {
     @Get('stats')
     getStats(
         @CurrentUser() user: User,
-        @Query('range') range: string = 'last_6_months',
+        @Query('period') period: string = 'last_6_months',
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
     ) {
-        return this.earningsFacade.getStats(user.id, range);
+        return this.earningsFacade.getStats(user.id, period, startDate, endDate);
     }
 }

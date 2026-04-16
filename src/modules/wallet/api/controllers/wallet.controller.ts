@@ -22,11 +22,6 @@ export class WalletController {
     return this.walletFacade.getBalance(user.id);
   }
 
-  @Post('topup')
-  topUp(@CurrentUser() user: User, @Body('amount') amount: number) {
-    return this.walletFacade.topUp(user.id, amount);
-  }
-
   @Get('transactions')
   getTransactions(
     @CurrentUser() user: User,

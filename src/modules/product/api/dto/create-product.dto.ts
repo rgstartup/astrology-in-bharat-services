@@ -39,11 +39,6 @@ export class CreateProductDto {
   @Type(() => Number)
   stock?: number;
 
-  @IsNumber()
-  @IsOptional()
-  @Type(() => Number)
-  expert_id?: number;
-
   @IsBoolean()
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)

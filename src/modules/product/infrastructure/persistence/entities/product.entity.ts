@@ -48,9 +48,6 @@ export class Product {
   @Column({ default: 0 })
   stock: number;
 
-  @Column({ name: 'expert_id', nullable: true })
-  expert_id: number;
-
   @Column({ name: 'merchant_id', nullable: true })
   merchant_id: number;
 
