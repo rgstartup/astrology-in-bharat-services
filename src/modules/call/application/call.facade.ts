@@ -33,8 +33,8 @@ export class CallFacade {
         return this.endCallUseCase.execute(sessionId);
     }
 
-    async getExpertSessions(expertUserId: number, filter: CallSessionFilter) {
-        return this.getExpertCallSessionsUseCase.execute(expertUserId, filter);
+    async getExpertSessions(expertUserId: number, filter: CallSessionFilter, options: { limit?: number; offset?: number; search?: string } = {}) {
+        return this.getExpertCallSessionsUseCase.execute(expertUserId, filter, options);
     }
 
     async getSession(sessionId: number) {

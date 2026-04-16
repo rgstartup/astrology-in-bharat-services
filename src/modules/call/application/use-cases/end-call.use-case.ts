@@ -51,18 +51,30 @@ export class EndCallUseCase {
       const durationMs =
         session.end_time.getTime() - session.start_time.getTime();
       session.duration_seconds = Math.floor(durationMs / 1000);
-      session.final_price =
-        Math.ceil(session.duration_seconds / 60) * session.price_per_minute;
+      
+      // Pro-rata billing (per second)
+      const costPerSecond = session.price_per_minute / 60;
+      session.final_price = Number((session.duration_seconds * costPerSecond).toFixed(2));
+      session.total_cost = session.final_price;
     }
 
     const savedSession = await this.sessionRepo.save(session);
 
+    // 💳 Wallet Settlement
+    const referenceId = `call_${sessionId}`;
+    const initialReservation = session.price_per_minute * 5;
+    const finalPrice = session.final_price || 0;
+    const platformFee = Number((finalPrice * 0.2).toFixed(2));
+    const expertShare = Number((finalPrice - platformFee).toFixed(2));
+    const split = { totalAmount: finalPrice, platformFee, expertShare };
+
     this.callGateway.server
       .to(`call_room_${sessionId}`)
-      .emit('call_ended', { sessionId });
+      .emit('call_ended', { sessionId, split });
 
     // Also notify expert dashboard
-    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', { sessionId, session: savedSession });
+    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', { sessionId, session: savedSession, split });
+    
     this.eventEmitter.emit(
       'call.ended',
       new CallEndedEvent(
@@ -73,11 +85,6 @@ export class EndCallUseCase {
         savedSession.final_price,
       ),
     );
-
-    // 💳 Wallet Settlement
-    const referenceId = `call_${sessionId}`;
-    const initialReservation = session.price_per_minute * 5;
-    const finalPrice = session.final_price || 0;
 
     try {
       if (finalPrice <= initialReservation) {
@@ -121,7 +128,7 @@ export class EndCallUseCase {
         if (expert?.user?.id) {
           await this.walletFacade.credit(
             expert.user.id,
-            finalPrice,
+            expertShare,
             TransactionPurpose.CONSULTATION,
             referenceId,
           );
@@ -160,6 +167,9 @@ export class EndCallUseCase {
       console.error(`Failed to send end-call notification for session ${sessionId}:`, error);
     }
 
-    return savedSession;
+    return {
+      ...savedSession,
+      split,
+    };
   }
 }

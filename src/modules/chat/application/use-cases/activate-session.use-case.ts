@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
 import { ChatMessage, MessageType } from '../../infrastructure/persistence/entities/chat-message.entity';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()
 export class ActivateSessionUseCase {
@@ -11,6 +12,7 @@ export class ActivateSessionUseCase {
         private sessionRepo: Repository<ChatSession>,
         @InjectRepository(ChatMessage)
         private messageRepo: Repository<ChatMessage>,
+        private walletFacade: WalletFacade,
     ) { }
 
     async execute(sessionId: number): Promise<{ session: ChatSession, introCard?: ChatMessage }> {
@@ -32,6 +34,12 @@ export class ActivateSessionUseCase {
 
         session.status = ChatSessionStatus.ACTIVE;
         session.start_time = new Date();
+
+        // Calculate Max Duration based on Wallet Balance
+        const balance = await this.walletFacade.getBalance(session.user_id);
+        const maxMinutes = balance / session.price_per_minute;
+        session.max_duration_seconds = Math.floor(maxMinutes * 60);
+
         const savedSession = await this.sessionRepo.save(session);
 
         // ✅ Automatically send Intro Card

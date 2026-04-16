@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Body, UseGuards, Req, Header, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, UseGuards, Req, Header, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
@@ -99,5 +99,20 @@ export class CallController {
     @Header('Cache-Control', 'no-store')
     async getCompletedAppointments(@Req() req: any) {
         return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.RECENT_COMPLETED);
+    }
+
+    @Get('sessions/all')
+    @Header('Cache-Control', 'no-store')
+    async getAllSessions(
+        @Req() req: any,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+        @Query('search') search?: string,
+    ) {
+        return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.ALL, {
+            limit: limit ? parseInt(limit) : undefined,
+            offset: offset ? parseInt(offset) : undefined,
+            search,
+        });
     }
 }
