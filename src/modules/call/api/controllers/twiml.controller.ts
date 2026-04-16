@@ -14,41 +14,41 @@ export class TwimlController {
     @Post('twiml')
     @Get('twiml') // Allow GET for easy browser testing
     twiml(@Req() req: any, @Res() res: Response) {
-        // Twilio sends custom params (set via device.connect({ params })) in the request body
-        const sessionId = req.body?.sessionId || req.query?.sessionId || 'DefaultSession';
-        const callerIdentity = req.body?.Caller || req.body?.From || 'unknown';
+        try {
+            // Twilio sends custom params (set via device.connect({ params })) in the request body
+            // Note: Different SDK versions/configs might send these in different ways.
+            const sessionId = req.body?.sessionId || req.query?.sessionId || req.body?.customParameters?.sessionId || 'DefaultSession';
+            const callerIdentity = req.body?.Caller || req.body?.From || 'unknown';
 
-        console.log(`[TwiML] ✅ Request received.`);
-        console.log(`[TwiML] 📋 Query:`, JSON.stringify(req.query));
-        console.log(`[TwiML] 📋 Body:`, JSON.stringify(req.body));
-        console.log(`[TwiML] 🚀 SessionId: ${sessionId}, CallerIdentity: ${callerIdentity}`);
+            console.log(`[TwiML Debug] 🚀 SessionId: ${sessionId}, CallerIdentity: ${callerIdentity}`);
+            
+            const VoiceResponse = twilio.twiml.VoiceResponse;
+            const response = new VoiceResponse();
 
-        const VoiceResponse = twilio.twiml.VoiceResponse;
-        const response = new VoiceResponse();
+            const conferenceRoomName = `call_room_${sessionId}`;
+            console.log(`[TwiML Debug] 📞 Putting caller into conference: ${conferenceRoomName}`);
 
-        const conferenceRoomName = `call_room_${sessionId}`;
-        console.log(`[TwiML] 📞 Putting caller into conference: ${conferenceRoomName}`);
+            const dial = response.dial();
+            dial.conference({
+                startConferenceOnEnter: true,
+                endConferenceOnExit: true,
+                beep: 'false',
+                muted: false,
+                waitUrl: '', // Explicitly empty for silence
+            }, conferenceRoomName);
 
-        // Both user & expert are placed into the SAME conference room.
-        // startConferenceOnEnter: true  → conference starts as soon as first participant joins
-        // endConferenceOnExit: true     → conference ends when any participant leaves
-        // NOTE: Do NOT set waitUrl to empty string '' — it causes Twilio to play
-        //       the default "Thank you for using Twilio" message.
-        //       Omitting waitUrl completely silences the hold period.
-        const dial = response.dial();
-        dial.conference({
-            startConferenceOnEnter: true,
-            endConferenceOnExit: true,
-            // waitUrl intentionally omitted → silent wait, no hold music or Twilio messages
-            beep: 'false' as any,       // No beep sound when joining
-            muted: false,               // Participants are NOT muted by default
-        }, conferenceRoomName);
+            const twimlOutput = response.toString();
+            console.log(`[TwiML Debug] 📤 Responding with TwiML:`, twimlOutput);
 
-        const twimlOutput = response.toString();
-        console.log(`[TwiML] 📤 Responding with TwiML:`, twimlOutput);
-
-        res.type('text/xml');
-        res.send(twimlOutput);
+            res.header('Content-Type', 'application/xml');
+            return res.status(200).send(twimlOutput);
+        } catch (error) {
+            console.error('[TwiML Debug] ❌ Error generating TwiML:', error);
+            const VoiceResponse = twilio.twiml.VoiceResponse;
+            const response = new VoiceResponse();
+            response.say('A server error occurred in call routing.');
+            res.header('Content-Type', 'application/xml');
+            return res.status(200).send(response.toString());
+        }
     }
 }
-
