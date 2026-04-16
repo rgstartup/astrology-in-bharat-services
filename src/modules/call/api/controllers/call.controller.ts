@@ -100,4 +100,10 @@ export class CallController {
     async getCompletedAppointments(@Req() req: any) {
         return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.RECENT_COMPLETED);
     }
+
+    @Get('sessions/all')
+    @Header('Cache-Control', 'no-store')
+    async getAllSessions(@Req() req: any) {
+        return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.ALL);
+    }
 }
