@@ -51,8 +51,10 @@ export class EndCallUseCase {
       const durationMs =
         session.end_time.getTime() - session.start_time.getTime();
       session.duration_seconds = Math.floor(durationMs / 1000);
-      session.final_price =
-        Math.ceil(session.duration_seconds / 60) * session.price_per_minute;
+      
+      // Pro-rata billing (per second)
+      const costPerSecond = session.price_per_minute / 60;
+      session.final_price = Number((session.duration_seconds * costPerSecond).toFixed(2));
       session.total_cost = session.final_price;
     }
 
