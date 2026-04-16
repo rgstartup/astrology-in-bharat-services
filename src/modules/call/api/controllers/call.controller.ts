@@ -103,7 +103,16 @@ export class CallController {
 
     @Get('sessions/all')
     @Header('Cache-Control', 'no-store')
-    async getAllSessions(@Req() req: any) {
-        return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.ALL);
+    async getAllSessions(
+        @Req() req: any,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+        @Query('search') search?: string,
+    ) {
+        return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.ALL, {
+            limit: limit ? parseInt(limit) : undefined,
+            offset: offset ? parseInt(offset) : undefined,
+            search,
+        });
     }
 }

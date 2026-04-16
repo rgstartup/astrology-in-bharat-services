@@ -21,39 +21,53 @@ export class GetExpertCallSessionsUseCase {
         private expertRepo: Repository<ProfileExpert>,
     ) { }
 
-    async execute(expertUserId: number, filter: CallSessionFilter) {
+    async execute(expertUserId: number, filter: CallSessionFilter, options: { limit?: number; offset?: number; search?: string } = {}) {
         const expert = await this.expertRepo.findOne({
             where: { user_id: expertUserId }
         });
 
-        if (!expert) return [];
+        if (!expert) return { data: [], meta: { totalCount: 0 } };
 
-        const query: any = {
-            where: { expert_id: expert.id },
-            relations: ['user'],
-            order: { created_at: 'DESC' }
-        };
+        const queryBuilder = this.sessionRepo.createQueryBuilder('session')
+            .leftJoinAndSelect('session.user', 'user')
+            .where('session.expert_id = :expertId', { expertId: expert.id });
 
         switch (filter) {
             case CallSessionFilter.PENDING:
-                query.where.status = In([CallSessionStatus.PENDING, CallSessionStatus.ACTIVE]);
+                queryBuilder.andWhere('session.status IN (:...statuses)', { statuses: [CallSessionStatus.PENDING, CallSessionStatus.ACTIVE] });
                 break;
             case CallSessionFilter.COMPLETED:
-                query.where.status = In([CallSessionStatus.COMPLETED, CallSessionStatus.CANCELLED, CallSessionStatus.REJECTED]);
+                queryBuilder.andWhere('session.status IN (:...statuses)', { statuses: [CallSessionStatus.COMPLETED, CallSessionStatus.CANCELLED, CallSessionStatus.REJECTED] });
                 break;
             case CallSessionFilter.RECENT_PENDING:
-                query.where.status = In([CallSessionStatus.PENDING, CallSessionStatus.ACTIVE]);
-                query.take = 20;
+                queryBuilder.andWhere('session.status IN (:...statuses)', { statuses: [CallSessionStatus.PENDING, CallSessionStatus.ACTIVE] });
+                queryBuilder.limit(20);
                 break;
             case CallSessionFilter.RECENT_COMPLETED:
-                query.where.status = In([CallSessionStatus.COMPLETED, CallSessionStatus.CANCELLED, CallSessionStatus.REJECTED]);
-                query.take = 20;
+                queryBuilder.andWhere('session.status IN (:...statuses)', { statuses: [CallSessionStatus.COMPLETED, CallSessionStatus.CANCELLED, CallSessionStatus.REJECTED] });
+                queryBuilder.limit(20);
                 break;
             case CallSessionFilter.ALL:
             default:
                 break;
         }
 
-        return this.sessionRepo.find(query);
+        if (options.search) {
+            queryBuilder.andWhere('user.name ILIKE :search', { search: `%${options.search}%` });
+        }
+
+        queryBuilder.orderBy('session.created_at', 'DESC');
+
+        const totalCount = await queryBuilder.getCount();
+
+        if (options.limit !== undefined) {
+            queryBuilder.limit(options.limit);
+        }
+        if (options.offset !== undefined) {
+            queryBuilder.offset(options.offset);
+        }
+
+        const data = await queryBuilder.getMany();
+        return { data, meta: { totalCount } };
     }
 }

@@ -53,6 +53,7 @@ export class EndCallUseCase {
       session.duration_seconds = Math.floor(durationMs / 1000);
       session.final_price =
         Math.ceil(session.duration_seconds / 60) * session.price_per_minute;
+      session.total_cost = session.final_price;
     }
 
     const savedSession = await this.sessionRepo.save(session);
@@ -164,6 +165,9 @@ export class EndCallUseCase {
       console.error(`Failed to send end-call notification for session ${sessionId}:`, error);
     }
 
-    return savedSession;
+    return {
+      ...savedSession,
+      split,
+    };
   }
 }
