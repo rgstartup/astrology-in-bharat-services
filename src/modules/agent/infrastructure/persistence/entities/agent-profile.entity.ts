@@ -39,6 +39,9 @@ export class AgentProfile {
     ifsc_code: string;
 
     @Column({ nullable: true })
+    account_holder: string;
+
+    @Column({ nullable: true })
     phone: string;
 
     @Column({ nullable: true })

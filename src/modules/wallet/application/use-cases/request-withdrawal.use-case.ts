@@ -62,25 +62,45 @@ export class RequestWithdrawalUseCase {
     // --- SNAPSHOT LOGIC ---
     let merchantSnapshot: any = {};
     if (!bank_account_id) {
+      // Try Merchant Profile
       const { ProfileMerchant } = await import('@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity');
       const profile = await this.dataSource.getRepository(ProfileMerchant).findOne({
         where: { user_id: userId }
       });
 
-      if (!profile) {
-        throw new BadRequestException('Merchant profile not found');
-      }
+      if (profile) {
+        if (!profile.bankName || !profile.accountNumber || !profile.ifsc) {
+          throw new BadRequestException('Please complete your bank details in profile settings before requesting withdrawal');
+        }
 
-      if (!profile.bankName || !profile.accountNumber || !profile.ifsc) {
-        throw new BadRequestException('Please complete your bank details in profile settings before requesting withdrawal');
-      }
+        merchantSnapshot = {
+          merchant_bank_name: profile.bankName,
+          merchant_account_number: profile.accountNumber,
+          merchant_ifsc: profile.ifsc,
+          merchant_account_holder: profile.accountHolder || 'N/A'
+        };
+      } else {
+        // Try Agent Profile
+        const { AgentProfile } = await import('@/modules/agent/infrastructure/persistence/entities/agent-profile.entity');
+        const agentProfile = await this.dataSource.getRepository(AgentProfile).findOne({
+          where: { user_id: userId }
+        });
 
-      merchantSnapshot = {
-        merchant_bank_name: profile.bankName,
-        merchant_account_number: profile.accountNumber,
-        merchant_ifsc: profile.ifsc,
-        merchant_account_holder: profile.accountHolder || 'N/A'
-      };
+        if (agentProfile) {
+          if (!agentProfile.bank_name || !agentProfile.account_number || !agentProfile.ifsc_code) {
+            throw new BadRequestException('Please complete your bank details in profile settings before requesting withdrawal');
+          }
+
+          merchantSnapshot = {
+            merchant_bank_name: agentProfile.bank_name,
+            merchant_account_number: agentProfile.account_number,
+            merchant_ifsc: agentProfile.ifsc_code,
+            merchant_account_holder: agentProfile.account_holder || 'Agent'
+          };
+        } else {
+          throw new BadRequestException('Profile not found. Please ensure your bank details are completed.');
+        }
+      }
     }
 
     const queryRunner = this.dataSource.createQueryRunner();

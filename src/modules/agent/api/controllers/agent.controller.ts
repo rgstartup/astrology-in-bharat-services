@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Patch, Body, Post, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Patch, Body, Post, Query, BadRequestException, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -11,6 +11,7 @@ import { DatabaseService } from '@/core/database/database.service';
 import { In } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entities/system-setting.entity';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Controller({
     path: 'agent',
@@ -21,7 +22,8 @@ import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entiti
 export class AgentController {
     constructor(
         private readonly db: DatabaseService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly walletFacade: WalletFacade,
     ) { }
 
     @Get('profile')
@@ -45,6 +47,7 @@ export class AgentController {
                 bank_name: body.bank_name,
                 account_number: body.account_number,
                 ifsc_code: body.ifsc_code,
+                account_holder: body.account_holder,
             });
         });
         return { success: true };
@@ -370,6 +373,29 @@ export class AgentController {
             };
         });
         return listings;
+    }
+
+    // ── Wallet / Payouts ──────────────────────────────────────────────────
+    @Get('wallet/balance')
+    async getBalance(@CurrentUser() user: User) {
+        return this.walletFacade.getBalance(user.id);
+    }
+
+    @Get('wallet/withdrawals')
+    async getWithdrawals(@CurrentUser() user: User) {
+        return this.walletFacade.getWithdrawalsStatus(user.id);
+    }
+
+    @Post('wallet/withdraw')
+    async requestWithdrawal(
+        @CurrentUser() user: User,
+        @Body('amount') amount: number,
+    ) {
+        // Find agent profile to get bank details if needed
+        // RequestWithdrawalUseCase already handles fetching bank details from ProfileMerchant, 
+        // but agents have AgentProfile. 
+        // We might need to update RequestWithdrawalUseCase to support AgentProfile too.
+        return this.walletFacade.requestWithdrawal(user.id, amount);
     }
 }
 
