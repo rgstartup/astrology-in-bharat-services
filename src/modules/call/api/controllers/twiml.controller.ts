@@ -28,40 +28,60 @@ export class TwimlController {
     @Get('twiml') 
     async twiml(@Req() req: any, @Res() res: Response) {
         try {
-            // Extract SessionId from various possible locations in the request
-            const sessionId = req.body?.sessionId || 
-                            req.query?.sessionId || 
-                            req.body?.customParameters?.sessionId || 
-                            'DefaultSession';
-                            
+            // Log full request details for debugging
+            this.logger.log(`[TwiML] Received request. Method: ${req.method}`);
+            this.logger.log(`[TwiML] Request Body: ${JSON.stringify(req.body)}`);
+            this.logger.log(`[TwiML] Request Query: ${JSON.stringify(req.query)}`);
+
+            // Extract SessionId - Twilio Voice SDK sends it directly in the body
+            const rawSessionId = req.body?.sessionId || 
+                                req.query?.sessionId || 
+                                req.body?.customParameters?.sessionId;
+
+            const sessionId = rawSessionId && rawSessionId !== 'DefaultSession' ? rawSessionId : 'DefaultSession';
             const callerIdentity = req.body?.Caller || req.body?.From || 'unknown';
 
-            this.logger.log(`[TwiML] Request for SessionId: ${sessionId} from ${callerIdentity}`);
+            this.logger.log(`[TwiML] Final SessionId for processing: ${sessionId} (from caller: ${callerIdentity})`);
             
             const VoiceResponse = twilio.twiml.VoiceResponse;
             const response = new VoiceResponse();
 
             // Fetch session and balance for dynamic TimeLimit
             let timeLimit = 3600; // Default 1 hour
-            try {
-                if (sessionId && sessionId !== 'DefaultSession') {
+            
+            if (sessionId !== 'DefaultSession') {
+                const parsedId = parseInt(sessionId);
+                if (!isNaN(parsedId)) {
                     const session = await this.sessionRepo.findOne({
-                        where: { id: parseInt(sessionId) }
+                        where: { id: parsedId }
                     });
+                    
                     if (session) {
                         const balance = await this.walletFacade.getBalance(session.user_id);
-                        timeLimit = Math.floor((balance / session.price_per_minute) * 60);
-                        this.logger.log(`[TwiML] Calculated TimeLimit for ${sessionId}: ${timeLimit}s (Balance: ${balance})`);
+                        // Safety check: ensure price_per_minute is a positive number to avoid division by zero or Infinity
+                        const price = session.price_per_minute || 0;
+                        
+                        if (price > 0) {
+                            timeLimit = Math.floor((balance / price) * 60);
+                            this.logger.log(`[TwiML] Calculated TimeLimit for session ${sessionId}: ${timeLimit}s (Balance: ${balance}, Price: ${price})`);
+                        } else {
+                            this.logger.warn(`[TwiML] Session ${sessionId} has zero or invalid price. Using default time limit.`);
+                        }
                         
                         if (timeLimit <= 0) {
+                            this.logger.warn(`[TwiML] Insufficient balance for session ${sessionId}. Hanging up.`);
                             response.say('Insufficient balance to continue this call.');
                             res.set('Content-Type', 'text/xml');
                             return res.status(200).send(response.toString());
                         }
+                    } else {
+                        this.logger.warn(`[TwiML] Session ${sessionId} not found in database.`);
                     }
+                } else {
+                    this.logger.warn(`[TwiML] Invalid sessionId format: ${sessionId}`);
                 }
-            } catch (err) {
-                this.logger.error(`[TwiML] Error calculating timeLimit: ${err.message}`);
+            } else {
+                this.logger.log(`[TwiML] Using DefaultSession (No limit lookup)`);
             }
 
             const conferenceRoomName = `call_room_${sessionId}`;
@@ -77,7 +97,6 @@ export class TwimlController {
             }, conferenceRoomName);
 
             const twimlOutput = response.toString();
-            
             res.set('Content-Type', 'text/xml');
             return res.status(200).send(twimlOutput);
         } catch (error) {
