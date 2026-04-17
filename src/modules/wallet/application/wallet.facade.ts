@@ -13,6 +13,7 @@ import { GetTotalEarningsUseCase } from './use-cases/get-total-earnings.use-case
 import { GetGlobalEarningsUseCase } from './use-cases/get-global-earnings.use-case';
 import { GetAdminCommissionUseCase } from './use-cases/get-admin-commission.use-case';
 import { GetWithdrawalsStatusUseCase } from './use-cases/get-withdrawals-status.use-case';
+import { GetWithdrawalsUseCase } from './use-cases/get-withdrawals.use-case';
 import { RequestWithdrawalUseCase } from './use-cases/request-withdrawal.use-case';
 import { GetPendingWithdrawalsUseCase } from './use-cases/get-pending-withdrawals.use-case';
 import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-status.use-case';
@@ -36,6 +37,7 @@ export class WalletFacade {
     private readonly getTotalEarningsUseCase: GetTotalEarningsUseCase,
     private readonly getGlobalEarningsUseCase: GetGlobalEarningsUseCase,
     private readonly getWithdrawalsStatusUseCase: GetWithdrawalsStatusUseCase,
+    private readonly getWithdrawalsUseCase: GetWithdrawalsUseCase,
     private readonly requestWithdrawalUseCase: RequestWithdrawalUseCase,
     private readonly getPendingWithdrawalsUseCase: GetPendingWithdrawalsUseCase,
     private readonly updateWithdrawalStatusUseCase: UpdateWithdrawalStatusUseCase,
@@ -93,6 +95,10 @@ export class WalletFacade {
 
   async getWithdrawalsStatus(userId: number) {
     return this.getWithdrawalsStatusUseCase.execute(userId);
+  }
+
+  async getWithdrawals(userId: number, page?: number, limit?: number) {
+    return this.getWithdrawalsUseCase.execute(userId, page, limit);
   }
 
   async requestWithdrawal(userId: number, amount: number, bank_account_id?: number) {

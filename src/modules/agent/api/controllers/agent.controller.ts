@@ -55,25 +55,27 @@ export class AgentController {
 
     @Get('dashboard/stats')
     async getStats(@CurrentUser() user: User) {
-        const stats = await this.db.transaction(async (queryRunner) => {
+        return this.db.transaction(async (queryRunner) => {
             const profile = await queryRunner.manager.findOne(AgentProfile, {
                 where: { user_id: user.id }
             });
 
-            const registeredUserIds = profile?.registered_user_ids || [];
-            const registeredAstrologerIds = profile?.registered_astrologer_ids || [];
-            const allRegisteredIds = [...registeredUserIds, ...registeredAstrologerIds];
+            // Filter out any nulls or non-numeric values that might have crept into the arrays
+            const registeredUserIds = (profile?.registered_user_ids || []).filter(id => id && typeof id === 'number');
+            const registeredAstrologerIds = (profile?.registered_astrologer_ids || []).filter(id => id && typeof id === 'number');
+            const allRegisteredIds = Array.from(new Set([...registeredUserIds, ...registeredAstrologerIds]));
 
             // Count total users (astrologers + clients) referred by this agent or in their registered list
-            const totalUsers = await queryRunner.manager
+            const totalUsersQuery = queryRunner.manager
                 .createQueryBuilder(User, 'u')
-                .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
-                    agentId: Number(user.id),
-                    ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
-                })
-                .getCount();
+                .where('u.referred_by_id = :agentId', { agentId: user.id });
 
-            // Count mandir/puja_shop listings by this agent
+            if (allRegisteredIds.length > 0) {
+                totalUsersQuery.orWhere('u.id IN (:...ids)', { ids: allRegisteredIds });
+            }
+
+            const totalUsers = await totalUsersQuery.getCount();
+
             const totalMandirs = await queryRunner.manager.count(AgentListing, {
                 where: { agent_id: user.id, type: 'mandir' }
             });
@@ -87,28 +89,27 @@ export class AgentController {
                 .leftJoinAndSelect('u.profile_expert', 'pe')
                 .leftJoinAndSelect('u.profile_client', 'pc')
                 .leftJoinAndSelect('u.roles', 'role')
-                .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
-                    agentId: Number(user.id),
-                    ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
-                });
+                .where('u.referred_by_id = :agentId', { agentId: user.id });
+
+            if (allRegisteredIds.length > 0) {
+                qbUsers.orWhere('u.id IN (:...ids)', { ids: allRegisteredIds });
+            }
+
             const usersForStats = await qbUsers.getMany();
 
-            // Fetch commission rates from system settings
             const settings = await queryRunner.manager.find(SystemSetting, {
                 where: {
-                    key: In(['COMMISION_FROM_CLIENT', 'COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_PUJA_SHOP'])
+                    key: In(['COMMISSION_FROM_CLIENT', 'COMMISSION_FROM_ASTROLOGER', 'COMMISSION_FROM_PUJA_SHOP', 'COMMISION_FROM_CLIENT', 'COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_PUJA_SHOP'])
                 }
             });
 
-            const getSettingValue = (key: string, defaultValue: number) => {
-                const setting = settings.find(s => s.key === key);
+            const getSettingValue = (keys: string[], defaultValue: number) => {
+                const setting = settings.find(s => keys.includes(s.key));
                 return setting ? parseFloat(setting.value) : defaultValue;
             };
 
-            const clientCommPercent = getSettingValue('COMMISION_FROM_CLIENT', 3);
-            const expertCommPercent = getSettingValue('COMMISION_FROM_ASTROLOGER', 3);
-            const merchantCommPercent = getSettingValue('COMMISION_FROM_PUJA_SHOP', 3);
-
+            const clientCommPercent = getSettingValue(['COMMISSION_FROM_CLIENT', 'COMMISION_FROM_CLIENT'], 3);
+            const expertCommPercent = getSettingValue(['COMMISSION_FROM_ASTROLOGER', 'COMMISION_FROM_ASTROLOGER'], 3);
 
             let totalAgentCommission = 0;
             let astrologersCount = 0;
@@ -120,25 +121,25 @@ export class AgentController {
                 const isExpert = roles.includes('expert');
                 const isMerchant = roles.includes('merchant');
 
-                if (isExpert) {
-                    astrologersCount++;
-                } else if (isMerchant) {
-                    merchantsAsPujaShopCount++;
-                } else {
-                    clientsCount++;
-                }
+                if (isExpert) astrologersCount++;
+                else if (isMerchant) merchantsAsPujaShopCount++;
+                else clientsCount++;
 
-                // Commission from expert earnings
                 if (u.profile_expert) {
-                    totalAgentCommission += (Number(u.profile_expert.total_earning || 0) * expertCommPercent) / 100;
+                    const earning = Number(u.profile_expert.total_earning || 0);
+                    if (!isNaN(earning)) {
+                        totalAgentCommission += (earning * expertCommPercent) / 100;
+                    }
                 }
-                // Commission from client spending (any user can have a client profile for spending)
                 if (u.profile_client) {
-                    totalAgentCommission += (Number(u.profile_client.total_spending || 0) * clientCommPercent) / 100;
+                    const spending = Number(u.profile_client.total_spending || 0);
+                    if (!isNaN(spending)) {
+                        totalAgentCommission += (spending * clientCommPercent) / 100;
+                    }
                 }
-                // Commission from merchant (Puja Shop) sales if implemented later, 
-                // for now we at least track their count.
             });
+
+            const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(user.id);
 
             return {
                 totalListings: totalUsers + totalMandirs + totalPujaShops,
@@ -147,13 +148,12 @@ export class AgentController {
                 clientsCount,
                 mandirsCount: totalMandirs,
                 pujaShopsCount: totalPujaShops + merchantsAsPujaShopCount,
-                pendingPayout: 0,
+                pendingPayout: withdrawalStats.pendingWithdrawals,
                 totalEarned: profile?.total_earnings || 0,
-                commissionEarned: Number(totalAgentCommission.toFixed(2)),
+                commissionEarned: parseFloat(totalAgentCommission.toFixed(2)),
                 recentActivity: []
             };
         });
-        return stats;
     }
 
     // ── Create a mandir / puja_shop listing ──────────────────────────────
@@ -228,10 +228,11 @@ export class AgentController {
                     .leftJoinAndSelect('u.roles', 'role')
                     .leftJoinAndSelect('u.profile_expert', 'pe')
                     .leftJoinAndSelect('u.profile_client', 'pc')
-                    .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
-                        agentId: Number(user.id),
-                        ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
-                    });
+                    .where('u.referred_by_id = :agentId', { agentId: user.id });
+
+                if (allRegisteredIds.length > 0) {
+                    qb.orWhere('u.id IN (:...ids)', { ids: allRegisteredIds });
+                }
 
                 if (type === 'astrologer' || type === 'expert') {
                     qb.andWhere('role.name = :role', { role: 'expert' });
@@ -375,6 +376,28 @@ export class AgentController {
         return listings;
     }
 
+    // ── Get commission transactions ──────────────────────────────────
+    @Get('commissions')
+    async getCommissions(
+        @CurrentUser() user: User,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+    ) {
+        const result = await this.walletFacade.getTransactions(user.id, page, limit, 'all', 'agent_commission');
+        return {
+            data: result.items.map(t => ({
+                ...t,
+                date: t.created_at,
+                // Status is already included by GetTransactionsUseCase if it's a withdrawal, 
+                // for others it defaults to 'completed' which maps to 'paid' in UI logic
+                status: (t as any).status === 'completed' ? 'paid' : (t as any).status || 'paid'
+            })),
+            total: result.total,
+            page: result.page,
+            limit: result.limit
+        };
+    }
+
     // ── Wallet / Payouts ──────────────────────────────────────────────────
     @Get('wallet/balance')
     async getBalance(@CurrentUser() user: User) {
@@ -383,7 +406,8 @@ export class AgentController {
 
     @Get('wallet/withdrawals')
     async getWithdrawals(@CurrentUser() user: User) {
-        return this.walletFacade.getWithdrawalsStatus(user.id);
+        const result = await this.walletFacade.getWithdrawals(user.id);
+        return result.items; // Return array only for frontend compatibility
     }
 
     @Post('wallet/withdraw')
