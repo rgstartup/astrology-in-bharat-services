@@ -5,6 +5,7 @@ import { EndCallUseCase } from './use-cases/end-call.use-case';
 import { GetExpertCallSessionsUseCase, CallSessionFilter } from './use-cases/get-expert-sessions.use-case';
 import { GetCallSessionUseCase } from './use-cases/get-call-session.use-case';
 import { GetCallTokenUseCase } from './use-cases/get-call-token.use-case';
+import { RejectCallUseCase } from './use-cases/reject-call.use-case';
 import { CallType } from '../infrastructure/persistence/entities/call-session.entity';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class CallFacade {
         private readonly getExpertCallSessionsUseCase: GetExpertCallSessionsUseCase,
         private readonly getCallSessionUseCase: GetCallSessionUseCase,
         private readonly getCallTokenUseCase: GetCallTokenUseCase,
+        private readonly rejectCallUseCase: RejectCallUseCase,
     ) { }
 
     async initiate(userId: number, expertId: number, type: CallType = CallType.AUDIO) {
@@ -29,8 +31,8 @@ export class CallFacade {
         return this.acceptCallUseCase.execute(expertId, sessionId);
     }
 
-    async end(sessionId: number) {
-        return this.endCallUseCase.execute(sessionId);
+    async end(sessionId: number, terminatedBy?: string, reason?: string) {
+        return this.endCallUseCase.execute(sessionId, terminatedBy, reason);
     }
 
     async getExpertSessions(expertUserId: number, filter: CallSessionFilter, options: { limit?: number; offset?: number; search?: string } = {}) {
@@ -43,5 +45,9 @@ export class CallFacade {
 
     async getCallToken(userId: number, sessionId: number) {
         return this.getCallTokenUseCase.execute(userId, sessionId);
+    }
+
+    async reject(sessionId: number) {
+        return this.rejectCallUseCase.execute(sessionId);
     }
 }

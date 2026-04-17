@@ -15,6 +15,7 @@ import { CountExpertSessionsUseCase } from './use-cases/count-expert-sessions.us
 import { FindAllSessionsUseCase } from './use-cases/find-all-sessions.use-case';
 import { AdminTerminateSessionUseCase } from './use-cases/admin-terminate-session.use-case';
 import { GetChatSessionStatsUseCase } from './use-cases/get-chat-session-stats.use-case';
+import { RejectChatUseCase } from './use-cases/reject-chat.use-case';
 import { MessageType } from '../infrastructure/persistence/entities/chat-message.entity';
 import { ChatSessionStatus } from '../infrastructure/persistence/entities/chat-session.entity';
 
@@ -37,6 +38,7 @@ export class ChatFacade {
         private readonly findAllSessionsUseCase: FindAllSessionsUseCase,
         private readonly adminTerminateSessionUseCase: AdminTerminateSessionUseCase,
         private readonly getChatSessionStatsUseCase: GetChatSessionStatsUseCase,
+        private readonly rejectChatUseCase: RejectChatUseCase,
     ) { }
 
     async initiateChat(userId: number, expertId: number, metadata?: any) {
@@ -108,5 +110,9 @@ export class ChatFacade {
 
     async getSessionStats() {
         return this.getChatSessionStatsUseCase.execute();
+    }
+
+    async rejectSession(sessionId: number) {
+        return this.rejectChatUseCase.execute(sessionId);
     }
 }

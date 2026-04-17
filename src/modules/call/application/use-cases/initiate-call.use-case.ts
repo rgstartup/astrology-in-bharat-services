@@ -112,8 +112,15 @@ export class InitiateCallUseCase {
         // Fetch session with expert & user details for client
         const sessionWithDetails = await this.sessionRepo.findOne({
             where: { id: savedSession.id },
-            relations: ['user', 'expert'],
+            relations: ['user', 'user.profile_client', 'expert'],
         });
+
+        if (sessionWithDetails?.user) {
+            // Priority: User.avatar || ProfileClient.profile_picture
+            (sessionWithDetails.user as any).avatar = 
+                sessionWithDetails.user.avatar || 
+                sessionWithDetails.user.profile_client?.profile_picture;
+        }
 
         const result = {
             session: sessionWithDetails || savedSession,

@@ -44,10 +44,10 @@ export class CallController {
 
     @Post('end')
     async end(
-        @Body() body: { sessionId: number }
+        @Body() body: { sessionId: number; endedBy?: string; reason?: string }
     ) {
-        console.log(`[CallController] End call: sessionId=${body.sessionId}`);
-        return this.callFacade.end(body.sessionId);
+        console.log(`[CallController] End call: sessionId=${body.sessionId}, endedBy=${body.endedBy}`);
+        return this.callFacade.end(body.sessionId, body.endedBy, body.reason);
     }
 
     @Patch('session/:sessionId/status')
@@ -66,8 +66,8 @@ export class CallController {
         }
 
         if (status === 'rejected' || status === 'cancelled') {
-            const res = await this.callFacade.end(sessionId); // Calling end for rejection too
-            // Note: specialized end logic might be needed for 'pending' state
+            const terminator = status === 'rejected' ? 'EXPERT' : 'USER';
+            const res = await this.callFacade.end(sessionId, terminator, 'Rejection/Cancellation');
             return res;
         }
 

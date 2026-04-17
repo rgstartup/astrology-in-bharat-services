@@ -17,6 +17,7 @@ export enum ChatSessionStatus {
   ACTIVE = 'active',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
+  REJECTED = 'rejected',
   EXPIRED = 'expired',
 }
 
@@ -54,6 +55,9 @@ export class ChatSession {
 
   @Column({ type: 'text', nullable: true, name: 'terminated_by' })
   terminated_by: string | null;
+
+  @Column({ type: 'text', nullable: true, name: 'terminated_reason' })
+  terminated_reason: string | null;
 
   @Column({ type: 'text', default: 'chat', name: 'session_type' })
   session_type: string;

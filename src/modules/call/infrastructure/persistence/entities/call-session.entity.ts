@@ -93,6 +93,12 @@ export class CallSession {
     @Column({ type: 'int', default: 0, name: 'max_duration_seconds' })
     max_duration_seconds: number;
 
+    @Column({ type: 'text', nullable: true, name: 'terminated_by' })
+    terminated_by: string | null;
+
+    @Column({ type: 'text', nullable: true, name: 'terminated_reason' })
+    terminated_reason: string | null;
+
     @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
     updated_at: Date;
 }

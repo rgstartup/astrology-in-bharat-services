@@ -30,7 +30,7 @@ export class EndCallUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(sessionId: number) {
+  async execute(sessionId: number, terminatedBy?: string, reason?: string) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
     });
@@ -46,6 +46,8 @@ export class EndCallUseCase {
 
     session.status = CallSessionStatus.COMPLETED;
     session.end_time = new Date();
+    session.terminated_by = terminatedBy ?? null;
+    session.terminated_reason = reason ?? null;
 
     if (session.start_time) {
       const durationMs =
@@ -70,10 +72,16 @@ export class EndCallUseCase {
 
     this.callGateway.server
       .to(`call_room_${sessionId}`)
-      .emit('call_ended', { sessionId, split });
+      .emit('call_ended', { sessionId, split, terminatedBy, terminatedReason: reason });
 
     // Also notify expert dashboard
-    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', { sessionId, session: savedSession, split });
+    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', { 
+        sessionId, 
+        session: savedSession, 
+        split, 
+        terminatedBy, 
+        terminatedReason: reason 
+    });
     
     this.eventEmitter.emit(
       'call.ended',

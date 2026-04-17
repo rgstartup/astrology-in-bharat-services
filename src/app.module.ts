@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'; // Triggering DB re-sync
+import { Module } from '@nestjs/common'; // Force re-sync of entities
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 
@@ -33,6 +33,7 @@ import { CalendarModule } from '@/modules/calendar/calendar.module';
 import { PlacesModule } from '@/modules/places/places.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { MerchantModule } from './modules/merchant/merchant.module';
+import { ConsultationModule } from './modules/consultation/consultation.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { MerchantModule } from './modules/merchant/merchant.module';
     CalendarModule,
     PujaAppointmentModule,
     MerchantModule,
+    ConsultationModule,
   ]
 })
 export class AppModule { }
