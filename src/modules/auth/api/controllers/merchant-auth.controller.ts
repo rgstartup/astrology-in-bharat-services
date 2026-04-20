@@ -10,6 +10,8 @@ import {
   Logger,
   Get,
   UseGuards,
+  UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { MerchantRegisterDto } from '../dto/merchant-register.dto';
 import { MerchantLoginDto } from '../dto/merchant-login.dto';
@@ -67,10 +69,7 @@ export class MerchantAuthController {
       // Verify the user is actually a merchant
       const roles = user.roles?.map((r) => r.name.toLowerCase()) || [];
       if (!roles.includes('merchant')) {
-        return {
-          success: false,
-          error: 'Only merchant accounts can login here.',
-        };
+        throw new ForbiddenException('Only merchant accounts can login here.');
       }
 
       this.setCookies(res, tokens);
@@ -88,10 +87,10 @@ export class MerchantAuthController {
       };
     } catch (error) {
       this.logger.error(`Merchant login failed: ${error.message}`);
-      return {
-        success: false,
-        error: error.message || 'Invalid credentials',
-      };
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new UnauthorizedException(error.message || 'Invalid credentials');
     }
   }
 

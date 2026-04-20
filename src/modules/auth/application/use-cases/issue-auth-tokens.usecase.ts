@@ -22,9 +22,10 @@ export class IssueAuthTokensUseCase {
       expert: 'expert',
       admin: 'admin',
       agent: 'agent',
+      merchant: 'merchant',
     };
 
-    // Prioritize admin > agent > expert > client
+    // Prioritize admin > agent > expert > merchant > client
     const roleNames = user.roles?.map((r) => r.name.toLowerCase()) || ['client'];
     let primaryRole = 'client';
 
@@ -34,6 +35,8 @@ export class IssueAuthTokensUseCase {
       primaryRole = 'agent';
     } else if (roleNames.includes('expert')) {
       primaryRole = 'expert';
+    } else if (roleNames.includes('merchant')) {
+      primaryRole = 'merchant';
     }
 
     const accessToken = await this.tokenCrypto.createAccessToken({
