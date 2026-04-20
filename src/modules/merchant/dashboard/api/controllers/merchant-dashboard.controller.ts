@@ -53,6 +53,16 @@ export class MerchantDashboardController {
     return this.getStats.execute(userId);
   }
 
+  @Get('debug-whoami')
+  @HttpCode(HttpStatus.OK)
+  async debugWhoAmI(@CurrentUser() user: any) {
+    return {
+      userId: user.id,
+      role: user.role,
+      roles: user.roles,
+    };
+  }
+
   @Get('orders')
   @HttpCode(HttpStatus.OK)
   async orders(

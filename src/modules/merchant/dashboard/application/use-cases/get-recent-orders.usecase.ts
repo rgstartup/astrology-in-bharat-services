@@ -11,6 +11,7 @@ export class GetRecentOrdersUseCase {
   ) {}
 
   async execute(userId: number) {
+    console.log('[RECENT_ORDERS] Request for userId:', userId);
     const recentOrderItems = await this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoinAndSelect('oi.order', 'o')

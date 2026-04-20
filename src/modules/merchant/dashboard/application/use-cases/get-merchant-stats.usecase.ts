@@ -14,6 +14,7 @@ export class GetMerchantStatsUseCase {
   ) {}
 
   async execute(userId: number) {
+    console.log('[DASHBOARD_STATS] Request for userId:', userId);
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -48,7 +49,7 @@ export class GetMerchantStatsUseCase {
       .select('SUM(oi.price * oi.quantity)', 'sum')
       .getRawOne();
 
-    return {
+    const result = {
       totalOrders: { value: Number(totalOrdersQuery.count) || 0, trend: '+10%' },
       totalProducts: { value: totalProducts, trend: '+2 new' },
       totalEarnings: {
@@ -60,5 +61,7 @@ export class GetMerchantStatsUseCase {
         trend: '+8%',
       },
     };
+    console.log('[DASHBOARD_STATS] Result:', result);
+    return result;
   }
 }

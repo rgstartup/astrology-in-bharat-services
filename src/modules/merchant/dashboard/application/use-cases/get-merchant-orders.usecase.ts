@@ -12,6 +12,7 @@ export class GetMerchantOrdersUseCase {
   ) {}
 
   async execute(userId: number, page: number = 1, limit: number = 20) {
+    console.log('[ALL_ORDERS] Request for userId:', userId, 'page:', page, 'limit:', limit);
     // 1. Calculate Statistics
     const statsResult = await this.orderItemRepo
       .createQueryBuilder('oi')
