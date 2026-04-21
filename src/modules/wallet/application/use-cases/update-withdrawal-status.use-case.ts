@@ -78,13 +78,26 @@ export class UpdateWithdrawalStatusUseCase {
 
                 if (!bankAccount) throw new BadRequestException('Bank account record missing');
 
+                // Sanitize and Validate bank details
+                const accountName = (withdrawal.merchant_account_holder || bankAccount.account_holder_name || '').trim();
+                const accountNumber = (withdrawal.merchant_account_number || bankAccount.account_number || '').trim();
+                const ifsc = (withdrawal.merchant_ifsc || bankAccount.ifsc_code || '').trim().toUpperCase();
+
+                if (!ifsc || ifsc.length !== 11) {
+                    throw new BadRequestException(`Invalid IFSC: "${ifsc}". Razorpay requires exactly 11 characters.`);
+                }
+
+                if (!accountNumber) {
+                    throw new BadRequestException('Bank account number is missing.');
+                }
+
                 if (!bankAccount.razorpay_fund_account_id) {
                     bankAccount.razorpay_fund_account_id = await this.razorpayPayoutService.getOrCreateFundAccount(
                         expert.razorpay_contact_id!,
                         {
-                            name: withdrawal.merchant_account_holder || bankAccount.account_holder_name,
-                            account: withdrawal.merchant_account_number || bankAccount.account_number,
-                            ifsc: withdrawal.merchant_ifsc || bankAccount.ifsc_code
+                            name: accountName,
+                            account: accountNumber,
+                            ifsc: ifsc
                         }
                     );
                     await queryRunner.manager.save(BankAccount, bankAccount);
@@ -99,6 +112,7 @@ export class UpdateWithdrawalStatusUseCase {
 
                 // If we reach here, payout has been accepted by gateway
                 finalStatus = WithdrawalStatus.PROCESSING;
+                withdrawal.transaction_reference = payoutResponse.id;
                 withdrawal.remark = `[Razorpay ID: ${payoutResponse.id}] ${remark || ''}`;
             }
 

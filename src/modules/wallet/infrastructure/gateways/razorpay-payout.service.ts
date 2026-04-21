@@ -74,9 +74,9 @@ export class RazorpayPayoutService {
         contact_id: contactId,
         account_type: 'bank_account',
         bank_account: {
-          name: bankDetails.name,
-          ifsc: bankDetails.ifsc,
-          account_number: bankDetails.account,
+          name: bankDetails.name.trim(),
+          ifsc: bankDetails.ifsc.trim().toUpperCase(),
+          account_number: bankDetails.account.trim(),
         },
       });
       return response.id;
@@ -108,9 +108,7 @@ export class RazorpayPayoutService {
         purpose: 'payout',
         queue_if_low_balance: true,
         reference_id: withdrawalId.toString(),
-        narrations: {
-          account_name: 'Astrology in Bharat Payout'
-        }
+        narration: 'Astrology in Bharat Payout'
       });
       return response;
     } catch (err) {
