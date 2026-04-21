@@ -12,13 +12,13 @@ import { BankAccount } from '../../../../expert/bank-accounts/infrastructure/per
 
 export enum WithdrawalStatus {
     PENDING = 'pending',
+    APPROVED = 'approved',
     PROCESSING = 'processing',
     COMPLETED = 'completed',
-    APPROVED = 'approved',
-    REJECTED = 'rejected',
-    FAILED = 'failed',
-    CANCELLED = 'cancelled',
     SUCCESS = 'success',
+    FAILED = 'failed',
+    REJECTED = 'rejected',
+    CANCELLED = 'cancelled',
     REVERSED = 'reversed',
 }
 
@@ -80,4 +80,13 @@ export class Withdrawal {
 
     @Column({ type: 'timestamp', name: 'approval_date', nullable: true })
     approval_date?: Date;
+
+    @Column({ name: 'ip_address', nullable: true })
+    ip_address?: string;
+
+    @Column({ name: 'user_agent', nullable: true })
+    user_agent?: string;
+
+    @Column({ name: 'is_high_value', default: false })
+    is_high_value: boolean;
 }

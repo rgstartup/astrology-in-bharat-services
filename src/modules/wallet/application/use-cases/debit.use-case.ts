@@ -57,10 +57,15 @@ export class DebitUseCase {
       
       this.logger.log(`[DEBIT_TX] Balance subtracted for user ${userId}`);
 
-      // 3. Create Transaction Record
+      // 3. Create Transaction Record with Snapshots
+      const balanceBefore = Number(wallet.balance) || 0;
+      const balanceAfter = balanceBefore - Number(amount);
+
       const transaction = qr.manager.create(Transaction, {
         wallet_id: wallet.id,
         amount: amount,
+        balance_before: balanceBefore,
+        balance_after: balanceAfter,
         type: TransactionType.DEBIT,
         purpose: purpose,
         reference_id: referenceId,

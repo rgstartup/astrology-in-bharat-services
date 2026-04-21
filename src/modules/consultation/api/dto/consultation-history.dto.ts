@@ -41,6 +41,7 @@ export class ConsultationHistoryDto {
   terminatedReason?: string;
   total_cost: number;
   platform_fee: number;
+  gst: number;
   expert_earning: number;
   expert: ConsultationExpertDto;
   metadata?: any;

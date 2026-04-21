@@ -42,7 +42,7 @@ export class GetTransactionsUseCase {
     // Map withdrawals for the bank account ID
     const transactionsWithBankAccounts = await Promise.all(items.map(async (tx) => {
       let bank_account: number | null = null;
-      let status = 'completed'; // Default
+      let status = 'success'; // Default
 
       if (tx.purpose === 'withdrawal') {
         const withdrawal = await this.transactionRepository.manager.findOne(Withdrawal, {
@@ -56,11 +56,19 @@ export class GetTransactionsUseCase {
         }
       }
 
+      let description = tx.purpose.charAt(0).toUpperCase() + tx.purpose.slice(1).replace('_', ' ');
+      
+      if (tx.purpose === 'consultation') {
+        if (tx.type === 'hold') description = 'Consultation (Reserved)';
+        else if (tx.type === 'debit') description = 'Consultation (Completed)';
+        else if (tx.type === 'release') description = 'Consultation (Refunded)';
+      }
+
       return {
         ...tx,
         bank_account,
         status,
-        description: tx.purpose.charAt(0).toUpperCase() + tx.purpose.slice(1).replace('_', ' '),
+        description,
       };
     }));
 

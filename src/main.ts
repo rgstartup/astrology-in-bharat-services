@@ -4,7 +4,7 @@ import { NestFactory } from '@nestjs/core'; // Triggering build after config fix
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 import { UnknownExceptionFilter } from './common/filters/unknown-exception.filter';
@@ -44,8 +44,14 @@ async function bootstrap() {
   app.use(cookieParser());
   
   // Increase payload limit for large base64 strings (images)
+  // And capture rawBody for webhook signature verification
   const express = require('express');
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({
+    limit: '10mb',
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  }));
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
   app.setGlobalPrefix('api');

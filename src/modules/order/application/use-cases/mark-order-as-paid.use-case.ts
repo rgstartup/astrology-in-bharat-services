@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/persistence/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
 
 @Injectable()
 export class MarkOrderAsPaidUseCase {
@@ -16,56 +14,61 @@ export class MarkOrderAsPaidUseCase {
     private dataSource: DataSource,
   ) { }
 
-  async execute(razorpayOrderId: string) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  async execute(razorpayOrderId: string, externalQueryRunner?: QueryRunner) {
+    const qr = externalQueryRunner || this.dataSource.createQueryRunner();
+    
+    if (!externalQueryRunner) {
+      await qr.connect();
+      await qr.startTransaction();
+    }
 
     try {
-      const order = await queryRunner.manager.findOne(Order, {
+      const order = await qr.manager.findOne(Order, {
         where: { razorpay_order_id: razorpayOrderId },
         relations: ['items', 'items.product'],
       });
 
       if (!order || order.status === OrderStatus.PAID) {
-        await queryRunner.rollbackTransaction();
+        if (!externalQueryRunner) await qr.rollbackTransaction();
         return;
       }
 
       // 1. Mark Order as Paid
       order.status = OrderStatus.PAID;
-      await queryRunner.manager.save(order);
+      await qr.manager.save(order);
 
       // 2. Track Client Spending
       try {
-        let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
-          where: { user: { id: order.user_id } },
+        let clientProfile = await qr.manager.findOne(ProfileClient, {
+          where: { user_id: order.user_id },
           select: ['id']
         });
         if (!clientProfile) {
-          clientProfile = queryRunner.manager.create(ProfileClient, { user: { id: order.user_id } as any, user_id: order.user_id });
-          clientProfile = await queryRunner.manager.save(clientProfile);
-          console.log(`[MARK_AS_PAID_TRACKING] Created shell profile for user ${order.user_id}`);
+          clientProfile = qr.manager.create(ProfileClient, { user_id: order.user_id });
+          clientProfile = await qr.manager.save(clientProfile);
         }
 
-        await queryRunner.manager.createQueryBuilder()
+        await qr.manager.createQueryBuilder()
           .update(ProfileClient)
           .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(order.total_amount)}` })
           .where('id = :id', { id: clientProfile.id })
           .execute();
-        console.log(`[MARK_AS_PAID_TRACKING] Updated spending for client profile ${clientProfile.id} with amount ${order.total_amount}`);
       } catch (e) {
         console.error('[MARK_AS_PAID_TRACKING] Client spending error:', e);
       }
 
-      await queryRunner.commitTransaction();
+      if (!externalQueryRunner) {
+        await qr.commitTransaction();
+      }
     } catch (error) {
-      if (queryRunner.isTransactionActive) {
-        await queryRunner.rollbackTransaction();
+      if (!externalQueryRunner && qr.isTransactionActive) {
+        await qr.rollbackTransaction();
       }
       throw error;
     } finally {
-      await queryRunner.release();
+      if (!externalQueryRunner) {
+        await qr.release();
+      }
     }
   }
 }

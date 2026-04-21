@@ -42,13 +42,65 @@ export class EndChatUseCase {
             total_cost = Number((billableMins * session.price_per_minute).toFixed(2));
         }
 
+        // Fetch all required commission percentages
+        const agentFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
+        const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_CLIENT');
+        const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+
+        // Fetch Expert with User to check for referral
+        const sessionWithExpert = await this.sessionRepo.findOne({
+            where: { id: sessionId },
+            relations: ['expert', 'expert.user'],
+        });
+
+        const expert = sessionWithExpert?.expert;
+        const expertUser = expert?.user;
+
+        let agent_commission = 0;
+        let agent_id: number | undefined = undefined;
+
+        // Check if Agent Commission is applicable (Referred AND within 30 days)
+        if (expertUser?.referred_by_id && expert?.created_at) {
+            const diffTime = Math.abs(now.getTime() - expert.created_at.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays <= 30) {
+                agent_id = expertUser.referred_by_id;
+                agent_commission = Number((total_cost * (agentFeeRate / 100)).toFixed(2));
+            }
+        }
+
+        const platform_fee = Number((total_cost * (platformFeeRate / 100)).toFixed(2));
+        const gst = Number((platform_fee * (gstRate / 100)).toFixed(2));
+        
+        // Expert Net = Total - Platform - GST - Agent
+        const expert_earning = Number((total_cost - platform_fee - gst - agent_commission).toFixed(2));
+
         session.total_cost = total_cost;
+        session.platform_fee = platform_fee;
+        session.gst = gst;
+        session.expert_earning = expert_earning;
+        session.agent_id = agent_id;
+        session.agent_commission = agent_commission;
+        
         await this.sessionRepo.save(session);
 
         const referenceId = `chat_${sessionId}`;
-        const initialReservation = session.price_per_minute * 5;
-
+        
+        // 🏦 Settlement Logic
         try {
+            // 💰 Credit Agent immediately if applicable
+            if (agent_commission > 0 && agent_id) {
+                await this.walletFacade.credit(
+                    agent_id,
+                    agent_commission,
+                    'agent_commission' as any,
+                    referenceId
+                );
+            }
+
+            const initialReservation = session.price_per_minute * 1; 
+
             if (total_cost <= initialReservation) {
                 if (total_cost > 0) {
                     await this.walletFacade.deductFromReserved(
@@ -80,7 +132,7 @@ export class EndChatUseCase {
                 );
             }
 
-            // 💳 Credit Expert
+            // 💳 Credit Expert (Using pre-calculated earnings)
             if (total_cost > 0) {
                 const sessionWithExpert = await this.sessionRepo.findOne({
                     where: { id: sessionId },
@@ -90,7 +142,7 @@ export class EndChatUseCase {
                 if (sessionWithExpert?.expert?.user?.id) {
                     await this.walletFacade.credit(
                         sessionWithExpert.expert.user.id,
-                        total_cost,
+                        session.expert_earning,
                         TransactionPurpose.CONSULTATION,
                         referenceId,
                     );

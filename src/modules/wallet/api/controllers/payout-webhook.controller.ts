@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers, BadRequestException, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, Headers, BadRequestException, HttpCode, Req } from '@nestjs/common';
 import { WalletFacade } from '../../application/wallet.facade';
 import { WithdrawalStatus } from '../../infrastructure/persistence/entities/withdrawal.entity';
 import * as crypto from 'crypto';
@@ -12,6 +12,7 @@ export class PayoutWebhookController {
     async handleWebhook(
         @Body() body: any,
         @Headers('x-razorpay-signature') signature: string,
+        @Req() req: any,
     ) {
         // 1. Security: Verify Signature
         const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -29,9 +30,11 @@ export class PayoutWebhookController {
         // Razorpay sends raw body usually, but since NestJS parses JSON, 
         // we stringify it back. For 100% accuracy with some gateways, 
         // raw body buffers are preferred.
+        // Use rawBody for accurate signature verification
+        const rawBody = req.rawBody || JSON.stringify(body);
         const expectedSignature = crypto
             .createHmac('sha256', webhookSecret)
-            .update(JSON.stringify(body))
+            .update(rawBody)
             .digest('hex');
 
         if (signature !== expectedSignature) {
@@ -55,11 +58,21 @@ export class PayoutWebhookController {
         if (event === 'payout.failed' || event === 'payout.reversed') {
             await this.walletFacade.updateWithdrawalStatus(
                 withdrawalId,
-                WithdrawalStatus.FAILED,
+                WithdrawalStatus.REVERSED,
                 0, // System Admin ID
                 `Auto-refunded: ${payload.failure_reason || 'Gateway Failure'}`
             );
             return { status: 'refunded' };
+        }
+
+        if (event === 'payout.processed') {
+            await this.walletFacade.updateWithdrawalStatus(
+                withdrawalId,
+                WithdrawalStatus.SUCCESS,
+                0, // System Admin ID
+                'Payout confirmed by gateway'
+            );
+            return { status: 'success_recorded' };
         }
 
         return { status: 'event_ignored' };

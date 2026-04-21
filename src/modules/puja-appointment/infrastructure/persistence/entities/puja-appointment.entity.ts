@@ -17,6 +17,7 @@ export enum PujaAppointmentStatus {
   REJECTED = 'rejected',
   ON_HOLD = 'on_hold',
   CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
 }
 
 export enum PujaMode {

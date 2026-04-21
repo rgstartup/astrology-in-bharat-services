@@ -8,6 +8,7 @@ import { NotificationType } from '@/modules/notification/infrastructure/persiste
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
 import { TodosFacade } from '@/modules/expert/todos/application/todos.facade';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 
 @Injectable()
@@ -54,23 +55,68 @@ export class UpdatePujaAppointmentStatusUseCase {
             }
             
             // --- PAYMENT LOGIC WITH ATOMIC TRANSACTION ---
+            const totalAmount = appointment.price;
+
+            // Fetch all required commission percentages
+            const agentFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
+            const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_CLIENT');
+            const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+
+            // Fetch Expert's full user profile for referral check
+            const expertUser = await qr.manager.findOne(User, {
+                where: { id: appointment.expert.user_id },
+                relations: ['profile_expert']
+            });
+
+            let agent_commission = 0;
+            let agent_id: number | undefined = undefined;
+
+            const now = new Date();
+            // Check if Agent Commission is applicable (Referred AND within 30 days)
+            if (expertUser?.referred_by_id && expertUser?.profile_expert?.created_at) {
+                const diffTime = Math.abs(now.getTime() - expertUser.profile_expert.created_at.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays <= 30) {
+                    agent_id = expertUser.referred_by_id;
+                    agent_commission = Number((totalAmount * (agentFeeRate / 100)).toFixed(2));
+                }
+            }
+
+            const platformFee = Number((totalAmount * (platformFeeRate / 100)).toFixed(2));
+            const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
+            
+            // Expert Net = Total - Platform - GST - Agent
+            const expertNetShare = Number((totalAmount - platformFee - gst - agent_commission).toFixed(2));
+
             // 1. Debit User
             await this.walletFacade.debit(
                 appointment.user_id, 
-                appointment.price, 
+                totalAmount, 
                 TransactionPurpose.PUJA_CONFIRMATION, 
                 `puja_appt_${appointment.id}`,
                 qr
             );
             
-            // 2. Credit Expert
+            // 2. Credit Expert (Net Share)
             await this.walletFacade.credit(
                 appointment.expert.user_id, 
-                appointment.price, 
+                expertNetShare, 
                 TransactionPurpose.CONSULTATION, 
                 `puja_appt_${appointment.id}`,
                 qr
             );
+
+            // 3. Credit Agent (if applicable)
+            if (agent_commission > 0 && agent_id) {
+                await this.walletFacade.credit(
+                    agent_id,
+                    agent_commission,
+                    'agent_commission' as any,
+                    `puja_appt_${appointment.id}`,
+                    qr
+                );
+            }
 
             // 3. Create Todo for Expert
             try {
@@ -96,12 +142,45 @@ export class UpdatePujaAppointmentStatusUseCase {
             }
         }
 
-        // Apply the updates
-        if (dto.status) appointment.status = dto.status;
-        if (dto.expert_message) appointment.expert_message = dto.expert_message;
-        if (dto.scheduled_date) appointment.scheduled_date = dto.scheduled_date;
-        if (dto.scheduled_time) appointment.scheduled_time = dto.scheduled_time;
-        if (dto.price !== undefined) appointment.price = dto.price;
+        // --- SECURITY CHECK: ROLE-BASED FIELD UPDATES ---
+        if (dto.status) {
+            if (isClient && !isExpert) {
+                // Client restricted statuses
+                const allowedClientStatuses = [PujaAppointmentStatus.CONFIRMED, PujaAppointmentStatus.CANCELLED];
+                if (!allowedClientStatuses.includes(dto.status)) {
+                    throw new BadRequestException(`As a client, you cannot set status to ${dto.status}`);
+                }
+            }
+            appointment.status = dto.status;
+        }
+
+        if (dto.expert_message) {
+            if (!isExpert) {
+                throw new BadRequestException('Only the expert can provide or update the expert message.');
+            }
+            appointment.expert_message = dto.expert_message;
+        }
+
+        if (dto.price !== undefined) {
+            if (!isExpert) {
+                throw new BadRequestException('Only the expert can adjust the price of the ritual.');
+            }
+            appointment.price = dto.price;
+        }
+
+        if (dto.scheduled_date) {
+            if (!isExpert && appointment.status !== PujaAppointmentStatus.PENDING) {
+                throw new BadRequestException('Schedule can only be modified by the expert once the request is processed.');
+            }
+            appointment.scheduled_date = dto.scheduled_date;
+        }
+
+        if (dto.scheduled_time) {
+            if (!isExpert && appointment.status !== PujaAppointmentStatus.PENDING) {
+                throw new BadRequestException('Schedule can only be modified by the expert once the request is processed.');
+            }
+            appointment.scheduled_time = dto.scheduled_time;
+        }
 
         const saved = await qr.manager.save(PujaAppointment, appointment);
 

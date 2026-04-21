@@ -24,12 +24,13 @@ export class RegisterUserUseCase {
   ) {}
 
   async execute(dto: RegisterDto, ip?: string, userAgent?: string) {
-    const existingUser = await this.usersFacade.findByEmail(dto.email);
-
-    // 🔐 domain rule
-    RegistrationPolicy.ensureEmailIsUnique(existingUser);
-
     const response = await this.db.transaction(async (queryRunner) => {
+      // 1. Check for existing user WITHIN the transaction
+      const existingUser = await this.usersFacade.findByEmail(dto.email, queryRunner);
+
+      // 🔐 domain rule (Atomic check)
+      RegistrationPolicy.ensureEmailIsUnique(existingUser);
+
       const hashedPassword = await this.hasher.hash(dto.password);
 
       const formattedRoles = dto.roles.map((r) => ({ name: r }));

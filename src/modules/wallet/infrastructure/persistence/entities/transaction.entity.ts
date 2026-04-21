@@ -40,6 +40,12 @@ export class Transaction {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  balance_before: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  balance_after: number;
+
   @Column({ type: 'enum', enum: TransactionType })
   type: TransactionType;
 

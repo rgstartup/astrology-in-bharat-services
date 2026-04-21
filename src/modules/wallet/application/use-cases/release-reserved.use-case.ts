@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
 import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
 
@@ -11,13 +11,17 @@ export class ReleaseReservedUseCase {
     userId: number,
     amount: number,
     referenceId: string,
+    externalQueryRunner?: QueryRunner,
   ): Promise<void> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const qr = externalQueryRunner || this.dataSource.createQueryRunner();
+    
+    if (!externalQueryRunner) {
+      await qr.connect();
+      await qr.startTransaction();
+    }
 
     try {
-      const wallet = await queryRunner.manager.findOne(Wallet, {
+      const wallet = await qr.manager.findOne(Wallet, {
         where: { user_id: userId },
         lock: { mode: 'pessimistic_write' },
       });
@@ -25,25 +29,36 @@ export class ReleaseReservedUseCase {
         throw new BadRequestException('Insufficient reserved balance to release');
       }
 
-      wallet.reserved_balance = Number(wallet.reserved_balance) - Number(amount);
-      wallet.balance = Number(wallet.balance) + Number(amount);
-      await queryRunner.manager.save(wallet);
+      const balanceBefore = Number(wallet.balance) || 0;
+      const balanceAfter = balanceBefore + Number(amount);
 
-      const transaction = queryRunner.manager.create(Transaction, {
+      wallet.reserved_balance = Number(wallet.reserved_balance) - Number(amount);
+      wallet.balance = balanceAfter;
+      await qr.manager.save(wallet);
+
+      const transaction = qr.manager.create(Transaction, {
         wallet_id: wallet.id,
         amount,
+        balance_before: balanceBefore,
+        balance_after: balanceAfter,
         type: TransactionType.RELEASE,
         purpose: TransactionPurpose.REFUND,
         reference_id: referenceId,
       });
-      await queryRunner.manager.save(transaction);
+      await qr.manager.save(transaction);
 
-      await queryRunner.commitTransaction();
+      if (!externalQueryRunner) {
+        await qr.commitTransaction();
+      }
     } catch (err) {
-      await queryRunner.rollbackTransaction();
+      if (!externalQueryRunner && qr.isTransactionActive) {
+        await qr.rollbackTransaction();
+      }
       throw err;
     } finally {
-      await queryRunner.release();
+      if (!externalQueryRunner) {
+        await qr.release();
+      }
     }
   }
 }

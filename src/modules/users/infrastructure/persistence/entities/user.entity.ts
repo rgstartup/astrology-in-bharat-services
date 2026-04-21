@@ -48,7 +48,7 @@ export class User {
   @Column({ type: 'text', nullable: true })
   avatar?: string;
 
-  @ManyToMany(() => Role, (r) => r.users, { eager: true })
+  @ManyToMany(() => Role, (r) => r.users)
   @JoinTable({
     name: 'user_roles',
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },

@@ -6,6 +6,8 @@ import {
     Query,
     UseGuards,
     ParseIntPipe,
+    Headers,
+    Ip,
 } from '@nestjs/common';
 import { ExpertEarningsFacade } from '../../application/expert-earnings.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
@@ -43,7 +45,10 @@ export class ExpertWalletController {
         @CurrentUser() user: any,
         @Body('amount') amount: number,
         @Body('bank_account_id') bank_account_id: number,
+        @Ip() ip: string,
+        @Headers('user-agent') ua: string,
+        @Headers('x-idempotency-key') idempotencyKey: string,
     ) {
-        return this.earningsFacade.requestWithdrawal(user.id, amount, bank_account_id);
+        return this.earningsFacade.requestWithdrawal(user.id, amount, bank_account_id, idempotencyKey, { ip, ua });
     }
 }

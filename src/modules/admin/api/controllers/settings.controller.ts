@@ -37,14 +37,20 @@ export class SettingsController {
   @Get('commissions')
   @HttpCode(HttpStatus.OK)
   async getCommissions() {
-    const keys = ['COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_CLIENT', 'COMMISION_FROM_PUJA_SHOP'];
+    const keys = ['COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_CLIENT', 'COMMISION_FROM_PUJA_SHOP', 'GST_PERCENTAGE'];
     const settings = await this.getSystemSettings.execute(keys);
 
     // Ensure all keys are present in the response
     const result: Record<string, string> = {};
     keys.forEach(key => {
       const found = settings.find(s => s.key === key);
-      result[key] = found ? found.value : '3'; // Default to 3 as requested in .env
+      if (found) {
+        result[key] = found.value;
+      } else {
+        // Defaults based on key
+        if (key === 'GST_PERCENTAGE') result[key] = '18';
+        else result[key] = '3';
+      }
     });
     return result;
   }

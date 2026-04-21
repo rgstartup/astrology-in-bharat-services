@@ -60,10 +60,15 @@ export class CreditUseCase {
       
       this.logger.log(`[CREDIT_TX] Balance added for user ${userId}`);
 
-      // 3. Record Transaction
+      // 3. Record Transaction with Snapshots
+      const balanceBefore = Number(wallet.balance) || 0;
+      const balanceAfter = balanceBefore + Number(amount);
+
       const transaction = qr.manager.create(Transaction, {
         wallet_id: wallet.id,
         amount: amount,
+        balance_before: balanceBefore,
+        balance_after: balanceAfter,
         type: TransactionType.CREDIT,
         purpose: purpose,
         reference_id: referenceId,

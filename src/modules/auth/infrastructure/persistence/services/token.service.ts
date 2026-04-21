@@ -1,6 +1,6 @@
 // src/auth/token.service.ts
 import * as argon2 from 'argon2';
-import * as ms from 'ms';
+import ms from 'ms';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'node:crypto';

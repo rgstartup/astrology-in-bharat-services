@@ -3,10 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Wallet } from './infrastructure/persistence/entities/wallet.entity';
 import { Transaction } from './infrastructure/persistence/entities/transaction.entity';
 import { Withdrawal } from './infrastructure/persistence/entities/withdrawal.entity';
+import { Idempotency } from './infrastructure/persistence/entities/idempotency.entity';
 import { User } from '../users/infrastructure/persistence/entities/user.entity';
 import { BankAccount } from '../expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity';
 import { ProfileClient } from '../client/profile/infrastructure/persistence/entities/profile-client.entity';
 import { ProfileExpert } from '../expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { SystemSetting } from '../admin/infrastructure/persistence/entities/system-setting.entity';
 import { WalletController } from './api/controllers/wallet.controller';
 import { PayoutWebhookController } from './api/controllers/payout-webhook.controller';
 import { WalletFacade } from './application/wallet.facade';
@@ -29,13 +31,26 @@ import { UpdateWithdrawalStatusUseCase } from './application/use-cases/update-wi
 import { GetAdminWithdrawalStatsUseCase } from './application/use-cases/get-admin-withdrawal-stats.use-case';
 import { GetAdminCommissionUseCase } from './application/use-cases/get-admin-commission.use-case';
 import { GetWithdrawalsUseCase } from './application/use-cases/get-withdrawals.use-case';
+import { ReconcileWalletUseCase } from './application/use-cases/reconcile-wallet.use-case';
+import { StuckWithdrawalJob } from './application/use-cases/stuck-withdrawal-job.use-case';
+import { RazorpayPayoutService } from './infrastructure/gateways/razorpay-payout.service';
 import { NotificationModule } from '@/modules/notification/notification.module';
 
 import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Wallet, Transaction, Withdrawal, User, BankAccount, ProfileClient, ProfileExpert]),
+    TypeOrmModule.forFeature([
+        Wallet, 
+        Transaction, 
+        Withdrawal, 
+        Idempotency, 
+        User, 
+        BankAccount, 
+        ProfileClient, 
+        ProfileExpert,
+        SystemSetting
+    ]),
     NotificationModule,
     BankAccountsModule,
   ],
@@ -60,6 +75,9 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
     GetAdminWithdrawalStatsUseCase,
     GetAdminCommissionUseCase,
     GetWithdrawalsUseCase,
+    ReconcileWalletUseCase,
+    StuckWithdrawalJob,
+    RazorpayPayoutService,
   ],
   controllers: [WalletController, PayoutWebhookController],
   exports: [WalletFacade],

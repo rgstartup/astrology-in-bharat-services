@@ -161,4 +161,7 @@ export class ProfileExpert {
     transformer: new ColumnNumericTransformer(),
   })
   total_earning: number;
+
+  @Column({ type: 'text', nullable: true, name: 'razorpay_contact_id' })
+  razorpay_contact_id?: string;
 }

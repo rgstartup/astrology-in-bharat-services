@@ -11,15 +11,18 @@ export class GetAdminWithdrawalStatsUseCase {
     ) { }
 
     async execute() {
-        const [pendingCount, approvedCount, rejectedCount] = await Promise.all([
+        const [pendingCount, processingCount, successCount, rejectedCount] = await Promise.all([
             this.withdrawalRepository.count({
-                where: { status: In([WithdrawalStatus.PENDING, WithdrawalStatus.PROCESSING]) }
+                where: { status: WithdrawalStatus.PENDING }
             }),
             this.withdrawalRepository.count({
-                where: { status: In([WithdrawalStatus.COMPLETED, WithdrawalStatus.APPROVED]) }
+                where: { status: In([WithdrawalStatus.APPROVED, WithdrawalStatus.PROCESSING]) }
             }),
             this.withdrawalRepository.count({
-                where: { status: WithdrawalStatus.REJECTED }
+                where: { status: WithdrawalStatus.SUCCESS }
+            }),
+            this.withdrawalRepository.count({
+                where: { status: In([WithdrawalStatus.REJECTED, WithdrawalStatus.FAILED, WithdrawalStatus.CANCELLED, WithdrawalStatus.REVERSED]) }
             })
         ]);
 
@@ -29,18 +32,19 @@ export class GetAdminWithdrawalStatsUseCase {
             .select('SUM(w.amount)', 'sum')
             .getRawOne();
 
-        const approvedAmountResult = await this.withdrawalRepository
+        const successAmountResult = await this.withdrawalRepository
             .createQueryBuilder('w')
-            .where('w.status IN (:...status)', { status: [WithdrawalStatus.COMPLETED, WithdrawalStatus.APPROVED] })
+            .where('w.status IN (:...status)', { status: [WithdrawalStatus.SUCCESS, WithdrawalStatus.COMPLETED] })
             .select('SUM(w.amount)', 'sum')
             .getRawOne();
 
         return {
             totalPending: pendingCount,
-            totalApproved: approvedCount,
+            totalProcessing: processingCount,
+            totalSuccess: successCount,
             totalRejected: rejectedCount,
             totalAmountPending: Number(pendingAmountResult?.sum || 0),
-            totalAmountApproved: Number(approvedAmountResult?.sum || 0),
+            totalAmountSuccess: Number(successAmountResult?.sum || 0),
         };
     }
 }

@@ -20,10 +20,15 @@ import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-sta
 import { GetAdminWithdrawalStatsUseCase } from './use-cases/get-admin-withdrawal-stats.use-case';
 import { TransactionPurpose } from '../infrastructure/persistence/entities/transaction.entity';
 import { WithdrawalStatus } from '../infrastructure/persistence/entities/withdrawal.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entities/system-setting.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class WalletFacade {
   constructor(
+    @InjectRepository(SystemSetting)
+    private readonly settingRepo: Repository<SystemSetting>,
     private readonly getWalletUseCase: GetWalletUseCase,
     private readonly getBalanceUseCase: GetBalanceUseCase,
     private readonly validateBalanceUseCase: ValidateBalanceUseCase,
@@ -57,8 +62,8 @@ export class WalletFacade {
     return this.validateBalanceUseCase.execute(userId, minAmount);
   }
 
-  async topUp(userId: number, amount: number, referenceId?: string) {
-    return this.topUpUseCase.execute(userId, amount, referenceId);
+  async topUp(userId: number, amount: number, referenceId?: string, externalQueryRunner?: any) {
+    return this.topUpUseCase.execute(userId, amount, referenceId, externalQueryRunner);
   }
 
   async credit(userId: number, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any) {
@@ -69,16 +74,16 @@ export class WalletFacade {
     return this.debitUseCase.execute(userId, amount, purpose, referenceId, externalQueryRunner);
   }
 
-  async reserveBalance(userId: number, amount: number, referenceId: string) {
-    return this.reserveBalanceUseCase.execute(userId, amount, referenceId);
+  async reserveBalance(userId: number, amount: number, referenceId: string, externalQueryRunner?: any) {
+    return this.reserveBalanceUseCase.execute(userId, amount, referenceId, externalQueryRunner);
   }
 
-  async deductFromReserved(userId: number, amount: number, referenceId: string) {
-    return this.deductFromReservedUseCase.execute(userId, amount, referenceId);
+  async deductFromReserved(userId: number, amount: number, referenceId: string, externalQueryRunner?: any) {
+    return this.deductFromReservedUseCase.execute(userId, amount, referenceId, externalQueryRunner);
   }
 
-  async releaseReserved(userId: number, amount: number, referenceId: string) {
-    return this.releaseReservedUseCase.execute(userId, amount, referenceId);
+  async releaseReserved(userId: number, amount: number, referenceId: string, externalQueryRunner?: any) {
+    return this.releaseReservedUseCase.execute(userId, amount, referenceId, externalQueryRunner);
   }
 
   async getTransactions(userId: number, page?: number, limit?: number, type?: string, purpose?: string) {
@@ -101,8 +106,8 @@ export class WalletFacade {
     return this.getWithdrawalsUseCase.execute(userId, page, limit);
   }
 
-  async requestWithdrawal(userId: number, amount: number, bank_account_id?: number) {
-    return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id);
+  async requestWithdrawal(userId: number, amount: number, bank_account_id?: number, idempotencyKey?: string, securityMetadata?: { ip?: string; ua?: string }) {
+    return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id, idempotencyKey, securityMetadata);
   }
 
   async getPendingWithdrawals(page?: number, limit?: number) {
@@ -119,5 +124,17 @@ export class WalletFacade {
 
   async getAdminCommission() {
     return this.getAdminCommissionUseCase.execute();
+  }
+
+  async getAdminCommissionFromSetting(key: string): Promise<number> {
+    try {
+      const setting = await this.settingRepo.findOne({ where: { key } });
+      if (setting && setting.value) {
+        return parseFloat(setting.value);
+      }
+    } catch (e) {
+      console.error(`[WalletFacade] Failed to fetch setting ${key}:`, e);
+    }
+    return 3; // Default 3% fallback
   }
 }

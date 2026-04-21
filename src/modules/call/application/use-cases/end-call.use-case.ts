@@ -66,11 +66,66 @@ export class EndCallUseCase {
 
     // 💳 Wallet Settlement
     const referenceId = `call_${sessionId}`;
-    const initialReservation = session.price_per_minute * 5;
     const finalPrice = session.final_price || 0;
-    const platformFee = Number((finalPrice * 0.2).toFixed(2));
-    const expertShare = Number((finalPrice - platformFee).toFixed(2));
-    const split = { totalAmount: finalPrice, platformFee, expertShare };
+
+    // Fetch all required commission percentages
+    const agentFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
+    const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_CLIENT');
+    const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+
+    // Fetch Expert with User to check for referral
+    const expert = await this.expertRepo.findOne({
+        where: { id: session.expert_id },
+        relations: ['user'],
+    });
+
+    const expertUser = expert?.user;
+    let agent_commission = 0;
+    let agent_id: number | undefined = undefined;
+
+    const now = new Date();
+    // Check if Agent Commission is applicable (Referred AND within 30 days)
+    if (expertUser?.referred_by_id && expert?.created_at) {
+        const diffTime = Math.abs(now.getTime() - expert.created_at.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays <= 30) {
+            agent_id = expertUser.referred_by_id;
+            agent_commission = Number((finalPrice * (agentFeeRate / 100)).toFixed(2));
+        }
+    }
+
+    const platformFee = Number((finalPrice * (platformFeeRate / 100)).toFixed(2));
+    const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
+    
+    // Expert Net = Total - Platform - GST - Agent
+    const expertShare = Number((finalPrice - platformFee - gst - agent_commission).toFixed(2));
+    
+    // Save to session for persistence
+    session.platform_fee = platformFee;
+    session.gst = gst;
+    session.expert_earning = expertShare;
+    session.agent_id = agent_id;
+    session.agent_commission = agent_commission;
+    await this.sessionRepo.save(session);
+
+    const split = { totalAmount: finalPrice, platformFee: platformFee + gst, expertShare, agent_commission };
+
+    // 💰 Credit Agent immediately if applicable
+    if (agent_commission > 0 && agent_id) {
+        try {
+            await this.walletFacade.credit(
+                agent_id,
+                agent_commission,
+                'agent_commission' as any,
+                referenceId
+            );
+        } catch (err) {
+            console.error(`[EndCall] Failed to credit agent ${agent_id}:`, err);
+        }
+    }
+
+    const initialReservation = session.price_per_minute * 1; 
 
     this.callGateway.server
       .to(`call_room_${sessionId}`)
@@ -79,7 +134,7 @@ export class EndCallUseCase {
     // Also notify expert dashboard
     this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', { 
         sessionId, 
-        session: savedSession, 
+        session: session, 
         split, 
         terminatedBy, 
         terminatedReason: reason 
@@ -88,11 +143,11 @@ export class EndCallUseCase {
     this.eventEmitter.emit(
       'call.ended',
       new CallEndedEvent(
-        savedSession.id,
-        savedSession.user_id,
-        savedSession.expert_id,
-        savedSession.duration_seconds,
-        savedSession.final_price,
+        session.id,
+        session.user_id,
+        session.expert_id,
+        session.duration_seconds,
+        session.final_price,
       ),
     );
 
@@ -128,7 +183,7 @@ export class EndCallUseCase {
         );
       }
 
-      // 💳 Credit Expert
+      // 💳 Credit Expert (Using pre-calculated earnings)
       if (finalPrice > 0) {
         const expert = await this.expertRepo.findOne({
           where: { id: session.expert_id },
@@ -138,7 +193,7 @@ export class EndCallUseCase {
         if (expert?.user?.id) {
           await this.walletFacade.credit(
             expert.user.id,
-            expertShare,
+            session.expert_earning,
             TransactionPurpose.CONSULTATION,
             referenceId,
           );

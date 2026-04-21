@@ -145,10 +145,84 @@ export class UpdateOrderStatusUseCase {
         title = 'Order Shipped';
         message = `Your order #${id} has been shipped. Use OTP ${order.delivery_otp} for delivery verification.`;
         break;
-      case OrderStatus.DELIVERED:
+    case OrderStatus.DELIVERED:
         notificationType = NotificationType.ORDER_DELIVERED;
         title = 'Order Delivered';
         message = `Your order #${id} has been delivered`;
+
+        // 💰 FINANCIAL SETTLEMENT FOR MERCHANT AND AGENT
+        const qr = this.dataSource.createQueryRunner();
+        await qr.connect();
+        await qr.startTransaction();
+        try {
+            const orderWithItems = await qr.manager.findOne(Order, {
+                where: { id },
+                relations: ['items', 'items.product', 'items.product.merchant']
+            });
+
+            if (orderWithItems) {
+                const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+                const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_CLIENT');
+                const agentFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
+
+                for (const item of orderWithItems.items) {
+                    const itemTotal = Number(item.price) * (item.quantity || 1);
+                    const merchantId = item.product?.merchant_id;
+
+                    if (merchantId) {
+                        const merchantUser = await qr.manager.findOne(User, {
+                            where: { id: merchantId },
+                            relations: ['profile_merchant']
+                        });
+
+                        const merchantProfile = merchantUser?.profile_merchant;
+
+                        let agent_commission = 0;
+                        let agent_id: number | undefined = undefined;
+
+                        const now = new Date();
+                        // 30-Day Agent Commission Logic
+                        if (merchantUser?.referred_by_id && merchantProfile?.created_at) {
+                            const diffDays = Math.ceil(Math.abs(now.getTime() - merchantProfile.created_at.getTime()) / (1000 * 60 * 60 * 24));
+                            if (diffDays <= 30) {
+                                agent_id = merchantUser.referred_by_id;
+                                agent_commission = Number((itemTotal * (agentFeeRate / 100)).toFixed(2));
+                            }
+                        }
+
+                        const platformFee = Number((itemTotal * (platformFeeRate / 100)).toFixed(2));
+                        const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
+                        const merchantNet = Number((itemTotal - platformFee - gst - agent_commission).toFixed(2));
+
+                        // 1. Credit Merchant
+                        await this.walletFacade.credit(
+                            merchantId,
+                            merchantNet,
+                            TransactionPurpose.CONSULTATION, // Reusing for earnings
+                            `order_item_${item.id}`,
+                            qr
+                        );
+
+                        // 2. Credit Agent
+                        if (agent_commission > 0 && agent_id) {
+                            await this.walletFacade.credit(
+                                agent_id,
+                                agent_commission,
+                                'agent_commission' as any,
+                                `order_item_${item.id}`,
+                                qr
+                            );
+                        }
+                    }
+                }
+            }
+            await qr.commitTransaction();
+        } catch (err) {
+            await qr.rollbackTransaction();
+            console.error('[OrderSettlement] Failed to settle order funds:', err);
+        } finally {
+            await qr.release();
+        }
         break;
       case OrderStatus.CANCELLED:
         notificationType = NotificationType.ORDER_CANCELLED;

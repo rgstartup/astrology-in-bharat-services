@@ -31,8 +31,8 @@ export class OrderFacade {
     return this.createOrderFromCartUseCase.execute(userId, { shipping_address: shippingAddress });
   }
 
-  async markAsPaid(razorpayOrderId: string) {
-    return this.markOrderAsPaidUseCase.execute(razorpayOrderId);
+  async markAsPaid(razorpayOrderId: string, externalQueryRunner?: any) {
+    return this.markOrderAsPaidUseCase.execute(razorpayOrderId, externalQueryRunner);
   }
 
   async setRazorpayOrderId(orderId: number, razorpayOrderId: string) {

@@ -30,11 +30,19 @@ export class CreatePujaAppointmentUseCase {
       throw new NotFoundException('Puja not found');
     }
 
-    let price = dto.price;
-    if (price === undefined || price === null || price === 0) {
-        if (dto.mode === PujaMode.ONLINE) price = puja.online_cost;
-        else if (dto.mode === PujaMode.HOME_VISIT_WITH) price = puja.home_visit_with_samagri_cost;
-        else if (dto.mode === PujaMode.HOME_VISIT_WITHOUT) price = puja.home_visit_without_samagri_cost;
+    // --- SECURITY FIX: IGNORE DTO.PRICE (PRICE TAMPERING PROTECTION) ---
+    let authoritativePrice = 0;
+    if (dto.mode === PujaMode.ONLINE) {
+        authoritativePrice = puja.online_cost;
+    } else if (dto.mode === PujaMode.HOME_VISIT_WITH) {
+        authoritativePrice = puja.home_visit_with_samagri_cost;
+    } else if (dto.mode === PujaMode.HOME_VISIT_WITHOUT) {
+        authoritativePrice = puja.home_visit_without_samagri_cost;
+    }
+
+    // Security Logging: Detect if user tried to manipulate price
+    if (dto.price && Number(dto.price) !== authoritativePrice) {
+        console.warn(`[SECURITY_ALERT] Potential Price Tampering Attempt. User ${userId} sent price ₹${dto.price} for Puja ${dto.puja_id}, but authoritative price is ₹${authoritativePrice}. Override applied.`);
     }
 
     const appointment = this.pujaAppointmentRepository.create({
@@ -45,7 +53,7 @@ export class CreatePujaAppointmentUseCase {
       scheduled_time: dto.scheduled_time,
       ask_expert_for_date: dto.ask_expert_for_date,
       mode: dto.mode,
-      price: price || 0,
+      price: authoritativePrice, // Forced authoritative price
       user_message: dto.user_message,
       status: PujaAppointmentStatus.PENDING,
     });

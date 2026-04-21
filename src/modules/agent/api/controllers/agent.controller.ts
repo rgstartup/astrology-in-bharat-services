@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Patch, Body, Post, Query, BadRequestException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, UseGuards, Patch, Body, Post, Query, BadRequestException, ParseIntPipe, Headers, Ip } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -479,8 +479,11 @@ export class AgentController {
     async requestWithdrawal(
         @CurrentUser() user: User,
         @Body('amount') amount: number,
+        @Ip() ip: string,
+        @Headers('user-agent') ua: string,
+        @Headers('x-idempotency-key') idempotencyKey: string,
     ) {
-        return this.walletFacade.requestWithdrawal(user.id, amount);
+        return this.walletFacade.requestWithdrawal(user.id, amount, undefined, idempotencyKey, { ip, ua });
     }
 
     @Post('wallet/settle')

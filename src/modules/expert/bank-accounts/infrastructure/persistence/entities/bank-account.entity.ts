@@ -44,4 +44,7 @@ export class BankAccount {
 
     @UpdateDateColumn({ name: 'updated_at' })
     updated_at: Date;
+
+    @Column({ type: 'text', nullable: true, name: 'razorpay_fund_account_id' })
+    razorpay_fund_account_id?: string;
 }

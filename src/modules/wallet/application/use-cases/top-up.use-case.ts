@@ -11,12 +11,14 @@ export class TopUpUseCase {
     userId: number,
     amount: number,
     referenceId?: string,
+    externalQueryRunner?: any,
   ): Promise<Wallet> {
     return this.creditUseCase.execute(
       userId,
       amount,
       TransactionPurpose.RECHARGE,
       referenceId,
+      externalQueryRunner,
     );
   }
 }
