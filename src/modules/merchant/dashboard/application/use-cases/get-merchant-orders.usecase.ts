@@ -11,9 +11,10 @@ export class GetMerchantOrdersUseCase {
     private readonly orderItemRepo: Repository<OrderItem>,
   ) {}
 
-  async execute(userId: number, page: number = 1, limit: number = 20) {
-    console.log('[ALL_ORDERS] Request for userId:', userId, 'page:', page, 'limit:', limit);
-    // 1. Calculate Statistics
+  async execute(userId: number, page: number = 1, limit: number = 20, status?: string, search?: string) {
+    console.log('[ALL_ORDERS] Request:', { userId, page, limit, status, search });
+    
+    // 1. Calculate Summary Statistics (Keep these global for the merchant dashboard cards)
     const statsResult = await this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoin('oi.order', 'o')
@@ -21,7 +22,7 @@ export class GetMerchantOrdersUseCase {
       .where('p.merchant_id = :userId', { userId })
       .select([
         'COUNT(oi.id) as total',
-        `SUM(CASE WHEN o.status IN ('${OrderStatus.PENDING}', '${OrderStatus.PAID}', '${OrderStatus.PACKED}') THEN 1 ELSE 0 END) as pending`,
+        `SUM(CASE WHEN o.status IN ('${OrderStatus.PENDING}', '${OrderStatus.PAID}', '${OrderStatus.PROCESSING}', '${OrderStatus.PACKED}') THEN 1 ELSE 0 END) as pending`,
         `SUM(CASE WHEN o.status = '${OrderStatus.SHIPPED}' THEN 1 ELSE 0 END) as shipped`,
         'SUM(oi.price * oi.quantity) as revenue',
       ])
@@ -34,13 +35,32 @@ export class GetMerchantOrdersUseCase {
       revenue: Number(statsResult.revenue) || 0,
     };
 
-    // 2. Fetch Paginated Orders
-    const [items, totalCount] = await this.orderItemRepo
+    // 2. Fetch Paginated & Filtered Orders
+    const query = this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoinAndSelect('oi.order', 'o')
       .leftJoinAndSelect('o.user', 'u')
       .innerJoinAndSelect('oi.product', 'p')
-      .where('p.merchant_id = :userId', { userId })
+      .where('p.merchant_id = :userId', { userId });
+
+    if (status && status !== 'all') {
+      if (status === 'pending') {
+        query.andWhere('o.status IN (:...statuses)', { 
+          statuses: [OrderStatus.PENDING, OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.PACKED] 
+        });
+      } else {
+        query.andWhere('o.status = :status', { status });
+      }
+    }
+
+    if (search) {
+      // Postgres ILIKE for case-insensitive search
+      query.andWhere('(u.name ILIKE :searchTerm OR p.name ILIKE :searchTerm OR CAST(o.id AS TEXT) ILIKE :searchTerm)', { 
+        searchTerm: `%${search}%` 
+      });
+    }
+
+    const [items, totalCount] = await query
       .orderBy('oi.created_at', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)

@@ -24,6 +24,8 @@ import { GetRecentOrdersUseCase } from '../../application/use-cases/get-recent-o
 import { GetMerchantOrdersUseCase } from '../../application/use-cases/get-merchant-orders.usecase';
 import { GetMerchantActivityUseCase } from '../../application/use-cases/get-merchant-activity.usecase';
 import { GetMerchantPerformanceUseCase } from '../../application/use-cases/get-merchant-performance.usecase';
+import { GetMerchantAnalyticsUseCase } from '../../application/use-cases/get-merchant-analytics.usecase';
+import { GetMerchantTransactionsUseCase } from '../../application/use-cases/get-merchant-transactions.usecase';
 import { VerifyOrderOtpUseCase } from '../../application/use-cases/verify-order-otp.usecase';
 import { OrderFacade } from '@/modules/order/application/order.facade';
 import { OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
@@ -44,6 +46,8 @@ export class MerchantDashboardController {
     private readonly getAllOrders: GetMerchantOrdersUseCase,
     private readonly getActivity: GetMerchantActivityUseCase,
     private readonly getPerformance: GetMerchantPerformanceUseCase,
+    private readonly getAnalytics: GetMerchantAnalyticsUseCase,
+    private readonly getTransactions: GetMerchantTransactionsUseCase,
     private readonly verifyOtp: VerifyOrderOtpUseCase,
     private readonly orderFacade: OrderFacade,
     private readonly getProfile: GetMerchantProfileUseCase,
@@ -64,8 +68,10 @@ export class MerchantDashboardController {
     @CurrentUser('id') userId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
   ) {
-    const orders = await this.getAllOrders.execute(userId, page, limit);
+    const orders = await this.getAllOrders.execute(userId, page, limit, status, search);
     return { success: true, data: orders };
   }
 
@@ -88,6 +94,13 @@ export class MerchantDashboardController {
   async performance(@CurrentUser('id') userId: number) {
     const performance = await this.getPerformance.execute(userId);
     return { success: true, data: performance };
+  }
+
+  @Get('analytics')
+  @HttpCode(HttpStatus.OK)
+  async analytics(@CurrentUser('id') userId: number) {
+    const analytics = await this.getAnalytics.execute(userId);
+    return { success: true, data: analytics };
   }
 
   @Post('orders/:id/verify-otp')

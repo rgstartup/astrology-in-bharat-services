@@ -9,6 +9,7 @@ import { GetRecentOrdersUseCase } from './application/use-cases/get-recent-order
 import { GetMerchantOrdersUseCase } from './application/use-cases/get-merchant-orders.usecase';
 import { GetMerchantActivityUseCase } from './application/use-cases/get-merchant-activity.usecase';
 import { GetMerchantPerformanceUseCase } from './application/use-cases/get-merchant-performance.usecase';
+import { GetMerchantAnalyticsUseCase } from './application/use-cases/get-merchant-analytics.usecase';
 import { MerchantProductsUseCase } from './application/use-cases/merchant-products.usecase';
 import { VerifyOrderOtpUseCase } from './application/use-cases/verify-order-otp.usecase';
 import { GetMerchantFinanceStatsUseCase } from './application/use-cases/get-merchant-finance-stats.usecase';
@@ -51,6 +52,7 @@ import { ProfileModule } from '../profile/profile.module';
     GetMerchantOrdersUseCase,
     GetMerchantActivityUseCase,
     GetMerchantPerformanceUseCase,
+    GetMerchantAnalyticsUseCase,
     MerchantProductsUseCase,
     VerifyOrderOtpUseCase,
     GetMerchantFinanceStatsUseCase,
