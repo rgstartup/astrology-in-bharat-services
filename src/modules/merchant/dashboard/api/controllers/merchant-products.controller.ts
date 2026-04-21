@@ -15,13 +15,16 @@ import {
   DefaultValuePipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { MerchantProductsUseCase } from '../../application/use-cases/merchant-products.usecase';
 import { CreateMerchantProductDto } from '../dto/create-merchant-product.dto';
 import { BulkUpdateStatusDto } from '../dto/bulk-update-status.dto';
 
 @Controller({ path: 'merchant/products', version: '1' })
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('merchant')
 export class MerchantProductsController {
   constructor(private readonly merchantProducts: MerchantProductsUseCase) {}
 
@@ -35,7 +38,8 @@ export class MerchantProductsController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
   ) {
-    return this.merchantProducts.findAll(userId, { status, search, page, limit });
+    const products = await this.merchantProducts.findAll(userId, { status, search, page, limit });
+    return { success: true, data: products };
   }
 
   // GET /api/v1/merchant/products/:id
@@ -45,7 +49,8 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: number,
     @Param('id', ParseIntPipe) productId: number,
   ) {
-    return this.merchantProducts.findOne(userId, productId);
+    const product = await this.merchantProducts.findOne(userId, productId);
+    return { success: true, data: product };
   }
 
   // POST /api/v1/merchant/products
@@ -55,7 +60,8 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: number,
     @Body() dto: CreateMerchantProductDto,
   ) {
-    return this.merchantProducts.create(userId, dto);
+    const product = await this.merchantProducts.create(userId, dto);
+    return { success: true, data: product };
   }
 
   // PATCH /api/v1/merchant/products/bulk-status
@@ -65,7 +71,8 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: number,
     @Body() dto: BulkUpdateStatusDto,
   ) {
-    return this.merchantProducts.bulkUpdateStatus(userId, dto.ids, dto.status);
+    const result = await this.merchantProducts.bulkUpdateStatus(userId, dto.ids, dto.status);
+    return { success: true, data: result };
   }
 
   // PUT /api/v1/merchant/products/:id
@@ -76,7 +83,8 @@ export class MerchantProductsController {
     @Param('id', ParseIntPipe) productId: number,
     @Body() dto: CreateMerchantProductDto,
   ) {
-    return this.merchantProducts.update(userId, productId, dto);
+    const product = await this.merchantProducts.update(userId, productId, dto);
+    return { success: true, data: product };
   }
 
   // DELETE /api/v1/merchant/products/:id
@@ -86,6 +94,7 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: number,
     @Param('id', ParseIntPipe) productId: number,
   ) {
-    return this.merchantProducts.remove(userId, productId);
+    const result = await this.merchantProducts.remove(userId, productId);
+    return { success: true, data: result };
   }
 }

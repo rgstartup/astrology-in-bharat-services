@@ -16,6 +16,8 @@ import {
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { GetMerchantStatsUseCase } from '../../application/use-cases/get-merchant-stats.usecase';
 import { GetRecentOrdersUseCase } from '../../application/use-cases/get-recent-orders.usecase';
@@ -33,7 +35,8 @@ import { UpdateMerchantProfileDto } from '../../../profile/api/dto/update-mercha
   path: 'merchant',
   version: '1',
 })
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('merchant')
 export class MerchantDashboardController {
   constructor(
     private readonly getStats: GetMerchantStatsUseCase,
@@ -50,18 +53,10 @@ export class MerchantDashboardController {
   @Get('stats')
   @HttpCode(HttpStatus.OK)
   async stats(@CurrentUser('id') userId: number) {
-    return this.getStats.execute(userId);
+    const stats = await this.getStats.execute(userId);
+    return { success: true, data: stats };
   }
 
-  @Get('debug-whoami')
-  @HttpCode(HttpStatus.OK)
-  async debugWhoAmI(@CurrentUser() user: any) {
-    return {
-      userId: user.id,
-      role: user.role,
-      roles: user.roles,
-    };
-  }
 
   @Get('orders')
   @HttpCode(HttpStatus.OK)
@@ -70,25 +65,29 @@ export class MerchantDashboardController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ) {
-    return this.getAllOrders.execute(userId, page, limit);
+    const orders = await this.getAllOrders.execute(userId, page, limit);
+    return { success: true, data: orders };
   }
 
   @Get('orders/recent')
   @HttpCode(HttpStatus.OK)
   async recentOrders(@CurrentUser('id') userId: number) {
-    return this.getRecentOrders.execute(userId);
+    const orders = await this.getRecentOrders.execute(userId);
+    return { success: true, data: orders };
   }
 
   @Get('activity')
   @HttpCode(HttpStatus.OK)
   async activity(@CurrentUser('id') userId: number) {
-    return this.getActivity.execute(userId);
+    const activity = await this.getActivity.execute(userId);
+    return { success: true, data: activity };
   }
 
   @Get('performance')
   @HttpCode(HttpStatus.OK)
   async performance(@CurrentUser('id') userId: number) {
-    return this.getPerformance.execute(userId);
+    const performance = await this.getPerformance.execute(userId);
+    return { success: true, data: performance };
   }
 
   @Post('orders/:id/verify-otp')
@@ -104,11 +103,13 @@ export class MerchantDashboardController {
   @Patch('orders/:id/status')
   @HttpCode(HttpStatus.OK)
   async updateStatus(
+    @CurrentUser('id') userId: number,
     @Param('id', ParseIntPipe) id: number,
     @Body('status') status: OrderStatus,
     @Body('cancellationReason') cancellationReason?: string,
   ) {
-    return this.orderFacade.updateOrderStatus(id, status, cancellationReason);
+    const order = await this.orderFacade.updateOrderStatus(id, status, cancellationReason, userId);
+    return { success: true, data: order };
   }
 
   @Get('profile')

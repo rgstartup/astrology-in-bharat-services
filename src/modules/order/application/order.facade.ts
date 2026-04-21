@@ -47,8 +47,8 @@ export class OrderFacade {
     return this.getOrderByIdUseCase.execute(id, userId);
   }
 
-  async updateOrderStatus(id: number, status: OrderStatus, cancellationReason?: string) {
-    return this.updateOrderStatusUseCase.execute(id, status, cancellationReason);
+  async updateOrderStatus(id: number, status: OrderStatus, cancellationReason?: string, merchantId?: number) {
+    return this.updateOrderStatusUseCase.execute(id, status, cancellationReason, merchantId);
   }
 
   async findAllOrders() {

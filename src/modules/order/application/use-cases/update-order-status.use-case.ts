@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/persistence/entities/order.entity';
@@ -28,9 +28,20 @@ export class UpdateOrderStatusUseCase {
     private dataSource: DataSource,
   ) { }
 
-  async execute(id: number, status: OrderStatus, cancellationReason?: string) {
-    const order = await this.orderRepo.findOne({ where: { id } });
+  async execute(id: number, status: OrderStatus, cancellationReason?: string, merchantId?: number) {
+    const order = await this.orderRepo.findOne({ 
+      where: { id },
+      relations: ['items', 'items.product']
+    });
     if (!order) throw new NotFoundException('Order not found');
+
+    // Ownership check for merchants
+    if (merchantId) {
+      const belongsToMerchant = order.items.some(item => item.product?.merchant_id === merchantId);
+      if (!belongsToMerchant) {
+        throw new ForbiddenException('You do not have permission to update this order');
+      }
+    }
 
     const oldStatus = order.status;
     order.status = status;
