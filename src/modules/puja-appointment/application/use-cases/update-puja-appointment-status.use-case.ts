@@ -79,7 +79,8 @@ export class UpdatePujaAppointmentStatusUseCase {
 
                 if (diffDays <= 30) {
                     agent_id = expertUser.referred_by_id;
-                    agent_commission = Number((totalAmount * (agentFeeRate / 100)).toFixed(2));
+                    const effectiveAgentRate = expertUser.profile_expert.agent_commission_rate ?? agentFeeRate;
+                    agent_commission = Number((totalAmount * (effectiveAgentRate / 100)).toFixed(2));
                 }
             }
 

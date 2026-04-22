@@ -15,6 +15,7 @@ import { ConfigService } from '@nestjs/config';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()
 export class AgentRegisterUserUseCase {
@@ -29,6 +30,7 @@ export class AgentRegisterUserUseCase {
         private readonly eventEmitter: EventEmitter2,
         private readonly tokenCrypto: TokenCryptoService,
         private readonly configService: ConfigService,
+        private readonly walletFacade: WalletFacade,
     ) { }
 
     async execute(dto: AgentRegisterUserDto, agentId: number) {
@@ -65,20 +67,27 @@ export class AgentRegisterUserUseCase {
                 await this.profileCreationResolver.ensureProfile(createdUser, queryRunner);
 
                 // Update phone number in the specific profile if provided
-                if (dto.phone) {
-                    if (dto.roles.includes('expert')) {
-                        await queryRunner.manager.update(ProfileExpert, { user: { id: createdUser.id } }, {
-                            phone_number: dto.phone
-                        });
-                    } else if (dto.roles.includes('merchant')) {
-                        await queryRunner.manager.update(ProfileMerchant, { user_id: createdUser.id }, {
-                            phone: dto.phone
-                        });
-                    } else {
-                        await queryRunner.manager.update(ProfileClient, { user: { id: createdUser.id } }, {
-                            phone: dto.phone
-                        });
-                    }
+                // Handle Expert-specific logic (Lock Commission Rate)
+                if (dto.roles.includes('expert')) {
+                    const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
+                    await queryRunner.manager.update(ProfileExpert, { user: { id: createdUser.id } }, {
+                        agent_commission_rate: agentCommissionRate,
+                        ...(dto.phone ? { phone_number: dto.phone } : {})
+                    });
+                } else if (dto.phone) {
+                    // Update phone for others if provided
+                } else if (dto.roles.includes('merchant')) {
+                    const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISSION_FROM_PUJA_SHOP') || 
+                                         await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
+                    await queryRunner.manager.update(ProfileMerchant, { user_id: createdUser.id }, {
+                        agent_commission_rate: agentCommissionRate,
+                        ...(dto.phone ? { phone: dto.phone } : {})
+                    });
+                } else if (dto.phone) {
+                    // Update phone for clients if provided
+                    await queryRunner.manager.update(ProfileClient, { user: { id: createdUser.id } }, {
+                        phone: dto.phone
+                    });
                 }
                 
                 // For Merchants, also update shopName if it's set to user's name initially

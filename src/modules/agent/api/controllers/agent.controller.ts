@@ -46,7 +46,7 @@ export class AgentController {
             ...profile,
             name: profile.user?.name,
             email: profile.user?.email,
-            agent_id: profile.user?.uid,
+            uid: profile.user?.uid,
         };
     }
 
@@ -152,6 +152,7 @@ export class AgentController {
                 }
             });
 
+            const realEarnings = await this.walletFacade.getTotalEarnings(user.id);
             const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(user.id);
 
             return {
@@ -162,8 +163,8 @@ export class AgentController {
                 mandirsCount: totalMandirs,
                 pujaShopsCount: totalPujaShops + merchantsAsPujaShopCount,
                 pendingPayout: withdrawalStats.pendingWithdrawals,
-                totalEarned: profile?.total_earnings || 0,
-                commissionEarned: parseFloat(totalAgentCommission.toFixed(2)),
+                totalEarned: realEarnings,
+                commissionEarned: realEarnings,
                 recentActivity: []
             };
         });

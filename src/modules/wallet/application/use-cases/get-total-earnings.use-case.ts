@@ -16,7 +16,7 @@ export class GetTotalEarningsUseCase {
       .innerJoin('transaction.wallet', 'wallet')
       .where('wallet.user_id = :userId', { userId })
       .andWhere('transaction.type = :type', { type: TransactionType.CREDIT })
-      .andWhere('transaction.purpose IN (:...purposes)', { purposes: [TransactionPurpose.CONSULTATION, TransactionPurpose.PRODUCT_PURCHASE] });
+      .andWhere('transaction.purpose IN (:...purposes)', { purposes: [TransactionPurpose.CONSULTATION, TransactionPurpose.PRODUCT_PURCHASE, TransactionPurpose.AGENT_COMMISSION] });
 
     if (options.startDate) {
       query.andWhere('transaction.created_at >= :startDate', { startDate: options.startDate });

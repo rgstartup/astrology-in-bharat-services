@@ -66,7 +66,8 @@ export class EndChatUseCase {
 
             if (diffDays <= 30) {
                 agent_id = expertUser.referred_by_id;
-                agent_commission = Number((total_cost * (agentFeeRate / 100)).toFixed(2));
+                const effectiveAgentRate = expert.agent_commission_rate ?? agentFeeRate;
+                agent_commission = Number((total_cost * (effectiveAgentRate / 100)).toFixed(2));
             }
         }
 

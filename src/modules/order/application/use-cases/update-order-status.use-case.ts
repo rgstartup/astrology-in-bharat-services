@@ -196,7 +196,8 @@ export class UpdateOrderStatusUseCase {
                             const diffDays = Math.ceil(Math.abs(now.getTime() - merchantProfile.created_at.getTime()) / (1000 * 60 * 60 * 24));
                             if (diffDays <= 30) {
                                 agent_id = merchantUser.referred_by_id;
-                                agent_commission = Number((itemTotal * (agentFeeRate / 100)).toFixed(2));
+                                const effectiveAgentRate = merchantProfile.agent_commission_rate ?? agentFeeRate;
+                                agent_commission = Number((itemTotal * (effectiveAgentRate / 100)).toFixed(2));
                             }
                         }
 

@@ -140,4 +140,7 @@ export class ProfileMerchant {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
+
+  @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
+  agent_commission_rate?: number;
 }

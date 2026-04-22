@@ -128,7 +128,16 @@ export class WalletFacade {
 
   async getAdminCommissionFromSetting(key: string): Promise<number> {
     try {
-      const setting = await this.settingRepo.findOne({ where: { key } });
+      let setting = await this.settingRepo.findOne({ where: { key } });
+      
+      // Fallback for common spelling inconsistency (COMMISION vs COMMISSION)
+      if (!setting) {
+        const altKey = key.includes('COMMISSION') 
+          ? key.replace('COMMISSION', 'COMMISION') 
+          : key.replace('COMMISION', 'COMMISSION');
+        setting = await this.settingRepo.findOne({ where: { key: altKey } });
+      }
+
       if (setting && setting.value) {
         return parseFloat(setting.value);
       }

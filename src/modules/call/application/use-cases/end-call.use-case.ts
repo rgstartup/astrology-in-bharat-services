@@ -91,7 +91,8 @@ export class EndCallUseCase {
 
         if (diffDays <= 30) {
             agent_id = expertUser.referred_by_id;
-            agent_commission = Number((finalPrice * (agentFeeRate / 100)).toFixed(2));
+            const effectiveAgentRate = expert.agent_commission_rate ?? agentFeeRate;
+            agent_commission = Number((finalPrice * (effectiveAgentRate / 100)).toFixed(2));
         }
     }
 

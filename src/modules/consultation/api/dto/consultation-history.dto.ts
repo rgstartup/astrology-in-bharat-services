@@ -42,6 +42,7 @@ export class ConsultationHistoryDto {
   total_cost: number;
   platform_fee: number;
   gst: number;
+  agent_commission: number;
   expert_earning: number;
   expert: ConsultationExpertDto;
   metadata?: any;

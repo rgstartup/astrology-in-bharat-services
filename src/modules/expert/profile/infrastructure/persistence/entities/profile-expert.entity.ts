@@ -164,4 +164,7 @@ export class ProfileExpert {
 
   @Column({ type: 'text', nullable: true, name: 'razorpay_contact_id' })
   razorpay_contact_id?: string;
+
+  @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
+  agent_commission_rate?: number;
 }
