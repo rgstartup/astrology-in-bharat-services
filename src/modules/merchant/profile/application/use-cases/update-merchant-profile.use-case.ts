@@ -40,15 +40,14 @@ export class UpdateMerchantProfileUseCase {
     this.logger.log(`[DEBUG] Files keys: ${Object.keys(files || {})}`);
 
     try {
-      let profile = await this.merchantRepository
-        .createQueryBuilder('merchant')
-        .leftJoinAndSelect('merchant.user', 'user')
-        .where('merchant.user_id = :userId', { userId })
-        .getOne();
+      let profile = await this.merchantRepository.findOne({
+        where: { user_id: Number(userId) },
+        relations: ['user']
+      });
 
       if (!profile) {
         profile = this.merchantRepository.create({
-          user_id: userId,
+          user_id: Number(userId),
         });
         // Save immediately to ensure entity exists
         profile = await this.merchantRepository.save(profile);
@@ -96,8 +95,14 @@ export class UpdateMerchantProfileUseCase {
       if (dto.trustScore) profile.trustScore = dto.trustScore;
       
       // Convert strings to numbers for latitude/longitude (multipart fields)
-      if (dto.latitude !== undefined) profile.latitude = Number(dto.latitude);
-      if (dto.longitude !== undefined) profile.longitude = Number(dto.longitude);
+      if (dto.latitude !== undefined && dto.latitude !== '') {
+        const lat = Number(dto.latitude);
+        if (!isNaN(lat)) profile.latitude = lat;
+      }
+      if (dto.longitude !== undefined && dto.longitude !== '') {
+        const lng = Number(dto.longitude);
+        if (!isNaN(lng)) profile.longitude = lng;
+      }
 
       // Convert strings to booleans for multipart form data
       const isOnline = dto.isOnline === true || (dto.isOnline as any) === 'true' || (dto.isOnline as any) === 1;
@@ -162,6 +167,7 @@ export class UpdateMerchantProfileUseCase {
           address: profile.address,
           city: profile.city,
           pincode: profile.pincode,
+          image: profile.image,
           video: profile.video,
           isOnline: profile.isOnline,
           operationalHours: profile.operationalHours,

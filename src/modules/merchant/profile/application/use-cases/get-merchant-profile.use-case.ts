@@ -13,19 +13,10 @@ export class GetMerchantProfileUseCase {
   ) {}
 
   async execute(userId: number) {
-    const profile = await this.merchantRepository
-      .createQueryBuilder('merchant')
-      .leftJoinAndSelect('merchant.user', 'user')
-      .where('merchant.user_id = :userId', { userId })
-      .getOne();
-
-    console.log('--- DEEP PROFILE DEBUG (GET) ---');
-    if (profile) {
-      console.log('Object Keys:', Object.keys(profile));
-      console.log('isVerified property:', profile.isVerified);
-      console.log('Raw is_verified (snake):', (profile as any).is_verified);
-    }
-    console.log('------------------------------');
+    const profile = await this.merchantRepository.findOne({
+      where: { user_id: Number(userId) },
+      relations: ['user'],
+    });
 
     if (!profile) {
       return {
@@ -75,7 +66,7 @@ export class GetMerchantProfileUseCase {
         address: profile.address,
         city: profile.city,
         pincode: profile.pincode,
-        image: profile.user?.avatar,
+        image: profile.image || profile.user?.avatar,
         video: profile.video,
         status: profile.status,
         isOnline: profile.isOnline,
@@ -84,11 +75,11 @@ export class GetMerchantProfileUseCase {
         latitude: profile.latitude,
         longitude: profile.longitude,
         gstin: profile.gstin,
-        pan: this.encryptionService.decrypt(profile.pan),
+        pan: profile.pan ? this.encryptionService.decrypt(profile.pan) : null,
         isGstExempt: profile.isGstExempt,
         bankName: profile.bankName,
         accountHolder: profile.accountHolder,
-        accountNumber: this.encryptionService.decrypt(profile.accountNumber),
+        accountNumber: profile.accountNumber ? this.encryptionService.decrypt(profile.accountNumber) : null,
         ifsc: profile.ifsc,
         gstCertificate: profile.gstCertificate,
         panFront: profile.panFront,
@@ -100,5 +91,3 @@ export class GetMerchantProfileUseCase {
     };
   }
 }
-
-

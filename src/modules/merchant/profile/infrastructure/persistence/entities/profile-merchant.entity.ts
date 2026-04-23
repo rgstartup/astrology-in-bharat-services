@@ -25,31 +25,31 @@ export class ProfileMerchant {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ name: 'user_id', unique: true, nullable: true })
   user_id: number;
 
-  @Column({ nullable: true })
+  @Column({ name: 'shopName', nullable: true })
   shopName?: string;
 
   @Column({ name: 'manager_name', nullable: true })
   managerName?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'phone', nullable: true })
   phone?: string;
 
-  @Column({ nullable: true, type: 'text' })
+  @Column({ name: 'address', nullable: true, type: 'text' })
   address?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'city', nullable: true })
   city?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'pincode', nullable: true })
   pincode?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'image', nullable: true })
   image?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'video', nullable: true })
   video?: string;
 
   @Column({
