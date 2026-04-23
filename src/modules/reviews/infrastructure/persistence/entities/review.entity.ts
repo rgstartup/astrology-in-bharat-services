@@ -69,6 +69,12 @@ export class Review {
   @Column({ type: 'varchar', length: 20, default: 'pending' })
   status: string;
 
+  @Column({ type: 'varchar', length: 20, default: 'expert', name: 'review_type' })
+  review_type: string; // 'expert' | 'merchant' | 'platform'
+
+  @Column({ type: 'simple-array', nullable: true })
+  tags: string[];
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   created_at: Date;
 }

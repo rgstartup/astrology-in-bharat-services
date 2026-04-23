@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsArray, IsIn, Max, Min } from 'class-validator';
 
 export class CreateReviewDto {
   @IsOptional()
@@ -26,4 +26,14 @@ export class CreateReviewDto {
   @IsOptional()
   @IsString()
   comment?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['expert', 'merchant', 'platform'])
+  review_type?: string;
 }

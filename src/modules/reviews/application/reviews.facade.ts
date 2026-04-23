@@ -8,6 +8,7 @@ import { GetAdminReviewsStatsUseCase } from './use-cases/get-admin-reviews-stats
 import { UpdateReviewStatusUseCase } from './use-cases/update-review-status.use-case';
 import { DeleteReviewUseCase } from './use-cases/delete-review.use-case';
 import { SendReviewResponseUseCase } from './use-cases/send-review-response.use-case';
+import { GetApprovedPlatformReviewsUseCase } from './use-cases/get-approved-platform-reviews.use-case';
 import { CreateReviewDto } from '../api/dto/create-review.dto';
 
 @Injectable()
@@ -22,6 +23,7 @@ export class ReviewsFacade {
     private readonly updateReviewStatusUseCase: UpdateReviewStatusUseCase,
     private readonly deleteReviewUseCase: DeleteReviewUseCase,
     private readonly sendReviewResponseUseCase: SendReviewResponseUseCase,
+    private readonly getApprovedPlatformReviewsUseCase: GetApprovedPlatformReviewsUseCase,
   ) {}
 
   async createReview(userId: number, dto: CreateReviewDto) {
@@ -58,5 +60,9 @@ export class ReviewsFacade {
 
   async sendReviewResponse(id: number, message: string) {
     return this.sendReviewResponseUseCase.execute(id, message);
+  }
+
+  async getApprovedPlatformReviews(limit?: number) {
+    return this.getApprovedPlatformReviewsUseCase.execute(limit);
   }
 }

@@ -18,6 +18,7 @@ import { GetAdminReviewsStatsUseCase } from './application/use-cases/get-admin-r
 import { UpdateReviewStatusUseCase } from './application/use-cases/update-review-status.use-case';
 import { DeleteReviewUseCase } from './application/use-cases/delete-review.use-case';
 import { SendReviewResponseUseCase } from './application/use-cases/send-review-response.use-case';
+import { GetApprovedPlatformReviewsUseCase } from './application/use-cases/get-approved-platform-reviews.use-case';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
 
@@ -46,6 +47,7 @@ import { Order } from '@/modules/order/infrastructure/persistence/entities/order
     UpdateReviewStatusUseCase,
     DeleteReviewUseCase,
     SendReviewResponseUseCase,
+    GetApprovedPlatformReviewsUseCase,
   ],
   exports: [ReviewsFacade],
 })

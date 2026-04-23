@@ -28,22 +28,48 @@ export class CreateReviewUseCase {
   ) { }
 
   async execute(userId: number, dto: CreateReviewDto): Promise<Review> {
-    const { expertId, merchantId, orderId, sessionId, rating, comment } = dto;
+    const { expertId, merchantId, orderId, sessionId, rating, comment, tags, review_type } = dto;
+
+    if (review_type === 'platform') {
+      return this.handlePlatformReview(userId, rating, comment, tags);
+    }
 
     if (!expertId && !merchantId) {
-      throw new BadRequestException('Either expertId or merchantId must be provided');
+      throw new BadRequestException('Either expertId or merchantId must be provided for expert/shop reviews');
     }
 
     if (expertId) {
-      return this.handleExpertReview(userId, expertId, sessionId ?? 0, rating, comment);
+      return this.handleExpertReview(userId, expertId, sessionId ?? 0, rating, comment, tags);
     } else if (merchantId) {
-      return this.handleMerchantReview(userId, merchantId, orderId ?? 0, rating, comment);
+      return this.handleMerchantReview(userId, merchantId, orderId ?? 0, rating, comment, tags);
     } else {
       throw new BadRequestException('Either expertId or merchantId must be provided');
     }
   }
 
-  private async handleExpertReview(userId: number, expertId: number, sessionId: number, rating: number, comment?: string) {
+  private async handlePlatformReview(userId: number, rating: number, comment?: string, tags?: string[]) {
+    const review = this.reviewRepository.create({
+      user_id: userId,
+      rating,
+      comment,
+      tags,
+      review_type: 'platform',
+      status: 'pending',
+    });
+
+    const savedReview = await this.reviewRepository.save(review);
+    
+    // Clean response for platform reviews
+    const { 
+      expert_id, merchant_id, order_id, session_id, call_session_id, 
+      expert, merchant, order, session, callSession,
+      ...cleanReview 
+    } = savedReview as any;
+    
+    return cleanReview;
+  }
+
+  private async handleExpertReview(userId: number, expertId: number, sessionId: number, rating: number, comment?: string, tags?: string[]) {
     const expert = await this.expertRepository.findOne({ where: { id: expertId } });
     if (!expert) throw new NotFoundException('Expert not found');
 
@@ -83,6 +109,8 @@ export class CreateReviewUseCase {
       call_session_id: callSessionId,
       rating,
       comment,
+      tags,
+      review_type: 'expert',
     });
 
     const savedReview = await this.reviewRepository.save(review);
@@ -90,7 +118,7 @@ export class CreateReviewUseCase {
     return savedReview;
   }
 
-  private async handleMerchantReview(userId: number, merchantId: number, orderId: number, rating: number, comment?: string) {
+  private async handleMerchantReview(userId: number, merchantId: number, orderId: number, rating: number, comment?: string, tags?: string[]) {
     const merchant = await this.merchantRepository.findOne({ where: { id: merchantId } });
     if (!merchant) throw new NotFoundException('Merchant not found');
 
@@ -124,6 +152,8 @@ export class CreateReviewUseCase {
       order_id: orderId || null,
       rating,
       comment,
+      tags,
+      review_type: 'merchant',
     });
 
     const savedReview = await this.reviewRepository.save(review);

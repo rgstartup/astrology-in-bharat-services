@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
+  Delete,
   Body,
   Param,
   UseGuards,
@@ -11,6 +13,8 @@ import {
 } from '@nestjs/common';
 import { ReviewsFacade } from '../../application/reviews.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CreateReviewDto } from '../dto/create-review.dto';
 
@@ -21,6 +25,7 @@ import { CreateReviewDto } from '../dto/create-review.dto';
 export class ReviewsController {
   constructor(private readonly reviewsFacade: ReviewsFacade) {}
 
+  // ─── User: Create any review (expert, merchant, platform) ───────────────────
   @Post()
   @UseGuards(JwtAuthGuard)
   async createReview(
@@ -30,6 +35,15 @@ export class ReviewsController {
     return this.reviewsFacade.createReview(userId, body);
   }
 
+  // ─── Public: Get approved platform reviews for homepage ─────────────────────
+  @Get('platform/approved')
+  async getApprovedPlatformReviews(
+    @Query('limit', new DefaultValuePipe(6), ParseIntPipe) limit: number,
+  ) {
+    return this.reviewsFacade.getApprovedPlatformReviews(limit);
+  }
+
+  // ─── Public: Expert reviews ─────────────────────────────────────────────────
   @Get('expert/:expertId')
   async getReviews(
     @Param('expertId', ParseIntPipe) expertId: number,
@@ -44,6 +58,7 @@ export class ReviewsController {
     return this.reviewsFacade.getReviewsStats(expertId);
   }
 
+  // ─── Public: Merchant reviews ────────────────────────────────────────────────
   @Get('merchant/:merchantId')
   async getMerchantReviews(
     @Param('merchantId', ParseIntPipe) merchantId: number,
@@ -51,5 +66,47 @@ export class ReviewsController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
     return this.reviewsFacade.getMerchantReviews(merchantId, page, limit);
+  }
+
+  // ─── Admin: Get all reviews (with filters) ───────────────────────────────────
+  @Get('admin/all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async adminGetAllReviews(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(15), ParseIntPipe) limit: number,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('ratingType') ratingType?: string,
+    @Query('review_type') review_type?: string,
+  ) {
+    return this.reviewsFacade.getAdminReviews({ page, limit, status, search, ratingType, review_type });
+  }
+
+  // ─── Admin: Get reviews stats ─────────────────────────────────────────────────
+  @Get('admin/stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async adminGetStats() {
+    return this.reviewsFacade.getAllReviewsStats();
+  }
+
+  // ─── Admin: Approve / reject a review ────────────────────────────────────────
+  @Patch('admin/:id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('status') status: string,
+  ) {
+    return this.reviewsFacade.updateReviewStatus(id, status);
+  }
+
+  // ─── Admin: Delete a review ───────────────────────────────────────────────────
+  @Delete('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async deleteReview(@Param('id', ParseIntPipe) id: number) {
+    return this.reviewsFacade.deleteReview(id);
   }
 }
