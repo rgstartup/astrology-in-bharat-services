@@ -33,8 +33,7 @@ export class UpdateMerchantProfileDto {
   pincode?: string;
 
   @IsOptional()
-  @IsBoolean()
-  isOnline?: boolean;
+  isOnline?: any;
 
   @IsOptional()
   @IsString()
@@ -60,8 +59,7 @@ export class UpdateMerchantProfileDto {
   pan?: string;
 
   @IsOptional()
-  @IsBoolean()
-  isGstExempt?: boolean;
+  isGstExempt?: any;
 
   @IsOptional()
   @IsString()
