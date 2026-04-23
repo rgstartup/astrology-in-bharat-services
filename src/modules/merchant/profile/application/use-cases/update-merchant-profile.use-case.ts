@@ -96,9 +96,9 @@ export class UpdateMerchantProfileUseCase {
       if (dto.longitude !== undefined) profile.longitude = Number(dto.longitude);
 
       // Convert strings to booleans for multipart form data
-      const isOnline = dto.isOnline === true || (dto.isOnline as any) === 'true';
-      const statusChanged = dto.isOnline !== undefined && profile.isOnline !== isOnline;
-      if (dto.isOnline !== undefined) profile.isOnline = isOnline;
+      const isOnline = dto.isOnline === true || (dto.isOnline as any) === 'true' || (dto.isOnline as any) === 1;
+      const statusChanged = dto.isOnline !== undefined && !!profile.isOnline !== !!isOnline;
+      if (dto.isOnline !== undefined) profile.isOnline = !!isOnline;
 
       // Handle new verification fields
       if (dto.gstin) profile.gstin = dto.gstin;
