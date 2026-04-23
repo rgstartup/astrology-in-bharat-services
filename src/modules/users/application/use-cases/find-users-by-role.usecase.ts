@@ -8,15 +8,12 @@ export class FindUsersByRoleUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) { }
+  ) {}
 
   async execute(role: string, search?: string, page: number = 1, limit: number = 10) {
     const query = this.userRepository
       .createQueryBuilder('user')
-      .innerJoinAndSelect('user.roles', 'role')
-      .leftJoinAndSelect('user.profile_client', 'profile_client')
-      .leftJoinAndSelect('user.profile_expert', 'profile_expert')
-      .where('role.name = :role', { role });
+      .where('user.role = :role', { role });
 
     if (search) {
       query.andWhere('(user.name ILIKE :search OR user.email ILIKE :search)', {
@@ -29,11 +26,6 @@ export class FindUsersByRoleUseCase {
       .take(limit)
       .getManyAndCount();
 
-    return {
-      items,
-      total,
-      page,
-      lastPage: Math.ceil(total / limit),
-    };
+    return { items, total, page, lastPage: Math.ceil(total / limit) };
   }
 }

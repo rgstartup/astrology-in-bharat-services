@@ -1,22 +1,23 @@
-import { Injectable, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { Role } from '@/modules/role/entities/roles.entity';
 import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
 import { CreateAgentDto } from '../../presentation/dto/create-agent.dto';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+
 
 @Injectable()
 export class CreateAgentUseCase {
   constructor(
     private readonly dataSource: DataSource,
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(AgentProfile)
+    private readonly agentProfileRepository: Repository<AgentProfile>,
     private readonly cloudinaryService: CloudinaryService,
-  ) { }
+  ) {}
 
   async execute(
     dto: CreateAgentDto,
@@ -26,85 +27,67 @@ export class CreateAgentUseCase {
       pan_doc?: Express.Multer.File;
     },
   ) {
+    const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const suffix = crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
+    let avatarUrl: string | undefined;
+
+    if (files?.profile_pic) {
+      const uploadResult = await this.cloudinaryService.uploadImage(files.profile_pic);
+      avatarUrl = uploadResult.secure_url;
+    }
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      // 1. Check if user exists
-      const existingUser = await queryRunner.manager.findOne(User, {
-        where: { email: dto.email },
-      });
-      if (existingUser) {
-        throw new ConflictException('User with this email already exists');
-      }
-
-      // 2. Hash password
-      const hashedPassword = await argon2.hash(dto.password);
-
-      // 3. Find agent role
-      const agentRole = await queryRunner.manager.findOne(Role, {
-        where: { name: 'agent' },
-      });
-      if (!agentRole) {
-        throw new InternalServerErrorException('Agent role not found in system');
-      }
-
-      // 4. Create User
       const user = queryRunner.manager.create(User, {
+        better_auth_user_id: dto.better_auth_user_id,
         email: dto.email,
-        password: hashedPassword,
         name: dto.name,
-        roles: [agentRole],
-        email_verified_at: new Date(), // Admin created users are verified
+        role: 'agent',
+        uid: `AIB-AGT-${suffix}`,
+        avatar: avatarUrl,
       });
-
-      // Generate UID
-      const suffix = crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
-      user.uid = `AIB-AGT-${suffix}`;
-
-      // Handle profile pic upload
-      if (files?.profile_pic) {
-        const uploadResult = await this.cloudinaryService.uploadImage(files.profile_pic);
-        user.avatar = uploadResult.secure_url;
-      }
 
       const savedUser = await queryRunner.manager.save(User, user);
 
-      // 5. Create AgentProfile
+      let aadhaarDocUrl: string | undefined;
+      let panDocUrl: string | undefined;
+
+      if (files?.aadhaar_doc) {
+        const r = await this.cloudinaryService.uploadImage(files.aadhaar_doc);
+        aadhaarDocUrl = r.secure_url;
+      }
+      if (files?.pan_doc) {
+        const r = await this.cloudinaryService.uploadImage(files.pan_doc);
+        panDocUrl = r.secure_url;
+      }
+
       const agentProfile = queryRunner.manager.create(AgentProfile, {
         user_id: savedUser.id,
-        commission_rate: 10.00, // Default fixed rate as requested to remove from UI
+        commission_rate: 10.0,
         phone: dto.phone,
         address: dto.address,
         city: dto.city,
         state: dto.state,
         aadhaar_no: dto.aadhaar_no,
         pan_no: dto.pan_no,
+        aadhaar_doc: aadhaarDocUrl,
+        pan_doc: panDocUrl,
       });
 
-      // Handle document uploads
-      if (files?.aadhaar_doc) {
-        const uploadResult = await this.cloudinaryService.uploadImage(files.aadhaar_doc);
-        agentProfile.aadhaar_doc = uploadResult.secure_url;
-      }
-      if (files?.pan_doc) {
-        const uploadResult = await this.cloudinaryService.uploadImage(files.pan_doc);
-        agentProfile.pan_doc = uploadResult.secure_url;
-      }
-
       await queryRunner.manager.save(AgentProfile, agentProfile);
-
       await queryRunner.commitTransaction();
+
       return {
         success: true,
         message: 'Agent created successfully',
-        agent: {
-          id: savedUser.id,
-          uid: savedUser.uid,
-          email: savedUser.email,
-          name: savedUser.name,
-        },
+        agent: { id: savedUser.id, uid: savedUser.uid, email: savedUser.email, name: savedUser.name },
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();

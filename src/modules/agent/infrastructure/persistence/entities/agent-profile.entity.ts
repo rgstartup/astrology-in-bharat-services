@@ -62,7 +62,7 @@ export class AgentProfile {
     @Column({ nullable: true })
     pan_doc: string;
 
-    @OneToOne(() => User, (user) => user.agent_profile)
+    @OneToOne(() => User)
     @JoinColumn({ name: 'user_id' })
     user: User;
 

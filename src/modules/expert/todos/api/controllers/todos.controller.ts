@@ -13,7 +13,7 @@ import { TodosFacade } from '../../application/todos.facade';
 import { CreateTodoDto, UpdateTodoDto } from '../../infrastructure/persistence/dto/todo.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
 
 @Controller({
     path: 'expert/todos',
@@ -24,26 +24,26 @@ export class TodosController {
     constructor(private readonly todosFacade: TodosFacade) { }
 
     @Get()
-    findAll(@CurrentUser() user: User) {
-        return this.todosFacade.findAll(user.id);
+    findAll(@CurrentUser() user: AuthenticatedUser) {
+        return this.todosFacade.findAll(user.localUserId);
     }
 
     @Post()
-    create(@CurrentUser() user: User, @Body() dto: CreateTodoDto) {
-        return this.todosFacade.create(user.id, dto);
+    create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateTodoDto) {
+        return this.todosFacade.create(user.localUserId, dto);
     }
 
     @Patch(':id')
     update(
-        @CurrentUser() user: User,
+        @CurrentUser() user: AuthenticatedUser,
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateTodoDto,
     ) {
-        return this.todosFacade.update(user.id, id, dto);
+        return this.todosFacade.update(user.localUserId, id, dto);
     }
 
     @Delete(':id')
-    remove(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number) {
-        return this.todosFacade.remove(user.id, id);
+    remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIntPipe) id: number) {
+        return this.todosFacade.remove(user.localUserId, id);
     }
 }

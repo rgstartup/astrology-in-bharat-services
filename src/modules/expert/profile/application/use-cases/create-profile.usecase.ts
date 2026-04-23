@@ -2,7 +2,6 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { CreateProfileExpertDto } from '../../api/dto/profile-expert.dto';
 import { Address } from '@/common/address/address.entity';
 import { GetProfileUseCase } from './get-profile.usecase';
@@ -22,13 +21,13 @@ export class CreateProfileUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(user: User, dto: CreateProfileExpertDto, queryRunner?: QueryRunner) {
+  async execute(userId: string, dto: CreateProfileExpertDto, queryRunner?: QueryRunner) {
     const profileRepo = queryRunner ? queryRunner.manager.getRepository(ProfileExpert) : this.profileRepo;
     const addressRepo = queryRunner ? queryRunner.manager.getRepository(Address) : this.addressRepo;
 
     try {
       const exists = await profileRepo.findOne({
-        where: { user: { id: user.id } },
+        where: { better_auth_user_id: userId },
       });
 
       if (exists) {
@@ -36,7 +35,7 @@ export class CreateProfileUseCase {
       }
 
       const profileData: Partial<ProfileExpert> = {
-        user: { id: user.id } as any,
+        better_auth_user_id: userId,
         gender: dto.gender,
         date_of_birth: dto.date_of_birth
           ? new Date(dto.date_of_birth)
@@ -63,7 +62,7 @@ export class CreateProfileUseCase {
         detailed_experience: dto.detailed_experience,
         addresses:
           dto.addresses?.map((addr) =>
-            this.addressRepo.create({
+            addressRepo.create({
               line1:
                 [addr.line1, addr.line2].filter(Boolean).join(', ') ||
                 addr.house_no ||
@@ -82,22 +81,22 @@ export class CreateProfileUseCase {
       const profile = profileRepo.create(profileData);
       const savedProfile = await profileRepo.save(profile);
 
-      // Emit events
+      // Emit events using the string userId
       this.eventEmitter.emit(
         'expert.profile.updated',
-        new ProfileUpdatedEvent(user.id, savedProfile.id, dto),
+        new ProfileUpdatedEvent(userId, savedProfile.id, dto),
       );
 
       if (dto.is_available !== undefined) {
         this.eventEmitter.emit(
           'expert.status.changed',
-          new ExpertStatusChangedEvent(user.id, dto.is_available),
+          new ExpertStatusChangedEvent(userId, dto.is_available),
         );
       }
 
-      return this.getProfileUseCase.execute(user, queryRunner);
+      return this.getProfileUseCase.execute(userId, queryRunner);
     } catch (error) {
-      this.logger.error(`Failed to create profile for user: ${user.id}`, error.stack);
+      this.logger.error(`Failed to create profile for user: ${userId}`, error.stack);
       throw error;
     }
   }

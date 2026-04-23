@@ -17,7 +17,7 @@ export class GetDashboardStatsUseCase {
     @InjectRepository(CallSession) private readonly callSessionRepo: Repository<CallSession>,
   ) { }
 
-  async execute(userId: number, type: 'today' | 'total' = 'today') {
+  async execute(userId: string, type: 'today' | 'total' = 'today') {
     const expertProfile = await this.profileFacade.getExpertByUserId(userId);
 
     DashboardPolicy.ensureProfileExists(expertProfile);
@@ -50,7 +50,7 @@ export class GetDashboardStatsUseCase {
         where: { expert_id: expertId, status: In([CallSessionStatus.EXPIRED, CallSessionStatus.CANCELLED, CallSessionStatus.REJECTED]), created_at: MoreThanOrEqual(startOfToday) },
       });
 
-      const todayEarnings = await this.walletFacade.getTotalEarnings(userId, {
+      const todayEarnings = await this.walletFacade.getTotalEarnings(expertProfile.user_id, {
         startDate: startOfToday,
       });
 
@@ -80,7 +80,7 @@ export class GetDashboardStatsUseCase {
         where: { expert_id: expertId, status: In([CallSessionStatus.EXPIRED, CallSessionStatus.CANCELLED, CallSessionStatus.REJECTED]) },
       });
 
-      const totalEarnings = await this.walletFacade.getTotalEarnings(userId);
+      const totalEarnings = await this.walletFacade.getTotalEarnings(expertProfile.user_id);
 
       return {
         total_appointments: totalAppointments + totalCallAppointments,

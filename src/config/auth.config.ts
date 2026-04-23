@@ -8,6 +8,7 @@ export interface AuthConfig {
   googleClientId: string;
   googleClientSecret: string;
   googleCallbackUrl: string;
+  betterAuthUrl: string;
 }
 
 export default registerAs(
@@ -21,5 +22,6 @@ export default registerAs(
     googleCallbackUrl:
       process.env.GOOGLE_CALLBACK_URL ||
       'http://localhost:4000/api/v1/auth/google/callback',
+    betterAuthUrl: process.env.BETTER_AUTH_URL || 'http://localhost:3001',
   }),
 );

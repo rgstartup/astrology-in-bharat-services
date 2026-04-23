@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersController } from './presentation/controllers/users.controller';
 import { User } from './infrastructure/persistence/entities/user.entity';
-import { RolesModule } from '../role/roles.module';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { UserRepository } from './infrastructure/persistence/repositories/user.repository';
 import { CreateUserUseCase } from './application/use-cases/create-user.usecase';
 import { FindUserUseCase } from './application/use-cases/find-user.usecase';
@@ -16,10 +16,11 @@ import { FindUsersByRoleUseCase } from './application/use-cases/find-users-by-ro
 import { UsersFacade } from './application/users.facade';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), RolesModule],
+  imports: [TypeOrmModule.forFeature([User, ProfileExpert])],
   controllers: [UsersController],
   providers: [
     UsersFacade,
+    UserRepository,
     CreateUserUseCase,
     FindUserUseCase,
     UpdateUserUseCase,
@@ -29,8 +30,7 @@ import { UsersFacade } from './application/users.facade';
     GetUserStatsUseCase,
     GetUserExpertGrowthStatsUseCase,
     FindUsersByRoleUseCase,
-    UserRepository,
   ],
   exports: [UsersFacade, UserRepository, FindUserUseCase, TypeOrmModule],
 })
-export class UsersModule { }
+export class UsersModule {}

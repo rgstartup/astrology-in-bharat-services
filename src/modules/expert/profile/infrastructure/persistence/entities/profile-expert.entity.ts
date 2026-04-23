@@ -4,16 +4,16 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { ExpertPuja } from './expert-puja.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Entity('profile_experts')
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -23,11 +23,14 @@ export class ProfileExpert {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User, (user) => user.profile_expert)
+  @Column({ unique: true })
+  better_auth_user_id: string;
+
+  @ManyToOne(() => User, { nullable: true, eager: false })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ nullable: true, name: 'user_id' })
   user_id: number;
 
   @Column({
@@ -66,7 +69,7 @@ export class ProfileExpert {
   @Column({
     type: 'int',
     default: 0,
-    name: 'total_reviews'
+    name: 'total_reviews',
   })
   total_reviews: number;
 

@@ -9,7 +9,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
 
 @Controller({
     path: 'expert/earnings',
@@ -22,7 +22,7 @@ export class ExpertEarningsController {
 
     @Get('stats')
     getStats(
-        @CurrentUser() user: User,
+        @CurrentUser() user: AuthenticatedUser,
         @Query('range') range: string = 'last_6_months',
     ) {
         return this.earningsFacade.getStats(user.id, range);

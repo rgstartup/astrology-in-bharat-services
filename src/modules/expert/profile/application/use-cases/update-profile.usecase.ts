@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { UpdateProfileExpertDto } from '../../api/dto/profile-expert.dto';
 import { Address } from '@/common/address/address.entity';
 import { GetProfileUseCase } from './get-profile.usecase';
@@ -19,34 +18,32 @@ export class UpdateProfileUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
     @InjectRepository(Address)
     private readonly addressRepo: Repository<Address>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
     private readonly getProfileUseCase: GetProfileUseCase,
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(user: User, dto: UpdateProfileExpertDto) {
+  async execute(userId: string, dto: UpdateProfileExpertDto) {
     let profile = await this.profileRepo.findOne({
-      where: { user: { id: user.id } },
+      where: { better_auth_user_id: userId },
       relations: ['addresses'],
     });
 
     if (!profile) {
       // If profile doesn't exist (old users), create it on the fly
       profile = this.profileRepo.create({
-        user: { id: user.id } as any,
+        better_auth_user_id: userId,
         is_available: false,
       });
       await this.profileRepo.save(profile);
       profile = await this.profileRepo.findOne({
-        where: { user: { id: user.id } },
+        where: { better_auth_user_id: userId },
         relations: ['addresses'],
       });
     }
 
     ProfilePolicy.ensureProfileExists(profile);
 
-    this.logger.log(`Updating profile for user ${user.id}`);
+    this.logger.log(`Updating profile for user ${userId}`);
 
     if (dto.gender !== undefined) profile.gender = dto.gender;
     if (dto.date_of_birth !== undefined) {
@@ -122,29 +119,21 @@ export class UpdateProfileUseCase {
       );
     }
 
-    if (dto.avatar !== undefined) {
-      await this.userRepo.update(user.id, { avatar: dto.avatar });
-    }
-
-    if ((dto as any).name !== undefined) {
-      await this.userRepo.update(user.id, { name: (dto as any).name });
-    }
-
     const savedProfile = await this.profileRepo.save(profile);
 
     // Emit events
     this.eventEmitter.emit(
       'expert.profile.updated',
-      new ProfileUpdatedEvent(user.id, savedProfile.id, dto),
+      new ProfileUpdatedEvent(userId, savedProfile.id, dto),
     );
 
     if (dto.is_available !== undefined) {
       this.eventEmitter.emit(
         'expert.status.changed',
-        new ExpertStatusChangedEvent(user.id, dto.is_available),
+        new ExpertStatusChangedEvent(userId, dto.is_available),
       );
     }
 
-    return this.getProfileUseCase.execute(user);
+    return this.getProfileUseCase.execute(userId);
   }
 }

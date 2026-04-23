@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { PujaAppointment, PujaAppointmentStatus } from '../../infrastructure/persistence/entities/puja-appointment.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { UpdatePujaAppointmentStatusDto } from '../dtos/update-puja-appointment-status.dto';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
@@ -36,8 +37,15 @@ export class UpdatePujaAppointmentStatusUseCase {
           throw new NotFoundException('Appointment not found');
         }
 
+        // Resolve expert's numeric local user ID from better_auth_user_id
+        const expertLocalUser = await qr.manager.findOne(User, {
+            where: { better_auth_user_id: appointment.expert.better_auth_user_id },
+            select: ['id'],
+        });
+        const expertNumericUserId = expertLocalUser?.id;
+
         // Determine who is performing the update
-        const isExpert = appointment.expert.user_id === operatingUserId;
+        const isExpert = expertNumericUserId === operatingUserId;
         const isClient = appointment.user_id === operatingUserId;
 
         if (!isExpert && !isClient) {
@@ -64,35 +72,40 @@ export class UpdatePujaAppointmentStatusUseCase {
             );
             
             // 2. Credit Expert
-            await this.walletFacade.credit(
-                appointment.expert.user_id, 
-                appointment.price, 
-                TransactionPurpose.CONSULTATION, 
-                `puja_appt_${appointment.id}`,
-                qr
-            );
+            if (expertNumericUserId) {
+              await this.walletFacade.credit(
+                  expertNumericUserId,
+                  appointment.price,
+                  TransactionPurpose.CONSULTATION,
+                  `puja_appt_${appointment.id}`,
+                  qr
+              );
+            }
 
             // 3. Create Todo for Expert
-            try {
-                // Not strictly part of financial transaction, but good to have
-                await this.todosFacade.create(appointment.expert.user_id, {
-                    text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.user?.name || 'Client'} on ${appointment.scheduled_date} at ${appointment.scheduled_time}`
-                });
-            } catch (err) {
-                console.error('Failed to create todo for expert:', err);
+            if (expertNumericUserId) {
+              try {
+                  await this.todosFacade.create(expertNumericUserId, {
+                      text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.user?.name || 'Client'} on ${appointment.scheduled_date} at ${appointment.scheduled_time}`
+                  });
+              } catch (err) {
+                  console.error('Failed to create todo for expert:', err);
+              }
             }
 
             // 4. Notify Expert
-            try {
-                await this.notificationFacade.create(
-                    appointment.expert.user_id,
-                    NotificationType.GENERAL,
-                    'Puja Confirmed! (Paid)',
-                    `User ${appointment.user?.name || 'Client'} has paid for the ${appointment.puja?.name || 'Puja'} Ritual scheduled for ${appointment.scheduled_date}.`,
-                    { appointment_id: appointment.id, type: 'PUJA_CONFIRMED' }
-                );
-            } catch (err) {
-                console.error('Failed to notify expert of confirmation:', err);
+            if (expertNumericUserId) {
+              try {
+                  await this.notificationFacade.create(
+                      expertNumericUserId,
+                      NotificationType.GENERAL,
+                      'Puja Confirmed! (Paid)',
+                      `User ${appointment.user?.name || 'Client'} has paid for the ${appointment.puja?.name || 'Puja'} Ritual scheduled for ${appointment.scheduled_date}.`,
+                      { appointment_id: appointment.id, type: 'PUJA_CONFIRMED' }
+                  );
+              } catch (err) {
+                  console.error('Failed to notify expert of confirmation:', err);
+              }
             }
         }
 

@@ -1,17 +1,17 @@
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import {
   Check,
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Entity('profile_clients')
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -19,11 +19,14 @@ export class ProfileClient {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User, (user) => user.profile_client)
+  @Column({ unique: true })
+  better_auth_user_id: string;
+
+  @ManyToOne(() => User, { nullable: true, eager: false })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ nullable: true, name: 'user_id' })
   user_id: number;
 
   @Column({ nullable: true })

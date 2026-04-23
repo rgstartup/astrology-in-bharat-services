@@ -14,30 +14,18 @@ export class GetUserStatsUseCase {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const totalUsers = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'client' })
-      .getCount();
+    const totalUsers = await this.userRepository.count({ where: { role: 'client' } });
 
     const recentUsers = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'client' })
+      .where('user.role = :role', { role: 'client' })
       .andWhere('user.created_at >= :today', { today })
       .getCount();
 
-    const blockedUsers = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'client' })
-      .andWhere('user.is_blocked = :isBlocked', { isBlocked: true })
-      .getCount();
+    const blockedUsers = await this.userRepository.count({
+      where: { role: 'client', is_blocked: true },
+    });
 
-    return {
-      totalUsers,
-      recentUsers,
-      blockedUsers,
-    };
+    return { totalUsers, recentUsers, blockedUsers };
   }
 }

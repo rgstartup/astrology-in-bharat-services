@@ -7,8 +7,8 @@ import { Order, OrderStatus } from '@/modules/order/infrastructure/persistence/e
 import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { PujaAppointment, PujaAppointmentStatus } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
+import { UserRepository } from '@/modules/users/infrastructure/persistence/repositories/user.repository';
 
 
 @Injectable()
@@ -25,13 +25,18 @@ export class GetEarningsStatsUseCase {
         @InjectRepository(PujaAppointment)
         private pujaRepo: Repository<PujaAppointment>,
         private walletFacade: WalletFacade,
+        private userRepository: UserRepository,
     ) { }
 
-    async execute(userId: number, range: string) {
+    async execute(userId: string, range: string) {
         const expert = await this.expertRepo.findOne({
-            where: { user: { id: userId } },
+            where: { better_auth_user_id: userId },
         });
         if (!expert) return null;
+
+        const localUser = await this.userRepository.findByBetterAuthId(userId);
+        if (!localUser) return null;
+        const numericUserId = localUser.id;
 
         const expertId = expert.id;
         const now = new Date();
@@ -253,11 +258,11 @@ export class GetEarningsStatsUseCase {
             .sort((a, b) => b.amount - a.amount);
 
         // Wallet Data
-        const walletBalance = await this.walletFacade.getBalance(userId);
-        const { totalWithdrawn } = await this.walletFacade.getWithdrawalsStatus(userId);
+        const walletBalance = await this.walletFacade.getBalance(numericUserId);
+        const { totalWithdrawn } = await this.walletFacade.getWithdrawalsStatus(numericUserId);
 
         // Recent Transactions
-        const { items: transactions } = await this.walletFacade.getTransactions(userId, 1, 5, 'all');
+        const { items: transactions } = await this.walletFacade.getTransactions(numericUserId, 1, 5, 'all');
         const recentTransactions = transactions.map(t => ({
             id: t.id.toString(),
             date: t.created_at,

@@ -1,4 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { QueryRunner } from 'typeorm';
+import { User } from '../infrastructure/persistence/entities/user.entity';
+import { CreateUserDto, UpdateUserDto } from '../presentation/dto/user.dto';
 import { CreateUserUseCase } from './use-cases/create-user.usecase';
 import { FindUserUseCase } from './use-cases/find-user.usecase';
 import { UpdateUserUseCase } from './use-cases/update-user.usecase';
@@ -8,10 +11,6 @@ import { GetExpertStatsUseCase } from './use-cases/get-expert-stats.usecase';
 import { GetUserStatsUseCase } from './use-cases/get-user-stats.usecase';
 import { GetUserExpertGrowthStatsUseCase } from './use-cases/get-user-expert-growth-stats.usecase';
 import { FindUsersByRoleUseCase } from './use-cases/find-users-by-role.usecase';
-import { CreateUserDto } from '../presentation/dto/user.dto';
-import { User } from '../infrastructure/persistence/entities/user.entity';
-
-import { QueryRunner } from 'typeorm';
 
 @Injectable()
 export class UsersFacade {
@@ -25,7 +24,7 @@ export class UsersFacade {
     private readonly getUserStatsUseCase: GetUserStatsUseCase,
     private readonly getUserExpertGrowthStatsUseCase: GetUserExpertGrowthStatsUseCase,
     private readonly findUsersByRoleUseCase: FindUsersByRoleUseCase,
-  ) { }
+  ) {}
 
   create(dto: CreateUserDto, queryRunner?: QueryRunner) {
     return this.createUserUseCase.execute(dto, queryRunner);
@@ -39,16 +38,16 @@ export class UsersFacade {
     return this.findUserUseCase.findByEmail(email, queryRunner);
   }
 
-  findByEmailWithPassword(email: string, queryRunner?: QueryRunner) {
-    return this.findUserUseCase.findByEmailWithPassword(email, queryRunner);
-  }
-
   findById(id: number, queryRunner?: QueryRunner) {
     return this.findUserUseCase.findById(id, queryRunner);
   }
 
-  update(id: number, dto: Partial<User>, queryRunner?: QueryRunner) {
-    return this.updateUserUseCase.execute(id, dto, queryRunner);
+  findByBetterAuthId(betterAuthUserId: string, queryRunner?: QueryRunner) {
+    return this.findUserUseCase.findByBetterAuthId(betterAuthUserId, queryRunner);
+  }
+
+  update(id: number, dto: Partial<User | UpdateUserDto>, queryRunner?: QueryRunner) {
+    return this.updateUserUseCase.execute(id, dto as Partial<User>, queryRunner);
   }
 
   delete(id: number, queryRunner?: QueryRunner) {

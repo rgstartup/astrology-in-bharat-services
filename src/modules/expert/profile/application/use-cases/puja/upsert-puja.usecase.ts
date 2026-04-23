@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExpertPuja } from '../../../infrastructure/persistence/entities/expert-puja.entity';
 import { ProfileExpert } from '../../../infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { ExpertPujaDto } from '../../../api/dto/expert-puja.dto';
 import { GetProfileUseCase } from '../get-profile.usecase';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
@@ -21,9 +20,9 @@ export class UpsertPujaUseCase {
     private readonly cloudinaryService: CloudinaryService,
   ) { }
 
-  async execute(user: User, dto: ExpertPujaDto, id?: number) {
+  async execute(userId: string, dto: ExpertPujaDto, id?: number) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: user.id } },
+      where: { better_auth_user_id: userId },
     });
 
     if (!profile) {
@@ -69,6 +68,6 @@ export class UpsertPujaUseCase {
 
     await this.pujaRepo.save(puja);
 
-    return this.getProfileUseCase.execute(user);
+    return this.getProfileUseCase.execute(userId);
   }
 }

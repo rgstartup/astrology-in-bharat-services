@@ -5,25 +5,23 @@ import { UserRepository } from '../../infrastructure/persistence/repositories/us
 
 @Injectable()
 export class FindUserUseCase {
-  constructor(
-    private readonly userRepository: UserRepository,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async findById(id: number, queryRunner?: QueryRunner): Promise<User> {
-    const user = await this.userRepository.findById(id, true, queryRunner);
+    const user = await this.userRepository.findById(id, queryRunner);
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async findByBetterAuthId(betterAuthUserId: string, queryRunner?: QueryRunner): Promise<User | null> {
+    return this.userRepository.findByBetterAuthId(betterAuthUserId, queryRunner);
   }
 
   async findByEmail(email: string, queryRunner?: QueryRunner): Promise<User | null> {
     return this.userRepository.findByEmail(email, queryRunner);
   }
 
-  async findByEmailWithPassword(email: string, queryRunner?: QueryRunner): Promise<User | null> {
-    return this.userRepository.findByEmailWithPassword(email, queryRunner);
-  }
-
   async findAll(queryRunner?: QueryRunner): Promise<User[]> {
-      return this.userRepository.findAll(queryRunner);
+    return this.userRepository.findAll(queryRunner);
   }
 }

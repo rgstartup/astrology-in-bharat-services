@@ -1,6 +1,10 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAgentDto {
+  @IsNotEmpty()
+  @IsString()
+  better_auth_user_id: string;
+
   @IsNotEmpty()
   @IsString()
   name: string;
@@ -8,11 +12,6 @@ export class CreateAgentDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(6)
-  password: string;
 
   @IsOptional()
   @IsString()

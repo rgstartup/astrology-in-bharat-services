@@ -20,60 +20,32 @@ export class UserRepository extends BaseService<User> {
   }
 
   async findAll(queryRunner?: QueryRunner): Promise<User[]> {
-    return this.getRepo(queryRunner).find({
-      relations: ['roles', 'oauth_accounts'],
-    });
+    return this.getRepo(queryRunner).find();
   }
 
   async findByEmail(email: string, queryRunner?: QueryRunner): Promise<User | null> {
-    return this.getRepo(queryRunner).findOne({
-      where: { email },
-      relations: ['roles', 'profile_client', 'profile_expert'],
-    });
+    return this.getRepo(queryRunner).findOne({ where: { email } });
   }
 
   async findByEmailWithPassword(email: string, queryRunner?: QueryRunner): Promise<User | null> {
-    return this.getRepo(queryRunner)
-      .createQueryBuilder('user')
-      .addSelect('user.password')
-      .where('user.email = :email', { email })
-      .leftJoinAndSelect('user.roles', 'roles')
-      .getOne();
+    return this.getRepo(queryRunner).findOne({ where: { email } });
   }
 
-  async findById(id: number, all: boolean = true, queryRunner?: QueryRunner): Promise<User | null> {
-    return this.getRepo(queryRunner).findOne({
-      where: { id },
-      relations: {
-        roles: true,
-        oauth_accounts: all,
-        sessions: all,
-        profile_client: true,
-        profile_expert: true,
-      },
-    });
+  async findById(id: number, queryRunner?: QueryRunner): Promise<User | null> {
+    return this.getRepo(queryRunner).findOne({ where: { id } });
+  }
+
+  async findByBetterAuthId(betterAuthUserId: string, queryRunner?: QueryRunner): Promise<User | null> {
+    return this.getRepo(queryRunner).findOne({ where: { better_auth_user_id: betterAuthUserId } });
   }
 
   async update(id: number, data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
     const repo = this.getRepo(queryRunner);
-
-    // Remove relations from data if they present to avoid TypeORM issues with update
-    // For roles, we should use specific methods or save.
-    // But for now, let's try to save if we have complex data, or update if simple.
-    // However, the interface says `update`.
-    // To keep it simple and consistent with Service:
     await repo.update(id, data);
-
-    // Re-fetch to return the updated entity, ensuring we use the same transaction if present
-    const updatedUser = await repo.findOne({ where: { id } });
-    if (!updatedUser) {
-      throw new Error(`User with id ${id} not found after update`);
-    }
-    return updatedUser;
+    return repo.findOne({ where: { id } }) as Promise<User>;
   }
 
   async delete(id: number, queryRunner?: QueryRunner): Promise<void> {
-    const repo = this.getRepo(queryRunner);
-    await repo.delete(id);
+    await this.getRepo(queryRunner).delete(id);
   }
 }

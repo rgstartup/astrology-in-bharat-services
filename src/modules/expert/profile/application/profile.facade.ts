@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { CreateProfileExpertDto, UpdateProfileExpertDto } from '../api/dto/profile-expert.dto';
 import { QueryExpertDto } from '../api/dto/query-expert.dto';
 import { GetProfileUseCase } from './use-cases/get-profile.usecase';
@@ -40,20 +39,20 @@ export class ExpertProfileFacade {
 
   ) { }
 
-  async getProfile(user: User, queryRunner?: QueryRunner) {
-    return this.getProfileUseCase.execute(user, queryRunner);
+  async getProfile(userId: string, queryRunner?: QueryRunner) {
+    return this.getProfileUseCase.execute(userId, queryRunner);
   }
 
-  async createProfile(user: User, dto: CreateProfileExpertDto, queryRunner?: QueryRunner) {
-    return this.createProfileUseCase.execute(user, dto, queryRunner);
+  async createProfile(userId: string, dto: CreateProfileExpertDto, queryRunner?: QueryRunner) {
+    return this.createProfileUseCase.execute(userId, dto, queryRunner);
   }
 
-  async updateProfile(user: User, dto: UpdateProfileExpertDto) {
-    return this.updateProfileUseCase.execute(user, dto);
+  async updateProfile(userId: string, dto: UpdateProfileExpertDto) {
+    return this.updateProfileUseCase.execute(userId, dto);
   }
 
-  async updateStatus(user: User, isAvailable: boolean) {
-    return this.updateStatusUseCase.execute(user, isAvailable);
+  async updateStatus(userId: string, isAvailable: boolean) {
+    return this.updateStatusUseCase.execute(userId, isAvailable);
   }
 
   async listExperts(query: QueryExpertDto) {
@@ -64,24 +63,24 @@ export class ExpertProfileFacade {
     return this.getExpertByIdUseCase.execute(id);
   }
 
-  async updateKycStatus(expertId: number, status: string, reason?: string) {
-    return this.updateKycStatusUseCase.execute(expertId, status, reason);
+  async updateKycStatus(userId: number, status: string, reason?: string) {
+    return this.updateKycStatusUseCase.execute(userId, status, reason);
   }
 
   async getTopRatedExperts(limit: number = 3) {
     return this.getTopRatedExpertsUseCase.execute(limit);
   }
 
-  async getExpertByUserId(userId: number, queryRunner?: QueryRunner) {
+  async getExpertByUserId(userId: string, queryRunner?: QueryRunner) {
     return this.getExpertByUserIdUseCase.execute(userId, queryRunner);
   }
 
-  async upsertPuja(user: User, dto: ExpertPujaDto, id?: number) {
-    return this.upsertPujaUseCase.execute(user, dto, id);
+  async upsertPuja(userId: string, dto: ExpertPujaDto, id?: number) {
+    return this.upsertPujaUseCase.execute(userId, dto, id);
   }
 
-  async deletePuja(user: User, id: number) {
-    return this.deletePujaUseCase.execute(user, id);
+  async deletePuja(userId: string, id: number) {
+    return this.deletePujaUseCase.execute(userId, id);
   }
 
 

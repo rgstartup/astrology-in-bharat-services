@@ -166,8 +166,8 @@ export class ListExpertsUseCase {
           : [];
         plain.userId = ex.user?.id;
         plain.isAvailable = ex.is_available;
-        plain.is_online = ex.user?.id
-          ? this.expertGateway.isExpertOnline(ex.user.id)
+        plain.is_online = ex.better_auth_user_id
+          ? this.expertGateway.isExpertOnline(ex.better_auth_user_id)
           : false;
         plain.total_likes = (ex as any).total_likes || 0;
         plain.custom_services = ex.custom_services || [];

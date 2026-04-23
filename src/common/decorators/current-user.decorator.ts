@@ -3,14 +3,14 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
 
 export const CurrentUser = createParamDecorator(
-  <T extends keyof User | undefined>(
+  <T extends keyof AuthenticatedUser | undefined>(
     data: T | undefined,
     ctx: ExecutionContext,
   ) => {
-    const req = ctx.switchToHttp().getRequest<{ user?: User }>();
+    const req = ctx.switchToHttp().getRequest<{ user?: AuthenticatedUser }>();
 
     const user = req.user;
 
@@ -19,7 +19,7 @@ export const CurrentUser = createParamDecorator(
     }
 
     if (data) {
-      // TypeScript knows this may be undefined, so we cast as User[T] | undefined
+      // @ts-ignore
       return user[data];
     }
 

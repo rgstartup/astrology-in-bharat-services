@@ -2,53 +2,38 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../infrastructure/persistence/entities/user.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 
 @Injectable()
 export class GetExpertStatsUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) { }
+    @InjectRepository(ProfileExpert)
+    private readonly profileRepo: Repository<ProfileExpert>,
+  ) {}
 
   async execute() {
-    const totalExperts = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'expert' })
-      .getCount();
-
-    const activeExperts = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .leftJoin('user.profile_expert', 'profile')
-      .where('role.name = :role', { role: 'expert' })
-      .andWhere('profile.kyc_status = :status', { status: 'approved' })
-      .getCount();
-
-    const pendingExperts = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .leftJoin('user.profile_expert', 'profile')
-      .where('role.name = :role', { role: 'expert' })
-      .andWhere('profile.kyc_status = :status', { status: 'pending' })
-      .getCount();
-
-    const blockedExperts = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'expert' })
-      .andWhere('user.is_blocked = :isBlocked', { isBlocked: true })
-      .getCount();
-
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const totalExperts = await this.userRepository.count({ where: { role: 'expert' } });
+
+    const activeExperts = await this.profileRepo.count({
+      where: { kyc_status: 'approved' },
+    });
+
+    const pendingExperts = await this.profileRepo.count({
+      where: { kyc_status: 'pending' },
+    });
+
+    const blockedExperts = await this.userRepository.count({
+      where: { role: 'expert', is_blocked: true },
+    });
+
     const recentExperts = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'expert' })
+      .where('user.role = :role', { role: 'expert' })
       .andWhere('user.created_at >= :today', { today })
       .getCount();
 
@@ -58,9 +43,7 @@ export class GetExpertStatsUseCase {
       pendingExperts,
       blockedExperts,
       recentExperts,
-      trends: {
-        recent: recentExperts,
-      },
+      trends: { recent: recentExperts },
     };
   }
 }

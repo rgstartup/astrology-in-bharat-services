@@ -4,9 +4,7 @@ import { UserRepository } from '../../infrastructure/persistence/repositories/us
 
 @Injectable()
 export class DeleteUserUseCase {
-  constructor(
-    private readonly userRepository: UserRepository,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async execute(id: number, queryRunner?: QueryRunner): Promise<void> {
     await this.userRepository.delete(id, queryRunner);

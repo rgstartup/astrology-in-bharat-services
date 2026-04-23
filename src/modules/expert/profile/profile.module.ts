@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-
 import { ProfileExpert } from './infrastructure/persistence/entities/profile-expert.entity';
 import { Address } from '@/common/address/address.entity';
 import { ProfileController } from './api/controllers/profile.controller';
@@ -32,7 +30,7 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProfileExpert, User, Address, ExpertPuja]),
+    TypeOrmModule.forFeature([ProfileExpert, Address, ExpertPuja]),
     NodemailerModule,
     CloudinaryModule,
     ChatModule,
@@ -58,6 +56,11 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     KycStatusChangedHandler,
     ExpertStatusChangedHandler,
   ],
-  exports: [ExpertProfileFacade, ExpertGateway, GetExpertByIdUseCase, TypeOrmModule],
+  exports: [
+    ExpertProfileFacade,
+    ExpertGateway,
+    GetExpertByIdUseCase,
+    TypeOrmModule,
+  ],
 })
-export class ProfileModule { }
+export class ProfileModule {}

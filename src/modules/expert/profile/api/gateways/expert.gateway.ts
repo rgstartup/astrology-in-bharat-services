@@ -28,7 +28,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private logger: Logger = new Logger('ExpertGateway');
 
   // Track online experts: userId -> Set of socketIds
-  private expertSockets: Map<number, Set<string>> = new Map();
+  private expertSockets: Map<string, Set<string>> = new Map();
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -51,7 +51,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
           try {
             // Update database status to offline
-            const profile = await this.profileRepo.findOne({ where: { user: { id: userId } } });
+            const profile = await this.profileRepo.findOne({ where: { better_auth_user_id: userId } });
             if (profile) {
               profile.is_available = false;
               await this.profileRepo.save(profile);
@@ -74,7 +74,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('expert_online')
-  async handleExpertOnline(client: Socket, payload: { userId: number }) {
+  async handleExpertOnline(client: Socket, payload: { userId: string }) {
     if (!this.expertSockets.has(payload.userId)) {
       this.expertSockets.set(payload.userId, new Set());
     }
@@ -93,7 +93,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // However, to respect manual toggle, we only set to true if they just connected and were not in our tracking map
     if (!wasAlreadyOnline) {
       try {
-        const profile = await this.profileRepo.findOne({ where: { user: { id: payload.userId } } });
+        const profile = await this.profileRepo.findOne({ where: { better_auth_user_id: payload.userId } });
         if (profile) {
           profile.is_available = true;
           await this.profileRepo.save(profile);
@@ -113,7 +113,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('expert_offline')
-  async handleExpertOffline(client: Socket, payload: { userId: number }) {
+  async handleExpertOffline(client: Socket, payload: { userId: string }) {
     const socketIds = this.expertSockets.get(payload.userId);
     if (socketIds) {
       socketIds.delete(client.id);
@@ -121,7 +121,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.expertSockets.delete(payload.userId);
 
         try {
-          const profile = await this.profileRepo.findOne({ where: { user: { id: payload.userId } } });
+          const profile = await this.profileRepo.findOne({ where: { better_auth_user_id: payload.userId } });
           if (profile) {
             profile.is_available = false;
             await this.profileRepo.save(profile);
@@ -146,7 +146,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   // Method to manually notify status change (e.g., from ProfileService)
-  notifyStatusChange(userId: number, isAvailable: boolean) {
+  notifyStatusChange(userId: string, isAvailable: boolean) {
     this.server.emit('expert_status_changed', {
       expert_id: userId,
       is_available: isAvailable,
@@ -154,7 +154,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  notifyKycStatusUpdate(userId: number, status: string, reason?: string) {
+  notifyKycStatusUpdate(userId: string, status: string, reason?: string) {
     this.server.to(`expert_${userId}`).emit('kyc_status_updated', {
       status,
       reason,
@@ -162,7 +162,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   // Method to check if an expert is online
-  isExpertOnline(userId: number): boolean {
+  isExpertOnline(userId: string): boolean {
     return this.expertSockets.has(userId);
   }
 }

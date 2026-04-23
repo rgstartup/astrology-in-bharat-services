@@ -2,7 +2,6 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { ExpertGateway } from '../../api/gateways/expert.gateway';
 
 @Injectable()
@@ -15,18 +14,18 @@ export class GetProfileUseCase {
     private readonly expertGateway: ExpertGateway,
   ) { }
 
-  async execute(user: User, queryRunner?: QueryRunner) {
+  async execute(userId: string, queryRunner?: QueryRunner) {
     const repo = queryRunner ? queryRunner.manager.getRepository(ProfileExpert) : this.profileRepo;
     const profile = await repo.findOne({
-      where: { user: { id: user.id } },
-      relations: ['user', 'addresses', 'pujas'],
+      where: { better_auth_user_id: userId },
+      relations: ['addresses', 'pujas'],
     });
 
     if (!profile) {
-      throw new NotFoundException(`Expert profile for user ${user.id} not found`);
+      throw new NotFoundException(`Expert profile for user ${userId} not found`);
     }
 
-    this.logger.log(`Found profile for user ${user.id}: ${JSON.stringify(profile ? 'found' : 'not found')}`);
+    this.logger.log(`Found profile for user ${userId}: ${JSON.stringify(profile ? 'found' : 'not found')}`);
     
     const plain = { ...profile } as any;
 
@@ -53,14 +52,15 @@ export class GetProfileUseCase {
           .split(',')
           .map((s) => s.trim())
           .filter(Boolean)
+          .map((lang: string) => lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase())
         : [];
       
-      plain.userId = profile.user?.id;
+      plain.userId = profile.better_auth_user_id;
       plain.isAvailable = profile.is_available;
       
-      if (profile.user?.id) {
-          this.logger.log(`Checking online status for expert ${profile.user.id}`);
-          plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
+      if (profile.better_auth_user_id) {
+          this.logger.log(`Checking online status for expert ${profile.better_auth_user_id}`);
+          plain.is_online = this.expertGateway.isExpertOnline(profile.better_auth_user_id);
       } else {
           plain.is_online = false;
       }
@@ -68,9 +68,9 @@ export class GetProfileUseCase {
       plain.total_likes = (profile as any).total_likes || 0;
       plain.custom_services = profile.custom_services || [];
 
-      this.logger.log(`Returning profile for user ${user.id}`);
+      this.logger.log(`Returning profile for user ${userId}`);
     } catch (err) {
-      this.logger.error(`Error processing profile for user ${user.id}: ${err.message}`, err.stack);
+      this.logger.error(`Error processing profile for user ${userId}: ${err.message}`, err.stack);
       throw err;
     }
 

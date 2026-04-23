@@ -3,11 +3,13 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { AgentProfile } from '../../infrastructure/persistence/entities/agent-profile.entity';
 import { AgentListing } from '../../infrastructure/persistence/entities/agent-listing.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 import { DatabaseService } from '@/core/database/database.service';
-
 import { ConfigService } from '@nestjs/config';
 
 @Controller({
@@ -23,10 +25,10 @@ export class AgentController {
     ) { }
 
     @Get('profile')
-    async getProfile(@CurrentUser() user: User) {
+    async getProfile(@CurrentUser() user: AuthenticatedUser) {
         const profile = await this.db.transaction(async (queryRunner) => {
             return queryRunner.manager.findOne(AgentProfile, {
-                where: { user_id: user.id },
+                where: { user_id: user.localUserId },
                 relations: ['user'] as any
             });
         });
@@ -35,11 +37,11 @@ export class AgentController {
 
     @Patch('profile')
     async updateProfile(
-        @CurrentUser() user: User,
+        @CurrentUser() user: AuthenticatedUser,
         @Body() body: any
     ) {
         await this.db.transaction(async (queryRunner) => {
-            await queryRunner.manager.update(AgentProfile, { user_id: user.id }, {
+            await queryRunner.manager.update(AgentProfile, { user_id: user.localUserId }, {
                 bank_name: body.bank_name,
                 account_number: body.account_number,
                 ifsc_code: body.ifsc_code,
@@ -49,66 +51,59 @@ export class AgentController {
     }
 
     @Get('dashboard/stats')
-    async getStats(@CurrentUser() user: User) {
+    async getStats(@CurrentUser() user: AuthenticatedUser) {
         const stats = await this.db.transaction(async (queryRunner) => {
             const profile = await queryRunner.manager.findOne(AgentProfile, {
-                where: { user_id: user.id }
+                where: { user_id: user.localUserId }
             });
 
             const registeredUserIds = profile?.registered_user_ids || [];
             const registeredAstrologerIds = profile?.registered_astrologer_ids || [];
             const allRegisteredIds = [...registeredUserIds, ...registeredAstrologerIds];
 
-            // Count total users (astrologers + clients) referred by this agent or in their registered list
             const totalUsers = await queryRunner.manager
                 .createQueryBuilder(User, 'u')
                 .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
-                    agentId: Number(user.id),
+                    agentId: user.localUserId,
                     ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
                 })
                 .getCount();
 
-            // Count mandir/puja_shop listings by this agent
             const totalMandirs = await queryRunner.manager.count(AgentListing, {
-                where: { agent_id: user.id, type: 'mandir' }
+                where: { agent_id: user.localUserId, type: 'mandir' }
             });
             const totalPujaShops = await queryRunner.manager.count(AgentListing, {
-                where: { agent_id: user.id, type: 'puja_shop' }
+                where: { agent_id: user.localUserId, type: 'puja_shop' }
             });
 
-            // Re-fetch all referred users for commission calculation
-            const qbUsers = queryRunner.manager
+            const usersForStats: any[] = await queryRunner.manager
                 .createQueryBuilder(User, 'u')
-                .leftJoinAndSelect('u.profile_expert', 'pe')
-                .leftJoinAndSelect('u.profile_client', 'pc')
-                .leftJoinAndSelect('u.roles', 'role')
+                .leftJoinAndMapOne('u.profile_expert', ProfileExpert, 'pe', 'pe.user_id = u.id')
+                .leftJoinAndMapOne('u.profile_client', ProfileClient, 'pc', 'pc.user_id = u.id')
                 .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
-                    agentId: Number(user.id),
+                    agentId: user.localUserId,
                     ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
-                });
-            const usersForStats = await qbUsers.getMany();
+                })
+                .getMany();
 
             const clientCommPercent = this.configService.get<number>('COMMISION_FROM_CLIENT') || 0;
             const expertCommPercent = this.configService.get<number>('COMMISION_FROM_ASTROLOGER') || 0;
-
 
             let totalAgentCommission = 0;
             let astrologersCount = 0;
             let clientsCount = 0;
 
-            usersForStats.forEach(u => {
-                const isExpert = (u.roles || []).some(r => r.name.toLowerCase() === 'expert');
+            usersForStats.forEach((u: any) => {
+                const isExpert = u.role === 'expert';
                 if (isExpert) {
                     astrologersCount++;
                 } else {
                     clientsCount++;
                 }
 
-                // Commission from expert earnings
                 if (u.profile_expert) {
                     totalAgentCommission += (Number(u.profile_expert.total_earning || 0) * expertCommPercent) / 100;
                 }
-                // Commission from client spending (any user can have a client profile for spending)
                 if (u.profile_client) {
                     totalAgentCommission += (Number(u.profile_client.total_spending || 0) * clientCommPercent) / 100;
                 }
@@ -130,10 +125,9 @@ export class AgentController {
         return stats;
     }
 
-    // ── Create a mandir / puja_shop listing ──────────────────────────────
     @Post('listings')
     async createListing(
-        @CurrentUser() user: User,
+        @CurrentUser() user: AuthenticatedUser,
         @Body() body: any,
     ) {
         const allowedTypes = ['mandir', 'puja_shop'];
@@ -153,7 +147,7 @@ export class AgentController {
                 deity: body.deity?.trim() || null,
                 items: body.items?.trim() || null,
                 status: 'pending',
-                agent_id: user.id,
+                agent_id: user.localUserId,
             });
             return queryRunner.manager.save(AgentListing, newListing);
         });
@@ -165,17 +159,15 @@ export class AgentController {
         };
     }
 
-    // ── Get listings — users + mandir/puja_shop combined ─────────────────
     @Get('listings')
     async getListings(
-        @CurrentUser() user: User,
+        @CurrentUser() user: AuthenticatedUser,
         @Query('page') page: number = 1,
         @Query('limit') limit: number = 50,
         @Query('type') type?: string,
         @Query('search') search?: string,
     ) {
         const listings = await this.db.transaction(async (queryRunner) => {
-            // Determine which data sources to query
             const isPlaceType = type === 'mandir' || type === 'puja_shop';
             const isUserType = type === 'astrologer' || type === 'client';
             const isAll = !type || type === 'all';
@@ -185,32 +177,28 @@ export class AgentController {
             let placeData: any[] = [];
             let placeTotal = 0;
 
-            // Get agent profile to find registered IDs
             const agentProfile = await queryRunner.manager.findOne(AgentProfile, {
-                where: { user_id: user.id }
+                where: { user_id: user.localUserId }
             });
 
             const registeredUserIds = agentProfile?.registered_user_ids || [];
             const registeredAstrologerIds = agentProfile?.registered_astrologer_ids || [];
             const allRegisteredIds = [...registeredUserIds, ...registeredAstrologerIds];
 
-            // ── Fetch referred users (astrologer / client) ──
             if (isUserType || isAll) {
-                console.log(`[AgentListings] Fetching users for agentId: ${user.id} (Type: ${typeof user.id}), type: ${type}, search: ${search}`);
                 const qb = queryRunner.manager
                     .createQueryBuilder(User, 'u')
-                    .leftJoinAndSelect('u.roles', 'role')
-                    .leftJoinAndSelect('u.profile_expert', 'pe')
-                    .leftJoinAndSelect('u.profile_client', 'pc')
+                    .leftJoinAndMapOne('u.profile_expert', ProfileExpert, 'pe', 'pe.user_id = u.id')
+                    .leftJoinAndMapOne('u.profile_client', ProfileClient, 'pc', 'pc.user_id = u.id')
                     .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
-                        agentId: Number(user.id),
+                        agentId: user.localUserId,
                         ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
                     });
 
                 if (type === 'astrologer') {
-                    qb.andWhere('role.name = :role', { role: 'expert' });
+                    qb.andWhere('u.role = :role', { role: 'expert' });
                 } else if (type === 'client') {
-                    qb.andWhere('role.name = :role', { role: 'client' });
+                    qb.andWhere('u.role = :role', { role: 'client' });
                 }
 
                 if (search && search.trim()) {
@@ -227,14 +215,13 @@ export class AgentController {
                 }
 
                 const [users, total] = await qb.getManyAndCount();
-                console.log(`[AgentListings] Found ${total} users for agentId: ${user.id}`);
                 userTotal = total;
 
                 const clientCommPercent = this.configService.get<number>('COMMISION_FROM_CLIENT') || 0;
                 const expertCommPercent = this.configService.get<number>('COMMISION_FROM_ASTROLOGER') || 0;
 
-                userData = users.map(u => {
-                    const isExpert = (u.roles || []).some(r => r.name.toLowerCase() === 'expert');
+                userData = (users as any[]).map((u: any) => {
+                    const isExpert = u.role === 'expert';
                     let commission = 0;
 
                     if (u.profile_expert) {
@@ -261,11 +248,10 @@ export class AgentController {
                 });
             }
 
-            // ── Fetch mandir / puja_shop listings ──
             if (isPlaceType || isAll) {
                 const qb = queryRunner.manager
                     .createQueryBuilder(AgentListing, 'al')
-                    .where('al.agent_id = :agentId', { agentId: Number(user.id) });
+                    .where('al.agent_id = :agentId', { agentId: user.localUserId });
 
                 if (isPlaceType) {
                     qb.andWhere('al.type = :type', { type });
@@ -301,7 +287,6 @@ export class AgentController {
                 }));
             }
 
-            // Merge & Sort by date descending
             const allData = [...userData, ...placeData].sort((a, b) => {
                 const dateA = new Date(a.createdAt).getTime();
                 const dateB = new Date(b.createdAt).getTime();
@@ -309,7 +294,6 @@ export class AgentController {
             });
             const allTotal = userTotal + placeTotal;
 
-            // If paginating "all", slice here
             if (isAll) {
                 const start = (page - 1) * limit;
                 return {
@@ -330,4 +314,3 @@ export class AgentController {
         return listings;
     }
 }
-

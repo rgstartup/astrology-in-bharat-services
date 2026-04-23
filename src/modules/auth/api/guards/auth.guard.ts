@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { IS_PUBLIC } from '@/common/decorators/public.decorator';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard extends AuthGuard('better-auth') {
   constructor(private readonly reflector: Reflector) {
     super();
   }

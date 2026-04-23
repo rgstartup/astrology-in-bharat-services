@@ -85,9 +85,6 @@ export class GoogleAuthController {
       return res.redirect(`${errorBase}?error=google_auth_failed`);
     }
 
-    // Set cookies
-    this.setCookies(authData, res);
-
     // Determine redirection URL
     let frontendUrl = this.resolveFrontendUrl(req, authData);
 
@@ -118,32 +115,7 @@ export class GoogleAuthController {
       }
     }
 
-    // Redirect to frontend with tokens in URL (for frontend middleware to pick up)
-    const redirectUrl = `${frontendUrl}${frontendUrl.includes('?') ? '&' : '?'}accessToken=${authData.accessToken}&refreshToken=${authData.refreshToken}`;
-
-    return res.redirect(redirectUrl);
+    return res.redirect(frontendUrl);
   }
 
-  private setCookies(
-    tokens: { accessToken?: string; refreshToken?: string },
-    res: Response,
-  ) {
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 15 * 60 * 1000, // 15 minutes
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-  }
 }

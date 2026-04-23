@@ -5,7 +5,7 @@ import { GetDashboardStatsUseCase } from './use-cases/get-dashboard-stats.use-ca
 export class ExpertDashboardFacade {
   constructor(private readonly getDashboardStatsUseCase: GetDashboardStatsUseCase) {}
 
-  async getDashboardStats(userId: number, type: 'today' | 'total') {
+  async getDashboardStats(userId: string, type: 'today' | 'total') {
     return this.getDashboardStatsUseCase.execute(userId, type);
   }
 }

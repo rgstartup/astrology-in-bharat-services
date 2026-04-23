@@ -6,16 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { DEFAULT_ROLES, ROLES_KEY } from '@/common/decorators/roles.decorator';
-
-/**
- * JWT payload user shape from JwtStrategy.validate():
- *   { id: number, role: string, roles: { name: string }[] }
- */
-interface JwtUser {
-  id: number;
-  role?: string;
-  roles?: { name: string }[];
-}
+import { BetterAuthUser } from '@/common/types/better-auth-user.type';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -31,31 +22,28 @@ export class RolesGuard implements CanActivate {
     // If no roles are required → allow access
     if (!requiredRoles || requiredRoles.length === 0) return true;
 
-    const { user } = context.switchToHttp().getRequest<{ user?: JwtUser }>();
+    const { user } = context.switchToHttp().getRequest<{
+      user?: BetterAuthUser;
+    }>();
 
     if (!user) {
       throw new ForbiddenException('No user found in request');
     }
 
-    const userRole = user.role?.toLowerCase();
-    const userRoles = Array.isArray(user.roles)
-      ? user.roles.map((r) => r.name.toLowerCase())
-      : [];
+    if (!user.role) {
+      throw new ForbiddenException('No role assigned');
+    }
 
-    const normalizedRequiredRoles = requiredRoles.map(r => r.toLowerCase());
+    const userRole = user.role.toLowerCase();
+    const normalizedRequiredRoles = requiredRoles.map((r) => r.toLowerCase());
 
-    const hasRole =
-      (userRole && normalizedRequiredRoles.includes(userRole)) ||
-      userRoles.some((roleName) =>
-        normalizedRequiredRoles.includes(roleName),
-      );
+    const hasRole = normalizedRequiredRoles.includes(userRole);
 
     console.log('[RolesGuard] Decision:', {
       userId: user.id,
       userRole,
-      userRoles,
       requiredRoles: normalizedRequiredRoles,
-      hasRole
+      hasRole,
     });
 
     if (!hasRole) {

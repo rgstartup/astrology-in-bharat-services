@@ -6,6 +6,7 @@ import { NotificationFacade } from '@/modules/notification/application/notificat
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Injectable()
 export class CreditUseCase {
@@ -73,21 +74,21 @@ export class CreditUseCase {
       // 4. Update Expert Earning Tracking
       if (purpose === TransactionPurpose.CONSULTATION || purpose === TransactionPurpose.PRODUCT_PURCHASE) {
         try {
-          let expertProfile = await qr.manager.findOne(ProfileExpert, {
-            where: { user_id: userId },
-            select: ['id']
-          });
+          const localUser = await qr.manager.findOne(User, { where: { id: userId }, select: ['better_auth_user_id'] });
+          if (localUser?.better_auth_user_id) {
+            const expertProfile = await qr.manager.findOne(ProfileExpert, {
+              where: { better_auth_user_id: localUser.better_auth_user_id },
+              select: ['id'],
+            });
 
-          if (!expertProfile) {
-            expertProfile = qr.manager.create(ProfileExpert, { user_id: userId });
-            expertProfile = await qr.manager.save(ProfileExpert, expertProfile);
+            if (expertProfile) {
+              await qr.manager.createQueryBuilder()
+                .update(ProfileExpert)
+                .set({ total_earning: () => `COALESCE(total_earning, 0) + ${Number(amount)}` })
+                .where('id = :id', { id: expertProfile.id })
+                .execute();
+            }
           }
-
-          await qr.manager.createQueryBuilder()
-            .update(ProfileExpert)
-            .set({ total_earning: () => `COALESCE(total_earning, 0) + ${Number(amount)}` })
-            .where('id = :id', { id: expertProfile.id })
-            .execute();
         } catch (e) {
           this.logger.error(`[CREDIT_TX] Earning tracking failed: ${e.message}`);
         }

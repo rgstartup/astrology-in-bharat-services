@@ -36,8 +36,8 @@ export class GetExpertByIdUseCase {
       : [];
     plain.userId = expert.user?.id;
     plain.isAvailable = expert.is_available;
-    plain.is_online = expert.user?.id
-      ? this.expertGateway.isExpertOnline(expert.user.id)
+    plain.is_online = expert.better_auth_user_id
+      ? this.expertGateway.isExpertOnline(expert.better_auth_user_id)
       : false;
     plain.total_likes = (expert as any).total_likes || 0;
     plain.custom_services = expert.custom_services || [];

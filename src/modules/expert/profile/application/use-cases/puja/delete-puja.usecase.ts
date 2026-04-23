@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExpertPuja } from '../../../infrastructure/persistence/entities/expert-puja.entity';
 import { ProfileExpert } from '../../../infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Injectable()
 export class DeletePujaUseCase {
@@ -14,9 +13,9 @@ export class DeletePujaUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
   ) { }
 
-  async execute(user: User, id: number) {
+  async execute(userId: string, id: number) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: user.id } },
+      where: { better_auth_user_id: userId },
     });
 
     if (!profile) {

@@ -4,6 +4,7 @@ import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity'
 import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
 import { InsufficientBalanceError } from '../../domain/errors/insufficient-balance.error';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Injectable()
 export class DebitUseCase {
@@ -70,21 +71,21 @@ export class DebitUseCase {
       // 4. Update Client Spending Tracking
       if (purpose === TransactionPurpose.CONSULTATION || purpose === TransactionPurpose.PRODUCT_PURCHASE) {
         try {
-          let clientProfile = await qr.manager.findOne(ProfileClient, {
-            where: { user_id: userId },
-            select: ['id']
-          });
+          const localUser = await qr.manager.findOne(User, { where: { id: userId }, select: ['better_auth_user_id'] });
+          if (localUser?.better_auth_user_id) {
+            const clientProfile = await qr.manager.findOne(ProfileClient, {
+              where: { better_auth_user_id: localUser.better_auth_user_id },
+              select: ['id'],
+            });
 
-          if (!clientProfile) {
-            clientProfile = qr.manager.create(ProfileClient, { user_id: userId });
-            clientProfile = await qr.manager.save(ProfileClient, clientProfile);
+            if (clientProfile) {
+              await qr.manager.createQueryBuilder()
+                .update(ProfileClient)
+                .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
+                .where('id = :id', { id: clientProfile.id })
+                .execute();
+            }
           }
-
-          await qr.manager.createQueryBuilder()
-            .update(ProfileClient)
-            .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
-            .where('id = :id', { id: clientProfile.id })
-            .execute();
         } catch (e) {
           this.logger.error(`[DEBIT_TX] Spending tracking failed: ${e.message}`);
         }

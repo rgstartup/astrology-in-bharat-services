@@ -31,7 +31,7 @@ export class GetFilteredUsersUseCase {
 
     private buildBaseQuery(filters: FilterCriteria): SelectQueryBuilder<User> {
         const query = this.userRepo.createQueryBuilder('user')
-            .innerJoin('user.roles', 'role', 'role.name = :roleName', { roleName: 'client' })
+            .where('user.role = :roleName', { roleName: 'client' })
             .distinct(true);
 
 

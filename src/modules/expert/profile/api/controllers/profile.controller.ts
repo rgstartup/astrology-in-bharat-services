@@ -35,7 +35,7 @@ import { UpdateDocumentsExpertDto } from '../dto/expert-document.dto';
 import { UpdateExperienceExpertDto } from '../dto/detailed-experience.dto';
 import { QueryExpertDto } from '../dto/query-expert.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
 import { Public } from '@/common/decorators/public.decorator';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 
@@ -51,10 +51,10 @@ export class ProfileController {
   ) { }
 
   @Get()
-  getProfile(@CurrentUser() user: User) {
+  getProfile(@CurrentUser() user: AuthenticatedUser) {
     console.log('[ProfileController] GET /expert hit for user:', user.id);
     try {
-      return this.profileFacade.getProfile(user);
+      return this.profileFacade.getProfile(user.id);
     } catch (err) {
       console.error('[ProfileController] GET /expert ERROR:', err);
       throw err;
@@ -63,82 +63,82 @@ export class ProfileController {
 
   @Post()
   createProfile(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateProfileExpertDto,
   ) {
-    return this.profileFacade.createProfile(user, dto);
+    return this.profileFacade.createProfile(user.id, dto);
   }
 
   @Patch()
   updateProfile(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateProfileExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto);
+    return this.profileFacade.updateProfile(user.id, dto);
   }
 
   @Patch('personal-info')
   updatePersonalInfo(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdatePersonalInfoExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    return this.profileFacade.updateProfile(user.id, dto as any);
   }
 
   @Patch('pricing')
   updatePricing(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdatePricingExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    return this.profileFacade.updateProfile(user.id, dto as any);
   }
 
   @Patch('bank-details')
   updateBankDetails(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateBankDetailsExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    return this.profileFacade.updateProfile(user.id, dto as any);
   }
 
   @Patch('portfolio')
   updatePortfolio(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdatePortfolioExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    return this.profileFacade.updateProfile(user.id, dto as any);
   }
 
   @Patch('certificates')
   updateCertificates(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateCertificatesExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    return this.profileFacade.updateProfile(user.id, dto as any);
   }
 
   @Patch('documents')
   updateDocuments(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateDocumentsExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    return this.profileFacade.updateProfile(user.id, dto as any);
   }
 
   @Patch('experience')
   updateExperience(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateExperienceExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    return this.profileFacade.updateProfile(user.id, dto as any);
   }
 
   @Patch('status')
   updateStatus(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body('is_available') is_available: boolean,
   ) {
-    return this.profileFacade.updateStatus(user, is_available);
+    return this.profileFacade.updateStatus(user.id, is_available);
   }
 
   @Get('list')
@@ -156,20 +156,20 @@ export class ProfileController {
   @Post('puja')
   @Roles('expert')
   upsertPuja(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: ExpertPujaDto,
     @Query('id') id?: number,
   ) {
-    return this.profileFacade.upsertPuja(user, dto, id ? Number(id) : undefined);
+    return this.profileFacade.upsertPuja(user.id, dto, id ? Number(id) : undefined);
   }
 
   @Delete('puja/:id')
   @Roles('expert')
   deletePuja(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.profileFacade.deletePuja(user, id);
+    return this.profileFacade.deletePuja(user.id, id);
   }
 
   @Get('pujas/all')
@@ -191,7 +191,7 @@ export class ProfileController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     if (!file) {
       throw new BadRequestException('File is required');
@@ -245,7 +245,7 @@ export class ProfileController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocument(
     @UploadedFile() file: Express.Multer.File,
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.uploadFile(file, user);
   }

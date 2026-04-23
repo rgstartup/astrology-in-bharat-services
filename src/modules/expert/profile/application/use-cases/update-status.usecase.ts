@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { ExpertStatusChangedEvent } from '../../domain/events/profile-events';
@@ -21,9 +20,9 @@ export class UpdateStatusUseCase {
     private readonly chatFacade: ChatFacade,
   ) { }
 
-  async execute(user: User, isAvailable: boolean) {
+  async execute(userId: string, isAvailable: boolean) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: user.id } },
+      where: { better_auth_user_id: userId },
     });
 
     ProfilePolicy.ensureProfileExists(profile);
@@ -35,7 +34,7 @@ export class UpdateStatusUseCase {
       });
 
       if (activeSessionsCount > 0) {
-        this.logger.warn(`Expert ${user.email} tried to go offline with ${activeSessionsCount} active sessions.`);
+        this.logger.warn(`Expert ${userId} tried to go offline with ${activeSessionsCount} active sessions.`);
         throw new ActiveSessionOfflineError();
       }
     }
@@ -46,7 +45,7 @@ export class UpdateStatusUseCase {
     // Emit event
     this.eventEmitter.emit(
       'expert.status.changed',
-      new ExpertStatusChangedEvent(user.id, isAvailable),
+      new ExpertStatusChangedEvent(userId, isAvailable),
     );
 
     return { success: true, is_available: isAvailable };
