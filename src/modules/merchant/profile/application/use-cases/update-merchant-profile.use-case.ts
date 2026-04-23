@@ -81,8 +81,12 @@ export class UpdateMerchantProfileUseCase {
       }
 
       // Update basic details
-      if (dto.name) profile.shopName = dto.name;
-      if (dto.shopName) profile.shopName = dto.shopName; // Handle both name and shopName
+      if (dto.name || dto.shopName) {
+        const newName = dto.name || dto.shopName;
+        profile.shopName = newName;
+        // Also update the user entity name for consistency across the platform
+        await this.usersFacade.update(userId, { name: newName });
+      }
       if (dto.managerName) profile.managerName = dto.managerName;
       if (dto.phone) profile.phone = dto.phone;
       if (dto.address) profile.address = dto.address;

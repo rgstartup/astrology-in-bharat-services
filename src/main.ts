@@ -47,12 +47,12 @@ async function bootstrap() {
   // And capture rawBody for webhook signature verification
   const express = require('express');
   app.use(express.json({
-    limit: '10mb',
+    limit: '50mb',
     verify: (req, res, buf) => {
       req.rawBody = buf;
     },
   }));
-  app.use(express.urlencoded({ limit: '10mb', extended: true }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   app.setGlobalPrefix('api');
 

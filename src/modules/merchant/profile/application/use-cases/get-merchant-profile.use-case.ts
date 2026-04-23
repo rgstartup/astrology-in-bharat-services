@@ -69,7 +69,7 @@ export class GetMerchantProfileUseCase {
       exists: true,
       data: {
         id: profile.id,
-        name: profile.shopName || profile.user?.name,
+        name: profile.shopName || (profile as any).user?.name || '',
         managerName: profile.managerName,
         phone: profile.phone,
         address: profile.address,
