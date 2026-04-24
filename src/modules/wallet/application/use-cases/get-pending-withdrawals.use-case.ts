@@ -10,7 +10,7 @@ export class GetPendingWithdrawalsUseCase {
         private readonly withdrawalRepository: Repository<Withdrawal>,
     ) { }
 
-    async execute(page = 1, limit = 10, status?: string) {
+    async execute(limit = 10, offset = 0, status?: string) {
         const where: any = {};
         if (status && status !== 'all') {
             where.status = status;
@@ -22,12 +22,12 @@ export class GetPendingWithdrawalsUseCase {
             where,
             relations: ['user', 'bankAccount'],
             order: { created_at: 'DESC' },
-            skip: (page - 1) * limit,
+            skip: offset,
             take: limit,
         });
 
         return {
-            items: items.map(item => ({
+            data: items.map(item => ({
                 id: item.id,
                 amount: Number(item.amount),
                 status: item.status,
@@ -40,9 +40,11 @@ export class GetPendingWithdrawalsUseCase {
                     ifsc: item.bankAccount.ifsc_code,
                 } : null,
             })),
-            total,
-            page,
-            limit,
+            meta: {
+                totalCount: total,
+                limit,
+                offset
+            }
         };
     }
 }

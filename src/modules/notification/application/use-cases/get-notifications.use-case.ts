@@ -10,11 +10,15 @@ export class GetNotificationsUseCase {
         private readonly notificationRepo: Repository<Notification>,
     ) { }
 
-    async execute(userId: number) {
-        return this.notificationRepo.find({
+    async execute(userId: number, limit?: number, offset?: number) {
+        const [data, totalCount] = await this.notificationRepo.findAndCount({
             where: { user_id: userId },
             order: { created_at: 'DESC' },
+            take: limit,
+            skip: offset,
         });
+
+        return { data, totalCount };
     }
 
     async getUnreadCount(userId: number) {

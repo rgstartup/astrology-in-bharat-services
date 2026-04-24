@@ -39,8 +39,8 @@ export class OrderFacade {
     return this.setOrderRazorpayIdUseCase.execute(orderId, razorpayOrderId);
   }
 
-  async getUserOrders(userId: number) {
-    return this.getUserOrdersUseCase.execute(userId);
+  async getUserOrders(userId: number, limit?: number, offset?: number) {
+    return this.getUserOrdersUseCase.execute(userId, limit, offset);
   }
 
   async getOrderById(id: number, userId: number) {

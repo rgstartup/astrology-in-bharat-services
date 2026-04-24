@@ -86,8 +86,8 @@ export class WalletFacade {
     return this.releaseReservedUseCase.execute(userId, amount, referenceId, externalQueryRunner);
   }
 
-  async getTransactions(userId: number, page?: number, limit?: number, type?: string, purpose?: string) {
-    return this.getTransactionsUseCase.execute(userId, page, limit, type, purpose);
+  async getTransactions(userId: number, limit?: number, offset?: number, type?: string, purpose?: string) {
+    return this.getTransactionsUseCase.execute(userId, limit, offset, type, purpose);
   }
 
   async getTotalEarnings(userId: number, options: { startDate?: Date; endDate?: Date } = {}) {
@@ -102,16 +102,16 @@ export class WalletFacade {
     return this.getWithdrawalsStatusUseCase.execute(userId);
   }
 
-  async getWithdrawals(userId: number, page?: number, limit?: number) {
-    return this.getWithdrawalsUseCase.execute(userId, page, limit);
+  async getWithdrawals(userId: number, limit?: number, offset?: number) {
+    return this.getWithdrawalsUseCase.execute(userId, limit, offset);
   }
 
   async requestWithdrawal(userId: number, amount: number, bank_account_id?: number, idempotencyKey?: string, securityMetadata?: { ip?: string; ua?: string }) {
     return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id, idempotencyKey, securityMetadata);
   }
 
-  async getPendingWithdrawals(page?: number, limit?: number, status?: string) {
-    return this.getPendingWithdrawalsUseCase.execute(page, limit, status);
+  async getPendingWithdrawals(limit?: number, offset?: number, status?: string) {
+    return this.getPendingWithdrawalsUseCase.execute(limit, offset, status);
   }
 
   async updateWithdrawalStatus(id: number, status: WithdrawalStatus, adminId: number, remark?: string) {

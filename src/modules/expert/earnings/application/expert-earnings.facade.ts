@@ -21,8 +21,8 @@ export class ExpertEarningsFacade {
         return this.getWalletBalanceUseCase.execute(userId);
     }
 
-    async getTransactions(userId: number, page: number, limit: number, type: string) {
-        return this.getWalletTransactionsUseCase.execute(userId, page, limit, type);
+    async getTransactions(userId: number, limit: number, offset: number, type: string) {
+        return this.getWalletTransactionsUseCase.execute(userId, limit, offset, type);
     }
 
     async requestWithdrawal(userId: number, amount: number, bank_account_id: number, idempotencyKey?: string, securityMetadata?: { ip?: string; ua?: string }) {

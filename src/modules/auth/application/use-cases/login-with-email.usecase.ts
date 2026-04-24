@@ -28,16 +28,15 @@ export class LoginWithEmailUseCase {
       throw new UnauthorizedException('Invalid password. Please try again.');
     }
 
-    // Role Check: If user only has expert role and is trying to login to the main app
-    const hasClientRole = user.roles?.some(role => 
-      ['client', 'user', 'customer'].includes(role.name.toLowerCase())
-    );
-    const hasExpertRole = user.roles?.some(role => 
-      ['expert', 'astrologer'].includes(role.name.toLowerCase())
-    );
+    // Role Validation: Move logic to backend
+    if (dto.requiredRole) {
+      const hasRequiredRole = user.roles?.some(role => 
+        role.name.toLowerCase() === dto.requiredRole?.toLowerCase()
+      );
 
-    if (hasExpertRole && !hasClientRole) {
-      throw new ForbiddenException('Aap ek Expert hain. Kripya Expert Dashboard se login karein.');
+      if (!hasRequiredRole) {
+        throw new ForbiddenException(`Aapke paas ${dto.requiredRole} access nahi hai. Kripya sahi dashboard se login karein.`);
+      }
     }
 
     AuthPolicy.ensureCanLogin(user);

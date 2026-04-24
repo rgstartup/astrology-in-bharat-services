@@ -6,4 +6,8 @@ export class LoginDto {
 
   @IsString()
   password: string;
+
+  @IsString()
+  @IsOptional()
+  requiredRole?: string;
 }

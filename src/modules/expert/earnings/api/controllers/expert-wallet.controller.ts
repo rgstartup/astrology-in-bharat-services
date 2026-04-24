@@ -33,11 +33,11 @@ export class ExpertWalletController {
     @Get('transactions')
     getTransactions(
         @CurrentUser() user: User,
-        @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
         @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 10,
+        @Query('offset', new ParseIntPipe({ optional: true })) offset: number = 0,
         @Query('type') type: string = 'all',
     ) {
-        return this.earningsFacade.getTransactions(user.id, page, limit, type);
+        return this.earningsFacade.getTransactions(user.id, limit, offset, type);
     }
 
     @Post('withdraw')

@@ -273,7 +273,7 @@ export class GetEarningsStatsUseCase {
         // Wallet and Stats
         const walletBalance = await this.walletFacade.getBalance(userId);
         const { totalWithdrawn } = await this.walletFacade.getWithdrawalsStatus(userId);
-        const { items: transactions } = await this.walletFacade.getTransactions(userId, 1, 5, 'all');
+        const { data: transactions } = await this.walletFacade.getTransactions(userId, 5, 0, 'all');
         const recentTransactions = transactions.map(t => ({
             id: t.id.toString(),
             date: t.created_at,

@@ -15,8 +15,8 @@ export class GetTransactionsUseCase {
 
   async execute(
     userId: number,
-    page = 1,
     limit = 10,
+    offset = 0,
     type = 'all',
     purpose?: string,
   ) {
@@ -35,7 +35,7 @@ export class GetTransactionsUseCase {
 
     const [items, total] = await query
       .orderBy('t.created_at', 'DESC')
-      .skip((page - 1) * limit)
+      .skip(offset)
       .take(limit)
       .getManyAndCount();
 
@@ -72,6 +72,13 @@ export class GetTransactionsUseCase {
       };
     }));
 
-    return { items: transactionsWithBankAccounts, total, page, limit };
+    return { 
+      data: transactionsWithBankAccounts, 
+      meta: {
+        totalCount: total,
+        limit,
+        offset
+      }
+    };
   }
 }

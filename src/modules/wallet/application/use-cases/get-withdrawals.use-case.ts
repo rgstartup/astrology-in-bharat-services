@@ -10,14 +10,21 @@ export class GetWithdrawalsUseCase {
     private readonly withdrawalRepository: Repository<Withdrawal>,
   ) { }
 
-  async execute(userId: number, page: number = 1, limit: number = 50) {
+  async execute(userId: number, limit: number = 50, offset: number = 0) {
     const [items, total] = await this.withdrawalRepository.findAndCount({
       where: { user_id: userId },
       order: { created_at: 'DESC' },
-      skip: (page - 1) * limit,
+      skip: offset,
       take: limit,
     });
 
-    return { items, total, page, limit };
+    return { 
+      data: items, 
+      meta: {
+        totalCount: total,
+        limit,
+        offset
+      }
+    };
   }
 }

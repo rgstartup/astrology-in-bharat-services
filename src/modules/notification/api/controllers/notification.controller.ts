@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Delete, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Delete, UseGuards, ParseIntPipe, Query } from '@nestjs/common';
 import { NotificationFacade } from '../../application/notification.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -13,8 +13,23 @@ export class NotificationController {
     constructor(private readonly notificationFacade: NotificationFacade) { }
 
     @Get()
-    async getNotifications(@CurrentUser() user: User) {
-        return this.notificationFacade.getUserNotifications(user.id);
+    async getNotifications(
+        @CurrentUser() user: User,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+    ) {
+        const limitNum = limit ? parseInt(limit, 10) : 20;
+        const offsetNum = offset ? parseInt(offset, 10) : 0;
+        const { data, totalCount } = await this.notificationFacade.getUserNotifications(user.id, limitNum, offsetNum);
+        return {
+            success: true,
+            data,
+            meta: {
+                totalCount,
+                limit: limitNum,
+                offset: offsetNum,
+            },
+        };
     }
 
     @Get('unread-count')

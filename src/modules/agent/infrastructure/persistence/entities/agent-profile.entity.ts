@@ -41,6 +41,9 @@ export class AgentProfile {
     @Column({ nullable: true })
     account_holder: string;
 
+    @Column({ type: 'jsonb', default: '[]' })
+    bank_accounts: any[];
+
     @Column({ nullable: true })
     phone: string;
 

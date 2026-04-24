@@ -63,8 +63,9 @@ export class AdminFacade {
     return this.chatFacade.adminTerminateSession(sessionId, adminId, userMessage, expertMessage);
   }
 
-  async getWithdrawals(page?: number, limit?: number, status?: string) {
-    return this.walletFacade.getPendingWithdrawals(page, limit, status);
+  async getWithdrawals(page: number = 1, limit: number = 10, status?: string) {
+    const offset = (page - 1) * limit;
+    return this.walletFacade.getPendingWithdrawals(limit, offset, status);
   }
 
   async updateWithdrawalStatus(id: number, status: WithdrawalStatus, adminId: number, remark?: string) {

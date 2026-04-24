@@ -5,6 +5,7 @@ import {
     Patch,
     Body,
     Param,
+    Query,
     UseGuards,
     ParseIntPipe,
 } from '@nestjs/common';
@@ -35,13 +36,32 @@ export class OrderController {
     }
 
     @Get('my-orders')
-    async getMyOrders(@CurrentUser() user: User) {
-        return this.orderFacade.getUserOrders(user.id);
+    async getMyOrders(
+        @CurrentUser() user: User,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+    ) {
+        const limitNum = limit ? parseInt(limit, 10) : 10;
+        const offsetNum = offset ? parseInt(offset, 10) : 0;
+        const { data, totalCount } = await this.orderFacade.getUserOrders(user.id, limitNum, offsetNum);
+        return {
+            success: true,
+            data,
+            meta: {
+                totalCount,
+                limit: limitNum,
+                offset: offsetNum,
+            },
+        };
     }
 
     @Get()
-    async getMyOrdersAlias(@CurrentUser() user: User) {
-        return this.orderFacade.getUserOrders(user.id);
+    async getMyOrdersAlias(
+        @CurrentUser() user: User,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+    ) {
+        return this.getMyOrders(user, limit, offset);
     }
 
     @Roles('admin')
@@ -88,8 +108,23 @@ export class OrderSingularController {
     }
 
     @Get('my-orders')
-    async getMyOrders(@CurrentUser() user: User) {
-        return this.orderFacade.getUserOrders(user.id);
+    async getMyOrders(
+        @CurrentUser() user: User,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+    ) {
+        const limitNum = limit ? parseInt(limit, 10) : 10;
+        const offsetNum = offset ? parseInt(offset, 10) : 0;
+        const { data, totalCount } = await this.orderFacade.getUserOrders(user.id, limitNum, offsetNum);
+        return {
+            success: true,
+            data,
+            meta: {
+                totalCount,
+                limit: limitNum,
+                offset: offsetNum,
+            },
+        };
     }
 
     // Admin endpoint also available on singular path for consistency if needed

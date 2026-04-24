@@ -61,6 +61,7 @@ export class AgentController {
                 account_number: body.account_number,
                 ifsc_code: body.ifsc_code,
                 account_holder: body.account_holder,
+                bank_accounts: body.bank_accounts,
             });
         });
         return { success: true };
@@ -121,10 +122,14 @@ export class AgentController {
                 return setting ? parseFloat(setting.value) : defaultValue;
             };
 
-            const clientCommPercent = getSettingValue(['COMMISSION_FROM_CLIENT', 'COMMISION_FROM_CLIENT'], 3);
-            const expertCommPercent = getSettingValue(['COMMISSION_FROM_ASTROLOGER', 'COMMISION_FROM_ASTROLOGER'], 3);
+            const expertCommPercent = profile?.commission_rate ? Number(profile.commission_rate) : getSettingValue(['COMMISSION_FROM_ASTROLOGER', 'COMMISION_FROM_ASTROLOGER'], 3);
+            const clientCommPercent = profile?.commission_rate ? Number(profile.commission_rate) : getSettingValue(['COMMISSION_FROM_CLIENT', 'COMMISION_FROM_CLIENT'], 3);
+            const shopCommPercent = profile?.commission_rate ? Number(profile.commission_rate) : getSettingValue(['COMMISSION_FROM_PUJA_SHOP', 'COMMISION_FROM_PUJA_SHOP'], 3);
 
-            let totalAgentCommission = 0;
+            let expertEarnings = 0;
+            let shopEarnings = 0;
+            let mandirEarnings = 0;
+            let clientEarnings = 0;
             let astrologersCount = 0;
             let clientsCount = 0;
             let merchantsAsPujaShopCount = 0;
@@ -141,21 +146,22 @@ export class AgentController {
                 if (u.profile_expert) {
                     const earning = Number(u.profile_expert.total_earning || 0);
                     if (!isNaN(earning)) {
-                        totalAgentCommission += (earning * expertCommPercent) / 100;
+                        expertEarnings += (earning * expertCommPercent) / 100;
                     }
                 }
                 if (u.profile_client) {
                     const spending = Number(u.profile_client.total_spending || 0);
                     if (!isNaN(spending)) {
-                        totalAgentCommission += (spending * clientCommPercent) / 100;
+                        clientEarnings += (spending * clientCommPercent) / 100;
                     }
                 }
+                // For merchants, commission would go here
             });
 
-            const realEarnings = await this.walletFacade.getTotalEarnings(user.id);
+            const currentBalance = await this.walletFacade.getBalance(user.id);
             const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(user.id);
 
-            return {
+            const stats = {
                 totalListings: totalUsers + totalMandirs + totalPujaShops,
                 activeListings: totalUsers,
                 expertsCount: astrologersCount,
@@ -163,10 +169,18 @@ export class AgentController {
                 mandirsCount: totalMandirs,
                 pujaShopsCount: totalPujaShops + merchantsAsPujaShopCount,
                 pendingPayout: withdrawalStats.pendingWithdrawals,
-                totalEarned: realEarnings,
-                commissionEarned: realEarnings,
+                totalEarned: Number(currentBalance || 0),
+                commissionEarned: Number(currentBalance || 0),
+                expertEarnings: Number(expertEarnings.toFixed(2)),
+                shopEarnings: Number(shopEarnings.toFixed(2)),
+                mandirEarnings: Number(mandirEarnings.toFixed(2)),
+                clientEarnings: Number(clientEarnings.toFixed(2)),
+                totalListingsEarnings: Number((expertEarnings + shopEarnings + mandirEarnings).toFixed(2)),
                 recentActivity: []
             };
+
+            console.log('--- AGENT DASHBOARD STATS ---', JSON.stringify(stats, null, 2));
+            return stats;
         });
     }
 
@@ -280,14 +294,15 @@ export class AgentController {
                     }
                 });
 
-                const getSettingValue = (key: string, defaultValue: number) => {
-                    const setting = settings.find(s => s.key === key);
+                const getSettingValue = (keys: string | string[], defaultValue: number) => {
+                    const keysArray = Array.isArray(keys) ? keys : [keys];
+                    const setting = settings.find(s => keysArray.includes(s.key));
                     return setting ? parseFloat(setting.value) : defaultValue;
                 };
 
-                const clientCommPercent = getSettingValue('COMMISION_FROM_CLIENT', 3);
-                const expertCommPercent = getSettingValue('COMMISION_FROM_ASTROLOGER', 3);
-                const merchantCommPercent = getSettingValue('COMMISION_FROM_PUJA_SHOP', 3);
+                const expertCommPercent = agentProfile?.commission_rate ? Number(agentProfile.commission_rate) : getSettingValue(['COMMISSION_FROM_ASTROLOGER', 'COMMISION_FROM_ASTROLOGER'], 3);
+                const clientCommPercent = agentProfile?.commission_rate ? Number(agentProfile.commission_rate) : getSettingValue(['COMMISSION_FROM_CLIENT', 'COMMISION_FROM_CLIENT'], 3);
+                const merchantCommPercent = agentProfile?.commission_rate ? Number(agentProfile.commission_rate) : getSettingValue(['COMMISSION_FROM_PUJA_SHOP', 'COMMISION_FROM_PUJA_SHOP'], 3);
 
                 userData = users.map(u => {
                     const roles = (u.roles || []).map(r => r.name.toLowerCase());
@@ -397,10 +412,11 @@ export class AgentController {
         @Query('page') page: number = 1,
         @Query('limit') limit: number = 10,
     ) {
-        const result = await this.walletFacade.getTransactions(user.id, page, limit, 'all', 'agent_commission');
+        const offset = (page - 1) * limit;
+        const result = await this.walletFacade.getTransactions(user.id, limit, offset, 'all', 'agent_commission');
 
         const resolvedData = await this.db.transaction(async (queryRunner) => {
-            return await Promise.all(result.items.map(async (t) => {
+            return await Promise.all(result.data.map(async (t) => {
                 let listing = 'Unknown';
                 let type: string = t.purpose || 'commission';
                 const refId = t.reference_id || '';
@@ -457,9 +473,9 @@ export class AgentController {
 
         return {
             data: resolvedData,
-            total: result.total,
-            page: result.page,
-            limit: result.limit
+            total: result.meta.totalCount,
+            page: page,
+            limit: result.meta.limit
         };
     }
 
@@ -473,7 +489,7 @@ export class AgentController {
     @Get('wallet/withdrawals')
     async getWithdrawals(@CurrentUser() user: User) {
         const result = await this.walletFacade.getWithdrawals(user.id);
-        return result.items; // Return array only for frontend compatibility
+        return result.data; // Return array only for frontend compatibility
     }
 
     @Post('wallet/withdraw')

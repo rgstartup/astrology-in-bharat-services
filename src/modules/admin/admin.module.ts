@@ -41,10 +41,12 @@ import { PujaAppointment } from '../puja-appointment/infrastructure/persistence/
 import { OrderItem } from '../order/infrastructure/persistence/entities/order-item.entity';
 import { Product } from '../product/infrastructure/persistence/entities/product.entity';
 import { ProfileMerchant } from '../merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { ProfileExpert } from '../expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { MerchantModule } from '../merchant/merchant.module';
 
 import { SystemSetting } from './infrastructure/persistence/entities/system-setting.entity';
 import { SettingsController } from './api/controllers/settings.controller';
+import { PublicStatsController } from './api/controllers/public-stats.controller';
 import { GetSupportSettingsUseCase } from './application/use-cases/get-support-settings.usecase';
 import { GetSystemSettingsUseCase } from './application/use-cases/get-system-settings.use-case';
 import { UpdateSystemSettingUseCase } from './application/use-cases/update-system-setting.use-case';
@@ -68,6 +70,7 @@ import { UpdateSystemSettingUseCase } from './application/use-cases/update-syste
       PujaAppointment,
       SystemSetting,
       ProfileMerchant,
+      ProfileExpert,
     ]),
 
     UsersModule,
@@ -81,7 +84,7 @@ import { UpdateSystemSettingUseCase } from './application/use-cases/update-syste
     ReviewsModule,
     SupportModule,
   ],
-  controllers: [AdminController, SettingsController],
+  controllers: [AdminController, SettingsController, PublicStatsController],
   providers: [
     AdminFacade,
     GetAdminDashboardStatsUseCase,

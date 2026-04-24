@@ -25,15 +25,17 @@ export class WalletController {
   @Get('transactions')
   getTransactions(
     @CurrentUser() user: User,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
     @Query('type') type: string = 'all',
     @Query('purpose') purpose?: string,
   ) {
+    const limitNum = parseInt(limit || '10', 10);
+    const offsetNum = parseInt(offset || '0', 10);
     return this.walletFacade.getTransactions(
       user.id,
-      page,
-      limit,
+      limitNum,
+      offsetNum,
       type,
       purpose,
     );

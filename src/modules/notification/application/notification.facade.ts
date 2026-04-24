@@ -24,8 +24,8 @@ export class NotificationFacade {
         return this.createNotificationUseCase.execute(userId, type, title, message, metadata);
     }
 
-    async getUserNotifications(userId: number) {
-        return this.getNotificationsUseCase.execute(userId);
+    async getUserNotifications(userId: number, limit?: number, offset?: number) {
+        return this.getNotificationsUseCase.execute(userId, limit, offset);
     }
 
     async markAsRead(id: number, userId: number) {

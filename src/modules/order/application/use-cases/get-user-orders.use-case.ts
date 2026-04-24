@@ -13,7 +13,7 @@ export class GetUserOrdersUseCase {
     private pujaRepo: Repository<PujaAppointment>,
   ) { }
 
-  async execute(userId: number) {
+  async execute(userId: number, limit?: number, offset?: number) {
     // 1. Fetch Product Orders
     const productOrders = await this.orderRepo.find({
       where: { user_id: userId },
@@ -76,6 +76,16 @@ export class GetUserOrdersUseCase {
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
 
-    return combined;
+    const totalCount = combined.length;
+    
+    // 5. Paginate
+    const paginatedData = (limit !== undefined && offset !== undefined)
+      ? combined.slice(offset, offset + limit)
+      : combined;
+
+    return {
+      data: paginatedData,
+      totalCount,
+    };
   }
 }
