@@ -20,7 +20,8 @@ export class MerchantFinanceController {
   @Get('stats')
   @HttpCode(HttpStatus.OK)
   async stats(@CurrentUser('id') userId: number) {
-    return this.getStats.execute(userId);
+    const stats = await this.getStats.execute(userId);
+    return { success: true, data: stats };
   }
 
   @Get('transactions')
@@ -31,7 +32,8 @@ export class MerchantFinanceController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ) {
-    return this.getTransactions.execute(userId, { search, page, limit });
+    const transactions = await this.getTransactions.execute(userId, { search, page, limit });
+    return { success: true, data: transactions };
   }
 
   @Post('withdraw')

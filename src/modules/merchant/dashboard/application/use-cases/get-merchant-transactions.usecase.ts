@@ -49,17 +49,15 @@ export class GetMerchantTransactionsUseCase {
 
         if (txn.purpose === TransactionPurpose.WITHDRAWAL) {
           type = 'withdrawal';
-          // For withdrawals, we might want to check the actual withdrawal status
-          // Since there's no direct link, we'll try to find a matching withdrawal by amount and time proximity
-          // or just default to 'paid' if it's a debit.
           status = 'paid'; 
-        } else if (txn.purpose === TransactionPurpose.PRODUCT_PURCHASE) {
+        } else if (txn.purpose === TransactionPurpose.PRODUCT_PURCHASE || txn.purpose === TransactionPurpose.CONSULTATION) {
           type = 'sale';
           status = 'completed';
-          // Extract order ID from reference_id like "order_123_fulfillment_credit"
-          if (txn.reference_id?.startsWith('order_')) {
+          // Extract order ID from reference_id like "order_item_123" or "order_cancel_debit_123"
+          if (txn.reference_id?.includes('order_')) {
             const parts = txn.reference_id.split('_');
-            orderId = `ORD-${parts[1]}`;
+            const idPart = parts.find(p => !isNaN(Number(p)));
+            if (idPart) orderId = `ORD-${idPart}`;
           }
         }
 
