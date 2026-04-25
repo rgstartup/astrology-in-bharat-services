@@ -21,8 +21,6 @@ async function bootstrap() {
         process.env.ASTROLOGER_FRONTEND_URL,
         process.env.AGENT_FRONTEND_URL,
         process.env.MERCHANT_FRONTEND_URL,
-    
-        'https://astrology-in-bharat-app-frontend-ad.vercel.app', // Added the reported origin
       ].filter(Boolean);
 
       // Allow if origin is in the list or is a Vercel preview/deployment
