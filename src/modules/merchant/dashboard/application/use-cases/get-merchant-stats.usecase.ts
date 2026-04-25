@@ -22,8 +22,10 @@ export class GetMerchantStatsUseCase {
     // 1. Total Orders - Lifetime (Distinct order_id where product.merchant_id = userId)
     const totalOrdersQuery = await this.orderItemRepo
       .createQueryBuilder('oi')
+      .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
       .where('p.merchant_id = :userId', { userId })
+      .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
       .select('COUNT(DISTINCT oi.order_id)', 'count')
       .getRawOne();
 
@@ -35,8 +37,10 @@ export class GetMerchantStatsUseCase {
     // 3. Monthly Earnings (Sum of price * quantity where product.merchant_id = userId for current month)
     const monthlyEarningsQuery = await this.orderItemRepo
       .createQueryBuilder('oi')
+      .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
       .where('p.merchant_id = :userId', { userId })
+      .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
       .andWhere('oi.created_at >= :startOfMonth', { startOfMonth })
       .select('SUM(oi.price * oi.quantity)', 'sum')
       .getRawOne();
@@ -44,8 +48,10 @@ export class GetMerchantStatsUseCase {
     // 4. Total Earnings (Sum of price * quantity where product.merchant_id = userId)
     const totalEarningsQuery = await this.orderItemRepo
       .createQueryBuilder('oi')
+      .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
       .where('p.merchant_id = :userId', { userId })
+      .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
       .select('SUM(oi.price * oi.quantity)', 'sum')
       .getRawOne();
 

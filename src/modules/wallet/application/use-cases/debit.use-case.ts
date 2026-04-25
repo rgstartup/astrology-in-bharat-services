@@ -17,6 +17,7 @@ export class DebitUseCase {
     purpose: TransactionPurpose,
     referenceId?: string,
     externalQueryRunner?: QueryRunner,
+    allowNegative: boolean = false,
   ): Promise<Wallet> {
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
 
@@ -31,18 +32,23 @@ export class DebitUseCase {
       this.logger.log(`[DEBIT_TX] User: ${userId}, Amount: ${amount}, Reference: ${referenceId}`);
 
       // 1. Fetch wallet with lock (verify existence)
-      const wallet = await qr.manager.findOne(Wallet, {
+      let wallet = await qr.manager.findOne(Wallet, {
         where: { user_id: userId },
         lock: { mode: 'pessimistic_write' },
       });
 
       if (!wallet) {
-        this.logger.error(`[DEBIT_TX] User ${userId} wallet not found`);
-        throw new BadRequestException('Wallet not found');
+        this.logger.log(`[DEBIT_TX] User ${userId} wallet not found. Creating shell wallet...`);
+        wallet = qr.manager.create(Wallet, {
+          user_id: userId,
+          balance: 0,
+          reserved_balance: 0,
+        });
+        wallet = await qr.manager.save(Wallet, wallet);
       }
 
       const balance = Number(wallet.balance) || 0;
-      if (balance < amount) {
+      if (!allowNegative && balance < amount) {
         this.logger.error(`[DEBIT_TX] User ${userId} insufficient balance. Has: ${balance}, Needs: ${amount}`);
         throw new InsufficientBalanceError();
       }

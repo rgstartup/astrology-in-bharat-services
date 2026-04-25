@@ -44,78 +44,62 @@ export class UpdateOrderStatusUseCase {
     }
 
     const oldStatus = order.status;
-    order.status = status;
-    if (cancellationReason) {
-      order.cancellation_reason = cancellationReason;
-    }
+    console.log(`[ORDER_STATUS_UPDATE] Start - ID: ${id}, NewStatus: ${status}, OldStatus: ${oldStatus}, MerchantId: ${merchantId}`);
+    
+    // --- ATOMIC TRANSACTION FOR ALL STATUS SIDE-EFFECTS ---
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    // --- NEW: Generate Delivery OTP when status becomes SHIPPED ---
-    if (status === OrderStatus.SHIPPED && !order.delivery_otp) {
+    try {
+      // 1. Update status and basic fields
+      order.status = status;
+      if (cancellationReason) {
+        order.cancellation_reason = cancellationReason;
+      }
+
+      // Generate Delivery OTP when status becomes SHIPPED
+      if (status === OrderStatus.SHIPPED && !order.delivery_otp) {
         order.delivery_otp = Math.floor(100000 + Math.random() * 900000).toString();
         console.log(`[ORDER_OTP] Generated OTP ${order.delivery_otp} for order #${id}`);
-    }
+      }
 
-    const updatedOrder = await this.orderRepo.save(order);
+      const updatedOrder = await queryRunner.manager.save(Order, order);
+      console.log(`[ORDER_STATUS_UPDATE] Status saved in transaction - ID: ${id}, Status: ${status}`);
 
-    // --- NEW: Tracking Logic for Manual Payment Updates ---
-    if (status === OrderStatus.PAID && oldStatus !== OrderStatus.PAID) {
-      const queryRunner = this.dataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
-      try {
-        const orderWithItems = await queryRunner.manager.findOne(Order, {
-          where: { id },
-          relations: ['items', 'items.product'],
-        });
-
-        if (orderWithItems) {
-          // 1. Track Client Spending
-          try {
-            let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
-              where: { user: { id: order.user_id } },
-              select: ['id']
-            });
-            if (!clientProfile) {
-              clientProfile = queryRunner.manager.create(ProfileClient, { user: { id: order.user_id } as any, user_id: order.user_id });
-              clientProfile = await queryRunner.manager.save(clientProfile);
-              console.log(`[ORDER_STATUS_TRACKING] Created shell profile for user ${order.user_id}`);
-            }
-
-            await queryRunner.manager.createQueryBuilder()
-              .update(ProfileClient)
-              .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(order.total_amount)}` })
-              .where('id = :id', { id: clientProfile.id })
-              .execute();
-            console.log(`[ORDER_STATUS_TRACKING] Updated spending for client profile ${clientProfile.id} with amount ${order.total_amount}`);
-          } catch (e) {
-            console.error('[ORDER_STATUS_TRACKING] Client spending error:', e);
+      // 2. Logic for PAID status (Manual update)
+      if (status === OrderStatus.PAID && oldStatus !== OrderStatus.PAID) {
+        try {
+          let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
+            where: { user: { id: order.user_id } },
+            select: ['id']
+          });
+          if (!clientProfile) {
+            clientProfile = queryRunner.manager.create(ProfileClient, { user: { id: order.user_id } as any, user_id: order.user_id });
+            clientProfile = await queryRunner.manager.save(clientProfile);
           }
 
+          await queryRunner.manager.createQueryBuilder()
+            .update(ProfileClient)
+            .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(order.total_amount)}` })
+            .where('id = :id', { id: clientProfile.id })
+            .execute();
+        } catch (e) {
+          console.error('[ORDER_STATUS_TRACKING] Client spending error:', e);
         }
-        await queryRunner.commitTransaction();
-      } catch (error) {
-        await queryRunner.rollbackTransaction();
-        console.error('Failed to update tracking for manual payment status update:', error);
-      } finally {
-        await queryRunner.release();
       }
-    }
 
-    // --- NEW: Stock Restoration Logic for Cancelled Orders ---
-    if (status === OrderStatus.CANCELLED && oldStatus !== OrderStatus.CANCELLED) {
-      const queryRunner = this.dataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
-      try {
-        const orderWithItems = await queryRunner.manager.findOne(Order, {
+      // 3. Logic for CANCELLED status (Stock restoration & Wallet refund)
+      if (status === OrderStatus.CANCELLED && oldStatus !== OrderStatus.CANCELLED) {
+        // Refetch order with relations inside transaction to be 100% sure
+        const orderInsideTx = await queryRunner.manager.findOne(Order, {
           where: { id },
-          relations: ['items', 'items.product'],
+          relations: ['items', 'items.product']
         });
 
-        if (orderWithItems) {
-          for (const item of orderWithItems.items) {
+        if (orderInsideTx) {
+          // a. Restore Stock
+          for (const item of orderInsideTx.items) {
             if (item.product) {
               const product = item.product;
               product.stock += item.quantity;
@@ -123,15 +107,78 @@ export class UpdateOrderStatusUseCase {
               console.log(`[ORDER_CANCELLED_STOCK] Restored ${item.quantity} to stock of product ${product.id}`);
             }
           }
+
+          // b. Wallet Logic: ONLY refund if order was PAID or PROCESSING/SHIPPED (implies payment received)
+          const eligibleForRefund = [OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.PACKED, OrderStatus.DELIVERED].includes(oldStatus);
+          
+          if (eligibleForRefund) {
+            const refundAmount = Number(orderInsideTx.total_amount);
+            console.log(`[ORDER_CANCELLED_WALLET] Refund eligible. Amount: ${refundAmount}, Client: ${orderInsideTx.user_id}`);
+
+            if (refundAmount > 0) {
+              const merchantAmounts: Record<number, number> = {};
+              for (const item of orderInsideTx.items) {
+                const mId = item.product?.merchant_id;
+                if (mId) {
+                  const itemTotal = Number(item.price) * item.quantity;
+                  merchantAmounts[mId] = (merchantAmounts[mId] || 0) + itemTotal;
+                }
+              }
+
+              // Fallback if merchant amounts calculation failed
+              if (Object.keys(merchantAmounts).length === 0) {
+                let fallbackMerchant = merchantId;
+                if (!fallbackMerchant && orderInsideTx.items.length > 0) {
+                  fallbackMerchant = orderInsideTx.items[0].product?.merchant_id;
+                }
+                if (fallbackMerchant) merchantAmounts[fallbackMerchant] = refundAmount;
+              }
+
+              for (const [mId, amount] of Object.entries(merchantAmounts)) {
+                const debitId = Number(mId);
+                console.log(`[ORDER_CANCELLED_WALLET] Debiting merchant ${debitId} for amount ${amount}`);
+                
+                await this.walletFacade.debit(
+                  debitId,
+                  amount,
+                  TransactionPurpose.REFUND,
+                  `order_cancel_debit_${orderInsideTx.id}`,
+                  queryRunner,
+                  true // allowNegative
+                );
+              }
+
+              // Credit Client (Refund)
+              await this.walletFacade.credit(
+                orderInsideTx.user_id,
+                refundAmount,
+                TransactionPurpose.REFUND,
+                `order_cancel_refund_${orderInsideTx.id}`,
+                queryRunner
+              );
+              console.log(`[ORDER_CANCELLED_WALLET] Refund successful`);
+            }
+          } else {
+            console.log(`[ORDER_CANCELLED_WALLET] Refund skipped: Order was in status ${oldStatus} (not paid)`);
+          }
         }
-        await queryRunner.commitTransaction();
-      } catch (error) {
-        await queryRunner.rollbackTransaction();
-        console.error('Failed to restore stock for cancelled order:', error);
-      } finally {
-        await queryRunner.release();
       }
+
+      await queryRunner.commitTransaction();
+      console.log(`[ORDER_STATUS_UPDATE] Transaction committed successfully - ID: ${id}`);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error(`[ORDER_STATUS_UPDATE] Transaction failed, rolled back - ID: ${id}, Error:`, error);
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
+
+    const updatedOrder = await this.orderRepo.findOne({ 
+      where: { id },
+      relations: ['items', 'items.product']
+    });
+
     // ---------------------------------------------------------
     // ------------------------------------------------------
 
@@ -238,9 +285,7 @@ export class UpdateOrderStatusUseCase {
       case OrderStatus.CANCELLED:
         notificationType = NotificationType.ORDER_CANCELLED;
         title = 'Order Cancelled';
-        message = cancellationReason
-          ? `Apologies, your order #${id} has been cancelled. Reason: ${cancellationReason}`
-          : `Apologies, your order #${id} has been cancelled by the merchant.`;
+        message = `your order is cancelled from merchant side and the amount of order is added to you astrology in bharat wallet`;
         emailSubject = `Order Cancelled - #${id}`;
         break;
       case OrderStatus.PROCESSING:

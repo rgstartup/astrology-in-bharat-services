@@ -70,8 +70,8 @@ export class WalletFacade {
     return this.creditUseCase.execute(userId, amount, purpose, referenceId, externalQueryRunner);
   }
 
-  async debit(userId: number, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any) {
-    return this.debitUseCase.execute(userId, amount, purpose, referenceId, externalQueryRunner);
+  async debit(userId: number, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any, allowNegative: boolean = false) {
+    return this.debitUseCase.execute(userId, amount, purpose, referenceId, externalQueryRunner, allowNegative);
   }
 
   async reserveBalance(userId: number, amount: number, referenceId: string, externalQueryRunner?: any) {

@@ -24,7 +24,7 @@ export class GetMerchantOrdersUseCase {
         'COUNT(oi.id) as total',
         `SUM(CASE WHEN o.status IN ('${OrderStatus.PENDING}', '${OrderStatus.PAID}', '${OrderStatus.PROCESSING}', '${OrderStatus.PACKED}') THEN 1 ELSE 0 END) as pending`,
         `SUM(CASE WHEN o.status = '${OrderStatus.SHIPPED}' THEN 1 ELSE 0 END) as shipped`,
-        'SUM(oi.price * oi.quantity) as revenue',
+        `SUM(CASE WHEN o.status != '${OrderStatus.CANCELLED}' THEN oi.price * oi.quantity ELSE 0 END) as revenue`,
       ])
       .getRawOne();
 
