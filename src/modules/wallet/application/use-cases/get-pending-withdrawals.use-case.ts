@@ -10,21 +10,35 @@ export class GetPendingWithdrawalsUseCase {
         private readonly withdrawalRepository: Repository<Withdrawal>,
     ) { }
 
-    async execute(limit = 10, offset = 0, status?: string) {
-        const where: any = {};
+    async execute(limit = 10, offset = 0, status?: string, userRole?: string) {
+        const query = this.withdrawalRepository.createQueryBuilder('w')
+            .leftJoinAndSelect('w.user', 'user')
+            .leftJoinAndSelect('w.bankAccount', 'bankAccount')
+            .orderBy('w.created_at', 'DESC')
+            .skip(offset)
+            .take(limit);
+
         if (status && status !== 'all') {
-            where.status = status;
+            query.andWhere('w.status = :status', { status });
         } else if (!status) {
-            where.status = WithdrawalStatus.PENDING;
+            query.andWhere('w.status = :status', { status: WithdrawalStatus.PENDING });
         }
 
-        const [items, total] = await this.withdrawalRepository.findAndCount({
-            where,
-            relations: ['user', 'bankAccount'],
-            order: { created_at: 'DESC' },
-            skip: offset,
-            take: limit,
-        });
+        if (userRole && userRole !== 'all') {
+            console.log(`[GetPendingWithdrawals] Filtering by role: ${userRole}`);
+            // Use innerJoin when filtering to ensure only users with the role are included
+            query.innerJoin('user.roles', 'role', 'LOWER(role.name) = LOWER(:roleName)', { roleName: userRole });
+        } else {
+            // Just for loading the roles relation if no filter
+            query.leftJoinAndSelect('user.roles', 'role');
+        }
+
+        const [items, total] = await query.getManyAndCount();
+        console.log(`[GetPendingWithdrawals] Found ${items.length} items. First item withdrawal_no:`, items.length > 0 ? items[0].withdrawal_no : 'N/A');
+
+
+
+
 
         return {
             data: items.map(item => ({
@@ -33,12 +47,20 @@ export class GetPendingWithdrawalsUseCase {
                 status: item.status,
                 remark: item.remark,
                 date: item.created_at,
-                expertName: item.user?.name || 'Unknown',
+                userName: item.user?.name || 'Unknown',
+                withdrawalNo: item.withdrawal_no,
+
+
                 bankAccount: item.bankAccount ? {
                     bankName: item.bankAccount.bank_name,
                     accountNumber: item.bankAccount.account_number,
                     ifsc: item.bankAccount.ifsc_code,
-                } : null,
+                } : (item.merchant_bank_name ? {
+                    bankName: item.merchant_bank_name,
+                    accountNumber: item.merchant_account_number,
+                    ifsc: item.merchant_ifsc,
+                } : null),
+
             })),
             meta: {
                 totalCount: total,

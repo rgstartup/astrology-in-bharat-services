@@ -10,31 +10,31 @@ export class GetAdminWithdrawalStatsUseCase {
         private readonly withdrawalRepository: Repository<Withdrawal>,
     ) { }
 
-    async execute() {
+    async execute(userRole?: string) {
+        const getBaseQuery = (statuses: WithdrawalStatus[]) => {
+            const query = this.withdrawalRepository.createQueryBuilder('w')
+                .where('w.status IN (:...statuses)', { statuses });
+            
+            if (userRole && userRole !== 'all') {
+                query.innerJoin('w.user', 'user')
+                    .innerJoin('user.roles', 'role', 'LOWER(role.name) = LOWER(:roleName)', { roleName: userRole });
+            }
+            return query;
+        };
+
+
         const [pendingCount, processingCount, successCount, rejectedCount] = await Promise.all([
-            this.withdrawalRepository.count({
-                where: { status: WithdrawalStatus.PENDING }
-            }),
-            this.withdrawalRepository.count({
-                where: { status: In([WithdrawalStatus.APPROVED, WithdrawalStatus.PROCESSING]) }
-            }),
-            this.withdrawalRepository.count({
-                where: { status: WithdrawalStatus.SUCCESS }
-            }),
-            this.withdrawalRepository.count({
-                where: { status: In([WithdrawalStatus.REJECTED, WithdrawalStatus.FAILED, WithdrawalStatus.CANCELLED, WithdrawalStatus.REVERSED]) }
-            })
+            getBaseQuery([WithdrawalStatus.PENDING]).getCount(),
+            getBaseQuery([WithdrawalStatus.APPROVED, WithdrawalStatus.PROCESSING]).getCount(),
+            getBaseQuery([WithdrawalStatus.SUCCESS]).getCount(),
+            getBaseQuery([WithdrawalStatus.REJECTED, WithdrawalStatus.FAILED, WithdrawalStatus.CANCELLED, WithdrawalStatus.REVERSED]).getCount(),
         ]);
 
-        const pendingAmountResult = await this.withdrawalRepository
-            .createQueryBuilder('w')
-            .where('w.status IN (:...status)', { status: [WithdrawalStatus.PENDING, WithdrawalStatus.PROCESSING] })
+        const pendingAmountResult = await getBaseQuery([WithdrawalStatus.PENDING, WithdrawalStatus.PROCESSING])
             .select('SUM(w.amount)', 'sum')
             .getRawOne();
 
-        const successAmountResult = await this.withdrawalRepository
-            .createQueryBuilder('w')
-            .where('w.status IN (:...status)', { status: [WithdrawalStatus.SUCCESS, WithdrawalStatus.COMPLETED] })
+        const successAmountResult = await getBaseQuery([WithdrawalStatus.SUCCESS, WithdrawalStatus.COMPLETED])
             .select('SUM(w.amount)', 'sum')
             .getRawOne();
 
@@ -46,5 +46,6 @@ export class GetAdminWithdrawalStatsUseCase {
             totalAmountPending: Number(pendingAmountResult?.sum || 0),
             totalAmountSuccess: Number(successAmountResult?.sum || 0),
         };
+
     }
 }

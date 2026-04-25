@@ -179,6 +179,34 @@ export class RequestWithdrawalUseCase {
       });
       await queryRunner.manager.save(withdrawal);
 
+      // G. Generate Custom IDs (transaction_no and withdrawal_no)
+      try {
+        const { User } = await import('../../../users/infrastructure/persistence/entities/user.entity');
+        const { generateTransactionNo } = await import('../../../../common/utils/transaction-no.util');
+
+        const user = await queryRunner.manager.createQueryBuilder(User, 'u')
+          .leftJoinAndSelect('u.roles', 'r')
+          .where('u.id = :userId', { userId })
+          .getOne();
+        
+        const primaryRole = user?.roles?.[0]?.name || 'user';
+        console.log(`[RequestWithdrawal] Generating IDs for role: ${primaryRole}`);
+        
+        // Update Transaction No
+        transaction.transaction_no = generateTransactionNo(primaryRole, TransactionPurpose.WITHDRAWAL, transaction.id);
+        console.log(`[RequestWithdrawal] Generated Transaction No: ${transaction.transaction_no}`);
+        await queryRunner.manager.save(transaction);
+
+        // Update Withdrawal No
+        withdrawal.withdrawal_no = generateTransactionNo(primaryRole, TransactionPurpose.WITHDRAWAL, withdrawal.id);
+        console.log(`[RequestWithdrawal] Generated Withdrawal No: ${withdrawal.withdrawal_no}`);
+        await queryRunner.manager.save(withdrawal);
+      } catch (err) {
+        console.error(`[RequestWithdrawal] FAILED to generate custom IDs:`, err);
+      }
+
+
+
       // G. Save Idempotency
       if (idempotencyKey) {
         const idempotency = queryRunner.manager.create(Idempotency, {

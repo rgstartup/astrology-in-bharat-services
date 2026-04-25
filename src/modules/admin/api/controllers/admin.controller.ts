@@ -195,14 +195,17 @@ export class AdminController {
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
     @Query('status') status?: string,
+    @Query('role') role?: string,
   ) {
-    return this.adminFacade.getWithdrawals(page, limit, status);
+    return this.adminFacade.getWithdrawals(page, limit, status, role);
   }
 
+
   @Get('withdrawals/stats')
-  async getWithdrawalStats() {
-    return this.adminFacade.getWithdrawalStats();
+  async getWithdrawalStats(@Query('role') role?: string) {
+    return this.adminFacade.getWithdrawalStats(role);
   }
+
 
   @Patch('withdrawals/:id/status')
   async updateWithdrawalStatus(

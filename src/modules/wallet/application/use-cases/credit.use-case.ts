@@ -6,6 +6,9 @@ import { NotificationFacade } from '@/modules/notification/application/notificat
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { generateTransactionNo } from '@/common/utils/transaction-no.util';
+
 
 @Injectable()
 export class CreditUseCase {
@@ -73,7 +76,22 @@ export class CreditUseCase {
         purpose: purpose,
         reference_id: referenceId,
       });
-      await qr.manager.save(Transaction, transaction);
+      const savedTx = await qr.manager.save(Transaction, transaction);
+
+      // 3.5 Generate Custom Transaction No
+      try {
+        const user = await qr.manager.createQueryBuilder(User, 'u')
+          .leftJoinAndSelect('u.roles', 'r')
+          .where('u.id = :userId', { userId })
+          .getOne();
+        
+        const primaryRole = user?.roles?.[0]?.name || 'user';
+        savedTx.transaction_no = generateTransactionNo(primaryRole, purpose, savedTx.id);
+        await qr.manager.save(Transaction, savedTx);
+      } catch (err) {
+        this.logger.error(`[CREDIT_TX] Failed to generate transaction no: ${err.message}`);
+      }
+
 
       // 4. Update Expert Earning Tracking
       if (purpose === TransactionPurpose.CONSULTATION || purpose === TransactionPurpose.PRODUCT_PURCHASE) {

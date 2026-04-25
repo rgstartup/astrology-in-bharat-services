@@ -17,7 +17,19 @@ export class GetWithdrawalsStatusUseCase {
 
     const pendingResult = await query
       .clone()
-      .andWhere('w.status IN (:...status)', { status: ['pending', 'processing', 'approved'] })
+      .andWhere('w.status = :status', { status: 'pending' })
+      .select('SUM(w.amount)', 'sum')
+      .getRawOne();
+
+    const approvedResult = await query
+      .clone()
+      .andWhere('w.status = :status', { status: 'approved' })
+      .select('SUM(w.amount)', 'sum')
+      .getRawOne();
+
+    const processingResult = await query
+      .clone()
+      .andWhere('w.status = :status', { status: 'processing' })
       .select('SUM(w.amount)', 'sum')
       .getRawOne();
 
@@ -28,8 +40,13 @@ export class GetWithdrawalsStatusUseCase {
       .getRawOne();
 
     return {
-      pendingWithdrawals: Number(pendingResult.sum || 0),
+      pendingAmount: Number(pendingResult.sum || 0),
+      approvedAmount: Number(approvedResult.sum || 0),
+      processingAmount: Number(processingResult.sum || 0),
       totalWithdrawn: Number(totalWithdrawnResult.sum || 0),
+      // For backward compatibility
+      pendingWithdrawals: Number(pendingResult.sum || 0) + Number(approvedResult.sum || 0) + Number(processingResult.sum || 0),
     };
   }
+
 }

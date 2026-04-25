@@ -63,18 +63,20 @@ export class AdminFacade {
     return this.chatFacade.adminTerminateSession(sessionId, adminId, userMessage, expertMessage);
   }
 
-  async getWithdrawals(page: number = 1, limit: number = 10, status?: string) {
+  async getWithdrawals(page: number = 1, limit: number = 10, status?: string, role?: string) {
     const offset = (page - 1) * limit;
-    return this.walletFacade.getPendingWithdrawals(limit, offset, status);
+    return this.walletFacade.getPendingWithdrawals(limit, offset, status, role);
   }
+
 
   async updateWithdrawalStatus(id: number, status: WithdrawalStatus, adminId: number, remark?: string) {
     return this.walletFacade.updateWithdrawalStatus(id, status, adminId, remark);
   }
 
-  async getWithdrawalStats() {
-    return this.walletFacade.getAdminWithdrawalStats();
+  async getWithdrawalStats(role?: string) {
+    return this.walletFacade.getAdminWithdrawalStats(role);
   }
+
 
   async getFilteredUsersCount(filters: FilterCriteria) {
     return this.getFilteredUsersUseCase.executeCount(filters);

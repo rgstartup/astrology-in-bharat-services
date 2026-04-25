@@ -27,6 +27,10 @@ export class Withdrawal {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({ name: 'withdrawal_no', nullable: true, unique: true })
+    withdrawal_no: string;
+
+
     @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })
     user: User;

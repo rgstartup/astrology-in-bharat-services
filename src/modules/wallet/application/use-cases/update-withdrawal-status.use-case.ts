@@ -27,6 +27,8 @@ export class UpdateWithdrawalStatusUseCase {
             throw new NotFoundException('Withdrawal request not found');
         }
 
+        const oldStatus = withdrawal.status;
+
         // Only allow status updates if not in a final state
         const isCurrentlyFinal = withdrawal.status === WithdrawalStatus.SUCCESS ||
             withdrawal.status === WithdrawalStatus.COMPLETED ||
@@ -53,23 +55,35 @@ export class UpdateWithdrawalStatusUseCase {
 
             // --- AUTO PAYOUT INTEGRATION ---
             if (status === WithdrawalStatus.APPROVED) {
-                const expert = await queryRunner.manager.findOne(ProfileExpert, {
+                // Try to find either Expert or Agent profile
+                let profile: any = await queryRunner.manager.findOne(ProfileExpert, {
                     where: { user_id: withdrawal.user_id },
                     relations: ['user']
                 });
 
-                if (!expert) throw new BadRequestException('Expert profile not found');
+                if (!profile) {
+                    profile = await queryRunner.manager.findOne('AgentProfile', {
+                        where: { user_id: withdrawal.user_id },
+                        relations: ['user']
+                    });
+                }
+
+                if (!profile) throw new BadRequestException('User profile (Expert or Agent) not found');
 
                 // 1. Get or Create Razorpay Contact
-                if (!expert.razorpay_contact_id) {
-                    expert.razorpay_contact_id = await this.razorpayPayoutService.getOrCreateContact({
-                        id: expert.user_id,
-                        name: expert.user?.name || 'Expert',
-                        email: expert.user?.email || undefined,
-                        phone_number: expert.phone_number || undefined
+                if (!profile.razorpay_contact_id) {
+                    profile.razorpay_contact_id = await this.razorpayPayoutService.getOrCreateContact({
+                        id: profile.user_id,
+                        name: profile.user?.name || 'Partner',
+                        email: profile.user?.email || undefined,
+                        phone_number: profile.phone_number || profile.phone || undefined
                     });
-                    await queryRunner.manager.save(ProfileExpert, expert);
+                    
+                    // Save to the correct table
+                    const entityName = profile.hasOwnProperty('expert_id') ? ProfileExpert : 'AgentProfile';
+                    await queryRunner.manager.save(entityName, profile);
                 }
+
 
                 // 2. Get or Create Fund Account
                 const bankAccount = await queryRunner.manager.findOne(BankAccount, {
@@ -93,7 +107,8 @@ export class UpdateWithdrawalStatusUseCase {
 
                 if (!bankAccount.razorpay_fund_account_id) {
                     bankAccount.razorpay_fund_account_id = await this.razorpayPayoutService.getOrCreateFundAccount(
-                        expert.razorpay_contact_id!,
+                        profile.razorpay_contact_id!,
+
                         {
                             name: accountName,
                             account: accountNumber,
@@ -127,11 +142,13 @@ export class UpdateWithdrawalStatusUseCase {
 
             // Trigger refund if moving TO a refund state FROM a non-refund state
             const refundStatuses = [WithdrawalStatus.REJECTED, WithdrawalStatus.FAILED, WithdrawalStatus.CANCELLED, WithdrawalStatus.REVERSED];
-            const wasRefunded = [WithdrawalStatus.REJECTED, WithdrawalStatus.FAILED, WithdrawalStatus.CANCELLED, WithdrawalStatus.REVERSED].includes(withdrawal.status);
+            const wasRefunded = [WithdrawalStatus.REJECTED, WithdrawalStatus.FAILED, WithdrawalStatus.CANCELLED, WithdrawalStatus.REVERSED].includes(oldStatus);
+
             const shouldRefund = refundStatuses.includes(status);
 
             if (shouldRefund && !wasRefunded) {
                 const userId = withdrawal.user_id;
+                console.log(`[RefundLogic] Attempting refund for withdrawal ${withdrawal.id}, user ${userId}, amount ${withdrawal.amount}`);
 
                 // Find wallet using manager to stay in transaction
                 let wallet = await queryRunner.manager.findOne('Wallet', {
@@ -143,6 +160,8 @@ export class UpdateWithdrawalStatusUseCase {
                     const amountToRefund = Number(withdrawal.amount);
                     wallet.balance = balance_before + amountToRefund;
                     const balance_after = wallet.balance;
+
+                    console.log(`[RefundLogic] Wallet found. Balance before: ${balance_before}, Refund: ${amountToRefund}, Balance after: ${balance_after}`);
 
                     await queryRunner.manager.save('Wallet', wallet);
 
@@ -158,8 +177,14 @@ export class UpdateWithdrawalStatusUseCase {
                     }) as any;
 
                     await queryRunner.manager.save('Transaction', transaction);
+                    console.log(`[RefundLogic] Transaction logged. ID: ${transaction.id}`);
+                } else {
+                    console.warn(`[RefundLogic] Wallet not found for user ${userId}`);
                 }
+            } else {
+                console.log(`[RefundLogic] Refund skipped. shouldRefund: ${shouldRefund}, wasRefunded: ${wasRefunded}`);
             }
+
 
             // Create Admin Audit Log
             const auditLog = queryRunner.manager.create(AdminAuditLog, {

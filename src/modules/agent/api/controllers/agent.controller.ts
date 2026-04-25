@@ -8,7 +8,7 @@ import { AgentProfile } from '../../infrastructure/persistence/entities/agent-pr
 import { AgentListing } from '../../infrastructure/persistence/entities/agent-listing.entity';
 import { DatabaseService } from '@/core/database/database.service';
 
-import { In } from 'typeorm';
+import { In, MoreThan } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entities/system-setting.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
@@ -68,24 +68,54 @@ export class AgentController {
     }
 
     @Get('dashboard/stats')
-    async getStats(@CurrentUser() user: User) {
+    async getStats(
+        @CurrentUser() user: User,
+        @Query('range') range: string = '30d',
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ) {
+        console.log('--- STATS PARAMS RECEIVED ---', { range, startDate, endDate });
+
         return this.db.transaction(async (queryRunner) => {
             const profile = await queryRunner.manager.findOne(AgentProfile, {
                 where: { user_id: user.id }
             });
+
+            let fromDate = "NOW() - INTERVAL '30 days'";
+            let chartInterval = "INTERVAL '30 days'";
+            let revenueInterval = "INTERVAL '6 months'";
+
+            if (range === '7d') {
+                fromDate = "NOW() - INTERVAL '7 days'";
+                chartInterval = "INTERVAL '7 days'";
+            } else if (range === '6m') {
+                fromDate = "NOW() - INTERVAL '6 months'";
+                chartInterval = "INTERVAL '6 months'";
+            } else if (range === '1y') {
+                fromDate = "NOW() - INTERVAL '1 year'";
+                chartInterval = "INTERVAL '1 year'";
+            } else if (range === 'custom' && startDate && endDate) {
+
+                fromDate = `'${startDate}'::date`;
+                const end = `'${endDate}'::date`;
+                chartInterval = `AGE(${end}, ${fromDate})`;
+            }
+
+            console.log('--- CALCULATED FROM DATE ---', fromDate);
+
 
             // Filter out any nulls or non-numeric values that might have crept into the arrays
             const registeredUserIds = (profile?.registered_user_ids || []).filter(id => id && typeof id === 'number');
             const registeredAstrologerIds = (profile?.registered_astrologer_ids || []).filter(id => id && typeof id === 'number');
             const allRegisteredIds = Array.from(new Set([...registeredUserIds, ...registeredAstrologerIds]));
 
-            // Count total users (astrologers + clients) referred by this agent or in their registered list
             const totalUsersQuery = queryRunner.manager
                 .createQueryBuilder(User, 'u')
-                .where('u.referred_by_id = :agentId', { agentId: user.id });
+                .where('u.referred_by_id = :agentId', { agentId: user.id })
+                .andWhere('u.created_at >= ' + fromDate);
 
             if (allRegisteredIds.length > 0) {
-                totalUsersQuery.orWhere('u.id IN (:...ids)', { ids: allRegisteredIds });
+                totalUsersQuery.orWhere('(u.id IN (:...ids) AND u.created_at >= ' + fromDate + ')', { ids: allRegisteredIds });
             }
 
             const totalUsers = await totalUsersQuery.getCount();
@@ -97,17 +127,20 @@ export class AgentController {
                 where: { agent_id: user.id, type: 'puja_shop' }
             });
 
+
             // Re-fetch all referred users for commission calculation
             const qbUsers = queryRunner.manager
                 .createQueryBuilder(User, 'u')
                 .leftJoinAndSelect('u.profile_expert', 'pe')
                 .leftJoinAndSelect('u.profile_client', 'pc')
                 .leftJoinAndSelect('u.roles', 'role')
-                .where('u.referred_by_id = :agentId', { agentId: user.id });
+                .where('u.referred_by_id = :agentId', { agentId: user.id })
+                .andWhere('u.created_at >= ' + fromDate);
 
             if (allRegisteredIds.length > 0) {
-                qbUsers.orWhere('u.id IN (:...ids)', { ids: allRegisteredIds });
+                qbUsers.orWhere('(u.id IN (:...ids) AND u.created_at >= ' + fromDate + ')', { ids: allRegisteredIds });
             }
+
 
             const usersForStats = await qbUsers.getMany();
 
@@ -133,6 +166,7 @@ export class AgentController {
             let astrologersCount = 0;
             let clientsCount = 0;
             let merchantsAsPujaShopCount = 0;
+            let usersWithActivity = 0;
 
             usersForStats.forEach(u => {
                 const roles = (u.roles || []).map(r => r.name.toLowerCase());
@@ -143,41 +177,132 @@ export class AgentController {
                 else if (isMerchant) merchantsAsPujaShopCount++;
                 else clientsCount++;
 
+                let hasActivity = false;
                 if (u.profile_expert) {
                     const earning = Number(u.profile_expert.total_earning || 0);
                     if (!isNaN(earning)) {
                         expertEarnings += (earning * expertCommPercent) / 100;
+                        if (earning > 0) hasActivity = true;
                     }
                 }
                 if (u.profile_client) {
                     const spending = Number(u.profile_client.total_spending || 0);
                     if (!isNaN(spending)) {
                         clientEarnings += (spending * clientCommPercent) / 100;
+                        if (spending > 0) hasActivity = true;
                     }
                 }
+                if (hasActivity) usersWithActivity++;
                 // For merchants, commission would go here
             });
 
             const currentBalance = await this.walletFacade.getBalance(user.id);
             const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(user.id);
 
+            // 1. Calculate Real Revenue Growth (Last 6 Months or Range)
+            const revenueGrowthRaw = await queryRunner.manager.query(`
+                SELECT 
+                    TO_CHAR(t.created_at, 'Mon') as name, 
+                    SUM(t.amount)::float as value,
+                    TO_CHAR(t.created_at, 'MM') as month_num
+                FROM transactions t
+                JOIN wallets w ON t.wallet_id = w.id
+                WHERE w.user_id = $1 AND t.purpose = 'agent_commission'
+                AND t.created_at >= ${fromDate}
+                GROUP BY name, month_num
+                ORDER BY month_num ASC
+            `, [user.id]);
+
+            // 2. Calculate Real Registration Activity (Based on Range)
+            const regInterval = range === '7d' ? '6 days' : range === '6m' ? '180 days' : '29 days';
+            const registrationActivityRaw = await queryRunner.manager.query(`
+                SELECT 
+                    ${range === '6m' || range === '1y' ? "TO_CHAR(d.day, 'Mon')" : "TO_CHAR(d.day, 'Dy')"} as day,
+                    COUNT(u.id) + COUNT(al.id) as count,
+                    d.day as date_val
+                FROM (
+                    SELECT generate_series(${fromDate}, NOW(), '1 day')::date as day
+                ) d
+                LEFT JOIN users u ON u.created_at::date = d.day AND u.referred_by_id = $1
+                LEFT JOIN agent_listings al ON al.created_at::date = d.day AND al.agent_id = $1
+                GROUP BY d.day, day
+                ORDER BY d.day ASC
+            `, [user.id]);
+
+            // 3. Calculate Total Earned for the selected period
+            const totalEarnedRange = await queryRunner.manager.query(`
+                SELECT SUM(t.amount)::float as total
+                FROM transactions t
+                JOIN wallets w ON t.wallet_id = w.id
+                WHERE w.user_id = $1 AND t.purpose = 'agent_commission'
+                AND t.created_at >= ${fromDate}
+            `, [user.id]);
+
+            // Calculate Rank based on total_earnings comparison with other agents
+            const agentsWithHigherEarnings = await queryRunner.manager.count(AgentProfile, {
+                where: {
+                    total_earnings: MoreThan(Number(profile?.total_earnings || 0))
+                }
+            });
+            const agentRank = `#${agentsWithHigherEarnings + 1}`;
+
+
+
+
+
             const stats = {
                 totalListings: totalUsers + totalMandirs + totalPujaShops,
                 activeListings: totalUsers,
+                totalUsers, // Map to Total Registration
                 expertsCount: astrologersCount,
                 clientsCount,
                 mandirsCount: totalMandirs,
                 pujaShopsCount: totalPujaShops + merchantsAsPujaShopCount,
-                pendingPayout: withdrawalStats.pendingWithdrawals,
-                totalEarned: Number(currentBalance || 0),
-                commissionEarned: Number(currentBalance || 0),
+                pendingPayout: withdrawalStats.pendingAmount,
+                totalWithdrawn: withdrawalStats.totalWithdrawn,
+                processingWithdrawals: withdrawalStats.processingAmount + withdrawalStats.approvedAmount,
+
+                totalEarned: Number(totalEarnedRange[0]?.total || 0),
+                commissionEarned: Number(totalEarnedRange[0]?.total || 0),
                 expertEarnings: Number(expertEarnings.toFixed(2)),
                 shopEarnings: Number(shopEarnings.toFixed(2)),
                 mandirEarnings: Number(mandirEarnings.toFixed(2)),
                 clientEarnings: Number(clientEarnings.toFixed(2)),
                 totalListingsEarnings: Number((expertEarnings + shopEarnings + mandirEarnings).toFixed(2)),
-                recentActivity: []
+                successRate: totalUsers > 0 ? ((usersWithActivity / totalUsers) * 100).toFixed(1) + "%" : "0%",
+                rank: agentRank,
+                revenueGrowth: revenueGrowthRaw.length > 0 ? revenueGrowthRaw : [
+                    { name: "No Data", value: 0 }
+                ],
+                registrationActivity: registrationActivityRaw.map(r => ({
+                    day: r.day,
+                    count: Number(r.count || 0)
+                })),
+                recentActivity: [
+                    ...usersForStats.slice(0, 5).map(u => ({
+                        id: u.id,
+                        name: u.name,
+                        type: (u.roles || []).map(r => r.name)[0] || 'User',
+                        date: u.created_at,
+                        action: 'Registration'
+                    })),
+                    ...(await queryRunner.manager.find(AgentListing, {
+                        where: { agent_id: user.id },
+                        order: { created_at: 'DESC' },
+                        take: 5
+                    })).map(al => ({
+                        id: al.id,
+                        name: al.name,
+                        type: al.type,
+                        date: al.created_at,
+                        action: 'Listing'
+                    }))
+                ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10)
             };
+
+
+
+
 
             console.log('--- AGENT DASHBOARD STATS ---', JSON.stringify(stats, null, 2));
             return stats;
@@ -488,8 +613,15 @@ export class AgentController {
 
     @Get('wallet/withdrawals')
     async getWithdrawals(@CurrentUser() user: User) {
-        const result = await this.walletFacade.getWithdrawals(user.id);
-        return result.data; // Return array only for frontend compatibility
+        console.log(`[AgentController] Fetching withdrawals for user: ${user.id}`);
+        try {
+            const result = await this.walletFacade.getWithdrawals(user.id);
+            console.log(`[AgentController] Found ${result.data.length} withdrawals`);
+            return result.data;
+        } catch (err) {
+            console.error(`[AgentController] Error fetching withdrawals:`, err);
+            throw err;
+        }
     }
 
     @Post('wallet/withdraw')
@@ -557,11 +689,11 @@ export class AgentController {
 
             const currentBalance = await this.walletFacade.getBalance(user.id);
             const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(user.id);
-            
+
             // Total money already settled = current balance + total withdrawn + pending withdrawals
-            const totalAlreadyPaidOut = (Number(currentBalance) || 0) + 
-                                       (Number(withdrawalStats.totalWithdrawn) || 0) + 
-                                       (Number(withdrawalStats.pendingWithdrawals) || 0);
+            const totalAlreadyPaidOut = (Number(currentBalance) || 0) +
+                (Number(withdrawalStats.totalWithdrawn) || 0) +
+                (Number(withdrawalStats.pendingWithdrawals) || 0);
 
             const amountToSettle = parseFloat((totalAgentCommissionCalculated - totalAlreadyPaidOut).toFixed(2));
 

@@ -18,6 +18,12 @@ export class GetWithdrawalsUseCase {
       take: limit,
     });
 
+    console.log(`[GetWithdrawalsUseCase] First item details:`, items.length > 0 ? {
+        id: items[0].id,
+        withdrawal_no: (items[0] as any).withdrawal_no,
+        all_keys: Object.keys(items[0])
+    } : 'No items');
+
     return { 
       data: items, 
       meta: {
