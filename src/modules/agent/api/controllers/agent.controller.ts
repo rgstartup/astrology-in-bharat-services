@@ -133,6 +133,7 @@ export class AgentController {
                 .createQueryBuilder(User, 'u')
                 .leftJoinAndSelect('u.profile_expert', 'pe')
                 .leftJoinAndSelect('u.profile_client', 'pc')
+                .leftJoinAndSelect('u.profile_merchant', 'pm')
                 .leftJoinAndSelect('u.roles', 'role')
                 .where('u.referred_by_id = :agentId', { agentId: user.id })
                 .andWhere('u.created_at >= ' + fromDate);
@@ -146,18 +147,22 @@ export class AgentController {
 
             const settings = await queryRunner.manager.find(SystemSetting, {
                 where: {
-                    key: In(['COMMISSION_FROM_CLIENT', 'COMMISSION_FROM_ASTROLOGER', 'COMMISSION_FROM_PUJA_SHOP', 'COMMISION_FROM_CLIENT', 'COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_PUJA_SHOP'])
+                    key: In([
+                        'COMMISION_FROM_CLIENT', 'COMMISSION_FROM_CLIENT',
+                        'COMMISION_FROM_ASTROLOGER', 'COMMISSION_FROM_ASTROLOGER',
+                        'COMMISION_FROM_PUJA_SHOP', 'COMMISSION_FROM_PUJA_SHOP'
+                    ])
                 }
             });
 
-            const getSettingValue = (keys: string[], defaultValue: number) => {
+            const getGlobalSetting = (keys: string[], defaultValue: number) => {
                 const setting = settings.find(s => keys.includes(s.key));
                 return setting ? parseFloat(setting.value) : defaultValue;
             };
 
-            const expertCommPercent = profile?.commission_rate ? Number(profile.commission_rate) : getSettingValue(['COMMISSION_FROM_ASTROLOGER', 'COMMISION_FROM_ASTROLOGER'], 3);
-            const clientCommPercent = profile?.commission_rate ? Number(profile.commission_rate) : getSettingValue(['COMMISSION_FROM_CLIENT', 'COMMISION_FROM_CLIENT'], 3);
-            const shopCommPercent = profile?.commission_rate ? Number(profile.commission_rate) : getSettingValue(['COMMISSION_FROM_PUJA_SHOP', 'COMMISION_FROM_PUJA_SHOP'], 3);
+            const expertCommPercent = getGlobalSetting(['COMMISION_FROM_ASTROLOGER', 'COMMISSION_FROM_ASTROLOGER'], 3);
+            const clientCommPercent = getGlobalSetting(['COMMISION_FROM_CLIENT', 'COMMISSION_FROM_CLIENT'], 3);
+            const shopCommPercent = getGlobalSetting(['COMMISION_FROM_PUJA_SHOP', 'COMMISSION_FROM_PUJA_SHOP'], 3);
 
             let expertEarnings = 0;
             let shopEarnings = 0;
@@ -178,23 +183,35 @@ export class AgentController {
                 else clientsCount++;
 
                 let hasActivity = false;
-                if (u.profile_expert) {
-                    const earning = Number(u.profile_expert.total_earning || 0);
-                    if (!isNaN(earning)) {
-                        expertEarnings += (earning * expertCommPercent) / 100;
-                        if (earning > 0) hasActivity = true;
-                    }
-                }
-                if (u.profile_client) {
-                    const spending = Number(u.profile_client.total_spending || 0);
-                    if (!isNaN(spending)) {
-                        clientEarnings += (spending * clientCommPercent) / 100;
-                        if (spending > 0) hasActivity = true;
-                    }
-                }
+                if (u.profile_expert && Number(u.profile_expert.total_earning || 0) > 0) hasActivity = true;
+                if (u.profile_merchant && Number((u as any).profile_merchant?.total_sales || 0) > 0) hasActivity = true;
+                if (u.profile_client && Number(u.profile_client.total_spending || 0) > 0) hasActivity = true;
+                
                 if (hasActivity) usersWithActivity++;
-                // For merchants, commission would go here
             });
+
+            // Fetch actual commission sums from sessions for accurate stats
+            const roleStats = await queryRunner.manager.query(`
+                SELECT 
+                    u.role_name,
+                    SUM(s.agent_commission)::float as total_comm
+                FROM (
+                    SELECT expert_id, agent_id, agent_commission FROM chat_sessions WHERE agent_id = $1
+                    UNION ALL
+                    SELECT expert_id, agent_id, agent_commission FROM call_sessions WHERE agent_id = $1
+                ) s
+                JOIN (
+                    SELECT pe.id as expert_id, r.name as role_name
+                    FROM profile_experts pe
+                    JOIN user_roles ur ON ur.user_id = pe.user_id
+                    JOIN roles r ON r.id = ur.role_id
+                ) u ON u.expert_id = s.expert_id
+                GROUP BY u.role_name
+            `, [user.id]);
+
+            expertEarnings = roleStats.find(r => r.role_name === 'expert')?.total_comm || 0;
+            // Add other role earnings if needed (merchants, etc.)
+            // shopEarnings = roleStats.find(r => r.role_name === 'merchant')?.total_comm || 0;
 
             const currentBalance = await this.walletFacade.getBalance(user.id);
             const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(user.id);
@@ -278,6 +295,12 @@ export class AgentController {
                     day: r.day,
                     count: Number(r.count || 0)
                 })),
+                commissionRates: {
+                    expert: expertCommPercent,
+                    client: clientCommPercent,
+                    shop: shopCommPercent,
+                    mandir: shopCommPercent // Usually same as shop/merchant for now
+                },
                 recentActivity: [
                     ...usersForStats.slice(0, 5).map(u => ({
                         id: u.id,
@@ -381,6 +404,7 @@ export class AgentController {
                     .leftJoinAndSelect('u.roles', 'role')
                     .leftJoinAndSelect('u.profile_expert', 'pe')
                     .leftJoinAndSelect('u.profile_client', 'pc')
+                    .leftJoinAndSelect('u.profile_merchant', 'pm')
                     .where('u.referred_by_id = :agentId', { agentId: user.id });
 
                 if (allRegisteredIds.length > 0) {
@@ -429,20 +453,43 @@ export class AgentController {
                 const clientCommPercent = agentProfile?.commission_rate ? Number(agentProfile.commission_rate) : getSettingValue(['COMMISSION_FROM_CLIENT', 'COMMISION_FROM_CLIENT'], 3);
                 const merchantCommPercent = agentProfile?.commission_rate ? Number(agentProfile.commission_rate) : getSettingValue(['COMMISSION_FROM_PUJA_SHOP', 'COMMISION_FROM_PUJA_SHOP'], 3);
 
+                // Fetch actual commission sums from sessions for accuracy
+                const actualStats = await queryRunner.manager.query(`
+                    SELECT 
+                        expert_id, 
+                        SUM(total_cost)::float as total_gross, 
+                        SUM(agent_commission)::float as total_commission
+                    FROM (
+                        SELECT expert_id, total_cost, agent_commission FROM chat_sessions WHERE agent_id = $1
+                        UNION ALL
+                        SELECT expert_id, total_cost, agent_commission FROM call_sessions WHERE agent_id = $1
+                    ) as s
+                    GROUP BY expert_id
+                `, [user.id]);
+
                 userData = users.map(u => {
                     const roles = (u.roles || []).map(r => r.name.toLowerCase());
                     const isExpert = roles.includes('expert');
                     const isMerchant = roles.includes('merchant');
 
                     let commission = 0;
+                    let totalRevenue = 0;
+                    let individualCommPercent = 3;
 
-                    if (u.profile_expert) {
-                        commission += (Number(u.profile_expert.total_earning || 0) * expertCommPercent) / 100;
+                    if (isExpert && u.profile_expert) {
+                        individualCommPercent = u.profile_expert.agent_commission_rate || 0;
+                        const stats = actualStats.find(s => s.expert_id === u.profile_expert?.id);
+                        commission = stats ? stats.total_commission : 0;
+                        totalRevenue = stats ? stats.total_gross : 0;
+                    } else if (isMerchant && (u as any).profile_merchant) {
+                        individualCommPercent = (u as any).profile_merchant.agent_commission_rate || 0;
+                        commission = (Number((u as any).profile_merchant.total_sales || 0) * individualCommPercent) / 100;
+                        totalRevenue = Number((u as any).profile_merchant.total_sales || 0);
+                    } else if (u.profile_client) {
+                        individualCommPercent = 0;
+                        commission = (Number(u.profile_client.total_spending || 0) * individualCommPercent) / 100;
+                        totalRevenue = Number(u.profile_client.total_spending || 0);
                     }
-                    if (u.profile_client) {
-                        commission += (Number(u.profile_client.total_spending || 0) * clientCommPercent) / 100;
-                    }
-                    // For merchants, commission calculation would go here if they have total_sales etc.
 
                     return {
                         id: u.id,
@@ -455,8 +502,9 @@ export class AgentController {
                         avatar: u.avatar ?? null,
                         totalSpending: u.profile_client?.total_spending || 0,
                         totalEarning: u.profile_expert?.total_earning || 0,
+                        totalRevenue: Number(totalRevenue.toFixed(2)),
                         commission: Number(commission.toFixed(2)),
-                        commissionPercent: isExpert ? expertCommPercent : isMerchant ? merchantCommPercent : clientCommPercent
+                        commissionPercent: individualCommPercent
                     };
                 });
             }
