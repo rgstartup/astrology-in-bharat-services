@@ -13,6 +13,7 @@ import { GetAdminEarningsBreakdownUseCase } from './use-cases/get-admin-earnings
 import { GetAdminTopExpertsUseCase } from './use-cases/get-admin-top-experts.use-case';
 import { GetAdminMerchantsUseCase } from './use-cases/get-admin-merchants.use-case';
 import { UpdateMerchantStatusAdminUseCase } from './use-cases/update-merchant-status-admin.use-case';
+import { UpdateListingStatusAdminUseCase } from './use-cases/update-listing-status-admin.use-case';
 import { CreateAgentDto } from '../presentation/dto/create-agent.dto';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
@@ -31,6 +32,7 @@ export class AdminFacade {
     private readonly getAgentsUseCase: GetAgentsUseCase,
     private readonly getAgentStatsUseCase: GetAgentStatsUseCase,
     private readonly getAdminListingsUseCase: GetAdminListingsUseCase,
+    private readonly updateListingStatusAdminUseCase: UpdateListingStatusAdminUseCase,
     private readonly getRevenueTrendUseCase: GetAdminRevenueTrendUseCase,
     private readonly getEarningsBreakdownUseCase: GetAdminEarningsBreakdownUseCase,
     private readonly getTopExpertsUseCase: GetAdminTopExpertsUseCase,
@@ -104,6 +106,10 @@ export class AdminFacade {
  
   async getListings(params?: any) {
     return this.getAdminListingsUseCase.execute(params);
+  }
+
+  async updateListingStatus(id: string | number, status: string) {
+    return this.updateListingStatusAdminUseCase.execute(id, { status });
   }
 
   async getRevenueTrend(days: number = 7) {

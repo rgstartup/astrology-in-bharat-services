@@ -301,6 +301,14 @@ export class AdminController {
     return this.adminFacade.getListings({ type, search, page, limit });
   }
 
+  @Patch('listings/:id/status')
+  async updateListingStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+  ) {
+    return this.adminFacade.updateListingStatus(id, status);
+  }
+
   // --- Support / Disputes Management ---
   @Get('support/disputes')
   async getAllDisputes(
