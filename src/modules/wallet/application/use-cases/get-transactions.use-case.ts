@@ -59,12 +59,36 @@ export class GetTransactionsUseCase {
 
       }
 
-      let description = tx.purpose.charAt(0).toUpperCase() + tx.purpose.slice(1).replace('_', ' ');
+      let description = tx.purpose.charAt(0).toUpperCase() + tx.purpose.slice(1).replace(/_/g, ' ');
       
       if (tx.purpose === 'consultation') {
         if (tx.type === 'hold') description = 'Consultation (Reserved)';
         else if (tx.type === 'debit') description = 'Consultation (Completed)';
         else if (tx.type === 'release') description = 'Consultation (Refunded)';
+      } else if (tx.purpose === 'puja_confirmation') {
+        description = 'Puja Ritual Confirmation';
+        if (tx.reference_id && tx.reference_id.startsWith('puja_appt_')) {
+            const apptId = tx.reference_id.replace('puja_appt_', '');
+            try {
+                const { PujaAppointment } = await import('../../../puja-appointment/infrastructure/persistence/entities/puja-appointment.entity');
+                const appt = await this.transactionRepository.manager.findOne(PujaAppointment as any, {
+                    where: { id: parseInt(apptId) },
+                    relations: ['puja']
+                });
+                if (appt && appt.puja) {
+                    description = `Puja Ritual: ${appt.puja.name}`;
+                }
+            } catch (e) {
+                console.warn('Could not fetch puja details', e);
+            }
+        }
+      } else if (tx.purpose === 'refund') {
+        description = 'Refund Issued';
+        if (tx.reference_id) description = `Refund (#${tx.reference_id})`;
+      } else if (tx.purpose === 'withdrawal') {
+        description = 'Payout Request';
+        if (status === 'rejected') description = 'Payout Rejected';
+        else if (status === 'success' || status === 'completed') description = 'Payout Completed';
       }
 
       return {

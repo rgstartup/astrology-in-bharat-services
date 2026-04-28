@@ -109,7 +109,7 @@ export class UpdatePujaAppointmentStatusUseCase {
                 await this.walletFacade.credit(
                     appointment.expert.user_id, 
                     expertNetShare, 
-                    TransactionPurpose.CONSULTATION, 
+                    TransactionPurpose.PUJA_CONFIRMATION, 
                     `puja_appt_${appointment.id}`,
                     qr
                 );
