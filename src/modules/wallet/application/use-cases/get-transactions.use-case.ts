@@ -75,8 +75,8 @@ export class GetTransactionsUseCase {
                     where: { id: parseInt(apptId) },
                     relations: ['puja']
                 });
-                if (appt && appt.puja) {
-                    description = `Puja Ritual: ${appt.puja.name}`;
+                if (appt && (appt as any).puja) {
+                    description = `Puja Ritual: ${(appt as any).puja.name}`;
                 }
             } catch (e) {
                 console.warn('Could not fetch puja details', e);
