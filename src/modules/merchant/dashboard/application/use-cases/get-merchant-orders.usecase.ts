@@ -24,6 +24,8 @@ export class GetMerchantOrdersUseCase {
         'COUNT(oi.id) as total',
         `SUM(CASE WHEN o.status IN ('${OrderStatus.PENDING}', '${OrderStatus.PAID}', '${OrderStatus.PROCESSING}', '${OrderStatus.PACKED}') THEN 1 ELSE 0 END) as pending`,
         `SUM(CASE WHEN o.status = '${OrderStatus.SHIPPED}' THEN 1 ELSE 0 END) as shipped`,
+        `SUM(CASE WHEN o.status = '${OrderStatus.DELIVERED}' THEN 1 ELSE 0 END) as delivered`,
+        `SUM(CASE WHEN o.status = '${OrderStatus.CANCELLED}' THEN 1 ELSE 0 END) as cancelled`,
         `SUM(CASE WHEN o.status != '${OrderStatus.CANCELLED}' THEN oi.price * oi.quantity ELSE 0 END) as revenue`,
       ])
       .getRawOne();
@@ -32,6 +34,8 @@ export class GetMerchantOrdersUseCase {
       total: Number(statsResult.total) || 0,
       pending: Number(statsResult.pending) || 0,
       shipped: Number(statsResult.shipped) || 0,
+      delivered: Number(statsResult.delivered) || 0,
+      cancelled: Number(statsResult.cancelled) || 0,
       revenue: Number(statsResult.revenue) || 0,
     };
 
@@ -43,13 +47,16 @@ export class GetMerchantOrdersUseCase {
       .innerJoinAndSelect('oi.product', 'p')
       .where('p.merchant_id = :userId', { userId });
 
-    if (status && status !== 'all') {
-      if (status === 'pending') {
+    if (status && status.toLowerCase() !== 'all') {
+      const searchStatus = status.toLowerCase();
+      if (searchStatus === 'pending') {
+        // Pending tab shows truly pending and paid (not yet processed/packed)
         query.andWhere('o.status IN (:...statuses)', { 
-          statuses: [OrderStatus.PENDING, OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.PACKED] 
+          statuses: [OrderStatus.PENDING, OrderStatus.PAID] 
         });
       } else {
-        query.andWhere('o.status = :status', { status });
+        // Other tabs match their status exactly
+        query.andWhere('o.status = :status', { status: searchStatus });
       }
     }
 
@@ -68,7 +75,8 @@ export class GetMerchantOrdersUseCase {
 
     return {
       orders: items.map((item) => ({
-        id: item.order.id.toString(),
+        id: item.id.toString(), // Use Item ID for uniqueness in React lists
+        orderId: item.order.id.toString(), // Keep Order ID for status updates
         orderNumber: `ORD-${item.order.id}`,
         customerName: item.order.user?.name || 'Guest',
         amount: Number(item.price) * item.quantity,
