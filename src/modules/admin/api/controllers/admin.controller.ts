@@ -21,7 +21,7 @@ import { ReviewsFacade } from '@/modules/reviews/application/reviews.facade';
   version: '1',
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Roles('admin', 'agent')
 export class AdminController {
   constructor(
     private readonly adminFacade: AdminFacade,

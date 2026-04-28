@@ -59,6 +59,12 @@ export class RolesGuard implements CanActivate {
     });
 
     if (!hasRole) {
+      console.error('[RolesGuard] Access Denied:', {
+        userId: user.id,
+        userRole,
+        userRoles,
+        requiredRoles: normalizedRequiredRoles,
+      });
       throw new ForbiddenException('Insufficient role');
     }
 
