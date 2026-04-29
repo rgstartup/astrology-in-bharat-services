@@ -58,6 +58,12 @@ export class Order {
     @Column({ name: 'cancellation_reason', type: 'text', nullable: true })
     cancellation_reason?: string;
 
+    @Column({ name: 'coupon_code', nullable: true })
+    coupon_code: string;
+
+    @Column({ name: 'discount_amount', type: 'decimal', precision: 10, scale: 2, default: 0 })
+    discount_amount: number;
+
     @OneToMany(() => OrderItem, (item: OrderItem) => item.order, { cascade: true })
     items: OrderItem[];
 

@@ -14,6 +14,7 @@ import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 import { Repository } from 'typeorm';
 import { ConsultationBookDto } from '../dto/consultation-book.dto';
 
@@ -26,6 +27,7 @@ export class ConsultationController {
     constructor(
         private readonly walletFacade: WalletFacade,
         private readonly chatFacade: ChatFacade,
+        private readonly couponFacade: CouponFacade,
         @InjectRepository(ProfileExpert)
         private readonly expertRepo: Repository<ProfileExpert>,
     ) { }
@@ -46,8 +48,23 @@ export class ConsultationController {
             throw new NotFoundException('Expert not found');
         }
 
+        let finalAmount = amount;
+        let discountAmount = 0;
+
+        if (dto.coupon_code) {
+            try {
+                const couponResult = await this.couponFacade.applyCoupon(user.id, dto.coupon_code, amount);
+                if (couponResult && couponResult.success) {
+                    discountAmount = couponResult.discount;
+                    finalAmount = couponResult.final_amount;
+                }
+            } catch (e) {
+                throw new BadRequestException(e.message || 'Invalid coupon code');
+            }
+        }
+
         // 1. Validate Balance
-        const hasBalance = await this.walletFacade.validateBalance(user.id, amount);
+        const hasBalance = await this.walletFacade.validateBalance(user.id, finalAmount);
         if (!hasBalance) {
             throw new BadRequestException('Insufficient wallet balance');
         }
@@ -55,10 +72,14 @@ export class ConsultationController {
         // 2. Debit Wallet
         await this.walletFacade.debit(
             user.id,
-            amount,
+            finalAmount,
             TransactionPurpose.CONSULTATION,
             `consultation_booking_${Date.now()}`,
         );
+
+        if (dto.coupon_code) {
+            await this.couponFacade.markCouponAsUsed(user.id, dto.coupon_code);
+        }
 
         // 3. Initiate Chat Session
         // We use the existing initiateChat logic but since we already debited, 

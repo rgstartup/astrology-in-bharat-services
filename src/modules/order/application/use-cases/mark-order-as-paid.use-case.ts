@@ -4,6 +4,7 @@ import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/persistence/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 
 @Injectable()
 export class MarkOrderAsPaidUseCase {
@@ -11,6 +12,7 @@ export class MarkOrderAsPaidUseCase {
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
     private walletFacade: WalletFacade,
+    private couponFacade: CouponFacade,
     private dataSource: DataSource,
   ) { }
 
@@ -36,6 +38,16 @@ export class MarkOrderAsPaidUseCase {
       // 1. Mark Order as Paid
       order.status = OrderStatus.PAID;
       await qr.manager.save(order);
+
+      // 1.5 Mark Coupon as used if applied
+      if (order.coupon_code) {
+        try {
+          await this.couponFacade.markCouponAsUsed(order.user_id, order.coupon_code, qr.manager);
+        } catch (e) {
+          console.error('[MARK_AS_PAID] Coupon marking error:', e);
+          // Don't fail the whole transaction if coupon marking fails, but it's better to log it.
+        }
+      }
 
       // 2. Track Client Spending
       try {

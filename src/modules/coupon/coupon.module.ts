@@ -10,6 +10,7 @@ import { UpdateCouponUseCase } from './application/use-cases/update-coupon.use-c
 import { DeleteCouponUseCase } from './application/use-cases/delete-coupon.use-case';
 import { GetMyRewardsUseCase } from './application/use-cases/get-my-rewards.use-case';
 import { ApplyCouponUseCase } from './application/use-cases/apply-coupon.use-case';
+import { MarkCouponAsUsedUseCase } from './application/use-cases/mark-coupon-as-used.use-case';
 import { CouponController } from './api/controllers/coupon.controller';
 
 @Module({
@@ -26,6 +27,7 @@ import { CouponController } from './api/controllers/coupon.controller';
         DeleteCouponUseCase,
         GetMyRewardsUseCase,
         ApplyCouponUseCase,
+        MarkCouponAsUsedUseCase,
     ],
     exports: [CouponFacade],
 })

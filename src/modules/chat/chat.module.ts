@@ -27,12 +27,14 @@ import { RejectChatUseCase } from './application/use-cases/reject-chat.use-case'
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { NotificationModule } from '@/modules/notification/notification.module';
+import { CouponModule } from '@/modules/coupon/coupon.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert]),
     WalletModule,
     NotificationModule,
+    CouponModule,
   ],
   providers: [
     ChatGateway,

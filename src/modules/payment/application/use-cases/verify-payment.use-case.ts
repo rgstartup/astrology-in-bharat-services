@@ -62,14 +62,14 @@ export class VerifyPaymentUseCase {
             order!.razorpay_signature = razorpay_signature || '';
             await queryRunner.manager.save(order);
 
-            const isProduct = order!.notes?.type === 'product' || order!.notes?.isOrder === true;
+            const isProduct = order!.notes?.type === 'product' || order!.notes?.is_order === true || order!.notes?.isOrder === true;
 
             if (!isProduct) {
                 // Case 1: Wallet Recharge
-                // --- GOLD STANDARD: Pass the query object (qr) to the facade ---
                 await this.walletFacade.topUp(order!.user_id!, order!.amount, `razorpay_${razorpay_payment_id}`, queryRunner);
                 await queryRunner.commitTransaction();
                 return { success: true, message: 'Payment successful and wallet updated' };
+            } else {
                 // Case 2: Product Purchase
                 await this.orderFacade.markAsPaid(order!.razorpay_order_id!, queryRunner);
                 this.logger.log(`Product payment verified for order ${order!.razorpay_order_id}`);

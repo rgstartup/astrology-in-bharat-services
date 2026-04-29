@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Coupon, CouponStatus, CouponType } from '../../infrastructure/persistence/entities/coupon.entity';
@@ -6,6 +6,8 @@ import { UserCoupon } from '../../infrastructure/persistence/entities/user-coupo
 
 @Injectable()
 export class ApplyCouponUseCase {
+    private readonly logger = new Logger(ApplyCouponUseCase.name);
+
     constructor(
         @InjectRepository(Coupon)
         private readonly couponRepo: Repository<Coupon>,
@@ -15,9 +17,11 @@ export class ApplyCouponUseCase {
 
     async execute(userId: number, code: string, amount: number) {
         // 1. Find active coupon
-        const coupon = await this.couponRepo.findOne({
-            where: { code, is_active: true, status: CouponStatus.ACTIVE },
-        });
+        const coupon = await this.couponRepo.createQueryBuilder('coupon')
+            .where('LOWER(coupon.code) = LOWER(:code)', { code })
+            .andWhere('coupon.is_active = :isActive', { isActive: true })
+            .andWhere('coupon.status = :status', { status: CouponStatus.ACTIVE })
+            .getOne();
 
         if (!coupon) {
             throw new NotFoundException('Coupon not found or inactive');
@@ -25,9 +29,7 @@ export class ApplyCouponUseCase {
 
         // 2. Check expiry
         if (coupon.expiry_date && new Date(coupon.expiry_date) < new Date()) {
-            // Update status in DB as well
-            coupon.status = CouponStatus.EXPIRED;
-            await this.couponRepo.save(coupon);
+            this.logger.warn(`[COUPON] Coupon ${code} expired on ${coupon.expiry_date}`);
             throw new BadRequestException('This coupon has expired');
         }
 
@@ -38,21 +40,13 @@ export class ApplyCouponUseCase {
 
         // 4. Check minimum order value
         if (coupon.min_order_value && amount < coupon.min_order_value) {
+            this.logger.warn(`[COUPON] Coupon ${code} min order value not met. Required: ${coupon.min_order_value}, Current: ${amount}`);
             throw new BadRequestException(
-                `Minimum order value of ₹${coupon.min_order_value} is required`,
+                `Minimum order value of ₹${coupon.min_order_value} is required for this coupon`,
             );
         }
 
-        // 5. Check if user has already used this coupon
-        const userCoupon = await this.userCouponRepo.findOne({
-            where: { user_id: userId, coupon_id: coupon.id },
-        });
-
-        if (userCoupon && userCoupon.is_used) {
-            throw new BadRequestException('You have already used this coupon');
-        }
-
-        // 6. Calculate discount
+        // 5. Calculate discount
         let discount: number;
         if (coupon.type === CouponType.PERCENTAGE) {
             discount = (amount * coupon.value) / 100;

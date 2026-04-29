@@ -13,6 +13,7 @@ import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {
@@ -29,6 +30,7 @@ export class CreateOrderFromCartUseCase {
     private productRepo: Repository<Product>,
     private cartFacade: CartFacade,
     private walletFacade: WalletFacade,
+    private couponFacade: CouponFacade,
     private dataSource: DataSource,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
@@ -46,7 +48,7 @@ export class CreateOrderFromCartUseCase {
     await queryRunner.startTransaction();
 
     try {
-      this.logger.log(`[CREATE_ORDER] User: ${userId}, PaymentMethod: ${dto.payment_method}`);
+      this.logger.log(`[CREATE_ORDER] Request received. User: ${userId}, DTO: ${JSON.stringify(dto)}`);
 
       let totalAmount = 0;
       let itemsToCreate: { product_id: number; quantity: number; price: number; merchant_id: number | null }[] = [];
@@ -68,6 +70,7 @@ export class CreateOrderFromCartUseCase {
 
         const price = Number(product.price) || 0;
         totalAmount = price * quantity;
+        this.logger.log(`[CREATE_ORDER] Base price: ₹${product.price}, MRP: ₹${product.original_price}, Authoritative price used: ₹${price}`);
         
         itemsToCreate.push({
           product_id: product.id,
@@ -96,6 +99,7 @@ export class CreateOrderFromCartUseCase {
 
           const price = Number(product.price) || 0;
           totalAmount += price * qty;
+          this.logger.log(`[CREATE_ORDER] Cart Item: ${product.name}, Price used: ₹${price}, Qty: ${qty}`);
           
           itemsToCreate.push({
             product_id: product.id,
@@ -110,8 +114,36 @@ export class CreateOrderFromCartUseCase {
         }
       }
 
+      this.logger.log(`[CREATE_ORDER] Initial totalAmount before coupon: ₹${totalAmount}`);
+
       if (isNaN(totalAmount) || totalAmount <= 0) {
         throw new BadRequestException(`Invalid order total amount: ${totalAmount}`);
+      }
+
+      // 2.3 Apply Coupon if provided
+      let discountAmount = 0;
+      if (dto.coupon_code) {
+        try {
+          const couponResult = await this.couponFacade.applyCoupon(userId, dto.coupon_code, totalAmount);
+          if (couponResult && couponResult.success) {
+            discountAmount = couponResult.discount;
+            totalAmount = couponResult.final_amount;
+            this.logger.log(`[CREATE_ORDER] Coupon applied successfully: ${dto.coupon_code}. Discount: ₹${discountAmount}, New totalAmount: ₹${totalAmount}`);
+          } else {
+            this.logger.warn(`[CREATE_ORDER] Coupon application failed (success=false) for: ${dto.coupon_code}`);
+          }
+        } catch (e) {
+          this.logger.error(`[CREATE_ORDER] Error applying coupon ${dto.coupon_code}: ${e.message}`);
+          throw new BadRequestException(e.message || 'Invalid coupon code');
+        }
+      } else {
+        this.logger.log(`[CREATE_ORDER] No coupon_code provided in DTO`);
+      }
+
+      // --- FAIL-SAFE: Re-verify totalAmount is a valid number ---
+      totalAmount = Number(totalAmount);
+      if (isNaN(totalAmount) || totalAmount < 0) {
+        throw new BadRequestException(`Final calculation resulted in invalid amount: ${totalAmount}`);
       }
 
       // 2.5 Handle Wallet Payment
@@ -125,15 +157,25 @@ export class CreateOrderFromCartUseCase {
           throw new BadRequestException('Insufficient wallet balance');
         }
 
+        // Force Number conversion to be safe against any decimal-to-string conversion
+        const finalDebitAmount = Number(totalAmount);
+        this.logger.log(`[CREATE_ORDER] [WALLET_DEBIT] Final calculated debit amount: ₹${finalDebitAmount} (Type: ${typeof finalDebitAmount})`);
+
         // Debit user wallet
         await this.walletFacade.debit(
           userId,
-          totalAmount,
+          finalDebitAmount,
           TransactionPurpose.PRODUCT_PURCHASE,
           `order_wallet_payment`,
           queryRunner,
         );
-        this.logger.log(`[CREATE_ORDER] Debited ₹${totalAmount} from user ${userId}`);
+        this.logger.log(`[CREATE_ORDER] [WALLET_DEBIT] Successfully debited ₹${finalDebitAmount} from user ${userId}`);
+
+        // Mark coupon as used if applied
+        if (dto.coupon_code) {
+          this.logger.log(`[CREATE_ORDER] [COUPON] Marking coupon ${dto.coupon_code} as used for user ${userId}`);
+          await this.couponFacade.markCouponAsUsed(userId, dto.coupon_code, queryRunner.manager);
+        }
       }
 
       // 2.7 Generate Delivery OTP (6 digits)
@@ -147,6 +189,8 @@ export class CreateOrderFromCartUseCase {
         status: isWalletPayment ? OrderStatus.PAID : OrderStatus.PENDING,
         payment_method: dto.payment_method || 'razorpay',
         delivery_otp: deliveryOtp,
+        coupon_code: dto.coupon_code,
+        discount_amount: discountAmount,
       });
 
       const savedOrder = await queryRunner.manager.save(Order, order);
@@ -185,8 +229,10 @@ export class CreateOrderFromCartUseCase {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction();
       }
-      this.logger.error(`[CREATE_ORDER] Failed for user ${userId}: ${error.message}`);
-      throw error;
+      const errorMessage = error instanceof BadRequestException ? `Order Validation Failed: ${error.message}` : `Internal Order Error: ${error.message}`;
+      this.logger.error(`[CREATE_ORDER] ${errorMessage} for user ${userId}`);
+      // Propagate the specific message to the frontend for debugging
+      throw new BadRequestException(error.message || 'Failed to process order');
     } finally {
       await queryRunner.release();
     }
