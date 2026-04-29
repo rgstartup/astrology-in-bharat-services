@@ -143,4 +143,7 @@ export class ProfileMerchant {
 
   @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
   agent_commission_rate?: number;
+
+  @Column({ type: 'json', nullable: true, name: 'bank_accounts' })
+  bank_accounts?: any[];
 }

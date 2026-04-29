@@ -5,17 +5,21 @@ import { Withdrawal, WithdrawalStatus } from '../../infrastructure/persistence/e
 import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
 import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
 import { Idempotency } from '../../infrastructure/persistence/entities/idempotency.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entities/system-setting.entity';
+import { NotificationFacade } from '@/modules/notification/application/notification.facade';
+import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
 
 @Injectable()
 export class RequestWithdrawalUseCase {
   constructor(
     private readonly dataSource: DataSource,
+    private readonly notificationFacade: NotificationFacade,
   ) { }
 
   async execute(
     userId: number,
     amount: number,
-    bank_account_id?: number,
+    bank_account_id?: string | number,
     idempotencyKey?: string,
     securityMetadata?: { ip?: string; ua?: string },
   ) {
@@ -41,8 +45,55 @@ export class RequestWithdrawalUseCase {
     if (isNaN(amount) || amount <= 0)
       throw new BadRequestException('Please enter a valid withdrawal amount');
 
-    if (amount < 500)
-      throw new BadRequestException('Minimum withdrawal amount is ₹500');
+    // Fetch Security Settings
+    const settings = await this.dataSource.getRepository(SystemSetting).find({
+      where: { key: crypto.createHash('sha256').update('').digest('hex') } // Dummy to get nothing, wait
+    });
+    // Let's just fetch them properly
+    const keys = ['MIN_WITHDRAWAL', 'DAILY_WITHDRAWAL_LIMIT', 'MAX_SINGLE_WITHDRAWAL', 'MONTHLY_WITHDRAWAL_COUNT'];
+    const dbSettings = await this.dataSource.getRepository(SystemSetting).createQueryBuilder('s')
+      .where('s.key IN (:...keys)', { keys })
+      .getMany();
+
+    const getSetting = (key: string, defaultValue: number) => {
+      const s = dbSettings.find(x => x.key === key);
+      return s ? Number(s.value) : defaultValue;
+    };
+
+    const MIN_WITHDRAWAL = getSetting('MIN_WITHDRAWAL', 500);
+    const DAILY_LIMIT = getSetting('DAILY_WITHDRAWAL_LIMIT', 10000);
+    const MAX_SINGLE_WITHDRAWAL = getSetting('MAX_SINGLE_WITHDRAWAL', 5000);
+    const MAX_MONTHLY_COUNT = getSetting('MONTHLY_WITHDRAWAL_COUNT', 2);
+
+    if (amount < MIN_WITHDRAWAL)
+      throw new BadRequestException(`Minimum withdrawal amount is ₹${MIN_WITHDRAWAL}`);
+
+    if (amount > MAX_SINGLE_WITHDRAWAL)
+      throw new BadRequestException(`Maximum single withdrawal limit is ₹${MAX_SINGLE_WITHDRAWAL}. Please contact support for larger amounts.`);
+
+    // 2.1 KYC / Verification Check
+    const { User } = await import('../../../users/infrastructure/persistence/entities/user.entity');
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: { id: userId },
+      relations: ['roles', 'profile_expert', 'profile_merchant', 'agent_profile']
+    });
+
+    if (!user) throw new BadRequestException('User not found');
+    const roles = user.roles.map(r => r.name.toLowerCase());
+
+    if (roles.includes('expert')) {
+      if (user.profile_expert?.kyc_status !== 'approved') {
+        throw new BadRequestException('Your KYC is not approved. Please complete verification to withdraw funds.');
+      }
+    } else if (roles.includes('merchant')) {
+      if (user.profile_merchant?.status !== 'active' && !user.profile_merchant?.isVerified) {
+        throw new BadRequestException('Your merchant account is not active or verified. Please contact support.');
+      }
+    } else if (roles.includes('agent')) {
+      if (!user.agent_profile?.pan_no || !user.agent_profile?.bank_name) {
+        throw new BadRequestException('Please complete your agent profile and bank details to withdraw funds.');
+      }
+    }
 
     // 3. Limit Checks (Read-only)
     const today = new Date();
@@ -57,7 +108,6 @@ export class RequestWithdrawalUseCase {
       .getRawOne();
 
     const currentTotal = Number(dailyTotal?.sum || 0);
-    const DAILY_LIMIT = 10000;
 
     if (currentTotal + amount > DAILY_LIMIT) {
       throw new BadRequestException(`Daily withdrawal limit of ₹${DAILY_LIMIT} exceeded. You have already requested ₹${currentTotal} today.`);
@@ -74,8 +124,8 @@ export class RequestWithdrawalUseCase {
       .andWhere('w.status != :status', { status: WithdrawalStatus.REJECTED })
       .getCount();
 
-    if (monthlyCount >= 2) {
-      throw new BadRequestException('You have already reached the maximum limit of 2 withdrawal requests for this month.');
+    if (monthlyCount >= MAX_MONTHLY_COUNT) {
+      throw new BadRequestException(`You have already reached the maximum limit of ${MAX_MONTHLY_COUNT} withdrawal requests for this month.`);
     }
 
     // 4. Start Atomic Transaction
@@ -103,24 +153,47 @@ export class RequestWithdrawalUseCase {
       // C. Capture Snapshot of Bank Details
       let merchantSnapshot: any = {};
       if (bank_account_id) {
-        const { BankAccount } = await import('../../../expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity');
-        const { ProfileExpert } = await import('../../../expert/profile/infrastructure/persistence/entities/profile-expert.entity');
+        const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/persistence/entities/profile-merchant.entity');
+        const merchant = await queryRunner.manager.findOne(ProfileMerchant, { where: { user_id: userId } });
+        
+        console.log(`[RequestWithdrawal] UserID: ${userId}, Received BankID: ${bank_account_id}, Type: ${typeof bank_account_id}`);
 
-        const expertProfile = await queryRunner.manager.findOne(ProfileExpert, { where: { user_id: userId } });
-        if (!expertProfile) throw new BadRequestException('Expert profile not found');
+        if (merchant && merchant.bank_accounts && Array.isArray(merchant.bank_accounts)) {
+          console.log(`[RequestWithdrawal] Merchant Bank Accounts found: ${merchant.bank_accounts.length}`);
+          const acc = merchant.bank_accounts.find((a: any) => {
+             console.log(`Comparing: "${a.id}" with "${bank_account_id}"`);
+             return String(a.id) === String(bank_account_id);
+          });
+          if (acc) {
+            merchantSnapshot = {
+              merchant_bank_name: acc.bank_name,
+              merchant_account_number: acc.account_number,
+              merchant_ifsc: acc.ifsc_code,
+              merchant_account_holder: acc.account_holder
+            };
+          }
+        }
 
-        const bankAccount = await queryRunner.manager.findOne(BankAccount, {
-            where: { id: bank_account_id, expert_id: expertProfile.id }
-        });
+        if (!merchantSnapshot.merchant_bank_name && !isNaN(Number(bank_account_id))) {
+          const { BankAccount } = await import('../../../expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity');
+          const { ProfileExpert } = await import('../../../expert/profile/infrastructure/persistence/entities/profile-expert.entity');
+          const expertProfile = await queryRunner.manager.findOne(ProfileExpert, { where: { user_id: userId } });
+          if (expertProfile) {
+            const bankAccount = await queryRunner.manager.findOne(BankAccount, {
+              where: { id: Number(bank_account_id), expert_id: expertProfile.id }
+            });
+            if (bankAccount) {
+              merchantSnapshot = {
+                merchant_bank_name: bankAccount.bank_name,
+                merchant_account_number: bankAccount.account_number,
+                merchant_ifsc: bankAccount.ifsc_code,
+                merchant_account_holder: bankAccount.account_holder_name
+              };
+            }
+          }
+        }
 
-        if (!bankAccount) throw new BadRequestException('Invalid bank account selected');
-
-        merchantSnapshot = {
-          merchant_bank_name: bankAccount.bank_name,
-          merchant_account_number: bankAccount.account_number,
-          merchant_ifsc: bankAccount.ifsc_code,
-          merchant_account_holder: bankAccount.account_holder_name
-        };
+        if (!merchantSnapshot.merchant_bank_name) throw new BadRequestException('Invalid bank account selected');
       } else {
         // Fallback to legacy profiles
         const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/persistence/entities/profile-merchant.entity');
@@ -167,10 +240,22 @@ export class RequestWithdrawalUseCase {
 
       // F. Create Withdrawal Record
       const HIGH_VALUE_THRESHOLD = 5000;
+      
+      // Only save to bank_account_id column if it's a valid numeric database ID (for Experts)
+      // For merchants, we store details in merchant_* columns and keep bank_account_id as null
+      let dbBankAccountId: number | null = null;
+      if (bank_account_id && !isNaN(Number(bank_account_id))) {
+         const numericId = Number(bank_account_id);
+         // If it's a very large number (like Date.now()), it's a merchant JSON ID, not a DB ID
+         if (numericId < 2147483647) { 
+            dbBankAccountId = numericId;
+         }
+      }
+
       const withdrawal = queryRunner.manager.create(Withdrawal, {
         user_id: userId,
         amount,
-        bank_account_id: bank_account_id || null,
+        bank_account_id: dbBankAccountId,
         status: WithdrawalStatus.PENDING,
         ip_address: securityMetadata?.ip,
         user_agent: securityMetadata?.ua,
@@ -201,6 +286,15 @@ export class RequestWithdrawalUseCase {
         withdrawal.withdrawal_no = generateTransactionNo(primaryRole, TransactionPurpose.WITHDRAWAL, withdrawal.id);
         console.log(`[RequestWithdrawal] Generated Withdrawal No: ${withdrawal.withdrawal_no}`);
         await queryRunner.manager.save(withdrawal);
+
+        // Send instant notification
+        await this.notificationFacade.create(
+            userId,
+            NotificationType.GENERAL,
+            'Withdrawal Request Received',
+            `A payout request of ₹${amount.toLocaleString('en-IN')} (${withdrawal.withdrawal_no}) has been submitted successfully. It is currently under review by our team.`,
+            { withdrawalId: withdrawal.id, amount, status: 'pending' }
+        );
       } catch (err) {
         console.error(`[RequestWithdrawal] FAILED to generate custom IDs:`, err);
       }

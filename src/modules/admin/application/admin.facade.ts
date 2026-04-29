@@ -14,6 +14,8 @@ import { GetAdminTopExpertsUseCase } from './use-cases/get-admin-top-experts.use
 import { GetAdminMerchantsUseCase } from './use-cases/get-admin-merchants.use-case';
 import { UpdateMerchantStatusAdminUseCase } from './use-cases/update-merchant-status-admin.use-case';
 import { UpdateListingStatusAdminUseCase } from './use-cases/update-listing-status-admin.use-case';
+import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
+import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
 import { CreateAgentDto } from '../presentation/dto/create-agent.dto';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
@@ -38,6 +40,8 @@ export class AdminFacade {
     private readonly getTopExpertsUseCase: GetAdminTopExpertsUseCase,
     private readonly getAdminMerchantsUseCase: GetAdminMerchantsUseCase,
     private readonly updateMerchantStatusAdminUseCase: UpdateMerchantStatusAdminUseCase,
+    private readonly getMerchantSalesOverviewUseCase: GetAdminMerchantSalesOverviewUseCase,
+    private readonly getMerchantSalesDetailsUseCase: GetAdminMerchantSalesDetailsUseCase,
     private readonly chatFacade: ChatFacade,
     private readonly walletFacade: WalletFacade,
     private readonly supportFacade: SupportFacade,
@@ -151,6 +155,14 @@ export class AdminFacade {
 
   async updateMerchantStatus(id: number, data: { status: string; kycStatus?: string }) {
     return this.updateMerchantStatusAdminUseCase.execute(id, data);
+  }
+
+  async getMerchantSalesOverview() {
+    return this.getMerchantSalesOverviewUseCase.execute();
+  }
+
+  async getMerchantSalesDetails(merchantId: number) {
+    return this.getMerchantSalesDetailsUseCase.execute(merchantId);
   }
 }
 

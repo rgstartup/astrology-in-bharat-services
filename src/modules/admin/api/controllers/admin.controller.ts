@@ -252,6 +252,16 @@ export class AdminController {
     return this.adminFacade.updateMerchantStatus(id, body);
   }
 
+  @Get('merchant-sales')
+  async getMerchantSalesOverview() {
+    return this.adminFacade.getMerchantSalesOverview();
+  }
+
+  @Get('merchant-sales/:id')
+  async getMerchantSalesDetails(@Param('id', ParseIntPipe) id: number) {
+    return this.adminFacade.getMerchantSalesDetails(id);
+  }
+
   // ── Agents Endpoints ────────────────────────────────────────────────────────
   @Post('agents')
   @UseInterceptors(FileFieldsInterceptor([

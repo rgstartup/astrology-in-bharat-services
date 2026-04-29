@@ -87,6 +87,7 @@ export class GetMerchantProfileUseCase {
         aadharFront: profile.aadharFront,
         aadharBack: profile.aadharBack,
         isVerified: profile.status === MerchantStatus.ACTIVE,
+        bank_accounts: profile.bank_accounts,
       },
     };
   }

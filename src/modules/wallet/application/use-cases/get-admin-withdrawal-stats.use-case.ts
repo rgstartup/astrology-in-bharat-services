@@ -17,7 +17,8 @@ export class GetAdminWithdrawalStatsUseCase {
             
             if (userRole && userRole !== 'all') {
                 query.innerJoin('w.user', 'user')
-                    .innerJoin('user.roles', 'role', 'LOWER(role.name) = LOWER(:roleName)', { roleName: userRole });
+                    .innerJoin('user.roles', 'role')
+                    .andWhere('LOWER(role.name) = LOWER(:roleName)', { roleName: userRole });
             }
             return query;
         };

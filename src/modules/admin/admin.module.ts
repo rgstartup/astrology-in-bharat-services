@@ -16,6 +16,8 @@ import { GetAdminTopExpertsUseCase } from './application/use-cases/get-admin-top
 import { GetAdminMerchantsUseCase } from './application/use-cases/get-admin-merchants.use-case';
 import { UpdateMerchantStatusAdminUseCase } from './application/use-cases/update-merchant-status-admin.use-case';
 import { UpdateListingStatusAdminUseCase } from './application/use-cases/update-listing-status-admin.use-case';
+import { GetAdminMerchantSalesOverviewUseCase } from './application/use-cases/get-admin-merchant-sales-overview.use-case';
+import { GetAdminMerchantSalesDetailsUseCase } from './application/use-cases/get-admin-merchant-sales-details.use-case';
 
 import { UsersModule } from '@/modules/users/users.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
@@ -104,6 +106,8 @@ import { UpdateSystemSettingUseCase } from './application/use-cases/update-syste
     GetAdminMerchantsUseCase,
     UpdateMerchantStatusAdminUseCase,
     UpdateListingStatusAdminUseCase,
+    GetAdminMerchantSalesOverviewUseCase,
+    GetAdminMerchantSalesDetailsUseCase,
     GetSystemSettingsUseCase,
     UpdateSystemSettingUseCase,
   ],

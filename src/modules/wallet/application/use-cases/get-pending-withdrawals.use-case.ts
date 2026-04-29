@@ -24,13 +24,11 @@ export class GetPendingWithdrawalsUseCase {
             query.andWhere('w.status = :status', { status: WithdrawalStatus.PENDING });
         }
 
+        query.leftJoinAndSelect('user.roles', 'role');
+
         if (userRole && userRole !== 'all') {
             console.log(`[GetPendingWithdrawals] Filtering by role: ${userRole}`);
-            // Use innerJoin when filtering to ensure only users with the role are included
-            query.innerJoin('user.roles', 'role', 'LOWER(role.name) = LOWER(:roleName)', { roleName: userRole });
-        } else {
-            // Just for loading the roles relation if no filter
-            query.leftJoinAndSelect('user.roles', 'role');
+            query.andWhere('LOWER(role.name) = LOWER(:roleName)', { roleName: userRole });
         }
 
         const [items, total] = await query.getManyAndCount();

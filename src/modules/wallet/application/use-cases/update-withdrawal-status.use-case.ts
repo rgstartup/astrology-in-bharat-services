@@ -6,8 +6,11 @@ import { Transaction, TransactionType, TransactionPurpose } from '../../infrastr
 import { AdminAuditLog } from '@/modules/admin/infrastructure/persistence/entities/admin-audit-log.entity';
 import { RazorpayPayoutService } from '../../infrastructure/gateways/razorpay-payout.service';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 import { BankAccount } from '@/modules/expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { NotificationFacade } from '@/modules/notification/application/notification.facade';
+import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
 
 @Injectable()
 export class UpdateWithdrawalStatusUseCase {
@@ -16,6 +19,7 @@ export class UpdateWithdrawalStatusUseCase {
         private readonly withdrawalRepository: Repository<Withdrawal>,
         private readonly dataSource: DataSource,
         private readonly razorpayPayoutService: RazorpayPayoutService,
+        private readonly notificationFacade: NotificationFacade,
     ) { }
 
     async execute(id: number, status: WithdrawalStatus, adminId: number, remark?: string) {
@@ -68,7 +72,14 @@ export class UpdateWithdrawalStatusUseCase {
                     });
                 }
 
-                if (!profile) throw new BadRequestException('User profile (Expert or Agent) not found');
+                if (!profile) {
+                    profile = await queryRunner.manager.findOne(ProfileMerchant, {
+                        where: { user_id: withdrawal.user_id },
+                        relations: ['user']
+                    });
+                }
+
+                if (!profile) throw new BadRequestException('User profile (Expert, Agent or Merchant) not found');
 
                 // 1. Get or Create Razorpay Contact
                 if (!profile.razorpay_contact_id) {
@@ -80,49 +91,63 @@ export class UpdateWithdrawalStatusUseCase {
                     });
                     
                     // Save to the correct table
-                    const entityName = profile.hasOwnProperty('expert_id') ? ProfileExpert : 'AgentProfile';
-                    await queryRunner.manager.save(entityName, profile);
+                    let entityToSave: any = ProfileExpert;
+                    if (profile.hasOwnProperty('agent_id')) entityToSave = 'AgentProfile';
+                    if (profile.hasOwnProperty('business_name') || profile.hasOwnProperty('merchant_id')) entityToSave = ProfileMerchant;
+                    
+                    await queryRunner.manager.save(entityToSave, profile);
                 }
 
 
                 // 2. Get or Create Fund Account
-                const bankAccount = await queryRunner.manager.findOne(BankAccount, {
-                    where: { id: withdrawal.bank_account_id }
-                });
+                let bankAccount: any = null;
+                if (withdrawal.bank_account_id) {
+                    bankAccount = await queryRunner.manager.findOne(BankAccount, {
+                        where: { id: withdrawal.bank_account_id }
+                    });
+                }
 
-                if (!bankAccount) throw new BadRequestException('Bank account record missing');
+                // Sanitize and Validate bank details (prefer snapshot from withdrawal record)
+                const accountName = (withdrawal.merchant_account_holder || bankAccount?.account_holder_name || '').trim();
+                const accountNumber = (withdrawal.merchant_account_number || bankAccount?.account_number || '').trim();
+                const ifsc = (withdrawal.merchant_ifsc || bankAccount?.ifsc_code || '').trim().toUpperCase();
 
-                // Sanitize and Validate bank details
-                const accountName = (withdrawal.merchant_account_holder || bankAccount.account_holder_name || '').trim();
-                const accountNumber = (withdrawal.merchant_account_number || bankAccount.account_number || '').trim();
-                const ifsc = (withdrawal.merchant_ifsc || bankAccount.ifsc_code || '').trim().toUpperCase();
+                if (!accountName || !accountNumber || !ifsc) {
+                    throw new BadRequestException(`Missing bank details. Name: ${accountName ? 'OK' : 'MISSING'}, Acc: ${accountNumber ? 'OK' : 'MISSING'}, IFSC: ${ifsc ? 'OK' : 'MISSING'}`);
+                }
 
-                if (!ifsc || ifsc.length !== 11) {
+                if (ifsc.length !== 11) {
                     throw new BadRequestException(`Invalid IFSC: "${ifsc}". Razorpay requires exactly 11 characters.`);
                 }
 
-                if (!accountNumber) {
-                    throw new BadRequestException('Bank account number is missing.');
-                }
-
-                if (!bankAccount.razorpay_fund_account_id) {
-                    bankAccount.razorpay_fund_account_id = await this.razorpayPayoutService.getOrCreateFundAccount(
+                if (!bankAccount || !bankAccount.razorpay_fund_account_id) {
+                    // Create fund account on the fly if not already saved in a BankAccount record
+                    const fundAccountId = await this.razorpayPayoutService.getOrCreateFundAccount(
                         profile.razorpay_contact_id!,
-
                         {
                             name: accountName,
                             account: accountNumber,
                             ifsc: ifsc
                         }
                     );
-                    await queryRunner.manager.save(BankAccount, bankAccount);
+
+                    // If we have a permanent BankAccount record, save the fund account ID there
+                    if (bankAccount) {
+                        bankAccount.razorpay_fund_account_id = fundAccountId;
+                        await queryRunner.manager.save(BankAccount, bankAccount);
+                    }
+                    
+                    // Temporary variable for the initiation step
+                    withdrawal['temp_fund_account_id'] = fundAccountId;
+                } else {
+                    withdrawal['temp_fund_account_id'] = bankAccount.razorpay_fund_account_id;
                 }
 
                 // 3. Initiate Payout
                 const payoutResponse = await this.razorpayPayoutService.initiatePayout(
                     withdrawal.id,
                     Number(withdrawal.amount),
-                    bankAccount.razorpay_fund_account_id!
+                    withdrawal['temp_fund_account_id']
                 );
 
                 // If we reach here, payout has been accepted by gateway
@@ -166,18 +191,26 @@ export class UpdateWithdrawalStatusUseCase {
                     await queryRunner.manager.save('Wallet', wallet);
 
                     // Create refund transaction (Ledger)
+                    const { generateTransactionNo } = await import('../../../../common/utils/transaction-no.util');
                     const transaction = queryRunner.manager.create('Transaction', {
                         wallet_id: wallet.id,
                         amount: amountToRefund,
                         type: TransactionType.CREDIT,
                         purpose: TransactionPurpose.REFUND,
-                        reference_id: `REFUND-WD-${withdrawal.id}-${status.toUpperCase()}`,
+                        reference_id: `REFUND-WD-${withdrawal.id}`,
                         balance_before,
                         balance_after,
+                        // Note: If you want to show the admin remark, we can prepend it to the reference_id 
+                        // or just rely on the withdrawal record which we'll fetch in the mapper.
                     }) as any;
 
                     await queryRunner.manager.save('Transaction', transaction);
-                    console.log(`[RefundLogic] Transaction logged. ID: ${transaction.id}`);
+                    
+                    // Generate a nice Transaction No for the refund
+                    transaction.transaction_no = generateTransactionNo('merchant', TransactionPurpose.REFUND, transaction.id);
+                    await queryRunner.manager.save('Transaction', transaction);
+                    
+                    console.log(`[RefundLogic] Transaction logged. No: ${transaction.transaction_no}`);
                 } else {
                     console.warn(`[RefundLogic] Wallet not found for user ${userId}`);
                 }
@@ -202,6 +235,34 @@ export class UpdateWithdrawalStatusUseCase {
             await queryRunner.manager.save(AdminAuditLog, auditLog);
 
             await queryRunner.commitTransaction();
+
+            // Send notification after successful transaction commit
+            try {
+                let title = 'Payout Update';
+                let message = `Your withdrawal status has been updated to ${status}.`;
+
+                if (status === WithdrawalStatus.PROCESSING || status === WithdrawalStatus.APPROVED) {
+                    title = 'Payout Approved';
+                    message = `Great news! Your payout request of ₹${Number(withdrawal.amount).toLocaleString('en-IN')} has been approved and is being processed.`;
+                } else if (status === WithdrawalStatus.COMPLETED || status === WithdrawalStatus.SUCCESS) {
+                    title = 'Payout Successful';
+                    message = `Your payout of ₹${Number(withdrawal.amount).toLocaleString('en-IN')} has been successfully transferred to your bank account.`;
+                } else if ([WithdrawalStatus.REJECTED, WithdrawalStatus.CANCELLED, WithdrawalStatus.FAILED, WithdrawalStatus.REVERSED].includes(status)) {
+                    title = 'Payout Rejected/Refunded';
+                    message = `Your payout request of ₹${Number(withdrawal.amount).toLocaleString('en-IN')} was rejected/cancelled. Reason: ${remark || 'N/A'}. The amount has been refunded to your wallet.`;
+                }
+
+                await this.notificationFacade.create(
+                    withdrawal.user_id,
+                    NotificationType.GENERAL,
+                    title,
+                    message,
+                    { withdrawalId: withdrawal.id, status, amount: withdrawal.amount }
+                );
+            } catch (notifyErr) {
+                console.error(`[UpdateWithdrawalStatus] Notification FAILED:`, notifyErr);
+            }
+
             return withdrawal;
         } catch (err) {
             await queryRunner.rollbackTransaction();

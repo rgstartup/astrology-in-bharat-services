@@ -7,6 +7,8 @@ import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { MerchantGateway } from '../../api/gateways/merchant.gateway';
 import { EncryptionService } from '@/common/services/encryption.service';
+import { NotificationFacade } from '@/modules/notification/application/notification.facade';
+import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
 
 @Injectable()
 export class UpdateMerchantProfileUseCase {
@@ -19,6 +21,7 @@ export class UpdateMerchantProfileUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly merchantGateway: MerchantGateway,
     private readonly encryptionService: EncryptionService,
+    private readonly notificationFacade: NotificationFacade,
   ) {}
 
   async execute(
@@ -123,6 +126,19 @@ export class UpdateMerchantProfileUseCase {
         profile.accountNumber = this.encryptionService.encrypt(dto.accountNumber);
       }
       if (dto.ifsc) profile.ifsc = dto.ifsc;
+      
+      // Handle multiple bank accounts
+      if (dto.bank_accounts) {
+        if (typeof dto.bank_accounts === 'string') {
+          try {
+            profile.bank_accounts = JSON.parse(dto.bank_accounts);
+          } catch (e) {
+            this.logger.error('Failed to parse bank_accounts JSON', e.stack);
+          }
+        } else {
+          profile.bank_accounts = dto.bank_accounts;
+        }
+      }
 
       // Handle Document Uploads
       const docFields = [
@@ -146,7 +162,24 @@ export class UpdateMerchantProfileUseCase {
         }
       }
 
+      // Detect bank details change for security notification
+      const bankDetailsChanged = 
+        (dto.bankName !== undefined && dto.bankName !== profile.bankName) ||
+        (dto.accountNumber !== undefined && dto.accountNumber !== (profile.accountNumber ? this.encryptionService.decrypt(profile.accountNumber) : '')) ||
+        (dto.bank_accounts !== undefined && JSON.stringify(dto.bank_accounts) !== JSON.stringify(profile.bank_accounts));
+
       await this.merchantRepository.save(profile);
+
+      // Trigger security notification if bank details changed
+      if (bankDetailsChanged) {
+        await this.notificationFacade.create(
+            userId,
+            NotificationType.GENERAL,
+            'Security Alert: Bank Details Updated',
+            'Your bank account information has been updated. If you did not make this change, please contact support immediately for security.',
+            { type: 'security_alert', timestamp: new Date() }
+        );
+      }
 
       if (statusChanged && this.merchantGateway) {
         try {
@@ -187,6 +220,7 @@ export class UpdateMerchantProfileUseCase {
           aadharFront: profile.aadharFront,
           aadharBack: profile.aadharBack,
           isVerified: profile.isVerified,
+          bank_accounts: profile.bank_accounts,
         },
       };
     } catch (error) {

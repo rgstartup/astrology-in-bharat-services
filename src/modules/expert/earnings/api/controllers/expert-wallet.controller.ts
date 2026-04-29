@@ -44,7 +44,7 @@ export class ExpertWalletController {
     async requestWithdrawal(
         @CurrentUser() user: any,
         @Body('amount') amount: number,
-        @Body('bank_account_id') bank_account_id: number,
+        @Body('bank_account_id') bank_account_id: string | number,
         @Ip() ip: string,
         @Headers('user-agent') ua: string,
         @Headers('x-idempotency-key') idempotencyKey: string,

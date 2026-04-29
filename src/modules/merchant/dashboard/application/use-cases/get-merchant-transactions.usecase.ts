@@ -46,28 +46,66 @@ export class GetMerchantTransactionsUseCase {
         let type = 'sale';
         let status = 'completed';
         let orderId: string | null = null;
+        let remark: string | null = null;
+        let info = 'Transaction';
+        let typeLabel = 'Credit';
+        let color = 'green';
+        let icon = 'in';
 
         if (txn.purpose === TransactionPurpose.WITHDRAWAL) {
           type = 'withdrawal';
-          status = 'paid'; 
+          status = 'paid';
+          info = 'Withdrawal Request';
+          typeLabel = 'Debit';
+          color = 'red';
+          icon = 'out';
+        } else if (txn.purpose === TransactionPurpose.REFUND) {
+          type = 'refund';
+          status = 'completed';
+          typeLabel = 'Credit';
+          color = 'green';
+          icon = 'in';
+          
+          if (txn.reference_id?.startsWith('REFUND-WD-')) {
+            const withdrawalId = parseInt(txn.reference_id.replace('REFUND-WD-', ''));
+            const withdrawal = await this.withdrawalRepo.findOne({ where: { id: withdrawalId } });
+            if (withdrawal) {
+                orderId = `WD-${withdrawalId}`;
+                info = `Refund for Withdrawal #${withdrawalId}`;
+                remark = withdrawal.remark || 'Withdrawal Refunded';
+            }
+          }
         } else if (txn.purpose === TransactionPurpose.PRODUCT_PURCHASE || txn.purpose === TransactionPurpose.CONSULTATION) {
           type = 'sale';
           status = 'completed';
-          // Extract order ID from reference_id like "order_item_123" or "order_cancel_debit_123"
+          typeLabel = 'Credit';
+          color = 'green';
+          icon = 'in';
           if (txn.reference_id?.includes('order_')) {
             const parts = txn.reference_id.split('_');
             const idPart = parts.find(p => !isNaN(Number(p)));
-            if (idPart) orderId = `ORD-${idPart}`;
+            if (idPart) {
+                orderId = `ORD-${idPart}`;
+                info = `Order #${idPart}`;
+            }
           }
         }
 
+        const amountSign = typeLabel === 'Credit' ? '+' : '-';
+
         return {
-          id: `TXN${txn.id}`,
+          id: txn.transaction_no || `TXN${txn.id}`,
           orderId,
           date: txn.created_at.toISOString(),
           amount: Number(txn.amount),
+          amountLabel: `${amountSign} ₹${Number(txn.amount).toLocaleString('en-IN')}`,
           type,
+          typeLabel,
+          color,
+          icon,
+          info,
           status,
+          remark: remark || txn.reference_id,
         };
       })
     );

@@ -5,6 +5,7 @@ import { User } from '@/modules/users/infrastructure/persistence/entities/user.e
 import { Wishlist } from '@/modules/wishlist/infrastructure/persistence/entities/wishlist.entity';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
 import { UsersModule } from '@/modules/users/users.module';
+import { NotificationModule } from '@/modules/notification/notification.module';
 
 import { GetMerchantDetailsUseCase } from './application/use-cases/get-merchant-details.use-case';
 import { GetAllMerchantsUseCase } from './application/use-cases/get-all-merchants.use-case';
@@ -22,6 +23,7 @@ import { EncryptionService } from '@/common/services/encryption.service';
     TypeOrmModule.forFeature([ProfileMerchant, User, Wishlist]),
     CloudinaryModule,
     UsersModule,
+    NotificationModule,
   ],
   controllers: [MerchantPublicController, MerchantProfileController],
   providers: [

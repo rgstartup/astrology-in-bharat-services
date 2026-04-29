@@ -9,12 +9,14 @@ import { CallSession } from '../call/infrastructure/persistence/entities/call-se
 import { ChatSession } from '../chat/infrastructure/persistence/entities/chat-session.entity';
 import { PujaAppointment } from '../puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
 import { Order } from '../order/infrastructure/persistence/entities/order.entity';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([AgentProfile, AgentListing, CallSession, ChatSession, PujaAppointment, Order]),
         DatabaseModule,
         WalletModule,
+        NotificationModule,
     ],
     controllers: [AgentController],
     providers: [],

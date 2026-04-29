@@ -16,6 +16,8 @@ import { CallSession } from '@/modules/call/infrastructure/persistence/entities/
 import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
 import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
 import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { NotificationFacade } from '@/modules/notification/application/notification.facade';
+import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
 
 @Controller({
     path: 'agent',
@@ -28,6 +30,7 @@ export class AgentController {
         private readonly db: DatabaseService,
         private readonly configService: ConfigService,
         private readonly walletFacade: WalletFacade,
+        private readonly notificationFacade: NotificationFacade,
     ) { }
 
     @Get('profile')
@@ -56,6 +59,14 @@ export class AgentController {
         @Body() body: any
     ) {
         await this.db.transaction(async (queryRunner) => {
+            const currentProfile = await queryRunner.manager.findOne(AgentProfile, { where: { user_id: user.id } });
+            
+            // Check if bank details are changing
+            const bankDetailsChanged = 
+                body.bank_name !== currentProfile?.bank_name ||
+                body.account_number !== currentProfile?.account_number ||
+                JSON.stringify(body.bank_accounts) !== JSON.stringify(currentProfile?.bank_accounts);
+
             await queryRunner.manager.update(AgentProfile, { user_id: user.id }, {
                 bank_name: body.bank_name,
                 account_number: body.account_number,
@@ -63,6 +74,16 @@ export class AgentController {
                 account_holder: body.account_holder,
                 bank_accounts: body.bank_accounts,
             });
+
+            if (bankDetailsChanged) {
+                await this.notificationFacade.create(
+                    user.id,
+                    NotificationType.GENERAL,
+                    'Security Alert: Bank Details Updated',
+                    'Your bank account information has been updated. If you did not make this change, please contact support immediately for security.',
+                    { type: 'security_alert', timestamp: new Date() }
+                );
+            }
         });
         return { success: true };
     }
@@ -675,12 +696,16 @@ export class AgentController {
     @Post('wallet/withdraw')
     async requestWithdrawal(
         @CurrentUser() user: User,
-        @Body('amount') amount: number,
+        @Body('amount', ParseIntPipe) amount: number,
+        @Body('bank_account_id') bankAccountId: string | number,
         @Ip() ip: string,
         @Headers('user-agent') ua: string,
         @Headers('x-idempotency-key') idempotencyKey: string,
     ) {
-        return this.walletFacade.requestWithdrawal(user.id, amount, undefined, idempotencyKey, { ip, ua });
+        if (amount < 500) {
+            throw new BadRequestException('Minimum withdrawal amount is ₹500');
+        }
+        return this.walletFacade.requestWithdrawal(user.id, amount, bankAccountId, idempotencyKey, { ip, ua });
     }
 
     @Post('wallet/settle')

@@ -10,12 +10,13 @@ export function generateTransactionNo(role: string, purpose: TransactionPurpose,
     const roleLower = role.toLowerCase();
     if (roleLower === 'agent') rolePart = 'AGT';
     else if (roleLower === 'expert') rolePart = 'EXP';
+    else if (roleLower === 'merchant') rolePart = 'MER';
 
     // Purpose Part
     let purposePart = 'MISC';
     switch (purpose) {
         case TransactionPurpose.WITHDRAWAL:
-            purposePart = 'PAY';
+            purposePart = 'WITH';
             break;
         case TransactionPurpose.RECHARGE:
             purposePart = 'RECH';

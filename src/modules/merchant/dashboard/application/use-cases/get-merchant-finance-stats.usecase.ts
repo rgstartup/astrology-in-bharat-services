@@ -40,10 +40,11 @@ export class GetMerchantFinanceStatsUseCase {
       nextPayoutDate.setHours(10, 0, 0, 0);
 
       const result = {
-        totalEarnings: grossEarnings, // Matching dashboard "Total Earnings"
-        actualEarnings: Number(actualEarnings) || 0, // Money actually credited
+        totalEarnings: grossEarnings,
+        actualEarnings: Number(actualEarnings) || 0,
         availableBalance: Number(wallet?.balance) || 0,
-        pendingPayout: Number(withdrawalsStatus?.pendingWithdrawals) || 0,
+        pendingPayout: Number(withdrawalsStatus?.pendingAmount) || 0,
+        processingAmount: Number(withdrawalsStatus?.processingAmount) || 0,
         totalPayouts: Number(withdrawalsStatus?.totalWithdrawn) || 0,
         nextPayoutDate: nextPayoutDate.toISOString(),
       };

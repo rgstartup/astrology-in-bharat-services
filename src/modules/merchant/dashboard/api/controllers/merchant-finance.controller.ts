@@ -41,11 +41,12 @@ export class MerchantFinanceController {
   async withdraw(
     @CurrentUser('id') userId: number,
     @Body('amount') amount: number,
+    @Body('bankAccountId') bankAccountId: string | number,
     @Ip() ip: string,
     @Headers('user-agent') ua: string,
     @Headers('x-idempotency-key') idempotencyKey: string,
   ) {
-    const withdrawal = await this.walletFacade.requestWithdrawal(userId, amount, undefined, idempotencyKey, { ip, ua });
+    const withdrawal = await this.walletFacade.requestWithdrawal(userId, amount, bankAccountId, idempotencyKey, { ip, ua });
     return {
       success: true,
       message: 'Withdrawal request submitted successfully',
