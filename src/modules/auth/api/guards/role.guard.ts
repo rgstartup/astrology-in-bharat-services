@@ -44,18 +44,22 @@ export class RolesGuard implements CanActivate {
 
     const normalizedRequiredRoles = requiredRoles.map(r => r.toLowerCase());
 
+    const isUserAdmin = userRole === 'admin' || userRoles.includes('admin');
+
     const hasRole =
+      isUserAdmin ||
       (userRole && normalizedRequiredRoles.includes(userRole)) ||
       userRoles.some((roleName) =>
         normalizedRequiredRoles.includes(roleName),
-      ) || (user.id === 133); // TEMPORARY BYPASS FOR USER 133
+      );
 
     console.log('[RolesGuard] Decision:', {
       userId: user.id,
       userRole,
       userRoles,
       requiredRoles: normalizedRequiredRoles,
-      hasRole
+      hasRole,
+      isUserAdmin
     });
 
     if (!hasRole) {
