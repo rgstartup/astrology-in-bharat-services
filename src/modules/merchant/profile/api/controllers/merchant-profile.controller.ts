@@ -16,11 +16,15 @@ import { GetMerchantProfileUseCase } from '../../application/use-cases/get-merch
 import { UpdateMerchantProfileUseCase } from '../../application/use-cases/update-merchant-profile.use-case';
 import { UpdateMerchantProfileDto } from '../dto/update-merchant-profile.dto';
 
+import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
+
 @Controller({
   path: 'merchant/profile',
   version: '1',
 })
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('merchant', 'agent', 'expert')
 export class MerchantProfileController {
   constructor(
     private readonly getProfile: GetMerchantProfileUseCase,

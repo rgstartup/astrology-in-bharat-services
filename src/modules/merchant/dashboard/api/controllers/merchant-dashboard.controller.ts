@@ -36,7 +36,7 @@ import { OrderStatus } from '@/modules/order/infrastructure/persistence/entities
   version: '1',
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('merchant')
+@Roles('merchant', 'agent', 'expert')
 export class MerchantDashboardController {
   constructor(
     private readonly getStats: GetMerchantStatsUseCase,

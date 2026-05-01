@@ -24,7 +24,7 @@ import { BulkUpdateStatusDto } from '../dto/bulk-update-status.dto';
 
 @Controller({ path: 'merchant/products', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('merchant')
+@Roles('merchant', 'agent', 'expert')
 export class MerchantProductsController {
   constructor(private readonly merchantProducts: MerchantProductsUseCase) {}
 

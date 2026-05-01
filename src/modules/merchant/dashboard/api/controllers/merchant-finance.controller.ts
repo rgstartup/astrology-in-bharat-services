@@ -5,11 +5,15 @@ import { GetMerchantFinanceStatsUseCase } from '../../application/use-cases/get-
 import { GetMerchantTransactionsUseCase } from '../../application/use-cases/get-merchant-transactions.usecase';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
+import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
+
 @Controller({
   path: 'merchant/finance',
   version: '1',
 })
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('merchant', 'agent', 'expert')
 export class MerchantFinanceController {
   constructor(
     private readonly getStats: GetMerchantFinanceStatsUseCase,
