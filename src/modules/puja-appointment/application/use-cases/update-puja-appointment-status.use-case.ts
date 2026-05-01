@@ -64,9 +64,9 @@ export class UpdatePujaAppointmentStatusUseCase {
                 const totalAmount = appointment.price;
 
                 // Fetch all required commission percentages
-                const agentFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
-                const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_CLIENT');
+                const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
                 const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+                const buyerAgentRateSetting = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FOR_BUYER_AGENT');
 
                 // Fetch Expert's full user profile for referral check
                 const expertUser = await qr.manager.findOne(User, {
@@ -77,24 +77,31 @@ export class UpdatePujaAppointmentStatusUseCase {
                 let agent_commission = 0;
                 let agent_id: number | undefined = undefined;
 
-                const now = new Date();
-                // Check if Agent Commission is applicable (Referred AND within 30 days)
-                if (expertUser?.referred_by_id && expertUser?.profile_expert?.created_at) {
-                    const diffTime = Math.abs(now.getTime() - expertUser.profile_expert.created_at.getTime());
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                // Check if Seller Agent Commission is applicable (Referred)
+                if (expertUser?.referred_by_id && expertUser?.profile_expert) {
+                    agent_id = expertUser.referred_by_id;
+                    const effectiveAgentRate = expertUser.profile_expert.agent_commission_rate ?? platformFeeRate;
+                    agent_commission = Number((totalAmount * (effectiveAgentRate / 100)).toFixed(2));
+                }
 
-                    if (diffDays <= 30) {
-                        agent_id = expertUser.referred_by_id;
-                        const effectiveAgentRate = expertUser.profile_expert.agent_commission_rate ?? agentFeeRate;
-                        agent_commission = Number((totalAmount * (effectiveAgentRate / 100)).toFixed(2));
-                    }
+                let buyer_agent_commission = 0;
+                let buyer_agent_id: number | undefined = undefined;
+
+                const buyerUser = await qr.manager.findOne(User, {
+                    where: { id: appointment.user_id },
+                    select: ['id', 'referred_by_id']
+                });
+
+                if (buyerUser?.referred_by_id) {
+                    buyer_agent_id = buyerUser.referred_by_id;
+                    buyer_agent_commission = Number((totalAmount * (buyerAgentRateSetting / 100)).toFixed(2));
                 }
 
                 const platformFee = Number((totalAmount * (platformFeeRate / 100)).toFixed(2));
                 const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
                 
-                // Expert Net = Total - Platform - GST - Agent
-                const expertNetShare = Number((totalAmount - platformFee - gst - agent_commission).toFixed(2));
+                // Expert Net = Total - Platform - GST - Agent (Seller) - Agent (Buyer)
+                const expertNetShare = Number((totalAmount - platformFee - gst - agent_commission - buyer_agent_commission).toFixed(2));
 
                 // 1. Debit User
                 await this.walletFacade.debit(
@@ -114,13 +121,24 @@ export class UpdatePujaAppointmentStatusUseCase {
                     qr
                 );
 
-                // 3. Credit Agent (if applicable)
+                // 3. Credit Seller's Agent (if applicable)
                 if (agent_commission > 0 && agent_id) {
                     await this.walletFacade.credit(
                         agent_id,
                         agent_commission,
                         'agent_commission' as any,
                         `puja_appt_${appointment.id}`,
+                        qr
+                    );
+                }
+
+                // 4. Credit Buyer's Agent (if applicable)
+                if (buyer_agent_commission > 0 && buyer_agent_id) {
+                    await this.walletFacade.credit(
+                        buyer_agent_id,
+                        buyer_agent_commission,
+                        'agent_commission' as any,
+                        `puja_appt_buyer_ref_${appointment.id}`,
                         qr
                     );
                 }

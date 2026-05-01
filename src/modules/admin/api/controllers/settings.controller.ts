@@ -37,7 +37,7 @@ export class SettingsController {
   @Get('commissions')
   @HttpCode(HttpStatus.OK)
   async getCommissions() {
-    const keys = ['COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_CLIENT', 'COMMISION_FROM_PUJA_SHOP', 'GST_PERCENTAGE'];
+    const keys = ['COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_CLIENT', 'COMMISION_FROM_PUJA_SHOP', 'GST_PERCENTAGE', 'COMMISION_FOR_BUYER_AGENT'];
     const settings = await this.getSystemSettings.execute(keys);
 
     // Ensure all keys are present in the response

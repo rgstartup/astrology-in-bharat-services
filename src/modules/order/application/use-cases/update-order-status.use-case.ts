@@ -134,13 +134,25 @@ export class UpdateOrderStatusUseCase {
                 if (fallbackMerchant) merchantAmounts[fallbackMerchant] = refundAmount;
               }
 
-              for (const [mId, amount] of Object.entries(merchantAmounts)) {
+              // Fetch settings for accurate refund calculation (Gross - Commissions)
+              const refundPlatformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
+              const refundGstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+
+              for (const [mId, grossAmount] of Object.entries(merchantAmounts)) {
                 const debitId = Number(mId);
-                console.log(`[ORDER_CANCELLED_WALLET] Debiting merchant ${debitId} for amount ${amount}`);
+                
+                // Calculate Net that was actually credited (to avoid over-debiting merchant)
+                const platformFee = Number((grossAmount * (refundPlatformFeeRate / 100)).toFixed(2));
+                const gstOnFee = Number((platformFee * (refundGstRate / 100)).toFixed(2));
+                // Note: Agent commissions are not reclaimed here for simplicity/safety, 
+                // but we subtract platform fee and GST to only debit what the merchant actually received.
+                const netToDebit = Number((grossAmount - platformFee - gstOnFee).toFixed(2));
+
+                console.log(`[ORDER_CANCELLED_WALLET] Debiting merchant ${debitId} for net amount ${netToDebit} (Gross was ${grossAmount})`);
                 
                 await this.walletFacade.debit(
                   debitId,
-                  amount,
+                  netToDebit,
                   TransactionPurpose.REFUND,
                   `order_cancel_debit_${orderInsideTx.id}`,
                   queryRunner,
@@ -219,8 +231,8 @@ export class UpdateOrderStatusUseCase {
 
             if (orderWithItems) {
                 const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
-                const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_CLIENT');
-                const agentFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
+                const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
+                const buyerAgentRateSetting = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FOR_BUYER_AGENT');
 
                 for (const item of orderWithItems.items) {
                     const itemTotal = Number(item.price) * (item.quantity || 1);
@@ -234,25 +246,40 @@ export class UpdateOrderStatusUseCase {
 
                         const merchantProfile = merchantUser?.profile_merchant;
 
+                        // 1. Seller's Agent Commission (Current Logic: 30-day window)
                         let agent_commission = 0;
                         let agent_id: number | undefined = undefined;
 
-                        const now = new Date();
-                        // 30-Day Agent Commission Logic
-                        if (merchantUser?.referred_by_id && merchantProfile?.created_at) {
-                            const diffDays = Math.ceil(Math.abs(now.getTime() - merchantProfile.created_at.getTime()) / (1000 * 60 * 60 * 24));
-                            if (diffDays <= 30) {
-                                agent_id = merchantUser.referred_by_id;
-                                const effectiveAgentRate = merchantProfile.agent_commission_rate ?? agentFeeRate;
-                                agent_commission = Number((itemTotal * (effectiveAgentRate / 100)).toFixed(2));
-                            }
+                        if (merchantUser?.referred_by_id && merchantProfile) {
+                            agent_id = merchantUser.referred_by_id;
+                            const effectiveAgentRate = merchantProfile.agent_commission_rate ?? platformFeeRate;
+                            agent_commission = Number((itemTotal * (effectiveAgentRate / 100)).toFixed(2));
                         }
 
+                        // 2. Buyer's Agent Commission (New Logic: If buyer has an agent assigned)
+                        let buyer_agent_commission = 0;
+                        let buyer_agent_id: number | undefined = undefined;
+                        
+                        const buyerUser = await qr.manager.findOne(User, {
+                            where: { id: orderWithItems.user_id },
+                            select: ['id', 'referred_by_id']
+                        });
+
+                        if (buyerUser?.referred_by_id) {
+                            buyer_agent_id = buyerUser.referred_by_id;
+                            buyer_agent_commission = Number((itemTotal * (buyerAgentRateSetting / 100)).toFixed(2));
+                        }
+
+                        // 3. Platform Fee & GST
                         const platformFee = Number((itemTotal * (platformFeeRate / 100)).toFixed(2));
                         const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
-                        const merchantNet = Number((itemTotal - platformFee - gst - agent_commission).toFixed(2));
 
-                        // 1. Credit Merchant
+                        // 4. Final Merchant Net Share
+                        const merchantNet = Number((itemTotal - platformFee - gst - agent_commission - buyer_agent_commission).toFixed(2));
+
+                        // --- EXECUTE CREDITS ---
+                        
+                        // A. Credit Merchant
                         await this.walletFacade.credit(
                             merchantId,
                             merchantNet,
@@ -261,13 +288,24 @@ export class UpdateOrderStatusUseCase {
                             qr
                         );
 
-                        // 2. Credit Agent
+                        // B. Credit Seller's Agent
                         if (agent_commission > 0 && agent_id) {
                             await this.walletFacade.credit(
                                 agent_id,
                                 agent_commission,
                                 'agent_commission' as any,
                                 `order_item_${item.id}`,
+                                qr
+                            );
+                        }
+
+                        // C. Credit Buyer's Agent
+                        if (buyer_agent_commission > 0 && buyer_agent_id) {
+                            await this.walletFacade.credit(
+                                buyer_agent_id,
+                                buyer_agent_commission,
+                                'agent_commission' as any,
+                                `order_item_buyer_ref_${item.id}`,
                                 qr
                             );
                         }

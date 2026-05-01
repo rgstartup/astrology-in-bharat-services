@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, MoreThanOrEqual } from 'typeorm';
 import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
 import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()
 export class GetMerchantStatsUseCase {
@@ -11,6 +12,7 @@ export class GetMerchantStatsUseCase {
     private readonly orderItemRepo: Repository<OrderItem>,
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
+    private readonly walletFacade: WalletFacade,
   ) {}
 
   async execute(userId: number) {
@@ -55,15 +57,28 @@ export class GetMerchantStatsUseCase {
       .select('SUM(oi.price * oi.quantity)', 'sum')
       .getRawOne();
 
+    const grossMonthly = Number(monthlyEarningsQuery.sum) || 0;
+    const grossTotal = Number(totalEarningsQuery.sum) || 0;
+
+    // Estimate Net Earnings (subtracting platform fee and GST)
+    const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
+    const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+    
+    const calculateNet = (gross: number) => {
+      const fee = gross * (platformFeeRate / 100);
+      const gstOnFee = fee * (gstRate / 100);
+      return Number((gross - fee - gstOnFee).toFixed(2));
+    };
+
     const result = {
       totalOrders: { value: Number(totalOrdersQuery.count) || 0, trend: '+10%' },
       totalProducts: { value: totalProducts, trend: '+2 new' },
       totalEarnings: {
-        value: Number(totalEarningsQuery.sum) || 0,
+        value: calculateNet(grossTotal),
         trend: '+15%',
       },
       monthlyEarnings: {
-        value: Number(monthlyEarningsQuery.sum) || 0,
+        value: calculateNet(grossMonthly),
         trend: '+8%',
       },
     };

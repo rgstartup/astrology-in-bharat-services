@@ -18,9 +18,11 @@ import { TwimlController } from './api/controllers/twiml.controller';
 import { CallGateway } from './call.gateway';
 import { CallFacade } from './application/call.facade';
 
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+
 @Module({
     imports: [
-        TypeOrmModule.forFeature([CallSession, ProfileExpert]),
+        TypeOrmModule.forFeature([CallSession, ProfileExpert, User]),
         WalletModule,
         NotificationModule,
     ],

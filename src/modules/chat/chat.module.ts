@@ -29,9 +29,11 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persisten
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { CouponModule } from '@/modules/coupon/coupon.module';
 
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert]),
+    TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert, User]),
     WalletModule,
     NotificationModule,
     CouponModule,

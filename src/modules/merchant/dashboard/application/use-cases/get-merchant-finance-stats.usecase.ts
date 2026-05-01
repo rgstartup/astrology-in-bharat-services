@@ -31,7 +31,15 @@ export class GetMerchantFinanceStatsUseCase {
       ]);
 
       const grossEarnings = Number(grossEarningsQuery?.sum) || 0;
-      console.log('[FINANCE_STATS] Data retrieved:', { wallet, actualEarnings, withdrawalsStatus, grossEarnings });
+      
+      const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
+      const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+      
+      const estimatedFee = grossEarnings * (platformFeeRate / 100);
+      const estimatedGst = estimatedFee * (gstRate / 100);
+      const netEarnings = grossEarnings - estimatedFee - estimatedGst;
+
+      console.log('[FINANCE_STATS] Data retrieved:', { wallet, actualEarnings, withdrawalsStatus, grossEarnings, netEarnings });
 
       // Calculate next payout date (Next Monday at 10 AM)
       const nextPayoutDate = new Date();
@@ -40,7 +48,7 @@ export class GetMerchantFinanceStatsUseCase {
       nextPayoutDate.setHours(10, 0, 0, 0);
 
       const result = {
-        totalEarnings: grossEarnings,
+        totalEarnings: Number(netEarnings.toFixed(2)),
         actualEarnings: Number(actualEarnings) || 0,
         availableBalance: Number(wallet?.balance) || 0,
         pendingPayout: Number(withdrawalsStatus?.pendingAmount) || 0,
