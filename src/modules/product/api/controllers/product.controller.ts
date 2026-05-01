@@ -36,46 +36,47 @@ export class ProductController {
     private readonly cloudinaryService: CloudinaryService,
   ) { }
 
-  @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @UseInterceptors(
-    AnyFilesInterceptor({
-      storage: memoryStorage(),
-    }),
-  )
-  async create(
-    @Body() createProductDto: CreateProductDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
-  ) {
-    const bodyAsAny = createProductDto as any;
-    let imageUrl =
-      createProductDto.image_url || bodyAsAny?.imageUrl || bodyAsAny?.image;
+  // Removed: Admin is no longer allowed to create/sell products directly
+  // @Post()
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles('admin')
+  // @UseInterceptors(
+  //   AnyFilesInterceptor({
+  //     storage: memoryStorage(),
+  //   }),
+  // )
+  // async create(
+  //   @Body() createProductDto: CreateProductDto,
+  //   @UploadedFiles() files: Array<Express.Multer.File>,
+  // ) {
+  //   const bodyAsAny = createProductDto as any;
+  //   let imageUrl =
+  //     createProductDto.image_url || bodyAsAny?.imageUrl || bodyAsAny?.image;
 
-    if (files && files.length > 0) {
-      const file = files[0];
-      try {
-        const uploadedImage = (await this.cloudinaryService.uploadImage(
-          file,
-        )) as UploadApiResponse;
-        if (uploadedImage?.secure_url) {
-          imageUrl = uploadedImage.secure_url;
-        }
-      } catch (error) {
-        const reason =
-          error instanceof Error ? error.message : 'Unknown Cloudinary error';
-        console.error('Cloudinary Upload Error:', error);
-        throw new InternalServerErrorException(
-          process.env.NODE_ENV === 'production'
-            ? 'Product image upload failed'
-            : `Product image upload failed: ${reason}`,
-        );
-      }
-    }
+  //   if (files && files.length > 0) {
+  //     const file = files[0];
+  //     try {
+  //       const uploadedImage = (await this.cloudinaryService.uploadImage(
+  //         file,
+  //       )) as UploadApiResponse;
+  //       if (uploadedImage?.secure_url) {
+  //         imageUrl = uploadedImage.secure_url;
+  //       }
+  //     } catch (error) {
+  //       const reason =
+  //         error instanceof Error ? error.message : 'Unknown Cloudinary error';
+  //       console.error('Cloudinary Upload Error:', error);
+  //       throw new InternalServerErrorException(
+  //         process.env.NODE_ENV === 'production'
+  //           ? 'Product image upload failed'
+  //           : `Product image upload failed: ${reason}`,
+  //       );
+  //     }
+  //   }
 
-    createProductDto.image_url = imageUrl;
-    return this.productFacade.create(createProductDto);
-  }
+  //   createProductDto.image_url = imageUrl;
+  //   return this.productFacade.create(createProductDto);
+  // }
 
   @Get()
   findAll(
