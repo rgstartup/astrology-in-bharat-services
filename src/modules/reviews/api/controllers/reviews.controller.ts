@@ -8,10 +8,13 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { ReviewsFacade } from '../../application/reviews.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
+import { UserRepository } from '@/modules/users/infrastructure/persistence/repositories/user.repository';
 import { CreateReviewDto } from '../dto/create-review.dto';
 
 @Controller({
@@ -19,15 +22,20 @@ import { CreateReviewDto } from '../dto/create-review.dto';
   version: '1',
 })
 export class ReviewsController {
-  constructor(private readonly reviewsFacade: ReviewsFacade) {}
+  constructor(
+    private readonly reviewsFacade: ReviewsFacade,
+    private readonly userRepository: UserRepository,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
   async createReview(
-    @CurrentUser('id') userId: number,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() body: CreateReviewDto,
   ) {
-    return this.reviewsFacade.createReview(userId, body);
+    const localUser = await this.userRepository.findByBetterAuthId(user.id);
+    if (!localUser) throw new NotFoundException('User not found');
+    return this.reviewsFacade.createReview(localUser.id, body);
   }
 
   @Get('expert/:expertId')

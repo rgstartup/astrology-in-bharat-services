@@ -11,10 +11,12 @@ import { RemoveCartItemUseCase } from './application/use-cases/remove-cart-item.
 import { ClearCartUseCase } from './application/use-cases/clear-cart.use-case';
 import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { UsersModule } from '@/modules/users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Cart, CartItem, Product, User]),
+    UsersModule,
   ],
   controllers: [CartController],
   providers: [

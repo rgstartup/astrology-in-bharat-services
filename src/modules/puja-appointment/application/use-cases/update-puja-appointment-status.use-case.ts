@@ -83,9 +83,9 @@ export class UpdatePujaAppointmentStatusUseCase {
             }
 
             // 3. Create Todo for Expert
-            if (expertNumericUserId) {
+            if (appointment.expert?.better_auth_user_id) {
               try {
-                  await this.todosFacade.create(expertNumericUserId, {
+                  await this.todosFacade.create(appointment.expert.better_auth_user_id, {
                       text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.user?.name || 'Client'} on ${appointment.scheduled_date} at ${appointment.scheduled_time}`
                   });
               } catch (err) {

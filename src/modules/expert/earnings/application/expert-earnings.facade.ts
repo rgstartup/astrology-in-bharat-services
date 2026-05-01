@@ -17,15 +17,15 @@ export class ExpertEarningsFacade {
         return this.getEarningsStatsUseCase.execute(userId, range);
     }
 
-    async getWalletBalance(userId: number) {
+    async getWalletBalance(userId: string) {
         return this.getWalletBalanceUseCase.execute(userId);
     }
 
-    async getTransactions(userId: number, page: number, limit: number, type: string) {
+    async getTransactions(userId: string, page: number, limit: number, type: string) {
         return this.getWalletTransactionsUseCase.execute(userId, page, limit, type);
     }
 
-    async requestWithdrawal(userId: number, amount: number, bank_account_id: number) {
+    async requestWithdrawal(userId: string, amount: number, bank_account_id: number) {
         return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id);
     }
 }

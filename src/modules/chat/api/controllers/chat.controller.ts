@@ -15,7 +15,8 @@ import { ChatFacade } from '../../application/chat.facade';
 import { ExpertSessionFilter } from '../../application/use-cases/find-expert-sessions.use-case';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
+import { UserRepository } from '@/modules/users/infrastructure/persistence/repositories/user.repository';
 import { ChatGateway } from '../../chat.gateway';
 import { ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
 
@@ -28,14 +29,22 @@ export class ChatController {
   constructor(
     private readonly chatFacade: ChatFacade,
     private readonly chatGateway: ChatGateway,
+    private readonly userRepository: UserRepository,
   ) { }
+
+  private async resolveUserId(betterAuthId: string): Promise<number> {
+    const localUser = await this.userRepository.findByBetterAuthId(betterAuthId);
+    if (!localUser) throw new NotFoundException('User not found');
+    return localUser.id;
+  }
 
   @Post('initiate')
   async initiateChat(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUser,
     @Body('expertId', ParseIntPipe) expertId: number,
   ) {
-    const session = await this.chatFacade.initiateChat(user.id, expertId);
+    const userId = await this.resolveUserId(user.id);
+    const session = await this.chatFacade.initiateChat(userId, expertId);
 
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
@@ -48,7 +57,7 @@ export class ChatController {
     // Calculate affordable minutes for paid chat or use freeMinutes
     let maxMinutes = session.is_free ? session.free_minutes : 0;
     if (!session.is_free && session.price_per_minute > 0) {
-      const balance = await this.chatGateway.getWalletBalance(user.id);
+      const balance = await this.chatGateway.getWalletBalance(userId);
       maxMinutes = Math.floor(balance / session.price_per_minute);
     }
 
@@ -306,9 +315,10 @@ export class ChatController {
 
   @Get('sessions/pending')
   @Header('Cache-Control', 'no-store')
-  async getPendingSessions(@CurrentUser() user: User) {
+  async getPendingSessions(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
     const sessions = await this.chatFacade.getExpertSessions(
-      user.id,
+      userId,
       ExpertSessionFilter.PENDING,
     );
     const expiryTime = parseInt(
@@ -342,15 +352,17 @@ export class ChatController {
 
   @Get('sessions/completed')
   @Header('Cache-Control', 'no-store')
-  getCompletedSessions(@CurrentUser() user: User) {
-    return this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.COMPLETED);
+  async getCompletedSessions(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
+    return this.chatFacade.getExpertSessions(userId, ExpertSessionFilter.COMPLETED);
   }
 
   @Get('sessions/appointments/pending')
   @Header('Cache-Control', 'no-store')
-  async getRecentPendingSessions(@CurrentUser() user: User) {
+  async getRecentPendingSessions(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
     const sessions =
-      await this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.RECENT_PENDING);
+      await this.chatFacade.getExpertSessions(userId, ExpertSessionFilter.RECENT_PENDING);
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
       10,
@@ -382,14 +394,16 @@ export class ChatController {
 
   @Get('sessions/appointments/completed')
   @Header('Cache-Control', 'no-store')
-  getRecentCompletedSessions(@CurrentUser() user: User) {
-    return this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.RECENT_COMPLETED);
+  async getRecentCompletedSessions(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
+    return this.chatFacade.getExpertSessions(userId, ExpertSessionFilter.RECENT_COMPLETED);
   }
 
   @Get('sessions/all')
   @Header('Cache-Control', 'no-store')
-  async getAllSessions(@CurrentUser() user: User) {
-    const sessions = await this.chatFacade.getExpertSessions(user.id, ExpertSessionFilter.ALL);
+  async getAllSessions(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
+    const sessions = await this.chatFacade.getExpertSessions(userId, ExpertSessionFilter.ALL);
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
       10,
@@ -421,8 +435,9 @@ export class ChatController {
 
   @Get('sessions/my-sessions')
   @Header('Cache-Control', 'no-store')
-  async getMySessionsAsClient(@CurrentUser() user: User) {
-    const sessions = await this.chatFacade.getClientSessions(user.id);
+  async getMySessionsAsClient(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
+    const sessions = await this.chatFacade.getClientSessions(userId);
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
       10,
@@ -470,8 +485,9 @@ export class ChatController {
 
   @Get('sessions/active-client')
   @Header('Cache-Control', 'no-store')
-  async getActiveClientSession(@CurrentUser() user: User) {
-    const session = await this.chatFacade.getActiveClientSession(user.id);
+  async getActiveClientSession(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
+    const session = await this.chatFacade.getActiveClientSession(userId);
     if (!session) return null;
 
     const expiryTimeMs = parseInt(

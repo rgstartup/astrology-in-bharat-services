@@ -25,12 +25,12 @@ export class TodosController {
 
     @Get()
     findAll(@CurrentUser() user: AuthenticatedUser) {
-        return this.todosFacade.findAll(user.localUserId);
+        return this.todosFacade.findAll(user.id);
     }
 
     @Post()
     create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateTodoDto) {
-        return this.todosFacade.create(user.localUserId, dto);
+        return this.todosFacade.create(user.id, dto);
     }
 
     @Patch(':id')
@@ -39,11 +39,11 @@ export class TodosController {
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateTodoDto,
     ) {
-        return this.todosFacade.update(user.localUserId, id, dto);
+        return this.todosFacade.update(user.id, id, dto);
     }
 
     @Delete(':id')
     remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIntPipe) id: number) {
-        return this.todosFacade.remove(user.localUserId, id);
+        return this.todosFacade.remove(user.id, id);
     }
 }

@@ -13,9 +13,9 @@ export class FindAllTodosUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
   ) { }
 
-  private async getExpertProfile(userId: number) {
+  private async getExpertProfile(userId: string) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId } },
+      where: { better_auth_user_id: userId },
     });
     if (!profile) {
       throw new NotFoundException('Expert profile not found');
@@ -23,7 +23,7 @@ export class FindAllTodosUseCase {
     return profile;
   }
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     const profile = await this.getExpertProfile(userId);
     return this.todoRepo.find({
       where: { expert_id: profile.id },

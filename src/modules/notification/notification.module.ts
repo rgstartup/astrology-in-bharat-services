@@ -8,9 +8,10 @@ import { CreateNotificationUseCase } from './application/use-cases/create-notifi
 import { GetNotificationsUseCase } from './application/use-cases/get-notifications.use-case';
 import { MarkAsReadUseCase } from './application/use-cases/mark-as-read.use-case';
 import { ClearAllNotificationsUseCase } from './application/use-cases/clear-all-notifications.use-case';
+import { UsersModule } from '@/modules/users/users.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Notification])],
+    imports: [TypeOrmModule.forFeature([Notification]), UsersModule],
     controllers: [NotificationController],
     providers: [
         NotificationGateway,

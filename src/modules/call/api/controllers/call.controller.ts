@@ -1,5 +1,8 @@
-import { Controller, Post, Get, Patch, Body, UseGuards, Req, Header, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, UseGuards, Header, Param, ParseIntPipe, NotFoundException } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
+import { UserRepository } from '@/modules/users/infrastructure/persistence/repositories/user.repository';
 import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
 import { CallSessionFilter } from '../../application/use-cases/get-expert-sessions.use-case';
@@ -14,17 +17,24 @@ export class CallController {
     constructor(
         private readonly callFacade: CallFacade,
         private readonly callGateway: CallGateway,
+        private readonly userRepository: UserRepository,
     ) { }
 
+    private async resolveUserId(betterAuthId: string): Promise<number> {
+        const localUser = await this.userRepository.findByBetterAuthId(betterAuthId);
+        if (!localUser) throw new NotFoundException('User not found');
+        return localUser.id;
+    }
+
     @Post('initiate')
-    // ... (lines 14-24 remains same)
     async initiate(
-        @Req() req: any,
+        @CurrentUser() user: AuthenticatedUser,
         @Body() body: { expertId: number; type?: CallType }
     ) {
-        console.log(`[CallController] Initiate call: userId=${req.user.id}, expertId=${body.expertId}, type=${body.type || CallType.AUDIO}`);
+        const userId = await this.resolveUserId(user.id);
+        console.log(`[CallController] Initiate call: userId=${userId}, expertId=${body.expertId}, type=${body.type || CallType.AUDIO}`);
         return this.callFacade.initiate(
-            req.user.id,
+            userId,
             body.expertId,
             body.type || CallType.AUDIO
         );
@@ -32,12 +42,13 @@ export class CallController {
 
     @Post('accept')
     async accept(
-        @Req() req: any,
+        @CurrentUser() user: AuthenticatedUser,
         @Body() body: { sessionId: number }
     ) {
-        console.log(`[CallController] Accept call: userId=${req.user.id}, sessionId=${body.sessionId}`);
+        const userId = await this.resolveUserId(user.id);
+        console.log(`[CallController] Accept call: userId=${userId}, sessionId=${body.sessionId}`);
         return this.callFacade.accept(
-            req.user.id,
+            userId,
             body.sessionId
         );
     }
@@ -52,22 +63,20 @@ export class CallController {
 
     @Patch('session/:sessionId/status')
     async updateStatus(
-        @Req() req: any,
+        @CurrentUser() user: AuthenticatedUser,
         @Param('sessionId', ParseIntPipe) sessionId: number,
         @Body('status') status: string,
     ) {
         console.log(`[CallController] Expert Updating status of call session ${sessionId} to ${status}`);
-        
+
         if (status === 'accepted') {
-            const res = await this.callFacade.accept(req.user.id, sessionId);
-            // Notifications are handled inside fachada/uses cases for calls usually,
-            // but we'll ensure consistency if needed via gateway.
+            const userId = await this.resolveUserId(user.id);
+            const res = await this.callFacade.accept(userId, sessionId);
             return res;
         }
 
         if (status === 'rejected' || status === 'cancelled') {
-            const res = await this.callFacade.end(sessionId); // Calling end for rejection too
-            // Note: specialized end logic might be needed for 'pending' state
+            const res = await this.callFacade.end(sessionId);
             return res;
         }
 
@@ -83,21 +92,24 @@ export class CallController {
     @Get('token/:sessionId')
     @Header('Cache-Control', 'no-store')
     async getToken(
-        @Req() req: any,
+        @CurrentUser() user: AuthenticatedUser,
         @Param('sessionId', ParseIntPipe) sessionId: number
     ) {
-        return this.callFacade.getCallToken(req.user.id, sessionId);
+        const userId = await this.resolveUserId(user.id);
+        return this.callFacade.getCallToken(userId, sessionId);
     }
 
     @Get('sessions/appointments/pending')
     @Header('Cache-Control', 'no-store')
-    async getPendingAppointments(@Req() req: any) {
-        return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.RECENT_PENDING);
+    async getPendingAppointments(@CurrentUser() user: AuthenticatedUser) {
+        const userId = await this.resolveUserId(user.id);
+        return this.callFacade.getExpertSessions(userId, CallSessionFilter.RECENT_PENDING);
     }
 
     @Get('sessions/appointments/completed')
     @Header('Cache-Control', 'no-store')
-    async getCompletedAppointments(@Req() req: any) {
-        return this.callFacade.getExpertSessions(req.user.id, CallSessionFilter.RECENT_COMPLETED);
+    async getCompletedAppointments(@CurrentUser() user: AuthenticatedUser) {
+        const userId = await this.resolveUserId(user.id);
+        return this.callFacade.getExpertSessions(userId, CallSessionFilter.RECENT_COMPLETED);
     }
 }

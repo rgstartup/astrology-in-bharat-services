@@ -62,6 +62,9 @@ export class AgentProfile {
     @Column({ nullable: true })
     pan_doc: string;
 
+    @Column({ unique: true, nullable: true, name: 'better_auth_user_id' })
+    better_auth_user_id: string;
+
     @OneToOne(() => User)
     @JoinColumn({ name: 'user_id' })
     user: User;

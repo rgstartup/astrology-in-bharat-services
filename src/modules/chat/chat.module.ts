@@ -24,12 +24,14 @@ import { AdminTerminateSessionUseCase } from './application/use-cases/admin-term
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { NotificationModule } from '@/modules/notification/notification.module';
+import { UsersModule } from '@/modules/users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert]),
     WalletModule,
     NotificationModule,
+    UsersModule,
   ],
   providers: [
     ChatGateway,

@@ -28,14 +28,15 @@ import { GetPendingWithdrawalsUseCase } from './application/use-cases/get-pendin
 import { UpdateWithdrawalStatusUseCase } from './application/use-cases/update-withdrawal-status.use-case';
 import { GetAdminWithdrawalStatsUseCase } from './application/use-cases/get-admin-withdrawal-stats.use-case';
 import { NotificationModule } from '@/modules/notification/notification.module';
-
 import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts.module';
+import { UsersModule } from '@/modules/users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Wallet, Transaction, Withdrawal, User, BankAccount, ProfileClient, ProfileExpert]),
     NotificationModule,
     BankAccountsModule,
+    UsersModule,
   ],
   providers: [
     WalletFacade,

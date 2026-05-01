@@ -11,7 +11,7 @@ export class UpdateProfilePictureUseCase {
     private readonly updateProfileUseCase: UpdateProfileUseCase,
   ) {}
 
-  async execute(userId: number, file: Express.Multer.File) {
+  async execute(userId: string, file: Express.Multer.File) {
     try {
       const result = await this.cloudinaryService.uploadImage(file);
       return this.updateProfileUseCase.execute(userId, {

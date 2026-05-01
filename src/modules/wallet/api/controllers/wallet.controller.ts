@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query, NotFoundException } from '@nestjs/common';
 import { WalletFacade } from '../../application/wallet.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
+import { UserRepository } from '@/modules/users/infrastructure/persistence/repositories/user.repository';
 
 @Controller({
   path: 'wallet',
@@ -10,37 +11,44 @@ import { User } from '@/modules/users/infrastructure/persistence/entities/user.e
 })
 @UseGuards(JwtAuthGuard)
 export class WalletController {
-  constructor(private readonly walletFacade: WalletFacade) { }
+  constructor(
+    private readonly walletFacade: WalletFacade,
+    private readonly userRepository: UserRepository,
+  ) {}
+
+  private async resolveUserId(betterAuthId: string): Promise<number> {
+    const localUser = await this.userRepository.findByBetterAuthId(betterAuthId);
+    if (!localUser) throw new NotFoundException('User not found');
+    return localUser.id;
+  }
 
   @Get()
-  getWallet(@CurrentUser() user: User) {
-    return this.walletFacade.getWallet(user.id);
+  async getWallet(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
+    return this.walletFacade.getWallet(userId);
   }
 
   @Get('balance')
-  getBalance(@CurrentUser() user: User) {
-    return this.walletFacade.getBalance(user.id);
+  async getBalance(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
+    return this.walletFacade.getBalance(userId);
   }
 
   @Post('topup')
-  topUp(@CurrentUser() user: User, @Body('amount') amount: number) {
-    return this.walletFacade.topUp(user.id, amount);
+  async topUp(@CurrentUser() user: AuthenticatedUser, @Body('amount') amount: number) {
+    const userId = await this.resolveUserId(user.id);
+    return this.walletFacade.topUp(userId, amount);
   }
 
   @Get('transactions')
-  getTransactions(
-    @CurrentUser() user: User,
+  async getTransactions(
+    @CurrentUser() user: AuthenticatedUser,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
     @Query('type') type: string = 'all',
     @Query('purpose') purpose?: string,
   ) {
-    return this.walletFacade.getTransactions(
-      user.id,
-      page,
-      limit,
-      type,
-      purpose,
-    );
+    const userId = await this.resolveUserId(user.id);
+    return this.walletFacade.getTransactions(userId, page, limit, type, purpose);
   }
 }

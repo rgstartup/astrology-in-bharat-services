@@ -17,17 +17,17 @@ import { User } from '@/modules/users/infrastructure/persistence/entities/user.e
 @Check(`"gender" IN ('male', 'female', 'other')`)
 export class ProfileClient {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ unique: true })
-  better_auth_user_id: string;
+  better_auth_user_id!: string;
 
   @ManyToOne(() => User, { nullable: true, eager: false })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ nullable: true, name: 'user_id' })
-  user_id: number;
+  user_id!: number;
 
   @Column({ nullable: true })
   username?: string;
@@ -36,13 +36,13 @@ export class ProfileClient {
     type: 'timestamptz',
     nullable: true,
   })
-  date_of_birth: Date | null;
+  date_of_birth!: Date | null;
 
   @Column({
     type: 'text',
     default: 'other',
   })
-  gender: 'male' | 'female' | 'other';
+  gender!: 'male' | 'female' | 'other';
 
   @Column({ nullable: true })
   phone?: string;
@@ -81,7 +81,7 @@ export class ProfileClient {
     cascade: true,
     eager: true,
   })
-  addresses: Address[];
+  addresses: Address[] | undefined;
 
   @Column({
     type: 'decimal',
@@ -91,11 +91,11 @@ export class ProfileClient {
     name: 'total_spending',
     transformer: new ColumnNumericTransformer(),
   })
-  total_spending: number;
+  total_spending: number | undefined;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updated_at!: Date;
 }

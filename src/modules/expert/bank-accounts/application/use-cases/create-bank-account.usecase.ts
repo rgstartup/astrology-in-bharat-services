@@ -17,15 +17,15 @@ export class CreateBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  private async getExpertProfile(userId: number) {
+  private async getExpertProfile(userId: string) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId } },
+      where: { better_auth_user_id: userId },
     });
     if (!profile) throw new NotFoundException('Expert profile not found');
     return profile;
   }
 
-  async execute(userId: number, dto: CreateBankAccountDto) {
+  async execute(userId: string, dto: CreateBankAccountDto) {
     const profile = await this.getExpertProfile(userId);
 
     // If this is the first account, it must be primary

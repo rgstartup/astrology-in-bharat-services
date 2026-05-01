@@ -15,7 +15,7 @@ export class RemoveBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(userId: number, id: number) {
+  async execute(userId: string, id: number) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
 
     BankAccountPolicy.ensureCanDelete(account);

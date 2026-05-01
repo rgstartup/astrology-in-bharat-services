@@ -5,7 +5,7 @@ import { Review } from './infrastructure/persistence/entities/review.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
 import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { UsersModule } from '@/modules/users/users.module';
 
 import { ReviewsFacade } from './application/reviews.facade';
 import { CreateReviewUseCase } from './application/use-cases/create-review.use-case';
@@ -13,7 +13,7 @@ import { GetExpertReviewsUseCase } from './application/use-cases/get-expert-revi
 import { GetReviewsStatsUseCase } from './application/use-cases/get-reviews-stats.use-case';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review, ProfileExpert, ChatSession, CallSession])],
+  imports: [TypeOrmModule.forFeature([Review, ProfileExpert, ChatSession, CallSession]), UsersModule],
   controllers: [ReviewsController],
   providers: [
     ReviewsFacade,

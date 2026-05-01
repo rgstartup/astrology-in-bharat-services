@@ -3,11 +3,13 @@ import {
     Post,
     Body,
     UseGuards,
+    NotFoundException,
 } from '@nestjs/common';
 import { PaymentFacade } from '../../application/payment.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
+import { UserRepository } from '@/modules/users/infrastructure/persistence/repositories/user.repository';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { VerifyPaymentDto } from '../dto/verify-payment.dto';
 
@@ -16,15 +18,25 @@ import { VerifyPaymentDto } from '../dto/verify-payment.dto';
     version: '1',
 })
 export class PaymentController {
-    constructor(private readonly paymentFacade: PaymentFacade) { }
+    constructor(
+        private readonly paymentFacade: PaymentFacade,
+        private readonly userRepository: UserRepository,
+    ) { }
+
+    private async resolveUserId(betterAuthId: string): Promise<number> {
+        const localUser = await this.userRepository.findByBetterAuthId(betterAuthId);
+        if (!localUser) throw new NotFoundException('User not found');
+        return localUser.id;
+    }
 
     @UseGuards(JwtAuthGuard)
     @Post('orders/create')
     async createOrder(
-        @CurrentUser() user: User,
+        @CurrentUser() user: AuthenticatedUser,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.paymentFacade.createOrder(user.id, dto);
+        const userId = await this.resolveUserId(user.id);
+        return this.paymentFacade.createOrder(userId, dto);
     }
 
     @UseGuards(JwtAuthGuard)

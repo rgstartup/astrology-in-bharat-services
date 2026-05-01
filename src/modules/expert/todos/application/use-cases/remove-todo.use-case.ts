@@ -14,9 +14,9 @@ export class RemoveTodoUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
   ) { }
 
-  private async getExpertProfile(userId: number) {
+  private async getExpertProfile(userId: string) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId } },
+      where: { better_auth_user_id: userId },
     });
     if (!profile) {
       throw new NotFoundException('Expert profile not found');
@@ -24,7 +24,7 @@ export class RemoveTodoUseCase {
     return profile;
   }
 
-  async execute(userId: number, id: number) {
+  async execute(userId: string, id: number) {
     const profile = await this.getExpertProfile(userId);
     const todo = await this.todoRepo.findOne({
       where: { id, expert_id: profile.id },

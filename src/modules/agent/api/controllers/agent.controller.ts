@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Patch, Body, Post, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Patch, Body, Post, Query, BadRequestException, NotFoundException } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -24,15 +24,21 @@ export class AgentController {
         private readonly configService: ConfigService
     ) { }
 
+    private async getAgentProfile(queryRunner: any, betterAuthUserId: string): Promise<AgentProfile> {
+        const profile = await queryRunner.manager.findOne(AgentProfile, {
+            where: { better_auth_user_id: betterAuthUserId },
+        });
+        if (!profile) throw new NotFoundException('Agent profile not found');
+        return profile;
+    }
+
     @Get('profile')
     async getProfile(@CurrentUser() user: AuthenticatedUser) {
-        const profile = await this.db.transaction(async (queryRunner) => {
+        return this.db.transaction(async (queryRunner) => {
             return queryRunner.manager.findOne(AgentProfile, {
-                where: { user_id: user.localUserId },
-                relations: ['user'] as any
+                where: { better_auth_user_id: user.id },
             });
         });
-        return profile;
     }
 
     @Patch('profile')
@@ -41,7 +47,7 @@ export class AgentController {
         @Body() body: any
     ) {
         await this.db.transaction(async (queryRunner) => {
-            await queryRunner.manager.update(AgentProfile, { user_id: user.localUserId }, {
+            await queryRunner.manager.update(AgentProfile, { better_auth_user_id: user.id }, {
                 bank_name: body.bank_name,
                 account_number: body.account_number,
                 ifsc_code: body.ifsc_code,
@@ -52,10 +58,9 @@ export class AgentController {
 
     @Get('dashboard/stats')
     async getStats(@CurrentUser() user: AuthenticatedUser) {
-        const stats = await this.db.transaction(async (queryRunner) => {
-            const profile = await queryRunner.manager.findOne(AgentProfile, {
-                where: { user_id: user.localUserId }
-            });
+        return this.db.transaction(async (queryRunner) => {
+            const profile = await this.getAgentProfile(queryRunner, user.id);
+            const agentLocalId = profile.user_id;
 
             const registeredUserIds = profile?.registered_user_ids || [];
             const registeredAstrologerIds = profile?.registered_astrologer_ids || [];
@@ -64,16 +69,16 @@ export class AgentController {
             const totalUsers = await queryRunner.manager
                 .createQueryBuilder(User, 'u')
                 .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
-                    agentId: user.localUserId,
+                    agentId: agentLocalId,
                     ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
                 })
                 .getCount();
 
             const totalMandirs = await queryRunner.manager.count(AgentListing, {
-                where: { agent_id: user.localUserId, type: 'mandir' }
+                where: { agent_id: agentLocalId, type: 'mandir' }
             });
             const totalPujaShops = await queryRunner.manager.count(AgentListing, {
-                where: { agent_id: user.localUserId, type: 'puja_shop' }
+                where: { agent_id: agentLocalId, type: 'puja_shop' }
             });
 
             const usersForStats: any[] = await queryRunner.manager
@@ -81,7 +86,7 @@ export class AgentController {
                 .leftJoinAndMapOne('u.profile_expert', ProfileExpert, 'pe', 'pe.user_id = u.id')
                 .leftJoinAndMapOne('u.profile_client', ProfileClient, 'pc', 'pc.user_id = u.id')
                 .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
-                    agentId: user.localUserId,
+                    agentId: agentLocalId,
                     ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
                 })
                 .getMany();
@@ -122,7 +127,6 @@ export class AgentController {
                 recentActivity: []
             };
         });
-        return stats;
     }
 
     @Post('listings')
@@ -138,7 +142,9 @@ export class AgentController {
             throw new BadRequestException('name is required');
         }
 
-        const listing = await this.db.transaction(async (queryRunner) => {
+        return this.db.transaction(async (queryRunner) => {
+            const profile = await this.getAgentProfile(queryRunner, user.id);
+
             const newListing = queryRunner.manager.create(AgentListing, {
                 type: body.type,
                 name: body.name.trim(),
@@ -147,16 +153,16 @@ export class AgentController {
                 deity: body.deity?.trim() || null,
                 items: body.items?.trim() || null,
                 status: 'pending',
-                agent_id: user.localUserId,
+                agent_id: profile.user_id,
             });
-            return queryRunner.manager.save(AgentListing, newListing);
-        });
+            const listing = await queryRunner.manager.save(AgentListing, newListing);
 
-        return {
-            success: true,
-            message: `${body.type === 'puja_shop' ? 'Puja Shop' : 'Mandir'} listing created successfully`,
-            listing,
-        };
+            return {
+                success: true,
+                message: `${body.type === 'puja_shop' ? 'Puja Shop' : 'Mandir'} listing created successfully`,
+                listing,
+            };
+        });
     }
 
     @Get('listings')
@@ -167,7 +173,7 @@ export class AgentController {
         @Query('type') type?: string,
         @Query('search') search?: string,
     ) {
-        const listings = await this.db.transaction(async (queryRunner) => {
+        return this.db.transaction(async (queryRunner) => {
             const isPlaceType = type === 'mandir' || type === 'puja_shop';
             const isUserType = type === 'astrologer' || type === 'client';
             const isAll = !type || type === 'all';
@@ -177,9 +183,8 @@ export class AgentController {
             let placeData: any[] = [];
             let placeTotal = 0;
 
-            const agentProfile = await queryRunner.manager.findOne(AgentProfile, {
-                where: { user_id: user.localUserId }
-            });
+            const agentProfile = await this.getAgentProfile(queryRunner, user.id);
+            const agentLocalId = agentProfile.user_id;
 
             const registeredUserIds = agentProfile?.registered_user_ids || [];
             const registeredAstrologerIds = agentProfile?.registered_astrologer_ids || [];
@@ -191,7 +196,7 @@ export class AgentController {
                     .leftJoinAndMapOne('u.profile_expert', ProfileExpert, 'pe', 'pe.user_id = u.id')
                     .leftJoinAndMapOne('u.profile_client', ProfileClient, 'pc', 'pc.user_id = u.id')
                     .where('(u.referred_by_id = :agentId OR u.id IN (:...ids))', {
-                        agentId: user.localUserId,
+                        agentId: agentLocalId,
                         ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
                     });
 
@@ -251,7 +256,7 @@ export class AgentController {
             if (isPlaceType || isAll) {
                 const qb = queryRunner.manager
                     .createQueryBuilder(AgentListing, 'al')
-                    .where('al.agent_id = :agentId', { agentId: user.localUserId });
+                    .where('al.agent_id = :agentId', { agentId: agentLocalId });
 
                 if (isPlaceType) {
                     qb.andWhere('al.type = :type', { type });
@@ -287,21 +292,14 @@ export class AgentController {
                 }));
             }
 
-            const allData = [...userData, ...placeData].sort((a, b) => {
-                const dateA = new Date(a.createdAt).getTime();
-                const dateB = new Date(b.createdAt).getTime();
-                return dateB - dateA;
-            });
+            const allData = [...userData, ...placeData].sort((a, b) =>
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
             const allTotal = userTotal + placeTotal;
 
             if (isAll) {
                 const start = (page - 1) * limit;
-                return {
-                    data: allData.slice(start, start + limit),
-                    total: allTotal,
-                    page,
-                    limit,
-                };
+                return { data: allData.slice(start, start + limit), total: allTotal, page, limit };
             }
 
             return {
@@ -311,6 +309,5 @@ export class AgentController {
                 limit,
             };
         });
-        return listings;
     }
 }

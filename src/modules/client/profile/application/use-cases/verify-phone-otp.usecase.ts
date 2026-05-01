@@ -13,7 +13,7 @@ export class VerifyPhoneOtpUseCase {
         private readonly profileRepo: Repository<ProfileClient>,
     ) { }
 
-    async execute(userId: number, phone: string, code: string): Promise<{ success: boolean; message: string }> {
+    async execute(userId: string, phone: string, code: string): Promise<{ success: boolean; message: string }> {
         const accountSid = process.env.TWILIO_ACCOUNT_SID;
         const authToken = process.env.TWILIO_AUTH_TOKEN;
         const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
@@ -25,16 +25,11 @@ export class VerifyPhoneOtpUseCase {
         if (!serviceSid) {
             if (process.env.NODE_ENV === 'development') {
                 if (code === '123456') {
-                    // Bypass Twilio check and directly approve
-                    const profile = await this.profileRepo.findOne({ where: { user: { id: userId } } });
-                    if (!profile) {
-                        throw new BadRequestException('Profile not found.');
-                    }
-
-                    profile.phone = phone; 
+                    const profile = await this.profileRepo.findOne({ where: { better_auth_user_id: userId } });
+                    if (!profile) throw new BadRequestException('Profile not found.');
+                    profile.phone = phone;
                     profile.phone_verified_at = new Date();
                     await this.profileRepo.save(profile);
-
                     return { success: true, message: 'Phone number verified successfully (Mock Mode).' };
                 } else {
                     throw new BadRequestException('Invalid mock OTP. Use 123456.');
@@ -58,15 +53,11 @@ export class VerifyPhoneOtpUseCase {
                 .verificationChecks.create({ to: formattedPhone, code });
 
             if (verificationCheck.status === 'approved') {
-                const profile = await this.profileRepo.findOne({ where: { user: { id: userId } } });
-                if (!profile) {
-                    throw new BadRequestException('Profile not found.');
-                }
-
-                profile.phone = phone; // save the exact phone string user input
+                const profile = await this.profileRepo.findOne({ where: { better_auth_user_id: userId } });
+                if (!profile) throw new BadRequestException('Profile not found.');
+                profile.phone = phone;
                 profile.phone_verified_at = new Date();
                 await this.profileRepo.save(profile);
-
                 return { success: true, message: 'Phone number verified successfully.' };
             } else {
                 throw new BadRequestException('Invalid OTP or OTP expired.');

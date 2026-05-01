@@ -20,18 +20,18 @@ export class UpdateProfileUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(userId: number, dto: UpdateProfileClientDto) {
+  async execute(userId: string, dto: UpdateProfileClientDto) {
     let profile = await this.repo.findOne({
-      where: { user: { id: userId } },
+      where: { better_auth_user_id: userId },
       relations: ['addresses'],
     });
 
     if (!profile) {
       this.logger.log(`No client profile found for user ${userId}, creating on-the-fly`);
-      profile = this.repo.create({ user: { id: userId } as any, gender: 'other' });
+      profile = this.repo.create({ better_auth_user_id: userId, gender: 'other' });
       await this.repo.save(profile);
       profile = await this.repo.findOne({
-        where: { user: { id: userId } },
+        where: { better_auth_user_id: userId },
         relations: ['addresses'],
       });
     }

@@ -13,13 +13,15 @@ import { ExpertPuja } from '@/modules/expert/profile/infrastructure/persistence/
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { TodosModule } from '@/modules/expert/todos/todos.module';
+import { UsersModule } from '@/modules/users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PujaAppointment, User, ProfileExpert, ExpertPuja]),
     NotificationModule,
     WalletModule,
-    TodosModule
+    TodosModule,
+    UsersModule,
   ],
   controllers: [PujaAppointmentController],
   providers: [

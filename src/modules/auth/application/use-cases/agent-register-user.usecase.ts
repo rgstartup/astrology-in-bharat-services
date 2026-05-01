@@ -6,6 +6,7 @@ import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entitie
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { UserRepository } from '@/modules/users/infrastructure/persistence/repositories/user.repository';
 
 export class AgentRegisterUserDto {
   better_auth_user_id: string;
@@ -22,9 +23,10 @@ export class AgentRegisterUserUseCase {
   constructor(
     private readonly dataSource: DataSource,
     private readonly usersFacade: UsersFacade,
+    private readonly userRepository: UserRepository,
   ) {}
 
-  async execute(dto: AgentRegisterUserDto, agentId: number) {
+  async execute(dto: AgentRegisterUserDto, agentBetterAuthId: string) {
     const isExpert = dto.roles.includes('expert');
     const role = isExpert ? 'expert' : 'client';
 
@@ -32,6 +34,12 @@ export class AgentRegisterUserUseCase {
     if (existingUser) {
       throw new Error('User with this email already exists');
     }
+
+    const agentLocalUser = await this.userRepository.findByBetterAuthId(agentBetterAuthId);
+    if (!agentLocalUser) {
+      throw new Error('Agent local profile not found');
+    }
+    const agentLocalId = agentLocalUser.id;
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -48,7 +56,7 @@ export class AgentRegisterUserUseCase {
         name: dto.name,
         role,
         uid,
-        referred_by_id: agentId,
+        referred_by_id: agentLocalId,
       });
       createdUser = await queryRunner.manager.save(User, createdUser);
 
@@ -66,18 +74,18 @@ export class AgentRegisterUserUseCase {
         await queryRunner.manager.save(ProfileClient, profile);
       }
 
-      const agentProfile = await queryRunner.manager.findOne(AgentProfile, { where: { user_id: agentId } });
+      const agentProfile = await queryRunner.manager.findOne(AgentProfile, { where: { user_id: agentLocalId } });
       if (agentProfile) {
         const field = isExpert ? 'registered_astrologer_ids' : 'registered_user_ids';
         agentProfile[field] = [...(agentProfile[field] || []), createdUser.id];
         await queryRunner.manager.save(AgentProfile, agentProfile);
-        await queryRunner.manager.increment(AgentProfile, { user_id: agentId }, 'total_registrations', 1);
+        await queryRunner.manager.increment(AgentProfile, { user_id: agentLocalId }, 'total_registrations', 1);
       }
 
       await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      this.logger.error(`Failed to register user by agent ${agentId}`, error.stack);
+      this.logger.error(`Failed to register user by agent ${agentBetterAuthId}`, error.stack);
       throw error;
     } finally {
       await queryRunner.release();

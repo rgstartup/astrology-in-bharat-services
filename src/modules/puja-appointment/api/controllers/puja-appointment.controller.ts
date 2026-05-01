@@ -1,5 +1,8 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, Patch } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Patch, NotFoundException } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
+import { UserRepository } from '@/modules/users/infrastructure/persistence/repositories/user.repository';
 import { CreatePujaAppointmentUseCase } from '../../application/use-cases/create-puja-appointment.use-case';
 import { CreatePujaAppointmentDto } from '../../application/dtos/create-puja-appointment.dto';
 import { GetUserPujaAppointmentsUseCase } from '../../application/use-cases/get-user-puja-appointments.use-case';
@@ -14,29 +17,40 @@ export class PujaAppointmentController {
     private readonly getUserPujaAppointmentsUseCase: GetUserPujaAppointmentsUseCase,
     private readonly getExpertPujaAppointmentsUseCase: GetExpertPujaAppointmentsUseCase,
     private readonly updatePujaAppointmentStatusUseCase: UpdatePujaAppointmentStatusUseCase,
+    private readonly userRepository: UserRepository,
   ) {}
+
+  private async resolveUserId(betterAuthId: string): Promise<number> {
+    const localUser = await this.userRepository.findByBetterAuthId(betterAuthId);
+    if (!localUser) throw new NotFoundException('User not found');
+    return localUser.id;
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async createAppointment(@Request() req: any, @Body() dto: CreatePujaAppointmentDto) {
-    return await this.createPujaAppointmentUseCase.execute(req.user.id, dto);
+  async createAppointment(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreatePujaAppointmentDto) {
+    const userId = await this.resolveUserId(user.id);
+    return this.createPujaAppointmentUseCase.execute(userId, dto);
   }
 
   @Get('user')
   @UseGuards(JwtAuthGuard)
-  async getUserAppointments(@Request() req: any) {
-    return await this.getUserPujaAppointmentsUseCase.execute(req.user.id);
+  async getUserAppointments(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
+    return this.getUserPujaAppointmentsUseCase.execute(userId);
   }
 
   @Get('expert')
   @UseGuards(JwtAuthGuard)
-  async getExpertAppointments(@Request() req: any) {
-    return await this.getExpertPujaAppointmentsUseCase.execute(req.user.id);
+  async getExpertAppointments(@CurrentUser() user: AuthenticatedUser) {
+    const userId = await this.resolveUserId(user.id);
+    return this.getExpertPujaAppointmentsUseCase.execute(userId);
   }
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
-  async updateStatus(@Request() req: any, @Param('id') id: string, @Body() dto: UpdatePujaAppointmentStatusDto) {
-    return await this.updatePujaAppointmentStatusUseCase.execute(Number(id), req.user.id, dto);
+  async updateStatus(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdatePujaAppointmentStatusDto) {
+    const userId = await this.resolveUserId(user.id);
+    return this.updatePujaAppointmentStatusUseCase.execute(Number(id), userId, dto);
   }
 }

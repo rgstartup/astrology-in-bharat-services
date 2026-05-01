@@ -20,6 +20,6 @@ export class AuthController {
     @Body() dto: AgentRegisterUserDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.agentRegisterUseCase.execute(dto, user.localUserId);
+    return this.agentRegisterUseCase.execute(dto, user.id);
   }
 }

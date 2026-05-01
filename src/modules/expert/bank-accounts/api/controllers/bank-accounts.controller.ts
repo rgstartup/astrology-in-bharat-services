@@ -34,17 +34,17 @@ export class BankAccountsController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() createBankAccountDto: CreateBankAccountDto,
   ) {
-    return this.bankAccountsFacade.create(user.localUserId, createBankAccountDto);
+    return this.bankAccountsFacade.create(user.id, createBankAccountDto);
   }
 
   @Get()
   findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.bankAccountsFacade.findAll(user.localUserId);
+    return this.bankAccountsFacade.findAll(user.id);
   }
 
   @Get(':id')
   findOne(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIntPipe) id: number) {
-    return this.bankAccountsFacade.findOne(user.localUserId, id);
+    return this.bankAccountsFacade.findOne(user.id, id);
   }
 
   @Patch(':id')
@@ -53,7 +53,7 @@ export class BankAccountsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateBankAccountDto: UpdateBankAccountDto,
   ) {
-    return this.bankAccountsFacade.update(user.localUserId, id, updateBankAccountDto);
+    return this.bankAccountsFacade.update(user.id, id, updateBankAccountDto);
   }
 
   @Patch(':id/set-primary')
@@ -61,11 +61,11 @@ export class BankAccountsController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.bankAccountsFacade.setPrimary(user.localUserId, id);
+    return this.bankAccountsFacade.setPrimary(user.id, id);
   }
 
   @Delete(':id')
   remove(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIntPipe) id: number) {
-    return this.bankAccountsFacade.remove(user.localUserId, id);
+    return this.bankAccountsFacade.remove(user.id, id);
   }
 }

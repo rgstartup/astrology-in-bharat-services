@@ -25,7 +25,7 @@ export class ExpertWalletController {
 
     @Get('balance')
     async getBalance(@CurrentUser() user: AuthenticatedUser) {
-        return this.earningsFacade.getWalletBalance(user.localUserId);
+        return this.earningsFacade.getWalletBalance(user.id);
     }
 
     @Get('transactions')
@@ -35,7 +35,7 @@ export class ExpertWalletController {
         @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 10,
         @Query('type') type: string = 'all',
     ) {
-        return this.earningsFacade.getTransactions(user.localUserId, page, limit, type);
+        return this.earningsFacade.getTransactions(user.id, page, limit, type);
     }
 
     @Post('withdraw')
@@ -44,6 +44,6 @@ export class ExpertWalletController {
         @Body('amount') amount: number,
         @Body('bank_account_id') bank_account_id: number,
     ) {
-        return this.earningsFacade.requestWithdrawal(user.localUserId, amount, bank_account_id);
+        return this.earningsFacade.requestWithdrawal(user.id, amount, bank_account_id);
     }
 }

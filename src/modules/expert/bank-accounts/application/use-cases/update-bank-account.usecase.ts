@@ -16,7 +16,7 @@ export class UpdateBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(userId: number, id: number, dto: UpdateBankAccountDto) {
+  async execute(userId: string, id: number, dto: UpdateBankAccountDto) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
 
     if (dto.is_primary && !account.is_primary) {

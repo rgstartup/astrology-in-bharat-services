@@ -26,7 +26,7 @@ export class ProfileController {
 
   @Get()
   async getProfile(@CurrentUser() user: AuthenticatedUser) {
-    return this.profileFacade.getProfile(user.localUserId);
+    return this.profileFacade.getProfile(user.id);
   }
 
   @Post()
@@ -34,7 +34,7 @@ export class ProfileController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateProfileClientDto,
   ) {
-    return this.profileFacade.createProfile(user.localUserId, dto);
+    return this.profileFacade.createProfile(user.id, dto);
   }
 
   @Patch()
@@ -42,7 +42,7 @@ export class ProfileController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateProfileClientDto,
   ) {
-    return this.profileFacade.updateProfile(user.localUserId, dto);
+    return this.profileFacade.updateProfile(user.id, dto);
   }
 
   @Patch('picture')
@@ -51,7 +51,7 @@ export class ProfileController {
     @CurrentUser() user: AuthenticatedUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.profileFacade.updateProfilePicture(user.localUserId, file);
+    return this.profileFacade.updateProfilePicture(user.id, file);
   }
 
   @Post('upload-document')
@@ -60,7 +60,7 @@ export class ProfileController {
     @CurrentUser() user: AuthenticatedUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.profileFacade.uploadDocument(user.localUserId, file);
+    return this.profileFacade.uploadDocument(user.id, file);
   }
 
   @Post('phone/send-otp')
@@ -68,7 +68,7 @@ export class ProfileController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: SendPhoneOtpDto,
   ) {
-    return this.profileFacade.sendPhoneOtp(user.localUserId, dto.phone);
+    return this.profileFacade.sendPhoneOtp(user.id, dto.phone);
   }
 
   @Post('phone/verify-otp')
@@ -76,6 +76,6 @@ export class ProfileController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: VerifyPhoneOtpDto,
   ) {
-    return this.profileFacade.verifyPhoneOtp(user.localUserId, dto.phone, dto.code);
+    return this.profileFacade.verifyPhoneOtp(user.id, dto.phone, dto.code);
   }
 }

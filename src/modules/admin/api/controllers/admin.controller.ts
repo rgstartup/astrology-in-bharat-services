@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseIntPipe, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseIntPipe, UseInterceptors, UploadedFiles, NotFoundException } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
@@ -8,7 +8,8 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { AuthenticatedUser } from '@/common/types/authenticated-user.type';
+import { UserRepository } from '@/modules/users/infrastructure/persistence/repositories/user.repository';
 import { WithdrawalStatus } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
 import { FilterCriteria } from '../../application/use-cases/get-filtered-users.use-case';
 import { CreateAgentDto } from '../../presentation/dto/create-agent.dto';
@@ -27,7 +28,14 @@ export class AdminController {
     private readonly profileFacade: ExpertProfileFacade,
     private readonly chatFacade: ChatFacade,
     private readonly couponFacade: CouponFacade,
+    private readonly userRepository: UserRepository,
   ) { }
+
+  private async resolveUserId(betterAuthId: string): Promise<number> {
+    const localUser = await this.userRepository.findByBetterAuthId(betterAuthId);
+    if (!localUser) throw new NotFoundException('User not found');
+    return localUser.id;
+  }
 
   @Get('analytics/user-growth')
   async getUserGrowthStats(@Query('days') days: number = 7) {
@@ -106,10 +114,11 @@ export class AdminController {
   @Post('live-sessions/:id/terminate')
   async terminateSession(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: AuthenticatedUser,
     @Body() body: { userMessage?: string; expertMessage?: string },
   ) {
-    return this.adminFacade.terminateSession(id, admin.id, body.userMessage, body.expertMessage);
+    const adminId = await this.resolveUserId(admin.id);
+    return this.adminFacade.terminateSession(id, adminId, body.userMessage, body.expertMessage);
   }
 
   // Coupon Management
@@ -150,10 +159,11 @@ export class AdminController {
   @Patch('withdrawals/:id/status')
   async updateWithdrawalStatus(
     @Param('id') id: number,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: AuthenticatedUser,
     @Body() body: { status: WithdrawalStatus; remark?: string },
   ) {
-    return this.adminFacade.updateWithdrawalStatus(id, body.status, admin.id, body.remark);
+    const adminId = await this.resolveUserId(admin.id);
+    return this.adminFacade.updateWithdrawalStatus(id, body.status, adminId, body.remark);
   }
 
   // Bulk Coupon Assignment Utilities

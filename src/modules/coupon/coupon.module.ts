@@ -11,9 +11,10 @@ import { DeleteCouponUseCase } from './application/use-cases/delete-coupon.use-c
 import { GetMyRewardsUseCase } from './application/use-cases/get-my-rewards.use-case';
 import { ApplyCouponUseCase } from './application/use-cases/apply-coupon.use-case';
 import { CouponController } from './api/controllers/coupon.controller';
+import { UsersModule } from '@/modules/users/users.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Coupon, UserCoupon])],
+    imports: [TypeOrmModule.forFeature([Coupon, UserCoupon]), UsersModule],
 
     controllers: [CouponController],
 

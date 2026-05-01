@@ -14,19 +14,12 @@ export class CreateProfileUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(userId: number, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
+  async execute(userId: string, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
     const repo = queryRunner ? queryRunner.manager.getRepository(ProfileClient) : this.repo;
-    // prevent duplicate profile
-    const exists = await repo.findOne({
-      where: { user: { id: userId } },
-    });
+    const exists = await repo.findOne({ where: { better_auth_user_id: userId } });
     if (exists) return exists;
 
-    const profile = repo.create({
-      ...dto,
-      user: { id: userId } as any,
-    });
-
+    const profile = repo.create({ ...dto, better_auth_user_id: userId });
     const savedProfile = await repo.save(profile);
 
     this.eventEmitter.emit(

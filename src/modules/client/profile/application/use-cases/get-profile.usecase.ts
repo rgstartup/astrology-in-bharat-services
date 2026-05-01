@@ -10,11 +10,8 @@ export class GetProfileUseCase {
     private readonly repo: Repository<ProfileClient>,
   ) { }
 
-  async execute(userId: number, queryRunner?: QueryRunner) {
+  async execute(userId: string, queryRunner?: QueryRunner) {
     const repo = queryRunner ? queryRunner.manager.getRepository(ProfileClient) : this.repo;
-    return repo.findOne({
-      where: { user: { id: userId } },
-      relations: ['user'],
-    });
+    return repo.findOne({ where: { better_auth_user_id: userId } });
   }
 }

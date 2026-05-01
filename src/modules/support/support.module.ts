@@ -10,9 +10,10 @@ import { SendDisputeMessageUseCase } from './application/use-cases/send-message.
 import { GetDisputeMessagesUseCase } from './application/use-cases/get-messages.use-case';
 import { MarkMessagesAsReadUseCase } from './application/use-cases/mark-as-read.use-case';
 import { SupportController } from './api/controllers/support.controller';
+import { UsersModule } from '@/modules/users/users.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage])],
+    imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage]), UsersModule],
     providers: [
         SupportFacade,
         GetDisputesUseCase,

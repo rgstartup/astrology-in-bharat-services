@@ -21,31 +21,31 @@ export class ClientProfileFacade {
     private readonly verifyPhoneOtpUseCase: VerifyPhoneOtpUseCase,
   ) { }
 
-  async getProfile(userId: number, queryRunner?: QueryRunner) {
+  async getProfile(userId: string, queryRunner?: QueryRunner) {
     return this.getProfileUseCase.execute(userId, queryRunner);
   }
 
-  async createProfile(userId: number, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
+  async createProfile(userId: string, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
     return this.createProfileUseCase.execute(userId, dto, queryRunner);
   }
 
-  async updateProfile(userId: number, dto: UpdateProfileClientDto) {
+  async updateProfile(userId: string, dto: UpdateProfileClientDto) {
     return this.updateProfileUseCase.execute(userId, dto);
   }
 
-  async updateProfilePicture(userId: number, file: Express.Multer.File) {
+  async updateProfilePicture(userId: string, file: Express.Multer.File) {
     return this.updateProfilePictureUseCase.execute(userId, file);
   }
 
-  async uploadDocument(userId: number, file: Express.Multer.File) {
+  async uploadDocument(userId: string, file: Express.Multer.File) {
     return this.uploadDocumentUseCase.execute(userId, file);
   }
 
-  async sendPhoneOtp(userId: number, phone: string) {
+  async sendPhoneOtp(userId: string, phone: string) {
     return this.sendPhoneOtpUseCase.execute(userId, phone);
   }
 
-  async verifyPhoneOtp(userId: number, phone: string, code: string) {
+  async verifyPhoneOtp(userId: string, phone: string, code: string) {
     return this.verifyPhoneOtpUseCase.execute(userId, phone, code);
   }
 }
