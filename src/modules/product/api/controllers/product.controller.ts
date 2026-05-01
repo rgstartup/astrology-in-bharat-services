@@ -36,7 +36,7 @@ export class ProductController {
     private readonly cloudinaryService: CloudinaryService,
   ) { }
 
-  
+
 
   @Get()
   findAll(
