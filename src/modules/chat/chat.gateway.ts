@@ -206,14 +206,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // 1. Handle Free Session Expiry
       if (
         currentSession.is_free &&
-        durationMins === currentSession.free_minutes
+        durationMins >= currentSession.free_minutes &&
+        !currentSession.metadata?.free_limit_triggered
       ) {
         const balance = await this.walletFacade.getBalance(
           currentSession.user_id,
         );
         const minReq = currentSession.price_per_minute * 5;
 
-        this.server.to(`room_${payload.sessionId}`).emit('free_limit_reached', {
+        // Mark as triggered in metadata to avoid multiple emits
+        await this.chatFacade.updateSessionMetadata(payload.sessionId, {
+          ...currentSession.metadata,
+          free_limit_triggered: true,
+        });
+
+        this.server.to(`room_${payload.sessionId}`).emit('free_time_ending_soon', {
           message:
             balance < minReq
               ? 'Your free session is ending soon. Please recharge to continue.'
@@ -230,10 +237,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           // For now, if they don't have balance after 30s, end it.
           const b = await this.walletFacade.getBalance(currentSession.user_id);
           if (b < minReq && s?.status === ChatSessionStatus.ACTIVE) {
-            await this.chatFacade.endChat(payload.sessionId);
+            const summary = await this.chatFacade.endChat(payload.sessionId);
             this.server
               .to(`room_${payload.sessionId}`)
-              .emit('session_ended', { reason: 'free_limit_ended_no_balance' });
+              .emit('session_ended', { ...summary, reason: 'free_limit_ended_no_balance' });
           }
         }, 30000);
       }
@@ -254,10 +261,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           setTimeout(async () => {
             const s = await this.chatFacade.getSession(payload.sessionId);
             if (s?.status === ChatSessionStatus.ACTIVE) {
-              await this.chatFacade.endChat(payload.sessionId);
+              const summary = await this.chatFacade.endChat(payload.sessionId);
               this.server
                 .to(`room_${payload.sessionId}`)
-                .emit('session_ended', { reason: 'insufficient_balance' });
+                .emit('session_ended', { ...summary, reason: 'insufficient_balance' });
             }
           }, 30000);
         }

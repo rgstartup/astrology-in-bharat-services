@@ -35,10 +35,11 @@ export class ActivateSessionUseCase {
         session.status = ChatSessionStatus.ACTIVE;
         session.start_time = new Date();
 
-        // Calculate Max Duration based on Wallet Balance
+        // Calculate Max Duration based on Wallet Balance + Free Minutes
         const balance = await this.walletFacade.getBalance(session.user_id);
-        const maxMinutes = balance / session.price_per_minute;
-        session.max_duration_seconds = Math.floor(maxMinutes * 60);
+        const paidMinutes = session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
+        const totalMinutes = (session.is_free ? session.free_minutes : 0) + paidMinutes;
+        session.max_duration_seconds = Math.floor(totalMinutes * 60);
 
         const savedSession = await this.sessionRepo.save(session);
 

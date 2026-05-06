@@ -94,6 +94,15 @@ export class EndChatUseCase {
         session.agent_id = agent_id;
         session.agent_commission = agent_commission;
         
+        const split = {
+            totalAmount: total_cost,
+            totalCost: total_cost, // Alias for compatibility
+            platformFee: Number((total_cost - expert_earning).toFixed(2)), // Deductions = Total - Net
+            expertShare: expert_earning,
+            agent_commission,
+            buyer_agent_commission,
+        };
+
         await this.sessionRepo.save(session);
 
         const referenceId = `chat_${sessionId}`;
@@ -120,7 +129,7 @@ export class EndChatUseCase {
                 );
             }
 
-            const initialReservation = session.price_per_minute * 1; 
+            const initialReservation = session.price_per_minute * 5; 
 
             if (total_cost <= initialReservation) {
                 if (total_cost > 0) {
@@ -168,6 +177,26 @@ export class EndChatUseCase {
                         referenceId,
                     );
                 }
+
+                // 💰 Credit Seller's Agent
+                if (agent_commission > 0 && agent_id) {
+                    await this.walletFacade.credit(
+                        agent_id,
+                        agent_commission,
+                        TransactionPurpose.CONSULTATION, // Or add a specific purpose if needed
+                        referenceId,
+                    );
+                }
+
+                // 💰 Credit Buyer's Agent
+                if (buyer_agent_commission > 0 && buyer_agent_id) {
+                    await this.walletFacade.credit(
+                        buyer_agent_id,
+                        buyer_agent_commission,
+                        TransactionPurpose.CONSULTATION,
+                        `chat_buyer_ref_${sessionId}`,
+                    );
+                }
             }
         } catch (error) {
             console.error(`Failed to settle wallet for session ${sessionId}:`, error);
@@ -211,6 +240,7 @@ export class EndChatUseCase {
             durationMins: session.start_time
                 ? Number(((session.end_time.getTime() - session.start_time.getTime()) / 60000).toFixed(2))
                 : 0,
+            split,
         };
     }
 }

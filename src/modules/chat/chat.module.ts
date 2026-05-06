@@ -23,6 +23,7 @@ import { FindAllSessionsUseCase } from './application/use-cases/find-all-session
 import { AdminTerminateSessionUseCase } from './application/use-cases/admin-terminate-session.use-case';
 import { GetChatSessionStatsUseCase } from './application/use-cases/get-chat-session-stats.use-case';
 import { RejectChatUseCase } from './application/use-cases/reject-chat.use-case';
+import { UpdateSessionMetadataUseCase } from './application/use-cases/update-session-metadata.use-case';
 
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
@@ -58,6 +59,7 @@ import { User } from '@/modules/users/infrastructure/persistence/entities/user.e
     AdminTerminateSessionUseCase,
     GetChatSessionStatsUseCase,
     RejectChatUseCase,
+    UpdateSessionMetadataUseCase,
   ],
   controllers: [ChatController, ConsultationController],
   exports: [ChatFacade, FindAllSessionsUseCase, AdminTerminateSessionUseCase, GetChatSessionStatsUseCase, RejectChatUseCase],

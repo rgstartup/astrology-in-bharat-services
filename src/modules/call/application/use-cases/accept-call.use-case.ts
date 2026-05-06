@@ -52,10 +52,11 @@ export class AcceptCallUseCase {
     session.status = CallSessionStatus.ACTIVE;
     session.start_time = new Date();
 
-    // Calculate Max Duration based on Wallet Balance
+    // Calculate Max Duration based on Wallet Balance + Free Minutes
     const balance = await this.walletFacade.getBalance(session.user_id);
-    const maxMinutes = balance / session.price_per_minute;
-    session.max_duration_seconds = Math.floor(maxMinutes * 60);
+    const paidMinutes = session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
+    const totalMinutes = (session.is_free ? session.free_minutes : 0) + paidMinutes;
+    session.max_duration_seconds = Math.floor(totalMinutes * 60);
     
     this.logger.log(`Session ${sessionId}: User balance ${balance}, Max duration ${session.max_duration_seconds}s`);
 
@@ -81,6 +82,9 @@ export class AcceptCallUseCase {
     this.callGateway.server
       .to(`call_room_${sessionId}`)
       .emit('call_accepted', result);
+    
+    // Start the duration/balance timer
+    this.callGateway.startSessionTimer(sessionId);
     
     // Also notify expert dashboard (any open tab)
     this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_accepted', result);

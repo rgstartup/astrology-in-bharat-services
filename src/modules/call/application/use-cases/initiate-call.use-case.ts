@@ -68,13 +68,23 @@ export class InitiateCallUseCase {
         const minMins = 5;
         const minBalanceRequired = callPrice * minMins;
 
-        // Check balance (No free calls for now, keep it simple)
-        const hasBalance = await this.walletFacade.validateBalance(
-            userId,
-            minBalanceRequired,
-        );
+        const callCount = await this.sessionRepo.count({
+            where: { user_id: userId, status: CallSessionStatus.COMPLETED },
+        });
 
-        CallPolicy.ensureSufficientBalance(hasBalance, minMins, minBalanceRequired, type);
+        const isFreeEnabled = process.env.FREE_CHAT_ENABLED === 'true';
+        const isEligibleForFree = isFreeEnabled && callCount === 0;
+        const freeMins = isEligibleForFree
+            ? parseInt(process.env.FREE_CHAT_DURATION_MINS || '5', 10)
+            : 0;
+
+        if (!isEligibleForFree) {
+            const hasBalance = await this.walletFacade.validateBalance(
+                userId,
+                minBalanceRequired,
+            );
+            CallPolicy.ensureSufficientBalance(hasBalance, minMins, minBalanceRequired, type);
+        }
 
         const session = this.sessionRepo.create({
             user_id: userId,
@@ -82,19 +92,22 @@ export class InitiateCallUseCase {
             price_per_minute: callPrice,
             status: CallSessionStatus.PENDING,
             type: type,
-            is_free: false,
+            is_free: isEligibleForFree,
+            free_minutes: freeMins,
         });
 
         const savedSession = await this.sessionRepo.save(session);
-        this.logger.log(`Session saved: id=${savedSession.id}`);
+        this.logger.log(`Session saved: id=${savedSession.id} (is_free: ${isEligibleForFree})`);
 
-        // Reserve balance
-        await this.walletFacade.reserveBalance(
-            userId,
-            minBalanceRequired,
-            `call_${savedSession.id}`,
-        );
-        this.logger.log(`Balance reserved for sessionId=${savedSession.id}`);
+        // Reserve balance only if not free
+        if (!isEligibleForFree) {
+            await this.walletFacade.reserveBalance(
+                userId,
+                minBalanceRequired,
+                `call_${savedSession.id}`,
+            );
+            this.logger.log(`Balance reserved for sessionId=${savedSession.id}`);
+        }
 
         // Generate Twilio Token for the user
         const identity = `user_${userId}_${savedSession.id}`;

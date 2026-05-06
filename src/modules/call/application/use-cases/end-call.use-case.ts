@@ -122,7 +122,13 @@ export class EndCallUseCase {
     session.agent_commission = agent_commission;
     await this.sessionRepo.save(session);
 
-    const split = { totalAmount: finalPrice, platformFee: platformFee + gst, expertShare, agent_commission };
+    const split = { 
+        totalAmount: finalPrice, 
+        totalCost: finalPrice, // Alias for compatibility
+        platformFee: Number((finalPrice - expertShare).toFixed(2)), 
+        expertShare: expertShare, 
+        agent_commission 
+    };
 
     // 💰 Credit Seller's Agent immediately if applicable
     if (agent_commission > 0 && agent_id) {
@@ -152,7 +158,7 @@ export class EndCallUseCase {
         }
     }
 
-    const initialReservation = session.price_per_minute * 1; 
+    const initialReservation = session.price_per_minute * 5; 
 
     this.callGateway.server
       .to(`call_room_${sessionId}`)
