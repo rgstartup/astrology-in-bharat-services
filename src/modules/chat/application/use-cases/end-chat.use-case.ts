@@ -109,7 +109,7 @@ export class EndChatUseCase {
         
         // 🏦 Settlement Logic
         try {
-            const initialReservation = session.price_per_minute * 1; 
+            const initialReservation = session.price_per_minute * 5; 
 
             if (total_cost <= initialReservation) {
                 if (total_cost > 0) {

@@ -65,7 +65,7 @@ export class InitiateCallUseCase {
             ? (expert.video_call_price || (expert.price ? expert.price * 2 : 0) || 0)
             : (expert.call_price || expert.price || 0);
 
-        const minMins = 1;
+        const minMins = 5;
         const minBalanceRequired = callPrice * minMins;
 
         const callCount = await this.sessionRepo.count({

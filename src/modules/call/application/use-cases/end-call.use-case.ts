@@ -131,7 +131,7 @@ export class EndCallUseCase {
     };
 
     // 🏦 Settlement Logic
-    const initialReservation = session.price_per_minute * 1; 
+    const initialReservation = session.price_per_minute * 5; 
     try {
       if (finalPrice <= initialReservation) {
         if (finalPrice > 0) {
