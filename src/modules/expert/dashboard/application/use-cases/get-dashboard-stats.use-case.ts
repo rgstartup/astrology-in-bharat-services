@@ -58,11 +58,14 @@ export class GetDashboardStatsUseCase {
         startDate: startOfToday,
       });
 
+      const walletBalance = await this.walletFacade.getBalance(userId);
+
       return {
         today_appointments: todayChatAppointments + todayCallAppointments,
         completed_today: completedToday + completedCallsToday,
         expired_today: expiredToday + expiredCallsToday,
         today_earnings: todayEarnings,
+        wallet_balance: walletBalance,
         average_rating: reviewStats?.rating || 0,
         total_reviews: reviewStats?.totalReviews || 0,
         total_chat_sessions: todayChatAppointments + todayCallAppointments, // Standardized for dashboard cards
@@ -88,12 +91,14 @@ export class GetDashboardStatsUseCase {
       });
 
       const totalEarnings = await this.walletFacade.getTotalEarnings(userId);
+      const walletBalance = await this.walletFacade.getBalance(userId);
 
       return {
         total_appointments: totalChatAppointments + totalCallAppointments,
         total_completed: totalCompleted + totalCompletedCalls,
         total_expired: totalExpired + totalExpiredCalls,
         total_earnings: totalEarnings,
+        wallet_balance: walletBalance,
         average_rating: reviewStats?.rating || 0,
         total_reviews: reviewStats?.totalReviews || 0,
         total_chat_sessions: totalChatAppointments + totalCallAppointments, // Standardized for dashboard cards

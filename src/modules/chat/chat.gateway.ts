@@ -269,7 +269,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           }, 30000);
         }
       }
-    }, 60000);
+    }, 10000);
 
     this.sessionTimers.set(payload.sessionId, timer);
     return session;

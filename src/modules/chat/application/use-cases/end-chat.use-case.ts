@@ -109,26 +109,6 @@ export class EndChatUseCase {
         
         // 🏦 Settlement Logic
         try {
-            // 💰 Credit Seller's Agent immediately if applicable
-            if (agent_commission > 0 && agent_id) {
-                await this.walletFacade.credit(
-                    agent_id,
-                    agent_commission,
-                    'agent_commission' as any,
-                    referenceId
-                );
-            }
-
-            // 💰 Credit Buyer's Agent immediately if applicable
-            if (buyer_agent_commission > 0 && buyer_agent_id) {
-                await this.walletFacade.credit(
-                    buyer_agent_id,
-                    buyer_agent_commission,
-                    'agent_commission' as any,
-                    `chat_buyer_ref_${sessionId}`
-                );
-            }
-
             const initialReservation = session.price_per_minute * 1; 
 
             if (total_cost <= initialReservation) {
@@ -162,16 +142,11 @@ export class EndChatUseCase {
                 );
             }
 
-            // 💳 Credit Expert (Using pre-calculated earnings)
+            // 💳 Credit Expert and Agents (Using pre-calculated earnings)
             if (total_cost > 0) {
-                const sessionWithExpert = await this.sessionRepo.findOne({
-                    where: { id: sessionId },
-                    relations: ['expert', 'expert.user'],
-                });
-
-                if (sessionWithExpert?.expert?.user?.id) {
+                if (expertUser?.id) {
                     await this.walletFacade.credit(
-                        sessionWithExpert.expert.user.id,
+                        expertUser.id,
                         session.expert_earning,
                         TransactionPurpose.CONSULTATION,
                         referenceId,
@@ -183,7 +158,7 @@ export class EndChatUseCase {
                     await this.walletFacade.credit(
                         agent_id,
                         agent_commission,
-                        TransactionPurpose.CONSULTATION, // Or add a specific purpose if needed
+                        TransactionPurpose.AGENT_COMMISSION,
                         referenceId,
                     );
                 }
@@ -193,7 +168,7 @@ export class EndChatUseCase {
                     await this.walletFacade.credit(
                         buyer_agent_id,
                         buyer_agent_commission,
-                        TransactionPurpose.CONSULTATION,
+                        TransactionPurpose.AGENT_COMMISSION,
                         `chat_buyer_ref_${sessionId}`,
                     );
                 }

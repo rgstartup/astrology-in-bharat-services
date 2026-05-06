@@ -158,7 +158,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
                     }, 30000);
                 }
             }
-        }, 60000);
+        }, 10000);
 
         this.sessionTimers.set(sessionId, timer);
     }

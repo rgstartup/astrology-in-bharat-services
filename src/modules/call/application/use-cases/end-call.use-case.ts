@@ -130,60 +130,8 @@ export class EndCallUseCase {
         agent_commission 
     };
 
-    // 💰 Credit Seller's Agent immediately if applicable
-    if (agent_commission > 0 && agent_id) {
-        try {
-            await this.walletFacade.credit(
-                agent_id,
-                agent_commission,
-                'agent_commission' as any,
-                referenceId
-            );
-        } catch (err) {
-            console.error(`[EndCall] Failed to credit agent ${agent_id}:`, err);
-        }
-    }
-
-    // 💰 Credit Buyer's Agent immediately if applicable
-    if (buyer_agent_commission > 0 && buyer_agent_id) {
-        try {
-            await this.walletFacade.credit(
-                buyer_agent_id,
-                buyer_agent_commission,
-                'agent_commission' as any,
-                `call_buyer_ref_${sessionId}`
-            );
-        } catch (err) {
-            console.error(`[EndCall] Failed to credit buyer agent ${buyer_agent_id}:`, err);
-        }
-    }
-
+    // 🏦 Settlement Logic
     const initialReservation = session.price_per_minute * 1; 
-
-    this.callGateway.server
-      .to(`call_room_${sessionId}`)
-      .emit('call_ended', { sessionId, split, terminatedBy, terminatedReason: reason });
-
-    // Also notify expert dashboard
-    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', { 
-        sessionId, 
-        session: session, 
-        split, 
-        terminatedBy, 
-        terminatedReason: reason 
-    });
-    
-    this.eventEmitter.emit(
-      'call.ended',
-      new CallEndedEvent(
-        session.id,
-        session.user_id,
-        session.expert_id,
-        session.duration_seconds,
-        session.final_price,
-      ),
-    );
-
     try {
       if (finalPrice <= initialReservation) {
         if (finalPrice > 0) {
@@ -216,25 +164,64 @@ export class EndCallUseCase {
         );
       }
 
-      // 💳 Credit Expert (Using pre-calculated earnings)
+      // 💳 Credit Expert and Agents (Using pre-calculated earnings)
       if (finalPrice > 0) {
-        const expert = await this.expertRepo.findOne({
-          where: { id: session.expert_id },
-          relations: ['user'],
-        });
-
-        if (expert?.user?.id) {
+        if (expertUser?.id) {
           await this.walletFacade.credit(
-            expert.user.id,
+            expertUser.id,
             session.expert_earning,
             TransactionPurpose.CONSULTATION,
             referenceId,
+          );
+        }
+
+        // 💰 Credit Seller's Agent
+        if (agent_commission > 0 && agent_id) {
+          await this.walletFacade.credit(
+            agent_id,
+            agent_commission,
+            TransactionPurpose.AGENT_COMMISSION,
+            referenceId,
+          );
+        }
+
+        // 💰 Credit Buyer's Agent
+        if (buyer_agent_commission > 0 && buyer_agent_id) {
+          await this.walletFacade.credit(
+            buyer_agent_id,
+            buyer_agent_commission,
+            TransactionPurpose.AGENT_COMMISSION,
+            `call_buyer_ref_${sessionId}`,
           );
         }
       }
     } catch (error) {
       console.error(`[EndCall] Failed to settle wallet for session ${sessionId}:`, error);
     }
+
+    this.callGateway.server
+      .to(`call_room_${sessionId}`)
+      .emit('call_ended', { sessionId, split, terminatedBy, terminatedReason: reason });
+
+    // Also notify expert dashboard
+    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', { 
+        sessionId, 
+        session: session, 
+        split, 
+        terminatedBy, 
+        terminatedReason: reason 
+    });
+    
+    this.eventEmitter.emit(
+      'call.ended',
+      new CallEndedEvent(
+        session.id,
+        session.user_id,
+        session.expert_id,
+        session.duration_seconds,
+        session.final_price,
+      ),
+    );
 
     // 🔔 Notify User
     try {
