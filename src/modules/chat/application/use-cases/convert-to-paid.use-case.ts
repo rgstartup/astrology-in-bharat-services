@@ -28,7 +28,7 @@ export class ConvertToPaidUseCase {
         );
         if (!hasBalance) {
             throw new BadRequestException(
-                `Insufficient balance to continue. Minimum 5 minutes (₹${minBalanceRequired}) balance is required.`,
+                `You don't have enough money to talk 5 minutes to expert. Please add some more money in your wallet.`,
             );
         }
 

@@ -70,7 +70,7 @@ export class TwimlController {
                         
                         if (timeLimit <= 0) {
                             this.logger.warn(`[TwiML] Insufficient balance for session ${sessionId}. Hanging up.`);
-                            response.say('Insufficient balance to continue this call.');
+                            response.say("You don't have enough money to talk 5 minutes to expert. Please add some more money in your wallet.");
                             res.set('Content-Type', 'text/xml');
                             return res.status(200).send(response.toString());
                         }

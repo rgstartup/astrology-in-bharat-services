@@ -75,7 +75,7 @@ export class InitiateChatUseCase {
             );
             if (!hasBalance) {
                 throw new BadRequestException(
-                    `Insufficient balance. Minimum ${minMins} minutes (₹${minBalanceRequired}) balance is required to start chat.`,
+                    `You don't have enough money to talk 5 minutes to expert. Please add some more money in your wallet.`,
                 );
             }
         }

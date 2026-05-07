@@ -20,7 +20,7 @@ export class CallInsufficientBalanceError extends DomainError {
 
     constructor(minMinutes: number, minBalanceRequired: number, type: string) {
         super();
-        this.message = `Insufficient balance. Minimum ${minMinutes} minutes (₹${minBalanceRequired}) balance is required to start ${type} call.`;
+        this.message = `You don't have enough money to talk 5 minutes to expert. Please add some more money in your wallet.`;
     }
 }
 
