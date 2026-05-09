@@ -3,7 +3,7 @@ import { CreateNotificationUseCase } from './use-cases/create-notification.use-c
 import { GetNotificationsUseCase } from './use-cases/get-notifications.use-case';
 import { MarkAsReadUseCase } from './use-cases/mark-as-read.use-case';
 import { ClearAllNotificationsUseCase } from './use-cases/clear-all-notifications.use-case';
-import { NotificationType } from '../infrastructure/persistence/entities/notification.entity';
+import { NotificationType } from '../infrastructure/entities/notification.entity';
 
 @Injectable()
 export class NotificationFacade {

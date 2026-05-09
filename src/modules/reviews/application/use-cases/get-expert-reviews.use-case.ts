@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Review } from '../../infrastructure/persistence/entities/review.entity';
+import { Review } from '../../infrastructure/entities/review.entity';
 
 @Injectable()
 export class GetExpertReviewsUseCase {

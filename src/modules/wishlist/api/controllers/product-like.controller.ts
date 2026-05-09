@@ -12,7 +12,7 @@ import { WishlistFacade } from '../../application/wishlist.facade';
 import { CreateWishlistDto } from '../dto/create-wishlist.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Controller({
   path: 'product-like',

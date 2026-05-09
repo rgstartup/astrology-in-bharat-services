@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
-import { ChatMessage, MessageType } from '../../infrastructure/persistence/entities/chat-message.entity';
+import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
+import { ChatMessage, MessageType } from '../../infrastructure/entities/chat-message.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()

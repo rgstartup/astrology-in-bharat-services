@@ -1,12 +1,12 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Review } from '../../infrastructure/persistence/entities/review.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
-import { Order, OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
-import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
-import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
+import { Review } from '../../infrastructure/entities/review.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { Order, OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
+import { ChatSession } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { CallSession } from '@/modules/call/infrastructure/entities/call-session.entity';
 import { CreateReviewDto } from '../../api/dto/create-review.dto';
 
 @Injectable()

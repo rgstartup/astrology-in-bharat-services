@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Dispute } from '../../infrastructure/persistence/entities/dispute.entity';
-import { DisputeMessage } from '../../infrastructure/persistence/entities/dispute-message.entity';
+import { Dispute } from '../../infrastructure/entities/dispute.entity';
+import { DisputeMessage } from '../../infrastructure/entities/dispute-message.entity';
 import { SendDisputeMessageDto } from '../../api/dto/send-dispute-message.dto';
 
 import { SupportGateway } from '../../api/support.gateway';

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
+import { Wallet } from '../../infrastructure/entities/wallet.entity';
 
 @Injectable()
 export class GetWalletUseCase {

@@ -1,14 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileMerchant } from '../../infrastructure/persistence/entities/profile-merchant.entity';
+import { ProfileMerchant } from '../../infrastructure/entities/profile-merchant.entity';
 import { UpdateMerchantProfileDto } from '../../api/dto/update-merchant-profile.dto';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { MerchantGateway } from '../../api/gateways/merchant.gateway';
 import { EncryptionService } from '@/common/services/encryption.service';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 
 @Injectable()
 export class UpdateMerchantProfileUseCase {

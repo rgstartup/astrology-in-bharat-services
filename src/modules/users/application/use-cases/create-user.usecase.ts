@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../../presentation/dto/user.dto';
-import { User } from '../../infrastructure/persistence/entities/user.entity';
+import { User } from '../../infrastructure/entities/user.entity';
 import { RolesService } from '@/modules/role/roles.service';
 import { QueryRunner } from 'typeorm';
-import { UserRepository } from '../../infrastructure/persistence/repositories/user.repository';
+import { UserRepository } from '../../infrastructure/repositories/user.repository';
 import * as crypto from 'crypto';
 
 @Injectable()

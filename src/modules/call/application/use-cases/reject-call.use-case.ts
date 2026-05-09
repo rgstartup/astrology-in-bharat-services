@@ -1,7 +1,7 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSession, CallSessionStatus } from '../../infrastructure/persistence/entities/call-session.entity';
+import { CallSession, CallSessionStatus } from '../../infrastructure/entities/call-session.entity';
 import { CallGateway } from '../../call.gateway';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 

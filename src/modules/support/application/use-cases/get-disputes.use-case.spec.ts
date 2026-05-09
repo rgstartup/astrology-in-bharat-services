@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GetDisputesUseCase } from './get-disputes.use-case';
-import { Dispute } from '../../infrastructure/persistence/entities/dispute.entity';
+import { Dispute } from '../../infrastructure/entities/dispute.entity';
 
 describe('GetDisputesUseCase', () => {
     let useCase: GetDisputesUseCase;

@@ -10,10 +10,10 @@ import {
     ParseIntPipe,
 } from '@nestjs/common';
 import { TodosFacade } from '../../application/todos.facade';
-import { CreateTodoDto, UpdateTodoDto } from '../../infrastructure/persistence/dto/todo.dto';
+import { CreateTodoDto, UpdateTodoDto } from '../../infrastructure/dto/todo.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Controller({
     path: 'expert/todos',

@@ -4,8 +4,8 @@ import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { ReviewsFacade } from '@/modules/reviews/application/reviews.facade';
 import { DashboardPolicy } from '../../domain/policies/dashboard.policy';
-import { ChatSessionStatus } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
-import { CallSession, CallSessionStatus } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
+import { ChatSessionStatus } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { CallSession, CallSessionStatus } from '@/modules/call/infrastructure/entities/call-session.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, In } from 'typeorm';
 

@@ -1,4 +1,4 @@
-import { BankAccount } from '../../infrastructure/persistence/entities/bank-account.entity';
+import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
 import { PrimaryAccountDeletionError } from '../errors/primary-account-deletion.error';
 import { BankAccountNotFoundError } from '../errors/bank-account-not-found.error';
 

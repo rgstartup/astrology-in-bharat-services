@@ -1,8 +1,8 @@
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import {
   CallSession,
   CallSessionStatus,
-} from '../../infrastructure/persistence/entities/call-session.entity';
+} from '../../infrastructure/entities/call-session.entity';
 import {
   CallExpertNotFoundError,
   CallExpertUnavailableError,

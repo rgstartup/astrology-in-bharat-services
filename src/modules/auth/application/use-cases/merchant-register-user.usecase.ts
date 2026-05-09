@@ -8,9 +8,9 @@ import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.ser
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class MerchantRegisterUserUseCase {

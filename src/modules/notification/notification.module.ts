@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Notification } from './infrastructure/persistence/entities/notification.entity';
+import { Notification } from './infrastructure/entities/notification.entity';
 import { NotificationController } from './api/controllers/notification.controller';
 import { NotificationGateway } from './api/gateways/notification.gateway';
 import { NotificationFacade } from './application/notification.facade';

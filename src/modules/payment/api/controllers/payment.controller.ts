@@ -7,7 +7,7 @@ import {
 import { PaymentFacade } from '../../application/payment.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { VerifyPaymentDto } from '../dto/verify-payment.dto';
 

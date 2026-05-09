@@ -6,8 +6,8 @@ import { FindAllTodosUseCase } from './application/use-cases/find-all-todos.use-
 import { CreateTodoUseCase } from './application/use-cases/create-todo.use-case';
 import { UpdateTodoUseCase } from './application/use-cases/update-todo.use-case';
 import { RemoveTodoUseCase } from './application/use-cases/remove-todo.use-case';
-import { Todo } from './infrastructure/persistence/entities/todo.entity';
-import { ProfileExpert } from '../profile/infrastructure/persistence/entities/profile-expert.entity';
+import { Todo } from './infrastructure/entities/todo.entity';
+import { ProfileExpert } from '../profile/infrastructure/entities/profile-expert.entity';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Todo, ProfileExpert])],

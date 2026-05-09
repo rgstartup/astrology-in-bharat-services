@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { ProfileMerchant, MerchantStatus } from '../../infrastructure/persistence/entities/profile-merchant.entity';
-import { Wishlist } from '@/modules/wishlist/infrastructure/persistence/entities/wishlist.entity';
+import { ProfileMerchant, MerchantStatus } from '../../infrastructure/entities/profile-merchant.entity';
+import { Wishlist } from '@/modules/wishlist/infrastructure/entities/wishlist.entity';
 
 @Injectable()
 export class GetAllMerchantsUseCase {

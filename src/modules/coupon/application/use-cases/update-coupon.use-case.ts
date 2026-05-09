@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Coupon } from '../../infrastructure/persistence/entities/coupon.entity';
+import { Coupon } from '../../infrastructure/entities/coupon.entity';
 
 @Injectable()
 export class UpdateCouponUseCase {

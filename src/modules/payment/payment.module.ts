@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PaymentOrder } from './infrastructure/persistence/entities/payment-order.entity';
+import { PaymentOrder } from './infrastructure/entities/payment-order.entity';
 import { PaymentController } from './api/controllers/payment.controller';
 import { WebhookController } from './api/controllers/webhook.controller';
 import { PaymentFacade } from './application/payment.facade';

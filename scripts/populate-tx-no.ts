@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
-import { Withdrawal } from '../src/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
-import { Transaction, TransactionPurpose } from '../src/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { Withdrawal } from '../src/modules/wallet/infrastructure/entities/withdrawal.entity';
+import { Transaction, TransactionPurpose } from '../src/modules/wallet/infrastructure/entities/transaction.entity';
 import { User } from '../src/modules/users/infrastructure/persistence/entities/user.entity';
 import { generateTransactionNo } from '../src/common/utils/transaction-no.util';
 

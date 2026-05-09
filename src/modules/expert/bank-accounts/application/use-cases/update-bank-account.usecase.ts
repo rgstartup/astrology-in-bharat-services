@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BankAccount } from '../../infrastructure/persistence/entities/bank-account.entity';
+import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
 import { UpdateBankAccountDto } from '../../api/dto/bank-account.dto';
 import { GetBankAccountUseCase } from './get-bank-account.usecase';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -18,6 +18,11 @@ export class UpdateBankAccountUseCase {
 
   async execute(userId: number, id: number, dto: UpdateBankAccountDto) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
+
+    if(!account.expert || !account.expert_id){
+        throw new NotFoundException('No Expert profile associated');
+    }
+    
 
     if (dto.is_primary && !account.is_primary) {
       await this.bankAccountRepo.update(

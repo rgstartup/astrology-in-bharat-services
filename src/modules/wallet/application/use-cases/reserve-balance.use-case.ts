@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
+import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
 import { InsufficientBalanceError } from '../../domain/errors/insufficient-balance.error';
 
 @Injectable()

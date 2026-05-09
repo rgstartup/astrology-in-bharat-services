@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Role } from '@/modules/role/entities/roles.entity';
 
-import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
+import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
 import { GetSystemSettingsUseCase } from './get-system-settings.use-case';
 
 @Injectable()

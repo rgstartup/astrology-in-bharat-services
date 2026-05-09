@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
-import { ProfileClient } from '../../infrastructure/persistence/entities/profile-client.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class GetProfileUseCase {

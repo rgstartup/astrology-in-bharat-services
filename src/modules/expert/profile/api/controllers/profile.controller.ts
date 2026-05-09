@@ -35,7 +35,7 @@ import { UpdateDocumentsExpertDto } from '../dto/expert-document.dto';
 import { UpdateExperienceExpertDto } from '../dto/detailed-experience.dto';
 import { QueryExpertDto } from '../dto/query-expert.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Public } from '@/common/decorators/public.decorator';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 

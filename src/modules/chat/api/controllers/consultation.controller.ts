@@ -8,12 +8,12 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 import { Repository } from 'typeorm';
 import { ConsultationBookDto } from '../dto/consultation-book.dto';

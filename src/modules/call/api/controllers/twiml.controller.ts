@@ -4,7 +4,7 @@ import * as twilio from 'twilio';
 import { Public } from '@/common/decorators/public.decorator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSession } from '../../infrastructure/persistence/entities/call-session.entity';
+import { CallSession } from '../../infrastructure/entities/call-session.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Controller({

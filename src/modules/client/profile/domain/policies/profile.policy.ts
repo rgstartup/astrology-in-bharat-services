@@ -1,4 +1,4 @@
-import { ProfileClient } from '../../infrastructure/persistence/entities/profile-client.entity';
+import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import { ProfileNotFoundError } from '../errors/profile-not-found.error';
 
 export class ProfilePolicy {

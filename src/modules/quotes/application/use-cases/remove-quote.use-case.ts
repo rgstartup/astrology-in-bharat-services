@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Quote } from '../../infrastructure/persistence/entities/quote.entity';
+import { Quote } from '../../infrastructure/entities/quote.entity';
 import { QuoteNotFoundError } from '../../domain/errors/quote.errors';
 
 @Injectable()

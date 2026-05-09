@@ -12,25 +12,25 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { OAuthAccount } from '@/modules/auth/infrastructure/persistence/entities/oauth-accounts.entity';
-import { Session } from '@/modules/auth/infrastructure/persistence/entities/session.entity';
+import { OAuthAccount } from '@/modules/auth/infrastructure/entities/oauth-accounts.entity';
+import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
 import { Role } from '@/modules/role/entities/roles.entity';
 import { Exclude } from 'class-transformer';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ unique: true, nullable: true })
-  uid: string; // e.g. AIB-USR-A8K2XP or AIB-EXP-QR91MN
+  uid?: string | null; // e.g. AIB-USR-A8K2XP or AIB-EXP-QR91MN
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column({ select: false, nullable: true })
   @Exclude()
@@ -40,7 +40,7 @@ export class User {
     type: 'timestamptz',
     nullable: true,
   })
-  email_verified_at: Date | null;
+  email_verified_at?: Date | null;
 
   @Column({ nullable: true })
   name?: string;
@@ -54,22 +54,22 @@ export class User {
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
   })
-  roles: Role[];
+  roles!: Role[];
 
   @Column({ default: false })
-  is_blocked: boolean;
+  is_blocked!: boolean;
 
   @OneToMany(() => OAuthAccount, (oa) => oa.user)
-  oauth_accounts: OAuthAccount[];
+  oauth_accounts!: OAuthAccount[];
 
   @OneToMany(() => Session, (c) => c.user)
-  sessions: Session[];
+  sessions!: Session[];
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updated_at!: Date;
 
   @OneToOne(() => ProfileClient, (p) => p.user, { cascade: true })
   profile_client?: ProfileClient;
@@ -78,11 +78,11 @@ export class User {
   profile_expert?: ProfileExpert;
 
   @Column({ nullable: true })
-  referred_by_id: number | null;
+  referred_by_id?: number | null;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'referred_by_id' })
-  referred_by: User | null;
+  referred_by?: User | null;
 
   @OneToOne(() => AgentProfile, (p) => p.user, { cascade: true })
   agent_profile?: AgentProfile;

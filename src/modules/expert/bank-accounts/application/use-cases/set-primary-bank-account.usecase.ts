@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BankAccount } from '../../infrastructure/persistence/entities/bank-account.entity';
+import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
 import { GetBankAccountUseCase } from './get-bank-account.usecase';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrimaryBankAccountChangedEvent } from '../../domain/events/bank-account-events';
@@ -17,6 +17,10 @@ export class SetPrimaryBankAccountUseCase {
 
   async execute(userId: number, id: number) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
+
+    if(!account.expert || !account.expert_id){
+      throw new NotFoundException('No Expert profile associated');
+    }
 
     // Find old primary account
     const oldPrimary = await this.bankAccountRepo.findOne({

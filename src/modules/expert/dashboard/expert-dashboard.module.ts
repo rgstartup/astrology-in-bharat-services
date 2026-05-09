@@ -6,7 +6,7 @@ import { ChatModule } from '@/modules/chat/chat.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ProfileModule } from '@/modules/expert/profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
+import { CallSession } from '@/modules/call/infrastructure/entities/call-session.entity';
 import { ReviewsModule } from '@/modules/reviews/reviews.module';
 
 @Module({

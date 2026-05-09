@@ -1,4 +1,4 @@
-import { TransactionPurpose } from "../../modules/wallet/infrastructure/persistence/entities/transaction.entity";
+import { TransactionPurpose } from "../../modules/wallet/infrastructure/entities/transaction.entity";
 
 
 

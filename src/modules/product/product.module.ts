@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductController } from './api/controllers/product.controller';
-import { Product } from './infrastructure/persistence/entities/product.entity';
+import { Product } from './infrastructure/entities/product.entity';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
-import { ProfileMerchant } from '../merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { ProfileMerchant } from '../merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProductFacade } from './application/product.facade';
 import { CreateProductUseCase } from './application/use-cases/create-product.use-case';
 import { FindAllProductsUseCase } from './application/use-cases/find-all-products.use-case';

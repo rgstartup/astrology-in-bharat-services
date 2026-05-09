@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
-import { ProfileExpert } from './infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from './infrastructure/entities/profile-expert.entity';
 import { Address } from '@/common/address/address.entity';
 import { ProfileController } from './api/controllers/profile.controller';
 import { ExpertGateway } from './api/gateways/expert.gateway';
@@ -26,7 +26,7 @@ import { DeletePujaUseCase } from './application/use-cases/puja/delete-puja.usec
 import { ListAllPujasUseCase } from './application/use-cases/puja/list-all-pujas.usecase';
 import { GetPujaByIdUseCase } from './application/use-cases/puja/get-puja-by-id.usecase';
 
-import { ExpertPuja } from './infrastructure/persistence/entities/expert-puja.entity';
+import { ExpertPuja } from './infrastructure/entities/expert-puja.entity';
 import { KycStatusChangedHandler } from './application/event-handlers/kyc-status-changed.handler';
 import { ExpertStatusChangedHandler } from './application/event-handlers/expert-status-changed.handler';
 

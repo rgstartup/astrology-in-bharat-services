@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileClient } from '../../infrastructure/persistence/entities/profile-client.entity';
-import { UpdateProfileClientDto } from '../../infrastructure/persistence/dto/profile-client.dto';
+import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
+import { UpdateProfileClientDto } from '../../infrastructure/dto/profile-client.dto';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '../../domain/events/profile-events';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Address } from '@/common/address/address.entity';
 
 @Injectable()

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
-import { Order, OrderStatus } from '../../infrastructure/persistence/entities/order.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
+import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 

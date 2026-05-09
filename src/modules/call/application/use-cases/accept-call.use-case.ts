@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import {
   CallSession,
   CallSessionStatus,
-} from '../../infrastructure/persistence/entities/call-session.entity';
+} from '../../infrastructure/entities/call-session.entity';
 import { TwilioService } from '../../infrastructure/services/twilio.service';
 import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';

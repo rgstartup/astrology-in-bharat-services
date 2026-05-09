@@ -1,13 +1,13 @@
 import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import * as crypto from 'crypto';
-import { Withdrawal, WithdrawalStatus } from '../../infrastructure/persistence/entities/withdrawal.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
-import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
-import { Idempotency } from '../../infrastructure/persistence/entities/idempotency.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entities/system-setting.entity';
+import { Withdrawal, WithdrawalStatus } from '../../infrastructure/entities/withdrawal.entity';
+import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
+import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Idempotency } from '../../infrastructure/entities/idempotency.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 
 @Injectable()
 export class RequestWithdrawalUseCase {
@@ -72,7 +72,7 @@ export class RequestWithdrawalUseCase {
       throw new BadRequestException(`Maximum single withdrawal limit is ₹${MAX_SINGLE_WITHDRAWAL}. Please contact support for larger amounts.`);
 
     // 2.1 KYC / Verification Check
-    const { User } = await import('../../../users/infrastructure/persistence/entities/user.entity');
+    const { User } = await import('../../../users/infrastructure/entities/user.entity');
     const user = await this.dataSource.getRepository(User).findOne({
       where: { id: userId },
       relations: ['roles', 'profile_expert', 'profile_merchant', 'agent_profile']
@@ -153,7 +153,7 @@ export class RequestWithdrawalUseCase {
       // C. Capture Snapshot of Bank Details
       let merchantSnapshot: any = {};
       if (bank_account_id) {
-        const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/persistence/entities/profile-merchant.entity');
+        const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
         const merchant = await queryRunner.manager.findOne(ProfileMerchant, { where: { user_id: userId } });
         
         console.log(`[RequestWithdrawal] UserID: ${userId}, Received BankID: ${bank_account_id}, Type: ${typeof bank_account_id}`);
@@ -175,8 +175,8 @@ export class RequestWithdrawalUseCase {
         }
 
         if (!merchantSnapshot.merchant_bank_name && !isNaN(Number(bank_account_id))) {
-          const { BankAccount } = await import('../../../expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity');
-          const { ProfileExpert } = await import('../../../expert/profile/infrastructure/persistence/entities/profile-expert.entity');
+          const { BankAccount } = await import('../../../expert/bank-accounts/infrastructure/entities/bank-account.entity');
+          const { ProfileExpert } = await import('../../../expert/profile/infrastructure/entities/profile-expert.entity');
           const expertProfile = await queryRunner.manager.findOne(ProfileExpert, { where: { user_id: userId } });
           if (expertProfile) {
             const bankAccount = await queryRunner.manager.findOne(BankAccount, {
@@ -196,8 +196,8 @@ export class RequestWithdrawalUseCase {
         if (!merchantSnapshot.merchant_bank_name) throw new BadRequestException('Invalid bank account selected');
       } else {
         // Fallback to legacy profiles
-        const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/persistence/entities/profile-merchant.entity');
-        const { AgentProfile } = await import('../../../agent/infrastructure/persistence/entities/agent-profile.entity');
+        const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
+        const { AgentProfile } = await import('../../../agent/infrastructure/entities/agent-profile.entity');
 
         const merchant = await queryRunner.manager.findOne(ProfileMerchant, { where: { user_id: userId } });
         if (merchant && merchant.bankName) {
@@ -266,7 +266,7 @@ export class RequestWithdrawalUseCase {
 
       // G. Generate Custom IDs (transaction_no and withdrawal_no)
       try {
-        const { User } = await import('../../../users/infrastructure/persistence/entities/user.entity');
+        const { User } = await import('../../../users/infrastructure/entities/user.entity');
         const { generateTransactionNo } = await import('../../../../common/utils/transaction-no.util');
 
         const user = await queryRunner.manager.createQueryBuilder(User, 'u')

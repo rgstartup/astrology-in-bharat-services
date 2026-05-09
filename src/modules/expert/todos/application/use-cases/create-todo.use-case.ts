@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Todo } from '../../infrastructure/persistence/entities/todo.entity';
-import { CreateTodoDto } from '../../infrastructure/persistence/dto/todo.dto';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { Todo } from '../../infrastructure/entities/todo.entity';
+import { CreateTodoDto } from '../../infrastructure/dto/todo.dto';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 @Injectable()
 export class CreateTodoUseCase {

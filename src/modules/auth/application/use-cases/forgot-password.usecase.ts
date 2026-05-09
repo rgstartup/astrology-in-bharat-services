@@ -1,7 +1,7 @@
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ResetPasswordEvent } from '../../domain/events/reset-password.event';
 

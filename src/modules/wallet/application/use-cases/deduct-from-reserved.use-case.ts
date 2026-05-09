@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
-import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
+import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class DeductFromReservedUseCase {

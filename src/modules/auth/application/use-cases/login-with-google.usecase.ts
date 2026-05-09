@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { Profile } from 'passport-google-oauth20';
 import { DatabaseService } from '@/core/database/database.service';
-import { OAuthService } from '../../infrastructure/persistence/services/oauth.service';
+import { OAuthService } from '../../infrastructure/services/oauth.service';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';

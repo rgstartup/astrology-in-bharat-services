@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Wishlist } from '../../infrastructure/persistence/entities/wishlist.entity';
+import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { FindUserUseCase } from '@/modules/users/application/use-cases/find-user.usecase';
 import { GetExpertByIdUseCase } from '@/modules/expert/profile/application/use-cases/get-expert-by-id.usecase';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import {
   ExpertAlreadyInWishlistError,
   ExpertNotFoundError,

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ExpertPuja } from '../../../infrastructure/persistence/entities/expert-puja.entity';
+import { ExpertPuja } from '../../../infrastructure/entities/expert-puja.entity';
 
 @Injectable()
 export class GetPujaByIdUseCase {

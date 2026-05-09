@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Festival } from './infrastructure/persistence/entities/festival.entity';
+import { Festival } from './infrastructure/entities/festival.entity';
 import { FestivalController } from './api/controllers/festival.controller';
 import { FestivalFacade } from './application/festival.facade';
 import { GetAllFestivalsUseCase } from './application/use-cases/get-all-festivals.use-case';

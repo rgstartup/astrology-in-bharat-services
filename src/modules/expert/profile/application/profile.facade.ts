@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { CreateProfileExpertDto, UpdateProfileExpertDto } from '../api/dto/profile-expert.dto';
 import { QueryExpertDto } from '../api/dto/query-expert.dto';
 import { GetProfileUseCase } from './use-cases/get-profile.usecase';

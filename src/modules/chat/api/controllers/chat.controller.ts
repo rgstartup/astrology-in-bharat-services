@@ -15,9 +15,9 @@ import { ChatFacade } from '../../application/chat.facade';
 import { ExpertSessionFilter } from '../../application/use-cases/find-expert-sessions.use-case';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ChatGateway } from '../../chat.gateway';
-import { ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
+import { ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
 import { InitiateChatDto } from '../dto/initiate-chat.dto';
 
 @Controller({

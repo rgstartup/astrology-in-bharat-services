@@ -1,10 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
-import { Order, OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { Order, OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { Public } from '@/common/decorators/public.decorator';
 
 @Controller({

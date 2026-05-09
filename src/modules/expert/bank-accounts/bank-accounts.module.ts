@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BankAccountsController } from './api/controllers/bank-accounts.controller';
-import { BankAccount } from './infrastructure/persistence/entities/bank-account.entity';
-import { ProfileExpert } from '../profile/infrastructure/persistence/entities/profile-expert.entity';
+import { BankAccount } from './infrastructure/entities/bank-account.entity';
+import { ProfileExpert } from '../profile/infrastructure/entities/profile-expert.entity';
 import { BankAccountsFacade } from './application/bank-accounts.facade';
 import { CreateBankAccountUseCase } from './application/use-cases/create-bank-account.usecase';
 import { ListBankAccountsUseCase } from './application/use-cases/list-bank-accounts.usecase';

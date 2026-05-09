@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { UsedTokensService } from '../../infrastructure/persistence/services/used-tokens.service';
+import { UsedTokensService } from '../../infrastructure/services/used-tokens.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { LoginWithMagicLinkPolicy } from '../../domain/policies/login-with-magic-link.policy';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';

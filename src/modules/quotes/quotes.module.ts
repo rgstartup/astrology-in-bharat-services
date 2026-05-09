@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Quote } from './infrastructure/persistence/entities/quote.entity';
+import { Quote } from './infrastructure/entities/quote.entity';
 import { QuotesController } from './api/controllers/quotes.controller';
 import { QuotesFacade } from './application/quotes.facade';
 import { CreateQuoteUseCase } from './application/use-cases/create-quote.use-case';

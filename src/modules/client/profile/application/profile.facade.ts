@@ -7,7 +7,7 @@ import { UpdateProfilePictureUseCase } from './use-cases/update-profile-picture.
 import { UploadDocumentUseCase } from './use-cases/upload-document.usecase';
 import { SendPhoneOtpUseCase } from './use-cases/send-phone-otp.usecase';
 import { VerifyPhoneOtpUseCase } from './use-cases/verify-phone-otp.usecase';
-import { CreateProfileClientDto, UpdateProfileClientDto } from '../infrastructure/persistence/dto/profile-client.dto';
+import { CreateProfileClientDto, UpdateProfileClientDto } from '../infrastructure/dto/profile-client.dto';
 
 @Injectable()
 export class ClientProfileFacade {

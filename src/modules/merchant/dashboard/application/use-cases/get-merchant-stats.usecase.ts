@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, MoreThanOrEqual } from 'typeorm';
-import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
-import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
+import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
+import { Product } from '@/modules/product/infrastructure/entities/product.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()

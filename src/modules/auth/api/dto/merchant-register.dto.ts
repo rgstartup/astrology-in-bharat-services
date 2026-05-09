@@ -3,20 +3,20 @@ import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-vali
 export class MerchantRegisterDto {
   @IsString()
   @IsNotEmpty()
-  shopName: string;
+  shopName!: string;
 
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsString()
   @IsNotEmpty()
-  phone: string;
+  phone!: string;
 
   @IsString()
   @MinLength(8, { message: 'Password must be at least 8 characters long.' })
   @IsNotEmpty()
-  password: string;
+  password!: string;
 
   @IsOptional()
   @IsString({ each: true })

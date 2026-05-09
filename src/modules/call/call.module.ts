@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CallSession } from './infrastructure/persistence/entities/call-session.entity';
+import { CallSession } from './infrastructure/entities/call-session.entity';
 import { TwilioService } from './infrastructure/services/twilio.service';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { InitiateCallUseCase } from './application/use-cases/initiate-call.use-case';
@@ -18,7 +18,7 @@ import { TwimlController } from './api/controllers/twiml.controller';
 import { CallGateway } from './call.gateway';
 import { CallFacade } from './application/call.facade';
 
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Module({
     imports: [

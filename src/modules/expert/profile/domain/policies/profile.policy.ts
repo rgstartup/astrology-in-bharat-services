@@ -1,4 +1,4 @@
-import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
 import { ProfileNotFoundError } from '../errors/profile-not-found.error';
 import { KycAlreadyVerifiedError } from '../errors/kyc-already-verified.error';
 

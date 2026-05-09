@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
 
 @Injectable()

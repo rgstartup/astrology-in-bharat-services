@@ -6,7 +6,7 @@ import { GetExpertCallSessionsUseCase, CallSessionFilter } from './use-cases/get
 import { GetCallSessionUseCase } from './use-cases/get-call-session.use-case';
 import { GetCallTokenUseCase } from './use-cases/get-call-token.use-case';
 import { RejectCallUseCase } from './use-cases/reject-call.use-case';
-import { CallType } from '../infrastructure/persistence/entities/call-session.entity';
+import { CallType } from '../infrastructure/entities/call-session.entity';
 
 @Injectable()
 export class CallFacade {

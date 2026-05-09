@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BankAccount } from '../../infrastructure/persistence/entities/bank-account.entity';
+import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
 import { GetBankAccountUseCase } from './get-bank-account.usecase';
 import { BankAccountPolicy } from '../../domain/policies/bank-account.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';

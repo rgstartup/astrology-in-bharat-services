@@ -11,13 +11,13 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ClientProfileFacade } from '../../application/profile.facade';
 import {
   CreateProfileClientDto,
   UpdateProfileClientDto,
-} from '../../infrastructure/persistence/dto/profile-client.dto';
-import { SendPhoneOtpDto, VerifyPhoneOtpDto } from '../../infrastructure/persistence/dto/profile-phone-otp.dto';
+} from '../../infrastructure/dto/profile-client.dto';
+import { SendPhoneOtpDto, VerifyPhoneOtpDto } from '../../infrastructure/dto/profile-phone-otp.dto';
 
 @Controller('client/profile')
 @UseGuards(JwtAuthGuard)

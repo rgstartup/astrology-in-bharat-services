@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Wishlist } from '../../infrastructure/persistence/entities/wishlist.entity';
-import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
+import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
+import { Product } from '@/modules/product/infrastructure/entities/product.entity';
 import { FindUserUseCase } from '@/modules/users/application/use-cases/find-user.usecase';
 import {
   ProductAlreadyInWishlistError,

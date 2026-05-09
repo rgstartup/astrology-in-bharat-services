@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SessionRepository } from '../../infrastructure/persistence/repositories/session.repository';
+import { SessionRepository } from '../../infrastructure/repositories/session.repository';
 
 @Injectable()
 export class LogoutUserUseCase {

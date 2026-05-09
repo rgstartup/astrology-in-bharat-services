@@ -8,10 +8,10 @@ import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.ser
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 @Injectable()
 export class RegisterUserUseCase {

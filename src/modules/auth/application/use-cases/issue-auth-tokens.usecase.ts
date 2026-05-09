@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { SessionRepository } from '../../infrastructure/persistence/repositories/session.repository';
+import { SessionRepository } from '../../infrastructure/repositories/session.repository';
 
 @Injectable()
 export class IssueAuthTokensUseCase {

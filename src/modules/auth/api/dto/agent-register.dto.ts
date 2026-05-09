@@ -2,10 +2,10 @@ import { IsArray, IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class AgentRegisterUserDto {
     @IsEmail()
-    email: string;
+    email!: string;
 
     @IsString()
-    name: string;
+    name!: string;
 
     @IsOptional()
     @IsString()

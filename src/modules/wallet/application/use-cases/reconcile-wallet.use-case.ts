@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
-import { Transaction, TransactionType } from '../../infrastructure/persistence/entities/transaction.entity';
+import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Transaction, TransactionType } from '../../infrastructure/entities/transaction.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()

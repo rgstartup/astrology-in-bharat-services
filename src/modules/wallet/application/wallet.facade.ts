@@ -18,9 +18,9 @@ import { RequestWithdrawalUseCase } from './use-cases/request-withdrawal.use-cas
 import { GetPendingWithdrawalsUseCase } from './use-cases/get-pending-withdrawals.use-case';
 import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-status.use-case';
 import { GetAdminWithdrawalStatsUseCase } from './use-cases/get-admin-withdrawal-stats.use-case';
-import { TransactionPurpose } from '../infrastructure/persistence/entities/transaction.entity';
-import { WithdrawalStatus } from '../infrastructure/persistence/entities/withdrawal.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entities/system-setting.entity';
+import { TransactionPurpose } from '../infrastructure/entities/transaction.entity';
+import { WithdrawalStatus } from '../infrastructure/entities/withdrawal.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

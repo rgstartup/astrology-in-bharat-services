@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Notification } from '../../infrastructure/persistence/entities/notification.entity';
+import { Notification } from '../../infrastructure/entities/notification.entity';
 
 @Injectable()
 export class ClearAllNotificationsUseCase {

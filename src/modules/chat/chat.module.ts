@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ChatSession } from './infrastructure/persistence/entities/chat-session.entity';
-import { ChatMessage } from './infrastructure/persistence/entities/chat-message.entity';
+import { ChatSession } from './infrastructure/entities/chat-session.entity';
+import { ChatMessage } from './infrastructure/entities/chat-message.entity';
 import { ChatGateway } from './chat.gateway';
 import { ChatController } from './api/controllers/chat.controller';
 import { ConsultationController } from './api/controllers/consultation.controller';
@@ -26,11 +26,11 @@ import { RejectChatUseCase } from './application/use-cases/reject-chat.use-case'
 import { UpdateSessionMetadataUseCase } from './application/use-cases/update-session-metadata.use-case';
 
 import { WalletModule } from '@/modules/wallet/wallet.module';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { CouponModule } from '@/modules/coupon/coupon.module';
 
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Module({
   imports: [

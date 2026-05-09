@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Wishlist } from '../../infrastructure/persistence/entities/wishlist.entity';
+import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { FindUserUseCase } from '@/modules/users/application/use-cases/find-user.usecase';
-import { ExpertPuja } from '@/modules/expert/profile/infrastructure/persistence/entities/expert-puja.entity';
+import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import {
   PujaAlreadyInWishlistError,
   PujaNotFoundError,

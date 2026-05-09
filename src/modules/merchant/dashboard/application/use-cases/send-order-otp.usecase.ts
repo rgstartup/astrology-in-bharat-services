@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Order, OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { Order, OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 
 @Injectable()

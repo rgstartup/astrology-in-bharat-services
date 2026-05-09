@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileClient } from '../../infrastructure/persistence/entities/profile-client.entity';
+import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import twilio from 'twilio';
 
 @Injectable()

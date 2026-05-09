@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
-import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
-import { OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
+import { OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
 
 @Injectable()
 export class GetAdminMerchantSalesOverviewUseCase {

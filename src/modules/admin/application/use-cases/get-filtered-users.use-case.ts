@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, DataSource } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { ChatSession, ChatSessionStatus } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
-import { Order, OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ChatSession, ChatSessionStatus } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { Order, OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
 
 export interface FilterCriteria {
     minSpending?: number;

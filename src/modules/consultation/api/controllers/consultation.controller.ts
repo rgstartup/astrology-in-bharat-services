@@ -1,7 +1,7 @@
 import { Controller, Get, Query, UseGuards, Header } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { GetUnifiedHistoryUseCase } from '../../application/use-cases/get-unified-history.use-case';
 import { CallFacade } from '@/modules/call/application/call.facade';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';

@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/c
 import { LoginDto } from '../../api/dto';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
 import { AuthPolicy } from '../../domain/policies/auth.policy';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';

@@ -2,8 +2,8 @@ import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
-import { UsedTokensService } from '../../infrastructure/persistence/services/used-tokens.service';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { UsedTokensService } from '../../infrastructure/services/used-tokens.service';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { TokenAlreadyUsedError } from '../../domain/errors/token-already-used.error';
 
 @Injectable()

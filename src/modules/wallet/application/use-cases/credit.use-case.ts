@@ -1,12 +1,12 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
-import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
+import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 
 

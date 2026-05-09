@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
-import { Coupon } from '../../infrastructure/persistence/entities/coupon.entity';
-import { UserCoupon } from '../../infrastructure/persistence/entities/user-coupon.entity';
+import { Coupon } from '../../infrastructure/entities/coupon.entity';
+import { UserCoupon } from '../../infrastructure/entities/user-coupon.entity';
 
 @Injectable()
 export class MarkCouponAsUsedUseCase {

@@ -16,11 +16,11 @@ import { UpdateMerchantStatusAdminUseCase } from './use-cases/update-merchant-st
 import { UpdateListingStatusAdminUseCase } from './use-cases/update-listing-status-admin.use-case';
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
-import { CreateAgentDto } from '../presentation/dto/create-agent.dto';
+import { CreateAgentDto } from '../api/dto/create-agent.dto';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { SupportFacade } from '@/modules/support/application/support.facade';
-import { WithdrawalStatus } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
+import { WithdrawalStatus } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';
 
 @Injectable()
 export class AdminFacade {

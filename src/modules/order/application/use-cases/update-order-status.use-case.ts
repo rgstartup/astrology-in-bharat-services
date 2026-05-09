@@ -1,18 +1,18 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Order, OrderStatus } from '../../infrastructure/persistence/entities/order.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
+import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { Product } from '@/modules/product/infrastructure/entities/product.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 
 @Injectable()
 export class UpdateOrderStatusUseCase {

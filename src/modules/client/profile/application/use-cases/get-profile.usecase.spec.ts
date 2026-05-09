@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GetProfileUseCase } from './get-profile.usecase';
-import { ProfileClient } from '../../infrastructure/persistence/entities/profile-client.entity';
+import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 
 describe('GetProfileUseCase', () => {
     let useCase: GetProfileUseCase;

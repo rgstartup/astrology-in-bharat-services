@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
-import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
-import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
-import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
-import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ChatSession } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { CallSession } from '@/modules/call/infrastructure/entities/call-session.entity';
+import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
+import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
+import { Order } from '@/modules/order/infrastructure/entities/order.entity';
 
 @Injectable()
 export class GetAdminTopExpertsUseCase {

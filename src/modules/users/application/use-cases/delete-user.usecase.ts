@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { UserRepository } from '../../infrastructure/persistence/repositories/user.repository';
+import { UserRepository } from '../../infrastructure/repositories/user.repository';
 
 @Injectable()
 export class DeleteUserUseCase {

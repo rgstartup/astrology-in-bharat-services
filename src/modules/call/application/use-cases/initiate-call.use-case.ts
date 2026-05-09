@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSession, CallSessionStatus, CallType } from '../../infrastructure/persistence/entities/call-session.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { CallSession, CallSessionStatus, CallType } from '../../infrastructure/entities/call-session.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TwilioService } from '../../infrastructure/services/twilio.service';
 import { CallGateway } from '../../call.gateway';

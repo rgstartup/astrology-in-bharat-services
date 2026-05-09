@@ -1,10 +1,10 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Order, OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
-import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
+import { Order, OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
+import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 
 import { OrderFacade } from '@/modules/order/application/order.facade';
 

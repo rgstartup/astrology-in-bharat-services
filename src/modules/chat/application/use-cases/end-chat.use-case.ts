@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
+import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class EndChatUseCase {

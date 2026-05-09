@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersController } from './presentation/controllers/users.controller';
-import { User } from './infrastructure/persistence/entities/user.entity';
+import { User } from './infrastructure/entities/user.entity';
 import { RolesModule } from '../role/roles.module';
-import { UserRepository } from './infrastructure/persistence/repositories/user.repository';
+import { UserRepository } from './infrastructure/repositories/user.repository';
 import { CreateUserUseCase } from './application/use-cases/create-user.usecase';
 import { FindUserUseCase } from './application/use-cases/find-user.usecase';
 import { UpdateUserUseCase } from './application/use-cases/update-user.usecase';

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Order, OrderStatus } from '../../infrastructure/persistence/entities/order.entity';
-import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
+import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
+import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
 
 @Injectable()
 export class GetUserOrdersUseCase {

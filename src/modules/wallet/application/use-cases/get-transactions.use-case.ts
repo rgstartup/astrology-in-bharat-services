@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction } from '../../infrastructure/persistence/entities/transaction.entity';
-import { Withdrawal } from '../../infrastructure/persistence/entities/withdrawal.entity';
+import { Transaction } from '../../infrastructure/entities/transaction.entity';
+import { Withdrawal } from '../../infrastructure/entities/withdrawal.entity';
 import { GetWalletUseCase } from './get-wallet.use-case';
 
 @Injectable()
@@ -70,7 +70,7 @@ export class GetTransactionsUseCase {
         if (tx.reference_id && tx.reference_id.startsWith('puja_appt_')) {
             const apptId = tx.reference_id.replace('puja_appt_', '');
             try {
-                const { PujaAppointment } = await import('../../../puja-appointment/infrastructure/persistence/entities/puja-appointment.entity');
+                const { PujaAppointment } = await import('../../../puja-appointment/infrastructure/entities/puja-appointment.entity');
                 const appt = await this.transactionRepository.manager.findOne(PujaAppointment as any, {
                     where: { id: parseInt(apptId) },
                     relations: ['puja']

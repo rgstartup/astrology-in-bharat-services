@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { QueryRunner } from 'typeorm';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
-import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
+import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
 
 @Injectable()
 export class AgentAuthProfileCreationStrategy implements AuthProfileCreationStrategy {

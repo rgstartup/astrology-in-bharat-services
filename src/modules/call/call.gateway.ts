@@ -11,7 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
 import { CallFacade } from './application/call.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { CallSessionStatus } from './infrastructure/persistence/entities/call-session.entity';
+import { CallSessionStatus } from './infrastructure/entities/call-session.entity';
 
 @WebSocketGateway({
     cors: {

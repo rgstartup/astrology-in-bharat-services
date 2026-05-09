@@ -6,7 +6,7 @@ import { GetUserOrdersUseCase } from './use-cases/get-user-orders.use-case';
 import { GetOrderByIdUseCase } from './use-cases/get-order-by-id.use-case';
 import { UpdateOrderStatusUseCase } from './use-cases/update-order-status.use-case';
 import { FindAllOrdersUseCase } from './use-cases/find-all-orders.use-case';
-import { OrderStatus } from '../infrastructure/persistence/entities/order.entity';
+import { OrderStatus } from '../infrastructure/entities/order.entity';
 
 @Injectable()
 export class OrderFacade {

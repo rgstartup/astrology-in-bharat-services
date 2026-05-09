@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PujaAppointment, PujaAppointmentStatus, PujaMode } from '../../infrastructure/persistence/entities/puja-appointment.entity';
+import { PujaAppointment, PujaAppointmentStatus, PujaMode } from '../../infrastructure/entities/puja-appointment.entity';
 import { CreatePujaAppointmentDto } from '../dtos/create-puja-appointment.dto';
-import { ExpertPuja } from '@/modules/expert/profile/infrastructure/persistence/entities/expert-puja.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { ExpertGateway } from '@/modules/expert/profile/api/gateways/expert.gateway';
 
 @Injectable()

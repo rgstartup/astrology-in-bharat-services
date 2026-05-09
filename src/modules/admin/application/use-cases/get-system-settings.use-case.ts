@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SystemSetting } from '../../infrastructure/persistence/entities/system-setting.entity';
+import { SystemSetting } from '../../infrastructure/entities/system-setting.entity';
 
 @Injectable()
 export class GetSystemSettingsUseCase {

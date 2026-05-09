@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Coupon, CouponStatus, CouponType } from '../../infrastructure/persistence/entities/coupon.entity';
-import { UserCoupon } from '../../infrastructure/persistence/entities/user-coupon.entity';
+import { Coupon, CouponStatus, CouponType } from '../../infrastructure/entities/coupon.entity';
+import { UserCoupon } from '../../infrastructure/entities/user-coupon.entity';
 
 @Injectable()
 export class ApplyCouponUseCase {

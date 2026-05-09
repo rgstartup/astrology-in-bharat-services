@@ -2,14 +2,14 @@ import { IsArray, IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class OAuthUserDto {
   @IsString()
-  provider: string; // "google", "github", etc.
+  provider!: string; // "google", "github", etc.
 
   @IsString()
-  provider_id: string; // provider's user ID
+  provider_id!: string; // provider's user ID
 
   //   @IsOptional()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsOptional()
   @IsString()

@@ -2,7 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { IPaymentGateway, PAYMENT_GATEWAY } from '@/external/payment/payment-gateway.interface';
-import { PaymentOrder, PaymentStatus } from '../../infrastructure/persistence/entities/payment-order.entity';
+import { PaymentOrder, PaymentStatus } from '../../infrastructure/entities/payment-order.entity';
 import { VerifyPaymentDto } from '../../api/dto/verify-payment.dto';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { OrderFacade } from '@/modules/order/application/order.facade';

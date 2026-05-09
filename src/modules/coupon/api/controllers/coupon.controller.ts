@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { GetMyRewardsUseCase } from '../../application/use-cases/get-my-rewards.use-case';
 import { ApplyCouponUseCase } from '../../application/use-cases/apply-coupon.use-case';
 

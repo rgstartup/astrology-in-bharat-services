@@ -1,5 +1,5 @@
 
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileNotFoundError } from '../errors/profile-not-found.error';
 
 export class DashboardPolicy {

@@ -1,5 +1,5 @@
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { PujaAppointmentStatus } from "../../infrastructure/persistence/entities/puja-appointment.entity";
+import { PujaAppointmentStatus } from "../../infrastructure/entities/puja-appointment.entity";
 
 export class UpdatePujaAppointmentStatusDto {
   @IsOptional()

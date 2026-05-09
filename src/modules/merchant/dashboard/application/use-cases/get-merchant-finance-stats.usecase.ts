@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
-import { OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
+import { OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
 
 @Injectable()
 export class GetMerchantFinanceStatsUseCase {

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Coupon } from './infrastructure/persistence/entities/coupon.entity';
-import { UserCoupon } from './infrastructure/persistence/entities/user-coupon.entity';
+import { Coupon } from './infrastructure/entities/coupon.entity';
+import { UserCoupon } from './infrastructure/entities/user-coupon.entity';
 import { CouponFacade } from './application/coupon.facade';
 import { CreateCouponUseCase } from './application/use-cases/create-coupon.use-case';
 import { GetCouponsUseCase } from './application/use-cases/get-coupons.use-case';

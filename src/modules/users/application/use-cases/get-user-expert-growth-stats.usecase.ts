@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual } from 'typeorm';
-import { User } from '../../infrastructure/persistence/entities/user.entity';
+import { User } from '../../infrastructure/entities/user.entity';
 
 @Injectable()
 export class GetUserExpertGrowthStatsUseCase {

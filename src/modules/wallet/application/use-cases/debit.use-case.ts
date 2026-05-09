@@ -1,10 +1,10 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
-import { Wallet } from '../../infrastructure/persistence/entities/wallet.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
+import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
 import { InsufficientBalanceError } from '../../domain/errors/insufficient-balance.error';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 
 

@@ -1,8 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
-import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ExpertGateway } from '../../api/gateways/expert.gateway';
 
 @Injectable()

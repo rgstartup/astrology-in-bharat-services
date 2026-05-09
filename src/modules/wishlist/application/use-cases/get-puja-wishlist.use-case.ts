@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Wishlist } from '../../infrastructure/persistence/entities/wishlist.entity';
+import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 
 @Injectable()
 export class GetPujaWishlistUseCase {

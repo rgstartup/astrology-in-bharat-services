@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
+import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
 import { ChatGateway } from '../../chat.gateway';
 
 @Injectable()

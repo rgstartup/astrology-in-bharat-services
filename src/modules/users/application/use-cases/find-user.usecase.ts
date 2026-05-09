@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { User } from '../../infrastructure/persistence/entities/user.entity';
-import { UserRepository } from '../../infrastructure/persistence/repositories/user.repository';
+import { User } from '../../infrastructure/entities/user.entity';
+import { UserRepository } from '../../infrastructure/repositories/user.repository';
 
 @Injectable()
 export class FindUserUseCase {

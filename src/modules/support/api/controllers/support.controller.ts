@@ -4,7 +4,7 @@ import { CreateDisputeDto } from '../dto/create-dispute.dto';
 import { SendDisputeMessageDto } from '../dto/send-dispute-message.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Controller({
     path: 'support',

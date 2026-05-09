@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Headers, BadRequestException, HttpCode, Req } from '@nestjs/common';
 import { WalletFacade } from '../../application/wallet.facade';
-import { WithdrawalStatus } from '../../infrastructure/persistence/entities/withdrawal.entity';
+import { WithdrawalStatus } from '../../infrastructure/entities/withdrawal.entity';
 import * as crypto from 'crypto';
 
 @Controller('wallet/webhooks/payouts')

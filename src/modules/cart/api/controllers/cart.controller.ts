@@ -14,7 +14,7 @@ import { AddToCartDto } from '../dto/create-cart.dto';
 import { UpdateCartItemDto } from '../dto/update-cart.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Controller({
   path: 'cart',

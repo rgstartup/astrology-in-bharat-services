@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Review } from '@/modules/reviews/infrastructure/persistence/entities/review.entity';
-import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
-import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
+import { Review } from '@/modules/reviews/infrastructure/entities/review.entity';
+import { Product } from '@/modules/product/infrastructure/entities/product.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
 
 import * as fs from 'fs';
 

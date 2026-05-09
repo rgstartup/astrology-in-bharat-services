@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction, TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
-import { Wallet } from '@/modules/wallet/infrastructure/persistence/entities/wallet.entity';
-import { Withdrawal, WithdrawalStatus } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
+import { Transaction, TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import { Wallet } from '@/modules/wallet/infrastructure/entities/wallet.entity';
+import { Withdrawal, WithdrawalStatus } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';
 
 @Injectable()
 export class GetMerchantTransactionsUseCase {

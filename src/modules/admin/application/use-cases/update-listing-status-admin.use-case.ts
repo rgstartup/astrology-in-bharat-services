@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AgentListing } from '@/modules/agent/infrastructure/persistence/entities/agent-listing.entity';
+import { AgentListing } from '@/modules/agent/infrastructure/entities/agent-listing.entity';
 
 @Injectable()
 export class UpdateListingStatusAdminUseCase {

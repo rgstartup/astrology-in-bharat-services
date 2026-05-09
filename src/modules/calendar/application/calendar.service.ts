@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CalendarCache } from '../infrastructure/persistence/entities/calendar-cache.entity';
+import { CalendarCache } from '../infrastructure/entities/calendar-cache.entity';
 import { ProkeralaService } from '@/external/prokerala/prokerala.service';
 
 @Injectable()

@@ -1,12 +1,12 @@
 import { createConnection } from 'typeorm';
 import { User } from '../src/modules/users/infrastructure/persistence/entities/user.entity';
-import { AgentProfile } from '../src/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
+import { AgentProfile } from '../src/modules/agent/infrastructure/entities/agent-profile.entity';
 import { Role } from '../src/modules/role/entities/roles.entity';
 import { Session } from '../src/modules/auth/infrastructure/persistence/entities/session.entity';
 import { OAuthAccount } from '../src/modules/auth/infrastructure/persistence/entities/oauth-accounts.entity';
 import { UsedTokens } from '../src/modules/auth/infrastructure/persistence/entities/used-tokens.entity';
-import { ProfileClient } from '../src/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
-import { ProfileExpert } from '../src/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileClient } from '../src/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileExpert } from '../src/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import * as dotenv from 'dotenv';
 
 dotenv.config();

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual } from 'typeorm';
-import { Coupon, CouponStatus } from '../../infrastructure/persistence/entities/coupon.entity';
+import { Coupon, CouponStatus } from '../../infrastructure/entities/coupon.entity';
 
 @Injectable()
 export class GetCouponStatsUseCase {

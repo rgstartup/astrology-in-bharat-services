@@ -1,4 +1,4 @@
-import { PaymentOrder } from '../../infrastructure/persistence/entities/payment-order.entity';
+import { PaymentOrder } from '../../infrastructure/entities/payment-order.entity';
 import {
   InvalidPaymentSignatureError,
   InvalidWebhookSignatureError,

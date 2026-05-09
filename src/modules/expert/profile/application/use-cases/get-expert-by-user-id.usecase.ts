@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
-import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
 
 @Injectable()
 export class GetExpertByUserIdUseCase {

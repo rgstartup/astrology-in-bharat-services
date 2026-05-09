@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSession } from '../../infrastructure/persistence/entities/call-session.entity';
+import { CallSession } from '../../infrastructure/entities/call-session.entity';
 
 @Injectable()
 export class GetCallSessionUseCase {

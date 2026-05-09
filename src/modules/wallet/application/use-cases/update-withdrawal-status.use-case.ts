@@ -1,16 +1,16 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Withdrawal, WithdrawalStatus } from '../../infrastructure/persistence/entities/withdrawal.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/persistence/entities/transaction.entity';
-import { AdminAuditLog } from '@/modules/admin/infrastructure/persistence/entities/admin-audit-log.entity';
+import { Withdrawal, WithdrawalStatus } from '../../infrastructure/entities/withdrawal.entity';
+import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
+import { AdminAuditLog } from '@/modules/admin/infrastructure/entities/admin-audit-log.entity';
 import { RazorpayPayoutService } from '../../infrastructure/gateways/razorpay-payout.service';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
-import { BankAccount } from '@/modules/expert/bank-accounts/infrastructure/persistence/entities/bank-account.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { BankAccount } from '@/modules/expert/bank-accounts/infrastructure/entities/bank-account.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 
 @Injectable()
 export class UpdateWithdrawalStatusUseCase {

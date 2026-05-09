@@ -3,21 +3,21 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { AgentProfile } from '../../infrastructure/persistence/entities/agent-profile.entity';
-import { AgentListing } from '../../infrastructure/persistence/entities/agent-listing.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { AgentProfile } from '../../infrastructure/entities/agent-profile.entity';
+import { AgentListing } from '../../infrastructure/entities/agent-listing.entity';
 import { DatabaseService } from '@/core/database/database.service';
 
 import { In, MoreThan } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
-import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
-import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
-import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { CallSession } from '@/modules/call/infrastructure/entities/call-session.entity';
+import { ChatSession } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
+import { Order } from '@/modules/order/infrastructure/entities/order.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 
 @Controller({
     path: 'agent',

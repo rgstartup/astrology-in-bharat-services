@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CalendarController } from './api/controllers/calendar.controller';
 import { CalendarService } from './application/calendar.service';
-import { CalendarCache } from './infrastructure/persistence/entities/calendar-cache.entity';
+import { CalendarCache } from './infrastructure/entities/calendar-cache.entity';
 import { ProkeralaModule } from '@/external/prokerala/prokerala.module';
 
 @Module({

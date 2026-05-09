@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Cart } from '../../infrastructure/persistence/entities/cart.entity';
+import { Cart } from '../../infrastructure/entities/cart.entity';
 
 @Injectable()
 export class GetCartUseCase {

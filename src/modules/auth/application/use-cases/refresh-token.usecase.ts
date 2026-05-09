@@ -1,10 +1,10 @@
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
-import { SessionRepository } from '../../infrastructure/persistence/repositories/session.repository';
+import { SessionRepository } from '../../infrastructure/repositories/session.repository';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { InvalidRefreshTokenError } from '../../domain/errors/invalid-token.error';
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
-import { Session } from '../../infrastructure/persistence/entities/session.entity';
+import { Session } from '../../infrastructure/entities/session.entity';
 import { RefreshTokenPolicy } from '../../domain/policies/refresh-token.policy';
 
 @Injectable()

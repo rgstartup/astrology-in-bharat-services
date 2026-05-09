@@ -17,8 +17,8 @@ import { AdminTerminateSessionUseCase } from './use-cases/admin-terminate-sessio
 import { GetChatSessionStatsUseCase } from './use-cases/get-chat-session-stats.use-case';
 import { RejectChatUseCase } from './use-cases/reject-chat.use-case';
 import { UpdateSessionMetadataUseCase } from './use-cases/update-session-metadata.use-case';
-import { MessageType } from '../infrastructure/persistence/entities/chat-message.entity';
-import { ChatSessionStatus } from '../infrastructure/persistence/entities/chat-session.entity';
+import { MessageType } from '../infrastructure/entities/chat-message.entity';
+import { ChatSessionStatus } from '../infrastructure/entities/chat-session.entity';
 
 @Injectable()
 export class ChatFacade {

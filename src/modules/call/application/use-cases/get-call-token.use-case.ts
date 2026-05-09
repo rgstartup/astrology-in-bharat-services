@@ -1,7 +1,7 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSession, CallSessionStatus, CallType } from '../../infrastructure/persistence/entities/call-session.entity';
+import { CallSession, CallSessionStatus, CallType } from '../../infrastructure/entities/call-session.entity';
 import { TwilioService } from '../../infrastructure/services/twilio.service';
 
 @Injectable()

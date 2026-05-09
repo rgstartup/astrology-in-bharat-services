@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { KycStatusChangedEvent } from '../../domain/events/profile-events';

@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Patch, Body, UseGuards, Req, Header, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
+import { CallType } from '../../infrastructure/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
 import { CallSessionFilter } from '../../application/use-cases/get-expert-sessions.use-case';
 import { CallGateway } from '../../call.gateway';

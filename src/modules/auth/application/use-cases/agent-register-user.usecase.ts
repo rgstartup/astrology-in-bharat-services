@@ -7,14 +7,14 @@ import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import * as crypto from 'crypto';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { AgentRegisterUserDto } from '../../api/dto';
-import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
+import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { ConfigService } from '@nestjs/config';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()

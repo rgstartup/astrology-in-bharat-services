@@ -5,7 +5,7 @@ import { IPaymentGateway, PAYMENT_GATEWAY } from '@/external/payment/payment-gat
 import {
   PaymentOrder,
   PaymentStatus,
-} from '../../infrastructure/persistence/entities/payment-order.entity';
+} from '../../infrastructure/entities/payment-order.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { OrderFacade } from '@/modules/order/application/order.facade';
 import { ConfigService } from '@nestjs/config';

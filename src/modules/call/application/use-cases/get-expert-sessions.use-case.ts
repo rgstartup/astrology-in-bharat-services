@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { CallSession, CallSessionStatus } from '../../infrastructure/persistence/entities/call-session.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { CallSession, CallSessionStatus } from '../../infrastructure/entities/call-session.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 export enum CallSessionFilter {
     PENDING = 'pending',

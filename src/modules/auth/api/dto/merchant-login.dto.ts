@@ -3,10 +3,10 @@ import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 export class MerchantLoginDto {
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(8, { message: 'Password must be at least 8 characters long.' })
   @IsNotEmpty()
-  password: string;
+  password!: string;
 }

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
-import { ProfileClient } from '../../infrastructure/persistence/entities/profile-client.entity';
-import { CreateProfileClientDto } from '../../infrastructure/persistence/dto/profile-client.dto';
+import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
+import { CreateProfileClientDto } from '../../infrastructure/dto/profile-client.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileCreatedEvent } from '../../domain/events/profile-events';
 

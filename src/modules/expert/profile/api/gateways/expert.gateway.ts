@@ -9,7 +9,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
 
 @WebSocketGateway({
   cors: {

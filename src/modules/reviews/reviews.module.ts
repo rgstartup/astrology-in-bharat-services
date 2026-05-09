@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReviewsController } from './api/controllers/reviews.controller';
-import { Review } from './infrastructure/persistence/entities/review.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
-import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
+import { Review } from './infrastructure/entities/review.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ChatSession } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { CallSession } from '@/modules/call/infrastructure/entities/call-session.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 
@@ -19,8 +19,8 @@ import { UpdateReviewStatusUseCase } from './application/use-cases/update-review
 import { DeleteReviewUseCase } from './application/use-cases/delete-review.use-case';
 import { SendReviewResponseUseCase } from './application/use-cases/send-review-response.use-case';
 import { GetApprovedPlatformReviewsUseCase } from './application/use-cases/get-approved-platform-reviews.use-case';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
-import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { Order } from '@/modules/order/infrastructure/entities/order.entity';
 
 @Module({
   imports: [

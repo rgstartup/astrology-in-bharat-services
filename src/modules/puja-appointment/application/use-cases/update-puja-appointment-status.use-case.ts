@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { PujaAppointment, PujaAppointmentStatus } from '../../infrastructure/persistence/entities/puja-appointment.entity';
+import { PujaAppointment, PujaAppointmentStatus } from '../../infrastructure/entities/puja-appointment.entity';
 import { UpdatePujaAppointmentStatusDto } from '../dtos/update-puja-appointment-status.dto';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { TodosFacade } from '@/modules/expert/todos/application/todos.facade';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 
 @Injectable()

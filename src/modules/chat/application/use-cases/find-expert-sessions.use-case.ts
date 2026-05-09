@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan, Brackets } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '../../infrastructure/persistence/entities/chat-session.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 export enum ExpertSessionFilter {
     PENDING = 'pending',

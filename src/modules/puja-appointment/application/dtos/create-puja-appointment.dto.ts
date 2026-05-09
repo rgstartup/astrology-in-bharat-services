@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { PujaMode } from "../../infrastructure/persistence/entities/puja-appointment.entity";
+import { PujaMode } from "../../infrastructure/entities/puja-appointment.entity";
 
 export class CreatePujaAppointmentDto {
   @IsNumber()

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction, TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { Transaction, TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 
 @Injectable()
 export class GetAdminRevenueTrendUseCase {

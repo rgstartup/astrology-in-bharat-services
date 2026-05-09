@@ -1,4 +1,4 @@
-import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
+import { CallType } from '../../infrastructure/entities/call-session.entity';
 
 export class CallInitiatedEvent {
     constructor(

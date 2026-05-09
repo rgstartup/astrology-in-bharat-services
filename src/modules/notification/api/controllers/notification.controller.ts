@@ -2,7 +2,7 @@ import { Controller, Get, Param, Patch, Delete, UseGuards, ParseIntPipe, Query }
 import { NotificationFacade } from '../../application/notification.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Controller({
     path: 'notifications',

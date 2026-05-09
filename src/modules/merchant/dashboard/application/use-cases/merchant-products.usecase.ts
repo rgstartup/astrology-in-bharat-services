@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, Like } from 'typeorm';
-import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
+import { Product } from '@/modules/product/infrastructure/entities/product.entity';
 import { CreateMerchantProductDto, MerchantProductStatus } from '../../api/dto/create-merchant-product.dto';
 
 type ProductStatus = 'active' | 'draft' | 'out_of_stock';

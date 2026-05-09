@@ -16,7 +16,7 @@ import { RolesGuard } from '../../../auth/api/guards/role.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 // import { UserRole } from '../../../role/enum/role.enum';
-import { User } from '../../infrastructure/persistence/entities/user.entity';
+import { User } from '../../infrastructure/entities/user.entity';
 
 @Controller('users')
 export class UsersController {

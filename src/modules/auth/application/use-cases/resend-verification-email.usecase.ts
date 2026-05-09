@@ -4,7 +4,7 @@ import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { VerifyEmailEvent } from '../../domain/events/verify-email.event';
 import { EmailVerificationPolicy } from '../../domain/policies/email-verification.policy';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class ResendVerificationEmailUseCase {

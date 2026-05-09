@@ -1,4 +1,4 @@
-import { Dispute } from '../../infrastructure/persistence/entities/dispute.entity';
+import { Dispute } from '../../infrastructure/entities/dispute.entity';
 import { DisputeNotFoundError } from '../errors/dispute-not-found.error';
 
 export class DisputePolicy {

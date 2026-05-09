@@ -1,6 +1,6 @@
 import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import {
   AUTH_PROFILE_CREATION_STRATEGIES,
   AuthProfileCreationStrategy,

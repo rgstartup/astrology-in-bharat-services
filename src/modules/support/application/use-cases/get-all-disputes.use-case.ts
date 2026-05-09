@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Dispute } from '../../infrastructure/persistence/entities/dispute.entity';
+import { Dispute } from '../../infrastructure/entities/dispute.entity';
 
 @Injectable()
 export class GetAllDisputesUseCase {

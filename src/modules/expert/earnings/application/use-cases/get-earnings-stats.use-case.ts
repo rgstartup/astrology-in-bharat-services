@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
-import { CallSession, CallSessionStatus, CallType } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
-import { Order, OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
-import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
+import { ChatSession, ChatSessionStatus } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { CallSession, CallSessionStatus, CallType } from '@/modules/call/infrastructure/entities/call-session.entity';
+import { Order, OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
+import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { PujaAppointment, PujaAppointmentStatus } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
-import { Review } from '@/modules/reviews/infrastructure/persistence/entities/review.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { PujaAppointment, PujaAppointmentStatus } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
+import { Review } from '@/modules/reviews/infrastructure/entities/review.entity';
 
 
 @Injectable()

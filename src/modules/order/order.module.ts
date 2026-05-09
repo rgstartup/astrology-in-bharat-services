@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Order } from './infrastructure/persistence/entities/order.entity';
-import { OrderItem } from './infrastructure/persistence/entities/order-item.entity';
+import { Order } from './infrastructure/entities/order.entity';
+import { OrderItem } from './infrastructure/entities/order-item.entity';
 import { OrderController, OrderSingularController } from './api/controllers/order.controller';
 import { OrderFacade } from './application/order.facade';
 import { CreateOrderFromCartUseCase } from './application/use-cases/create-order-from-cart.use-case';
@@ -14,11 +14,11 @@ import { FindAllOrdersUseCase } from './application/use-cases/find-all-orders.us
 import { CartModule } from '@/modules/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { Product } from '@/modules/product/infrastructure/entities/product.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { CouponModule } from '@/modules/coupon/coupon.module';
-import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
+import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
 import { ProductModule } from '@/modules/product/product.module';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 

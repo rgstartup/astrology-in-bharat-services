@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BankAccount } from '../../infrastructure/persistence/entities/bank-account.entity';
+import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
 import { CreateBankAccountDto } from '../../api/dto/bank-account.dto';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BankAccountCreatedEvent } from '../../domain/events/bank-account-events';
 

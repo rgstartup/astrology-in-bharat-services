@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PujaAppointment } from '../../infrastructure/persistence/entities/puja-appointment.entity';
+import { PujaAppointment } from '../../infrastructure/entities/puja-appointment.entity';
 
 @Injectable()
 export class GetUserPujaAppointmentsUseCase {

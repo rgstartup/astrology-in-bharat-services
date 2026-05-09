@@ -8,10 +8,10 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { WithdrawalStatus } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { WithdrawalStatus } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';
 import { FilterCriteria } from '../../application/use-cases/get-filtered-users.use-case';
-import { CreateAgentDto } from '../../presentation/dto/create-agent.dto';
+import { CreateAgentDto } from '../dto/create-agent.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import { ReviewsFacade } from '@/modules/reviews/application/reviews.facade';

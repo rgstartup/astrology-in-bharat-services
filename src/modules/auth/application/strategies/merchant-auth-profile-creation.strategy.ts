@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { QueryRunner } from 'typeorm';
-import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class MerchantAuthProfileCreationStrategy implements AuthProfileCreationStrategy {

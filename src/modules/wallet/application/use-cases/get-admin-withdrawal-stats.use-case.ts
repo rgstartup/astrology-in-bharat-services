@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { Withdrawal, WithdrawalStatus } from '../../infrastructure/persistence/entities/withdrawal.entity';
+import { Withdrawal, WithdrawalStatus } from '../../infrastructure/entities/withdrawal.entity';
 
 @Injectable()
 export class GetAdminWithdrawalStatsUseCase {

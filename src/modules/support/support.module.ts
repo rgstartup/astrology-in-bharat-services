@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Dispute } from './infrastructure/persistence/entities/dispute.entity';
-import { DisputeMessage } from './infrastructure/persistence/entities/dispute-message.entity';
+import { Dispute } from './infrastructure/entities/dispute.entity';
+import { DisputeMessage } from './infrastructure/entities/dispute-message.entity';
 import { SupportFacade } from './application/support.facade';
 import { GetDisputesUseCase } from './application/use-cases/get-disputes.use-case';
 import { CreateDisputeUseCase } from './application/use-cases/create-dispute.use-case';

@@ -5,7 +5,7 @@ import { IPaymentGateway, PAYMENT_GATEWAY } from '@/external/payment/payment-gat
 import {
   PaymentOrder,
   PaymentStatus,
-} from '../../infrastructure/persistence/entities/payment-order.entity';
+} from '../../infrastructure/entities/payment-order.entity';
 import { VerifyPaymentUseCase } from './verify-payment.use-case';
 import { PaymentPolicy } from '../../domain/policies/payment.policy';
 

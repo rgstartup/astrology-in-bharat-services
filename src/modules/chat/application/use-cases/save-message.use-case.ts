@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatMessage, MessageType } from '../../infrastructure/persistence/entities/chat-message.entity';
+import { ChatMessage, MessageType } from '../../infrastructure/entities/chat-message.entity';
 
 @Injectable()
 export class SaveMessageUseCase {

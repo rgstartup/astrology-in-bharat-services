@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Product } from '../../infrastructure/persistence/entities/product.entity';
+import { Product } from '../../infrastructure/entities/product.entity';
 import { UpdateProductDto } from '../../api/dto/update-product.dto';
 import { ProductNotFoundError } from '../../domain/errors/product.errors';
 

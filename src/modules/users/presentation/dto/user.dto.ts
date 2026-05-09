@@ -13,7 +13,7 @@ import { RolesDto } from '@/modules/role/dto/roles.dto';
 
 class UserDto {
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(6)

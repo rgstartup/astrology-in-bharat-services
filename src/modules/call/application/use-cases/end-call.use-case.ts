@@ -4,18 +4,18 @@ import { Repository } from 'typeorm';
 import {
   CallSession,
   CallSessionStatus,
-} from '../../infrastructure/persistence/entities/call-session.entity';
+} from '../../infrastructure/entities/call-session.entity';
 import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallEndedEvent } from '../../domain/events/call.events';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
-import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { CallType } from '../../infrastructure/entities/call-session.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class EndCallUseCase {

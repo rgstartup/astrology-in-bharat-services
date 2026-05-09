@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
-import { CallSession, CallSessionStatus, CallType } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
-import { Review } from '@/modules/reviews/infrastructure/persistence/entities/review.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ChatSession, ChatSessionStatus } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { CallSession, CallSessionStatus, CallType } from '@/modules/call/infrastructure/entities/call-session.entity';
+import { Review } from '@/modules/reviews/infrastructure/entities/review.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ConsultationHistoryDto, ConsultationType, ConsultationStatus } from '../../api/dto/consultation-history.dto';
 
 @Injectable()

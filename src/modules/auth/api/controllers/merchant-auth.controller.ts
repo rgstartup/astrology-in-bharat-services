@@ -44,6 +44,7 @@ export class MerchantAuthController {
         data,
       };
     } catch (error) {
+      
       this.logger.error(`Merchant registration failed: ${error.message}`);
       return {
         success: false,

@@ -10,8 +10,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger, Inject, forwardRef } from '@nestjs/common';
 import { ChatFacade } from './application/chat.facade';
-import { MessageType } from './infrastructure/persistence/entities/chat-message.entity';
-import { ChatSessionStatus } from './infrastructure/persistence/entities/chat-session.entity';
+import { MessageType } from './infrastructure/entities/chat-message.entity';
+import { ChatSessionStatus } from './infrastructure/entities/chat-session.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @WebSocketGateway({

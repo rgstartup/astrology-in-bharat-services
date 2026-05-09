@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PujaAppointment } from '../../infrastructure/persistence/entities/puja-appointment.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { PujaAppointment } from '../../infrastructure/entities/puja-appointment.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 @Injectable()
 export class GetExpertPujaAppointmentsUseCase {

@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Role } from '../src/modules/role/entities/roles.entity';
-import { User } from '../src/modules/users/infrastructure/persistence/entities/user.entity';
-import { ProfileMerchant } from '../src/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { User } from '../src/modules/users/infrastructure/entities/user.entity';
+import { ProfileMerchant } from '../src/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 async function fixUser() {
     const ds = new DataSource({
