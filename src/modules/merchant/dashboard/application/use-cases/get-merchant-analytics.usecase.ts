@@ -29,8 +29,8 @@ export class GetMerchantAnalyticsUseCase {
       SELECT 
         TO_CHAR(oi.created_at, 'FMMon DD') as date,
         SUM(oi.price * oi.quantity) as revenue
-      FROM order_items oi
-      INNER JOIN products p ON p.id = oi.product_id
+      FROM commerce.order_items oi
+      INNER JOIN commerce.products p ON p.id = oi.product_id
       WHERE (p.merchant_id = $1 OR p.merchant_id = $2)
       AND oi.created_at >= $3
       GROUP BY TO_CHAR(oi.created_at, 'FMMon DD')
@@ -43,8 +43,8 @@ export class GetMerchantAnalyticsUseCase {
         p.name as "name",
         SUM(oi.quantity) as "sales_count",
         SUM(oi.price * oi.quantity) as "total_revenue"
-      FROM order_items oi
-      INNER JOIN products p ON p.id = oi.product_id
+      FROM commerce.order_items oi
+      INNER JOIN commerce.products p ON p.id = oi.product_id
       WHERE (p.merchant_id = $1 OR p.merchant_id = $2)
       GROUP BY p.name
       ORDER BY sales_count DESC
@@ -62,7 +62,7 @@ export class GetMerchantAnalyticsUseCase {
     // 3. Stock Levels - Check both IDs for safety
     const stockResult = await this.productRepo.query(`
         SELECT name, stock 
-        FROM products 
+        FROM commerce.products 
         WHERE (merchant_id = $1 OR merchant_id = $2)
         ORDER BY stock ASC
         LIMIT 10

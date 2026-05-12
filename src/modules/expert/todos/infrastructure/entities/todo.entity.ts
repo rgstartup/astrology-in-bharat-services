@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
-@Entity('expert_todos')
+@Entity({ schema: 'expert', name: 'todos' })
 export class Todo {
     @PrimaryGeneratedColumn()
     id!: number;

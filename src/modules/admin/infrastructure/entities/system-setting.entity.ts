@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('system_settings')
+@Entity({ schema: 'admin', name: 'system_settings' })
 export class SystemSetting {
   @PrimaryGeneratedColumn()
   id!: number;

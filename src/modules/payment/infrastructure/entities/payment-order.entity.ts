@@ -25,7 +25,7 @@ export class ColumnNumericTransformer {
   }
 }
 
-@Entity('payment_orders')
+@Entity({ schema: 'finance', name: 'payment_orders' })
 export class PaymentOrder {
   @PrimaryGeneratedColumn()
   id!: number;

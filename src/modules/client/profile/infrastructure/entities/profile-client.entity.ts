@@ -13,7 +13,7 @@ import {
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 
-@Entity('profile_clients')
+@Entity({ schema: 'client', name: 'profile' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 export class ProfileClient {
   @PrimaryGeneratedColumn()

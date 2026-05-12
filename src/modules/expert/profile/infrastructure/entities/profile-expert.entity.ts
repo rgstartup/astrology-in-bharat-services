@@ -15,7 +15,7 @@ import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { ExpertPuja } from './expert-puja.entity';
 
-@Entity('profile_experts')
+@Entity({ schema: 'expert', name: 'profile' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 @Check(`"experience_in_years" >= 0`)
 @Check(`"kyc_status" IN ('pending', 'approved', 'rejected')`)

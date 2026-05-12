@@ -14,7 +14,7 @@ export enum MessageType {
   FILE = 'file',
 }
 
-@Entity('chat_messages')
+@Entity({ schema: 'consultations', name: 'chat_messages' })
 export class ChatMessage {
   @PrimaryGeneratedColumn()
   id!: number;

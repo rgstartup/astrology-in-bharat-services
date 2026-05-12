@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { ProfileExpert } from './profile-expert.entity';
 
-@Entity('expert_pujas')
+@Entity({ schema: 'expert', name: 'pujas' })
 export class ExpertPuja {
   @PrimaryGeneratedColumn()
   id!: number;

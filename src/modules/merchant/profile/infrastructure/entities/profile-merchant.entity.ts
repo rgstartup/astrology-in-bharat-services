@@ -16,7 +16,7 @@ export enum MerchantStatus {
 }
 
 
-@Entity('profile_merchants')
+@Entity({ schema: 'merchant', name: 'profile' })
 export class ProfileMerchant {
   @PrimaryGeneratedColumn()
   id!: number;

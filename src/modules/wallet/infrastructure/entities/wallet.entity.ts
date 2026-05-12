@@ -11,7 +11,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 
 
-@Entity('wallets')
+@Entity({ schema: 'finance', name: 'wallets' })
 export class Wallet {
   @PrimaryGeneratedColumn()
   id!: number;

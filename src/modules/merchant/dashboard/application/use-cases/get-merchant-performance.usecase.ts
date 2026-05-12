@@ -70,8 +70,8 @@ export class GetMerchantPerformanceUseCase {
       SELECT 
         TO_CHAR(oi.created_at, 'FMMon DD') as "date",
         SUM(oi.price * oi.quantity) as "revenue"
-      FROM order_items oi
-      INNER JOIN products p ON p.id = oi.product_id
+      FROM commerce.order_items oi
+      INNER JOIN commerce.products p ON p.id = oi.product_id
       WHERE (p.merchant_id = $1 OR p.merchant_id = $2)
       AND oi.created_at >= $3
       GROUP BY TO_CHAR(oi.created_at, 'FMMon DD')

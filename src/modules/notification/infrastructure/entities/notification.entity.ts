@@ -20,7 +20,7 @@ export enum NotificationType {
     GENERAL = 'general',
 }
 
-@Entity('notifications')
+@Entity({ schema: 'support', name: 'notifications' })
 export class Notification {
     @PrimaryGeneratedColumn()
     id!: number;

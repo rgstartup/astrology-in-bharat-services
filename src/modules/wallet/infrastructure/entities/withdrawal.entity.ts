@@ -22,7 +22,7 @@ export enum WithdrawalStatus {
     REVERSED = 'reversed',
 }
 
-@Entity('withdrawals')
+@Entity({ schema: 'finance', name: 'withdrawals' })
 export class Withdrawal {
     @PrimaryGeneratedColumn()
     id!: number;

@@ -23,7 +23,7 @@ export enum ChatSessionStatus {
 
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 
-@Entity('chat_sessions')
+@Entity({ schema: 'consultations', name: 'chat_sessions' })
 export class ChatSession {
   @PrimaryGeneratedColumn()
   id!: number;

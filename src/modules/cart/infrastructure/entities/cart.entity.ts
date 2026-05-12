@@ -10,7 +10,7 @@ import {
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { CartItem } from './cart-item.entity';
 
-@Entity('carts')
+@Entity({ schema: 'commerce', name: 'carts' })
 export class Cart {
   @PrimaryGeneratedColumn()
   id!: number;

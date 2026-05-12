@@ -217,15 +217,15 @@ export class AgentController {
                     u.role_name,
                     SUM(s.agent_commission)::float as total_comm
                 FROM (
-                    SELECT expert_id, agent_id, agent_commission FROM chat_sessions WHERE agent_id = $1
+                    SELECT expert_id, agent_id, agent_commission FROM consultations.chat_sessions WHERE agent_id = $1
                     UNION ALL
-                    SELECT expert_id, agent_id, agent_commission FROM call_sessions WHERE agent_id = $1
+                    SELECT expert_id, agent_id, agent_commission FROM consultations.call_sessions WHERE agent_id = $1
                 ) s
                 JOIN (
                     SELECT pe.id as expert_id, r.name as role_name
-                    FROM profile_experts pe
-                    JOIN user_roles ur ON ur.user_id = pe.user_id
-                    JOIN roles r ON r.id = ur.role_id
+                    FROM expert.profile pe
+                    JOIN public.user_roles ur ON ur.user_id = pe.user_id
+                    JOIN public.roles r ON r.id = ur.role_id
                 ) u ON u.expert_id = s.expert_id
                 GROUP BY u.role_name
             `, [user.id]);
@@ -243,8 +243,8 @@ export class AgentController {
                     TO_CHAR(t.created_at, 'Mon') as name, 
                     SUM(t.amount)::float as value,
                     TO_CHAR(t.created_at, 'MM') as month_num
-                FROM transactions t
-                JOIN wallets w ON t.wallet_id = w.id
+                FROM finance.transactions t
+                JOIN finance.wallets w ON t.wallet_id = w.id
                 WHERE w.user_id = $1 AND t.purpose = 'agent_commission'
                 AND t.created_at >= ${fromDate}
                 GROUP BY name, month_num
@@ -261,8 +261,8 @@ export class AgentController {
                 FROM (
                     SELECT generate_series(${fromDate}, NOW(), '1 day')::date as day
                 ) d
-                LEFT JOIN users u ON u.created_at::date = d.day AND u.referred_by_id = $1
-                LEFT JOIN agent_listings al ON al.created_at::date = d.day AND al.agent_id = $1
+                LEFT JOIN public.users u ON u.created_at::date = d.day AND u.referred_by_id = $1
+                LEFT JOIN agent.listings al ON al.created_at::date = d.day AND al.agent_id = $1
                 GROUP BY d.day, day
                 ORDER BY d.day ASC
             `, [user.id]);
@@ -270,8 +270,8 @@ export class AgentController {
             // 3. Calculate Total Earned for the selected period
             const totalEarnedRange = await queryRunner.manager.query(`
                 SELECT SUM(t.amount)::float as total
-                FROM transactions t
-                JOIN wallets w ON t.wallet_id = w.id
+                FROM finance.transactions t
+                JOIN finance.wallets w ON t.wallet_id = w.id
                 WHERE w.user_id = $1 AND t.purpose = 'agent_commission'
                 AND t.created_at >= ${fromDate}
             `, [user.id]);
@@ -481,9 +481,9 @@ export class AgentController {
                         SUM(total_cost)::float as total_gross, 
                         SUM(agent_commission)::float as total_commission
                     FROM (
-                        SELECT expert_id, total_cost, agent_commission FROM chat_sessions WHERE agent_id = $1
+                        SELECT expert_id, total_cost, agent_commission FROM consultations.chat_sessions WHERE agent_id = $1
                         UNION ALL
-                        SELECT expert_id, total_cost, agent_commission FROM call_sessions WHERE agent_id = $1
+                        SELECT expert_id, total_cost, agent_commission FROM consultations.call_sessions WHERE agent_id = $1
                     ) as s
                     GROUP BY expert_id
                 `, [user.id]);
@@ -795,4 +795,3 @@ export class AgentController {
         });
     }
 }
-

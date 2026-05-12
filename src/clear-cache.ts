@@ -9,8 +9,8 @@ async function bootstrap() {
 
   console.log('Clearing Places and Image Caches...');
   try {
-    await dataSource.query('TRUNCATE TABLE places_cache RESTART IDENTITY CASCADE;');
-    await dataSource.query('TRUNCATE TABLE place_images_cache RESTART IDENTITY CASCADE;');
+    await dataSource.query('TRUNCATE TABLE content.places_cache RESTART IDENTITY CASCADE;');
+    await dataSource.query('TRUNCATE TABLE content.place_images_cache RESTART IDENTITY CASCADE;');
     console.log('Cache Cleared Successfully!');
   } catch (error) {
     console.error('Error clearing cache:', error.message);

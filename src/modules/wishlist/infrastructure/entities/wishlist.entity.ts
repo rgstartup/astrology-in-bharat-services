@@ -11,7 +11,7 @@ import { Product } from '@/modules/product/infrastructure/entities/product.entit
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
-@Entity('wishlists')
+@Entity({ schema: 'commerce', name: 'wishlists' })
 @Unique(['user', 'product'])
 @Unique(['user', 'expert'])
 @Unique(['user', 'puja'])

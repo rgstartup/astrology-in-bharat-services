@@ -26,7 +26,7 @@ export enum CallType {
 
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 
-@Entity('call_sessions')
+@Entity({ schema: 'consultations', name: 'call_sessions' })
 export class CallSession {
     @PrimaryGeneratedColumn()
     id!: number;

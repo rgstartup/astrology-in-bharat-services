@@ -10,7 +10,7 @@ import {
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Coupon } from './coupon.entity';
 
-@Entity('user_coupons')
+@Entity({ schema: 'commerce', name: 'user_coupons' })
 export class UserCoupon {
     @PrimaryGeneratedColumn()
     id!: number;

@@ -7,7 +7,7 @@ import {
   Index,
 } from 'typeorm';
 
-@Entity('calendar_cache')
+@Entity({ schema: 'content', name: 'calendar_cache' })
 @Index(['type', 'cacheKey'], { unique: true })
 
 export class CalendarCache {

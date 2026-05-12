@@ -21,7 +21,7 @@ export enum OrderStatus {
     CANCELLED = 'cancelled',
 }
 
-@Entity('product_orders')
+@Entity({ schema: 'commerce', name: 'product_orders' })
 export class Order {
     @PrimaryGeneratedColumn()
     id!: number;

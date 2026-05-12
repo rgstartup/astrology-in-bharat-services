@@ -25,7 +25,7 @@ export enum TransactionPurpose {
   AGENT_COMMISSION = 'agent_commission',
 }
 
-@Entity('transactions')
+@Entity({ schema: 'finance', name: 'transactions' })
 export class Transaction {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -61,4 +61,3 @@ export class Transaction {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;
 }
-

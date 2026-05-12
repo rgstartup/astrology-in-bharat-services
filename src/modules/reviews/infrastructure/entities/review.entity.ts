@@ -13,7 +13,7 @@ import { ChatSession } from '@/modules/chat/infrastructure/entities/chat-session
 import { CallSession } from '@/modules/call/infrastructure/entities/call-session.entity';
 import { Order } from '@/modules/order/infrastructure/entities/order.entity';
 
-@Entity('reviews')
+@Entity({ schema: 'consultations', name: 'reviews' })
 export class Review {
   @PrimaryGeneratedColumn()
   id!: number;

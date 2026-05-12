@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ChatMessage } from '../../infrastructure/entities/chat-message.entity';
 import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class FindAllSessionsUseCase {
             .addSelect((subQuery) => {
                 return subQuery
                     .select('COUNT(message.id)', 'count')
-                    .from('chat_messages', 'message')
+                    .from(ChatMessage, 'message')
                     .where('message.session_id = session.id');
             }, 'message_count')
             .orderBy('session.created_at', 'DESC');

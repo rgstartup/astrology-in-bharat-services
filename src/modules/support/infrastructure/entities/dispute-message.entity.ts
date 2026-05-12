@@ -9,7 +9,7 @@ import {
 import { Dispute } from './dispute.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
-@Entity('support_dispute_messages')
+@Entity({ schema: 'support', name: 'support_dispute_messages' })
 export class DisputeMessage {
     @PrimaryGeneratedColumn()
     id!: number;

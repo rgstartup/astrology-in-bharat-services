@@ -26,7 +26,7 @@ export enum PujaMode {
     HOME_VISIT_WITHOUT = 'home_visit_without',
 }
 
-@Entity('puja_appointments')
+@Entity({ schema: 'consultations', name: 'puja_appointments' })
 export class PujaAppointment {
   @PrimaryGeneratedColumn()
   id!: number;

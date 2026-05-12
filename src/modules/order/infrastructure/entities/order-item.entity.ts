@@ -9,7 +9,7 @@ import {
 import { Order } from './order.entity';
 import { Product } from '@/modules/product/infrastructure/entities/product.entity';
 
-@Entity('order_items')
+@Entity({ schema: 'commerce', name: 'order_items' })
 export class OrderItem {
     @PrimaryGeneratedColumn()
     id!: number;

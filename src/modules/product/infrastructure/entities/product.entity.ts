@@ -7,7 +7,7 @@ import {
   AfterLoad,
 } from 'typeorm';
 
-@Entity('products')
+@Entity({ schema: 'commerce', name: 'products' })
 export class Product {
   @PrimaryGeneratedColumn()
   id!: number;

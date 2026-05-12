@@ -21,7 +21,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
-@Entity('users')
+@Entity({ schema: 'public', name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -50,6 +50,7 @@ export class User {
 
   @ManyToMany(() => Role, (r) => r.users)
   @JoinTable({
+    schema: 'public',
     name: 'user_roles',
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },

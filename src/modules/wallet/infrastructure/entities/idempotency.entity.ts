@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../../../users/infrastructure/entities/user.entity';
 
-@Entity('idempotency_keys')
+@Entity({ schema: 'finance', name: 'idempotency_keys' })
 @Index(['key', 'user_id'], { unique: true })
 export class Idempotency {
   @PrimaryGeneratedColumn()

@@ -17,7 +17,7 @@ export enum CouponStatus {
     EXPIRED = 'expired',
 }
 
-@Entity('coupons')
+@Entity({ schema: 'commerce', name: 'coupons' })
 export class Coupon {
     @PrimaryGeneratedColumn()
     id!: number;

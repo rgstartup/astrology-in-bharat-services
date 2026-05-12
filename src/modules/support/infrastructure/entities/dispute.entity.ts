@@ -16,7 +16,7 @@ export enum DisputeStatus {
     CLOSED = 'closed',
 }
 
-@Entity('support_disputes')
+@Entity({ schema: 'support', name: 'support_disputes' })
 export class Dispute {
     @PrimaryGeneratedColumn()
     id!: number;

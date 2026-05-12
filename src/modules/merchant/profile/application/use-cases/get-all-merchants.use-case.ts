@@ -64,7 +64,7 @@ export class GetAllMerchantsUseCase {
           FROM (
             SELECT merchant_id, image_url,
                    ROW_NUMBER() OVER (PARTITION BY merchant_id ORDER BY created_at DESC) AS rn
-            FROM products
+            FROM commerce.products
             WHERE merchant_id = ANY($1)
               AND is_active = true
               AND image_url IS NOT NULL

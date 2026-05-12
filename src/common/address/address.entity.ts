@@ -17,7 +17,7 @@ export enum AddressTag {
   OTHER = 'other',
 }
 
-@Entity({ name: 'addresses' })
+@Entity({ schema: 'public', name: 'addresses' })
 // Composite unique: one tag per profile (client OR expert)
 @Unique(['profile_client', 'tag'])
 @Unique(['profile_expert', 'tag'])

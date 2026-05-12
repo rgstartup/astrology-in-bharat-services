@@ -32,7 +32,7 @@ export class GetMerchantDetailsUseCase {
       await this.merchantRepository.manager.query(
         `
         SELECT image_url
-        FROM products
+        FROM commerce.products
         WHERE merchant_id = $1
           AND is_active = true
           AND image_url IS NOT NULL

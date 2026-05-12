@@ -7,7 +7,7 @@ import {
   Index,
 } from 'typeorm';
 
-@Entity('places_cache')
+@Entity({ schema: 'content', name: 'places_cache' })
 @Index(['query', 'location'], { unique: true })
 export class Place {
   @PrimaryGeneratedColumn()
@@ -29,7 +29,7 @@ export class Place {
   last_synced!: Date;
 }
 
-@Entity('place_images_cache')
+@Entity({ schema: 'content', name: 'place_images_cache' })
 @Index(['query'], { unique: true })
 export class PlaceImage {
   @PrimaryGeneratedColumn()

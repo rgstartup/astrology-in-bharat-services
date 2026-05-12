@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
-@Entity('admin_audit_logs')
+@Entity({ schema: 'admin', name: 'admin_audit_logs' })
 export class AdminAuditLog {
     @PrimaryGeneratedColumn()
     id!: number;
