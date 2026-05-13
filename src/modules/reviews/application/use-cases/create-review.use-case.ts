@@ -70,19 +70,25 @@ export class CreateReviewUseCase {
   }
 
   private async handleExpertReview(userId: number, expertId: number, sessionId: number, rating: number, comment?: string, tags?: string[]) {
-    const expert = await this.expertRepository.findOne({ where: { id: expertId } });
+    // Try lookup by primary ID first, then by user_id
+    const expert = await this.expertRepository.findOne({ 
+      where: [{ id: expertId }, { user_id: expertId }] 
+    });
     if (!expert) throw new NotFoundException('Expert not found');
+    
+    // Ensure we use the actual primary ID for the rest of the logic
+    const actualExpertId = expert.id;
 
     let chatSessionId: number | undefined = undefined;
     let callSessionId: number | undefined = undefined;
 
     if (sessionId) {
       const chatSession = await this.chatSessionRepository.findOne({ where: { id: sessionId } });
-      if (chatSession && chatSession.user_id === userId && chatSession.expert_id === expertId) {
+      if (chatSession && chatSession.user_id === userId && chatSession.expert_id === actualExpertId) {
         chatSessionId = sessionId;
       } else {
         const callSession = await this.callSessionRepository.findOne({ where: { id: sessionId } });
-        if (callSession && callSession.user_id === userId && callSession.expert_id === expertId) {
+        if (callSession && callSession.user_id === userId && callSession.expert_id === actualExpertId) {
           callSessionId = sessionId;
         }
       }
@@ -102,9 +108,11 @@ export class CreateReviewUseCase {
       if (existingReview) throw new BadRequestException('Session already reviewed');
     }
 
+    console.log('[CreateReview] Payload:', { userId, expertId, sessionId, rating, comment, tags });
+
     const review = this.reviewRepository.create({
       user_id: userId,
-      expert_id: expertId,
+      expert: { id: actualExpertId } as any,
       session_id: chatSessionId,
       call_session_id: callSessionId,
       rating,
@@ -113,14 +121,27 @@ export class CreateReviewUseCase {
       review_type: 'expert',
     });
 
-    const savedReview = await this.reviewRepository.save(review);
-    await this.updateExpertRating(expertId);
-    return savedReview;
+    console.log('[CreateReview] Review Object created:', review);
+
+    try {
+      const savedReview = await this.reviewRepository.save(review);
+      console.log('[CreateReview] Review Saved:', savedReview.id);
+      await this.updateExpertRating(actualExpertId);
+      return savedReview;
+    } catch (error) {
+      console.error('[CreateReview] Error saving review:', error);
+      throw error;
+    }
   }
 
   private async handleMerchantReview(userId: number, merchantId: number, orderId: number, rating: number, comment?: string, tags?: string[]) {
-    const merchant = await this.merchantRepository.findOne({ where: { id: merchantId } });
+    // Try lookup by primary ID first, then by user_id
+    const merchant = await this.merchantRepository.findOne({ 
+      where: [{ id: merchantId }, { user_id: merchantId }] 
+    });
     if (!merchant) throw new NotFoundException('Merchant not found');
+    
+    const actualMerchantId = merchant.id;
 
     if (orderId) {
       const order = await this.orderRepository.findOne({ 
@@ -141,14 +162,14 @@ export class CreateReviewUseCase {
 
       // Prevent duplicate review for same order and merchant
       const existingReview = await this.reviewRepository.findOne({
-        where: { order_id: orderId, merchant_id: merchantId }
+        where: { order_id: orderId, merchant_id: actualMerchantId }
       });
       if (existingReview) throw new BadRequestException('You have already reviewed this merchant for this order');
     }
 
     const review = this.reviewRepository.create({
       user_id: userId,
-      merchant_id: merchantId,
+      merchant_id: actualMerchantId,
       order_id: orderId || null,
       rating,
       comment,
@@ -157,7 +178,7 @@ export class CreateReviewUseCase {
     });
 
     const savedReview = await this.reviewRepository.save(review);
-    await this.updateMerchantRating(merchantId);
+    await this.updateMerchantRating(actualMerchantId);
     return savedReview;
   }
 
@@ -169,9 +190,12 @@ export class CreateReviewUseCase {
       .where('review.expert_id = :expertId', { expertId })
       .getRawOne();
 
+    const average = result?.average ? parseFloat(parseFloat(result.average).toFixed(1)) : 0;
+    const count = result?.count ? parseInt(result.count, 10) : 0;
+
     await this.expertRepository.update(expertId, {
-      rating: parseFloat(parseFloat(result.average || 0).toFixed(1)),
-      total_reviews: parseInt(result.count || 0, 10),
+      rating: average,
+      total_reviews: count,
     });
   }
 
@@ -183,9 +207,12 @@ export class CreateReviewUseCase {
       .where('review.merchant_id = :merchantId', { merchantId })
       .getRawOne();
 
+    const average = result?.average ? parseFloat(parseFloat(result.average).toFixed(1)) : 0;
+    const count = result?.count ? parseInt(result.count, 10) : 0;
+
     await this.merchantRepository.update(merchantId, {
-      rating: parseFloat(parseFloat(result.average || 0).toFixed(1)),
-      reviewCount: parseInt(result.count || 0, 10),
+      rating: average,
+      reviewCount: count,
     });
   }
 }

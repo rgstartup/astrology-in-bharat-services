@@ -37,7 +37,7 @@ export class Review {
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
-  expert: ProfileExpert = new ProfileExpert;
+  expert!: ProfileExpert;
 
   @Column({ type: 'int', name: 'merchant_id', nullable: true })
   merchant_id!: number | null;

@@ -38,6 +38,7 @@ export class GetUserOrdersUseCase {
       amount: Number(o.total_amount),
       status: o.status,
       date: o.created_at,
+      merchantId: o.items.length > 0 ? o.items[0].product.merchant_id : null,
       paymentMethod: o.payment_method,
       deliveryOtp: [OrderStatus.SHIPPED, OrderStatus.PACKED].includes(o.status) ? o.delivery_otp : null,
       items: o.items.map((i) => ({
@@ -60,6 +61,7 @@ export class GetUserOrdersUseCase {
       date: p.created_at,
       paymentMethod: 'razorpay', // Default for now
       expertName: p.expert?.user?.name || 'Expert',
+      expertId: p.expert_id || p.expert?.id,
       scheduledDate: p.scheduled_date,
       scheduledTime: p.scheduled_time,
       items: [{

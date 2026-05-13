@@ -44,6 +44,12 @@ export class UpdateOrderStatusUseCase {
     }
 
     const oldStatus = order.status;
+    
+    // Prevent changing status if already DELIVERED or CANCELLED
+    if (oldStatus === OrderStatus.DELIVERED || oldStatus === OrderStatus.CANCELLED) {
+      throw new ForbiddenException(`Cannot update status. Order #${id} is already ${oldStatus.toUpperCase()}.`);
+    }
+
     console.log(`[ORDER_STATUS_UPDATE] Start - ID: ${id}, NewStatus: ${status}, OldStatus: ${oldStatus}, MerchantId: ${merchantId}`);
     
     // --- ATOMIC TRANSACTION FOR ALL STATUS SIDE-EFFECTS ---
@@ -90,7 +96,7 @@ export class UpdateOrderStatusUseCase {
       }
 
       // 3. Logic for CANCELLED status (Stock restoration & Wallet refund)
-      if (status === OrderStatus.CANCELLED && oldStatus !== OrderStatus.CANCELLED) {
+      if (status === OrderStatus.CANCELLED) {
         // Refetch order with relations inside transaction to be 100% sure
         const orderInsideTx = await queryRunner.manager.findOne(Order, {
           where: { id },
@@ -138,26 +144,29 @@ export class UpdateOrderStatusUseCase {
               const refundPlatformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
               const refundGstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
 
-              for (const [mId, grossAmount] of Object.entries(merchantAmounts)) {
-                const debitId = Number(mId);
-                
-                // Calculate Net that was actually credited (to avoid over-debiting merchant)
-                const platformFee = Number((grossAmount * (refundPlatformFeeRate / 100)).toFixed(2));
-                const gstOnFee = Number((platformFee * (refundGstRate / 100)).toFixed(2));
-                // Note: Agent commissions are not reclaimed here for simplicity/safety, 
-                // but we subtract platform fee and GST to only debit what the merchant actually received.
-                const netToDebit = Number((grossAmount - platformFee - gstOnFee).toFixed(2));
+              // Debit Merchant(s) ONLY if the order was already settled (Delivered)
+              if ((oldStatus as any) === OrderStatus.DELIVERED) {
+                for (const [mId, grossAmount] of Object.entries(merchantAmounts)) {
+                  const debitId = Number(mId);
+                  
+                  // Calculate Net that was actually credited (to avoid over-debiting merchant)
+                  const platformFee = Number((grossAmount * (refundPlatformFeeRate / 100)).toFixed(2));
+                  const gstOnFee = Number((platformFee * (refundGstRate / 100)).toFixed(2));
+                  // Note: Agent commissions are not reclaimed here for simplicity/safety, 
+                  // but we subtract platform fee and GST to only debit what the merchant actually received.
+                  const netToDebit = Number((grossAmount - platformFee - gstOnFee).toFixed(2));
 
-                console.log(`[ORDER_CANCELLED_WALLET] Debiting merchant ${debitId} for net amount ${netToDebit} (Gross was ${grossAmount})`);
-                
-                await this.walletFacade.debit(
-                  debitId,
-                  netToDebit,
-                  TransactionPurpose.REFUND,
-                  `order_cancel_debit_${orderInsideTx.id}`,
-                  queryRunner,
-                  true // allowNegative
-                );
+                  console.log(`[ORDER_CANCELLED_WALLET] Debiting merchant ${debitId} for net amount ${netToDebit} (Gross was ${grossAmount}) because order was previously DELIVERED`);
+                  
+                  await this.walletFacade.debit(
+                    debitId,
+                    netToDebit,
+                    TransactionPurpose.REFUND,
+                    `order_cancel_debit_${orderInsideTx.id}`,
+                    queryRunner,
+                    true // allowNegative
+                  );
+                }
               }
 
               // Credit Client (Refund)
@@ -226,7 +235,7 @@ export class UpdateOrderStatusUseCase {
         try {
             const orderWithItems = await qr.manager.findOne(Order, {
                 where: { id },
-                relations: ['items', 'items.product', 'items.product.merchant']
+                relations: ['items', 'items.product']
             });
 
             if (orderWithItems) {

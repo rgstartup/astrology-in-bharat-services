@@ -30,6 +30,7 @@ export class GetExpertCallSessionsUseCase {
 
         const queryBuilder = this.sessionRepo.createQueryBuilder('session')
             .leftJoinAndSelect('session.user', 'user')
+            .leftJoinAndSelect('user.profile_client', 'profile_client')
             .where('session.expert_id = :expertId', { expertId: expert.id });
 
         switch (filter) {

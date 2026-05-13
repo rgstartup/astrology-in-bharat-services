@@ -1,3 +1,4 @@
+import { RoleEnum } from "../../modules/role/enum/Role.enum";
 import { TransactionPurpose } from "../../modules/wallet/infrastructure/entities/transaction.entity";
 
 
@@ -8,9 +9,9 @@ export function generateTransactionNo(role: string, purpose: TransactionPurpose,
     // Role Part
     let rolePart = 'USR';
     const roleLower = role.toLowerCase();
-    if (roleLower === 'agent') rolePart = 'AGT';
-    else if (roleLower === 'expert') rolePart = 'EXP';
-    else if (roleLower === 'merchant') rolePart = 'MER';
+    if (roleLower === RoleEnum.AGENT) rolePart = 'AGT';
+    else if (roleLower === RoleEnum.EXPERT) rolePart = 'EXP';
+    else if (roleLower === RoleEnum.MERCHANT) rolePart = 'MER';
 
     // Purpose Part
     let purposePart = 'MISC';
