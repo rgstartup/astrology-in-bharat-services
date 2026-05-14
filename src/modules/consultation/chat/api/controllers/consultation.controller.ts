@@ -14,7 +14,7 @@ import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade'
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
+import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { Repository } from 'typeorm';
 import { ConsultationBookDto } from '../dto/consultation-book.dto';
 

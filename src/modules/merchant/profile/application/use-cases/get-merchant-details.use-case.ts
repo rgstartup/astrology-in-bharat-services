@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileMerchant } from '../../infrastructure/entities/profile-merchant.entity';
-import { Wishlist } from '@/modules/wishlist/infrastructure/entities/wishlist.entity';
+import { Wishlist } from '@/modules/commerce/wishlist/infrastructure/entities/wishlist.entity';
 
 @Injectable()
 export class GetMerchantDetailsUseCase {

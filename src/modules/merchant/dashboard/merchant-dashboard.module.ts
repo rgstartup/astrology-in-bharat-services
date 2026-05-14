@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
-import { Product } from '@/modules/product/infrastructure/entities/product.entity';
+import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
+import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
 import { MerchantDashboardController } from './api/controllers/merchant-dashboard.controller';
 import { GetMerchantStatsUseCase } from './application/use-cases/get-merchant-stats.usecase';
@@ -17,9 +17,9 @@ import { GetMerchantTransactionsUseCase } from './application/use-cases/get-merc
 import { SendOrderOtpUseCase } from './application/use-cases/send-order-otp.usecase';
 import { MerchantProductsController } from './api/controllers/merchant-products.controller';
 import { MerchantFinanceController } from './api/controllers/merchant-finance.controller';
-import { Order } from '@/modules/order/infrastructure/entities/order.entity';
+import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
-import { OrderModule } from '@/modules/order/order.module';
+import { OrderModule } from '@/modules/commerce/order/order.module';
 import { Transaction } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { Wallet } from '@/modules/wallet/infrastructure/entities/wallet.entity';
 import { Withdrawal } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';

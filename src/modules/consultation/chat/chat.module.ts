@@ -28,7 +28,7 @@ import { UpdateSessionMetadataUseCase } from './application/use-cases/update-ses
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { NotificationModule } from '@/modules/notification/notification.module';
-import { CouponModule } from '@/modules/coupon/coupon.module';
+import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 

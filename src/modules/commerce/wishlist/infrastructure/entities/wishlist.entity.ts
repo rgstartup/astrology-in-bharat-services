@@ -7,7 +7,7 @@ import {
   Unique,
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { Product } from '@/modules/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 

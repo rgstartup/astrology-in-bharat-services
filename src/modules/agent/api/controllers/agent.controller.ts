@@ -15,7 +15,7 @@ import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
-import { Order } from '@/modules/order/infrastructure/entities/order.entity';
+import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 

@@ -9,8 +9,8 @@ import { GetWalletTransactionsUseCase } from './application/use-cases/get-wallet
 import { RequestWithdrawalUseCase } from './application/use-cases/request-withdrawal.use-case';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
-import { Order } from '@/modules/order/infrastructure/entities/order.entity';
-import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
+import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';

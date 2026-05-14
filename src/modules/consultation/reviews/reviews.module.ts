@@ -20,7 +20,7 @@ import { DeleteReviewUseCase } from './application/use-cases/delete-review.use-c
 import { SendReviewResponseUseCase } from './application/use-cases/send-review-response.use-case';
 import { GetApprovedPlatformReviewsUseCase } from './application/use-cases/get-approved-platform-reviews.use-case';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { Order } from '@/modules/order/infrastructure/entities/order.entity';
+import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 
 @Module({
   imports: [

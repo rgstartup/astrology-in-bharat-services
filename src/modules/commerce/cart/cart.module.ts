@@ -9,7 +9,7 @@ import { AddToCartUseCase } from './application/use-cases/add-to-cart.use-case';
 import { UpdateCartItemUseCase } from './application/use-cases/update-cart-item.use-case';
 import { RemoveCartItemUseCase } from './application/use-cases/remove-cart-item.use-case';
 import { ClearCartUseCase } from './application/use-cases/clear-cart.use-case';
-import { Product } from '@/modules/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Module({

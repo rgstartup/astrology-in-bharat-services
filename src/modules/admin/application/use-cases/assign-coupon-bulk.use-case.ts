@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Coupon, CouponStatus } from '@/modules/coupon/infrastructure/entities/coupon.entity';
-import { UserCoupon } from '@/modules/coupon/infrastructure/entities/user-coupon.entity';
+import { Coupon, CouponStatus } from '@/modules/commerce/coupon/infrastructure/entities/coupon.entity';
+import { UserCoupon } from '@/modules/commerce/coupon/infrastructure/entities/user-coupon.entity';
 import { GetFilteredUsersUseCase, FilterCriteria } from './get-filtered-users.use-case';
 
 @Injectable()

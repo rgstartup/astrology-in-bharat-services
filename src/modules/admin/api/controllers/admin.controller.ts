@@ -6,7 +6,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
-import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
+import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { WithdrawalStatus } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';

@@ -11,15 +11,15 @@ import { GetUserOrdersUseCase } from './application/use-cases/get-user-orders.us
 import { GetOrderByIdUseCase } from './application/use-cases/get-order-by-id.use-case';
 import { UpdateOrderStatusUseCase } from './application/use-cases/update-order-status.use-case';
 import { FindAllOrdersUseCase } from './application/use-cases/find-all-orders.use-case';
-import { CartModule } from '@/modules/cart/cart.module';
+import { CartModule } from '@/modules/commerce/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { Product } from '@/modules/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
-import { CouponModule } from '@/modules/coupon/coupon.module';
+import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
-import { ProductModule } from '@/modules/product/product.module';
+import { ProductModule } from '@/modules/commerce/product/product.module';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 
 @Module({

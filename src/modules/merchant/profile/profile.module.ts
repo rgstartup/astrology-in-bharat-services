@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileMerchant } from './infrastructure/entities/profile-merchant.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { Wishlist } from '@/modules/wishlist/infrastructure/entities/wishlist.entity';
+import { Wishlist } from '@/modules/commerce/wishlist/infrastructure/entities/wishlist.entity';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { NotificationModule } from '@/modules/notification/notification.module';

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, DataSource } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
-import { Order, OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
+import { Order, OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 
 export interface FilterCriteria {
     minSpending?: number;

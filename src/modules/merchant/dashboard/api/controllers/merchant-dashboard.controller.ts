@@ -28,8 +28,8 @@ import { GetMerchantAnalyticsUseCase } from '../../application/use-cases/get-mer
 import { SendOrderOtpUseCase } from '../../application/use-cases/send-order-otp.usecase';
 import { VerifyOrderOtpUseCase } from '../../application/use-cases/verify-order-otp.usecase';
 import { GetMerchantTransactionsUseCase } from '../../application/use-cases/get-merchant-transactions.usecase';
-import { OrderFacade } from '@/modules/order/application/order.facade';
-import { OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 
 @Controller({
   path: 'merchant',

@@ -5,8 +5,8 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
-import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
-import { Order } from '@/modules/order/infrastructure/entities/order.entity';
+import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
+import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 
 @Injectable()
 export class GetAdminTopExpertsUseCase {

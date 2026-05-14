@@ -8,7 +8,7 @@ import { WalletModule } from '../wallet/wallet.module';
 import { CallSession } from '../consultation/call/infrastructure/entities/call-session.entity';
 import { ChatSession } from '../consultation/chat/infrastructure/entities/chat-session.entity';
 import { PujaAppointment } from '../puja-appointment/infrastructure/entities/puja-appointment.entity';
-import { Order } from '../order/infrastructure/entities/order.entity';
+import { Order } from '../commerce/order/infrastructure/entities/order.entity';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({

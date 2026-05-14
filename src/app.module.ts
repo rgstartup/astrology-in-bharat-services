@@ -10,14 +10,9 @@ import { RolesModule } from '@/modules/role/roles.module';
 import { ClientModule } from '@/modules/client/client.module';
 import { ExpertModule } from '@/modules/expert/expert.module';
 import { ExternalModule } from './external/external.module';
-import { ProductModule } from '@/modules/product/product.module';
-import { CartModule } from '@/modules/cart/cart.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
-import { OrderModule } from '@/modules/order/order.module';
 import { PaymentModule } from '@/modules/payment/payment.module';
-import { ReviewsModule } from '@/modules/consultation/reviews/reviews.module';
-import { WishlistModule } from '@/modules/wishlist/wishlist.module';
 import { FestivalModule } from '@/modules/festival/festival.module';
 import { MatchmakingModule } from '@/modules/matchmaking/matchmaking.module';
 import { QuotesModule } from '@/modules/quotes/quotes.module';
@@ -25,14 +20,13 @@ import { AdminModule } from '@/modules/admin/admin.module';
 import { SupportModule } from '@/modules/support/support.module';
 import { LiveDarshanModule } from '@/modules/live-darshan/live-darshan.module';
 import { AgentModule } from '@/modules/agent/agent.module';
-import { CouponModule } from '@/modules/coupon/coupon.module';
 import { AstrologyModule } from '@/modules/astrology/astrology.module';
 import { CalendarModule } from '@/modules/calendar/calendar.module';
 import { PlacesModule } from '@/modules/places/places.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { MerchantModule } from './modules/merchant/merchant.module';
 import { ConsultationModule } from './modules/consultation/consultation.module';
-
+import { CommerceModule } from './modules/commerce/commerce.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -49,14 +43,9 @@ import { ConsultationModule } from './modules/consultation/consultation.module';
     ClientModule,
     ExpertModule,
     ExternalModule,
-    ProductModule,
-    CartModule,
     WalletModule,
     NotificationModule,
-    OrderModule,
     PaymentModule,
-    ReviewsModule,
-    WishlistModule,
     FestivalModule,
     MatchmakingModule,
     QuotesModule,
@@ -64,13 +53,13 @@ import { ConsultationModule } from './modules/consultation/consultation.module';
     SupportModule,
     LiveDarshanModule,
     AgentModule,
-    CouponModule,
     AstrologyModule,
     PlacesModule,
     CalendarModule,
     PujaAppointmentModule,
     MerchantModule,
     ConsultationModule,
+    CommerceModule,
   ]
 })
 export class AppModule { }

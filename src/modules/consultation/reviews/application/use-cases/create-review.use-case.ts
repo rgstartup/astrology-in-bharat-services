@@ -4,7 +4,7 @@ import { Repository, DataSource } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { Order, OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
+import { Order, OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { CreateReviewDto } from '../../api/dto/create-review.dto';

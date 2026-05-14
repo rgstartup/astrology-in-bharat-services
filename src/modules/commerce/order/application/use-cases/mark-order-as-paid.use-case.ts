@@ -4,7 +4,7 @@ import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
+import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 
 @Injectable()
 export class MarkOrderAsPaidUseCase {

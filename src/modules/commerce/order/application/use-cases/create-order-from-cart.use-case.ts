@@ -3,17 +3,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { OrderItem } from '../../infrastructure/entities/order-item.entity';
-import { CartFacade } from '@/modules/cart/application/cart.facade';
-import { Cart } from '@/modules/cart/infrastructure/entities/cart.entity';
+import { CartFacade } from '@/modules/commerce/cart/application/cart.facade';
+import { Cart } from '@/modules/commerce/cart/infrastructure/entities/cart.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { Product } from '@/modules/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
+import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {

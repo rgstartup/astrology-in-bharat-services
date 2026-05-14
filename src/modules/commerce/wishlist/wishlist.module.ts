@@ -4,11 +4,11 @@ import { ProductLikeController } from './api/controllers/product-like.controller
 import { ExpertLikeController } from './api/controllers/expert-like.controller';
 import { PujaLikeController } from './api/controllers/puja-like.controller';
 import { Wishlist } from './infrastructure/entities/wishlist.entity';
-import { Product } from '@/modules/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { UsersModule } from '../users/users.module';
-import { ExpertModule } from '../expert/expert.module';
+import { UsersModule } from '../../users/users.module';
+import { ExpertModule } from '../../expert/expert.module';
 import { WishlistFacade } from './application/wishlist.facade';
 import { AddProductToWishlistUseCase } from './application/use-cases/add-product-to-wishlist.use-case';
 import { RemoveProductFromWishlistUseCase } from './application/use-cases/remove-product-from-wishlist.use-case';
@@ -23,7 +23,7 @@ import { AddMerchantToWishlistUseCase } from './application/use-cases/add-mercha
 import { RemoveMerchantFromWishlistUseCase } from './application/use-cases/remove-merchant-from-wishlist.use-case';
 import { GetMerchantWishlistUseCase } from './application/use-cases/get-merchant-wishlist.use-case';
 import { MerchantLikeController } from './api/controllers/merchant-like.controller';
-import { ProfileMerchant } from '../merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { ProfileMerchant } from '../../merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Module({
   imports: [
