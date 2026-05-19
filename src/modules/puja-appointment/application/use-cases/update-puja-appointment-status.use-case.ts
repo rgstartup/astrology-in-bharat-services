@@ -30,7 +30,7 @@ export class UpdatePujaAppointmentStatusUseCase {
     try {
         const appointment = await qr.manager.findOne(PujaAppointment, { 
             where: { id },
-            relations: ['expert', 'puja', 'user']
+            relations: ['expert', 'puja', 'client', 'client.user']
         });
 
         if (!appointment) {
@@ -39,7 +39,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
         // Determine who is performing the update
         const isExpert = appointment.expert.user_id === operatingUserId;
-        const isClient = appointment.user_id === operatingUserId;
+        const isClient = appointment.client?.user_id === operatingUserId;
 
         if (!isExpert && !isClient) {
             throw new NotFoundException('Appointment not found for this user');
@@ -88,7 +88,7 @@ export class UpdatePujaAppointmentStatusUseCase {
                 let buyer_agent_id: number | undefined = undefined;
 
                 const buyerUser = await qr.manager.findOne(User, {
-                    where: { id: appointment.user_id },
+                    where: { id: appointment.client?.user_id || 0 },
                     select: ['id', 'referred_by_id']
                 });
 
@@ -105,7 +105,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
                 // 1. Debit User
                 await this.walletFacade.debit(
-                    appointment.user_id, 
+                    appointment.client?.user_id || 0, 
                     totalAmount, 
                     TransactionPurpose.PUJA_CONFIRMATION, 
                     `puja_appt_${appointment.id}`,
@@ -147,7 +147,7 @@ export class UpdatePujaAppointmentStatusUseCase {
                 try {
                     // Not strictly part of financial transaction, but good to have
                     await this.todosFacade.create(appointment.expert.user_id, {
-                        text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.user?.name || 'Client'} on ${appointment.scheduled_date} at ${appointment.scheduled_time}`
+                        text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.client?.user?.name || 'Client'} on ${appointment.scheduled_date} at ${appointment.scheduled_time}`
                     });
                 } catch (err) {
                     console.error('Failed to create todo for expert:', err);
@@ -159,7 +159,7 @@ export class UpdatePujaAppointmentStatusUseCase {
                         appointment.expert.user_id,
                         NotificationType.GENERAL,
                         'Puja Confirmed! (Paid)',
-                        `User ${appointment.user?.name || 'Client'} has paid for the ${appointment.puja?.name || 'Puja'} Ritual scheduled for ${appointment.scheduled_date}.`,
+                        `User ${appointment.client?.user?.name || 'Client'} has paid for the ${appointment.puja?.name || 'Puja'} Ritual scheduled for ${appointment.scheduled_date}.`,
                         { appointment_id: appointment.id, type: 'PUJA_CONFIRMED' }
                     );
                 } catch (err) {
@@ -224,7 +224,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
             try {
                 await this.notificationFacade.create(
-                    appointment.user_id,
+                    appointment.client?.user_id || 0,
                     NotificationType.GENERAL,
                     title,
                     message,
@@ -242,7 +242,7 @@ export class UpdatePujaAppointmentStatusUseCase {
                     appointment.expert.user_id,
                     NotificationType.GENERAL,
                     'Reschedule Accepted!',
-                    `User ${appointment.user?.name || 'Client'} has accepted your proposed time for ${appointment.puja?.name || 'Puja'}.`,
+                    `User ${appointment.client?.user?.name || 'Client'} has accepted your proposed time for ${appointment.puja?.name || 'Puja'}.`,
                     { appointment_id: saved.id, type: 'PUJA_RESCHEDULE_ACCEPTED' }
                 );
             } catch (error) {

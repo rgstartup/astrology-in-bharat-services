@@ -45,6 +45,10 @@ export class FindAllProductsUseCase {
       success: true,
       data: products.map(p => ({
         ...p,
+        price: Number(p.price),
+        originalPrice: p.original_price ? Number(p.original_price) : Number(p.price),
+        imageUrl: p.image_url ?? '',
+        percentageOff: p.percentage_off ?? 0,
         productName: p.name,
         productImage: p.image_url ?? ''
       })),

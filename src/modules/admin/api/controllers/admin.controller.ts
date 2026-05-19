@@ -94,18 +94,23 @@ export class AdminController {
     return this.usersFacade.getExpertStats();
   }
 
-  @Get('users/stats')
-  async getUserStats() {
-    return this.usersFacade.getUserStats();
+  @Get('clients/stats')
+  async getClientStats() {
+    return this.usersFacade.getClientStats();
   }
 
-  @Get('users')
+  @Get('clients')
   async getAllUsers(
     @Query('search') search?: string,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
   ) {
     return this.usersFacade.findAllByRole('client', search, page, limit);
+  }
+
+  @Get('clients/:id')
+  async getClientDetail(@Param('id', ParseIntPipe) id: number) {
+    return this.usersFacade.findById(id);
   }
 
   @Get('experts')
@@ -131,7 +136,7 @@ export class AdminController {
     return this.profileFacade.updateKycStatus(id, body.status, body.reason);
   }
 
-  @Patch('users/:id/block')
+  @Patch('clients/:id/block')
   async toggleUserBlock(
     @Param('id') id: number,
     @Body() body: { isBlocked: boolean },
@@ -217,13 +222,13 @@ export class AdminController {
   }
 
   // Bulk Coupon Assignment Utilities
-  @Post('users/filter-count')
+  @Post('clients/filter-count')
   async getFilteredUsersCount(@Body() filters: any) {
     const count = await this.adminFacade.getFilteredUsersCount(filters);
     return { count };
   }
 
-  @Post('users/filtered-list')
+  @Post('clients/filtered-list')
   async getFilteredUsersList(@Body() filters: any) {
     return this.adminFacade.getFilteredUsersList(filters);
   }

@@ -5,7 +5,7 @@ import { UpdateUserUseCase } from './use-cases/update-user.usecase';
 import { DeleteUserUseCase } from './use-cases/delete-user.usecase';
 import { AssignRoleToUserUseCase } from './use-cases/assign-role-to-user.usecase';
 import { GetExpertStatsUseCase } from './use-cases/get-expert-stats.usecase';
-import { GetUserStatsUseCase } from './use-cases/get-user-stats.usecase';
+import { GetClientStatsUseCase } from './use-cases/get-client-stats.usecase';
 import { GetUserExpertGrowthStatsUseCase } from './use-cases/get-user-expert-growth-stats.usecase';
 import { FindUsersByRoleUseCase } from './use-cases/find-users-by-role.usecase';
 import { CreateUserDto } from '../api/dto/user.dto';
@@ -22,7 +22,7 @@ export class UsersFacade {
     private readonly deleteUserUseCase: DeleteUserUseCase,
     private readonly assignRoleToUserUseCase: AssignRoleToUserUseCase,
     private readonly getExpertStatsUseCase: GetExpertStatsUseCase,
-    private readonly getUserStatsUseCase: GetUserStatsUseCase,
+    private readonly getClientStatsUseCase: GetClientStatsUseCase,
     private readonly getUserExpertGrowthStatsUseCase: GetUserExpertGrowthStatsUseCase,
     private readonly findUsersByRoleUseCase: FindUsersByRoleUseCase,
   ) { }
@@ -63,8 +63,8 @@ export class UsersFacade {
     return this.getExpertStatsUseCase.execute();
   }
 
-  getUserStats() {
-    return this.getUserStatsUseCase.execute();
+  getClientStats() {
+    return this.getClientStatsUseCase.execute();
   }
 
   getUserExpertGrowthStats(days: number = 7) {
@@ -73,5 +73,9 @@ export class UsersFacade {
 
   findAllByRole(role: string, search?: string, page: number = 1, limit: number = 10, status?: string) {
     return this.findUsersByRoleUseCase.execute(role, search, page, limit, status);
+  }
+
+  getExpertsForRevenue(queryRunner?: QueryRunner) {
+    return this.findUserUseCase.getExpertsForRevenue(queryRunner);
   }
 }

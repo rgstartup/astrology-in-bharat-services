@@ -71,4 +71,17 @@ export class GetExpertCallSessionsUseCase {
         const data = await queryBuilder.getMany();
         return { data, meta: { totalCount } };
     }
+
+    async getRevenueAndCount(expertProfileId: number) {
+        const stats = await this.sessionRepo
+            .createQueryBuilder('call')
+            .select("SUM(call.final_price)", "total")
+            .addSelect("COUNT(call.id)", "count")
+            .where('call.expert_id = :id AND call.status = :status', { id: expertProfileId, status: 'completed' })
+            .getRawOne();
+        return {
+            total: parseFloat(stats.total) || 0,
+            count: parseInt(stats.count, 10) || 0,
+        };
+    }
 }

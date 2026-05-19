@@ -10,6 +10,7 @@ import {
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 export enum PujaAppointmentStatus {
   PENDING = 'pending',
@@ -31,12 +32,12 @@ export class PujaAppointment {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
-  user!: User;
+  @ManyToOne(() => ProfileClient)
+  @JoinColumn({ name: 'client_id' })
+  client!: ProfileClient;
 
-  @Column({ type: 'int' })
-  user_id!: number;
+  @Column({ type: 'int', name: 'client_id' })
+  client_id!: number;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })

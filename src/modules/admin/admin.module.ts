@@ -53,6 +53,8 @@ import { GetSupportSettingsUseCase } from './application/use-cases/get-support-s
 import { GetSystemSettingsUseCase } from './application/use-cases/get-system-settings.use-case';
 import { UpdateSystemSettingUseCase } from './application/use-cases/update-system-setting.use-case';
 import { ConsultationModule } from '../consultation/consultation.module';
+import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
+import { OrderModule } from '@/modules/commerce/order/order.module';
 
 @Module({
   imports: [
@@ -85,6 +87,8 @@ import { ConsultationModule } from '../consultation/consultation.module';
     MerchantModule,
     CouponModule,
     SupportModule,
+    PujaAppointmentModule,
+    OrderModule,
   ],
   controllers: [AdminController, SettingsController, PublicStatsController],
   providers: [

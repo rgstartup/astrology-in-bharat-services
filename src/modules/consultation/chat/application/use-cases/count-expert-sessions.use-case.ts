@@ -27,4 +27,17 @@ export class CountExpertSessionsUseCase {
 
     return this.chatSessionRepo.count({ where });
   }
+
+  async getRevenueAndCount(expertProfileId: number) {
+    const stats = await this.chatSessionRepo
+      .createQueryBuilder('chat')
+      .select("SUM(chat.total_cost)", "total")
+      .addSelect("COUNT(chat.id)", "count")
+      .where('chat.expert_id = :id AND chat.status = :status', { id: expertProfileId, status: 'completed' })
+      .getRawOne();
+    return {
+      total: parseFloat(stats.total) || 0,
+      count: parseInt(stats.count, 10) || 0,
+    };
+  }
 }

@@ -10,7 +10,7 @@ import { UpdateUserUseCase } from './application/use-cases/update-user.usecase';
 import { DeleteUserUseCase } from './application/use-cases/delete-user.usecase';
 import { AssignRoleToUserUseCase } from './application/use-cases/assign-role-to-user.usecase';
 import { GetExpertStatsUseCase } from './application/use-cases/get-expert-stats.usecase';
-import { GetUserStatsUseCase } from './application/use-cases/get-user-stats.usecase';
+import { GetClientStatsUseCase } from './application/use-cases/get-client-stats.usecase';
 import { GetUserExpertGrowthStatsUseCase } from './application/use-cases/get-user-expert-growth-stats.usecase';
 import { FindUsersByRoleUseCase } from './application/use-cases/find-users-by-role.usecase';
 import { UsersFacade } from './application/users.facade';
@@ -26,7 +26,7 @@ import { UsersFacade } from './application/users.facade';
     DeleteUserUseCase,
     AssignRoleToUserUseCase,
     GetExpertStatsUseCase,
-    GetUserStatsUseCase,
+    GetClientStatsUseCase,
     GetUserExpertGrowthStatsUseCase,
     FindUsersByRoleUseCase,
     UserRepository,

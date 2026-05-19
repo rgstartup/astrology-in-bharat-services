@@ -12,8 +12,8 @@ export class GetUserPujaAppointmentsUseCase {
 
   async execute(userId: number): Promise<PujaAppointment[]> {
     return await this.pujaAppointmentRepository.find({
-      where: { user_id: userId },
-      relations: ['expert', 'expert.user', 'puja'],
+      where: { client: { user_id: userId } },
+      relations: ['client', 'client.user', 'expert', 'expert.user', 'puja'],
       order: { created_at: 'DESC' },
     });
   }

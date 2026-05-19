@@ -23,8 +23,8 @@ export class GetUserOrdersUseCase {
 
     // 2. Fetch Puja Appointments (as Service Orders)
     const pujaOrders = await this.pujaRepo.find({
-      where: { user_id: userId },
-      relations: ['puja', 'expert', 'expert.user'],
+      where: { client: { user_id: userId } },
+      relations: ['puja', 'expert', 'expert.user', 'client'],
       order: { created_at: 'DESC' },
     });
 

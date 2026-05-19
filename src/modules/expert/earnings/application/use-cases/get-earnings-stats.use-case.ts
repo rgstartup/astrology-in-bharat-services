@@ -100,7 +100,7 @@ export class GetEarningsStatsUseCase {
             }),
             this.pujaRepo.find({
                 where: { expert_id: expertId, status: PujaAppointmentStatus.CONFIRMED, created_at: Between(startDate, endDate) },
-                relations: ['user', 'puja'],
+                relations: ['client', 'client.user', 'puja'],
             }),
             this.reviewRepo.find({
                 where: { expert_id: expertId, created_at: Between(startDate, endDate) },
@@ -216,7 +216,7 @@ export class GetEarningsStatsUseCase {
 
         sessions.forEach(s => updateTopUser(s.user_id, s.total_cost || 0, s.user));
         calls.forEach(c => updateTopUser(c.user_id, c.final_price || 0, c.user));
-        pujas.forEach(p => updateTopUser(p.user_id, Number(p.price) || 0, p.user));
+        pujas.forEach(p => updateTopUser(p.client?.user_id || 0, Number(p.price) || 0, p.client?.user));
 
         const topUsers = Array.from(userStats.values())
             .sort((a, b) => b.amount - a.amount)

@@ -1,93 +1,51 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
-import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
-import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
-import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
-import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { UsersFacade } from '@/modules/users/application/users.facade';
+import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
+import { CallFacade } from '@/modules/consultation/call/application/call.facade';
+import { GetExpertPujaAppointmentsUseCase } from '@/modules/puja-appointment/application/use-cases/get-expert-puja-appointments.use-case';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 
 @Injectable()
 export class GetAdminTopExpertsUseCase {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(ChatSession)
-    private readonly chatRepository: Repository<ChatSession>,
-    @InjectRepository(CallSession)
-    private readonly callRepository: Repository<CallSession>,
-    @InjectRepository(PujaAppointment)
-    private readonly pujaRepository: Repository<PujaAppointment>,
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepository: Repository<OrderItem>,
+    private readonly usersFacade: UsersFacade,
+    private readonly chatFacade: ChatFacade,
+    private readonly callFacade: CallFacade,
+    private readonly getExpertPujaAppointmentsUseCase: GetExpertPujaAppointmentsUseCase,
+    private readonly orderFacade: OrderFacade,
   ) { }
 
   async execute(limit: number = 5) {
     // Rank all experts by their total aggregate revenue
-    const profiles = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .innerJoin('user.profile_expert', 'profile')
-      .where('role.name = :role', { role: 'expert' })
-      .select(['user.id', 'user.name', 'profile.id'])
-      .getMany();
+    const profiles = await this.usersFacade.getExpertsForRevenue();
 
     const results = (await Promise.all(profiles.map(async (expert) => {
       if (!expert.profile_expert) return null;
       const expertProfileId = expert.profile_expert.id;
 
       // 1. Chat Revenue
-      const chatStats = await this.chatRepository
-        .createQueryBuilder('chat')
-        .select("SUM(chat.total_cost)", "total")
-        .addSelect("COUNT(chat.id)", "count")
-        .where('chat.expert_id = :id AND chat.status = :status', { id: expertProfileId, status: 'completed' })
-        .getRawOne();
+      const chatStats = await this.chatFacade.getExpertRevenueAndCount(expertProfileId);
 
       // 2. Call Revenue
-      const callStats = await this.callRepository
-        .createQueryBuilder('call')
-        .select("SUM(call.final_price)", "total")
-        .addSelect("COUNT(call.id)", "count")
-        .where('call.expert_id = :id AND call.status = :status', { id: expertProfileId, status: 'completed' })
-        .getRawOne();
+      const callStats = await this.callFacade.getExpertRevenueAndCount(expertProfileId);
 
       // 3. Puja Revenue
-      const pujaStats = await this.pujaRepository
-        .createQueryBuilder('puja')
-        .select("SUM(puja.price)", "total")
-        .addSelect("COUNT(puja.id)", "count")
-        .where('puja.expert_id = :id AND puja.status IN (:...statuses)', { 
-          id: expertProfileId, 
-          statuses: ['accepted', 'confirmed'] 
-        })
-        .getRawOne();
+      const pujaStats = await this.getExpertPujaAppointmentsUseCase.getRevenueAndCount(expertProfileId);
 
       // 4. Product Revenue
-      const productStats = await this.orderItemRepository
-        .createQueryBuilder('item')
-        .innerJoin('item.product', 'p')
-        .innerJoin('item.order', 'o')
-        .select("SUM(item.price * item.quantity)", "total")
-        .addSelect("COUNT(item.id)", "count")
-        .where('p.expert_id = :id AND o.status IN (:...statuses)', { 
-          id: expertProfileId, 
-          statuses: ['paid', 'packed', 'shipped', 'delivered'] 
-        })
-        .getRawOne();
+      const productStats = await this.orderFacade.getExpertProductRevenueAndCount(expertProfileId);
 
       const totalRevenue = 
-        (parseFloat(chatStats.total) || 0) + 
-        (parseFloat(callStats.total) || 0) + 
-        (parseFloat(pujaStats.total) || 0) + 
-        (parseFloat(productStats.total) || 0);
+        chatStats.total + 
+        callStats.total + 
+        pujaStats.total + 
+        productStats.total;
 
       const totalConsultations = 
-        (parseInt(chatStats.count, 10) || 0) + 
-        (parseInt(callStats.count, 10) || 0) + 
-        (parseInt(pujaStats.count, 10) || 0) + 
-        (parseInt(productStats.count, 10) || 0);
+        chatStats.count + 
+        callStats.count + 
+        pujaStats.count + 
+        productStats.count;
 
       return {
         name: expert.name,

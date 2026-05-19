@@ -54,4 +54,8 @@ export class OrderFacade {
   async findAllOrders() {
     return this.findAllOrdersUseCase.execute();
   }
+
+  async getExpertProductRevenueAndCount(expertProfileId: number) {
+    return this.findAllOrdersUseCase.getExpertProductRevenueAndCount(expertProfileId);
+  }
 }

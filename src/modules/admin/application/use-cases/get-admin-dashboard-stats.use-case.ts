@@ -13,7 +13,7 @@ export class GetAdminDashboardStatsUseCase {
 
   async execute() {
     const expertStats = await this.usersFacade.getExpertStats();
-    const userStats = await this.usersFacade.getUserStats();
+    const clientStats = await this.usersFacade.getClientStats();
     const chatSessionsCount = await this.chatFacade.getTotalSessionsCount();
     const totalEarnings = await this.walletFacade.getGlobalEarnings();
 
@@ -26,11 +26,11 @@ export class GetAdminDashboardStatsUseCase {
 
     const activities = [
       ...latestUsers.items.map((u: any) => ({
-        id: `user-${u.id}`,
+        id: `client-${u.id}`,
         name: u.name || u.email,
-        action: 'joined as a user',
+        action: 'joined as a client',
         createdAt: u.created_at,
-        avatar: (u.name || 'U').charAt(0).toUpperCase(),
+        avatar: (u.name || 'C').charAt(0).toUpperCase(),
         color: 'bg-blue-500',
       })),
       ...latestExperts.items.map((u: any) => ({
@@ -62,7 +62,7 @@ export class GetAdminDashboardStatsUseCase {
     return {
       totalChatSessions: chatSessionsCount,
       totalExperts: expertStats.totalExperts,
-      totalUsers: userStats.totalUsers,
+      totalUsers: clientStats.totalClients,
       totalEarnings: totalEarnings,
       adminEarnings: adminEarnings,
       trends: expertStats.trends,

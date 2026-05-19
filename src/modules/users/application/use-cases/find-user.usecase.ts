@@ -26,4 +26,8 @@ export class FindUserUseCase {
   async findAll(queryRunner?: QueryRunner): Promise<User[]> {
       return this.userRepository.findAll(queryRunner);
   }
+
+  async getExpertsForRevenue(queryRunner?: QueryRunner): Promise<User[]> {
+    return this.userRepository.getExpertsForRevenue(queryRunner);
+  }
 }

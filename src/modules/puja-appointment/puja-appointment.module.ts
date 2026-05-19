@@ -14,10 +14,11 @@ import { ProfileModule } from '@/modules/expert/profile/profile.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { TodosModule } from '@/modules/expert/todos/todos.module';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PujaAppointment, User, ProfileExpert, ExpertPuja]),
+    TypeOrmModule.forFeature([PujaAppointment, User, ProfileExpert, ExpertPuja, ProfileClient]),
     ProfileModule,
     NotificationModule,
     WalletModule,

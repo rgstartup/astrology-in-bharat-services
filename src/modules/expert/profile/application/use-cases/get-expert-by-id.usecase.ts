@@ -39,7 +39,18 @@ export class GetExpertByIdUseCase {
     plain.is_online = expert.user?.id
       ? this.expertGateway.isExpertOnline(expert.user.id)
       : false;
-    plain.total_likes = (expert as any).total_likes || 0;
+    
+    // Standard fallbacks (COALESCE logic shifted to backend)
+    plain.price = expert.price || 0;
+    plain.video = expert.video || "https://www.youtube.com/embed/INoPh_oRooU";
+    plain.rating = expert.rating !== undefined ? Math.round(expert.rating) : 5;
+    plain.ratings = plain.rating; // align both rating and ratings
+    plain.bio = expert.bio || "";
+    plain.detailed_experience = expert.detailed_experience || [];
+    plain.gallery = expert.gallery || [];
+    plain.videos = expert.videos || [];
+    plain.total_likes = expert.total_likes || 0;
+    plain.is_available = expert.is_available ?? false;
     plain.custom_services = expert.custom_services || [];
 
     return plain;

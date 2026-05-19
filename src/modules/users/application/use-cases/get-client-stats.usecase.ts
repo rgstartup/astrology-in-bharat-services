@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from '../../infrastructure/entities/user.entity';
 
 @Injectable()
-export class GetUserStatsUseCase {
+export class GetClientStatsUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -14,20 +14,20 @@ export class GetUserStatsUseCase {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const totalUsers = await this.userRepository
+    const totalClients = await this.userRepository
       .createQueryBuilder('user')
       .innerJoin('user.roles', 'role')
       .where('role.name = :role', { role: 'client' })
       .getCount();
 
-    const recentUsers = await this.userRepository
+    const recentClients = await this.userRepository
       .createQueryBuilder('user')
       .innerJoin('user.roles', 'role')
       .where('role.name = :role', { role: 'client' })
       .andWhere('user.created_at >= :today', { today })
       .getCount();
 
-    const blockedUsers = await this.userRepository
+    const blockedClients = await this.userRepository
       .createQueryBuilder('user')
       .innerJoin('user.roles', 'role')
       .where('role.name = :role', { role: 'client' })
@@ -35,9 +35,9 @@ export class GetUserStatsUseCase {
       .getCount();
 
     return {
-      totalUsers,
-      recentUsers,
-      blockedUsers,
+      totalClients,
+      recentClients,
+      blockedClients,
     };
   }
 }

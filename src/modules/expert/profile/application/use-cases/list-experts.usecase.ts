@@ -169,7 +169,18 @@ export class ListExpertsUseCase {
         plain.is_online = ex.user?.id
           ? this.expertGateway.isExpertOnline(ex.user.id)
           : false;
-        plain.total_likes = (ex as any).total_likes || 0;
+        
+        // Standard fallbacks (COALESCE logic shifted to backend)
+        plain.price = ex.price || 0;
+        plain.video = ex.video || "https://www.youtube.com/embed/INoPh_oRooU";
+        plain.rating = ex.rating !== undefined ? Math.round(ex.rating) : 5;
+        plain.ratings = plain.rating; // align both rating and ratings
+        plain.bio = ex.bio || "";
+        plain.detailed_experience = ex.detailed_experience || [];
+        plain.gallery = ex.gallery || [];
+        plain.videos = ex.videos || [];
+        plain.total_likes = ex.total_likes || 0;
+        plain.is_available = ex.is_available ?? false;
         plain.custom_services = ex.custom_services || [];
         return plain;
       });

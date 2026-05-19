@@ -62,11 +62,15 @@ export class ApplyCouponUseCase {
 
         return {
             success: true,
+            isSuccess: true,
+            isValid: true,
             coupon_id: coupon.id,
             code: coupon.code,
             discount_type: coupon.type,
             discount_value: coupon.value,
             discount,
+            discountAmount: discount,
+            discount_amount: discount,
             final_amount: Number((amount - discount).toFixed(2)),
             message: `Coupon applied! You save ₹${discount}`,
         };

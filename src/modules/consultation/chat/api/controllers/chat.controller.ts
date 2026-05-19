@@ -222,8 +222,10 @@ export class ChatController {
     const sessionData = {
       id: enrichedSession.id,
       status: enrichedSession.status,
-      isFree: enrichedSession.is_free,
-      freeMinutes: enrichedSession.free_minutes,
+      isFree: enrichedSession.is_free ?? false,
+      freeMinutes: enrichedSession.free_minutes ?? 0,
+      is_free: enrichedSession.is_free ?? false,
+      free_minutes: enrichedSession.free_minutes ?? 0,
       messages: [],  // Will be populated via socket events
       expiresAt: enrichedSession.expiresAt,
       startedAt: enrichedSession.startedAt,

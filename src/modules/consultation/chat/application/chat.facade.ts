@@ -121,4 +121,8 @@ export class ChatFacade {
     async updateSessionMetadata(sessionId: number, metadata: any) {
         return this.updateSessionMetadataUseCase.execute(sessionId, metadata);
     }
+
+    async getExpertRevenueAndCount(expertProfileId: number) {
+        return this.countExpertSessionsUseCase.getRevenueAndCount(expertProfileId);
+    }
 }

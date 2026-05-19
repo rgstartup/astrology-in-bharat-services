@@ -50,4 +50,8 @@ export class CallFacade {
     async reject(sessionId: number) {
         return this.rejectCallUseCase.execute(sessionId);
     }
+
+    async getExpertRevenueAndCount(expertProfileId: number) {
+        return this.getExpertCallSessionsUseCase.getRevenueAndCount(expertProfileId);
+    }
 }

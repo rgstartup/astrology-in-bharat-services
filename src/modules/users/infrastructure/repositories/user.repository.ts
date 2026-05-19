@@ -76,4 +76,14 @@ export class UserRepository extends BaseService<User> {
     const repo = this.getRepo(queryRunner);
     await repo.delete(id);
   }
+
+  async getExpertsForRevenue(queryRunner?: QueryRunner): Promise<User[]> {
+    return this.getRepo(queryRunner)
+      .createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .innerJoin('user.profile_expert', 'profile')
+      .where('role.name = :role', { role: 'expert' })
+      .select(['user.id', 'user.name', 'profile.id'])
+      .getMany();
+  }
 }

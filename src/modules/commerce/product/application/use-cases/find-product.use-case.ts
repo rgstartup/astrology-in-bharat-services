@@ -11,11 +11,17 @@ export class FindProductUseCase {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async execute(id: number): Promise<Product> {
+  async execute(id: number): Promise<any> {
     const product = await this.productRepository.findOneBy({ id });
     if (!product) {
       throw new ProductNotFoundError(id);
     }
-    return product;
+    return {
+      ...product,
+      price: Number(product.price),
+      originalPrice: product.original_price ? Number(product.original_price) : Number(product.price),
+      imageUrl: product.image_url ?? '',
+      percentageOff: product.percentage_off ?? 0,
+    };
   }
 }

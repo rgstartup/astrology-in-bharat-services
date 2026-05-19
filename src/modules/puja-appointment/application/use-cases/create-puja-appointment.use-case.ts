@@ -8,6 +8,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { ExpertGateway } from '@/modules/expert/profile/api/gateways/expert.gateway';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class CreatePujaAppointmentUseCase {
@@ -18,6 +19,8 @@ export class CreatePujaAppointmentUseCase {
     private expertPujaRepository: Repository<ExpertPuja>,
     @InjectRepository(ProfileExpert)
     private profileExpertRepository: Repository<ProfileExpert>,
+    @InjectRepository(ProfileClient)
+    private profileClientRepository: Repository<ProfileClient>,
     private notificationFacade: NotificationFacade,
     private expertGateway: ExpertGateway,
   ) {}
@@ -30,6 +33,15 @@ export class CreatePujaAppointmentUseCase {
 
     if (!puja) {
       throw new NotFoundException('Puja not found');
+    }
+
+    const clientProfile = await this.profileClientRepository.findOne({
+      where: { user_id: userId },
+      relations: ['user']
+    });
+
+    if (!clientProfile) {
+      throw new NotFoundException('Client profile not found');
     }
 
     // --- SECURITY FIX: IGNORE DTO.PRICE (PRICE TAMPERING PROTECTION) ---
@@ -48,7 +60,7 @@ export class CreatePujaAppointmentUseCase {
     }
 
     const appointment = this.pujaAppointmentRepository.create({
-      user_id: userId,
+      client_id: clientProfile.id,
       expert_id: puja.expert_id,
       puja_id: dto.puja_id,
       scheduled_date: dto.scheduled_date,
@@ -80,7 +92,7 @@ export class CreatePujaAppointmentUseCase {
             // Real-time socket notification
             this.expertGateway.notifyNewPujaBooking(expertProfile.user_id, {
                 ...saved,
-                user: saved.user || (await this.pujaAppointmentRepository.findOne({ where: { id: saved.id }, relations: ['user'] }))?.user,
+                user: clientProfile.user,
                 puja: puja
             });
         } catch (error) {
