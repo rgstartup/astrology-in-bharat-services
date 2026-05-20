@@ -25,7 +25,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
   version: '1',
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('expert')
+@Roles('EXPERT')
 export class BankAccountsController {
   constructor(private readonly bankAccountsFacade: BankAccountsFacade) { }
 

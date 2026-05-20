@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Withdrawal, WithdrawalStatus } from '../../infrastructure/entities/withdrawal.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class GetAdminWithdrawalStatsUseCase {
@@ -10,15 +11,14 @@ export class GetAdminWithdrawalStatsUseCase {
         private readonly withdrawalRepository: Repository<Withdrawal>,
     ) { }
 
-    async execute(userRole?: string) {
+    async execute(userRole?: RoleEnum) {
         const getBaseQuery = (statuses: WithdrawalStatus[]) => {
             const query = this.withdrawalRepository.createQueryBuilder('w')
                 .where('w.status IN (:...statuses)', { statuses });
             
-            if (userRole && userRole !== 'all') {
+            if (userRole) {
                 query.innerJoin('w.user', 'user')
-                    .innerJoin('user.roles', 'role')
-                    .andWhere('LOWER(role.name) = LOWER(:roleName)', { roleName: userRole });
+                    .andWhere(':roleName = ANY(user.roles)', { roleName: userRole });
             }
             return query;
         };

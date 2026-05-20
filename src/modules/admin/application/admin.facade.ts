@@ -21,6 +21,8 @@ import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade'
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { SupportFacade } from '@/modules/support/application/support.facade';
 import { WithdrawalStatus } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
 
 @Injectable()
 export class AdminFacade {
@@ -69,7 +71,7 @@ export class AdminFacade {
     return this.chatFacade.adminTerminateSession(sessionId, adminId, userMessage, expertMessage);
   }
 
-  async getWithdrawals(page: number = 1, limit: number = 10, status?: string, role?: string) {
+  async getWithdrawals(page: number = 1, limit: number = 10, status?: WithdrawalStatus, role?: RoleEnum) {
     const offset = (page - 1) * limit;
     return this.walletFacade.getPendingWithdrawals(limit, offset, status, role);
   }
@@ -79,7 +81,7 @@ export class AdminFacade {
     return this.walletFacade.updateWithdrawalStatus(id, status, adminId, remark);
   }
 
-  async getWithdrawalStats(role?: string) {
+  async getWithdrawalStats(role?: RoleEnum) {
     return this.walletFacade.getAdminWithdrawalStats(role);
   }
 
@@ -129,7 +131,7 @@ export class AdminFacade {
   }
 
   // --- Support / Disputes Management ---
-  async getAllDisputes(params?: { status?: string, page?: number, limit?: number }) {
+  async getAllDisputes(params?: { status?: DisputeStatus, page?: number, limit?: number }) {
     return this.supportFacade.getAllDisputes(params);
   }
 
@@ -137,7 +139,7 @@ export class AdminFacade {
     return this.supportFacade.getDisputeByIdForAdmin(disputeId);
   }
 
-  async updateDisputeStatus(disputeId: number, status: string, notes?: string) {
+  async updateDisputeStatus(disputeId: number, status: DisputeStatus, notes?: string) {
     return this.supportFacade.updateDisputeStatus(disputeId, { status, notes });
   }
 

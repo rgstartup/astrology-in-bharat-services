@@ -1,4 +1,5 @@
-import { IsArray, IsEmail, IsOptional, IsString } from 'class-validator';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IsArray, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class AgentRegisterUserDto {
     @IsEmail()
@@ -12,6 +13,6 @@ export class AgentRegisterUserDto {
     phone?: string;
 
     @IsArray()
-    @IsString({ each: true })
-    roles: string[] = ['client'];
+    @IsEnum(RoleEnum, { each: true})
+    roles: RoleEnum[] = [RoleEnum.CLIENT];
 }

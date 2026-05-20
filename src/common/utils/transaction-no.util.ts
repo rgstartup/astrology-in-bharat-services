@@ -1,14 +1,14 @@
-import { RoleEnum } from "../../modules/role/enum/Role.enum";
+import { Role, RoleEnum } from "@/modules/users/infrastructure/enums/Role.enum";
 import { TransactionPurpose } from "../../modules/wallet/infrastructure/entities/transaction.entity";
 
 
 
-export function generateTransactionNo(role: string, purpose: TransactionPurpose, id: number): string {
+export function generateTransactionNo(role: Role, purpose: TransactionPurpose, id: number): string {
     const prefix = 'AIB';
     
     // Role Part
     let rolePart = 'USR';
-    const roleLower = role.toLowerCase();
+    const roleLower = RoleEnum[role];
     if (roleLower === RoleEnum.AGENT) rolePart = 'AGT';
     else if (roleLower === RoleEnum.EXPERT) rolePart = 'EXP';
     else if (roleLower === RoleEnum.MERCHANT) rolePart = 'MER';

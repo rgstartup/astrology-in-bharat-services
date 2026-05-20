@@ -1,8 +1,8 @@
 import { DataSource, IsNull } from 'typeorm';
-import { Withdrawal } from '../src/modules/wallet/infrastructure/entities/withdrawal.entity';
-import { Transaction, TransactionPurpose } from '../src/modules/wallet/infrastructure/entities/transaction.entity';
-import { User } from '../src/modules/users/infrastructure/persistence/entities/user.entity';
-import { generateTransactionNo } from '../src/common/utils/transaction-no.util';
+import { Withdrawal } from '../../src/modules/wallet/infrastructure/entities/withdrawal.entity';
+import { Transaction, TransactionPurpose } from '../../src/modules/wallet/infrastructure/entities/transaction.entity';
+import { User } from '../../src/modules/users/infrastructure/entities/user.entity';
+import { generateTransactionNo } from '../../src/common/utils/transaction-no.util';
 
 import * as dotenv from 'dotenv';
 
@@ -49,12 +49,11 @@ async function migrate() {
     for (const t of transactions) {
         // Need to join wallet -> user -> roles
         const user = await dataSource.getRepository(User).createQueryBuilder('u')
-            .leftJoinAndSelect('u.roles', 'r')
             .innerJoin('wallets', 'wal', 'wal.user_id = u.id')
             .where('wal.id = :walletId', { walletId: t.wallet_id })
             .getOne();
 
-        const role = user?.roles?.[0]?.name || 'user';
+        const role = user.roles;
         (t as any).transaction_no = generateTransactionNo(role, t.purpose, t.id);
         await dataSource.getRepository(Transaction).save(t);
         console.log(`Updated Transaction ID ${t.id} -> ${(t as any).transaction_no}`);

@@ -27,10 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     // This avoids a database hit on every protected request.
     return {
       id: payload.userId,
-      role: payload.role,
-      roles: Array.isArray(payload.roles)
-        ? payload.roles.map((r: string) => ({ name: r }))
-        : [{ name: payload.role }],
+      roles: payload.roles
     };
   }
 }

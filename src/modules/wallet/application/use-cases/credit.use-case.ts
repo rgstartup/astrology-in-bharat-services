@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet } from '../../infrastructure/entities/wallet.entity';
 import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
@@ -8,6 +8,7 @@ import { NotificationType } from '@/modules/notification/infrastructure/entities
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
+import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 
 @Injectable()
@@ -81,12 +82,19 @@ export class CreditUseCase {
       // 3.5 Generate Custom Transaction No
       try {
         const user = await qr.manager.createQueryBuilder(User, 'u')
-          .leftJoinAndSelect('u.roles', 'r')
           .where('u.id = :userId', { userId })
           .getOne();
+
+        if(!user){
+          throw new NotFoundException(`User with id ${userId} not found`);
+        }
         
-        const primaryRole = user?.roles?.[0]?.name || 'user';
-        savedTx.transaction_no = generateTransactionNo(primaryRole, purpose, savedTx.id);
+        const isUserClient = hasRoles(user.roles, 'CLIENT');
+
+        if(!isUserClient){
+          throw new ForbiddenException('Only clients can have wallet transactions');
+        }
+        savedTx.transaction_no = generateTransactionNo('CLIENT', purpose, savedTx.id);
         await qr.manager.save(Transaction, savedTx);
       } catch (err) {
         this.logger.error(`[CREDIT_TX] Failed to generate transaction no: ${err.message}`);

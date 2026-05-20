@@ -37,7 +37,7 @@ export class ResendVerificationEmailUseCase {
     });
 
     // Extract role names from user.roles if populated, otherwise use empty array
-    const roleNames = user.roles ? user.roles.map((r) => r.name) : [];
+    const roleNames = user.roles || [];
 
     this.eventEmitter.emit(
       'auth.email.verify',

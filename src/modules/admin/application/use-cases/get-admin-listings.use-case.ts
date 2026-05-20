@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { AgentListing } from '@/modules/agent/infrastructure/entities/agent-listing.entity';
 
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class GetAdminListingsUseCase {
@@ -53,19 +54,18 @@ export class GetAdminListingsUseCase {
     // 2. Fetch Referred Users (Experts and Merchants/Puja Shops)
     if (isExpertType || isPlaceType || isAll) {
       const qb = this.userRepository.createQueryBuilder('user')
-        .leftJoinAndSelect('user.roles', 'role')
         .leftJoinAndSelect('user.referred_by', 'agent')
         .leftJoinAndSelect('user.profile_expert', 'pe')
         .leftJoinAndSelect('user.profile_merchant', 'pm')
         .where('user.referred_by_id IS NOT NULL');
 
       if (isExpertType) {
-        qb.andWhere('role.name = :roleName', { roleName: 'expert' });
+        qb.andWhere(':roleName = Any(user.roles)', { roleName: RoleEnum.EXPERT });
       } else if (isPlaceType && params?.type === 'puja_shop') {
         // Find users who are merchants and referred by an agent
-        qb.andWhere('role.name = :roleName', { roleName: 'merchant' });
+        qb.andWhere(':roleName = Any(user.roles)', { roleName: RoleEnum.MERCHANT });
       } else if (isAll) {
-        qb.andWhere('role.name IN (:...roleNames)', { roleNames: ['expert', 'merchant'] });
+        qb.andWhere('role.name IN (:...roleNames)', { roleNames: [RoleEnum.EXPERT, RoleEnum.MERCHANT] });
       }
 
       if (params?.search) {
@@ -93,9 +93,9 @@ export class GetAdminListingsUseCase {
     }));
 
     const mappedExperts = expertData.map(u => {
-      const roles = (u.roles || []).map(r => r.name.toLowerCase());
-      const isExpert = roles.includes('expert');
-      const isMerchant = roles.includes('merchant');
+      const roles = u.roles || [];
+      const isExpert = roles.includes(RoleEnum.EXPERT);
+      const isMerchant = roles.includes(RoleEnum.MERCHANT);
 
       return {
         id: `expert-${u.id}`,

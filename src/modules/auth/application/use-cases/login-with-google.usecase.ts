@@ -1,4 +1,5 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Profile } from 'passport-google-oauth20';
 import { DatabaseService } from '@/core/database/database.service';
 import { OAuthService } from '../../infrastructure/services/oauth.service';
@@ -25,7 +26,7 @@ export class LoginWithGoogleUseCase {
     profile: Profile;
     ip?: string;
     userAgent?: string;
-    role?: string;
+    role?: RoleEnum;
   }) {
     return this.db.transaction(async (qr) => {
       // 1. Check if user exists first to handle role restrictions
@@ -34,12 +35,11 @@ export class LoginWithGoogleUseCase {
         `Google Login attempt for ${input.email}. Requested role: ${input.role}. Existing user: ${!!existingUser}`,
       );
 
-      if (existingUser && input.role === 'expert') {
-        const roles =
-          existingUser.roles?.map((r) => r.name.toLowerCase()) || [];
+      if (existingUser && input.role === RoleEnum.EXPERT) {
+        const roles = existingUser.roles || [];
         this.logger.log(`Existing user roles: ${roles.join(', ')}`);
 
-        if (!roles.includes('expert')) {
+        if (!hasRoles(roles, 'EXPERT')) {
           this.logger.warn(
             `User ${input.email} is not an expert. Blocking login.`,
           );
@@ -56,7 +56,7 @@ export class LoginWithGoogleUseCase {
           email: input.email,
           name: input.name,
           profile: input.profile,
-          roles: input.role ? [input.role] : undefined,
+          roles: [input.role ?? RoleEnum.CLIENT]
         },
         qr,
       );

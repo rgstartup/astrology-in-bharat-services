@@ -1,9 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../src/app.module';
+import { AppModule } from '../../src/app.module';
 import { DataSource } from 'typeorm';
-import { User } from '../src/modules/users/infrastructure/persistence/entities/user.entity';
-import { Role } from '../src/modules/role/entities/roles.entity';
-
+import { hasRoles, Role, RoleEnum } from '../../src/modules/users/infrastructure/enums/Role.enum';
+import { User } from '../../src/modules/users/infrastructure/entities/user.entity';
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const dataSource = app.get(DataSource);
@@ -22,16 +21,16 @@ async function bootstrap() {
       return;
     }
 
-    console.log(`Current roles for user ${userId}:`, user.roles.map(r => r.name));
+    console.log(`Current roles for user ${userId}:`, user.roles);
 
-    let expertRole = await queryRunner.manager.findOne(Role, { where: { name: 'expert' } });
-    if (!expertRole) {
-      expertRole = queryRunner.manager.create(Role, { name: 'expert' });
-      await queryRunner.manager.save(expertRole);
-    }
+    // let expertRole = await queryRunner.manager.findOne(Role, { where: { name: 'expert' } });
+    // if (!expertRole) {
+    //   expertRole = queryRunner.manager.create(Role, { name: 'expert' });
+    //   await queryRunner.manager.save(expertRole);
+    // }
 
-    if (!user.roles.find(r => r.name === 'expert')) {
-      user.roles.push(expertRole);
+    if (!hasRoles(user.roles, 'EXPERT')) {
+      user.roles.push(RoleEnum.EXPERT);
       await queryRunner.manager.save(user);
       console.log(`Expert role successfully added to User ${userId}.`);
     } else {

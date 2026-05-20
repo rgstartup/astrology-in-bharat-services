@@ -3,11 +3,12 @@ import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { QueryRunner } from 'typeorm';
 import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class MerchantAuthProfileCreationStrategy implements AuthProfileCreationStrategy {
   private readonly logger = new Logger(MerchantAuthProfileCreationStrategy.name);
-  readonly role = 'merchant';
+  readonly role = RoleEnum.MERCHANT;
 
   async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
     const manager = queryRunner?.manager;

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import * as crypto from 'crypto';
 import { Withdrawal, WithdrawalStatus } from '../../infrastructure/entities/withdrawal.entity';
@@ -8,6 +8,7 @@ import { Idempotency } from '../../infrastructure/entities/idempotency.entity';
 import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class RequestWithdrawalUseCase {
@@ -46,10 +47,6 @@ export class RequestWithdrawalUseCase {
       throw new BadRequestException('Please enter a valid withdrawal amount');
 
     // Fetch Security Settings
-    const settings = await this.dataSource.getRepository(SystemSetting).find({
-      where: { key: crypto.createHash('sha256').update('').digest('hex') } // Dummy to get nothing, wait
-    });
-    // Let's just fetch them properly
     const keys = ['MIN_WITHDRAWAL', 'DAILY_WITHDRAWAL_LIMIT', 'MAX_SINGLE_WITHDRAWAL', 'MONTHLY_WITHDRAWAL_COUNT'];
     const dbSettings = await this.dataSource.getRepository(SystemSetting).createQueryBuilder('s')
       .where('s.key IN (:...keys)', { keys })
@@ -75,21 +72,21 @@ export class RequestWithdrawalUseCase {
     const { User } = await import('../../../users/infrastructure/entities/user.entity');
     const user = await this.dataSource.getRepository(User).findOne({
       where: { id: userId },
-      relations: ['roles', 'profile_expert', 'profile_merchant', 'agent_profile']
+      relations: ['profile_expert', 'profile_merchant', 'agent_profile']
     });
 
     if (!user) throw new BadRequestException('User not found');
-    const roles = user.roles.map(r => r.name.toLowerCase());
+    const roles = user.roles || [];
 
-    if (roles.includes('expert')) {
+    if (hasRoles(roles, 'EXPERT')) {
       if (user.profile_expert?.kyc_status !== 'approved') {
         throw new BadRequestException('Your KYC is not approved. Please complete verification to withdraw funds.');
       }
-    } else if (roles.includes('merchant')) {
+    } else if (hasRoles(roles, 'MERCHANT')) {
       if (user.profile_merchant?.status !== 'active' && !user.profile_merchant?.isVerified) {
         throw new BadRequestException('Your merchant account is not active or verified. Please contact support.');
       }
-    } else if (roles.includes('agent')) {
+    } else if (hasRoles(roles, 'AGENT')) {
       if (!user.agent_profile?.pan_no || !user.agent_profile?.bank_name) {
         throw new BadRequestException('Please complete your agent profile and bank details to withdraw funds.');
       }
@@ -156,14 +153,8 @@ export class RequestWithdrawalUseCase {
         const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
         const merchant = await queryRunner.manager.findOne(ProfileMerchant, { where: { user_id: userId } });
         
-        console.log(`[RequestWithdrawal] UserID: ${userId}, Received BankID: ${bank_account_id}, Type: ${typeof bank_account_id}`);
-
         if (merchant && merchant.bank_accounts && Array.isArray(merchant.bank_accounts)) {
-          console.log(`[RequestWithdrawal] Merchant Bank Accounts found: ${merchant.bank_accounts.length}`);
-          const acc = merchant.bank_accounts.find((a: any) => {
-             console.log(`Comparing: "${a.id}" with "${bank_account_id}"`);
-             return String(a.id) === String(bank_account_id);
-          });
+          const acc = merchant.bank_accounts.find((a: any) => String(a.id) === String(bank_account_id));
           if (acc) {
             merchantSnapshot = {
               merchant_bank_name: acc.bank_name,
@@ -241,12 +232,9 @@ export class RequestWithdrawalUseCase {
       // F. Create Withdrawal Record
       const HIGH_VALUE_THRESHOLD = 5000;
       
-      // Only save to bank_account_id column if it's a valid numeric database ID (for Experts)
-      // For merchants, we store details in merchant_* columns and keep bank_account_id as null
       let dbBankAccountId: number | null = null;
       if (bank_account_id && !isNaN(Number(bank_account_id))) {
          const numericId = Number(bank_account_id);
-         // If it's a very large number (like Date.now()), it's a merchant JSON ID, not a DB ID
          if (numericId < 2147483647) { 
             dbBankAccountId = numericId;
          }
@@ -270,21 +258,25 @@ export class RequestWithdrawalUseCase {
         const { generateTransactionNo } = await import('../../../../common/utils/transaction-no.util');
 
         const user = await queryRunner.manager.createQueryBuilder(User, 'u')
-          .leftJoinAndSelect('u.roles', 'r')
           .where('u.id = :userId', { userId })
           .getOne();
+
+        if(!user){
+          throw new Error(`User with id ${userId} not found for transaction no generation`);
+        }
         
-        const primaryRole = user?.roles?.[0]?.name || 'user';
-        console.log(`[RequestWithdrawal] Generating IDs for role: ${primaryRole}`);
-        
+        const isUserClient = hasRoles(user.roles, 'CLIENT');
+            
+        if(!isUserClient){
+          throw new ForbiddenException('Only clients can have wallet transactions');
+        }
+
         // Update Transaction No
-        transaction.transaction_no = generateTransactionNo(primaryRole, TransactionPurpose.WITHDRAWAL, transaction.id);
-        console.log(`[RequestWithdrawal] Generated Transaction No: ${transaction.transaction_no}`);
+        transaction.transaction_no = generateTransactionNo('CLIENT', TransactionPurpose.WITHDRAWAL, transaction.id);
         await queryRunner.manager.save(transaction);
 
         // Update Withdrawal No
-        withdrawal.withdrawal_no = generateTransactionNo(primaryRole, TransactionPurpose.WITHDRAWAL, withdrawal.id);
-        console.log(`[RequestWithdrawal] Generated Withdrawal No: ${withdrawal.withdrawal_no}`);
+        withdrawal.withdrawal_no = generateTransactionNo('CLIENT', TransactionPurpose.WITHDRAWAL, withdrawal.id);
         await queryRunner.manager.save(withdrawal);
 
         // Send instant notification
@@ -298,8 +290,6 @@ export class RequestWithdrawalUseCase {
       } catch (err) {
         console.error(`[RequestWithdrawal] FAILED to generate custom IDs:`, err);
       }
-
-
 
       // G. Save Idempotency
       if (idempotencyKey) {

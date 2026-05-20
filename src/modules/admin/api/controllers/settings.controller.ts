@@ -5,10 +5,11 @@ import { UpdateSystemSettingUseCase } from '../../application/use-cases/update-s
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Controller('admin/settings')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Roles('ADMIN')
 export class SettingsController {
   constructor(
     private readonly getSupportSettings: GetSupportSettingsUseCase,

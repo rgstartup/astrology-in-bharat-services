@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../infrastructure/entities/user.entity';
+import { RoleEnum } from '../../infrastructure/enums/Role.enum';
 
 @Injectable()
 export class GetExpertStatsUseCase {
@@ -13,30 +14,26 @@ export class GetExpertStatsUseCase {
   async execute() {
     const totalExperts = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'expert' })
+      .where(":role = ANY(user.roles)", { role: RoleEnum.EXPERT })
       .getCount();
 
     const activeExperts = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
+      .where(":role = ANY(user.roles)", { role: RoleEnum.EXPERT })
       .leftJoin('user.profile_expert', 'profile')
-      .where('role.name = :role', { role: 'expert' })
       .andWhere('profile.kyc_status = :status', { status: 'approved' })
       .getCount();
 
     const pendingExperts = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
+      .where(":role = ANY(user.roles)", { role: RoleEnum.EXPERT })
       .leftJoin('user.profile_expert', 'profile')
-      .where('role.name = :role', { role: 'expert' })
       .andWhere('profile.kyc_status = :status', { status: 'pending' })
       .getCount();
 
     const blockedExperts = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'expert' })
+      .where(":role = ANY(user.roles)", { role: RoleEnum.EXPERT })
       .andWhere('user.is_blocked = :isBlocked', { isBlocked: true })
       .getCount();
 
@@ -47,16 +44,14 @@ export class GetExpertStatsUseCase {
 
     const recentExperts = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'expert' })
+      .where(":role = ANY(user.roles)", { role: RoleEnum.EXPERT })
       .andWhere('user.created_at >= :today', { today })
       .getCount();
 
     const rejectedExperts = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
+      .where(":role = ANY(user.roles)", { role: RoleEnum.EXPERT })
       .leftJoin('user.profile_expert', 'profile')
-      .where('role.name = :role', { role: 'expert' })
       .andWhere('profile.kyc_status = :status', { status: 'rejected' })
       .getCount();
 

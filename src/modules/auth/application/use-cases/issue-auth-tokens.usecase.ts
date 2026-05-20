@@ -4,6 +4,8 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { SessionRepository } from '../../infrastructure/repositories/session.repository';
 
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+
 @Injectable()
 export class IssueAuthTokensUseCase {
   constructor(
@@ -17,32 +19,10 @@ export class IssueAuthTokensUseCase {
     ua?: string,
     queryRunner?: QueryRunner,
   ) {
-    const rolesMap: Record<string, string> = {
-      client: 'user',
-      expert: 'expert',
-      admin: 'admin',
-      agent: 'agent',
-      merchant: 'merchant',
-    };
-
-    // Prioritize admin > agent > expert > merchant > client
-    const roleNames = user.roles?.map((r) => r.name.toLowerCase()) || ['client'];
-    let primaryRole = 'client';
-
-    if (roleNames.includes('admin')) {
-      primaryRole = 'admin';
-    } else if (roleNames.includes('agent')) {
-      primaryRole = 'agent';
-    } else if (roleNames.includes('expert')) {
-      primaryRole = 'expert';
-    } else if (roleNames.includes('merchant')) {
-      primaryRole = 'merchant';
-    }
-
+    
     const accessToken = await this.tokenCrypto.createAccessToken({
       userId: user.id,
-      role: rolesMap[primaryRole] || primaryRole,
-      roles: roleNames, // include all role names
+      roles: user.roles,
     });
 
     const { raw, hash } = await this.tokenCrypto.createRefreshToken();

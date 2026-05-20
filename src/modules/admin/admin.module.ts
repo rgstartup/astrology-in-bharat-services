@@ -31,9 +31,7 @@ import { ChatSession } from '../consultation/chat/infrastructure/entities/chat-s
 import { Order } from '../commerce/order/infrastructure/entities/order.entity';
 import { Coupon } from '../commerce/coupon/infrastructure/entities/coupon.entity';
 import { UserCoupon } from '../commerce/coupon/infrastructure/entities/user-coupon.entity';
-import { RolesModule } from '../role/roles.module';
 import { ExternalModule } from '@/external/external.module';
-import { Role } from '../role/entities/roles.entity';
 import { AgentProfile } from '../agent/infrastructure/entities/agent-profile.entity';
 import { User } from '../users/infrastructure/entities/user.entity';
 import { AgentListing } from '../agent/infrastructure/entities/agent-listing.entity';
@@ -66,7 +64,6 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
       Product,
       Coupon,
       UserCoupon,
-      Role,
       AgentProfile,
       User,
       AgentListing,
@@ -79,7 +76,6 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
     ]),
 
     UsersModule,
-    RolesModule,
     ExternalModule,
     WalletModule,
     ConsultationModule,

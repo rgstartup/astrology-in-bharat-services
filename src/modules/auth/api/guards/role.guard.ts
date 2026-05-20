@@ -5,16 +5,13 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { DEFAULT_ROLES, ROLES_KEY } from '@/common/decorators/roles.decorator';
+import { ROLES_KEY } from '@/common/decorators/roles.decorator';
+import { Role, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
-/**
- * JWT payload user shape from JwtStrategy.validate():
- *   { id: number, role: string, roles: { name: string }[] }
- */
 interface JwtUser {
   id: number;
-  role?: string;
-  roles?: { name: string }[];
+  roles: RoleEnum[];
 }
 
 @Injectable()
@@ -23,7 +20,7 @@ export class RolesGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles =
-      this.reflector.getAllAndOverride<DEFAULT_ROLES[]>(ROLES_KEY, [
+      this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
         context.getHandler(),
         context.getClass(),
       ]) || [];
@@ -37,27 +34,15 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No user found in request');
     }
 
-    const userRole = user.role?.toLowerCase();
-    const userRoles = Array.isArray(user.roles)
-      ? user.roles.map((r) => r.name.toLowerCase())
-      : [];
-
-    const normalizedRequiredRoles = requiredRoles.map(r => r.toLowerCase());
-
-    const isUserAdmin = userRole === 'admin' || userRoles.includes('admin');
+    const isUserAdmin = hasRoles(user.roles, 'ADMIN');
 
     const hasRole =
-      isUserAdmin ||
-      (userRole && normalizedRequiredRoles.includes(userRole)) ||
-      userRoles.some((roleName) =>
-        normalizedRequiredRoles.includes(roleName),
-      );
+      isUserAdmin || hasRoles(user.roles, ...requiredRoles);
 
     console.log('[RolesGuard] Decision:', {
       userId: user.id,
-      userRole,
-      userRoles,
-      requiredRoles: normalizedRequiredRoles,
+      userRoles: user.roles,
+      requiredRoles,
       hasRole,
       isUserAdmin
     });
@@ -65,9 +50,8 @@ export class RolesGuard implements CanActivate {
     if (!hasRole) {
       console.error('[RolesGuard] Access Denied:', {
         userId: user.id,
-        userRole,
-        userRoles,
-        requiredRoles: normalizedRequiredRoles,
+        userRoles: user.roles,
+        requiredRoles,
       });
       throw new ForbiddenException('Insufficient role');
     }

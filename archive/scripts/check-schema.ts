@@ -1,4 +1,4 @@
-import { dataSource } from './src/config/db.config';
+import { dataSource } from '../../src/config/db.config';
 
 async function checkSchema() {
   try {

@@ -4,8 +4,8 @@ import { Repository, DataSource } from 'typeorm';
 import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { Role } from '@/modules/role/entities/roles.entity';
 import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { CreateAgentDto } from '../../api/dto/create-agent.dto';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 
@@ -13,8 +13,6 @@ import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 export class CreateAgentUseCase {
   constructor(
     private readonly dataSource: DataSource,
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
     private readonly cloudinaryService: CloudinaryService,
   ) { }
 
@@ -42,20 +40,13 @@ export class CreateAgentUseCase {
       // 2. Hash password
       const hashedPassword = await argon2.hash(dto.password);
 
-      // 3. Find agent role
-      const agentRole = await queryRunner.manager.findOne(Role, {
-        where: { name: 'agent' },
-      });
-      if (!agentRole) {
-        throw new InternalServerErrorException('Agent role not found in system');
-      }
 
       // 4. Create User
       const user = queryRunner.manager.create(User, {
         email: dto.email,
         password: hashedPassword,
         name: dto.name,
-        roles: [agentRole],
+        roles: [RoleEnum.AGENT],
         email_verified_at: new Date(), // Admin created users are verified
       });
 

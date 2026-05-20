@@ -3,10 +3,11 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { QueryRunner } from 'typeorm';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
 import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class AgentAuthProfileCreationStrategy implements AuthProfileCreationStrategy {
-    readonly role = 'agent';
+    readonly role = RoleEnum.AGENT;
 
     async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
         const repo = queryRunner

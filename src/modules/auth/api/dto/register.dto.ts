@@ -1,8 +1,10 @@
 // src/auth/dto/register.dto.ts
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { PickType } from '@nestjs/mapped-types';
 import {
   IsArray,
   IsEmail,
+  IsEnum,
   IsOptional,
   IsString,
   MinLength,
@@ -25,8 +27,8 @@ export class RegisterDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  roles: string[] = ['client'];
+  @IsEnum(RoleEnum, { each: true })
+  roles: RoleEnum[] = [RoleEnum.CLIENT];
 }
 
 export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) {

@@ -38,6 +38,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Public } from '@/common/decorators/public.decorator';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { getErrorMessage } from '@/common/utils/get-error-message.util';
 
 @Controller({
   path: 'expert',
@@ -154,7 +155,7 @@ export class ProfileController {
   }
 
   @Post('puja')
-  @Roles('expert')
+  @Roles('EXPERT')
   upsertPuja(
     @CurrentUser() user: User,
     @Body() dto: ExpertPujaDto,
@@ -164,7 +165,7 @@ export class ProfileController {
   }
 
   @Delete('puja/:id')
-  @Roles('expert')
+  @Roles('EXPERT')
   deletePuja(
     @CurrentUser() user: User,
     @Param('id', ParseIntPipe) id: number,
@@ -187,7 +188,7 @@ export class ProfileController {
 
   @Post('upload-file')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('expert')
+  @Roles('EXPERT')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
@@ -233,7 +234,7 @@ export class ProfileController {
       if (error instanceof BadRequestException) throw error;
       console.error('Upload error:', error);
       throw new InternalServerErrorException(
-        `Upload failed: ${error.message || 'Unknown error'}`,
+        `Upload failed: ${getErrorMessage(error) || 'Unknown error'}`,
       );
     }
   }
@@ -241,7 +242,7 @@ export class ProfileController {
   // Alias for backward compatibility
   @Post('upload-document')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('agent')
+  @Roles('AGENT')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocument(
     @UploadedFile() file: Express.Multer.File,

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { Role } from '@/modules/role/entities/roles.entity';
 
 import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
 import { GetSystemSettingsUseCase } from './get-system-settings.use-case';
@@ -12,8 +11,6 @@ export class GetAgentsUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
     @InjectRepository(AgentProfile)
     private readonly agentProfileRepository: Repository<AgentProfile>,
     private readonly getSystemSettings: GetSystemSettingsUseCase,
@@ -31,9 +28,8 @@ export class GetAgentsUseCase {
 
     const qb = this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.roles', 'agent_role')
       .leftJoinAndSelect('user.agent_profile', 'agent_profile')
-      .where('agent_role.name = :roleName', { roleName: 'agent' });
+      .where(':roleName = ANY(user.roles)', { roleName: 'agent' });
 
     if (params.search) {
       qb.andWhere(

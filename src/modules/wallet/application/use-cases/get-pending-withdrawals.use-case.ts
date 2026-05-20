@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Withdrawal, WithdrawalStatus } from '../../infrastructure/entities/withdrawal.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class GetPendingWithdrawalsUseCase {
@@ -10,7 +11,7 @@ export class GetPendingWithdrawalsUseCase {
         private readonly withdrawalRepository: Repository<Withdrawal>,
     ) { }
 
-    async execute(limit = 10, offset = 0, status?: string, userRole?: string) {
+    async execute(limit = 10, offset = 0, status?: WithdrawalStatus, userRole?: RoleEnum) {
         const query = this.withdrawalRepository.createQueryBuilder('w')
             .leftJoinAndSelect('w.user', 'user')
             .leftJoinAndSelect('w.bankAccount', 'bankAccount')
@@ -18,17 +19,13 @@ export class GetPendingWithdrawalsUseCase {
             .skip(offset)
             .take(limit);
 
-        if (status && status !== 'all') {
-            query.andWhere('w.status = :status', { status });
-        } else if (!status) {
-            query.andWhere('w.status = :status', { status: WithdrawalStatus.PENDING });
-        }
+        query
+        .andWhere('w.status = :status', { status: status ?? WithdrawalStatus.PENDING });
 
-        query.leftJoinAndSelect('user.roles', 'role');
 
-        if (userRole && userRole !== 'all') {
+        if (userRole) {
             console.log(`[GetPendingWithdrawals] Filtering by role: ${userRole}`);
-            query.andWhere('LOWER(role.name) = LOWER(:roleName)', { roleName: userRole });
+            query.andWhere(':roleName = ANY(user.roles)', { roleName: userRole });
         }
 
         const [items, total] = await query.getManyAndCount();
@@ -43,8 +40,6 @@ export class GetPendingWithdrawalsUseCase {
                 date: item.created_at,
                 userName: item.user?.name || 'Unknown',
                 withdrawalNo: item.withdrawal_no,
-
-
                 bankAccount: item.bankAccount ? {
                     bankName: item.bankAccount.bank_name,
                     accountNumber: item.bankAccount.account_number,

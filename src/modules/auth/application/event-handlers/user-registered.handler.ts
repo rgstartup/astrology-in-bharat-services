@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { ConfigService } from '@nestjs/config';
+import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class UserRegisteredHandler {
@@ -24,8 +25,8 @@ export class UserRegisteredHandler {
 
   private buildTemplate(event: UserRegisteredEvent) {
     const roles = event.roles || [];
-    const isExpert = roles.some((role) => role.toLowerCase() === 'expert');
-    const isMerchant = roles.some((role) => role.toLowerCase() === 'merchant');
+    const isExpert = hasRoles(roles, 'EXPERT');
+    const isMerchant = hasRoles(roles, 'MERCHANT');
 
     this.logger.debug(`User roles: ${roles.join(', ')}. isExpert: ${isExpert}, isMerchant: ${isMerchant}`);
 

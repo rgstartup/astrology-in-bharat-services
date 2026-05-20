@@ -12,6 +12,7 @@ import { CreateUserDto } from '../api/dto/user.dto';
 import { User } from '../infrastructure/entities/user.entity';
 
 import { QueryRunner } from 'typeorm';
+import { RoleEnum } from '../infrastructure/enums/Role.enum';
 
 @Injectable()
 export class UsersFacade {
@@ -55,7 +56,7 @@ export class UsersFacade {
     return this.deleteUserUseCase.execute(id, queryRunner);
   }
 
-  assignRole(userId: number, roleName: string, queryRunner?: QueryRunner) {
+  assignRole(userId: number, roleName: RoleEnum, queryRunner?: QueryRunner) {
     return this.assignRoleToUserUseCase.execute(userId, roleName, queryRunner);
   }
 

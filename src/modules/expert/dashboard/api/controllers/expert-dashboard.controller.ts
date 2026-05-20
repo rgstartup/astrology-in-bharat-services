@@ -13,7 +13,7 @@ export class ExpertDashboardController {
     constructor(private readonly dashboardFacade: ExpertDashboardFacade) { }
 
     @Get('stats')
-    @Roles('expert')
+    @Roles('EXPERT')
     async getStats(@Req() req: any, @Query('type') type: 'today' | 'total') {
         const userId = req.user.id;
         const stats = await this.dashboardFacade.getDashboardStats(

@@ -6,6 +6,8 @@ import { GetUserPujaAppointmentsUseCase } from '../../application/use-cases/get-
 import { GetExpertPujaAppointmentsUseCase } from '../../application/use-cases/get-expert-puja-appointments.use-case';
 import { UpdatePujaAppointmentStatusUseCase } from '../../application/use-cases/update-puja-appointment-status.use-case';
 import { UpdatePujaAppointmentStatusDto } from '../../application/dtos/update-puja-appointment-status.dto';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Controller('puja-appointments')
 export class PujaAppointmentController {
@@ -18,25 +20,25 @@ export class PujaAppointmentController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async createAppointment(@Request() req: any, @Body() dto: CreatePujaAppointmentDto) {
-    return await this.createPujaAppointmentUseCase.execute(req.user.id, dto);
+  async createAppointment(@CurrentUser() user: User, @Body() dto: CreatePujaAppointmentDto) {
+    return await this.createPujaAppointmentUseCase.execute(user.id, dto);
   }
 
   @Get('user')
   @UseGuards(JwtAuthGuard)
-  async getUserAppointments(@Request() req: any) {
-    return await this.getUserPujaAppointmentsUseCase.execute(req.user.id);
+  async getUserAppointments(@CurrentUser() user: User) {
+    return await this.getUserPujaAppointmentsUseCase.execute(user.id);
   }
 
   @Get('expert')
   @UseGuards(JwtAuthGuard)
-  async getExpertAppointments(@Request() req: any) {
-    return await this.getExpertPujaAppointmentsUseCase.execute(req.user.id);
+  async getExpertAppointments(@CurrentUser() user: User) {
+    return await this.getExpertPujaAppointmentsUseCase.execute(user.id);
   }
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
-  async updateStatus(@Request() req: any, @Param('id') id: string, @Body() dto: UpdatePujaAppointmentStatusDto) {
-    return await this.updatePujaAppointmentStatusUseCase.execute(Number(id), req.user.id, dto);
+  async updateStatus(@CurrentUser() user: User, @Param('id') id: string, @Body() dto: UpdatePujaAppointmentStatusDto) {
+    return await this.updatePujaAppointmentStatusUseCase.execute(Number(id), user.id, dto);
   }
 }

@@ -23,6 +23,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 import { AuthFacade } from '../../application/auth.facade';
 import { instanceToPlain } from 'class-transformer';
 import { JwtAuthRefreshGuard } from '../guards/auth-refresh.guard';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Controller({
   path: 'auth',
@@ -146,7 +147,7 @@ export class AuthController {
 
   @Post('agent/register')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('agent')
+  @Roles('AGENT')
   async agentRegister(
     @Body() dto: AgentRegisterUserDto,
     @CurrentUser('id') agentId: number,

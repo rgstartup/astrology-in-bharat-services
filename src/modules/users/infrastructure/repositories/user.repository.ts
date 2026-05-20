@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { BaseService } from '@/common/services/transaction.service';
 import { User } from '../entities/user.entity';
+import { RoleEnum } from '../enums/Role.enum';
 
 @Injectable()
 export class UserRepository extends BaseService<User> {
@@ -21,14 +22,14 @@ export class UserRepository extends BaseService<User> {
 
   async findAll(queryRunner?: QueryRunner): Promise<User[]> {
     return this.getRepo(queryRunner).find({
-      relations: ['roles', 'oauth_accounts'],
+      relations: ['oauth_accounts'],
     });
   }
 
   async findByEmail(email: string, queryRunner?: QueryRunner): Promise<User | null> {
     return this.getRepo(queryRunner).findOne({
       where: { email },
-      relations: ['roles', 'profile_client', 'profile_expert'],
+      relations: ['profile_client', 'profile_expert'],
     });
   }
 
@@ -37,7 +38,6 @@ export class UserRepository extends BaseService<User> {
       .createQueryBuilder('user')
       .addSelect('user.password')
       .where('user.email = :email', { email })
-      .leftJoinAndSelect('user.roles', 'roles')
       .getOne();
   }
 
@@ -45,7 +45,6 @@ export class UserRepository extends BaseService<User> {
     return this.getRepo(queryRunner).findOne({
       where: { id },
       relations: {
-        roles: true,
         oauth_accounts: all,
         sessions: all,
         profile_client: true,
@@ -55,6 +54,7 @@ export class UserRepository extends BaseService<User> {
   }
 
   async update(id: number, data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
+    
     const repo = this.getRepo(queryRunner);
 
     // Remove relations from data if they present to avoid TypeORM issues with update
@@ -64,12 +64,15 @@ export class UserRepository extends BaseService<User> {
     // To keep it simple and consistent with Service:
     await repo.update(id, data);
 
-    // Re-fetch to return the updated entity, ensuring we use the same transaction if present
+    // Re-fetch to return the updated entity, 
+    // ensuring we use the same transaction if present
     const updatedUser = await repo.findOne({ where: { id } });
+    
     if (!updatedUser) {
       throw new Error(`User with id ${id} not found after update`);
     }
-    return updatedUser;
+
+    return updatedUser;  
   }
 
   async delete(id: number, queryRunner?: QueryRunner): Promise<void> {
@@ -78,12 +81,13 @@ export class UserRepository extends BaseService<User> {
   }
 
   async getExpertsForRevenue(queryRunner?: QueryRunner): Promise<User[]> {
+    
     return this.getRepo(queryRunner)
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
       .innerJoin('user.profile_expert', 'profile')
-      .where('role.name = :role', { role: 'expert' })
+      .where(':role = Any(user.roles)', { role: RoleEnum.EXPERT })
       .select(['user.id', 'user.name', 'profile.id'])
       .getMany();
   }
+  
 }

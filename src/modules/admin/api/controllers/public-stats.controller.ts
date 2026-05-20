@@ -6,6 +6,7 @@ import { Order, OrderStatus } from '@/modules/commerce/order/infrastructure/enti
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { Public } from '@/common/decorators/public.decorator';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Controller({
   path: 'public/stats',
@@ -71,8 +72,7 @@ export class PublicStatsController {
       const [totalExperts, servicesData] = await Promise.all([
         this.userRepo
           .createQueryBuilder('user')
-          .innerJoin('user.roles', 'role')
-          .where('role.name = :role', { role: 'expert' })
+          .where(":role = Any(user.roles)", { role: RoleEnum.EXPERT })
           .getCount(),
         this.expertRepo
           .createQueryBuilder('expert')

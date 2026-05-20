@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../../infrastructure/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class GetClientStatsUseCase {
@@ -16,21 +17,18 @@ export class GetClientStatsUseCase {
 
     const totalClients = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'client' })
+      .where(":role = ANY(user.roles)", { role: RoleEnum.CLIENT })
       .getCount();
 
     const recentClients = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'client' })
+      .where(":role = ANY(user.roles)", { role: RoleEnum.CLIENT })
       .andWhere('user.created_at >= :today', { today })
       .getCount();
 
     const blockedClients = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role')
-      .where('role.name = :role', { role: 'client' })
+      .where(":role = ANY(user.roles)", { role: RoleEnum.CLIENT })
       .andWhere('user.is_blocked = :isBlocked', { isBlocked: true })
       .getCount();
 

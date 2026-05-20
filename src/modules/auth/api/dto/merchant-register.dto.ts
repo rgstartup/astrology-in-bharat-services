@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class MerchantRegisterDto {
   @IsString()
@@ -19,6 +20,6 @@ export class MerchantRegisterDto {
   password!: string;
 
   @IsOptional()
-  @IsString({ each: true })
-  roles?: string[] = ['merchant'];
+  @IsEnum(RoleEnum, { each: true })
+  roles?: RoleEnum[] = [RoleEnum.MERCHANT];
 }

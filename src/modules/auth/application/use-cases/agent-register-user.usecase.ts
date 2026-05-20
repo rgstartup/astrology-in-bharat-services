@@ -10,12 +10,12 @@ import { AgentRegisterUserDto } from '../../api/dto';
 import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { ConfigService } from '@nestjs/config';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class AgentRegisterUserUseCase {
@@ -48,16 +48,11 @@ export class AgentRegisterUserUseCase {
             await this.db.transaction(async (queryRunner) => {
                 const hashedPassword = await this.hasher.hash(generatedPassword);
 
-                // roles is an array in DTO. Format map to match DB expected roles [{name: 'role'}]
-                const formattedRoles = dto.roles.map((r) => ({ name: r}));
-
-                const isMerchant = dto.roles.includes('merchant');
-
                 createdUser = await this.usersFacade.create(
                     {
                         name: dto.name,
                         email: dto.email,
-                        roles: formattedRoles,
+                        roles: dto.roles,
                         password: hashedPassword,
                         referred_by_id: Number(agentId),
                     },
@@ -68,15 +63,13 @@ export class AgentRegisterUserUseCase {
 
                 // Update phone number in the specific profile if provided
                 // Handle Expert-specific logic (Lock Commission Rate)
-                if (dto.roles.includes('expert')) {
+                if (hasRoles(dto.roles, 'EXPERT')) {
                     const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
                     await queryRunner.manager.update(ProfileExpert, { user: { id: createdUser.id } }, {
                         agent_commission_rate: agentCommissionRate,
                         ...(dto.phone ? { phone_number: dto.phone } : {})
                     });
-                } else if (dto.phone) {
-                    // Update phone for others if provided
-                } else if (dto.roles.includes('merchant')) {
+                } else if (hasRoles(dto.roles, 'MERCHANT')) {
                     const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISSION_FROM_PUJA_SHOP') || 
                                          await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
                     await queryRunner.manager.update(ProfileMerchant, { user_id: createdUser.id }, {
@@ -91,7 +84,7 @@ export class AgentRegisterUserUseCase {
                 }
                 
                 // For Merchants, also update shopName if it's set to user's name initially
-                if (dto.roles.includes('merchant')) {
+                if (hasRoles(dto.roles, 'MERCHANT')) {
                     await queryRunner.manager.update(ProfileMerchant, { user_id: createdUser.id }, {
                         shopName: dto.name
                     });
@@ -103,7 +96,7 @@ export class AgentRegisterUserUseCase {
                 });
 
                 if (agentProfile) {
-                    const isExpert = dto.roles.includes('expert');
+                    const isExpert = hasRoles(dto.roles, 'EXPERT');
                     const arrayField = isExpert ? 'registered_astrologer_ids' : 'registered_user_ids';
 
                     // Initialize array if null (though default is '{}')
@@ -133,8 +126,8 @@ export class AgentRegisterUserUseCase {
             throw error;
         }
 
-        const isExpert = dto.roles.includes('expert');
-        const isMerchant = dto.roles.includes('merchant');
+        const isExpert = hasRoles(dto.roles, 'EXPERT');
+        const isMerchant = hasRoles(dto.roles, 'MERCHANT');
 
         // Generate verification link
         const verification_token = this.tokenCrypto.signTemporaryToken({

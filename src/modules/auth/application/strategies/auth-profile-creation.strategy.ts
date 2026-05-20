@@ -1,8 +1,9 @@
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { QueryRunner } from 'typeorm';
 
 export interface AuthProfileCreationStrategy {
-  readonly role: string;
+  readonly role: RoleEnum;
   ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void>;
 }
 

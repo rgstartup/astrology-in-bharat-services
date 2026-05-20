@@ -24,14 +24,11 @@ export class GetProfileUseCase {
 
     if (!profile) {
       // Check if user exists and what their role is
-      const user = await userRepo.findOne({ where: { id: userId }, relations: ['roles'] });
+      const user = await userRepo.findOne({ where: { id: userId } });
       
-      const hasClientRole = user?.roles?.some(role => 
-        ['client', 'user', 'customer'].includes(role.name.toLowerCase())
-      );
-      const hasExpertRole = user?.roles?.some(role => 
-        ['expert', 'astrologer'].includes(role.name.toLowerCase())
-      );
+      const roles = user?.roles || [];
+      const hasClientRole = roles.includes('client' as any);
+      const hasExpertRole = roles.includes('expert' as any);
 
       if (hasExpertRole && !hasClientRole) {
         throw new ForbiddenException('Aap ek Expert hain. Kripya Expert Dashboard se login karein.');

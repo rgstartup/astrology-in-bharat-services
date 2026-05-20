@@ -8,7 +8,6 @@ import { RazorpayPayoutService } from '../../infrastructure/gateways/razorpay-pa
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { BankAccount } from '@/modules/expert/bank-accounts/infrastructure/entities/bank-account.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 
@@ -34,11 +33,13 @@ export class UpdateWithdrawalStatusUseCase {
         const oldStatus = withdrawal.status;
 
         // Only allow status updates if not in a final state
-        const isCurrentlyFinal = withdrawal.status === WithdrawalStatus.SUCCESS ||
-            withdrawal.status === WithdrawalStatus.COMPLETED ||
-            withdrawal.status === WithdrawalStatus.REJECTED ||
-            withdrawal.status === WithdrawalStatus.REVERSED ||
-            withdrawal.status === WithdrawalStatus.CANCELLED;
+        // const isCurrentlyFinal = withdrawal.status === WithdrawalStatus.SUCCESS ||
+        //     withdrawal.status === WithdrawalStatus.COMPLETED ||
+        //     withdrawal.status === WithdrawalStatus.REJECTED ||
+        //     withdrawal.status === WithdrawalStatus.REVERSED ||
+        //     withdrawal.status === WithdrawalStatus.CANCELLED;
+
+        const isCurrentlyFinal = [WithdrawalStatus.SUCCESS, WithdrawalStatus.COMPLETED, WithdrawalStatus.REJECTED, WithdrawalStatus.REVERSED, WithdrawalStatus.CANCELLED].includes(withdrawal.status);
 
         if (isCurrentlyFinal) {
             throw new BadRequestException(`Cannot update withdrawal with final status: ${withdrawal.status}`);
@@ -192,7 +193,7 @@ export class UpdateWithdrawalStatusUseCase {
 
                     // Create refund transaction (Ledger)
                     const { generateTransactionNo } = await import('../../../../common/utils/transaction-no.util');
-                    const transaction = queryRunner.manager.create('Transaction', {
+                    const transaction = queryRunner.manager.create(Transaction, {
                         wallet_id: wallet.id,
                         amount: amountToRefund,
                         type: TransactionType.CREDIT,
@@ -202,12 +203,14 @@ export class UpdateWithdrawalStatusUseCase {
                         balance_after,
                         // Note: If you want to show the admin remark, we can prepend it to the reference_id 
                         // or just rely on the withdrawal record which we'll fetch in the mapper.
-                    }) as any;
+                    });
 
-                    await queryRunner.manager.save('Transaction', transaction);
+                    await queryRunner.manager.save(Transaction, transaction);
+
+                                        
                     
                     // Generate a nice Transaction No for the refund
-                    transaction.transaction_no = generateTransactionNo('merchant', TransactionPurpose.REFUND, transaction.id);
+                    transaction.transaction_no = generateTransactionNo('MERCHANT', TransactionPurpose.REFUND, transaction.id);
                     await queryRunner.manager.save('Transaction', transaction);
                     
                     console.log(`[RefundLogic] Transaction logged. No: ${transaction.transaction_no}`);

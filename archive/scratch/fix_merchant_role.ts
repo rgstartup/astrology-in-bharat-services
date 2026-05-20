@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
-import { Role } from '../src/modules/role/entities/roles.entity';
-import { User } from '../src/modules/users/infrastructure/entities/user.entity';
-import { ProfileMerchant } from '../src/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { User } from '../../src/modules/users/infrastructure/entities/user.entity';
+import { ProfileMerchant } from '../../src/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 async function fixUser() {
     const ds = new DataSource({
@@ -11,7 +11,7 @@ async function fixUser() {
         username: 'postgres',
         password: 'password',
         database: 'astrology_in_bharat',
-        entities: [Role, User, ProfileMerchant],
+        entities: [User, ProfileMerchant],
         synchronize: false
     });
 
@@ -21,8 +21,7 @@ async function fixUser() {
 
         const email = 'secetel851@azucore.com';
         const user = await ds.getRepository(User).findOne({ 
-            where: { email },
-            relations: ['roles']
+            where: { email }
         });
 
         if (!user) {
@@ -30,17 +29,17 @@ async function fixUser() {
             return;
         }
 
-        console.log(`Found user ID: ${user.id}, current roles:`, user.roles.map(r => r.name));
+        console.log(`Found user ID: ${user.id}, current roles:`, user.roles);
 
-        const merchantRole = await ds.getRepository(Role).findOne({ where: { name: 'merchant' } });
-        if (!merchantRole) {
-            console.log('Merchant role not found in database');
-            return;
-        }
+        // const merchantRole = await ds.getRepository(Role).findOne({ where: { name: 'merchant' } });
+        // if (!merchantRole) {
+        //     console.log('Merchant role not found in database');
+        //     return;
+        // }
 
-        const hasMerchantRole = user.roles.some(r => r.id === merchantRole.id);
+        const hasMerchantRole = user.roles.includes(RoleEnum.MERCHANT);
         if (!hasMerchantRole) {
-            user.roles.push(merchantRole);
+            user.roles.push(RoleEnum.MERCHANT);
             await ds.getRepository(User).save(user);
             console.log('Successfully added merchant role to user');
         } else {

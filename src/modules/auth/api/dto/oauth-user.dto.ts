@@ -1,4 +1,5 @@
-import { IsArray, IsEmail, IsOptional, IsString } from 'class-validator';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IsArray, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class OAuthUserDto {
   @IsString()
@@ -20,14 +21,10 @@ export class OAuthUserDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  roles?: string[];
+  @IsEnum(RoleEnum, { each: true })
+  roles: RoleEnum[] = [RoleEnum.CLIENT]; // default to client role
 
   constructor(partial: Partial<OAuthUserDto>) {
     Object.assign(this, partial);
-    // Set default roles if not provided
-    if (!this.roles || this.roles.length === 0) {
-      this.roles = ['client'];
-    }
   }
 }

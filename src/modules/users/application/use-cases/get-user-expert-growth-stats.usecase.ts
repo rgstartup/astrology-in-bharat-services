@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from '../../infrastructure/entities/user.entity';
 
 @Injectable()
@@ -18,8 +18,8 @@ export class GetUserExpertGrowthStatsUseCase {
       .createQueryBuilder('user')
       .leftJoin('user.roles', 'role')
       .select("DATE(user.created_at)", "date")
-      .addSelect("COUNT(DISTINCT CASE WHEN role.name = 'client' THEN user.id END)", "userCount")
-      .addSelect("COUNT(DISTINCT CASE WHEN role.name = 'expert' THEN user.id END)", "expertCount")
+      .addSelect("COUNT(DISTINCT CASE WHEN 'client' = ANY(user.roles) THEN user.id END)", "clientCount")
+      .addSelect("COUNT(DISTINCT CASE WHEN 'expert' = ANY(user.roles) THEN user.id END)", "expertCount")
       .where('user.created_at >= :date', { date: dateLimit })
       .groupBy("DATE(user.created_at)")
       .orderBy("date", "ASC")
@@ -27,7 +27,7 @@ export class GetUserExpertGrowthStatsUseCase {
 
     return stats.map(s => ({
       date: s.date,
-      users: parseInt(s.userCount, 10) || 0,
+      clients: parseInt(s.clientCount, 10) || 0,
       experts: parseInt(s.expertCount, 10) || 0,
     }));
   }

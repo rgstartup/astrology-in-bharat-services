@@ -1,7 +1,7 @@
 import { DataSource } from "typeorm";
-import { PujaAppointment } from "./src/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity";
+import { PujaAppointment } from "../../src/modules/puja-appointment/infrastructure/entities/puja-appointment.entity";
 import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./src/app.module";
+import { AppModule } from "../../src/app.module";
 
 async function check() {
     const app = await NestFactory.createApplicationContext(AppModule);

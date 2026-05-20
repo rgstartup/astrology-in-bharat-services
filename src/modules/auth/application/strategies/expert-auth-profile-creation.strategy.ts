@@ -3,12 +3,13 @@ import { QueryRunner } from 'typeorm';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class ExpertAuthProfileCreationStrategy
   implements AuthProfileCreationStrategy
 {
-  readonly role = 'expert';
+  readonly role = RoleEnum.EXPERT;
 
   constructor(private readonly expertProfileFacade: ExpertProfileFacade) {}
 

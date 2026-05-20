@@ -17,6 +17,7 @@ import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CreateReviewDto } from '../dto/create-review.dto';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Controller({
   path: 'reviews',
@@ -71,7 +72,7 @@ export class ReviewsController {
   // ─── Admin: Get all reviews (with filters) ───────────────────────────────────
   @Get('admin/all')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('ADMIN')
   async adminGetAllReviews(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(15), ParseIntPipe) limit: number,
@@ -86,7 +87,7 @@ export class ReviewsController {
   // ─── Admin: Get reviews stats ─────────────────────────────────────────────────
   @Get('admin/stats')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('ADMIN')
   async adminGetStats() {
     return this.reviewsFacade.getAllReviewsStats();
   }
@@ -94,7 +95,7 @@ export class ReviewsController {
   // ─── Admin: Approve / reject a review ────────────────────────────────────────
   @Patch('admin/:id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('ADMIN')
   async updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body('status') status: string,
@@ -105,7 +106,7 @@ export class ReviewsController {
   // ─── Admin: Delete a review ───────────────────────────────────────────────────
   @Delete('admin/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('ADMIN') 
   async deleteReview(@Param('id', ParseIntPipe) id: number) {
     return this.reviewsFacade.deleteReview(id);
   }

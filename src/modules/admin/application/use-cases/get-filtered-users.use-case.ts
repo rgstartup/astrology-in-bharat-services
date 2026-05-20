@@ -4,6 +4,7 @@ import { Repository, SelectQueryBuilder, DataSource } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { Order, OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 export interface FilterCriteria {
     minSpending?: number;
@@ -31,7 +32,7 @@ export class GetFilteredUsersUseCase {
 
     private buildBaseQuery(filters: FilterCriteria): SelectQueryBuilder<User> {
         const query = this.userRepo.createQueryBuilder('user')
-            .innerJoin('user.roles', 'role', 'role.name = :roleName', { roleName: 'client' })
+            .where(":role = ANY(user.roles)", { role: RoleEnum.CLIENT })
             .distinct(true);
 
 

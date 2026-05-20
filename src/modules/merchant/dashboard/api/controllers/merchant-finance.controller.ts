@@ -13,7 +13,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
   version: '1',
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('merchant', 'agent', 'expert')
+@Roles('MERCHANT', 'AGENT', 'EXPERT')
 export class MerchantFinanceController {
   constructor(
     private readonly getStats: GetMerchantFinanceStatsUseCase,

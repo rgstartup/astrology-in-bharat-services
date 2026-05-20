@@ -20,7 +20,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
   async findByProvider(provider: string, providerId: string) {
     return this.oauthRepo.findOne({
       where: { provider, provider_id: providerId },
-      relations: ['user', 'user.roles'],
+      relations: ['user'],
     });
   }
 
@@ -51,7 +51,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
         email: dto.email,
         name: dto.name,
         avatar: dto.profile?.photos?.[0]?.value,
-        roles: dto.roles?.map((role) => ({ name: role })),
+        roles: dto.roles,
       },
       queryRunner,
     );

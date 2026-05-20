@@ -14,7 +14,7 @@ import {
 } from 'typeorm';
 import { OAuthAccount } from '@/modules/auth/infrastructure/entities/oauth-accounts.entity';
 import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
-import { Role } from '@/modules/role/entities/roles.entity';
+import { RoleEnum } from '../enums/Role.enum';
 import { Exclude } from 'class-transformer';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
@@ -48,14 +48,8 @@ export class User {
   @Column({ type: 'text', nullable: true })
   avatar!: string | null;
 
-  @ManyToMany(() => Role, (r) => r.users)
-  @JoinTable({
-    schema: 'public',
-    name: 'user_roles',
-    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
-  })
-  roles!: Role[];
+  @Column({ type: 'enum', enum: RoleEnum, array: true, default: '{client}' })
+  roles!: RoleEnum[];
 
   @Column({ type: 'bool', default: false })
   is_blocked!: boolean;

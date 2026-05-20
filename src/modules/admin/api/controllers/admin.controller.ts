@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseIntPipe, UseInterceptors, UploadedFiles, Delete } from '@nestjs/common';
+import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseIntPipe, UseInterceptors, UploadedFiles, Delete, ParseEnumPipe } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
@@ -15,13 +15,16 @@ import { CreateAgentDto } from '../dto/create-agent.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
+import { RoleEnum, RolePipe } from '@/modules/users/infrastructure/enums/Role.enum';
+import { MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
 
 @Controller({
   path: 'admin',
   version: '1',
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin', 'agent')
+@Roles('ADMIN', 'AGENT')
 export class AdminController {
   constructor(
     private readonly adminFacade: AdminFacade,
@@ -65,7 +68,7 @@ export class AdminController {
   }
 
   @Get('analytics/user-growth')
-  async getUserGrowthStats(@Query('days') days: number = 7) {
+  async getUserGrowthStats(@Query('days', ParseIntPipe) days: number = 7) {
     return this.adminFacade.getUserGrowthStats(days);
   }
 
@@ -75,17 +78,17 @@ export class AdminController {
   }
 
   @Get('analytics/revenue-trend')
-  async getRevenueTrend(@Query('days') days: number = 7) {
+  async getRevenueTrend(@Query('days', ParseIntPipe) days: number = 7) {
     return this.adminFacade.getRevenueTrend(days);
   }
 
   @Get('analytics/earnings-breakdown')
-  async getEarningsBreakdown(@Query('days') days: number = 7) {
+  async getEarningsBreakdown(@Query('days', ParseIntPipe) days: number = 7) {
     return this.adminFacade.getEarningsBreakdown(days);
   }
 
   @Get('analytics/top-experts')
-  async getTopExperts(@Query('limit') limit: number = 5) {
+  async getTopExperts(@Query('limit', ParseIntPipe) limit: number = 5) {
     return this.adminFacade.getTopExperts(limit);
   }
 
@@ -102,8 +105,8 @@ export class AdminController {
   @Get('clients')
   async getAllUsers(
     @Query('search') search?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
   ) {
     return this.usersFacade.findAllByRole('client', search, page, limit);
   }
@@ -116,21 +119,21 @@ export class AdminController {
   @Get('experts')
   async getAllExperts(
     @Query('search') search?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
     @Query('status') status?: string,
   ) {
     return this.usersFacade.findAllByRole('expert', search, page, limit, status);
   }
 
   @Get('experts/:id')
-  async getExpertDetail(@Param('id') id: number) {
+  async getExpertDetail(@Param('id', ParseIntPipe) id: number) {
     return this.adminFacade.getExpertDetail(id);
   }
 
   @Patch('experts/:id/status')
   async updateExpertStatus(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: { status: string; reason?: string },
   ) {
     return this.profileFacade.updateKycStatus(id, body.status, body.reason);
@@ -138,7 +141,7 @@ export class AdminController {
 
   @Patch('clients/:id/block')
   async toggleUserBlock(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: { isBlocked: boolean },
   ) {
     return this.usersFacade.update(id, { is_blocked: body.isBlocked });
@@ -147,8 +150,8 @@ export class AdminController {
   @Get('live-sessions')
   async getLiveSessions(
     @Query('type') type?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
   ) {
     return this.adminFacade.getLiveSessions(type, page, limit);
   }
@@ -190,24 +193,24 @@ export class AdminController {
   }
 
   @Patch('coupons/:id')
-  async updateCoupon(@Param('id') id: string, @Body() data: any) {
-    return this.couponFacade.updateCoupon(parseInt(id, 10), data);
+  async updateCoupon(@Param('id', ParseIntPipe) id: number, @Body() data: any) {
+    return this.couponFacade.updateCoupon(id, data);
   }
 
   // Withdrawal Management
   @Get('withdrawals')
   async getWithdrawals(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query('status') status?: string,
-    @Query('role') role?: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+    @Query('status', new ParseEnumPipe(WithdrawalStatus, {optional: true})) status?: WithdrawalStatus,
+    @Query('role', RolePipe({optional: true})) role?: RoleEnum,
   ) {
     return this.adminFacade.getWithdrawals(page, limit, status, role);
   }
 
 
   @Get('withdrawals/stats')
-  async getWithdrawalStats(@Query('role') role?: string) {
+  async getWithdrawalStats(@Query('role', RolePipe({optional: true})) role?: RoleEnum) {
     return this.adminFacade.getWithdrawalStats(role);
   }
 
@@ -242,9 +245,9 @@ export class AdminController {
   @Get('merchants')
   async getAllMerchants(
     @Query('search') search?: string,
-    @Query('status') status?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('status', new ParseEnumPipe(MerchantStatus, {optional: true})) status?: MerchantStatus,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
   ) {
     return this.adminFacade.getAllMerchants({ search, status, page, limit });
   }
@@ -252,7 +255,7 @@ export class AdminController {
   @Patch('merchants/:id/status')
   async updateMerchantStatus(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { status: string },
+    @Body() body: { status: MerchantStatus },
   ) {
     return this.adminFacade.updateMerchantStatus(id, body);
   }
@@ -293,8 +296,8 @@ export class AdminController {
 
   @Get('agents')
   async getAgents(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
     @Query('search') search?: string,
     @Query('status') status?: string,
   ) {
@@ -310,15 +313,15 @@ export class AdminController {
   async getListings(
     @Query('type') type?: string,
     @Query('search') search?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
   ) {
     return this.adminFacade.getListings({ type, search, page, limit });
   }
 
   @Patch('listings/:id/status')
   async updateListingStatus(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('status') status: string,
   ) {
     return this.adminFacade.updateListingStatus(id, status);
@@ -327,9 +330,9 @@ export class AdminController {
   // --- Support / Disputes Management ---
   @Get('support/disputes')
   async getAllDisputes(
-    @Query('status') status?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('status', new ParseEnumPipe(DisputeStatus, {optional: true})) status?: DisputeStatus,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
   ) {
     return this.adminFacade.getAllDisputes({ status, page: Number(page), limit: Number(limit) });
   }
@@ -342,7 +345,7 @@ export class AdminController {
   @Patch('support/disputes/:id/status')
   async updateDisputeStatus(
     @Param('id', ParseIntPipe) id: number,
-    @Body('status') status: string,
+    @Body('status', new ParseEnumPipe(DisputeStatus)) status: DisputeStatus,
     @Body('notes') notes?: string,
   ) {
     return this.adminFacade.updateDisputeStatus(id, status, notes);

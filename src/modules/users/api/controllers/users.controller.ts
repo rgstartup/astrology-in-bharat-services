@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  ParseEnumPipe,
 } from '@nestjs/common';
 import { CreateUserDto } from '../dto/user.dto';
 import { UsersFacade } from '../../application/users.facade';
@@ -15,8 +16,8 @@ import { JwtAuthGuard } from '../../../auth/api/guards/auth.guard';
 import { RolesGuard } from '../../../auth/api/guards/role.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
-// import { UserRole } from '../../../role/enum/role.enum';
 import { User } from '../../infrastructure/entities/user.entity';
+import { RoleEnum, RolePipe } from '../../infrastructure/enums/Role.enum';
 
 @Controller('users')
 export class UsersController {
@@ -29,7 +30,7 @@ export class UsersController {
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('ADMIN')
   findAll() {
     return this.usersFacade.findAll();
   }
@@ -58,8 +59,8 @@ export class UsersController {
 
   @Post(':id/roles')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  assignRole(@Param('id') id: string, @Body('role') role: string) {
+  @Roles('ADMIN')
+  assignRole(@Param('id') id: string, @Body('role', RolePipe({optional: true})) role: RoleEnum) {
       return this.usersFacade.assignRole(+id, role);
   }
 }

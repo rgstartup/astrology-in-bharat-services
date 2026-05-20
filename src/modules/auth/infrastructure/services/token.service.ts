@@ -11,6 +11,7 @@ import { Session } from '../entities/session.entity';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
 import { BaseService } from '@/common/services/transaction.service';
+import { Role, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class TokenService extends BaseService<Session> {
@@ -39,14 +40,8 @@ export class TokenService extends BaseService<Session> {
     userAgent?: string,
     queryRunner?: QueryRunner,
   ) {
-    const rolesMap: Record<string, string> = {
-      client: 'user',
-      expert: 'agent',
-      admin: 'admin',
-    };
-    const primaryRole = user.roles?.[0]?.name || 'client';
     const accessToken = await this.jwtService.signAsync(
-      { userId: user.id, role: rolesMap[primaryRole] || primaryRole },
+      { userId: user.id, roles: user.roles },
       { expiresIn: this.jwtConfig?.jwtExpiresIn as any },
     );
 

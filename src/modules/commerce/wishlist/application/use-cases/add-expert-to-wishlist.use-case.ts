@@ -11,6 +11,7 @@ import {
   UserNotFoundError,
   NotAnExpertError,
 } from '../../domain/errors/wishlist.errors';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class AddExpertToWishlistUseCase {
@@ -37,6 +38,9 @@ export class AddExpertToWishlistUseCase {
       try {
         const expertDto = await this.getExpertByIdUseCase.execute(expertId);
         expertUser = await this.findUserUseCase.findById(expertDto.userId);
+
+        
+
         expertId = expertUser.id;
         foundViaProfile = true;
       } catch (e) {
@@ -45,11 +49,11 @@ export class AddExpertToWishlistUseCase {
     }
 
     const hasExpertRole =
-      expertUser.roles && expertUser.roles.some((r) => r.name === 'expert');
+      expertUser.roles && expertUser.roles.includes(RoleEnum.EXPERT);
 
     if (!hasExpertRole && !foundViaProfile) {
       const roleNames = expertUser.roles
-        ? expertUser.roles.map((r) => r.name).join(', ')
+        ? expertUser.roles.join(', ')
         : 'No roles';
       throw new NotAnExpertError(expertId, roleNames);
     }

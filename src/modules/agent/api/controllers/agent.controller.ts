@@ -18,13 +18,14 @@ import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entit
 import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Controller({
     path: 'agent',
     version: '1',
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('agent')
+@Roles('AGENT')
 export class AgentController {
     constructor(
         private readonly db: DatabaseService,
@@ -155,7 +156,6 @@ export class AgentController {
                 .leftJoinAndSelect('u.profile_expert', 'pe')
                 .leftJoinAndSelect('u.profile_client', 'pc')
                 .leftJoinAndSelect('u.profile_merchant', 'pm')
-                .leftJoinAndSelect('u.roles', 'role')
                 .where('u.referred_by_id = :agentId', { agentId: user.id })
                 .andWhere('u.created_at >= ' + fromDate);
 
@@ -195,9 +195,9 @@ export class AgentController {
             let usersWithActivity = 0;
 
             usersForStats.forEach(u => {
-                const roles = (u.roles || []).map(r => r.name.toLowerCase());
-                const isExpert = roles.includes('expert');
-                const isMerchant = roles.includes('merchant');
+                const roles = u.roles || [];
+                const isExpert = roles.includes(RoleEnum.EXPERT);
+                const isMerchant = roles.includes(RoleEnum.MERCHANT);
 
                 if (isExpert) astrologersCount++;
                 else if (isMerchant) merchantsAsPujaShopCount++;
@@ -222,10 +222,9 @@ export class AgentController {
                     SELECT expert_id, agent_id, agent_commission FROM consultations.call_sessions WHERE agent_id = $1
                 ) s
                 JOIN (
-                    SELECT pe.id as expert_id, r.name as role_name
+                    SELECT pe.id as expert_id, unnest(u.roles) as role_name
                     FROM expert.profile pe
-                    JOIN public.user_roles ur ON ur.user_id = pe.user_id
-                    JOIN public.roles r ON r.id = ur.role_id
+                    JOIN public.users u ON u.id = pe.user_id
                 ) u ON u.expert_id = s.expert_id
                 GROUP BY u.role_name
             `, [user.id]);
@@ -326,7 +325,7 @@ export class AgentController {
                     ...usersForStats.slice(0, 5).map(u => ({
                         id: u.id,
                         name: u.name,
-                        type: (u.roles || []).map(r => r.name)[0] || 'User',
+                        type: (u.roles || [])[0] || 'User',
                         date: u.created_at,
                         action: 'Registration'
                     })),
@@ -422,7 +421,6 @@ export class AgentController {
                 console.log(`[AgentListings] Fetching users for agentId: ${user.id} (Type: ${typeof user.id}), type: ${type}, search: ${search}`);
                 const qb = queryRunner.manager
                     .createQueryBuilder(User, 'u')
-                    .leftJoinAndSelect('u.roles', 'role')
                     .leftJoinAndSelect('u.profile_expert', 'pe')
                     .leftJoinAndSelect('u.profile_client', 'pc')
                     .leftJoinAndSelect('u.profile_merchant', 'pm')
@@ -433,11 +431,11 @@ export class AgentController {
                 }
 
                 if (type === 'astrologer' || type === 'expert') {
-                    qb.andWhere('role.name = :role', { role: 'expert' });
+                    qb.andWhere(':role = ANY(u.roles)', { role: 'expert' });
                 } else if (type === 'client') {
-                    qb.andWhere('role.name = :role', { role: 'client' });
+                    qb.andWhere(':role = ANY(u.roles)', { role: 'client' });
                 } else if (type === 'puja_shop' || type === 'merchant') {
-                    qb.andWhere('role.name = :role', { role: 'merchant' });
+                    qb.andWhere(':role = ANY(u.roles)', { role: 'merchant' });
                 }
 
                 if (search && search.trim()) {
@@ -489,9 +487,9 @@ export class AgentController {
                 `, [user.id]);
 
                 userData = users.map(u => {
-                    const roles = (u.roles || []).map(r => r.name.toLowerCase());
-                    const isExpert = roles.includes('expert');
-                    const isMerchant = roles.includes('merchant');
+                    const roles = u.roles || [];
+                    const isExpert = roles.includes(RoleEnum.EXPERT);
+                    const isMerchant = roles.includes(RoleEnum.MERCHANT);
 
                     let commission = 0;
                     let totalRevenue = 0;
@@ -725,7 +723,6 @@ export class AgentController {
                 .createQueryBuilder(User, 'u')
                 .leftJoinAndSelect('u.profile_expert', 'pe')
                 .leftJoinAndSelect('u.profile_client', 'pc')
-                .leftJoinAndSelect('u.roles', 'role')
                 .where('u.referred_by_id = :agentId', { agentId: user.id });
 
             if (allRegisteredIds.length > 0) {

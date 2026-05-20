@@ -64,14 +64,14 @@ export class OrderController {
         return this.getMyOrders(user, limit, offset);
     }
 
-    @Roles('admin')
+    @Roles('ADMIN')
     @UseGuards(RolesGuard)
     @Get('admin/all')
     async getAllOrders() {
         return this.orderFacade.findAllOrders();
     }
 
-    @Roles('admin')
+    @Roles('ADMIN')
     @UseGuards(RolesGuard)
     @Patch(':id/status')
     async updateStatus(
@@ -128,7 +128,7 @@ export class OrderSingularController {
     }
 
     // Admin endpoint also available on singular path for consistency if needed
-    @Roles('admin')
+    @Roles('ADMIN')
     @UseGuards(RolesGuard)
     @Patch(':id/status')
     async updateStatus(

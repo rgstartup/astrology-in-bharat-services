@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { Role } from '@/modules/role/entities/roles.entity';
 
 import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
 
@@ -11,25 +10,20 @@ export class GetAgentStatsUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
     @InjectRepository(AgentProfile)
     private readonly agentProfileRepository: Repository<AgentProfile>,
   ) { }
 
   async execute() {
-    const agentRole = await this.roleRepository.findOne({ where: { name: 'agent' } });
-    if (!agentRole) return { totalAgents: 0, activeAgents: 0, blockedAgents: 0 };
-
     const totalAgents = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role', 'role.id = :roleId', { roleId: agentRole.id })
+      .where(':roleName = ANY(user.roles)', { roleName: 'agent' })
       .getCount();
 
     const activeAgents = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.roles', 'role', 'role.id = :roleId', { roleId: agentRole.id })
-      .where('user.is_blocked = :blocked', { blocked: false })
+      .where(':roleName = ANY(user.roles)', { roleName: 'agent' })
+      .andWhere('user.is_blocked = :blocked', { blocked: false })
       .getCount();
 
     const blockedAgents = totalAgents - activeAgents;

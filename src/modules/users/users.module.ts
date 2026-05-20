@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersController } from './api/controllers/users.controller';
 import { User } from './infrastructure/entities/user.entity';
-import { RolesModule } from '../role/roles.module';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 import { CreateUserUseCase } from './application/use-cases/create-user.usecase';
 import { FindUserUseCase } from './application/use-cases/find-user.usecase';
@@ -16,7 +15,7 @@ import { FindUsersByRoleUseCase } from './application/use-cases/find-users-by-ro
 import { UsersFacade } from './application/users.facade';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), RolesModule],
+  imports: [TypeOrmModule.forFeature([User])],
   controllers: [UsersController],
   providers: [
     UsersFacade,

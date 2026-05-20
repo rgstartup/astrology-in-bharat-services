@@ -30,8 +30,8 @@ export class LoginWithEmailUseCase {
 
     // Role Validation: Move logic to backend
     if (dto.requiredRole) {
-      const hasRequiredRole = user.roles?.some(role => 
-        role.name.toLowerCase() === dto.requiredRole?.toLowerCase()
+      const hasRequiredRole = user.roles?.some(roleName => 
+        roleName.toLowerCase() === dto.requiredRole?.toLowerCase()
       );
 
       if (!hasRequiredRole) {

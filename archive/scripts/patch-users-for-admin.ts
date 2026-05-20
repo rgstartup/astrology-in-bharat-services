@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 import * as dotenv from 'dotenv';
+import { getErrorMessage } from '@/common/utils/get-error-message.util';
 dotenv.config();
 
 async function patchUsersTable() {
@@ -22,7 +23,7 @@ async function patchUsersTable() {
                 await client.query(cmd);
                 console.log(`✅ Executed: ${cmd}`);
             } catch (err) {
-                console.log(`⚠️  Already exists or error: ${cmd} - ${err.message}`);
+                console.log(`⚠️  Already exists or error: ${cmd} - ${getErrorMessage(err)}`);
             }
         }
         

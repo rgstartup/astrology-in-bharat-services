@@ -16,9 +16,9 @@ import {
 import { MerchantRegisterDto } from '../dto/merchant-register.dto';
 import { MerchantLoginDto } from '../dto/merchant-login.dto';
 import { AuthFacade } from '../../application/auth.facade';
-import { instanceToPlain } from 'class-transformer';
 import { JwtAuthGuard } from '../guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Controller({
   path: 'auth/merchant',
@@ -68,8 +68,8 @@ export class MerchantAuthController {
       );
 
       // Verify the user is actually a merchant
-      const roles = user.roles?.map((r) => r.name.toLowerCase()) || [];
-      if (!roles.includes('merchant')) {
+      const roles = user.roles || [];
+      if (!roles.includes(RoleEnum.MERCHANT)) {
         throw new ForbiddenException('Only merchant accounts can login here.');
       }
 
@@ -83,7 +83,7 @@ export class MerchantAuthController {
           merchantId: user.uid || user.id.toString(),
           shopName: user.profile_merchant?.shopName || user.name,
           email: user.email,
-          role: 'merchant',
+          roles: user.roles
         },
       };
     } catch (error) {

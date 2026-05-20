@@ -12,6 +12,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class RegisterUserUseCase {
@@ -36,12 +37,10 @@ export class RegisterUserUseCase {
 
       const hashedPassword = await this.hasher.hash(dto.password);
 
-      const formattedRoles = dto.roles.map((r) => ({ name: r }));
-
       const user = await this.usersFacade.create(
         {
           ...dto,
-          roles: formattedRoles,
+          roles: dto.roles,
           password: hashedPassword,
           email_verified_at: undefined,
         },
@@ -51,7 +50,7 @@ export class RegisterUserUseCase {
       await this.profileCreationResolver.ensureProfile(user, queryRunner);
 
       // Lock Commission Rate for Experts if referred by an Agent
-      if (dto.roles.includes('expert') && user.referred_by_id) {
+      if (hasRoles(dto.roles, 'EXPERT') && user.referred_by_id) {
         const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
         await queryRunner.manager.update(ProfileExpert, { user: { id: user.id } }, {
           agent_commission_rate: agentCommissionRate
@@ -80,8 +79,6 @@ export class RegisterUserUseCase {
       email: user.email,
     });
 
-    // Extract role names from user.roles if populated, otherwise use empty array
-    const roleNames = user.roles ? user.roles.map((r) => r.name) : [];
 
     // 📢 domain event
     this.eventEmitter.emit(
@@ -91,7 +88,7 @@ export class RegisterUserUseCase {
         user.email,
         user.name || 'user',
         verification_token,
-        roleNames,
+        user.roles,
       ),
     );
   }

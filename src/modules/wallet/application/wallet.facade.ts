@@ -23,6 +23,7 @@ import { WithdrawalStatus } from '../infrastructure/entities/withdrawal.entity';
 import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class WalletFacade {
@@ -110,7 +111,7 @@ export class WalletFacade {
     return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id, idempotencyKey, securityMetadata);
   }
 
-  async getPendingWithdrawals(limit?: number, offset?: number, status?: string, userRole?: string) {
+  async getPendingWithdrawals(limit?: number, offset?: number, status?: WithdrawalStatus, userRole?: RoleEnum) {
     return this.getPendingWithdrawalsUseCase.execute(limit, offset, status, userRole);
   }
 
@@ -119,7 +120,7 @@ export class WalletFacade {
     return this.updateWithdrawalStatusUseCase.execute(id, status, adminId, remark);
   }
 
-  async getAdminWithdrawalStats(userRole?: string) {
+  async getAdminWithdrawalStats(userRole?: RoleEnum) {
     return this.getAdminWithdrawalStatsUseCase.execute(userRole);
   }
 

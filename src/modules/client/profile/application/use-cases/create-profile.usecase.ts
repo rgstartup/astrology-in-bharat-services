@@ -5,26 +5,30 @@ import { ProfileClient } from '../../infrastructure/entities/profile-client.enti
 import { CreateProfileClientDto } from '../../infrastructure/dto/profile-client.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileCreatedEvent } from '../../domain/events/profile-events';
+import { BaseService } from '@/common/services/transaction.service';
 
 @Injectable()
-export class CreateProfileUseCase {
+export class CreateProfileUseCase extends BaseService<ProfileClient> {
   constructor(
     @InjectRepository(ProfileClient)
-    private readonly repo: Repository<ProfileClient>,
+    private readonly profileRepo: Repository<ProfileClient>,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {
+    super(profileRepo);
+   }
 
   async execute(userId: number, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
-    const repo = queryRunner ? queryRunner.manager.getRepository(ProfileClient) : this.repo;
-    // prevent duplicate profile
-    const exists = await repo.findOne({
+    const repo = this.getRepo(queryRunner);
+    
+    const existingProfile = await repo.findOne({
       where: { user: { id: userId } },
     });
-    if (exists) return exists;
+    
+    if (existingProfile) return existingProfile;
 
     const profile = repo.create({
       ...dto,
-      user: { id: userId } as any,
+      user: { id: userId },
     });
 
     const savedProfile = await repo.save(profile);

@@ -13,6 +13,7 @@ import {
   Body,
   UseInterceptors,
   UploadedFiles,
+  ParseEnumPipe,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
@@ -36,7 +37,7 @@ import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/or
   version: '1',
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('merchant', 'agent', 'expert')
+@Roles('MERCHANT', 'AGENT', 'EXPERT')
 export class MerchantDashboardController {
   constructor(
     private readonly getStats: GetMerchantStatsUseCase,
@@ -124,7 +125,7 @@ export class MerchantDashboardController {
   async updateStatus(
     @CurrentUser('id') userId: number,
     @Param('id', ParseIntPipe) id: number,
-    @Body('status') status: OrderStatus,
+    @Body('status', new ParseEnumPipe(OrderStatus)) status: OrderStatus,
     @Body('cancellationReason') cancellationReason?: string,
   ) {
     const order = await this.orderFacade.updateOrderStatus(id, status, cancellationReason, userId);

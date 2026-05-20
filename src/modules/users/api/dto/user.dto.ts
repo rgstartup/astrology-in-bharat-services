@@ -9,7 +9,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { RolesDto } from '@/modules/role/dto/roles.dto';
+import { RoleEnum } from '../../infrastructure/enums/Role.enum';
 
 class UserDto {
   @IsEmail()
@@ -29,9 +29,8 @@ class UserDto {
   email_verified_at?: Date;
 
   @IsOptional()
-  @ValidateNested({ each: true }) // validate each role object
-  @Type(() => RolesDto) // transform plain objects into RolesDto instances
-  roles?: RolesDto[]; // role names only, no entity
+  @IsString({ each: true })
+  roles?: RoleEnum[];
 
   @IsString()
   @IsOptional()

@@ -11,6 +11,7 @@ import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class MerchantRegisterUserUseCase {
@@ -33,14 +34,13 @@ export class MerchantRegisterUserUseCase {
     const response = await this.db.transaction(async (queryRunner) => {
       const hashedPassword = await this.hasher.hash(dto.password);
 
-      const roles = dto.roles || ['merchant'];
-      const formattedRoles = roles.map((r) => ({ name: r }));
+      const roles = dto.roles || [RoleEnum.MERCHANT];
 
       const user = await this.usersFacade.create(
         {
           name: dto.shopName,
           email: dto.email,
-          roles: formattedRoles,
+          roles: roles as any,
           password: hashedPassword,
           email_verified_at: undefined,
         },
@@ -103,7 +103,7 @@ export class MerchantRegisterUserUseCase {
                 user.email,
                 user.name || 'user',
                 verification_token,
-                user.roles.map((r) => r.name),
+                user.roles || [],
             ),
         );
     });
