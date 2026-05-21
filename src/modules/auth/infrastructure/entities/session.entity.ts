@@ -10,13 +10,15 @@ import {
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { uuidv7 } from 'uuidv7';
+import { UuidV7PrimaryKey } from '@/common/decorators/uuid-primary-key.decorator';
 
 @Entity({
   schema: 'auth',
   name: 'sessions'
 })
 export class Session {
-  @PrimaryGeneratedColumn('uuid')
+
+  @UuidV7PrimaryKey()
   id!: string; 
 
   // hashed refresh token (or session secret)
