@@ -14,7 +14,7 @@ export class DeletePujaUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
   ) { }
 
-  async execute(user: User, id: number) {
+  async execute(user: User, id: string) {
     const profile = await this.profileRepo.findOne({
       where: { user: { id: user.id } },
     });
@@ -24,7 +24,7 @@ export class DeletePujaUseCase {
     }
 
     const puja = await this.pujaRepo.findOne({
-      where: { id, expert_id: profile.id },
+      where: { id: id as any, expert_id: profile.id },
     });
 
     if (!puja) {

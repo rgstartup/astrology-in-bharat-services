@@ -19,7 +19,7 @@ export class FestivalController {
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.festivalFacade.findOne(+id);
+    return this.festivalFacade.findOne(id as any);
   }
 
   @Post()
@@ -29,11 +29,11 @@ export class FestivalController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateFestivalDto) {
-    return this.festivalFacade.update(+id, dto);
+    return this.festivalFacade.update(id as any, dto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.festivalFacade.remove(+id);
+    return this.festivalFacade.remove(id as any);
   }
 }

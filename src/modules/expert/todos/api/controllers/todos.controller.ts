@@ -7,7 +7,7 @@ import {
     Body,
     Param,
     UseGuards,
-    ParseIntPipe,
+    ParseUUIDPipe,
 } from '@nestjs/common';
 import { TodosFacade } from '../../application/todos.facade';
 import { CreateTodoDto, UpdateTodoDto } from '../../infrastructure/dto/todo.dto';
@@ -25,25 +25,25 @@ export class TodosController {
 
     @Get()
     findAll(@CurrentUser() user: User) {
-        return this.todosFacade.findAll(user.id);
+        return this.todosFacade.findAll(user.id as any);
     }
 
     @Post()
     create(@CurrentUser() user: User, @Body() dto: CreateTodoDto) {
-        return this.todosFacade.create(user.id, dto);
+        return this.todosFacade.create(user.id as any, dto);
     }
 
     @Patch(':id')
     update(
         @CurrentUser() user: User,
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id', ParseUUIDPipe) id: string,
         @Body() dto: UpdateTodoDto,
     ) {
-        return this.todosFacade.update(user.id, id, dto);
+        return this.todosFacade.update(user.id as any, id, dto);
     }
 
     @Delete(':id')
-    remove(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number) {
-        return this.todosFacade.remove(user.id, id);
+    remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+        return this.todosFacade.remove(user.id as any, id);
     }
 }

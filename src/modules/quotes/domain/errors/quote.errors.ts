@@ -1,7 +1,7 @@
 import { DomainError } from '@/common/types/domain.error';
 
 export class QuoteNotFoundError extends DomainError {
-  constructor(id: number) {
+  constructor(id: string) {
     super();
     this.message = `Quote with ID ${id} not found`;
   }

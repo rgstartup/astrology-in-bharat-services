@@ -1,23 +1,27 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   OneToOne,
   OneToMany,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  Column,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { CartItem } from './cart-item.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'carts' })
 export class Cart {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
-  @OneToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user!: User;
+  @OneToOne(() => ProfileClient, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'client_id' })
+  client!: ProfileClient;
+
+  @Column({ name: 'client_id', type: 'uuid', unique: true, nullable: true })
+  client_id!: string;
 
   @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { cascade: true })
   items!: CartItem[];

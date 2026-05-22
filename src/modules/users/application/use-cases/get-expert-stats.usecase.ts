@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../infrastructure/entities/user.entity';
 import { RoleEnum } from '../../infrastructure/enums/Role.enum';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 @Injectable()
 export class GetExpertStatsUseCase {
@@ -20,14 +21,14 @@ export class GetExpertStatsUseCase {
     const activeExperts = await this.userRepository
       .createQueryBuilder('user')
       .where(":role = ANY(user.roles)", { role: RoleEnum.EXPERT })
-      .leftJoin('user.profile_expert', 'profile')
+      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = user.id')
       .andWhere('profile.kyc_status = :status', { status: 'approved' })
       .getCount();
 
     const pendingExperts = await this.userRepository
       .createQueryBuilder('user')
       .where(":role = ANY(user.roles)", { role: RoleEnum.EXPERT })
-      .leftJoin('user.profile_expert', 'profile')
+      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = user.id')
       .andWhere('profile.kyc_status = :status', { status: 'pending' })
       .getCount();
 
@@ -51,7 +52,7 @@ export class GetExpertStatsUseCase {
     const rejectedExperts = await this.userRepository
       .createQueryBuilder('user')
       .where(":role = ANY(user.roles)", { role: RoleEnum.EXPERT })
-      .leftJoin('user.profile_expert', 'profile')
+      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = user.id')
       .andWhere('profile.kyc_status = :status', { status: 'rejected' })
       .getCount();
 

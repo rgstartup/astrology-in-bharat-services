@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AgentProfile } from './infrastructure/entities/agent-profile.entity';
+import { ProfileAgent } from './infrastructure/entities/profile-agent.entity';
 import { AgentListing } from './infrastructure/entities/agent-listing.entity';
 import { AgentController } from './api/controllers/agent.controller';
 import { DatabaseModule } from '@/core/database/database.module';
@@ -13,7 +13,7 @@ import { NotificationModule } from '../notification/notification.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([AgentProfile, AgentListing, CallSession, ChatSession, PujaAppointment, Order]),
+        TypeOrmModule.forFeature([ProfileAgent, AgentListing, CallSession, ChatSession, PujaAppointment, Order]),
         DatabaseModule,
         WalletModule,
         NotificationModule,
@@ -22,3 +22,5 @@ import { NotificationModule } from '../notification/notification.module';
     providers: [],
 })
 export class AgentModule { }
+
+

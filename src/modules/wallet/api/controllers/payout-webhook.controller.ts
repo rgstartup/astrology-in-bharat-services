@@ -49,9 +49,9 @@ export class PayoutWebhookController {
             return { status: 'ignored' };
         }
 
-        const withdrawalId = parseInt(payload.reference_id);
+        const withdrawalId = payload.reference_id;
 
-        if (isNaN(withdrawalId)) {
+        if (!withdrawalId) {
             return { status: 'invalid_id' };
         }
 
@@ -59,7 +59,7 @@ export class PayoutWebhookController {
             await this.walletFacade.updateWithdrawalStatus(
                 withdrawalId,
                 WithdrawalStatus.REVERSED,
-                0, // System Admin ID
+                'system_admin', // System Admin ID
                 `Auto-refunded: ${payload.failure_reason || 'Gateway Failure'}`
             );
             return { status: 'refunded' };
@@ -69,7 +69,7 @@ export class PayoutWebhookController {
             await this.walletFacade.updateWithdrawalStatus(
                 withdrawalId,
                 WithdrawalStatus.SUCCESS,
-                0, // System Admin ID
+                'system_admin', // System Admin ID
                 'Payout confirmed by gateway'
             );
             return { status: 'success_recorded' };

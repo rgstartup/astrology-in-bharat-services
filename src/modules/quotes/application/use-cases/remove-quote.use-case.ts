@@ -11,7 +11,7 @@ export class RemoveQuoteUseCase {
     private readonly quoteRepository: Repository<Quote>,
   ) {}
 
-  async execute(id: number): Promise<void> {
+  async execute(id: string): Promise<void> {
     const existing = await this.quoteRepository.findOneBy({ id });
     if (!existing) throw new QuoteNotFoundError(id);
     await this.quoteRepository.delete(id);

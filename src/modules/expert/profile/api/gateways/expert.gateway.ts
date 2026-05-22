@@ -52,7 +52,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
           try {
             // Update database status to offline
             const profile = await this.profileRepo.findOne({ 
-              where: { user: { id: userId } },
+              where: { user: { id: userId as any } },
               relations: ['user'] 
             });
             
@@ -82,7 +82,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('expert_online')
-  async handleExpertOnline(client: Socket, payload: { userId: number }) {
+  async handleExpertOnline(client: Socket, payload: { userId: string }) {
     const userId = Number(payload.userId);
     if (!userId) return { status: 'error', message: 'Invalid userId' };
 
@@ -105,7 +105,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!wasAlreadyOnline) {
       try {
         const profile = await this.profileRepo.findOne({ 
-          where: { user: { id: userId } },
+          where: { user: { id: userId as any } },
           relations: ['user']
         });
         
@@ -132,7 +132,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('expert_offline')
-  async handleExpertOffline(client: Socket, payload: { userId: number }) {
+  async handleExpertOffline(client: Socket, payload: { userId: string }) {
     const userId = Number(payload.userId);
     if (!userId) return { status: 'error', message: 'Invalid userId' };
 
@@ -143,7 +143,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.expertSockets.delete(userId);
 
         try {
-          const profile = await this.profileRepo.findOne({ where: { user: { id: userId } } });
+          const profile = await this.profileRepo.findOne({ where: { user: { id: userId as any } } });
           if (profile) {
             profile.is_available = false;
             await this.profileRepo.save(profile);
@@ -171,7 +171,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   // Method to manually notify status change (e.g., from ProfileService)
-  notifyStatusChange(userId: number, isAvailable: boolean) {
+  notifyStatusChange(userId: string, isAvailable: boolean) {
     this.server.emit('expert_status_changed', {
       expert_id: userId,
       is_available: isAvailable,
@@ -180,7 +180,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  notifyKycStatusUpdate(userId: number, status: string, reason?: string) {
+  notifyKycStatusUpdate(userId: string, status: string, reason?: string) {
     this.server.to(`expert_${userId}`).emit('kyc_status_updated', {
       status,
       reason,
@@ -188,13 +188,13 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  notifyNewPujaBooking(userId: number, session: any) {
+  notifyNewPujaBooking(userId: string, session: any) {
     this.server.to(`expert_${userId}`).emit('new_puja_request', session);
     this.logger.log(`[Socket] 📢 Emitted new_puja_request to expert_${userId}`);
   }
 
   // Method to check if an expert is online
-  isExpertOnline(userId: number): boolean {
-    return this.expertSockets.has(userId);
+  isExpertOnline(userId: string): boolean {
+    return this.expertSockets.has(Number(userId));
   }
 }

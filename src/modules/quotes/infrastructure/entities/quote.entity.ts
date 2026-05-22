@@ -1,15 +1,15 @@
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ schema: 'consultations', name: 'quotes' })
 export class Quote {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
   @Column({ type: 'text' })
   text!: string;

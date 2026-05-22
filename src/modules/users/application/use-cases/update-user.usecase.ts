@@ -9,9 +9,9 @@ export class UpdateUserUseCase {
     private readonly userRepository: UserRepository,
   ) { }
 
-  async execute(id: number, data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
+  async execute(id: string, data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
     const user = await this.userRepository.findById(id, true, queryRunner);
     if (!user) throw new NotFoundException('User not found');
-    return this.userRepository.update(id, data, queryRunner);
+    return this.userRepository.update(id as any, data, queryRunner);
   }
 }

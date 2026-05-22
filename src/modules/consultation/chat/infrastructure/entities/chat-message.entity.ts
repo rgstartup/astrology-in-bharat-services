@@ -1,12 +1,12 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
 } from 'typeorm';
 import { ChatSession } from './chat-session.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum MessageType {
   TEXT = 'text',
@@ -16,18 +16,18 @@ export enum MessageType {
 
 @Entity({ schema: 'consultations', name: 'chat_messages' })
 export class ChatMessage {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
   @ManyToOne(() => ChatSession)
   @JoinColumn({ name: 'session_id' })
   session!: ChatSession;
 
-  @Column({ type: 'int', name: 'session_id' })
-  session_id!: number;
+  @Column({ type: 'uuid', name: 'session_id' })
+  session_id!: string;
 
-  @Column({ type: 'int', name: 'sender_id' })
-  sender_id!: number;
+  @Column({ type: 'uuid', name: 'sender_id' })
+  sender_id!: string;
 
   @Column({ type: 'text', name: 'sender_type' })
   sender_type!: 'user' | 'expert';

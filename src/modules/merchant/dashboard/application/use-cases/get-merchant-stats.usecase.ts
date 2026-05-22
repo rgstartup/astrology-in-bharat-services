@@ -15,7 +15,7 @@ export class GetMerchantStatsUseCase {
     private readonly walletFacade: WalletFacade,
   ) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     console.log('[DASHBOARD_STATS] Request for userId:', userId);
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
@@ -33,7 +33,7 @@ export class GetMerchantStatsUseCase {
 
     // 2. Total Products
     const totalProducts = await this.productRepo.count({
-      where: { merchant_id: userId },
+      where: { merchant_id: userId as any },
     });
 
     // 3. Monthly Earnings (Sum of price * quantity where product.merchant_id = userId for current month)

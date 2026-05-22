@@ -8,7 +8,7 @@ export class DeleteUserUseCase {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async execute(id: number, queryRunner?: QueryRunner): Promise<void> {
+  async execute(id: string, queryRunner?: QueryRunner): Promise<void> {
     await this.userRepository.delete(id, queryRunner);
   }
 }

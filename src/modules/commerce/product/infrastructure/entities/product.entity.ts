@@ -1,6 +1,6 @@
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -9,8 +9,8 @@ import {
 
 @Entity({ schema: 'commerce', name: 'products' })
 export class Product {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
   @Column({type: 'character varying', length: 255})
   name!: string;
@@ -48,8 +48,8 @@ export class Product {
   @Column({ type: 'int', default: 0 })
   stock!: number;
 
-  @Column({ name: 'merchant_id', type: 'int', nullable: true })
-  merchant_id!: number;
+  @Column({ name: 'merchant_id', type: 'uuid', nullable: true })
+  merchant_id!: string;
 
   @Column({ type: 'bool', default: true, name: 'is_active' })
   is_active!: boolean;

@@ -10,7 +10,7 @@ export class GetPujaByIdUseCase {
     private readonly pujaRepo: Repository<ExpertPuja>,
   ) {}
 
-  async execute(id: number) {
+  async execute(id: string) {
     const puja = await this.pujaRepo.findOne({
       where: { id },
       relations: ['expert', 'expert.user'],

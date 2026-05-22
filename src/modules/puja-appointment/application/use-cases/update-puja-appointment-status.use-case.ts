@@ -22,7 +22,7 @@ export class UpdatePujaAppointmentStatusUseCase {
     private dataSource: DataSource,
   ) {}
 
-  async execute(id: number, operatingUserId: number, dto: UpdatePujaAppointmentStatusDto): Promise<PujaAppointment> {
+  async execute(id: string, operatingUserId: string, dto: UpdatePujaAppointmentStatusDto): Promise<PujaAppointment> {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
@@ -38,7 +38,7 @@ export class UpdatePujaAppointmentStatusUseCase {
         }
 
         // Determine who is performing the update
-        const isExpert = appointment.expert.user_id === operatingUserId;
+        const isExpert = appointment.expert.user_id as any === operatingUserId;
         const isClient = appointment.client?.user_id === operatingUserId;
 
         if (!isExpert && !isClient) {
@@ -70,25 +70,29 @@ export class UpdatePujaAppointmentStatusUseCase {
 
                 // Fetch Expert's full user profile for referral check
                 const expertUser = await qr.manager.findOne(User, {
-                    where: { id: appointment.expert.user_id },
-                    relations: ['profile_expert']
+                    where: { id: appointment.expert.user_id as any }
+                });
+
+                const { ProfileExpert } = await import('@/modules/expert/profile/infrastructure/entities/profile-expert.entity');
+                const expertProfile = await qr.manager.findOne(ProfileExpert, {
+                    where: { user: { id: appointment.expert.user_id as any } }
                 });
 
                 let agent_commission = 0;
-                let agent_id: number | undefined = undefined;
+                let agent_id: string | undefined = undefined;
 
                 // Check if Seller Agent Commission is applicable (Referred)
-                if (expertUser?.referred_by_id && expertUser?.profile_expert) {
+                if (expertUser?.referred_by_id && expertProfile) {
                     agent_id = expertUser.referred_by_id;
-                    const effectiveAgentRate = expertUser.profile_expert.agent_commission_rate ?? platformFeeRate;
+                    const effectiveAgentRate = expertProfile.agent_commission_rate ?? platformFeeRate;
                     agent_commission = Number((totalAmount * (effectiveAgentRate / 100)).toFixed(2));
                 }
 
                 let buyer_agent_commission = 0;
-                let buyer_agent_id: number | undefined = undefined;
+                let buyer_agent_id: string | undefined = undefined;
 
                 const buyerUser = await qr.manager.findOne(User, {
-                    where: { id: appointment.client?.user_id || 0 },
+                    where: { id: appointment.client?.user_id as any || "" },
                     select: ['id', 'referred_by_id']
                 });
 
@@ -105,7 +109,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
                 // 1. Debit User
                 await this.walletFacade.debit(
-                    appointment.client?.user_id || 0, 
+                    appointment.client?.user_id as any || "", 
                     totalAmount, 
                     TransactionPurpose.PUJA_CONFIRMATION, 
                     `puja_appt_${appointment.id}`,
@@ -114,7 +118,7 @@ export class UpdatePujaAppointmentStatusUseCase {
                 
                 // 2. Credit Expert (Net Share)
                 await this.walletFacade.credit(
-                    appointment.expert.user_id, 
+                    appointment.expert.user_id as any, 
                     expertNetShare, 
                     TransactionPurpose.PUJA_CONFIRMATION, 
                     `puja_appt_${appointment.id}`,
@@ -146,7 +150,7 @@ export class UpdatePujaAppointmentStatusUseCase {
                 // 3. Create Todo for Expert
                 try {
                     // Not strictly part of financial transaction, but good to have
-                    await this.todosFacade.create(appointment.expert.user_id, {
+                    await this.todosFacade.create(appointment.expert.user_id as any as any, {
                         text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.client?.user?.name || 'Client'} on ${appointment.scheduled_date} at ${appointment.scheduled_time}`
                     });
                 } catch (err) {
@@ -156,7 +160,7 @@ export class UpdatePujaAppointmentStatusUseCase {
                 // 4. Notify Expert
                 try {
                     await this.notificationFacade.create(
-                        appointment.expert.user_id,
+                        appointment.expert.user_id as any,
                         NotificationType.GENERAL,
                         'Puja Confirmed! (Paid)',
                         `User ${appointment.client?.user?.name || 'Client'} has paid for the ${appointment.puja?.name || 'Puja'} Ritual scheduled for ${appointment.scheduled_date}.`,
@@ -224,7 +228,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
             try {
                 await this.notificationFacade.create(
-                    appointment.client?.user_id || 0,
+                    appointment.client?.user_id as any || "",
                     NotificationType.GENERAL,
                     title,
                     message,
@@ -239,7 +243,7 @@ export class UpdatePujaAppointmentStatusUseCase {
         if (isClient && !isExpert && dto.status === PujaAppointmentStatus.ACCEPTED) {
             try {
                 await this.notificationFacade.create(
-                    appointment.expert.user_id,
+                    appointment.expert.user_id as any,
                     NotificationType.GENERAL,
                     'Reschedule Accepted!',
                     `User ${appointment.client?.user?.name || 'Client'} has accepted your proposed time for ${appointment.puja?.name || 'Puja'}.`,

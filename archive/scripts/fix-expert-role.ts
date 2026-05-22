@@ -11,7 +11,7 @@ async function bootstrap() {
 
   try {
     const userId = 133;
-    const user = await queryRunner.manager.findOne(User, {
+    const user = await (queryRunner.manager.getRepository(User) as any).findOne({
       where: { id: userId },
       relations: ['roles']
     });

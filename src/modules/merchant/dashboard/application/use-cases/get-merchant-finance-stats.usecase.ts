@@ -13,13 +13,13 @@ export class GetMerchantFinanceStatsUseCase {
     private readonly orderItemRepo: Repository<OrderItem>,
   ) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     console.log('[FINANCE_STATS] Executing for userId:', userId);
     try {
       const [wallet, actualEarnings, withdrawalsStatus, grossEarningsQuery] = await Promise.all([
-        this.walletFacade.getWallet(userId),
+        this.walletFacade.getWallet(userId as any),
         this.walletFacade.getTotalEarnings(userId),
-        this.walletFacade.getWithdrawalsStatus(userId),
+        this.walletFacade.getWithdrawalsStatus(userId as any),
         this.orderItemRepo
           .createQueryBuilder('oi')
           .innerJoin('oi.order', 'o')

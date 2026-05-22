@@ -12,9 +12,9 @@ export class GetCallTokenUseCase {
         private readonly twilioService: TwilioService,
     ) { }
 
-    async execute(userId: number, sessionId: number) {
+    async execute(userId: string, sessionId: string) {
         const session = await this.sessionRepo.findOne({
-            where: { id: sessionId },
+            where: { id: sessionId as any },
             relations: ['user', 'expert', 'expert.user'],
         });
 

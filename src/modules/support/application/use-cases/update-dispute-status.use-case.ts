@@ -13,7 +13,7 @@ export class UpdateDisputeStatusUseCase {
         private readonly supportGateway: SupportGateway,
     ) { }
 
-    async execute(disputeId: number, data: { status: string; notes?: string }) {
+    async execute(disputeId: string, data: { status: string; notes?: string }) {
         const dispute = await this.disputeRepo.findOne({
             where: { id: disputeId },
         });

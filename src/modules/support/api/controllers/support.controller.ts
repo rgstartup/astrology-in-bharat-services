@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { SupportFacade } from '../../application/support.facade';
 import { CreateDisputeDto } from '../dto/create-dispute.dto';
 import { SendDisputeMessageDto } from '../dto/send-dispute-message.dto';
@@ -22,7 +22,7 @@ export class SupportController {
     @Get('disputes/:id')
     async getDisputeById(
         @CurrentUser() user: User,
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id', ParseUUIDPipe) id: string,
     ) {
         return this.supportFacade.getDisputeById(user.id, id);
     }
@@ -38,7 +38,7 @@ export class SupportController {
     @Get('disputes/:id/messages')
     async getMessages(
         @CurrentUser() user: User,
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id', ParseUUIDPipe) id: string,
     ) {
         return this.supportFacade.getMessages(user.id, id);
     }
@@ -46,7 +46,7 @@ export class SupportController {
     @Post('disputes/:id/messages')
     async sendMessage(
         @CurrentUser() user: User,
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id', ParseUUIDPipe) id: string,
         @Body() dto: SendDisputeMessageDto,
     ) {
         return this.supportFacade.sendMessage(user.id, id, dto);
@@ -55,7 +55,7 @@ export class SupportController {
     @Patch('disputes/:id/messages/read')
     async markMessagesAsRead(
         @CurrentUser() user: User,
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id', ParseUUIDPipe) id: string,
     ) {
         return this.supportFacade.markMessagesAsRead(user.id, id);
     }

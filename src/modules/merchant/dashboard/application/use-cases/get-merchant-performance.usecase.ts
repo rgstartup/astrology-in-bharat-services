@@ -21,9 +21,9 @@ export class GetMerchantPerformanceUseCase {
     private readonly orderItemRepo: Repository<OrderItem>,
   ) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     const profile = await this.profileRepo.findOne({
-      where: { user_id: userId },
+      where: { id: userId as any },
     });
 
     if (!profile) {

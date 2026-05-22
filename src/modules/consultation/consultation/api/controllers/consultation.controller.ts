@@ -5,7 +5,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { GetUnifiedHistoryUseCase } from '../../application/use-cases/get-unified-history.use-case';
 import { CallFacade } from '@/modules/consultation/call/application/call.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
-import { Post, Param, ParseIntPipe } from '@nestjs/common';
+import { Post, Param, ParseUUIDPipe } from '@nestjs/common';
 
 @Controller({
   path: 'consultations',
@@ -48,7 +48,7 @@ export class ConsultationController {
 
   @Post('reject/:sessionId')
   async reject(
-    @Param('sessionId', ParseIntPipe) sessionId: number,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Query('type') type?: string,
   ) {
     if (type === 'call') {

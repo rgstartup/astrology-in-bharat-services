@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class GetMerchantActivityUseCase {
-  async execute(userId: number) {
+  async execute(userId: string) {
     // Returning Mock data as requested to make the dashboard "Live"
     return [
       {

@@ -13,7 +13,10 @@ export class GetAllDisputesUseCase {
     async execute(params?: { status?: string, page?: number, limit?: number }) {
         const { status, page = 1, limit = 10 } = params || {};
         const query = this.disputeRepo.createQueryBuilder('dispute')
-            .leftJoinAndSelect('dispute.user', 'user')
+            .leftJoinAndSelect('dispute.client', 'client')
+            .leftJoinAndSelect('client.user', 'clientUser')
+            .leftJoinAndSelect('dispute.expert', 'expert')
+            .leftJoinAndSelect('expert.user', 'expertUser')
             .leftJoinAndSelect('dispute.consultation', 'consultation')
             .leftJoinAndSelect('consultation.expert', 'consultationExpert')
             .leftJoinAndSelect('consultationExpert.user', 'consultationExpertUser')

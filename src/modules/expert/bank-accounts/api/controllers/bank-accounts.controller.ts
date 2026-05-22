@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
-  ParseIntPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { BankAccountsFacade } from '../../application/bank-accounts.facade';
 import {
@@ -34,38 +34,38 @@ export class BankAccountsController {
     @CurrentUser() user: User,
     @Body() createBankAccountDto: CreateBankAccountDto,
   ) {
-    return this.bankAccountsFacade.create(user.id, createBankAccountDto);
+    return this.bankAccountsFacade.create(user.id as any, createBankAccountDto);
   }
 
   @Get()
   findAll(@CurrentUser() user: User) {
-    return this.bankAccountsFacade.findAll(user.id);
+    return this.bankAccountsFacade.findAll(user.id as any);
   }
 
   @Get(':id')
-  findOne(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number) {
-    return this.bankAccountsFacade.findOne(user.id, id);
+  findOne(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+    return this.bankAccountsFacade.findOne(user.id as any, id);
   }
 
   @Patch(':id')
   update(
     @CurrentUser() user: User,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateBankAccountDto: UpdateBankAccountDto,
   ) {
-    return this.bankAccountsFacade.update(user.id, id, updateBankAccountDto);
+    return this.bankAccountsFacade.update(user.id as any, id, updateBankAccountDto);
   }
 
   @Patch(':id/set-primary')
   setPrimary(
     @CurrentUser() user: User,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.bankAccountsFacade.setPrimary(user.id, id);
+    return this.bankAccountsFacade.setPrimary(user.id as any, id);
   }
 
   @Delete(':id')
-  remove(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number) {
-    return this.bankAccountsFacade.remove(user.id, id);
+  remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+    return this.bankAccountsFacade.remove(user.id as any, id);
   }
 }

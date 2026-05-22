@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -8,7 +7,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum PaymentStatus {
   PENDING = 'pending',
@@ -27,15 +27,15 @@ export class ColumnNumericTransformer {
 
 @Entity({ schema: 'finance', name: 'payment_orders' })
 export class PaymentOrder {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
-  @Column({ type: 'int', name: 'user_id', nullable: true })
-  user_id!: number | null;
+  @Column({ type: 'uuid', name: 'client_id', nullable: true })
+  client_id!: string | null;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'user_id' })
-  user!: User;
+  @ManyToOne(() => ProfileClient, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'client_id' })
+  client!: ProfileClient;
 
   @Column({ name: 'razorpay_order_id', type: 'text', unique: true, nullable: true })
   razorpay_order_id!: string | null;

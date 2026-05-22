@@ -1,6 +1,5 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     ManyToOne,
     CreateDateColumn,
@@ -25,25 +24,26 @@ export enum CallType {
 }
 
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'consultations', name: 'call_sessions' })
 export class CallSession {
-    @PrimaryGeneratedColumn()
-    id!: number;
+    @PrimaryKeyColumn()
+    id!: string;
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })
     user!: User;
 
-    @Column({ type: 'int', name: 'user_id' })
-    user_id!: number;
+    @Column({ type: 'uuid', name: 'user_id' })
+    user_id!: string;
 
     @ManyToOne(() => ProfileExpert)
     @JoinColumn({ name: 'expert_id' })
     expert!: ProfileExpert;
 
-    @Column({ type: 'int', name: 'expert_id' })
-    expert_id!: number;
+    @Column({ type: 'uuid', name: 'expert_id' })
+    expert_id!: string;
 
     @Column({ type: 'timestamptz', nullable: true, name: 'start_time' })
     start_time!: Date;
@@ -80,8 +80,8 @@ export class CallSession {
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'expert_earning', transformer: new ColumnNumericTransformer() })
     expert_earning!: number;
 
-    @Column({ type: 'int', nullable: true, name: 'agent_id' })
-    agent_id?: number;
+    @Column({ type: 'uuid', nullable: true, name: 'agent_id' })
+    agent_id?: string;
 
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'agent_commission', transformer: new ColumnNumericTransformer() })
     agent_commission!: number;

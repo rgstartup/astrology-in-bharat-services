@@ -12,9 +12,9 @@ export class ExpireSessionUseCase {
         private walletFacade: WalletFacade,
     ) { }
 
-    async execute(sessionId: number) {
+    async execute(sessionId: string) {
         const session = await this.sessionRepo.findOne({
-            where: { id: sessionId },
+            where: { id: sessionId as any },
         });
         if (!session || session.status !== ChatSessionStatus.PENDING) return;
 
@@ -27,7 +27,7 @@ export class ExpireSessionUseCase {
         const reservedAmount = session.price_per_minute * 5;
         try {
             await this.walletFacade.releaseReserved(
-                session.user_id,
+                session.client_id,
                 reservedAmount,
                 referenceId,
             );

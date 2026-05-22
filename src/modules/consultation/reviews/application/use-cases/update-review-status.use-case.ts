@@ -10,7 +10,7 @@ export class UpdateReviewStatusUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) { }
 
-  async execute(id: number, status: string) {
+  async execute(id: string, status: string) {
     const review = await this.reviewRepository.findOne({ where: { id } });
     if (!review) {
       throw new NotFoundException(`Review with id ${id} not found`);

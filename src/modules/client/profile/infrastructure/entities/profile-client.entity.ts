@@ -7,24 +7,39 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'client', name: 'profile' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 export class ProfileClient {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
-  @OneToOne(() => User, (user) => user.profile_client)
+  @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
   @Column({ name: 'user_id', nullable: true })
-  user_id!: number | null;
+  user_id!: string | null;
+
+  @Column({ type: 'text', unique: true, nullable: true })
+  uid!: string | null;
+
+  @Column({ type: 'bool', default: false })
+  is_blocked!: boolean;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  name!: string | null;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  email!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  avatar!: string | null;
 
   @Column({ type: 'text', nullable: true })
   username!: string | null;

@@ -1,6 +1,5 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     OneToOne,
     JoinColumn,
@@ -8,11 +7,12 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'agent', name: 'profile' })
-export class AgentProfile {
-    @PrimaryGeneratedColumn()
-    id!: number;
+export class ProfileAgent {
+    @PrimaryKeyColumn()
+    id!: string;
 
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
     total_earnings!: number;
@@ -23,10 +23,10 @@ export class AgentProfile {
     @Column({ type: 'decimal', precision: 5, scale: 2, default: 10.00 })
     commission_rate!: number;
 
-    @Column({ type: 'int', array: true, default: '{}' })
+    @Column({ type: 'uuid', array: true, default: '{}' })
     registered_user_ids!: number[];
 
-    @Column({ type: 'int', array: true, default: '{}' })
+    @Column({ type: 'uuid', array: true, default: '{}' })
     registered_astrologer_ids!: number[];
 
     @Column({ type: 'character varying', length: 255,  nullable: true })
@@ -68,12 +68,27 @@ export class AgentProfile {
     @Column({ type: 'character varying', length: 255, nullable: true })
     pan_doc!: string;
 
-    @OneToOne(() => User, (user) => user.agent_profile)
+    @OneToOne(() => User, { cascade: true })
     @JoinColumn({ name: 'user_id' })
     user!: User;
 
-    @Column({type: 'int'})
-    user_id!: number;
+    @Column({type: 'uuid'})
+    user_id!: string;
+
+    @Column({ type: 'text', unique: true, nullable: true })
+    uid!: string | null;
+
+    @Column({ type: 'bool', default: false })
+    is_blocked!: boolean;
+
+    @Column({ type: 'character varying', length: 255, nullable: true })
+    name!: string | null;
+
+    @Column({ type: 'character varying', length: 255, nullable: true })
+    email!: string | null;
+
+    @Column({ type: 'text', nullable: true })
+    avatar!: string | null;
 
     @CreateDateColumn({type: 'timestamptz'})
     created_at!: Date;
@@ -81,3 +96,4 @@ export class AgentProfile {
     @UpdateDateColumn({type: 'timestamptz'})
     updated_at!: Date;
 }
+

@@ -13,15 +13,15 @@ export class GetBankAccountUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
   ) { }
 
-  private async getExpertProfile(userId: number) {
+  private async getExpertProfile(userId: string) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId } },
+      where: { user: { id: userId as any } },
     });
     if (!profile) throw new NotFoundException('Expert profile not found');
     return profile;
   }
 
-  async execute(userId: number, id: number) {
+  async execute(userId: string, id: string) {
     const profile = await this.getExpertProfile(userId);
     const account = await this.bankAccountRepo.findOne({
       where: { id, expert_id: profile.id },

@@ -43,32 +43,32 @@ export class ChatFacade {
         private readonly updateSessionMetadataUseCase: UpdateSessionMetadataUseCase,
     ) { }
 
-    async initiateChat(userId: number, expertId: number, metadata?: any) {
+    async initiateChat(userId: string, expertId: string, metadata?: any) {
         return this.initiateChatUseCase.execute(userId, expertId, metadata);
     }
 
-    async activateSession(sessionId: number) {
+    async activateSession(sessionId: string) {
         return this.activateSessionUseCase.execute(sessionId);
     }
 
-    async endChat(sessionId: number) {
+    async endChat(sessionId: string) {
         return this.endChatUseCase.execute(sessionId);
     }
 
-    async expireSession(sessionId: number) {
+    async expireSession(sessionId: string) {
         return this.expireSessionUseCase.execute(sessionId);
     }
 
-    async getSession(id: number) {
+    async getSession(id: string) {
         return this.getSessionUseCase.execute(id);
     }
 
-    async getHistory(sessionId: number) {
+    async getHistory(sessionId: string) {
         return this.getMessagesUseCase.execute(sessionId);
     }
 
     async saveMessage(
-        sessionId: number,
+        sessionId: string,
         senderId: number,
         senderType: 'user' | 'expert',
         content: string,
@@ -77,19 +77,19 @@ export class ChatFacade {
         return this.saveMessageUseCase.execute(sessionId, senderId, senderType, content, type);
     }
 
-    async convertToPaid(sessionId: number) {
+    async convertToPaid(sessionId: string) {
         return this.convertToPaidUseCase.execute(sessionId);
     }
 
-    async getExpertSessions(userId: number, filter: ExpertSessionFilter, options: FindExpertSessionsOptions = {}) {
+    async getExpertSessions(userId: string, filter: ExpertSessionFilter, options: FindExpertSessionsOptions = {}) {
         return this.findExpertSessionsUseCase.execute(userId, filter, options);
     }
 
-    async getClientSessions(userId: number) {
+    async getClientSessions(userId: string) {
         return this.findClientSessionsUseCase.execute(userId);
     }
 
-    async getActiveClientSession(userId: number) {
+    async getActiveClientSession(userId: string) {
         return this.findActiveClientSessionUseCase.execute(userId);
     }
 
@@ -97,7 +97,7 @@ export class ChatFacade {
         return this.getTotalSessionsCountUseCase.execute();
     }
 
-    async getExpertSessionCount(expertId: number, options: { status?: ChatSessionStatus | ChatSessionStatus[], startDate?: Date } = {}) {
+    async getExpertSessionCount(expertId: string, options: { status?: ChatSessionStatus | ChatSessionStatus[], startDate?: Date } = {}) {
         return this.countExpertSessionsUseCase.execute(expertId, options);
     }
 
@@ -106,7 +106,7 @@ export class ChatFacade {
     }
 
 
-    async adminTerminateSession(sessionId: number, adminId: number, userMessage?: string, expertMessage?: string) {
+    async adminTerminateSession(sessionId: string, adminId: number, userMessage?: string, expertMessage?: string) {
         return this.adminTerminateSessionUseCase.execute(sessionId, adminId, userMessage, expertMessage);
     }
 
@@ -114,11 +114,11 @@ export class ChatFacade {
         return this.getChatSessionStatsUseCase.execute();
     }
 
-    async rejectSession(sessionId: number) {
+    async rejectSession(sessionId: string) {
         return this.rejectChatUseCase.execute(sessionId);
     }
 
-    async updateSessionMetadata(sessionId: number, metadata: any) {
+    async updateSessionMetadata(sessionId: string, metadata: any) {
         return this.updateSessionMetadataUseCase.execute(sessionId, metadata);
     }
 

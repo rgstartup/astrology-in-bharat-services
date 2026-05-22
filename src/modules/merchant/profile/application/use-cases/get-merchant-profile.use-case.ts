@@ -12,9 +12,9 @@ export class GetMerchantProfileUseCase {
     private readonly encryptionService: EncryptionService,
   ) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     const profile = await this.merchantRepository.findOne({
-      where: { user_id: Number(userId) },
+      where: { user: { id: userId as any } },
       relations: ['user'],
     });
 

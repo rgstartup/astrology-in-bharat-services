@@ -1,7 +1,6 @@
 // src/auth/credential.entity.ts
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
@@ -10,13 +9,14 @@ import {
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { uuidv7 } from 'uuidv7';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({
   schema: 'auth',
   name: 'sessions'
 })
 export class Session {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryKeyColumn()
   id!: string; 
 
   // hashed refresh token (or session secret)

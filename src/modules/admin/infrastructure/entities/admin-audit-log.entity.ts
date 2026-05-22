@@ -1,24 +1,19 @@
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
     ManyToOne,
     JoinColumn,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Entity({ schema: 'admin', name: 'admin_audit_logs' })
 export class AdminAuditLog {
-    @PrimaryGeneratedColumn()
-    id!: number;
+    @PrimaryKeyColumn()
+    id!: string;
 
-    @Column({ name: 'admin_id', type: 'int' })
-    admin_id!: number;
-
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'admin_id' })
-    admin!: User;
+    @Column({ name: 'admin_id', type: 'uuid' })
+    admin_id!: string;
 
     @Column({type: 'character varying', length: 255})
     action!: string; // e.g., 'APPROVE_WITHDRAWAL', 'REJECT_WITHDRAWAL'

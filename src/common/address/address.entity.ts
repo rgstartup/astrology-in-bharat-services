@@ -1,13 +1,13 @@
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
   Unique,
 } from 'typeorm';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum AddressTag {
   HOME = 'home',
@@ -22,8 +22,8 @@ export enum AddressTag {
 @Unique(['profile_client', 'tag'])
 @Unique(['profile_expert', 'tag'])
 export class Address {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryKeyColumn()
+  id: string;
 
   // Map property "line1" to DB column "street"
   @Column({ name: 'street', type: 'varchar', length: 255 })

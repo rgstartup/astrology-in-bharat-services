@@ -12,10 +12,10 @@ export class RejectChatUseCase {
         private walletFacade: WalletFacade,
     ) { }
 
-    async execute(sessionId: number) {
+    async execute(sessionId: string) {
         console.log(`[RejectChatUseCase] Rejecting chat sessionId: ${sessionId}`);
         const session = await this.sessionRepo.findOne({
-            where: { id: sessionId },
+            where: { id: sessionId as any },
         });
 
         if (!session) {
@@ -36,7 +36,7 @@ export class RejectChatUseCase {
         const reservedAmount = session.price_per_minute * 5;
         try {
             await this.walletFacade.releaseReserved(
-                session.user_id,
+                session.client_id,
                 reservedAmount,
                 referenceId,
             );

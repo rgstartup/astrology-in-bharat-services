@@ -10,9 +10,9 @@ export class GetCallSessionUseCase {
         private readonly sessionRepo: Repository<CallSession>,
     ) { }
 
-    async execute(sessionId: number) {
+    async execute(sessionId: string) {
         const session = await this.sessionRepo.findOne({
-            where: { id: sessionId },
+            where: { id: sessionId as any },
             relations: ['user', 'expert', 'expert.user'],
         });
 

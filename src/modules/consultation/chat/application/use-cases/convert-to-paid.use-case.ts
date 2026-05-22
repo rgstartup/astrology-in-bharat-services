@@ -12,9 +12,9 @@ export class ConvertToPaidUseCase {
         private walletFacade: WalletFacade,
     ) { }
 
-    async execute(sessionId: number) {
+    async execute(sessionId: string) {
         const session = await this.sessionRepo.findOne({
-            where: { id: sessionId },
+            where: { id: sessionId as any },
         });
         if (!session) throw new NotFoundException('Session not found');
 
@@ -23,7 +23,7 @@ export class ConvertToPaidUseCase {
         const minBalanceRequired = chatPrice * minMins;
 
         const hasBalance = await this.walletFacade.validateBalance(
-            session.user_id,
+            session.client_id,
             minBalanceRequired,
         );
         if (!hasBalance) {
@@ -34,7 +34,7 @@ export class ConvertToPaidUseCase {
 
         // Reserve balance for the continuation
         await this.walletFacade.reserveBalance(
-            session.user_id,
+            session.client_id,
             minBalanceRequired,
             `chat_${session.id}`,
         );

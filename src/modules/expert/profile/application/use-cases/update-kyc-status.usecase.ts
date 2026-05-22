@@ -21,18 +21,17 @@ export class UpdateKycStatusUseCase {
 
   async execute(expertId: number, status: string, reason?: string) {
     const user = await this.userRepo.findOne({
-      where: { id: Number(expertId) },
-      relations: ['profile_expert'],
+      where: { id: expertId as any }
     });
 
     // Map 'active' (from UI) to 'approved' (for DB)
     const targetStatus = status === 'active' ? 'approved' : status;
 
-    if (!user || (!user.profile_expert && targetStatus !== 'approved')) {
+    let profile = await this.profileRepo.findOne({ where: { user: { id: expertId as any } } });
+
+    if (!user || (!profile && targetStatus !== 'approved')) {
       ProfilePolicy.ensureProfileExists(null);
     }
-
-    let profile = user!.profile_expert;
 
     // If profile is missing and we are approving, create it
     if (!profile && targetStatus === 'approved') {
@@ -67,7 +66,7 @@ export class UpdateKycStatusUseCase {
     // Emit domain event - Side effects (sockets, emails) handled in KycStatusChangedHandler
     this.eventEmitter.emit(
       'expert.kyc.status-changed',
-      new KycStatusChangedEvent(user!.id, profile.id, status, reason),
+      new KycStatusChangedEvent(user!.id as any, profile.id as any, status, reason),
     );
 
     return savedProfile;

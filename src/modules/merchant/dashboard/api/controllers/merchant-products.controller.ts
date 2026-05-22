@@ -11,7 +11,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ParseIntPipe,
+  ParseUUIDPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
@@ -32,13 +32,13 @@ export class MerchantProductsController {
   @Get()
   @HttpCode(HttpStatus.OK)
   async findAll(
-    @CurrentUser('id') userId: number,
+    @CurrentUser('id') userId: string,
     @Query('status') status?: string,
     @Query('search') search?: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
+    @Query('page', new DefaultValuePipe(1), ParseUUIDPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(20), ParseUUIDPipe) limit: number = 20,
   ) {
-    const products = await this.merchantProducts.findAll(userId, { status, search, page, limit });
+    const products = await this.merchantProducts.findAll(userId as any, { status, search, page, limit });
     return { success: true, data: products };
   }
 
@@ -46,10 +46,10 @@ export class MerchantProductsController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async findOne(
-    @CurrentUser('id') userId: number,
-    @Param('id', ParseIntPipe) productId: number,
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) productId: number,
   ) {
-    const product = await this.merchantProducts.findOne(userId, productId);
+    const product = await this.merchantProducts.findOne(userId as any, productId);
     return { success: true, data: product };
   }
 
@@ -57,10 +57,10 @@ export class MerchantProductsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(
-    @CurrentUser('id') userId: number,
+    @CurrentUser('id') userId: string,
     @Body() dto: CreateMerchantProductDto,
   ) {
-    const product = await this.merchantProducts.create(userId, dto);
+    const product = await this.merchantProducts.create(userId as any, dto);
     return { success: true, data: product };
   }
 
@@ -68,10 +68,10 @@ export class MerchantProductsController {
   @Patch('bulk-status')
   @HttpCode(HttpStatus.OK)
   async bulkStatus(
-    @CurrentUser('id') userId: number,
+    @CurrentUser('id') userId: string,
     @Body() dto: BulkUpdateStatusDto,
   ) {
-    const result = await this.merchantProducts.bulkUpdateStatus(userId, dto.ids, dto.status);
+    const result = await this.merchantProducts.bulkUpdateStatus(userId as any, dto.ids, dto.status);
     return { success: true, data: result };
   }
 
@@ -79,11 +79,11 @@ export class MerchantProductsController {
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async update(
-    @CurrentUser('id') userId: number,
-    @Param('id', ParseIntPipe) productId: number,
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) productId: number,
     @Body() dto: CreateMerchantProductDto,
   ) {
-    const product = await this.merchantProducts.update(userId, productId, dto);
+    const product = await this.merchantProducts.update(userId as any, productId, dto);
     return { success: true, data: product };
   }
 
@@ -91,10 +91,10 @@ export class MerchantProductsController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async remove(
-    @CurrentUser('id') userId: number,
-    @Param('id', ParseIntPipe) productId: number,
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) productId: number,
   ) {
-    const result = await this.merchantProducts.remove(userId, productId);
+    const result = await this.merchantProducts.remove(userId as any, productId);
     return { success: true, data: result };
   }
 }

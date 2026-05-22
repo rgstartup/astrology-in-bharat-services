@@ -10,11 +10,11 @@ export class GetMerchantReviewsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) {}
 
-  async execute(merchantId: number, page: number = 1, limit: number = 10) {
+  async execute(merchantId: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await this.reviewRepository.findAndCount({
-      where: { merchant_id: merchantId, status: 'active' }, // Assuming 'active' is the status for approved reviews
+      where: { merchant_id: merchantId as any, status: 'active' }, // Assuming 'active' is the status for approved reviews
       relations: ['user'],
       take: limit,
       skip: skip,
@@ -22,8 +22,8 @@ export class GetMerchantReviewsUseCase {
     });
 
     const formattedReviews = reviews.map((r) => ({
-      name: r.user?.name || 'Anonymous',
-      img: r.user?.avatar,
+      name: r.client?.name || 'Anonymous',
+      img: r.client?.avatar,
       rating: r.rating,
       text: r.comment,
       createdAt: r.created_at,

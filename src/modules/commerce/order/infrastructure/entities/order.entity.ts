@@ -1,6 +1,5 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
     UpdateDateColumn,
@@ -8,8 +7,9 @@ import {
     OneToMany,
     JoinColumn,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { OrderItem } from './order-item.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum OrderStatus {
     PENDING = 'pending',
@@ -23,15 +23,15 @@ export enum OrderStatus {
 
 @Entity({ schema: 'commerce', name: 'product_orders' })
 export class Order {
-    @PrimaryGeneratedColumn()
-    id!: number;
+    @PrimaryKeyColumn()
+    id!: string;
 
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'user_id' })
-    user!: User;
+    @ManyToOne(() => ProfileClient)
+    @JoinColumn({ name: 'client_id' })
+    client!: ProfileClient;
 
-    @Column({ type: 'int', name: 'user_id' })
-    user_id!: number;
+    @Column({ type: 'uuid', name: 'client_id' })
+    client_id!: string;
 
     @Column({ name: 'total_amount', type: 'decimal', precision: 10, scale: 2, default: 0 })
     total_amount!: number;

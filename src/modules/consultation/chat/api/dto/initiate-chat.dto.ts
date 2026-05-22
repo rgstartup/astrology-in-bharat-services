@@ -2,7 +2,7 @@ import { IsNumber, IsOptional, IsObject } from 'class-validator';
 
 export class InitiateChatDto {
   @IsNumber()
-  expertId: number;
+  expertId: string;
 
   @IsOptional()
   @IsObject()

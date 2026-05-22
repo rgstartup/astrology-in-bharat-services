@@ -1,34 +1,42 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
   Unique,
+  Column,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'wishlists' })
-@Unique(['user', 'product'])
-@Unique(['user', 'expert'])
-@Unique(['user', 'puja'])
-@Unique(['user', 'merchant'])
+@Unique(['client', 'product'])
+@Unique(['client', 'expert'])
+@Unique(['client', 'puja'])
+@Unique(['client', 'merchant'])
 
 
 export class Wishlist {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user!: User;
+  @ManyToOne(() => ProfileClient, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'client_id' })
+  client!: ProfileClient;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE', eager: true, nullable: true })
+  @Column({ name: 'client_id', type: 'uuid' })
+  client_id!: string;
+
+  @ManyToOne(() => ProfileExpert, { onDelete: 'CASCADE', eager: true, nullable: true })
   @JoinColumn({ name: 'expert_id' })
-  expert!: User | null;
+  expert!: ProfileExpert | null;
+
+  @Column({ name: 'expert_id', type: 'uuid', nullable: true })
+  expert_id!: string | null;
 
   @ManyToOne(() => Product, {
     onDelete: 'CASCADE',

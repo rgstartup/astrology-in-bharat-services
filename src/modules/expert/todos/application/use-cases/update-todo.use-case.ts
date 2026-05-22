@@ -15,9 +15,9 @@ export class UpdateTodoUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
   ) { }
 
-  private async getExpertProfile(userId: number) {
+  private async getExpertProfile(userId: string) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId } },
+      where: { user: { id: userId as any } },
     });
     if (!profile) {
       throw new NotFoundException('Expert profile not found');
@@ -25,7 +25,7 @@ export class UpdateTodoUseCase {
     return profile;
   }
 
-  async execute(userId: number, id: number, dto: UpdateTodoDto) {
+  async execute(userId: string, id: string, dto: UpdateTodoDto) {
     const profile = await this.getExpertProfile(userId);
     const todo = await this.todoRepo.findOne({
       where: { id, expert_id: profile.id },

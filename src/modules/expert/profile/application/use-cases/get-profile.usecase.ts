@@ -60,7 +60,7 @@ export class GetProfileUseCase {
       
       if (profile.user?.id) {
           this.logger.log(`Checking online status for expert ${profile.user.id}`);
-          plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
+          plain.is_online = this.expertGateway.isExpertOnline(profile.user.id as any);
       } else {
           plain.is_online = false;
       }

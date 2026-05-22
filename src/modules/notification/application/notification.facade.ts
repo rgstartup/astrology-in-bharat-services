@@ -28,7 +28,7 @@ export class NotificationFacade {
         return this.getNotificationsUseCase.execute(userId, limit, offset);
     }
 
-    async markAsRead(id: number, userId: number) {
+    async markAsRead(id: string, userId: number) {
         return this.markAsReadUseCase.execute(id, userId);
     }
 

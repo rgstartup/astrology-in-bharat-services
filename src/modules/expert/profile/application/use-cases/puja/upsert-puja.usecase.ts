@@ -34,7 +34,7 @@ export class UpsertPujaUseCase {
 
     if (id) {
       const existing = await this.pujaRepo.findOne({
-        where: { id, expert_id: profile.id },
+        where: { id: id as any, expert_id: profile.id },
       });
       if (!existing) {
         throw new NotFoundException('Puja service not found');

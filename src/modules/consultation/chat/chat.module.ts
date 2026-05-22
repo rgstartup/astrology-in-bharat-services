@@ -31,10 +31,10 @@ import { NotificationModule } from '@/modules/notification/notification.module';
 import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert, User]),
+    TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert, ProfileClient, User]),
     WalletModule,
     NotificationModule,
     CouponModule,

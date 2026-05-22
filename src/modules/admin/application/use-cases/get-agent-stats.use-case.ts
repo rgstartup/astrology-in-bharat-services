@@ -3,15 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
-import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
+import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 
 @Injectable()
 export class GetAgentStatsUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(AgentProfile)
-    private readonly agentProfileRepository: Repository<AgentProfile>,
+    @InjectRepository(ProfileAgent)
+    private readonly ProfileAgentRepository: Repository<ProfileAgent>,
   ) { }
 
   async execute() {
@@ -29,7 +29,7 @@ export class GetAgentStatsUseCase {
     const blockedAgents = totalAgents - activeAgents;
 
     // Calculate total listings from all agent profiles
-    const listingsResult = await this.agentProfileRepository
+    const listingsResult = await this.ProfileAgentRepository
       .createQueryBuilder('profile')
       .select('SUM(profile.total_registrations)', 'total')
       .getRawOne();
@@ -46,3 +46,5 @@ export class GetAgentStatsUseCase {
     };
   }
 }
+
+

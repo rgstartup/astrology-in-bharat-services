@@ -19,7 +19,7 @@ export class GetDashboardStatsUseCase {
     @InjectRepository(CallSession) private readonly callSessionRepo: Repository<CallSession>,
   ) { }
 
-  async execute(userId: number, type: 'today' | 'total' = 'today') {
+  async execute(userId: string, type: 'today' | 'total' = 'today') {
     const expertProfile = await this.profileFacade.getExpertByUserId(userId);
 
     DashboardPolicy.ensureProfileExists(expertProfile);
@@ -28,17 +28,17 @@ export class GetDashboardStatsUseCase {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const reviewStats = await this.reviewsFacade.getReviewsStats(expertId);
+    const reviewStats = await this.reviewsFacade.getReviewsStats(expertId as any);
 
     if (type === 'today') {
-      const todayChatAppointments = await this.chatFacade.getExpertSessionCount(expertId, {
+      const todayChatAppointments = await this.chatFacade.getExpertSessionCount(expertId as any, {
         startDate: startOfToday,
       });
       const todayCallAppointments = await this.callSessionRepo.count({
         where: { expert_id: expertId, created_at: MoreThanOrEqual(startOfToday) },
       });
 
-      const completedToday = await this.chatFacade.getExpertSessionCount(expertId, {
+      const completedToday = await this.chatFacade.getExpertSessionCount(expertId as any, {
         status: ChatSessionStatus.COMPLETED,
         startDate: startOfToday,
       });
@@ -46,7 +46,7 @@ export class GetDashboardStatsUseCase {
         where: { expert_id: expertId, status: CallSessionStatus.COMPLETED, created_at: MoreThanOrEqual(startOfToday) },
       });
 
-      const expiredToday = await this.chatFacade.getExpertSessionCount(expertId, {
+      const expiredToday = await this.chatFacade.getExpertSessionCount(expertId as any, {
         status: [ChatSessionStatus.EXPIRED, ChatSessionStatus.CANCELLED],
         startDate: startOfToday,
       });
@@ -58,7 +58,7 @@ export class GetDashboardStatsUseCase {
         startDate: startOfToday,
       });
 
-      const walletBalance = await this.walletFacade.getBalance(userId);
+      const walletBalance = await this.walletFacade.getBalance(userId as any);
 
       return {
         today_appointments: todayChatAppointments + todayCallAppointments,
@@ -71,19 +71,19 @@ export class GetDashboardStatsUseCase {
         total_chat_sessions: todayChatAppointments + todayCallAppointments, // Standardized for dashboard cards
       };
     } else {
-      const totalChatAppointments = await this.chatFacade.getExpertSessionCount(expertId);
+      const totalChatAppointments = await this.chatFacade.getExpertSessionCount(expertId as any);
       const totalCallAppointments = await this.callSessionRepo.count({
         where: { expert_id: expertId },
       });
 
-      const totalCompleted = await this.chatFacade.getExpertSessionCount(expertId, {
+      const totalCompleted = await this.chatFacade.getExpertSessionCount(expertId as any, {
         status: ChatSessionStatus.COMPLETED,
       });
       const totalCompletedCalls = await this.callSessionRepo.count({
         where: { expert_id: expertId, status: CallSessionStatus.COMPLETED },
       });
 
-      const totalExpired = await this.chatFacade.getExpertSessionCount(expertId, {
+      const totalExpired = await this.chatFacade.getExpertSessionCount(expertId as any, {
         status: [ChatSessionStatus.EXPIRED, ChatSessionStatus.CANCELLED],
       });
       const totalExpiredCalls = await this.callSessionRepo.count({
@@ -91,7 +91,7 @@ export class GetDashboardStatsUseCase {
       });
 
       const totalEarnings = await this.walletFacade.getTotalEarnings(userId);
-      const walletBalance = await this.walletFacade.getBalance(userId);
+      const walletBalance = await this.walletFacade.getBalance(userId as any);
 
       return {
         total_appointments: totalChatAppointments + totalCallAppointments,

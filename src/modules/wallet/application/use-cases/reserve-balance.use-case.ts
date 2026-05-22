@@ -9,7 +9,7 @@ export class ReserveBalanceUseCase {
   constructor(private readonly dataSource: DataSource) { }
 
   async execute(
-    userId: number,
+    userId: string,
     amount: number,
     referenceId: string,
     externalQueryRunner?: any,
@@ -23,7 +23,7 @@ export class ReserveBalanceUseCase {
 
     try {
       const wallet = await qr.manager.findOne(Wallet, {
-        where: { user_id: userId },
+        where: { client_id: userId as any },
         lock: { mode: 'pessimistic_write' },
       });
       if (!wallet || Number(wallet.balance) < amount) {

@@ -1,15 +1,12 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
-// import { User } from '@/modules/users/entities/user.entity';
-// import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 export enum ChatSessionStatus {
@@ -22,25 +19,26 @@ export enum ChatSessionStatus {
 }
 
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'consultations', name: 'chat_sessions' })
 export class ChatSession {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
-  user!: User;
+  @ManyToOne(() => ProfileClient)
+  @JoinColumn({ name: 'client_id' })
+  client!: ProfileClient;
 
-  @Column({ type: 'int', name: 'user_id' })
-  user_id!: number;
+  @Column({ type: 'uuid', name: 'client_id' })
+  client_id!: string;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
   expert!: ProfileExpert;
 
-  @Column({ type: 'int', name: 'expert_id' })
-  expert_id!: number;
+  @Column({ type: 'uuid', name: 'expert_id' })
+  expert_id!: string;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'start_time' })
   start_time!: Date;
@@ -85,8 +83,8 @@ export class ChatSession {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'expert_earning', transformer: new ColumnNumericTransformer() })
   expert_earning!: number;
 
-  @Column({ type: 'int', nullable: true, name: 'agent_id' })
-  agent_id?: number;
+  @Column({ type: 'uuid', nullable: true, name: 'agent_id' })
+  agent_id?: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'agent_commission', transformer: new ColumnNumericTransformer() })
   agent_commission!: number;

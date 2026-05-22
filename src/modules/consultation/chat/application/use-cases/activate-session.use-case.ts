@@ -4,6 +4,7 @@ import { Repository, Like } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
 import { ChatMessage, MessageType } from '../../infrastructure/entities/chat-message.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class ActivateSessionUseCase {
@@ -12,13 +13,15 @@ export class ActivateSessionUseCase {
         private sessionRepo: Repository<ChatSession>,
         @InjectRepository(ChatMessage)
         private messageRepo: Repository<ChatMessage>,
+        @InjectRepository(ProfileClient)
+        private profileClientRepo: Repository<ProfileClient>,
         private walletFacade: WalletFacade,
     ) { }
 
-    async execute(sessionId: number): Promise<{ session: ChatSession, introCard?: ChatMessage }> {
+    async execute(sessionId: string): Promise<{ session: ChatSession, introCard?: ChatMessage }> {
         const session = await this.sessionRepo.findOne({
-            where: { id: sessionId },
-            relations: ['user', 'user.profile_client'],
+            where: { id: sessionId as any },
+            relations: ['user'],
         });
         if (!session) throw new NotFoundException('Session not found');
 
@@ -36,7 +39,7 @@ export class ActivateSessionUseCase {
         session.start_time = new Date();
 
         // Calculate Max Duration based on Wallet Balance + Free Minutes
-        const balance = await this.walletFacade.getBalance(session.user_id);
+        const balance = await this.walletFacade.getBalance(session.client_id);
         const paidMinutes = session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
         const totalMinutes = (session.is_free ? session.free_minutes : 0) + paidMinutes;
         session.max_duration_seconds = Math.floor(totalMinutes * 60);
@@ -55,12 +58,16 @@ export class ActivateSessionUseCase {
         });
 
         if (!existingCard) {
+            const profileClient = await this.profileClientRepo.findOne({
+                where: { user: { id: session.client_id } }
+            });
+
             const userData = session.metadata || {
-                name: session.user?.name,
-                dob: session.user?.profile_client?.date_of_birth,
-                tob: session.user?.profile_client?.time_of_birth,
-                pob: session.user?.profile_client?.place_of_birth,
-                gender: session.user?.profile_client?.gender,
+                name: session.client?.name,
+                dob: profileClient?.date_of_birth,
+                tob: profileClient?.time_of_birth,
+                pob: profileClient?.place_of_birth,
+                gender: profileClient?.gender,
             };
 
             const content = `[INTRO_CARD]${JSON.stringify(userData)}`;
@@ -68,7 +75,7 @@ export class ActivateSessionUseCase {
             introCard = await this.messageRepo.save(
                 this.messageRepo.create({
                     session_id: sessionId,
-                    sender_id: session.user_id,
+                    sender_id: session.client_id,
                     sender_type: 'user',
                     content,
                     type: MessageType.TEXT,

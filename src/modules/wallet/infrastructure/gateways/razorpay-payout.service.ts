@@ -47,7 +47,7 @@ export class RazorpayPayoutService {
   /**
    * Create or find a RazorpayX contact for the expert
    */
-  async getOrCreateContact(user: { id: number; name: string; email?: string; phone_number?: string }) {
+  async getOrCreateContact(user: { id: string; name: string; email?: string; phone_number?: string }) {
     try {
       // RazorpayX Contacts API: POST /contacts
       const response = await this.makeRequest('/contacts', 'POST', {

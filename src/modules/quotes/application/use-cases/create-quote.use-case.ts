@@ -44,7 +44,8 @@ export class CreateQuoteUseCase implements OnModuleInit {
     const count = await this.quoteRepository.count();
     if (count === 0) {
       this.logger.log('Seeding dummy quotes...');
-      await this.quoteRepository.save(SEED_QUOTES);
+      const entities = this.quoteRepository.create(SEED_QUOTES);
+      await this.quoteRepository.save(entities);
       this.logger.log('Dummy quotes seeded successfully.');
     }
   }

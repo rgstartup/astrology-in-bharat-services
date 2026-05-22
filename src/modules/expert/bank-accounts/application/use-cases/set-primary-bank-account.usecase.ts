@@ -15,7 +15,7 @@ export class SetPrimaryBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(userId: number, id: number) {
+  async execute(userId: string, id: string) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
 
     if(!account.expert || !account.expert_id){
@@ -37,7 +37,7 @@ export class SetPrimaryBankAccountUseCase {
 
     this.eventEmitter.emit(
       'expert.bank-account.primary-changed',
-      new PrimaryBankAccountChangedEvent(userId, oldPrimary?.id, updatedAccount.id),
+      new PrimaryBankAccountChangedEvent(userId as any, oldPrimary?.id, updatedAccount.id),
     );
 
     return updatedAccount;

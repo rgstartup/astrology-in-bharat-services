@@ -5,7 +5,7 @@ import { GetWalletUseCase } from './get-wallet.use-case';
 export class GetBalanceUseCase {
   constructor(private readonly getWalletUseCase: GetWalletUseCase) {}
 
-  async execute(userId: number): Promise<number> {
+  async execute(userId: string): Promise<number> {
     const wallet = await this.getWalletUseCase.execute(userId);
     return Number(wallet.balance);
   }

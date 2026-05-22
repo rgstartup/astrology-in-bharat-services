@@ -1,6 +1,6 @@
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
     UpdateDateColumn,
@@ -19,8 +19,8 @@ export enum CouponStatus {
 
 @Entity({ schema: 'commerce', name: 'coupons' })
 export class Coupon {
-    @PrimaryGeneratedColumn()
-    id!: number;
+    @PrimaryKeyColumn()
+    id!: string;
 
     @Column({ type: 'text', unique: true })
     code!: string;
@@ -47,7 +47,7 @@ export class Coupon {
     @Column({ type: 'timestamptz', nullable: true, name: 'expiry_date' })
     expiry_date!: Date | null;
 
-    @Column({ type: 'int', nullable: true, name: 'max_usage_limit' })
+    @Column({ type: 'uuid', nullable: true, name: 'max_usage_limit' })
     max_usage_limit!: number | null;
 
     @Column({ type: 'int', default: 0, name: 'usage_count' })

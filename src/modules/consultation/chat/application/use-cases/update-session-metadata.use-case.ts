@@ -10,8 +10,8 @@ export class UpdateSessionMetadataUseCase {
         private sessionRepo: Repository<ChatSession>,
     ) { }
 
-    async execute(sessionId: number, metadata: any): Promise<ChatSession> {
-        const session = await this.sessionRepo.findOne({ where: { id: sessionId } });
+    async execute(sessionId: string, metadata: any): Promise<ChatSession> {
+        const session = await this.sessionRepo.findOne({ where: { id: sessionId as any } });
         if (!session) throw new NotFoundException('Session not found');
 
         session.metadata = metadata;

@@ -80,7 +80,7 @@ export class MerchantProductsUseCase {
   // 2. CREATE
   async create(merchantId: number, dto: CreateMerchantProductDto) {
     const isActive = dto.status === MerchantProductStatus.ACTIVE;
-    const product = this.productRepo.create({
+    const product = this.productRepo.create({ ...dto, 
       name: dto.name,
       description: dto.description,
       category: dto.category,
@@ -90,17 +90,17 @@ export class MerchantProductsUseCase {
       image_url: dto.imageUrl,
       stock: dto.stock ?? 0,
       is_active: isActive,
-      merchant_id: merchantId,
+      merchant_id: merchantId as any,
     });
     const saved = await this.productRepo.save(product);
-    return this.toResponse(saved as Product);
+    return this.toResponse(saved as any);
   }
 
   // 3. UPDATE
   async update(merchantId: number, productId: number, dto: Partial<CreateMerchantProductDto>) {
-    const existing = await this.productRepo.findOneBy({ id: productId });
+    const existing = await this.productRepo.findOneBy({ id: productId as any });
     if (!existing) throw new NotFoundException('Product not found');
-    if (existing.merchant_id !== merchantId) {
+    if (existing.merchant_id !== (merchantId as any)) {
       throw new ForbiddenException('You do not own this product');
     }
 
@@ -118,15 +118,15 @@ export class MerchantProductsUseCase {
     }
 
     await this.productRepo.update(productId, updates);
-    const updated = await this.productRepo.findOneBy({ id: productId });
+    const updated = await this.productRepo.findOneBy({ id: productId as any });
     return this.toResponse(updated!);
   }
 
   // 4. DELETE
   async remove(merchantId: number, productId: number) {
-    const existing = await this.productRepo.findOneBy({ id: productId });
+    const existing = await this.productRepo.findOneBy({ id: productId as any });
     if (!existing) throw new NotFoundException('Product not found');
-    if (existing.merchant_id !== merchantId) {
+    if (existing.merchant_id !== (merchantId as any)) {
       throw new ForbiddenException('You do not own this product');
     }
     await this.productRepo.delete(productId);
@@ -141,7 +141,7 @@ export class MerchantProductsUseCase {
   ) {
     // Ensure all products belong to the merchant
     const count = await this.productRepo.count({
-      where: { id: In(ids), merchant_id: merchantId },
+      where: { id: In(ids), merchant_id: merchantId as any },
     });
     if (count !== ids.length) {
       throw new ForbiddenException('Some products do not belong to you');
@@ -158,9 +158,9 @@ export class MerchantProductsUseCase {
 
   // 6. FIND ONE
   async findOne(merchantId: number, productId: number) {
-    const p = await this.productRepo.findOneBy({ id: productId });
+    const p = await this.productRepo.findOneBy({ id: productId as any });
     if (!p) throw new NotFoundException('Product not found');
-    if (p.merchant_id !== merchantId) {
+    if (p.merchant_id !== (merchantId as any)) {
       throw new ForbiddenException('You do not own this product');
     }
     return this.toResponse(p);

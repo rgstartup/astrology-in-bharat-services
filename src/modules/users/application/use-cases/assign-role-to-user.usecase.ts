@@ -10,7 +10,7 @@ export class AssignRoleToUserUseCase {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async execute(userId: number, roleName: RoleEnum, queryRunner?: QueryRunner): Promise<User> {
+  async execute(userId: string, roleName: RoleEnum, queryRunner?: QueryRunner): Promise<User> {
     const user = await this.userRepository.findById(userId, true, queryRunner);
     if (!user) throw new NotFoundException('User not found');
 

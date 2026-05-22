@@ -1,6 +1,5 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     ManyToOne,
     CreateDateColumn,
@@ -8,14 +7,15 @@ import {
     JoinColumn,
 } from 'typeorm';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'expert', name: 'bank_accounts' })
 export class BankAccount {
-    @PrimaryGeneratedColumn()
-    id!: number;
+    @PrimaryKeyColumn()
+    id!: string;
 
-    @Column({ type: 'int', name: 'expert_id', nullable: true })
-    expert_id!: number | null;
+    @Column({ type: 'uuid', name: 'expert_id', nullable: true })
+    expert_id!: string | null;
 
     @ManyToOne(() => ProfileExpert, { onDelete: 'CASCADE', nullable: true })
     @JoinColumn({ name: 'expert_id' })

@@ -9,7 +9,7 @@ import { ROLES_KEY } from '@/common/decorators/roles.decorator';
 import { Role, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 interface JwtUser {
-  id: number;
+  id: string;
   roles: RoleEnum[];
 }
 

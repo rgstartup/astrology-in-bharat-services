@@ -3,7 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
-import { AgentProfile } from '@/modules/agent/infrastructure/entities/agent-profile.entity';
+import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { GetSystemSettingsUseCase } from './get-system-settings.use-case';
 
 @Injectable()
@@ -11,8 +13,8 @@ export class GetAgentsUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(AgentProfile)
-    private readonly agentProfileRepository: Repository<AgentProfile>,
+    @InjectRepository(ProfileAgent)
+    private readonly ProfileAgentRepository: Repository<ProfileAgent>,
     private readonly getSystemSettings: GetSystemSettingsUseCase,
   ) { }
 
@@ -28,7 +30,7 @@ export class GetAgentsUseCase {
 
     const qb = this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.agent_profile', 'agent_profile')
+      .leftJoinAndMapOne('user.agent_profile', ProfileAgent, 'agent_profile', 'agent_profile.user_id = user.id')
       .where(':roleName = ANY(user.roles)', { roleName: 'agent' });
 
     if (params.search) {
@@ -63,7 +65,8 @@ export class GetAgentsUseCase {
     const clientCommPercent = getSettingValue('COMMISION_FROM_CLIENT', 3);
     const expertCommPercent = getSettingValue('COMMISION_FROM_ASTROLOGER', 3);
 
-    const agentsData = await Promise.all(users.map(async (u) => {
+    const agentsData = await Promise.all(users.map(async (uObj) => {
+      const u: any = uObj;
       let totalAgentCommission = 0;
 
       // Fetch referred users and their profiles to calculate earnings
@@ -76,15 +79,16 @@ export class GetAgentsUseCase {
         ];
 
         const referredUsers = await this.userRepository.createQueryBuilder('user')
-          .leftJoinAndSelect('user.profile_expert', 'pe')
-          .leftJoinAndSelect('user.profile_client', 'pc')
+          .leftJoinAndMapOne('user.profile_expert', ProfileExpert, 'pe', 'pe.user_id = user.id')
+          .leftJoinAndMapOne('user.profile_client', ProfileClient, 'pc', 'pc.user_id = user.id')
           .where('(user.referred_by_id = :agentId OR user.id IN (:...ids))', {
             agentId: u.id,
             ids: allRegisteredIds.length > 0 ? allRegisteredIds : [0]
           })
           .getMany();
 
-        for (const ru of referredUsers) {
+        for (const ruObj of referredUsers) {
+          const ru: any = ruObj;
           if (ru.profile_expert) {
             totalAgentCommission += (Number(ru.profile_expert.total_earning || 0) * expertCommPercent) / 100;
           }
@@ -129,3 +133,5 @@ export class GetAgentsUseCase {
     };
   }
 }
+
+

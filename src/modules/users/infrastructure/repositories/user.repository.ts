@@ -4,6 +4,7 @@ import { Repository, QueryRunner } from 'typeorm';
 import { BaseService } from '@/common/services/transaction.service';
 import { User } from '../entities/user.entity';
 import { RoleEnum } from '../enums/Role.enum';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 @Injectable()
 export class UserRepository extends BaseService<User> {
@@ -28,8 +29,7 @@ export class UserRepository extends BaseService<User> {
 
   async findByEmail(email: string, queryRunner?: QueryRunner): Promise<User | null> {
     return this.getRepo(queryRunner).findOne({
-      where: { email },
-      relations: ['profile_client', 'profile_expert'],
+      where: { email }
     });
   }
 
@@ -41,19 +41,17 @@ export class UserRepository extends BaseService<User> {
       .getOne();
   }
 
-  async findById(id: number, all: boolean = true, queryRunner?: QueryRunner): Promise<User | null> {
+  async findById(id: string, all: boolean = true, queryRunner?: QueryRunner): Promise<User | null> {
     return this.getRepo(queryRunner).findOne({
       where: { id },
       relations: {
         oauth_accounts: all,
-        sessions: all,
-        profile_client: true,
-        profile_expert: true,
+        sessions: all
       },
     });
   }
 
-  async update(id: number, data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
+  async update(id: string, data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
     
     const repo = this.getRepo(queryRunner);
 
@@ -62,7 +60,7 @@ export class UserRepository extends BaseService<User> {
     // But for now, let's try to save if we have complex data, or update if simple.
     // However, the interface says `update`.
     // To keep it simple and consistent with Service:
-    await repo.update(id, data);
+    await repo.update(id as any, data);
 
     // Re-fetch to return the updated entity, 
     // ensuring we use the same transaction if present
@@ -75,16 +73,16 @@ export class UserRepository extends BaseService<User> {
     return updatedUser;  
   }
 
-  async delete(id: number, queryRunner?: QueryRunner): Promise<void> {
+  async delete(id: string, queryRunner?: QueryRunner): Promise<void> {
     const repo = this.getRepo(queryRunner);
-    await repo.delete(id);
+    await repo.delete(id as any);
   }
 
   async getExpertsForRevenue(queryRunner?: QueryRunner): Promise<User[]> {
     
     return this.getRepo(queryRunner)
       .createQueryBuilder('user')
-      .innerJoin('user.profile_expert', 'profile')
+      .innerJoin(ProfileExpert, 'profile', 'profile.user_id = user.id')
       .where(':role = Any(user.roles)', { role: RoleEnum.EXPERT })
       .select(['user.id', 'user.name', 'profile.id'])
       .getMany();

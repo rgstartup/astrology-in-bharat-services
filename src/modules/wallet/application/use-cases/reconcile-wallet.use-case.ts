@@ -44,7 +44,7 @@ export class ReconcileWalletUseCase {
             if (Math.abs(ledgerBalance - actualBalance) > 0.01) {
                 mismatches.push({
                     wallet_id: wallet.id,
-                    user_id: wallet.user_id,
+                    user_id: wallet.client_id,
                     ledgerBalance,
                     actualBalance,
                     diff: ledgerBalance - actualBalance

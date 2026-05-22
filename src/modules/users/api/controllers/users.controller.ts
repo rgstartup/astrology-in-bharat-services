@@ -1,4 +1,4 @@
-import {
+import { ParseUUIDPipe, 
   Controller,
   Get,
   Post,
@@ -9,7 +9,7 @@ import {
   UseGuards,
   Query,
   ParseEnumPipe,
-} from '@nestjs/common';
+ } from '@nestjs/common';
 import { CreateUserDto } from '../dto/user.dto';
 import { UsersFacade } from '../../application/users.facade';
 import { JwtAuthGuard } from '../../../auth/api/guards/auth.guard';
@@ -42,25 +42,25 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersFacade.findById(+id);
+  async getUserById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersFacade.findById(id as any);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: Partial<CreateUserDto>) {
     // TODO: Handle role updates properly or separate them
-    return this.usersFacade.update(+id, updateUserDto as unknown as Partial<User>);
+    return this.usersFacade.update(id as any, updateUserDto as unknown as Partial<User>);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usersFacade.delete(+id);
+    return this.usersFacade.delete(id as any);
   }
 
   @Post(':id/roles')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  assignRole(@Param('id') id: string, @Body('role', RolePipe({optional: true})) role: RoleEnum) {
-      return this.usersFacade.assignRole(+id, role);
+  async assignRole(@Param('id', ParseUUIDPipe) id: string, @Body('role', RolePipe({optional: true})) role: RoleEnum) {
+      return this.usersFacade.assignRole(id as any, role);
   }
 }

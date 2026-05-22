@@ -32,7 +32,7 @@ import { Order } from '../commerce/order/infrastructure/entities/order.entity';
 import { Coupon } from '../commerce/coupon/infrastructure/entities/coupon.entity';
 import { UserCoupon } from '../commerce/coupon/infrastructure/entities/user-coupon.entity';
 import { ExternalModule } from '@/external/external.module';
-import { AgentProfile } from '../agent/infrastructure/entities/agent-profile.entity';
+import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
 import { User } from '../users/infrastructure/entities/user.entity';
 import { AgentListing } from '../agent/infrastructure/entities/agent-listing.entity';
 import { Transaction } from '../wallet/infrastructure/entities/transaction.entity';
@@ -42,6 +42,7 @@ import { OrderItem } from '../commerce/order/infrastructure/entities/order-item.
 import { Product } from '../commerce/product/infrastructure/entities/product.entity';
 import { ProfileMerchant } from '../merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileExpert } from '../expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { MerchantModule } from '../merchant/merchant.module';
 
 import { SystemSetting } from './infrastructure/entities/system-setting.entity';
@@ -64,7 +65,7 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
       Product,
       Coupon,
       UserCoupon,
-      AgentProfile,
+      ProfileAgent,
       User,
       AgentListing,
       Transaction,
@@ -73,6 +74,7 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
       SystemSetting,
       ProfileMerchant,
       ProfileExpert,
+      ProfileClient,
     ]),
 
     UsersModule,
@@ -112,3 +114,5 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
   ],
 })
 export class AdminModule { }
+
+

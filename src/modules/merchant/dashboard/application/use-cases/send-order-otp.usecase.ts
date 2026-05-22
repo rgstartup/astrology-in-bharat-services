@@ -22,14 +22,14 @@ export class SendOrderOtpUseCase {
 
   async execute(merchantId: number, orderId: number) {
     const order = await this.orderRepo.findOne({ 
-      where: { id: orderId },
+      where: { id: orderId as any },
       relations: ['items', 'items.product']
     });
     
     if (!order) throw new NotFoundException('Order not found');
 
     // Ownership check
-    const belongsToMerchant = order.items.some(item => item.product?.merchant_id === merchantId);
+    const belongsToMerchant = order.items.some(item => item.product?.merchant_id === (merchantId as any));
     if (!belongsToMerchant) {
       throw new ForbiddenException('You do not have permission to access this order');
     }
@@ -46,7 +46,7 @@ export class SendOrderOtpUseCase {
 
     // 1. Save Notification
     await this.notificationFacade.create(
-      order.user_id,
+      order.client_id as any,
       NotificationType.ORDER_SHIPPED, // Reusing SHIPPED type for OTP context
       title,
       message,
@@ -54,7 +54,7 @@ export class SendOrderOtpUseCase {
     );
 
     // 2. Emit Socket
-    this.notificationGateway.emitToUser(order.user_id, 'order_status_updated', {
+    this.notificationGateway.emitToUser(order.client_id as any, 'order_status_updated', {
       orderId,
       status: order.status,
       title,
@@ -63,7 +63,7 @@ export class SendOrderOtpUseCase {
 
     // 3. Send Email
     try {
-      const user = await this.userRepo.findOne({ where: { id: order.user_id } });
+      const user = await this.userRepo.findOne({ where: { id: order.client_id as any } });
       if (user?.email) {
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">

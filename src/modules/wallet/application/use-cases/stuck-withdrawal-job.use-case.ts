@@ -33,7 +33,7 @@ export class StuckWithdrawalJob {
             this.logger.warn(`Detected ${stuckWithdrawals.length} withdrawals stuck in PROCESSING for >24 hours!`);
             
             for (const withdrawal of stuckWithdrawals) {
-                this.logger.warn(`Stuck Withdrawal ID: ${withdrawal.id}, Expert: ${withdrawal.user?.name}, Amount: ${withdrawal.amount}`);
+                this.logger.warn(`Stuck Withdrawal ID: ${withdrawal.id}, Expert/Merchant ID: ${withdrawal.expert_id || withdrawal.merchant_id}, Amount: ${withdrawal.amount}`);
                 
                 // Add a remark to bring it to admin's attention if not already flagged
                 if (!withdrawal.remark?.includes('STUCK_DETECTED')) {

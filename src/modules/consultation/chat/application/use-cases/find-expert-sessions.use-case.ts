@@ -29,9 +29,9 @@ export class FindExpertSessionsUseCase {
         private expertRepo: Repository<ProfileExpert>,
     ) { }
 
-    async execute(userId: number, filter: ExpertSessionFilter, options: FindExpertSessionsOptions = {}) {
+    async execute(userId: string, filter: ExpertSessionFilter, options: FindExpertSessionsOptions = {}) {
         const expert = await this.expertRepo.findOne({
-            where: { user: { id: userId } },
+            where: { user: { id: userId as any } },
         });
         if (!expert) return { data: [], totalCount: 0 };
 

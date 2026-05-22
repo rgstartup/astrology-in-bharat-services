@@ -25,15 +25,15 @@ export class ProductFacade {
     return this.findAllProductsUseCase.execute(filters);
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.findProductUseCase.execute(id);
   }
 
-  update(id: number, dto: UpdateProductDto) {
+  update(id: string, dto: UpdateProductDto) {
     return this.updateProductUseCase.execute(id, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.removeProductUseCase.execute(id);
   }
 }

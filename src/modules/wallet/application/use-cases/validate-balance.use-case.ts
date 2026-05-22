@@ -5,7 +5,7 @@ import { GetBalanceUseCase } from './get-balance.use-case';
 export class ValidateBalanceUseCase {
   constructor(private readonly getBalanceUseCase: GetBalanceUseCase) {}
 
-  async execute(userId: number, minAmount: number): Promise<boolean> {
+  async execute(userId: string, minAmount: number): Promise<boolean> {
     const balance = await this.getBalanceUseCase.execute(userId);
     return balance >= minAmount;
   }

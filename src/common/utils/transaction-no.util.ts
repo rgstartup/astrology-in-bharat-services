@@ -3,7 +3,7 @@ import { TransactionPurpose } from "../../modules/wallet/infrastructure/entities
 
 
 
-export function generateTransactionNo(role: Role, purpose: TransactionPurpose, id: number): string {
+export function generateTransactionNo(role: Role, purpose: TransactionPurpose, id: string): string {
     const prefix = 'AIB';
     
     // Role Part

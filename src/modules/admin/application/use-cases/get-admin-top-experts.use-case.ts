@@ -20,8 +20,8 @@ export class GetAdminTopExpertsUseCase {
     const profiles = await this.usersFacade.getExpertsForRevenue();
 
     const results = (await Promise.all(profiles.map(async (expert) => {
-      if (!expert.profile_expert) return null;
-      const expertProfileId = expert.profile_expert.id;
+      if (!(expert as any).profile_expert) return null;
+      const expertProfileId = (expert as any).profile_expert.id;
 
       // 1. Chat Revenue
       const chatStats = await this.chatFacade.getExpertRevenueAndCount(expertProfileId);

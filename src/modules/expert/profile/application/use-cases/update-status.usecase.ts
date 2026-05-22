@@ -30,7 +30,7 @@ export class UpdateStatusUseCase {
 
     // Business Logic: Prevent going offline if there are active sessions
     if (isAvailable === false) {
-      const activeSessionsCount = await this.chatFacade.getExpertSessionCount(profile.id, {
+      const activeSessionsCount = await this.chatFacade.getExpertSessionCount(profile.id as any, {
         status: [ChatSessionStatus.ACTIVE, ChatSessionStatus.PENDING]
       });
 
@@ -46,7 +46,7 @@ export class UpdateStatusUseCase {
     // Emit event
     this.eventEmitter.emit(
       'expert.status.changed',
-      new ExpertStatusChangedEvent(user.id, isAvailable),
+      new ExpertStatusChangedEvent(user.id as any, isAvailable),
     );
 
     return { success: true, is_available: isAvailable };

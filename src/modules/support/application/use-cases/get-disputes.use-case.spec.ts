@@ -15,7 +15,12 @@ describe('GetDisputesUseCase', () => {
                 {
                     provide: getRepositoryToken(Dispute),
                     useValue: {
-                        find: jest.fn(),
+                        createQueryBuilder: jest.fn().mockReturnValue({
+                            leftJoin: jest.fn().mockReturnThis(),
+                            where: jest.fn().mockReturnThis(),
+                            orderBy: jest.fn().mockReturnThis(),
+                            getMany: jest.fn().mockResolvedValue([]),
+                        }),
                     },
                 },
             ],
@@ -25,13 +30,10 @@ describe('GetDisputesUseCase', () => {
         repo = module.get<Repository<Dispute>>(getRepositoryToken(Dispute));
     });
 
-    it('should call find with the correct criteria', async () => {
-        const userId = 1;
+    it('should call createQueryBuilder with the correct criteria', async () => {
+        const userId = '123e4567-e89b-12d3-a456-426614174000';
         await useCase.execute(userId);
 
-        expect(repo.find).toHaveBeenCalledWith({
-            where: { user_id: userId },
-            order: { created_at: 'DESC' },
-        });
+        expect(repo.createQueryBuilder).toHaveBeenCalledWith('dispute');
     });
 });

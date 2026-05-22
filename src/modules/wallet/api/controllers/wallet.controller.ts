@@ -30,8 +30,8 @@ export class WalletController {
     @Query('type') type: string = 'all',
     @Query('purpose') purpose?: string,
   ) {
-    const limitNum = parseInt(limit || '10', 10);
-    const offsetNum = parseInt(offset || '0', 10);
+    const limitNum = limit || '10';
+    const offsetNum = offset || '0';
     return this.walletFacade.getTransactions(
       user.id,
       limitNum,

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsNumber, IsObject } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsObject, IsUUID } from 'class-validator';
 
 export class CreateDisputeDto {
     @IsNotEmpty()
@@ -6,20 +6,20 @@ export class CreateDisputeDto {
     type: string;
 
     @IsOptional()
-    @IsNumber()
-    itemId?: number;
+    @IsUUID()
+    itemId?: string;
 
     @IsOptional()
-    @IsNumber()
-    orderId?: number;
+    @IsUUID()
+    orderId?: string;
 
     @IsOptional()
-    @IsNumber()
-    consultationId?: number;
+    @IsUUID()
+    consultationId?: string;
 
     @IsOptional()
-    @IsNumber()
-    pujaId?: number;
+    @IsUUID()
+    pujaId?: string;
 
     @IsNotEmpty()
     @IsString()

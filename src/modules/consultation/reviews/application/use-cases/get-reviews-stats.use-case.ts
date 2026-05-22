@@ -13,8 +13,8 @@ export class GetReviewsStatsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) { }
 
-  async execute(expertId: number) {
-    const expert = await this.expertRepository.findOne({ where: { id: expertId } });
+  async execute(expertId: string) {
+    const expert = await this.expertRepository.findOne({ where: { id: expertId as any } });
     if (!expert) return null;
 
     // Get star-wise distribution counts

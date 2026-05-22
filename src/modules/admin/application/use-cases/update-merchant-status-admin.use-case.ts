@@ -10,7 +10,7 @@ export class UpdateMerchantStatusAdminUseCase {
     private readonly merchantRepository: Repository<ProfileMerchant>,
   ) {}
 
-  async execute(id: number, data: { status: string }) {
+  async execute(id: string, data: { status: string }) {
     const profile = await this.merchantRepository
       .createQueryBuilder('merchant')
       .where('merchant.id = :id', { id })

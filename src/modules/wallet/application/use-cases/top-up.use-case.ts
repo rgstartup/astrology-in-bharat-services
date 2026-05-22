@@ -8,8 +8,9 @@ export class TopUpUseCase {
   constructor(private readonly creditUseCase: CreditUseCase) {}
 
   async execute(
-    userId: number,
+    userId: string,
     amount: number,
+    paymentMethodId: string,
     referenceId?: string,
     externalQueryRunner?: any,
   ): Promise<Wallet> {

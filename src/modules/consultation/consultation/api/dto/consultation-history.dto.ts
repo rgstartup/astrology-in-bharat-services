@@ -15,7 +15,7 @@ export enum ConsultationStatus {
 }
 
 export class ConsultationExpertDto {
-  id: number;
+  id: string;
   name: string;
   profileImage: string;
 }

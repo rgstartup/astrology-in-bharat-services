@@ -10,10 +10,12 @@ export class GetDisputesUseCase {
         private readonly disputeRepo: Repository<Dispute>,
     ) { }
 
-    async execute(userId: number) {
-        return this.disputeRepo.find({
-            where: { user_id: userId },
-            order: { created_at: 'DESC' },
-        });
+    async execute(userId: string) {
+        return this.disputeRepo.createQueryBuilder('dispute')
+            .leftJoin('dispute.client', 'client')
+            .leftJoin('dispute.expert', 'expert')
+            .where('client.user_id = :userId OR expert.user_id = :userId', { userId })
+            .orderBy('dispute.created_at', 'DESC')
+            .getMany();
     }
 }

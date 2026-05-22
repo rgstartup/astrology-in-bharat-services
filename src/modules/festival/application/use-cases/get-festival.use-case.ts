@@ -10,7 +10,7 @@ export class GetFestivalUseCase {
     private readonly festivalRepo: Repository<Festival>,
   ) {}
 
-  async execute(id: number) {
+  async execute(id: string) {
     const festival = await this.festivalRepo.findOne({ where: { id } });
     if (!festival) {
       throw new NotFoundException(`Festival with ID ${id} not found`);

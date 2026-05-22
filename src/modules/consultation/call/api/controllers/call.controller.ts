@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Body, UseGuards, Req, Header, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, UseGuards, Req, Header, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CallType } from '../../infrastructure/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
@@ -20,7 +20,7 @@ export class CallController {
     // ... (lines 14-24 remains same)
     async initiate(
         @Req() req: any,
-        @Body() body: { expertId: number; type?: CallType }
+        @Body() body: { expertId: string; type?: CallType }
     ) {
         console.log(`[CallController] Initiate call: userId=${req.user.id}, expertId=${body.expertId}, type=${body.type || CallType.AUDIO}`);
         return this.callFacade.initiate(
@@ -33,7 +33,7 @@ export class CallController {
     @Post('accept')
     async accept(
         @Req() req: any,
-        @Body() body: { sessionId: number }
+        @Body() body: { sessionId: string }
     ) {
         console.log(`[CallController] Accept call: userId=${req.user.id}, sessionId=${body.sessionId}`);
         return this.callFacade.accept(
@@ -44,7 +44,7 @@ export class CallController {
 
     @Post('end')
     async end(
-        @Body() body: { sessionId: number; endedBy?: string; reason?: string }
+        @Body() body: { sessionId: string; endedBy?: string; reason?: string }
     ) {
         console.log(`[CallController] End call: sessionId=${body.sessionId}, endedBy=${body.endedBy}`);
         return this.callFacade.end(body.sessionId, body.endedBy, body.reason);
@@ -53,7 +53,7 @@ export class CallController {
     @Patch('session/:sessionId/status')
     async updateStatus(
         @Req() req: any,
-        @Param('sessionId', ParseIntPipe) sessionId: number,
+        @Param('sessionId', ParseUUIDPipe) sessionId: string,
         @Body('status') status: string,
     ) {
         console.log(`[CallController] Expert Updating status of call session ${sessionId} to ${status}`);
@@ -76,7 +76,7 @@ export class CallController {
 
     @Get('session/:sessionId')
     @Header('Cache-Control', 'no-store')
-    async getSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
+    async getSession(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
         return this.callFacade.getSession(sessionId);
     }
 
@@ -84,7 +84,7 @@ export class CallController {
     @Header('Cache-Control', 'no-store')
     async getToken(
         @Req() req: any,
-        @Param('sessionId', ParseIntPipe) sessionId: number
+        @Param('sessionId', ParseUUIDPipe) sessionId: string
     ) {
         return this.callFacade.getCallToken(req.user.id, sessionId);
     }

@@ -16,8 +16,8 @@ export class GetMerchantAnalyticsUseCase {
     private readonly profileRepo: Repository<ProfileMerchant>,
   ) {}
 
-  async execute(userId: number) {
-    const profile = await this.profileRepo.findOne({ where: { user_id: userId } });
+  async execute(userId: string) {
+    const profile = await this.profileRepo.findOne({ where: { id: userId as any } });
     const merchantId = profile?.id || 0;
 
     // 1. Revenue Timeline (Last 30 Days)

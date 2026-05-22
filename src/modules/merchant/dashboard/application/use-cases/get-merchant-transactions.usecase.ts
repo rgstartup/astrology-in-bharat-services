@@ -16,10 +16,10 @@ export class GetMerchantTransactionsUseCase {
     private readonly withdrawalRepo: Repository<Withdrawal>,
   ) {}
 
-  async execute(userId: number, options: { search?: string; page?: number; limit?: number }) {
+  async execute(userId: string, options: { search?: string; page?: number; limit?: number }) {
     const { search, page = 1, limit = 10 } = options;
 
-    const wallet = await this.walletRepo.findOne({ where: { user_id: userId } });
+    const wallet = await this.walletRepo.findOne({ where: { id: userId as any } });
     if (!wallet) {
       return { transactions: [], total: 0, page, limit };
     }
@@ -68,7 +68,7 @@ export class GetMerchantTransactionsUseCase {
           
           if (txn.reference_id?.startsWith('REFUND-WD-')) {
             const withdrawalId = parseInt(txn.reference_id.replace('REFUND-WD-', ''));
-            const withdrawal = await this.withdrawalRepo.findOne({ where: { id: withdrawalId } });
+            const withdrawal = await this.withdrawalRepo.findOne({ where: { id: withdrawalId as any } });
             if (withdrawal) {
                 orderId = `WD-${withdrawalId}`;
                 info = `Refund for Withdrawal #${withdrawalId}`;

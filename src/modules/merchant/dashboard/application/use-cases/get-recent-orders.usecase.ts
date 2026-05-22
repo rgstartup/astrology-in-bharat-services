@@ -10,7 +10,7 @@ export class GetRecentOrdersUseCase {
     private readonly orderItemRepo: Repository<OrderItem>,
   ) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     console.log('[RECENT_ORDERS] Request for userId:', userId);
     const recentOrderItems = await this.orderItemRepo
       .createQueryBuilder('oi')
@@ -24,7 +24,7 @@ export class GetRecentOrdersUseCase {
 
     return recentOrderItems.map((item) => ({
       id: item.order.id.toString(),
-      customerName: item.order.user?.name || 'Guest',
+      customerName: item.order.client?.user?.name || 'Guest',
       amount: Number(item.price) * item.quantity,
       status: item.order.status,
       date: item.order.created_at.toISOString(),

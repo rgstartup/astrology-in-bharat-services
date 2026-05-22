@@ -16,7 +16,7 @@ export class UpdateBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(userId: number, id: number, dto: UpdateBankAccountDto) {
+  async execute(userId: string, id: string, dto: UpdateBankAccountDto) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
 
     if(!account.expert || !account.expert_id){
@@ -36,7 +36,7 @@ export class UpdateBankAccountUseCase {
 
     this.eventEmitter.emit(
       'expert.bank-account.updated',
-      new BankAccountUpdatedEvent(userId, updatedAccount.id),
+      new BankAccountUpdatedEvent(userId as any, updatedAccount.id),
     );
 
     return updatedAccount;

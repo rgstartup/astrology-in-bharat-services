@@ -1,9 +1,9 @@
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { PujaMode } from "../../infrastructure/entities/puja-appointment.entity";
 
 export class CreatePujaAppointmentDto {
-  @IsNumber()
-  puja_id: number;
+  @IsUUID()
+  puja_id: string;
 
   @IsOptional()
   @IsString()

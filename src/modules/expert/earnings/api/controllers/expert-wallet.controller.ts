@@ -5,7 +5,7 @@ import {
     Body,
     Query,
     UseGuards,
-    ParseIntPipe,
+    ParseUUIDPipe,
     Headers,
     Ip,
 } from '@nestjs/common';
@@ -27,17 +27,17 @@ export class ExpertWalletController {
 
     @Get('balance')
     async getBalance(@CurrentUser() user: User) {
-        return this.earningsFacade.getWalletBalance(user.id);
+        return this.earningsFacade.getWalletBalance(user.id as any);
     }
 
     @Get('transactions')
     getTransactions(
         @CurrentUser() user: User,
-        @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 10,
-        @Query('offset', new ParseIntPipe({ optional: true })) offset: number = 0,
+        @Query('limit', new ParseUUIDPipe({ optional: true })) limit: number = 10,
+        @Query('offset', new ParseUUIDPipe({ optional: true })) offset: number = 0,
         @Query('type') type: string = 'all',
     ) {
-        return this.earningsFacade.getTransactions(user.id, limit, offset, type);
+        return this.earningsFacade.getTransactions(user.id as any, limit, offset, type);
     }
 
     @Post('withdraw')

@@ -9,7 +9,7 @@ export class FindUserUseCase {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async findById(id: number, queryRunner?: QueryRunner): Promise<User | null> {
+  async findById(id: string, queryRunner?: QueryRunner): Promise<User | null> {
     const user = await this.userRepository.findById(id, true, queryRunner);
     return user;
   }

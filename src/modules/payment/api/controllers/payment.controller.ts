@@ -21,10 +21,10 @@ export class PaymentController {
     @UseGuards(JwtAuthGuard)
     @Post('orders/create')
     async createOrder(
-        @CurrentUser() user: User,
-        @Body() dto: CreateOrderDto,
+        @CurrentUser() user: any, 
+        @Body() createOrderDto: CreateOrderDto,
     ) {
-        return this.paymentFacade.createOrder(user.id, dto);
+        return this.paymentFacade.createOrder(user.id, createOrderDto);
     }
 
     @UseGuards(JwtAuthGuard)

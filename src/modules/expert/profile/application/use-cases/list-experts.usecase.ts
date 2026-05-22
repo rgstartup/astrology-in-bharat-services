@@ -167,7 +167,7 @@ export class ListExpertsUseCase {
         plain.userId = ex.user?.id;
         plain.isAvailable = ex.is_available;
         plain.is_online = ex.user?.id
-          ? this.expertGateway.isExpertOnline(ex.user.id)
+          ? this.expertGateway.isExpertOnline(ex.user.id as any)
           : false;
         
         // Standard fallbacks (COALESCE logic shifted to backend)

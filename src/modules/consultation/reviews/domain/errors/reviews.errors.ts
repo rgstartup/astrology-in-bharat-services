@@ -1,7 +1,7 @@
 import { DomainError } from '@/common/types/domain.error';
 
 export class ExpertNotFoundError extends DomainError {
-  constructor(expertId: number) {
+  constructor(expertId: string) {
     super();
     this.message = `Expert with ID ${expertId} not found`;
   }
@@ -11,7 +11,7 @@ export class ExpertNotFoundError extends DomainError {
 }
 
 export class SessionNotFoundError extends DomainError {
-  constructor(sessionId: number) {
+  constructor(sessionId: string) {
     super();
     this.message = `Session with ID ${sessionId} not found`;
   }

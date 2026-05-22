@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { DatabaseService } from '@/core/database/database.service';

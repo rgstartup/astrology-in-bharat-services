@@ -11,7 +11,7 @@ export class ClearAllNotificationsUseCase {
     ) { }
 
     async execute(userId: number) {
-        await this.notificationRepo.delete({ user_id: userId });
+        await this.notificationRepo.delete({ client_id: userId as any });
         return { message: 'All notifications cleared successfully' };
     }
 }

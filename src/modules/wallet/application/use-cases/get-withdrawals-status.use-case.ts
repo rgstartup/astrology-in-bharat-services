@@ -10,7 +10,7 @@ export class GetWithdrawalsStatusUseCase {
     private readonly withdrawalRepository: Repository<Withdrawal>,
   ) { }
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     const query = this.withdrawalRepository
       .createQueryBuilder('w')
       .where('w.user_id = :userId', { userId });

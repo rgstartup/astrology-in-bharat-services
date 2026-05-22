@@ -10,8 +10,8 @@ export class CountExpertSessionsUseCase {
     private readonly chatSessionRepo: Repository<ChatSession>,
   ) { }
 
-  async execute(expertId: number, options: { status?: ChatSessionStatus | ChatSessionStatus[], startDate?: Date } = {}) {
-    const where: any = { expert_id: expertId };
+  async execute(expertId: string, options: { status?: ChatSessionStatus | ChatSessionStatus[], startDate?: Date } = {}) {
+    const where: any = { expert_id: expertId as any };
 
     if (options.status) {
       if (Array.isArray(options.status)) {

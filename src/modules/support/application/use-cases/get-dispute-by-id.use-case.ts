@@ -10,16 +10,17 @@ export class GetDisputeByIdUseCase {
         private readonly disputeRepo: Repository<Dispute>,
     ) { }
 
-    async execute(userId: number, disputeId: number, isAdmin = false) {
-        const where: any = { id: disputeId };
+    async execute(userId: string, disputeId: string, isAdmin = false) {
+        const query = this.disputeRepo.createQueryBuilder('dispute')
+            .leftJoinAndSelect('dispute.client', 'client')
+            .leftJoinAndSelect('dispute.expert', 'expert')
+            .where('dispute.id = :disputeId', { disputeId });
+
         if (!isAdmin) {
-            where.user_id = userId;
+            query.andWhere('(client.user_id = :userId OR expert.user_id = :userId)', { userId });
         }
 
-        const dispute = await this.disputeRepo.findOne({
-            where,
-            relations: ['user'], // Added relation for better details
-        });
+        const dispute = await query.getOne();
 
         if (!dispute) {
             throw new NotFoundException(`Dispute with ID ${disputeId} not found`);

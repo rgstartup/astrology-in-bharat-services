@@ -11,7 +11,7 @@ export class FindQuoteUseCase {
     private readonly quoteRepository: Repository<Quote>,
   ) {}
 
-  async execute(id: number): Promise<Quote> {
+  async execute(id: string): Promise<Quote> {
     const quote = await this.quoteRepository.findOneBy({ id });
     if (!quote) throw new QuoteNotFoundError(id);
     return quote;

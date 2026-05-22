@@ -11,7 +11,7 @@ export class UpdateFestivalUseCase {
     private readonly festivalRepo: Repository<Festival>,
   ) {}
 
-  async execute(id: number, dto: UpdateFestivalDto) {
+  async execute(id: string, dto: UpdateFestivalDto) {
     const festival = await this.festivalRepo.findOne({ where: { id } });
     if (!festival) {
       throw new NotFoundException(`Festival with ID ${id} not found`);

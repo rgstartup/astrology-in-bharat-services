@@ -27,7 +27,7 @@ export class KycStatusChangedHandler {
 
     // If rejected, send email
     if (event.status === 'rejected' && event.reason) {
-      const user = await this.userRepo.findOne({ where: { id: event.userId } });
+      const user = await this.userRepo.findOne({ where: { id: event.userId as any } });
       if (user && user.email) {
         const subject = 'Action Required: Update Your Profile - Astrology in Bharat';
         const html = `

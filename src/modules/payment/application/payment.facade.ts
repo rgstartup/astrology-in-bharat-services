@@ -13,7 +13,7 @@ export class PaymentFacade {
         private readonly handleWebhookUseCase: HandleWebhookUseCase,
     ) {}
 
-    async createOrder(userId: number, dto: CreateOrderDto) {
+    async createOrder(userId: string, dto: CreateOrderDto) {
         return this.createPaymentOrderUseCase.execute(userId, dto);
     }
 

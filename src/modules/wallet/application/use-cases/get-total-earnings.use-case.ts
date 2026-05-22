@@ -10,11 +10,11 @@ export class GetTotalEarningsUseCase {
     private readonly transactionRepository: Repository<Transaction>,
   ) { }
 
-  async execute(userId: number, options: { startDate?: Date; endDate?: Date } = {}): Promise<number> {
+  async execute(userId: string, options: { startDate?: Date; endDate?: Date } = {}): Promise<number> {
     const query = this.transactionRepository
       .createQueryBuilder('transaction')
       .innerJoin('transaction.wallet', 'wallet')
-      .where('wallet.user_id = :userId', { userId })
+      .where('wallet.client_id = :userId', { userId })
       .andWhere('transaction.type = :type', { type: TransactionType.CREDIT })
       .andWhere('transaction.purpose IN (:...purposes)', { purposes: [TransactionPurpose.CONSULTATION, TransactionPurpose.PRODUCT_PURCHASE, TransactionPurpose.AGENT_COMMISSION] });
 

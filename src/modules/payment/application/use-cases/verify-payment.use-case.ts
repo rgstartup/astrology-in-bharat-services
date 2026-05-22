@@ -66,7 +66,7 @@ export class VerifyPaymentUseCase {
 
             if (!isProduct) {
                 // Case 1: Wallet Recharge
-                await this.walletFacade.topUp(order!.user_id!, order!.amount, `razorpay_${razorpay_payment_id}`, queryRunner);
+                await this.walletFacade.topUp(order!.client_id!, order!.amount, `razorpay_${razorpay_payment_id}`, queryRunner);
                 await queryRunner.commitTransaction();
                 return { success: true, message: 'Payment successful and wallet updated' };
             } else {

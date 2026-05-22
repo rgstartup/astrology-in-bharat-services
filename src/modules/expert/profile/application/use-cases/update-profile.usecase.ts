@@ -135,13 +135,13 @@ export class UpdateProfileUseCase {
     // Emit events
     this.eventEmitter.emit(
       'expert.profile.updated',
-      new ProfileUpdatedEvent(user.id, savedProfile.id, dto),
+      new ProfileUpdatedEvent(user.id as any, savedProfile.id as any, dto),
     );
 
     if (dto.is_available !== undefined) {
       this.eventEmitter.emit(
         'expert.status.changed',
-        new ExpertStatusChangedEvent(user.id, dto.is_available),
+        new ExpertStatusChangedEvent(user.id as any, dto.is_available),
       );
     }
 

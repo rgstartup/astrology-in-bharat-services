@@ -8,7 +8,7 @@ import {
   Query,
   UseGuards,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   UseInterceptors,
   UploadedFile,
   HttpStatus,
@@ -160,13 +160,13 @@ export class ProfileController {
     @Body() dto: ExpertPujaDto,
     @Query('id') id?: number,
   ) {
-    return this.profileFacade.upsertPuja(user, dto, id ? Number(id) : undefined);
+    return this.profileFacade.upsertPuja(user, dto, id ? id : undefined);
   }
 
   @Delete('puja/:id')
   deletePuja(
     @CurrentUser() user: User,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.profileFacade.deletePuja(user, id);
   }
@@ -179,7 +179,7 @@ export class ProfileController {
 
   @Get('puja/info/:id')
   @Public()
-  getPujaById(@Param('id', ParseIntPipe) id: number) {
+  getPujaById(@Param('id', ParseUUIDPipe) id: string) {
     return this.profileFacade.getPujaById(id);
   }
 
@@ -251,7 +251,7 @@ export class ProfileController {
   // other modules like 'bank-accounts' and avoid path-to-regexp v8 crash matching
   @Get('details/:id')
   @Public()
-  getExpertById(@Param('id', ParseIntPipe) id: number) {
+  getExpertById(@Param('id', ParseUUIDPipe) id: string) {
     return this.profileFacade.getExpertById(id);
   }
 }

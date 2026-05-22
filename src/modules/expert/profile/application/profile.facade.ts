@@ -60,7 +60,7 @@ export class ExpertProfileFacade {
     return this.listExpertsUseCase.execute(query);
   }
 
-  async getExpertById(id: number) {
+  async getExpertById(id: string) {
     return this.getExpertByIdUseCase.execute(id);
   }
 
@@ -72,7 +72,7 @@ export class ExpertProfileFacade {
     return this.getTopRatedExpertsUseCase.execute(limit);
   }
 
-  async getExpertByUserId(userId: number, queryRunner?: QueryRunner) {
+  async getExpertByUserId(userId: string, queryRunner?: QueryRunner) {
     return this.getExpertByUserIdUseCase.execute(userId, queryRunner);
   }
 
@@ -80,7 +80,7 @@ export class ExpertProfileFacade {
     return this.upsertPujaUseCase.execute(user, dto, id);
   }
 
-  async deletePuja(user: User, id: number) {
+  async deletePuja(user: User, id: string) {
     return this.deletePujaUseCase.execute(user, id);
   }
 
@@ -89,7 +89,7 @@ export class ExpertProfileFacade {
     return this.listAllPujasUseCase.execute();
   }
 
-  async getPujaById(id: number) {
+  async getPujaById(id: string) {
     return this.getPujaByIdUseCase.execute(id);
   }
 

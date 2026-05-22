@@ -13,13 +13,17 @@ export class GetDisputeMessagesUseCase {
         private readonly messageRepo: Repository<DisputeMessage>,
     ) { }
 
-    async execute(userId: number, disputeId: number, isAdmin = false) {
-        const where: any = { id: disputeId };
+    async execute(userId: string, disputeId: string, isAdmin = false) {
+        const query = this.disputeRepo.createQueryBuilder('dispute')
+            .leftJoin('dispute.client', 'client')
+            .leftJoin('dispute.expert', 'expert')
+            .where('dispute.id = :disputeId', { disputeId });
+
         if (!isAdmin) {
-            where.user_id = userId;
+            query.andWhere('(client.user_id = :userId OR expert.user_id = :userId)', { userId });
         }
 
-        const dispute = await this.disputeRepo.findOne({ where });
+        const dispute = await query.getOne();
 
         if (!dispute) {
             throw new NotFoundException(`Dispute with ID ${disputeId} not found`);

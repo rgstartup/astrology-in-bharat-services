@@ -25,7 +25,7 @@ export class CreatePujaAppointmentUseCase {
     private expertGateway: ExpertGateway,
   ) {}
 
-  async execute(userId: number, dto: CreatePujaAppointmentDto): Promise<PujaAppointment> {
+  async execute(userId: string, dto: CreatePujaAppointmentDto): Promise<PujaAppointment> {
     const puja = await this.expertPujaRepository.findOne({ 
         where: { id: dto.puja_id },
         relations: ['expert']
@@ -79,10 +79,10 @@ export class CreatePujaAppointmentUseCase {
         where: { id: puja.expert_id }
     });
     
-    if (expertProfile && expertProfile.user_id) {
+    if (expertProfile && expertProfile.user_id as any) {
         try {
             await this.notificationFacade.create(
-                expertProfile.user_id,
+                expertProfile.user_id as any as any,
                 NotificationType.PUJA_BOOKING,
                 'New Puja Booking Request',
                 `You have received a new booking request for ${puja.name}.`,
@@ -90,7 +90,7 @@ export class CreatePujaAppointmentUseCase {
             );
 
             // Real-time socket notification
-            this.expertGateway.notifyNewPujaBooking(expertProfile.user_id, {
+            this.expertGateway.notifyNewPujaBooking(expertProfile.user_id as any as any, {
                 ...saved,
                 user: clientProfile.user,
                 puja: puja

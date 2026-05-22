@@ -10,7 +10,7 @@ export class DeleteReviewUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) { }
 
-  async execute(id: number) {
+  async execute(id: string) {
     const review = await this.reviewRepository.findOne({ where: { id } });
     if (!review) {
       throw new NotFoundException(`Review with id ${id} not found`);

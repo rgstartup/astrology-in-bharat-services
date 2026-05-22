@@ -11,7 +11,7 @@ export class GetMerchantOrdersUseCase {
     private readonly orderItemRepo: Repository<OrderItem>,
   ) {}
 
-  async execute(userId: number, page: number = 1, limit: number = 20, status?: string, search?: string) {
+  async execute(userId: string, page: number = 1, limit: number = 20, status?: string, search?: string) {
     console.log('[ALL_ORDERS] Request:', { userId, page, limit, status, search });
     
     // 1. Calculate Summary Statistics (Keep these global for the merchant dashboard cards)
@@ -78,7 +78,7 @@ export class GetMerchantOrdersUseCase {
         id: item.id.toString(), // Use Item ID for uniqueness in React lists
         orderId: item.order.id.toString(), // Keep Order ID for status updates
         orderNumber: `ORD-${item.order.id}`,
-        customerName: item.order.user?.name || 'Guest',
+        customerName: item.order.client?.user?.name || 'Guest',
         amount: Number(item.price) * item.quantity,
         status: item.order.status,
         date: item.order.created_at.toISOString(),

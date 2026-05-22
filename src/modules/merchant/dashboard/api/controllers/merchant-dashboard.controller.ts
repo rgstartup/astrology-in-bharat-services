@@ -8,7 +8,7 @@ import {
   HttpStatus,
   Query,
   DefaultValuePipe,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Param,
   Body,
   UseInterceptors,
@@ -54,8 +54,8 @@ export class MerchantDashboardController {
 
   @Get('stats')
   @HttpCode(HttpStatus.OK)
-  async stats(@CurrentUser('id') userId: number) {
-    const stats = await this.getStats.execute(userId);
+  async stats(@CurrentUser('id') userId: string) {
+    const stats = await this.getStats.execute(userId as any);
     return { success: true, data: stats };
   }
 
@@ -63,9 +63,9 @@ export class MerchantDashboardController {
   @Get('orders')
   @HttpCode(HttpStatus.OK)
   async orders(
-    @CurrentUser('id') userId: number,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @CurrentUser('id') userId: string,
+    @Query('page', new DefaultValuePipe(1), ParseUUIDPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseUUIDPipe) limit: number = 10,
     @Query('status') status?: string,
     @Query('search') search?: string,
   ) {
@@ -75,60 +75,60 @@ export class MerchantDashboardController {
 
   @Get('orders/recent')
   @HttpCode(HttpStatus.OK)
-  async recentOrders(@CurrentUser('id') userId: number) {
-    const orders = await this.getRecentOrders.execute(userId);
+  async recentOrders(@CurrentUser('id') userId: string) {
+    const orders = await this.getRecentOrders.execute(userId as any);
     return { success: true, data: orders };
   }
 
   @Get('activity')
   @HttpCode(HttpStatus.OK)
-  async activity(@CurrentUser('id') userId: number) {
-    const activity = await this.getActivity.execute(userId);
+  async activity(@CurrentUser('id') userId: string) {
+    const activity = await this.getActivity.execute(userId as any);
     return { success: true, data: activity };
   }
 
   @Get('performance')
   @HttpCode(HttpStatus.OK)
-  async performance(@CurrentUser('id') userId: number) {
-    const performance = await this.getPerformance.execute(userId);
+  async performance(@CurrentUser('id') userId: string) {
+    const performance = await this.getPerformance.execute(userId as any);
     return { success: true, data: performance };
   }
 
   @Get('analytics')
   @HttpCode(HttpStatus.OK)
-  async analytics(@CurrentUser('id') userId: number) {
-    const analytics = await this.getAnalytics.execute(userId);
+  async analytics(@CurrentUser('id') userId: string) {
+    const analytics = await this.getAnalytics.execute(userId as any);
     return { success: true, data: analytics };
   }
 
   @Post('orders/:id/send-otp')
   @HttpCode(HttpStatus.OK)
   async sendOrderOtp(
-    @CurrentUser('id') userId: number,
-    @Param('id', ParseIntPipe) orderId: number,
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) orderId: number,
   ) {
-    return this.sendOtp.execute(userId, orderId);
+    return this.sendOtp.execute(userId as any, orderId);
   }
 
   @Post('orders/:id/verify-otp')
   @HttpCode(HttpStatus.OK)
   async verifyOrderOtp(
-    @CurrentUser('id') userId: number,
-    @Param('id', ParseIntPipe) orderId: number,
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) orderId: number,
     @Body('otp') otp: string,
   ) {
-    return this.verifyOtp.execute(userId, orderId, otp);
+    return this.verifyOtp.execute(userId as any, orderId, otp);
   }
 
   @Patch('orders/:id/status')
   @HttpCode(HttpStatus.OK)
   async updateStatus(
-    @CurrentUser('id') userId: number,
-    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body('status', new ParseEnumPipe(OrderStatus)) status: OrderStatus,
     @Body('cancellationReason') cancellationReason?: string,
   ) {
-    const order = await this.orderFacade.updateOrderStatus(id, status, cancellationReason, userId);
+    const order = await this.orderFacade.updateOrderStatus(id, status, cancellationReason, userId as any);
     return { success: true, data: order };
   }
 

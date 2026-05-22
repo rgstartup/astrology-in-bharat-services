@@ -26,19 +26,19 @@ export class ReviewsFacade {
     private readonly getApprovedPlatformReviewsUseCase: GetApprovedPlatformReviewsUseCase,
   ) {}
 
-  async createReview(userId: number, dto: CreateReviewDto) {
+  async createReview(userId: string, dto: CreateReviewDto) {
     return this.createReviewUseCase.execute(userId, dto);
   }
 
-  async getExpertReviews(expertId: number, page: number = 1, limit: number = 20) {
+  async getExpertReviews(expertId: string, page: number = 1, limit: number = 20) {
     return this.getExpertReviewsUseCase.execute(expertId, page, limit);
   }
 
-  async getMerchantReviews(merchantId: number, page: number = 1, limit: number = 20) {
+  async getMerchantReviews(merchantId: string, page: number = 1, limit: number = 20) {
     return this.getMerchantReviewsUseCase.execute(merchantId, page, limit);
   }
 
-  async getReviewsStats(expertId: number) {
+  async getReviewsStats(expertId: string) {
     return this.getReviewsStatsUseCase.execute(expertId);
   }
 
@@ -50,15 +50,15 @@ export class ReviewsFacade {
     return this.getAdminReviewsStatsUseCase.execute();
   }
 
-  async updateReviewStatus(id: number, status: string) {
+  async updateReviewStatus(id: string, status: string) {
     return this.updateReviewStatusUseCase.execute(id, status);
   }
 
-  async deleteReview(id: number) {
+  async deleteReview(id: string) {
     return this.deleteReviewUseCase.execute(id);
   }
 
-  async sendReviewResponse(id: number, message: string) {
+  async sendReviewResponse(id: string, message: string) {
     return this.sendReviewResponseUseCase.execute(id, message);
   }
 

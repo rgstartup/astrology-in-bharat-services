@@ -14,7 +14,7 @@ export class GetTransactionsUseCase {
   ) { }
 
   async execute(
-    userId: number,
+    userId: string,
     limit = 10,
     offset = 0,
     type = 'all',
@@ -41,22 +41,30 @@ export class GetTransactionsUseCase {
 
     // Map withdrawals for the bank account ID
     const transactionsWithBankAccounts = await Promise.all(items.map(async (tx) => {
-      let bank_account: number | null = null;
+      let bank_account: string | null = null;
       let status = 'success'; // Default
       let remark: string | null = null;
 
       if (tx.purpose === 'withdrawal') {
-        const withdrawal = await this.transactionRepository.manager.findOne(Withdrawal, {
-          where: { user_id: userId, amount: tx.amount },
-          order: { created_at: 'DESC' },
-        });
+        let withdrawalWhere: any = { amount: tx.amount };
+        if (wallet.expert_id) withdrawalWhere.expert_id = wallet.expert_id;
+        else if (wallet.merchant_id) withdrawalWhere.merchant_id = wallet.merchant_id;
+        else if (wallet.agent_id) withdrawalWhere.agent_profile_id = wallet.agent_id;
+        // withdrawals aren't typically for clients, but if so:
+        // else return normal
+        
+        if (Object.keys(withdrawalWhere).length > 1) {
+            const withdrawal = await this.transactionRepository.manager.findOne(Withdrawal, {
+              where: withdrawalWhere,
+              order: { created_at: 'DESC' },
+            });
 
-        if (withdrawal) {
-          bank_account = withdrawal.bank_account_id;
-          status = withdrawal.status;
-          remark = withdrawal.remark || null;
+            if (withdrawal) {
+              bank_account = withdrawal.bank_account_id as string;
+              status = withdrawal.status;
+              remark = withdrawal.remark || null;
+            }
         }
-
       }
 
       let description = tx.purpose.charAt(0).toUpperCase() + tx.purpose.slice(1).replace(/_/g, ' ');
@@ -72,7 +80,7 @@ export class GetTransactionsUseCase {
             try {
                 const { PujaAppointment } = await import('../../../puja-appointment/infrastructure/entities/puja-appointment.entity');
                 const appt = await this.transactionRepository.manager.findOne(PujaAppointment as any, {
-                    where: { id: parseInt(apptId) },
+                    where: { id: apptId },
                     relations: ['puja']
                 });
                 if (appt && (appt as any).puja) {

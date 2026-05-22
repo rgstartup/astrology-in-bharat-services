@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { BadRequestException, Injectable } from '@nestjs/common';

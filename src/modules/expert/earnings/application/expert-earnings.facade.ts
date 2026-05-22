@@ -13,19 +13,19 @@ export class ExpertEarningsFacade {
         private readonly requestWithdrawalUseCase: RequestWithdrawalUseCase,
     ) { }
 
-    async getStats(userId: number, period: string, startDate?: string, endDate?: string) {
+    async getStats(userId: string, period: string, startDate?: string, endDate?: string) {
         return this.getEarningsStatsUseCase.execute(userId, period, startDate, endDate);
     }
 
-    async getWalletBalance(userId: number) {
+    async getWalletBalance(userId: string) {
         return this.getWalletBalanceUseCase.execute(userId);
     }
 
-    async getTransactions(userId: number, limit: number, offset: number, type: string) {
+    async getTransactions(userId: string, limit: number, offset: number, type: string) {
         return this.getWalletTransactionsUseCase.execute(userId, limit, offset, type);
     }
 
-    async requestWithdrawal(userId: number, amount: number, bank_account_id: string | number, idempotencyKey?: string, securityMetadata?: { ip?: string; ua?: string }) {
+    async requestWithdrawal(userId: string, amount: number, bank_account_id: string | number, idempotencyKey?: string, securityMetadata?: { ip?: string; ua?: string }) {
         return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id, idempotencyKey, securityMetadata);
     }
 }

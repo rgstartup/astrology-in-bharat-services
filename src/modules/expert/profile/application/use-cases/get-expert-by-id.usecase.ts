@@ -12,7 +12,7 @@ export class GetExpertByIdUseCase {
     private readonly expertGateway: ExpertGateway,
   ) { }
 
-  async execute(id: number) {
+  async execute(id: string) {
     const queryBuilder = this.profileRepo
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
@@ -37,7 +37,7 @@ export class GetExpertByIdUseCase {
     plain.userId = expert.user?.id;
     plain.isAvailable = expert.is_available;
     plain.is_online = expert.user?.id
-      ? this.expertGateway.isExpertOnline(expert.user.id)
+      ? this.expertGateway.isExpertOnline(expert.user.id as any)
       : false;
     
     // Standard fallbacks (COALESCE logic shifted to backend)

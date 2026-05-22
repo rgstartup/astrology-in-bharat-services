@@ -18,27 +18,27 @@ export class BankAccountsFacade {
     private readonly removeBankAccountUseCase: RemoveBankAccountUseCase,
   ) {}
 
-  async create(userId: number, dto: CreateBankAccountDto) {
+  async create(userId: string, dto: CreateBankAccountDto) {
     return this.createBankAccountUseCase.execute(userId, dto);
   }
 
-  async findAll(userId: number) {
+  async findAll(userId: string) {
     return this.listBankAccountsUseCase.execute(userId);
   }
 
-  async findOne(userId: number, id: number) {
+  async findOne(userId: string, id: string) {
     return this.getBankAccountUseCase.execute(userId, id);
   }
 
-  async update(userId: number, id: number, dto: UpdateBankAccountDto) {
+  async update(userId: string, id: string, dto: UpdateBankAccountDto) {
     return this.updateBankAccountUseCase.execute(userId, id, dto);
   }
 
-  async setPrimary(userId: number, id: number) {
+  async setPrimary(userId: string, id: string) {
     return this.setPrimaryBankAccountUseCase.execute(userId, id);
   }
 
-  async remove(userId: number, id: number) {
+  async remove(userId: string, id: string) {
     return this.removeBankAccountUseCase.execute(userId, id);
   }
 }

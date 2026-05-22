@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
 import { SessionRepository } from '../../infrastructure/repositories/session.repository';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';

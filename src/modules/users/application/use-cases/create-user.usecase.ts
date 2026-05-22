@@ -15,20 +15,19 @@ export class CreateUserUseCase {
 
   async execute(dto: CreateUserDto, queryRunner?: QueryRunner): Promise<User> {
     const user = new User();
+    let uid: string = "";
     user.email = dto.email;
     user.password = dto.password ?? null;
     user.name = dto.name ?? null;
     user.avatar = dto.avatar ?? null;
-    user.referred_by_id = dto.referred_by_id ?? null;
+    user.referred_by_id = (dto.referred_by_id as any) ?? null;
 
     if (dto.roles?.length) {
       user.roles = dto.roles;
     }
 
     // Generate branded unique ID
-    const suffix = crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
-    const isExpert = dto.roles?.includes(RoleEnum.EXPERT);
-    user.uid = isExpert ? `AIB-EXP-${suffix}` : `AIB-USR-${suffix}`;
+    // uid is removed
 
     return this.userRepository.create(user, queryRunner);
   }

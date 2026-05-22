@@ -33,7 +33,7 @@ export class MerchantProfileController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async findOne(@CurrentUser('id') userId: number) {
+  async findOne(@CurrentUser('id') userId: string) {
     return this.getProfile.execute(userId);
   }
 
@@ -51,7 +51,7 @@ export class MerchantProfileController {
     ]),
   )
   async update(
-    @CurrentUser('id') userId: number,
+    @CurrentUser('id') userId: string,
     @Body() dto: UpdateMerchantProfileDto,
     @UploadedFiles()
     files: {

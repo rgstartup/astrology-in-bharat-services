@@ -21,7 +21,7 @@ export class GetApprovedPlatformReviewsUseCase {
     const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:6543/';
 
     const mappedReviews = reviews.map(r => {
-      const rawAvatar = r.user?.avatar || (r.user as any)?.profile_client?.profile_picture;
+      const rawAvatar = r.client?.avatar || ((r.client as any))?.profile_client?.profile_picture;
       const fullAvatar = rawAvatar 
         ? (rawAvatar.startsWith('http') ? rawAvatar : `${baseUrl.replace(/\/$/, '')}/${rawAvatar.replace(/^\//, '')}`)
         : null;
@@ -33,7 +33,7 @@ export class GetApprovedPlatformReviewsUseCase {
         tags: r.tags,
         created_at: r.created_at,
         user: {
-          name: r.user?.name || 'Anonymous',
+          name: r.client?.name || 'Anonymous',
           avatar: fullAvatar,
         },
       };

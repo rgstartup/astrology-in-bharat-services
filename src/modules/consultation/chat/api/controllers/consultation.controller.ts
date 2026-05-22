@@ -53,7 +53,7 @@ export class ConsultationController {
 
         if (dto.coupon_code) {
             try {
-                const couponResult = await this.couponFacade.applyCoupon(user.id, dto.coupon_code, amount);
+                const couponResult = await this.couponFacade.applyCoupon(user.id as any, dto.coupon_code, amount);
                 if (couponResult && couponResult.success) {
                     discountAmount = couponResult.discount;
                     finalAmount = couponResult.final_amount;
@@ -78,7 +78,7 @@ export class ConsultationController {
         );
 
         if (dto.coupon_code) {
-            await this.couponFacade.markCouponAsUsed(user.id, dto.coupon_code);
+            await this.couponFacade.markCouponAsUsed(user.id as any, dto.coupon_code);
         }
 
         // 3. Initiate Chat Session
@@ -88,7 +88,7 @@ export class ConsultationController {
         // Given the current architecture, initiateChat handles its own balance check.
 
         // For now, we'll just initiate the chat. The user now has 'amount' less balance.
-        const session = await this.chatFacade.initiateChat(user.id, expert_id);
+        const session = await this.chatFacade.initiateChat(user.id as any, expert_id as any);
 
         return {
             success: true,

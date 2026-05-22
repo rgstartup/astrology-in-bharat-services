@@ -1,33 +1,33 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { Coupon } from './coupon.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'user_coupons' })
 export class UserCoupon {
-    @PrimaryGeneratedColumn()
-    id!: number;
+    @PrimaryKeyColumn()
+    id!: string;
 
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'user_id' })
-    user!: User;
+    @ManyToOne(() => ProfileClient)
+    @JoinColumn({ name: 'client_id' })
+    client!: ProfileClient;
 
-    @Column({ name: 'user_id', type: 'int' })
-    user_id!: number;
+    @Column({ name: 'client_id', type: 'uuid' })
+    client_id!: string;
 
     @ManyToOne(() => Coupon)
     @JoinColumn({ name: 'coupon_id' })
     coupon!: Coupon;
 
-    @Column({ name: 'coupon_id', type: 'int' })
-    coupon_id!: number;
+    @Column({ name: 'coupon_id', type: 'uuid' })
+    coupon_id!: string;
 
     @Column({ type: 'boolean', default: false, name: 'is_used' })
     is_used!: boolean;

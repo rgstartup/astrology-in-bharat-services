@@ -23,27 +23,27 @@ export class SupportFacade {
         private readonly updateDisputeStatusUseCase: UpdateDisputeStatusUseCase,
     ) { }
 
-    async createDispute(userId: number, dto: CreateDisputeDto) {
+    async createDispute(userId: string, dto: CreateDisputeDto) {
         return this.createDisputeUseCase.execute(userId, dto);
     }
 
-    async getDisputes(userId: number) {
+    async getDisputes(userId: string) {
         return this.getDisputesUseCase.execute(userId);
     }
 
-    async getDisputeById(userId: number, disputeId: number) {
+    async getDisputeById(userId: string, disputeId: string) {
         return this.getDisputeByIdUseCase.execute(userId, disputeId);
     }
 
-    async sendMessage(userId: number, disputeId: number, dto: SendDisputeMessageDto) {
+    async sendMessage(userId: string, disputeId: string, dto: SendDisputeMessageDto) {
         return this.sendMessageUseCase.execute(userId, disputeId, dto);
     }
 
-    async getMessages(userId: number, disputeId: number) {
+    async getMessages(userId: string, disputeId: string) {
         return this.getMessagesUseCase.execute(userId, disputeId);
     }
 
-    async markMessagesAsRead(userId: number, disputeId: number) {
+    async markMessagesAsRead(userId: string, disputeId: string) {
         return this.markMessagesAsReadUseCase.execute(userId, disputeId);
     }
 
@@ -52,20 +52,20 @@ export class SupportFacade {
         return this.getAllDisputesUseCase.execute(params);
     }
 
-    async updateDisputeStatus(disputeId: number, data: { status: string; notes?: string }) {
+    async updateDisputeStatus(disputeId: string, data: { status: string; notes?: string }) {
         return this.updateDisputeStatusUseCase.execute(disputeId, data);
     }
 
-    async getDisputeByIdForAdmin(disputeId: number) {
+    async getDisputeByIdForAdmin(disputeId: string) {
         // Admin doesn't need userId filtering
-        return this.getDisputeByIdUseCase.execute(0, disputeId, true); 
+        return this.getDisputeByIdUseCase.execute('0', disputeId, true); 
     }
 
-    async getAdminMessages(disputeId: number) {
-        return this.getMessagesUseCase.execute(0, disputeId, true);
+    async getAdminMessages(disputeId: string) {
+        return this.getMessagesUseCase.execute('0', disputeId, true);
     }
 
-    async sendAdminMessage(adminId: number, disputeId: number, data: { message: string }) {
+    async sendAdminMessage(adminId: string, disputeId: string, data: { message: string }) {
         return this.sendMessageUseCase.execute(adminId, disputeId, data, true);
     }
 }

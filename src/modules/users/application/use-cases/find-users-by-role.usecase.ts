@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 @Injectable()
 export class FindUsersByRoleUseCase {
@@ -13,8 +15,8 @@ export class FindUsersByRoleUseCase {
   async execute(role: string, search?: string, page: number = 1, limit: number = 10, status?: string) {
     const query = this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.profile_client', 'profile_client')
-      .leftJoinAndSelect('user.profile_expert', 'profile_expert')
+      .leftJoinAndMapOne('user.profile_client', ProfileClient, 'profile_client', 'profile_client.user_id = user.id')
+      .leftJoinAndMapOne('user.profile_expert', ProfileExpert, 'profile_expert', 'profile_expert.user_id = user.id')
       .where(':roleName = ANY(user.roles)', { roleName: role });
 
     if (search) {
@@ -39,7 +41,8 @@ export class FindUsersByRoleUseCase {
       .take(Number(limit))
       .getRawAndEntities();
 
-    const items = rawAndEntities.entities.map((user, index) => {
+    const items = rawAndEntities.entities.map((userObj, index) => {
+      const user: any = userObj;
       const raw = rawAndEntities.raw[index];
       if (user.profile_expert) {
         user.profile_expert.consultation_count = 

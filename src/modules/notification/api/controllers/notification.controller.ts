@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Delete, UseGuards, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Delete, UseGuards, ParseUUIDPipe, Query } from '@nestjs/common';
 import { NotificationFacade } from '../../application/notification.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -20,7 +20,7 @@ export class NotificationController {
     ) {
         const limitNum = limit ? parseInt(limit, 10) : 20;
         const offsetNum = offset ? parseInt(offset, 10) : 0;
-        const { data, totalCount } = await this.notificationFacade.getUserNotifications(user.id, limitNum, offsetNum);
+        const { data, totalCount } = await this.notificationFacade.getUserNotifications(user.id as any, limitNum, offsetNum);
         return {
             success: true,
             data,
@@ -34,20 +34,20 @@ export class NotificationController {
 
     @Get('unread-count')
     async getUnreadCount(@CurrentUser() user: User) {
-        const count = await this.notificationFacade.getUnreadCount(user.id);
+        const count = await this.notificationFacade.getUnreadCount(user.id as any);
         return { count };
     }
 
     @Patch(':id/read')
     async markAsRead(
         @CurrentUser() user: User,
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id', ParseUUIDPipe) id: string,
     ) {
-        return this.notificationFacade.markAsRead(id, user.id);
+        return this.notificationFacade.markAsRead(id as any, user.id as any);
     }
 
     @Delete('all')
     async clearAll(@CurrentUser() user: User) {
-        return this.notificationFacade.clearAll(user.id);
+        return this.notificationFacade.clearAll(user.id as any);
     }
 }

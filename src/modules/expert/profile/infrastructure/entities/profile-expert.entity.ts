@@ -6,7 +6,6 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -14,21 +13,37 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { ExpertPuja } from './expert-puja.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'expert', name: 'profile' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 @Check(`"experience_in_years" >= 0`)
 @Check(`"kyc_status" IN ('pending', 'approved', 'rejected')`)
 export class ProfileExpert {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
-  @OneToOne(() => User, (user) => user.profile_expert)
+  @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
   @Column({ name: 'user_id'})
-  user_id!: number;
+  user_id!: string;
+
+  @Column({ type: 'text', unique: true, nullable: true })
+  uid!: string | null;
+
+  @Column({ type: 'bool', default: false })
+  is_blocked!: boolean;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  name!: string | null;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  email!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  avatar!: string | null;
 
   @Column({
     type: 'text',
@@ -70,12 +85,10 @@ export class ProfileExpert {
   })
   total_reviews!: number;
 
-  //   @Column({ type: 'decimal', nullable: true })
-  //   hourlyRate?: number;
   @Column({ type: 'float', default: 0 })
   rating!: number;
 
-  @Column({ default: 'pending', name: 'kyc_status' }) // pending, approved, rejected
+  @Column({ default: 'pending', name: 'kyc_status' })
   kyc_status!: string;
 
   @Column({ type: 'text', nullable: true, name: 'rejection_reason' })

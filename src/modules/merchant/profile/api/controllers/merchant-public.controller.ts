@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, ParseIntPipe, DefaultValuePipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, ParseUUIDPipe, DefaultValuePipe, UseGuards } from '@nestjs/common';
 import { GetMerchantDetailsUseCase } from '../../application/use-cases/get-merchant-details.use-case';
 import { GetAllMerchantsUseCase } from '../../application/use-cases/get-all-merchants.use-case';
 import { GetUniqueMerchantCitiesUseCase } from '../../application/use-cases/get-unique-merchant-cities.use-case';
@@ -22,8 +22,8 @@ export class MerchantPublicController {
     @OptionalUser('id') userId?: number,
     @Query('search') search?: string,
     @Query('city') city?: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('page', new DefaultValuePipe(1), ParseUUIDPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseUUIDPipe) limit: number = 10,
   ) {
     return this.getAllMerchants.execute({ search, city, page, limit, currentUserId: userId });
   }
@@ -36,7 +36,7 @@ export class MerchantPublicController {
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
   async findOne(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @OptionalUser('id') userId?: number,
   ) {
     return this.getMerchantDetails.execute(id, userId);

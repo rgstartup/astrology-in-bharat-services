@@ -22,9 +22,9 @@ export class VerifyOrderOtpUseCase {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(merchantUserId: number, orderId: number, otp: string) {
+  async execute(merchantUserId: string, orderId: number, otp: string) {
     const order = await this.orderRepo.findOne({
-      where: { id: orderId },
+      where: { id: orderId as any },
       relations: ['items', 'items.product'],
     });
 
@@ -38,7 +38,7 @@ export class VerifyOrderOtpUseCase {
     }
 
     // 3. Find items belonging to THIS merchant
-    const merchantItems = order.items.filter(item => item.product.merchant_id === merchantUserId);
+    const merchantItems = order.items.filter(item => item.product.merchant_id === (merchantUserId as any));
     
     if (merchantItems.length === 0) {
       throw new ForbiddenException('No products from your shop found in this order');
@@ -59,7 +59,7 @@ export class VerifyOrderOtpUseCase {
     const netPayout = Number((grossTotal - estimatedFee - estimatedGst).toFixed(2));
 
     // 5. Update Status via Central Facade (Handles all commissions and settlements)
-    await this.orderFacade.updateOrderStatus(orderId, OrderStatus.DELIVERED, undefined, merchantUserId);
+    await this.orderFacade.updateOrderStatus(orderId as any, OrderStatus.DELIVERED, undefined, merchantUserId as any);
 
     return {
       success: true,

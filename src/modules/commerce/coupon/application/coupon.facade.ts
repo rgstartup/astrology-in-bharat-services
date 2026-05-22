@@ -39,11 +39,11 @@ export class CouponFacade {
         return this.getCouponStatsUseCase.execute();
     }
 
-    async updateCoupon(id: number, data: any) {
+    async updateCoupon(id: string, data: any) {
         return this.updateCouponUseCase.execute(id, data);
     }
 
-    async deleteCoupon(id: number) {
+    async deleteCoupon(id: string) {
         return this.deleteCouponUseCase.execute(id);
     }
 }

@@ -1,6 +1,5 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
     UpdateDateColumn,
@@ -8,11 +7,12 @@ import {
     JoinColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'agent', name: 'listings' })
 export class AgentListing {
-    @PrimaryGeneratedColumn()
-    id!: number;
+    @PrimaryKeyColumn()
+    id!: string;
 
     @Column({ type: 'varchar', length: 20 })
     type!: string; // 'mandir' | 'puja_shop'
@@ -39,8 +39,8 @@ export class AgentListing {
     @JoinColumn({ name: 'agent_id' })
     agent!: User;
 
-    @Column({type: 'int'})
-    agent_id!: number;
+    @Column({type: 'uuid'})
+    agent_id!: string;
 
     @CreateDateColumn({type: 'timestamptz'})
     created_at!: Date;

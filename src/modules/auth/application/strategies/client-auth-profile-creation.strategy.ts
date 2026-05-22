@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';

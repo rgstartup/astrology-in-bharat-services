@@ -1,14 +1,16 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     ManyToOne,
     JoinColumn,
     CreateDateColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { BankAccount } from '@/modules/expert/bank-accounts/infrastructure/entities/bank-account.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum WithdrawalStatus {
     PENDING = 'pending',
@@ -24,18 +26,33 @@ export enum WithdrawalStatus {
 
 @Entity({ schema: 'finance', name: 'withdrawals' })
 export class Withdrawal {
-    @PrimaryGeneratedColumn()
-    id!: number;
+    @PrimaryKeyColumn()
+    id!: string;
 
     @Column({ name: 'withdrawal_no', type: 'text', nullable: true, unique: true })
     withdrawal_no!: string | null;
 
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'user_id' })
-    user!: User;
+    @ManyToOne(() => ProfileExpert, { nullable: true })
+    @JoinColumn({ name: 'expert_id' })
+    expert!: ProfileExpert | null;
 
-    @Column({ type: 'int', name: 'user_id' })
-    user_id!: number;
+    @Column({ type: 'uuid', name: 'expert_id', nullable: true })
+    expert_id!: string | null;
+
+    @ManyToOne(() => ProfileMerchant, { nullable: true })
+    @JoinColumn({ name: 'merchant_id' })
+    merchant!: ProfileMerchant | null;
+
+    @Column({ type: 'uuid', name: 'merchant_id', nullable: true })
+    merchant_id!: string | null;
+
+    @ManyToOne(() => ProfileAgent, { nullable: true })
+    @JoinColumn({ name: 'agent_id' })
+    agent!: ProfileAgent | null;
+
+    // agent_id column is already defined at line 81 as admin_id but wait, agent_id wasn't there. I'll add it here.
+    @Column({ type: 'uuid', name: 'agent_profile_id', nullable: true })
+    agent_profile_id!: string | null;
 
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     amount!: number;
@@ -44,8 +61,8 @@ export class Withdrawal {
     @JoinColumn({ name: 'bank_account_id' })
     bankAccount!: BankAccount | null;
 
-    @Column({ type: 'int', name: 'bank_account_id', nullable: true })
-    bank_account_id!: number | null;
+    @Column({ type: 'uuid', name: 'bank_account_id', nullable: true })
+    bank_account_id!: string | null;
 
     @Column({ name: 'merchant_bank_name', type: 'text', nullable: true })
     merchant_bank_name!: string | null;
@@ -78,8 +95,8 @@ export class Withdrawal {
     @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
     updated_at!: Date;
 
-    @Column({ type: 'int', name: 'admin_id', nullable: true })
-    admin_id!: number | null;
+    @Column({ type: 'uuid', name: 'admin_id', nullable: true })
+    admin_id!: string | null;
 
     @Column({ type: 'timestamp', name: 'approval_date', nullable: true })
     approval_date!: Date | null;

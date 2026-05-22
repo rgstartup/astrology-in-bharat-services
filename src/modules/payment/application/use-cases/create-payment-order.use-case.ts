@@ -25,7 +25,7 @@ export class CreatePaymentOrderUseCase {
     private readonly configService: ConfigService,
   ) { }
 
-  async execute(userId: number, dto: CreateOrderDto) {
+  async execute(userId: string, dto: CreateOrderDto) {
     this.logger.log(
       `Creating order for user ${userId} with data:`,
       JSON.stringify(dto, null, 2),
@@ -52,8 +52,11 @@ export class CreatePaymentOrderUseCase {
         notes: options.notes,
       });
 
+      const { ProfileClient } = await import('../../../client/profile/infrastructure/entities/profile-client.entity');
+      const clientProfile = await this.paymentOrderRepo.manager.findOne(ProfileClient, { where: { user: { id: userId } } });
+
       const paymentOrder = this.paymentOrderRepo.create({
-        user_id: userId,
+        client_id: clientProfile ? clientProfile.id : null,
         razorpay_order_id: order.providerOrderId,
         amount,
         notes: options.notes,

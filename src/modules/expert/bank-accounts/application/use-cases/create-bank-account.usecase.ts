@@ -18,15 +18,15 @@ export class CreateBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  private async getExpertProfile(userId: number) {
+  private async getExpertProfile(userId: string) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId } },
+      where: { user: { id: userId as any } },
     });
     if (!profile) throw new NotFoundException('Expert profile not found');
     return profile;
   }
 
-  async execute(userId: number, dto: CreateBankAccountDto) {
+  async execute(userId: string, dto: CreateBankAccountDto) {
     this.logger.log(`Starting bank account creation for user ${userId}`);
     this.logger.debug(`Incoming DTO: ${JSON.stringify(dto)}`);
     
@@ -60,7 +60,7 @@ export class CreateBankAccountUseCase {
       // Emit event
       this.eventEmitter.emit(
         'expert.bank-account.created',
-        new BankAccountCreatedEvent(userId, savedAccount.id, savedAccount.account_holder_name),
+        new BankAccountCreatedEvent(userId as any, savedAccount.id, savedAccount.account_holder_name),
       );
 
       return savedAccount;

@@ -6,7 +6,7 @@ import {
   Body,
   Param,
   UseGuards,
-  ParseIntPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { WishlistFacade } from '../../application/wishlist.facade';
 import { AddMerchantWishlistDto } from '../dto/add-merchant-wishlist.dto';
@@ -40,7 +40,7 @@ export class MerchantLikeController {
   @Delete('remove/:merchantId')
   remove(
     @CurrentUser('id') userId: number,
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @Param('merchantId', ParseUUIDPipe) merchantId: number,
   ) {
     return this.wishlistFacade.removeMerchantFromWishlist(userId, merchantId);
   }

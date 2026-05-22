@@ -13,7 +13,7 @@ export class GetMerchantDetailsUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(id: number, currentUserId?: number) {
+  async execute(id: string, currentUserId?: number) {
     const merchant = await this.merchantRepository.findOne({
       where: { id },
       relations: ['user'],
@@ -49,7 +49,7 @@ export class GetMerchantDetailsUseCase {
     let isLiked = false;
     if (currentUserId) {
       const wishlistEntry = await this.wishlistRepository.findOne({
-        where: { user: { id: currentUserId }, merchant: { id: merchant.id } },
+        where: { client: { user: { id: currentUserId as any } }, merchant: { id: merchant.id as any } },
       });
       isLiked = !!wishlistEntry;
     }

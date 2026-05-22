@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
@@ -11,6 +10,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum PujaAppointmentStatus {
   PENDING = 'pending',
@@ -29,29 +29,29 @@ export enum PujaMode {
 
 @Entity({ schema: 'consultations', name: 'puja_appointments' })
 export class PujaAppointment {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
   @ManyToOne(() => ProfileClient)
   @JoinColumn({ name: 'client_id' })
   client!: ProfileClient;
 
-  @Column({ type: 'int', name: 'client_id' })
-  client_id!: number;
+  @Column({ type: 'uuid', name: 'client_id' })
+  client_id!: string;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
   expert!: ProfileExpert;
 
-  @Column({ type: 'int' })
-  expert_id!: number;
+  @Column({ type: 'uuid' })
+  expert_id!: string;
 
   @ManyToOne(() => ExpertPuja)
   @JoinColumn({ name: 'puja_id' })
   puja!: ExpertPuja;
 
-  @Column({ type: 'int' })
-  puja_id!: number;
+  @Column({ type: 'uuid' })
+  puja_id!: string;
 
   @Column({ type: 'date', nullable: true, name: 'scheduled_date' })
   scheduled_date!: string | Date | null;

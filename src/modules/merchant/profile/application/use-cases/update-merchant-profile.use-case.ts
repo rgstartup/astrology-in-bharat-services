@@ -25,7 +25,7 @@ export class UpdateMerchantProfileUseCase {
   ) {}
 
   async execute(
-    userId: number,
+    userId: string,
     dto: UpdateMerchantProfileDto,
     files?: {
       image?: Express.Multer.File[];
@@ -44,13 +44,13 @@ export class UpdateMerchantProfileUseCase {
 
     try {
       let profile = await this.merchantRepository.findOne({
-        where: { user_id: Number(userId) },
+        where: { user: { id: userId as any } },
         relations: ['user']
       });
 
       if (!profile) {
         profile = this.merchantRepository.create({
-          user_id: Number(userId),
+          user: { id: userId as any },
         });
         // Save immediately to ensure entity exists
         profile = await this.merchantRepository.save(profile);
@@ -63,7 +63,7 @@ export class UpdateMerchantProfileUseCase {
           if (uploadResult && 'secure_url' in uploadResult) {
             profile.image = uploadResult.secure_url;
             // Also update user avatar as fallback
-            await this.usersFacade.update(userId, { avatar: uploadResult.secure_url });
+            await this.usersFacade.update(userId as any, { avatar: uploadResult.secure_url });
           }
         } catch (error) {
           this.logger.error('Failed to upload shop image', error.stack);
@@ -87,7 +87,7 @@ export class UpdateMerchantProfileUseCase {
         const newName = dto.name || dto.shopName;
         profile.shopName = newName ?? null;
         // Also update the user entity name for consistency across the platform
-        await this.usersFacade.update(userId, { name: newName });
+        await this.usersFacade.update(userId as any, { name: newName });
       }
       if (dto.managerName) profile.managerName = dto.managerName;
       if (dto.phone) profile.phone = dto.phone;
@@ -173,7 +173,7 @@ export class UpdateMerchantProfileUseCase {
       // Trigger security notification if bank details changed
       if (bankDetailsChanged) {
         await this.notificationFacade.create(
-            userId,
+            userId as any,
             NotificationType.GENERAL,
             'Security Alert: Bank Details Updated',
             'Your bank account information has been updated. If you did not make this change, please contact support immediately for security.',
@@ -183,7 +183,7 @@ export class UpdateMerchantProfileUseCase {
 
       if (statusChanged && this.merchantGateway) {
         try {
-          this.merchantGateway.notifyStatusChange(profile.id, profile.isOnline);
+          this.merchantGateway.notifyStatusChange(profile.id as any, profile.isOnline);
         } catch (e) {
           this.logger.warn(`Failed to notify status change via gateway: ${e.message}`);
         }

@@ -1,27 +1,51 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   OneToOne,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 
 @Entity({ schema: 'finance', name: 'wallets' })
 export class Wallet {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
-  @OneToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
-  user!: User;
+  @OneToOne(() => ProfileClient, { nullable: true })
+  @JoinColumn({ name: 'client_id' })
+  client!: ProfileClient | null;
 
-  @Column({ name: 'user_id', type: 'int' })
-  user_id!: number;
+  @Column({ name: 'client_id', type: 'uuid', nullable: true })
+  client_id!: string | null;
+
+  @OneToOne(() => ProfileExpert, { nullable: true })
+  @JoinColumn({ name: 'expert_id' })
+  expert!: ProfileExpert | null;
+
+  @Column({ name: 'expert_id', type: 'uuid', nullable: true })
+  expert_id!: string | null;
+
+  @OneToOne(() => ProfileMerchant, { nullable: true })
+  @JoinColumn({ name: 'merchant_id' })
+  merchant!: ProfileMerchant | null;
+
+  @Column({ name: 'merchant_id', type: 'uuid', nullable: true })
+  merchant_id!: string | null;
+
+  @OneToOne(() => ProfileAgent, { nullable: true })
+  @JoinColumn({ name: 'agent_id' })
+  agent!: ProfileAgent | null;
+
+  @Column({ name: 'agent_id', type: 'uuid', nullable: true })
+  agent_id!: string | null;
 
   @Column({
     type: 'decimal',

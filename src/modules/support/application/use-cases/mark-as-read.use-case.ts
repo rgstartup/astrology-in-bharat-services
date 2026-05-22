@@ -13,10 +13,13 @@ export class MarkMessagesAsReadUseCase {
         private readonly messageRepo: Repository<DisputeMessage>,
     ) { }
 
-    async execute(userId: number, disputeId: number) {
-        const dispute = await this.disputeRepo.findOne({
-            where: { id: disputeId, user_id: userId },
-        });
+    async execute(userId: string, disputeId: string) {
+        const dispute = await this.disputeRepo.createQueryBuilder('dispute')
+            .leftJoin('dispute.client', 'client')
+            .leftJoin('dispute.expert', 'expert')
+            .where('dispute.id = :disputeId', { disputeId })
+            .andWhere('(client.user_id = :userId OR expert.user_id = :userId)', { userId })
+            .getOne();
 
         if (!dispute) {
             throw new NotFoundException(`Dispute with ID ${disputeId} not found`);

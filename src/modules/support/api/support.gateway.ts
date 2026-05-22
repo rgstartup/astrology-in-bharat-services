@@ -41,7 +41,7 @@ export class SupportGateway implements OnGatewayConnection, OnGatewayDisconnect 
   @SubscribeMessage('join_dispute_room')
   handleJoinDisputeRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { disputeId: number },
+    @MessageBody() payload: { disputeId: string },
   ) {
     const roomName = `dispute_${payload.disputeId}`;
     client.join(roomName);
@@ -53,7 +53,7 @@ export class SupportGateway implements OnGatewayConnection, OnGatewayDisconnect 
   @SubscribeMessage('request_end_chat')
   handleRequestEndChat(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { disputeId: number; userId: number },
+    @MessageBody() payload: { disputeId: string; userId: string },
   ) {
     const data = { disputeId: payload.disputeId, userId: payload.userId };
     // Notify room
@@ -64,7 +64,7 @@ export class SupportGateway implements OnGatewayConnection, OnGatewayDisconnect 
     return { status: 'requested' };
   }
 
-  notifyNewMessage(disputeId: number, message: any) {
+  notifyNewMessage(disputeId: string, message: any) {
     const roomName = `dispute_${disputeId}`;
     this.logger.log(`Emitting new_message to ${roomName}`);
     this.server.to(roomName).emit('new_message', message);
@@ -73,7 +73,7 @@ export class SupportGateway implements OnGatewayConnection, OnGatewayDisconnect 
     this.server.to('admin_support_room').emit('new_message', message);
   }
 
-  notifyStatusUpdate(disputeId: number, status: string, data: any) {
+  notifyStatusUpdate(disputeId: string, status: string, data: any) {
     const roomName = `dispute_${disputeId}`;
     this.server.to(roomName).emit('dispute_status_updated', { disputeId, status, ...data });
     this.server.to('admin_support_room').emit('dispute_status_updated', { disputeId, status, ...data });

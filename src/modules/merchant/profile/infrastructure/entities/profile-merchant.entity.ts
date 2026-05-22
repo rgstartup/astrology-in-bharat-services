@@ -1,11 +1,11 @@
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -18,15 +18,30 @@ export enum MerchantStatus {
 
 @Entity({ schema: 'merchant', name: 'profile' })
 export class ProfileMerchant {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryKeyColumn()
+  id!: string;
 
-  @OneToOne(() => User, (user) => user.profile_merchant)
+  @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @Column({ name: 'user_id', type: 'int', unique: true, nullable: true })
-  user_id!: number;
+  @Column({ name: 'user_id', type: 'uuid', unique: true, nullable: true })
+  user_id!: string;
+
+  @Column({ type: 'text', unique: true, nullable: true })
+  uid!: string | null;
+
+  @Column({ type: 'bool', default: false })
+  is_blocked!: boolean;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  name!: string | null;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  email!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  avatar!: string | null;
 
   @Column({ name: 'shopName', type: 'text', nullable: true })
   shopName!: string | null;
