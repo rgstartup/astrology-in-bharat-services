@@ -4,5 +4,5 @@ export class AddExpertToWishlistDto {
   @IsNotEmpty()
   @IsInt()
   @IsPositive()
-  expertId: number;
+  expertId: string;
 }

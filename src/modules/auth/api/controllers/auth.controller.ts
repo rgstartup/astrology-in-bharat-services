@@ -18,6 +18,7 @@ import {
   ResetPasswordDto,
   SendMagicLinkDto,
 } from '../dto/register.dto';
+import { InitiateRegisterDto, CompleteRegisterDto } from '../dto/email-register.dto';
 import { JwtAuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -40,6 +41,27 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { user, tokens } = await this.authFacade.register(
+      dto,
+      req.ip,
+      req.get('user-agent'),
+    );
+
+    this.setCookies(res, tokens);
+    return instanceToPlain({ user, ...tokens });
+  }
+
+  @Post('email/register/initiate')
+  async initiateEmailRegistration(@Body() dto: InitiateRegisterDto) {
+    return this.authFacade.initiateEmailRegistration(dto);
+  }
+
+  @Post('email/register/complete')
+  async completeEmailRegistration(
+    @Body() dto: CompleteRegisterDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, tokens } = await this.authFacade.completeEmailRegistration(
       dto,
       req.ip,
       req.get('user-agent'),
@@ -151,7 +173,7 @@ export class AuthController {
   @Roles('AGENT')
   async agentRegister(
     @Body() dto: AgentRegisterUserDto,
-    @CurrentUser('id') agentId: number,
+    @CurrentUser('id') agentId: string,
   ) {
     return this.authFacade.agentRegister(dto, agentId);
   }

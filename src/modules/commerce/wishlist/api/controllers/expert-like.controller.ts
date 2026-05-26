@@ -22,13 +22,13 @@ export class ExpertLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAllExperts(@CurrentUser("id") userId: number) {
+  findAllExperts(@CurrentUser("id") userId: string) {
     return this.wishlistFacade.getExpertWishlist(userId);
   }
 
   @Post('add')
   createExpert(
-    @CurrentUser("id") userId: number,
+    @CurrentUser("id") userId: string,
     @Body() addExpertToWishlistDto: AddExpertToWishlistDto,
   ) {
     return this.wishlistFacade.addExpertToWishlist(
@@ -39,9 +39,9 @@ export class ExpertLikeController {
 
   @Delete('remove/:expertId')
   removeExpert(
-    @CurrentUser("id") userId: number,
+    @CurrentUser("id") userId: string,
     @Param('expertId') expertId: string,
   ) {
-    return this.wishlistFacade.removeExpertFromWishlist(userId, +expertId);
+    return this.wishlistFacade.removeExpertFromWishlist(userId, expertId);
   }
 }

@@ -27,8 +27,9 @@ export class NodeMailerService {
         html,
       });
     } catch (error: any) {
-      console.error('NodeMailer error:', error);
-      throw new InternalServerErrorException(`Failed to send email: ${error.message}`);
+      console.warn('⚠️ NodeMailer error (Email not sent):', error.message);
+      // Return false instead of throwing so that auth flow doesn't crash in dev
+      return false;
     }
   }
 }

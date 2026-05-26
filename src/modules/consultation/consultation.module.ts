@@ -9,10 +9,11 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { CallModule } from './call/call.module';
 import { ChatModule } from './chat/chat.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ChatSession, CallSession, Review, ProfileExpert]),
+    TypeOrmModule.forFeature([ChatSession, CallSession, Review, ProfileExpert, ProfileClient]),
     ChatModule,
     CallModule,
     ReviewsModule,

@@ -1,7 +1,7 @@
 import { DomainError } from '@/common/types/domain.error';
 
 export class ProductNotFoundError extends DomainError {
-  constructor(productId: number) {
+  constructor(productId: string) {
     super();
     this.message = `Product with ID ${productId} not found`;
   }

@@ -22,13 +22,13 @@ export class MerchantLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAll(@CurrentUser('id') userId: number) {
+  findAll(@CurrentUser('id') userId: string) {
     return this.wishlistFacade.getMerchantWishlist(userId);
   }
 
   @Post('add')
   create(
-    @CurrentUser('id') userId: number,
+    @CurrentUser('id') userId: string,
     @Body() dto: AddMerchantWishlistDto,
   ) {
     return this.wishlistFacade.addMerchantToWishlist(
@@ -39,8 +39,8 @@ export class MerchantLikeController {
 
   @Delete('remove/:merchantId')
   remove(
-    @CurrentUser('id') userId: number,
-    @Param('merchantId', ParseUUIDPipe) merchantId: number,
+    @CurrentUser('id') userId: string,
+    @Param('merchantId', ParseUUIDPipe) merchantId: string,
   ) {
     return this.wishlistFacade.removeMerchantFromWishlist(userId, merchantId);
   }

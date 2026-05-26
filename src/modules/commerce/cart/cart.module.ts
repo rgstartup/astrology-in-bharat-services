@@ -11,10 +11,11 @@ import { RemoveCartItemUseCase } from './application/use-cases/remove-cart-item.
 import { ClearCartUseCase } from './application/use-cases/clear-cart.use-case';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Cart, CartItem, Product, User]),
+    TypeOrmModule.forFeature([Cart, CartItem, Product, User, ProfileClient]),
   ],
   controllers: [CartController],
   providers: [

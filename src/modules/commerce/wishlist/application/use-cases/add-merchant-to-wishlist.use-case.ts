@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { FindUserUseCase } from '@/modules/users/application/use-cases/find-user.usecase';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import {
   MerchantAlreadyInWishlistError,
   MerchantNotFoundError,
@@ -18,10 +18,11 @@ export class AddMerchantToWishlistUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
     @InjectRepository(ProfileMerchant)
     private readonly merchantRepository: Repository<ProfileMerchant>,
-    private readonly findUserUseCase: FindUserUseCase,
+    @InjectRepository(ProfileClient)
+    private readonly profileClientRepo: Repository<ProfileClient>,
   ) {}
 
-  async execute(userId: number, merchantId: number): Promise<Wishlist> {
+  async execute(userId: string, merchantId: string): Promise<Wishlist> {
     const merchant = await this.merchantRepository.findOne({
       where: { id: merchantId },
     });
@@ -29,15 +30,13 @@ export class AddMerchantToWishlistUseCase {
       throw new MerchantNotFoundError(merchantId);
     }
 
-    let user;
-    try {
-      user = await this.findUserUseCase.findById(userId);
-    } catch (e) {
+    const client = await this.profileClientRepo.findOne({ where: { user: { id: userId } } });
+    if (!client) {
       throw new UserNotFoundError();
     }
 
     const existing = await this.wishlistRepository.findOne({
-      where: { user: { id: userId }, merchant: { id: merchantId } },
+      where: { client: { id: client.id }, merchant: { id: merchantId } },
     });
 
     if (existing) {
@@ -45,7 +44,7 @@ export class AddMerchantToWishlistUseCase {
     }
 
     const wishlist = this.wishlistRepository.create({
-      user,
+      client,
       merchant,
     });
 

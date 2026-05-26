@@ -11,10 +11,10 @@ export class GetOrderByIdUseCase {
     private orderRepo: Repository<Order>,
   ) { }
 
-  async execute(id: string, userId: number) {
+  async execute(id: string, userId: string) {
     const order = await this.orderRepo.findOne({
-      where: { id, client_id: userId },
-      relations: ['items', 'items.product'],
+      where: { id, client: { user: { id: userId } } },
+      relations: ['items', 'items.product', 'client', 'client.user'],
     });
 
     if (!order) throw new NotFoundException('Order not found');

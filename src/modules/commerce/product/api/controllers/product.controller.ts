@@ -46,7 +46,7 @@ export class ProductController {
     @Query('limit', new DefaultValuePipe(10), ParseUUIDPipe) limit: number = 10,
   ) {
     return this.productFacade.findAll({
-      merchantId: merchantId ? +merchantId : undefined,
+      merchantId: merchantId ? merchantId : undefined,
       page,
       limit,
     });
@@ -54,7 +54,7 @@ export class ProductController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.productFacade.findOne(+id);
+    return this.productFacade.findOne(id);
   }
 
   @Patch(':id')
@@ -94,7 +94,7 @@ export class ProductController {
         );
       }
     }
-    return this.productFacade.update(+id, updateProductDto);
+    return this.productFacade.update(id, updateProductDto);
   }
 
   @Delete(':id')

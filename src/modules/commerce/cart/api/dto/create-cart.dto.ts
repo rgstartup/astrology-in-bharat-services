@@ -4,7 +4,7 @@ export class AddToCartDto {
   @IsNotEmpty()
   @IsInt()
   @IsPositive()
-  productId: number;
+  productId: string;
 
   @IsNotEmpty()
   @IsInt()

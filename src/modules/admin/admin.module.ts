@@ -55,6 +55,8 @@ import { ConsultationModule } from '../consultation/consultation.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { OrderModule } from '@/modules/commerce/order/order.module';
 
+import { PublicSettingsController } from './api/controllers/public-settings.controller';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -88,7 +90,7 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
     PujaAppointmentModule,
     OrderModule,
   ],
-  controllers: [AdminController, SettingsController, PublicStatsController],
+  controllers: [AdminController, SettingsController, PublicStatsController, PublicSettingsController],
   providers: [
     AdminFacade,
     GetAdminDashboardStatsUseCase,

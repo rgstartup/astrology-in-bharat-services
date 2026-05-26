@@ -15,7 +15,7 @@ export class ApplyCouponUseCase {
         private readonly userCouponRepo: Repository<UserCoupon>,
     ) { }
 
-    async execute(userId: number, code: string, amount: number) {
+    async execute(userId: string, code: string, amount: number) {
         // 1. Find active coupon
         const coupon = await this.couponRepo.createQueryBuilder('coupon')
             .where('LOWER(coupon.code) = LOWER(:code)', { code })

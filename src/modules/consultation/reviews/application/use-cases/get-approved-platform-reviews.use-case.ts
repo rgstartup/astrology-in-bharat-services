@@ -13,7 +13,7 @@ export class GetApprovedPlatformReviewsUseCase {
   async execute(limit: number = 6) {
     const reviews = await this.reviewRepository.find({
       where: { review_type: 'platform', status: 'approved' },
-      relations: ['user', 'user.profile_client'],
+      relations: ['client', 'client.user'],
       order: { created_at: 'DESC' },
       take: limit,
     });

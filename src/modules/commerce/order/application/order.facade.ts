@@ -20,14 +20,14 @@ export class OrderFacade {
     private readonly findAllOrdersUseCase: FindAllOrdersUseCase,
   ) { }
 
-  async createOrder(userId: number, dto: any) {
+  async createOrder(userId: string, dto: any) {
     if (dto.product_id) {
       // Logic for single product order will be added to the use case
     }
     return this.createOrderFromCartUseCase.execute(userId, dto);
   }
 
-  async createOrderFromCart(userId: number, shippingAddress: any) {
+  async createOrderFromCart(userId: string, shippingAddress: any) {
     return this.createOrderFromCartUseCase.execute(userId, { shipping_address: shippingAddress });
   }
 
@@ -39,11 +39,11 @@ export class OrderFacade {
     return this.setOrderRazorpayIdUseCase.execute(orderId, razorpayOrderId);
   }
 
-  async getUserOrders(userId: number, limit?: number, offset?: number) {
+  async getUserOrders(userId: string, limit?: number, offset?: number) {
     return this.getUserOrdersUseCase.execute(userId, limit, offset);
   }
 
-  async getOrderById(id: string, userId: number) {
+  async getOrderById(id: string, userId: string) {
     return this.getOrderByIdUseCase.execute(id, userId);
   }
 

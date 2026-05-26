@@ -43,6 +43,8 @@ import { SendMagicLinkEventHandler } from './application/event-handlers/send-mag
 import { SendMagicLinkUseCase } from './application/use-cases/send-magic-link.usecase';
 import { LoginWithMagicLinkUseCase } from './application/use-cases/login-with-magic-link.usecase';
 import { GetMerchantProfileUseCase } from './application/use-cases/get-merchant-profile.usecase';
+import { InitiateEmailRegistrationUseCase } from './application/use-cases/initiate-email-registration.usecase';
+import { CompleteEmailRegistrationUseCase } from './application/use-cases/complete-email-registration.usecase';
 import { ExternalModule } from '@/external/external.module';
 import {
   AUTH_PROFILE_CREATION_STRATEGIES,
@@ -111,6 +113,8 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     SendMagicLinkUseCase,
     LoginWithMagicLinkUseCase,
     GetMerchantProfileUseCase,
+    InitiateEmailRegistrationUseCase,
+    CompleteEmailRegistrationUseCase,
     // Use case - end
 
     Argon2PasswordHasher,

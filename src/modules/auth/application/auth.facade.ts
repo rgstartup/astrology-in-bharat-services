@@ -14,6 +14,9 @@ import { RefreshTokenUseCase } from './use-cases/refresh-token.usecase';
 import { SendMagicLinkUseCase } from './use-cases/send-magic-link.usecase';
 import { LoginWithMagicLinkUseCase } from './use-cases/login-with-magic-link.usecase';
 import { GetMerchantProfileUseCase } from './use-cases/get-merchant-profile.usecase';
+import { InitiateEmailRegistrationUseCase } from './use-cases/initiate-email-registration.usecase';
+import { CompleteEmailRegistrationUseCase } from './use-cases/complete-email-registration.usecase';
+import { InitiateRegisterDto, CompleteRegisterDto } from '../api/dto/email-register.dto';
 
 @Injectable()
 export class AuthFacade {
@@ -31,6 +34,8 @@ export class AuthFacade {
     private readonly sendMagicLinkUseCase: SendMagicLinkUseCase,
     private readonly loginWithMagicLinkUseCase: LoginWithMagicLinkUseCase,
     private readonly getMerchantProfileUseCase: GetMerchantProfileUseCase,
+    private readonly initiateEmailRegistrationUseCase: InitiateEmailRegistrationUseCase,
+    private readonly completeEmailRegistrationUseCase: CompleteEmailRegistrationUseCase,
   ) { }
 
   async loginWithEmail(dto: LoginDto, ipAddress?: string, userAgent?: string) {
@@ -41,7 +46,7 @@ export class AuthFacade {
     return this.registerUser.execute(dto, ipAddress, userAgent);
   }
 
-  async logout(userId: number) {
+  async logout(userId: string) {
     return this.logoutUser.execute(userId);
   }
 
@@ -73,7 +78,7 @@ export class AuthFacade {
     return this.loginWithMagicLinkUseCase.execute(token, ip, ua);
   }
 
-  async agentRegister(dto: AgentRegisterUserDto, agentId: number) {
+  async agentRegister(dto: AgentRegisterUserDto, agentId: string) {
     return this.agentRegisterUserUseCase.execute(dto, agentId);
   }
 
@@ -81,8 +86,16 @@ export class AuthFacade {
     return this.merchantRegisterUserUseCase.execute(dto, ipAddress, userAgent);
   }
 
-  async getMerchantProfile(userId: number) {
+  async getMerchantProfile(userId: string) {
     return this.getMerchantProfileUseCase.execute(userId);
+  }
+
+  async initiateEmailRegistration(dto: InitiateRegisterDto) {
+    return this.initiateEmailRegistrationUseCase.execute(dto.email, dto.role);
+  }
+
+  async completeEmailRegistration(dto: CompleteRegisterDto, ip?: string, ua?: string) {
+    return this.completeEmailRegistrationUseCase.execute(dto, ip, ua);
   }
 }
 

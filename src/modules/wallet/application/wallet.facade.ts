@@ -65,7 +65,7 @@ export class WalletFacade {
   }
 
   async topUp(userId: string | undefined, amount: number, referenceId?: string, externalQueryRunner?: any) {
-    return this.topUpUseCase.execute(userId, amount, referenceId, externalQueryRunner);
+    return this.topUpUseCase.execute(userId as string, amount, 'razorpay', referenceId, externalQueryRunner);
   }
 
   async credit(userId: any, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any) {

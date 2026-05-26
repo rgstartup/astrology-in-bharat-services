@@ -4,5 +4,5 @@ export class CreateWishlistDto {
   @IsNotEmpty()
   @IsInt()
   @IsPositive()
-  productId: number;
+  productId: string;
 }

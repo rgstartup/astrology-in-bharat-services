@@ -14,9 +14,9 @@ export class RemoveCartItemUseCase {
     private cartItemRepository: Repository<CartItem>,
   ) {}
 
-  async execute(userId: number, productId: number) {
+  async execute(userId: string, productId: string) {
     const cart = await this.cartRepository.findOne({
-      where: { user: { id: userId } },
+      where: { client: { user: { id: userId } } },
     });
 
     if (!cart) {

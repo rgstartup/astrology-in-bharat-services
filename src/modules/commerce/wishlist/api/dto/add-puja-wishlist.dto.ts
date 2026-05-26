@@ -4,5 +4,5 @@ export class AddPujaToWishlistDto {
   @IsNotEmpty()
   @IsInt()
   @IsPositive()
-  pujaId: number;
+  pujaId: string;
 }

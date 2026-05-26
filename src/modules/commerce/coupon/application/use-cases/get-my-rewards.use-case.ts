@@ -11,7 +11,7 @@ export class GetMyRewardsUseCase {
         private readonly userCouponRepo: Repository<UserCoupon>,
     ) { }
 
-    async execute(userId: number) {
+    async execute(userId: string) {
         return this.userCouponRepo.find({
             where: { client_id: userId },
             relations: ['coupon'],

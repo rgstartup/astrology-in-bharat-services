@@ -14,18 +14,18 @@ export class GetUserOrdersUseCase {
     private pujaRepo: Repository<PujaAppointment>,
   ) { }
 
-  async execute(userId: number, limit?: number, offset?: number) {
+  async execute(userId: string, limit?: number, offset?: number) {
     // 1. Fetch Product Orders
     const productOrders = await this.orderRepo.find({
-      where: { client_id: userId },
-      relations: ['items', 'items.product'],
+      where: { client: { user: { id: userId } } },
+      relations: ['items', 'items.product', 'client', 'client.user'],
       order: { created_at: 'DESC' },
     });
 
     // 2. Fetch Puja Appointments (as Service Orders)
     const pujaOrders = await this.pujaRepo.find({
-      where: { client: { client_id: userId } },
-      relations: ['puja', 'expert', 'expert.user', 'client'],
+      where: { client: { user: { id: userId } } },
+      relations: ['puja', 'expert', 'expert.user', 'client', 'client.user'],
       order: { created_at: 'DESC' },
     });
 
@@ -61,12 +61,12 @@ export class GetUserOrdersUseCase {
       status: p.status,
       date: p.created_at,
       paymentMethod: 'razorpay', // Default for now
-      expertName: p.expert?.client?.name || 'Expert',
-      expertId: p.expert_id || p.expert?.id,
+      expertName: p.expert?.user?.name || p.expert?.name || 'Expert',
+      expertId: p.expert?.id || p.expert_id,
       scheduledDate: p.scheduled_date,
       scheduledTime: p.scheduled_time,
       items: [{
-        id: p.puja_id,
+        id: p.puja_id || (p.puja && p.puja.id),
         name: p.puja?.name || 'Puja Service',
         quantity: 1,
         price: Number(p.price),

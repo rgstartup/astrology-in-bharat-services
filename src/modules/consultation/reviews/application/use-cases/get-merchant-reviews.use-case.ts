@@ -15,7 +15,7 @@ export class GetMerchantReviewsUseCase {
 
     const [reviews, total] = await this.reviewRepository.findAndCount({
       where: { merchant_id: merchantId as any, status: 'active' }, // Assuming 'active' is the status for approved reviews
-      relations: ['user'],
+      relations: ['client', 'client.user'],
       take: limit,
       skip: skip,
       order: { created_at: 'DESC' },

@@ -30,51 +30,51 @@ export class WishlistFacade {
     private readonly getMerchantWishlistUseCase: GetMerchantWishlistUseCase,
   ) {}
 
-  async getProductWishlist(userId: number) {
+  async getProductWishlist(userId: string) {
     return this.getProductWishlistUseCase.execute(userId);
   }
 
-  async addProductToWishlist(userId: number, productId: number) {
+  async addProductToWishlist(userId: string, productId: string) {
     return this.addProductUseCase.execute(userId, productId);
   }
 
-  async removeProductFromWishlist(userId: number, productId: number) {
+  async removeProductFromWishlist(userId: string, productId: string) {
     return this.removeProductUseCase.execute(userId, productId);
   }
 
-  async getExpertWishlist(userId: number) {
+  async getExpertWishlist(userId: string) {
     return this.getExpertWishlistUseCase.execute(userId);
   }
 
-  async addExpertToWishlist(userId: number, expertId: number) {
+  async addExpertToWishlist(userId: string, expertId: string) {
     return this.addExpertUseCase.execute(userId, expertId);
   }
 
-  async removeExpertFromWishlist(userId: number, expertId: number) {
+  async removeExpertFromWishlist(userId: string, expertId: string) {
     return this.removeExpertUseCase.execute(userId, expertId);
   }
 
-  async getPujaWishlist(userId: number) {
+  async getPujaWishlist(userId: string) {
     return this.getPujaWishlistUseCase.execute(userId);
   }
 
-  async addPujaToWishlist(userId: number, pujaId: number) {
+  async addPujaToWishlist(userId: string, pujaId: string) {
     return this.addPujaUseCase.execute(userId, pujaId);
   }
 
-  async removePujaFromWishlist(userId: number, pujaId: number) {
+  async removePujaFromWishlist(userId: string, pujaId: string) {
     return this.removePujaUseCase.execute(userId, pujaId);
   }
 
-  async getMerchantWishlist(userId: number) {
+  async getMerchantWishlist(userId: string) {
     return this.getMerchantWishlistUseCase.execute(userId);
   }
 
-  async addMerchantToWishlist(userId: number, merchantId: number) {
+  async addMerchantToWishlist(userId: string, merchantId: string) {
     return this.addMerchantUseCase.execute(userId, merchantId);
   }
 
-  async removeMerchantFromWishlist(userId: number, merchantId: number) {
+  async removeMerchantFromWishlist(userId: string, merchantId: string) {
     return this.removeMerchantUseCase.execute(userId, merchantId);
   }
 }

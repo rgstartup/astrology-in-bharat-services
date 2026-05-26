@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { CallSession, CallSessionStatus } from '../../infrastructure/entities/call-session.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 export enum CallSessionFilter {
     PENDING = 'pending',
@@ -31,7 +32,7 @@ export class GetExpertCallSessionsUseCase {
 
         const queryBuilder = this.sessionRepo.createQueryBuilder('session')
             .leftJoinAndSelect('session.user', 'user')
-            .leftJoinAndSelect('user.profile_client', 'profile_client')
+            .leftJoinAndMapOne('user.profile_client', ProfileClient, 'profile_client', 'profile_client.user_id = user.id')
             .where('session.expert_id = :expertId', { expertId: expert.id });
 
         switch (filter) {

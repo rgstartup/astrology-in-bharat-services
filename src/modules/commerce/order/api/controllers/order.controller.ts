@@ -33,7 +33,7 @@ export class OrderController {
         @CurrentUser() user: User,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.orderFacade.createOrder(client.id, dto);
+        return this.orderFacade.createOrder(user.id, dto);
     }
 
     @Get('my-orders')
@@ -44,7 +44,7 @@ export class OrderController {
     ) {
         const limitNum = limit ? parseInt(limit, 10) : 10;
         const offsetNum = offset ? parseInt(offset, 10) : 0;
-        const { data, totalCount } = await this.orderFacade.getUserOrders(client.id, limitNum, offsetNum);
+        const { data, totalCount } = await this.orderFacade.getUserOrders(user.id, limitNum, offsetNum);
         return {
             success: true,
             data,
@@ -87,7 +87,7 @@ export class OrderController {
         @CurrentUser() user: User,
         @Param('id', ParseUUIDPipe) id: string,
     ) {
-        return this.orderFacade.getOrderById(id, client.id);
+        return this.orderFacade.getOrderById(id, user.id);
     }
 }
 
@@ -105,7 +105,7 @@ export class OrderSingularController {
         @CurrentUser() user: User,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.orderFacade.createOrder(client.id, dto);
+        return this.orderFacade.createOrder(user.id, dto);
     }
 
     @Get('my-orders')
@@ -116,7 +116,7 @@ export class OrderSingularController {
     ) {
         const limitNum = limit ? parseInt(limit, 10) : 10;
         const offsetNum = offset ? parseInt(offset, 10) : 0;
-        const { data, totalCount } = await this.orderFacade.getUserOrders(client.id, limitNum, offsetNum);
+        const { data, totalCount } = await this.orderFacade.getUserOrders(user.id, limitNum, offsetNum);
         return {
             success: true,
             data,
@@ -144,6 +144,6 @@ export class OrderSingularController {
         @CurrentUser() user: User,
         @Param('id', ParseUUIDPipe) id: string,
     ) {
-        return this.orderFacade.getOrderById(id, client.id);
+        return this.orderFacade.getOrderById(id, user.id);
     }
 }

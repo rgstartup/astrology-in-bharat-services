@@ -27,7 +27,7 @@ export class CartController {
 
   @Get()
   async getCart(@CurrentUser() user: User) {
-    return this.cartFacade.getCart(client.id);
+    return this.cartFacade.getCart(user.id);
   }
 
   @Post('/add')
@@ -35,19 +35,19 @@ export class CartController {
     @CurrentUser() user: User,
     @Body() addToCartDto: AddToCartDto,
   ) {
-    return this.cartFacade.addToCart(client.id, addToCartDto);
+    return this.cartFacade.addToCart(user.id, addToCartDto);
   }
 
   @Put('/update')
   async updateCartItem(
     @CurrentUser() user: User,
-    @Body() updateCartItemDto: UpdateCartItemDto & { productId: number },
+    @Body() updateCartItemDto: UpdateCartItemDto & { productId: string },
   ) {
-    return this.cartFacade.updateCartItem(client.id, updateCartItemDto);
+    return this.cartFacade.updateCartItem(user.id, updateCartItemDto);
   }
 
   @Delete('/remove/:id')
   async removeCartItem(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.cartFacade.removeCartItem(client.id, +id);
+    return this.cartFacade.removeCartItem(user.id, id);
   }
 }

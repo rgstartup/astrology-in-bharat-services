@@ -3,8 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { FindUserUseCase } from '@/modules/users/application/use-cases/find-user.usecase';
-import { GetExpertByIdUseCase } from '@/modules/expert/profile/application/use-cases/get-expert-by-id.usecase';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import {
   ExpertAlreadyInWishlistError,
@@ -12,64 +11,35 @@ import {
   UserNotFoundError,
   NotAnExpertError,
 } from '../../domain/errors/wishlist.errors';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class AddExpertToWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    private readonly findUserUseCase: FindUserUseCase,
-    private readonly getExpertByIdUseCase: GetExpertByIdUseCase,
+    @InjectRepository(ProfileClient)
+    private readonly profileClientRepo: Repository<ProfileClient>,
     @InjectRepository(ProfileExpert)
-    private readonly profileExpertRepository: Repository<ProfileExpert>,
+    private readonly profileExpertRepo: Repository<ProfileExpert>,
   ) {}
 
-  async execute(userId: number, expertId: number): Promise<Wishlist> {
-    let expertUser;
-    let foundViaProfile = false;
-
-    try {
-      expertUser = await this.findUserUseCase.findById(expertId);
-    } catch (e) {
-      // User not found, fall back to checking if expertId is a ProfileExpert ID
-    }
-
-    if (!expertUser) {
-      try {
-        const expertDto = await this.getExpertByIdUseCase.execute(expertId);
-        expertUser = await this.findUserUseCase.findById(expertDto.userId);
-
-        
-
-        expertId = expertUser.id;
-        foundViaProfile = true;
-      } catch (e) {
-        throw new ExpertNotFoundError(expertId);
-      }
-    }
-
-    const hasExpertRole =
-      expertUser.roles && expertUser.roles.includes(RoleEnum.EXPERT);
-
-    if (!hasExpertRole && !foundViaProfile) {
-      const roleNames = expertUser.roles
-        ? expertUser.roles.join(', ')
-        : 'No roles';
-      throw new NotAnExpertError(expertId, roleNames);
-    }
-
-    const finalExpertId = expertUser.id;
-
-    let user;
-    try {
-      user = await this.findUserUseCase.findById(userId);
-    } catch (e) {
+  async execute(userId: string, expertId: string): Promise<Wishlist> {
+    const client = await this.profileClientRepo.findOne({ where: { user: { id: userId } } });
+    if (!client) {
       throw new UserNotFoundError();
     }
 
+    let expert = await this.profileExpertRepo.findOne({ where: { user: { id: expertId } } });
+    if (!expert) {
+      expert = await this.profileExpertRepo.findOne({ where: { id: expertId } });
+    }
+    
+    if (!expert) {
+      throw new ExpertNotFoundError(expertId);
+    }
+
     const existing = await this.wishlistRepository.findOne({
-      where: { user: { id: userId }, expert: { id: finalExpertId } },
+      where: { client: { id: client.id }, expert: { id: expert.id } },
     });
 
     if (existing) {
@@ -77,21 +47,16 @@ export class AddExpertToWishlistUseCase {
     }
 
     const wishlist = this.wishlistRepository.create({
-      user,
-      expert: expertUser,
+      client: client,
+      expert: expert,
     });
 
     const savedWishlist = await this.wishlistRepository.save(wishlist);
 
-    const profileExpert = await this.profileExpertRepository.findOne({
-      where: { user: { id: finalExpertId } },
-    });
-    
-    if (profileExpert) {
-      const currentLikes = Number(profileExpert.total_likes) || 0;
-      profileExpert.total_likes = currentLikes + 1;
-      await this.profileExpertRepository.save(profileExpert);
-    }
+    // Update total_likes for the expert
+    const currentLikes = Number(expert.total_likes) || 0;
+    expert.total_likes = currentLikes + 1;
+    await this.profileExpertRepo.save(expert);
 
     return savedWishlist;
   }

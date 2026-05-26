@@ -6,7 +6,7 @@ import { Cart } from '../../infrastructure/entities/cart.entity';
 import { CartItem } from '../../infrastructure/entities/cart-item.entity';
 import { AddToCartDto } from '../../api/dto/create-cart.dto';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class AddToCartUseCase {
@@ -17,11 +17,11 @@ export class AddToCartUseCase {
     private cartItemRepository: Repository<CartItem>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    @InjectRepository(ProfileClient)
+    private profileClientRepository: Repository<ProfileClient>,
   ) {}
 
-  async execute(userId: number, addToCartDto: AddToCartDto) {
+  async execute(userId: string, addToCartDto: AddToCartDto) {
     const { productId, quantity } = addToCartDto;
 
     const product = await this.productRepository.findOne({
@@ -33,16 +33,16 @@ export class AddToCartUseCase {
     }
 
     let cart = await this.cartRepository.findOne({
-      where: { user: { id: userId } },
+      where: { client: { user: { id: userId } } },
       relations: ['items'],
     });
 
     if (!cart) {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      if (!user) {
-        throw new NotFoundException('User not found');
+      const client = await this.profileClientRepository.findOne({ where: { user: { id: userId } } });
+      if (!client) {
+        throw new NotFoundException('Client profile not found for user');
       }
-      cart = this.cartRepository.create({ user });
+      cart = this.cartRepository.create({ client });
       await this.cartRepository.save(cart);
     }
 
@@ -65,7 +65,7 @@ export class AddToCartUseCase {
     // Return the updated cart
     return this.cartRepository.findOne({
       where: { id: cart.id },
-      relations: ['items', 'items.product'],
+      relations: ['items', 'items.product', 'client', 'client.user'],
     });
   }
 }

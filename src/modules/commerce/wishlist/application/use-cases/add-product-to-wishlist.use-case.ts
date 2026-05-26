@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { FindUserUseCase } from '@/modules/users/application/use-cases/find-user.usecase';
 import {
   ProductAlreadyInWishlistError,
   ProductNotFoundError,
@@ -16,28 +16,25 @@ export class AddProductToWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
+    @InjectRepository(ProfileClient)
+    private readonly profileClientRepo: Repository<ProfileClient>,
     @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
-    private readonly findUserUseCase: FindUserUseCase,
+    private readonly productRepo: Repository<Product>,
   ) {}
 
-  async execute(userId: number, productId: number): Promise<Wishlist> {
-    const product = await this.productRepository.findOne({
-      where: { id: productId },
-    });
-    if (!product) {
-      throw new ProductNotFoundError();
-    }
-
-    let user;
-    try {
-      user = await this.findUserUseCase.findById(userId);
-    } catch (e) {
+  async execute(userId: string, productId: string): Promise<Wishlist> {
+    const client = await this.profileClientRepo.findOne({ where: { user: { id: userId } } });
+    if (!client) {
       throw new UserNotFoundError();
     }
 
+    const product = await this.productRepo.findOne({ where: { id: productId } });
+    if (!product) {
+      throw new ProductNotFoundError(productId);
+    }
+
     const existing = await this.wishlistRepository.findOne({
-      where: { user: { id: userId }, product: { id: productId } },
+      where: { client: { id: client.id }, product: { id: product.id } },
     });
 
     if (existing) {
@@ -45,10 +42,10 @@ export class AddProductToWishlistUseCase {
     }
 
     const wishlist = this.wishlistRepository.create({
-      user,
-      product,
+      client: client,
+      product: product,
     });
 
-    return this.wishlistRepository.save(wishlist);
+    return await this.wishlistRepository.save(wishlist);
   }
 }

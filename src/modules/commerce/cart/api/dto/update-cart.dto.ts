@@ -4,7 +4,7 @@ export class UpdateCartItemDto {
   @IsNotEmpty()
   @IsInt()
   @IsPositive()
-  productId: number;
+  productId: string;
 
   @IsNotEmpty()
   @IsInt()

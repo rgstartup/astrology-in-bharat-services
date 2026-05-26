@@ -23,13 +23,13 @@ export class ProductLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAll(@CurrentUser("id") userId: number) {
+  findAll(@CurrentUser("id") userId: string) {
     return this.wishlistFacade.getProductWishlist(userId);
   }
 
   @Post('add')
   create(
-    @CurrentUser("id") userId: number,
+    @CurrentUser("id") userId: string,
     @Body() createWishlistDto: CreateWishlistDto,
   ) {
     return this.wishlistFacade.addProductToWishlist(
@@ -39,7 +39,7 @@ export class ProductLikeController {
   }
 
   @Delete('remove/:productId')
-  remove(@CurrentUser("id") userId: number, @Param('productId') productId: string) {
-    return this.wishlistFacade.removeProductFromWishlist(userId, +productId);
+  remove(@CurrentUser("id") userId: string, @Param('productId') productId: string) {
+    return this.wishlistFacade.removeProductFromWishlist(userId, productId);
   }
 }

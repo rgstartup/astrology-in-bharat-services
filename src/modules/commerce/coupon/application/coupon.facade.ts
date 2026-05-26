@@ -19,11 +19,11 @@ export class CouponFacade {
         private readonly markCouponAsUsedUseCase: MarkCouponAsUsedUseCase,
     ) { }
 
-    async applyCoupon(userId: number, code: string, amount: number) {
+    async applyCoupon(userId: string, code: string, amount: number) {
         return this.applyCouponUseCase.execute(userId, code, amount);
     }
 
-    async markCouponAsUsed(userId: number, code: string, manager?: any) {
+    async markCouponAsUsed(userId: string, code: string, manager?: any) {
         return this.markCouponAsUsedUseCase.execute(userId, code, manager);
     }
 

@@ -48,6 +48,12 @@ export class UserRegisteredHandler {
 
     const verifyLink = `${frontendUrl}/verify-email?verification_token=${event.verification_token}`;
     
+    // Log verification link for easy local testing when email fails
+    console.log('\n======================================================');
+    console.log('✅ NEW USER REGISTERED! VERIFICATION LINK FOR TESTING:');
+    console.log(verifyLink);
+    console.log('======================================================\n');
+    
     return `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
         <h2 style="color: #333;">Welcome to Astrology in Bharat!</h2>

@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { FindUserUseCase } from '@/modules/users/application/use-cases/find-user.usecase';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import {
   PujaAlreadyInWishlistError,
@@ -16,12 +16,13 @@ export class AddPujaToWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    private readonly findUserUseCase: FindUserUseCase,
+    @InjectRepository(ProfileClient)
+    private readonly profileClientRepo: Repository<ProfileClient>,
     @InjectRepository(ExpertPuja)
     private readonly expertPujaRepository: Repository<ExpertPuja>,
   ) {}
 
-  async execute(userId: number, pujaId: number): Promise<Wishlist> {
+  async execute(userId: string, pujaId: string): Promise<Wishlist> {
     const puja = await this.expertPujaRepository.findOne({
       where: { id: pujaId },
     });
@@ -30,15 +31,13 @@ export class AddPujaToWishlistUseCase {
       throw new PujaNotFoundError();
     }
 
-    let user;
-    try {
-      user = await this.findUserUseCase.findById(userId);
-    } catch (e) {
+    const client = await this.profileClientRepo.findOne({ where: { user: { id: userId } } });
+    if (!client) {
       throw new UserNotFoundError();
     }
 
     const existing = await this.wishlistRepository.findOne({
-      where: { user: { id: userId }, puja: { id: pujaId } },
+      where: { client: { id: client.id }, puja: { id: pujaId } },
     });
 
     if (existing) {
@@ -46,7 +45,7 @@ export class AddPujaToWishlistUseCase {
     }
 
     const wishlist = this.wishlistRepository.create({
-      user,
+      client,
       puja,
     });
 

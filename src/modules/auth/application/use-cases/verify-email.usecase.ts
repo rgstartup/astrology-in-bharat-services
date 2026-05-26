@@ -30,7 +30,10 @@ export class VerifyEmailUseCase {
       throw new UnauthorizedException('User not found');
     }
 
-    EmailVerificationPolicy.ensureEmailNotVerified(user);
+    // Only throw EmailAlreadyVerified if they are fully registered
+    if (user.password || user.name) {
+      EmailVerificationPolicy.ensureEmailNotVerified(user);
+    }
 
     const isTokenUsed = await this.usedTokenService.isTokenUsed(token, user.id);
 

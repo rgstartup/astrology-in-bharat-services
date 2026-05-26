@@ -14,7 +14,7 @@ export class MarkCouponAsUsedUseCase {
     private readonly userCouponRepo: Repository<UserCoupon>,
   ) {}
 
-  async execute(userId: number, code: string, manager?: EntityManager) {
+  async execute(userId: string, code: string, manager?: EntityManager) {
     const repo = manager ? manager.getRepository(Coupon) : this.couponRepo;
     const userCouponRepo = manager ? manager.getRepository(UserCoupon) : this.userCouponRepo;
 

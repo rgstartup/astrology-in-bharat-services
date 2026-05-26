@@ -34,7 +34,7 @@ export class AgentRegisterUserUseCase {
         private readonly walletFacade: WalletFacade,
     ) { }
 
-    async execute(dto: AgentRegisterUserDto, agentId: number) {
+    async execute(dto: AgentRegisterUserDto, agentId: string) {
         const existingUser = await this.usersFacade.findByEmail(dto.email);
 
         // Ensure email is unique (throws if not)

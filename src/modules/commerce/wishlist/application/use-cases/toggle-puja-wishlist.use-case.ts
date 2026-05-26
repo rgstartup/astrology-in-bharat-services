@@ -17,7 +17,7 @@ export class TogglePujaWishlistUseCase {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async execute(userId: number, pujaId: number): Promise<{ liked: boolean; total_likes: number }> {
+  async execute(userId: string, pujaId: string): Promise<{ liked: boolean; total_likes: number }> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 

@@ -6,6 +6,7 @@ import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infr
 import { CallSession, CallSessionStatus, CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ConsultationHistoryDto, ConsultationType, ConsultationStatus } from '../../api/dto/consultation-history.dto';
 
 @Injectable()
@@ -19,6 +20,8 @@ export class GetUnifiedHistoryUseCase {
     private readonly reviewRepo: Repository<Review>,
     @InjectRepository(ProfileExpert)
     private readonly expertRepo: Repository<ProfileExpert>,
+    @InjectRepository(ProfileClient)
+    private readonly clientRepo: Repository<ProfileClient>,
   ) {}
 
   async execute(userId: string, limit: number = 20, offset: number = 0) {
@@ -28,17 +31,35 @@ export class GetUnifiedHistoryUseCase {
     });
 
     const isExpert = !!expertProfile;
-    const filter = isExpert ? { expert_id: expertProfile.id } : { client_id: userId };
+
+    let chatFilter = {};
+    let callFilter = {};
+
+    if (isExpert) {
+      chatFilter = { expert_id: expertProfile.id };
+      callFilter = { expert_id: expertProfile.id };
+    } else {
+      const clientProfile = await this.clientRepo.findOne({
+          where: { user: { id: userId as any } }
+      });
+      if (clientProfile) {
+        chatFilter = { client_id: clientProfile.id };
+      } else {
+        // Fallback for ChatSession (some weird state where ProfileClient doesn't exist)
+        chatFilter = { client: { user: { id: userId } } };
+      }
+      callFilter = { user_id: userId };
+    }
 
     // 2. Fetch Sessions with relations
     const chatSessions = await this.chatRepo.find({
-      where: filter,
-      relations: ['expert', 'expert.user', 'user'],
+      where: chatFilter,
+      relations: ['expert', 'expert.user', 'client', 'client.user'],
       order: { created_at: 'DESC' },
     });
 
     const callSessions = await this.callRepo.find({
-      where: filter,
+      where: callFilter,
       relations: ['expert', 'expert.user', 'user'],
       order: { created_at: 'DESC' },
     });
@@ -116,15 +137,15 @@ export class GetUnifiedHistoryUseCase {
       rate: Number(session.price_per_minute || 0),
       rating: review?.rating || 0,
       comment: review?.comment,
-      expert_image: session.expert?.client?.avatar || (session.expert?.user as any)?.profile_client?.profile_picture || (session.expert as any)?.avatar || '/images/dummy-astrologer.jpg',
-      user_image: (session.user as any)?.profile_client?.profile_picture || session.client?.avatar || '/images/dummy-user.jpg',
-      expert_name: session.expert?.client?.name || 'Expert',
+      expert_image: session.expert?.user?.profile_client?.profile_picture || (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
+      user_image: session.client?.user?.avatar || session.client?.avatar || '/images/dummy-user.jpg',
+      expert_name: session.expert?.user?.name || session.expert?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
-      user_name: session.client?.name || 'Client',
+      user_name: session.client?.name || session.client?.user?.name || 'Client',
       expert: {
         id: session.expert?.id || 0,
-        name: session.expert?.client?.name || 'Expert',
-        profileImage: session.expert?.client?.avatar || (session.expert?.user as any)?.profile_client?.profile_picture || (session.expert as any)?.avatar || '/images/dummy-astrologer.jpg',
+        name: session.expert?.user?.name || session.expert?.name || 'Expert',
+        profileImage: session.expert?.user?.profile_client?.profile_picture || (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
       },
       metadata: {
         terminatedBy: session.terminated_by,
@@ -156,15 +177,15 @@ export class GetUnifiedHistoryUseCase {
       rate: Number(session.price_per_minute || 0),
       rating: review?.rating || 0,
       comment: review?.comment,
-      expert_image: session.expert?.client?.avatar || (session.expert?.user as any)?.profile_client?.profile_picture || (session.expert as any)?.avatar || '/images/dummy-astrologer.jpg',
-      user_image: (session.user as any)?.profile_client?.profile_picture || session.client?.avatar || '/images/dummy-user.jpg',
-      expert_name: session.expert?.client?.name || 'Expert',
+      expert_image: session.expert?.user?.profile_client?.profile_picture || (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
+      user_image: session.user?.avatar || '/images/dummy-user.jpg',
+      expert_name: session.expert?.user?.name || session.expert?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
-      user_name: session.client?.name || 'Client',
+      user_name: session.user?.name || 'Client',
       expert: {
         id: session.expert?.id,
-        name: session.expert?.client?.name || 'Expert',
-        profileImage: session.expert?.client?.avatar || (session.expert?.user as any)?.profile_client?.profile_picture || (session.expert as any)?.avatar || '/images/dummy-astrologer.jpg',
+        name: session.expert?.user?.name || session.expert?.name || 'Expert',
+        profileImage: session.expert?.user?.profile_client?.profile_picture || (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
       },
       metadata: {
         callSid: session.twilio_sid,
@@ -174,7 +195,6 @@ export class GetUnifiedHistoryUseCase {
   }
 
   private mapChatStatus(status: ChatSessionStatus, duration: number = 0): ConsultationStatus {
-    // If status is completed but duration is 0, it was likely missed/ignored
     if (status === ChatSessionStatus.COMPLETED && duration === 0) {
       return ConsultationStatus.MISSED;
     }
@@ -198,7 +218,6 @@ export class GetUnifiedHistoryUseCase {
   }
 
   private mapCallStatus(status: CallSessionStatus, duration: number = 0): ConsultationStatus {
-    // If status is completed but duration is 0, it was likely missed/ignored
     if (status === CallSessionStatus.COMPLETED && duration === 0) {
       return ConsultationStatus.MISSED;
     }

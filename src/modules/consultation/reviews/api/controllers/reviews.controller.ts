@@ -10,6 +10,7 @@ import {
   Query,
   ParseUUIDPipe,
   DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ReviewsFacade } from '../../application/reviews.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
@@ -39,7 +40,7 @@ export class ReviewsController {
   // ─── Public: Get approved platform reviews for homepage ─────────────────────
   @Get('platform/approved')
   async getApprovedPlatformReviews(
-    @Query('limit', new DefaultValuePipe(6), ParseUUIDPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(6), ParseIntPipe) limit: number,
   ) {
     return this.reviewsFacade.getApprovedPlatformReviews(limit);
   }
@@ -48,8 +49,8 @@ export class ReviewsController {
   @Get('expert/:expertId')
   async getReviews(
     @Param('expertId', ParseUUIDPipe) expertId: string,
-    @Query('page', new DefaultValuePipe(1), ParseUUIDPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseUUIDPipe) limit: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
     return this.reviewsFacade.getExpertReviews(expertId, page, limit);
   }
@@ -63,8 +64,8 @@ export class ReviewsController {
   @Get('merchant/:merchantId')
   async getMerchantReviews(
     @Param('merchantId', ParseUUIDPipe) merchantId: string,
-    @Query('page', new DefaultValuePipe(1), ParseUUIDPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseUUIDPipe) limit: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
     return this.reviewsFacade.getMerchantReviews(merchantId, page, limit);
   }
@@ -74,8 +75,8 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async adminGetAllReviews(
-    @Query('page', new DefaultValuePipe(1), ParseUUIDPipe) page: number,
-    @Query('limit', new DefaultValuePipe(15), ParseUUIDPipe) limit: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(15), ParseIntPipe) limit: number,
     @Query('status') status?: string,
     @Query('search') search?: string,
     @Query('ratingType') ratingType?: string,

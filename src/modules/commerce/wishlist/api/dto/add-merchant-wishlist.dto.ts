@@ -4,5 +4,5 @@ export class AddMerchantWishlistDto {
   @IsNotEmpty()
   @IsInt()
   @IsPositive()
-  merchantId: number;
+  merchantId: string;
 }

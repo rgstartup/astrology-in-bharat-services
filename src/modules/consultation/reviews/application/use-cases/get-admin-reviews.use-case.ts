@@ -21,8 +21,8 @@ export class GetAdminReviewsUseCase {
     const { page = 1, limit = 15, status, search, ratingType, review_type } = params;
 
     const queryBuilder = this.reviewRepository.createQueryBuilder('review')
-      .leftJoinAndSelect('review.user', 'user')
-      .leftJoinAndSelect('user.profile_client', 'profile_client')
+      .leftJoinAndSelect('review.client', 'client')
+      .leftJoinAndSelect('client.user', 'user')
       .leftJoinAndSelect('review.expert', 'expert')
       .leftJoinAndSelect('expert.user', 'expertUser')
       .orderBy('review.created_at', 'DESC');

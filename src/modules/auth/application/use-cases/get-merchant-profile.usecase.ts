@@ -10,7 +10,7 @@ export class GetMerchantProfileUseCase {
     private readonly db: DatabaseService,
   ) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     const user = await this.usersFacade.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');

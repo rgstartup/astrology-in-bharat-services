@@ -5,7 +5,7 @@ import { SessionRepository } from '../../infrastructure/repositories/session.rep
 export class LogoutUserUseCase {
   constructor(private readonly sessionRepo: SessionRepository) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     return this.sessionRepo.revoke(userId);
   }
 }
