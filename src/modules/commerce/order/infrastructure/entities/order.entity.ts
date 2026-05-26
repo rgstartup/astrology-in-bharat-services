@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { OrderItem } from './order-item.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum OrderStatus {
     PENDING = 'pending',
@@ -23,7 +23,7 @@ export enum OrderStatus {
 
 @Entity({ schema: 'commerce', name: 'product_orders' })
 export class Order {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @ManyToOne(() => ProfileClient)

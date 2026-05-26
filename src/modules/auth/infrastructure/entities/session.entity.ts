@@ -9,14 +9,14 @@ import {
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { uuidv7 } from 'uuidv7';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({
   schema: 'auth',
   name: 'sessions'
 })
 export class Session {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string; 
 
   // hashed refresh token (or session secret)

@@ -11,12 +11,12 @@ import {
 } from 'typeorm';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'client', name: 'profile' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 export class ProfileClient {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @OneToOne(() => User, { cascade: true })

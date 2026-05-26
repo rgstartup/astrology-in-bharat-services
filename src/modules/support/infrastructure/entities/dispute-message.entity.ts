@@ -8,10 +8,10 @@ import {
 import { Dispute } from './dispute.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 @Entity({ schema: 'support', name: 'support_dispute_messages' })
 export class DisputeMessage {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @ManyToOne(() => Dispute)

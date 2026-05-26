@@ -14,7 +14,8 @@ export class SendPhoneOtpUseCase {
         private readonly profileRepo: Repository<ProfileClient>,
     ) { }
 
-    async execute(userId: number, phone: string): Promise<{ success: boolean; message: string }> {
+    async execute(userId: string, phone: string): Promise<{ success: boolean; message: string }> {
+        
         const accountSid = process.env.TWILIO_ACCOUNT_SID;
         const authToken = process.env.TWILIO_AUTH_TOKEN;
         const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
@@ -28,6 +29,7 @@ export class SendPhoneOtpUseCase {
                 console.log(`[Twilio Mock] Service SID missing. Using mock OTP '123456' for ${phone}`);
                 return { success: true, message: 'OTP sent successfully (Mock Mode: 123456)' };
             }
+
             throw new BadRequestException('Twilio Verify Service SID is not configured in .env');
         }
 

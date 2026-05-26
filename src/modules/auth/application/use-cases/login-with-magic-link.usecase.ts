@@ -61,7 +61,7 @@ export class LoginWithMagicLinkUseCase {
   // 🔐 infra → application boundary
   private verifyTokenOrFail(token: string) {
     try {
-      return this.tokenCrypto.verifyJwt<{ userId: number; email: string }>(token);
+      return this.tokenCrypto.verifyJwt<{ userId: string; email: string }>(token);
     } catch {
       throw new BadRequestException('Invalid or expired token');
     }

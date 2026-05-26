@@ -8,11 +8,11 @@ import {
 } from 'typeorm';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { Coupon } from './coupon.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'user_coupons' })
 export class UserCoupon {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @ManyToOne(() => ProfileClient)

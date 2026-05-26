@@ -9,7 +9,7 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum NotificationType {
     ORDER_CREATED = 'order_created',
@@ -25,7 +25,7 @@ export enum NotificationType {
 
 @Entity({ schema: 'support', name: 'notifications' })
 export class Notification {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @ManyToOne(() => ProfileClient, { nullable: true })

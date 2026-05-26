@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum DisputeStatus {
     OPEN = 'open',
@@ -19,7 +19,7 @@ export enum DisputeStatus {
 
 @Entity({ schema: 'support', name: 'support_disputes' })
 export class Dispute {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @ManyToOne(() => ProfileClient, { nullable: true })

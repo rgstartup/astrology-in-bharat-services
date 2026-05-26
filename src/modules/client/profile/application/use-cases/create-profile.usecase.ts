@@ -18,7 +18,7 @@ export class CreateProfileUseCase extends BaseService<ProfileClient> {
     super(profileRepo);
    }
 
-  async execute(userId: number, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
+  async execute(userId: string, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
     const repo = this.getRepo(queryRunner);
     
     const existingProfile = await repo.findOne({

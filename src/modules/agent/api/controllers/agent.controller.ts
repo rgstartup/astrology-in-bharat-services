@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Controller, Get, UseGuards, Patch, Body, Post, Query, BadRequestException, ParseUUIDPipe, Headers, Ip } from '@nestjs/common';
+import { Controller, Get, UseGuards, Patch, Body, Post, Query, BadRequestException, ParseUUIDPipe, Headers, Ip, ParseIntPipe, ParseDatePipe, ParseFloatPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -22,7 +22,9 @@ import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entit
 import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { DateRangeDto } from '@/common/dto/date-range.dto';
+import { PaginationDto } from '@/common/dto/pagination.dto';
 
 @Controller({
     path: 'agent',
@@ -43,7 +45,7 @@ export class AgentController {
         const profile = await this.db.transaction(async (queryRunner) => {
             return queryRunner.manager.findOne(ProfileAgent, {
                 where: { user_id: user.id },
-                relations: ['user'] as any
+                relations: ['user']
             });
         });
 
@@ -53,8 +55,7 @@ export class AgentController {
         return {
             ...profile,
             name: profile.user?.name,
-            email: profile.user?.email,
-            uid: profile.user?.uid,
+            email: profile.user?.email
         };
     }
 
@@ -97,10 +98,9 @@ export class AgentController {
     async getStats(
         @CurrentUser() user: User,
         @Query('range') range: string = '30d',
-        @Query('startDate') startDate?: string,
-        @Query('endDate') endDate?: string,
+        @Query() dateRangeDto: DateRangeDto
     ) {
-        console.log('--- STATS PARAMS RECEIVED ---', { range, startDate, endDate });
+        console.log('--- STATS PARAMS RECEIVED ---', { range, startDate: dateRangeDto.startDate, endDate: dateRangeDto.endDate });
 
         return this.db.transaction(async (queryRunner) => {
             const profile = await queryRunner.manager.findOne(ProfileAgent, {
@@ -120,10 +120,10 @@ export class AgentController {
             } else if (range === '1y') {
                 fromDate = "NOW() - INTERVAL '1 year'";
                 chartInterval = "INTERVAL '1 year'";
-            } else if (range === 'custom' && startDate && endDate) {
+            } else if (range === 'custom' && dateRangeDto.startDate && dateRangeDto.endDate) {
 
-                fromDate = `'${startDate}'::date`;
-                const end = `'${endDate}'::date`;
+                fromDate = `'${dateRangeDto.startDate}'::date`;
+                const end = `'${dateRangeDto.endDate}'::date`;
                 chartInterval = `AGE(${end}, ${fromDate})`;
             }
 
@@ -201,8 +201,8 @@ export class AgentController {
             usersForStats.forEach(uObj => {
                 const u: any = uObj;
                 const roles = u.roles || [];
-                const isExpert = roles.includes(RoleEnum.EXPERT);
-                const isMerchant = roles.includes(RoleEnum.MERCHANT);
+                const isExpert = hasRoles(roles, 'EXPERT')
+                const isMerchant = hasRoles(roles, 'MERCHANT');
 
                 if (isExpert) astrologersCount++;
                 else if (isMerchant) merchantsAsPujaShopCount++;
@@ -396,8 +396,7 @@ export class AgentController {
     @Get('listings')
     async getListings(
         @CurrentUser() user: User,
-        @Query('page') page: number = 1,
-        @Query('limit') limit: number = 50,
+        @Query() pagination: PaginationDto,
         @Query('type') type?: string,
         @Query('search') search?: string,
     ) {
@@ -436,11 +435,11 @@ export class AgentController {
                 }
 
                 if (type === 'astrologer' || type === 'expert') {
-                    qb.andWhere(':role = ANY(u.roles)', { role: 'expert' });
+                    qb.andWhere(':role = ANY(u.roles)', { role: RoleEnum.EXPERT });
                 } else if (type === 'client') {
-                    qb.andWhere(':role = ANY(u.roles)', { role: 'client' });
+                    qb.andWhere(':role = ANY(u.roles)', { role: RoleEnum.CLIENT });
                 } else if (type === 'puja_shop' || type === 'merchant') {
-                    qb.andWhere(':role = ANY(u.roles)', { role: 'merchant' });
+                    qb.andWhere(':role = ANY(u.roles)', { role: RoleEnum.MERCHANT });
                 }
 
                 if (search && search.trim()) {
@@ -453,7 +452,7 @@ export class AgentController {
                 qb.orderBy('u.created_at', 'DESC');
 
                 if (!isAll) {
-                    qb.skip((page - 1) * limit).take(limit);
+                    qb.skip(pagination.offset).take(pagination.limit);
                 }
 
                 const [users, total] = await qb.getManyAndCount();
@@ -584,20 +583,20 @@ export class AgentController {
 
             // If paginating "all", slice here
             if (isAll) {
-                const start = (page - 1) * limit;
+                const start = pagination.offset;
                 return {
                     data: allData.slice(start, start + limit),
                     total: allTotal,
-                    page,
-                    limit,
+                    page: pagination.page,
+                    limit: pagination.limit,
                 };
             }
 
             return {
                 data: isPlaceType ? placeData : userData,
                 total: isPlaceType ? placeTotal : userTotal,
-                page,
-                limit,
+                page: pagination.page,
+                limit: pagination.limit,
             };
         });
         return listings;
@@ -607,11 +606,10 @@ export class AgentController {
     @Get('commissions')
     async getCommissions(
         @CurrentUser() user: User,
-        @Query('page') page: number = 1,
-        @Query('limit') limit: number = 10,
+        @Query() pagination: PaginationDto,
     ) {
-        const offset = (page - 1) * limit;
-        const result = await this.walletFacade.getTransactions(user.id, limit, offset, 'all', 'agent_commission');
+        const offset = pagination.offset;
+        const result = await this.walletFacade.getTransactions(user.id, pagination.limit, offset, 'all', 'agent_commission');
 
         const resolvedData = await this.db.transaction(async (queryRunner) => {
             return await Promise.all(result.data.map(async (t) => {
@@ -672,8 +670,8 @@ export class AgentController {
         return {
             data: resolvedData,
             total: result.meta.totalCount,
-            page: page,
-            limit: result.meta.limit
+            page: pagination.page,
+            limit: pagination.limit
         };
     }
 
@@ -700,7 +698,7 @@ export class AgentController {
     @Post('wallet/withdraw')
     async requestWithdrawal(
         @CurrentUser() user: User,
-        @Body('amount', ParseUUIDPipe) amount: number,
+        @Body('amount', ParseFloatPipe) amount: number,
         @Body('bank_account_id') bankAccountId: string | number,
         @Ip() ip: string,
         @Headers('user-agent') ua: string,

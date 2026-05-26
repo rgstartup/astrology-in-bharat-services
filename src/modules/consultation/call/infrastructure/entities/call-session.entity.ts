@@ -24,11 +24,11 @@ export enum CallType {
 }
 
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'consultations', name: 'call_sessions' })
 export class CallSession {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @ManyToOne(() => User)

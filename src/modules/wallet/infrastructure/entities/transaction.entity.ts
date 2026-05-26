@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { Wallet } from './wallet.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum TransactionType {
   CREDIT = 'credit',
@@ -27,7 +27,7 @@ export enum TransactionPurpose {
 
 @Entity({ schema: 'finance', name: 'transactions' })
 export class Transaction {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @ManyToOne(() => Wallet)

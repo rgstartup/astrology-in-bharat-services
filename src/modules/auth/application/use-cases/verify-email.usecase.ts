@@ -72,7 +72,7 @@ export class VerifyEmailUseCase {
   // 🔐 infra → application boundary
   private async verifyTokenOrFail(token: string) {
     try {
-      return await this.tokenCrypto.verifyJwt<{ userId: number; email: string }>(token);
+      return await this.tokenCrypto.verifyJwt<{ userId: string; email: string }>(token);
     } catch {
       throw new BadRequestException('Invalid or expired token');
     }

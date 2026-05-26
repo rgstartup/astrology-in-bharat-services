@@ -7,7 +7,7 @@ export class UploadDocumentUseCase {
 
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  async execute(userId: number, file: Express.Multer.File) {
+  async execute(userId: string, file: Express.Multer.File) {
     this.logger.log(`Received upload request from user: ${userId}`);
     
     if (!file) {

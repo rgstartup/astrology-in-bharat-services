@@ -6,7 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ChatSession } from './chat-session.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum MessageType {
   TEXT = 'text',
@@ -16,7 +16,7 @@ export enum MessageType {
 
 @Entity({ schema: 'consultations', name: 'chat_messages' })
 export class ChatMessage {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @ManyToOne(() => ChatSession)

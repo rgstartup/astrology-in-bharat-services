@@ -3,11 +3,11 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'finance', name: 'idempotency_keys' })
 export class Idempotency {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @Column({type: 'text'})

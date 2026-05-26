@@ -13,14 +13,14 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { ExpertPuja } from './expert-puja.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'expert', name: 'profile' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 @Check(`"experience_in_years" >= 0`)
 @Check(`"kyc_status" IN ('pending', 'approved', 'rejected')`)
 export class ProfileExpert {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @OneToOne(() => User, { cascade: true })

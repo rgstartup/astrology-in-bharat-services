@@ -1,4 +1,4 @@
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
     Entity,
     Column,
@@ -9,7 +9,7 @@ import {
 
 @Entity({ schema: 'admin', name: 'admin_audit_logs' })
 export class AdminAuditLog {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @Column({ name: 'admin_id', type: 'uuid' })

@@ -9,6 +9,7 @@ import {
   Param,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CartFacade } from '../../application/cart.facade';
 import { AddToCartDto } from '../dto/create-cart.dto';
@@ -47,7 +48,7 @@ export class CartController {
   }
 
   @Delete('/remove/:id')
-  async removeCartItem(@CurrentUser() user: User, @Param('id') id: string) {
+  async removeCartItem(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
     return this.cartFacade.removeCartItem(user.id, id);
   }
 }

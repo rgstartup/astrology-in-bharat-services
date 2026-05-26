@@ -51,8 +51,8 @@ export class CallPolicy {
   }
 
   static ensureExpertAssignedToSession(
-    assignedExpertUserId: number,
-    currentExpertId: number,
+    assignedExpertUserId: string,
+    currentExpertId: string,
   ) {
     if (assignedExpertUserId !== currentExpertId) {
       throw new CallSessionAccessDeniedError();

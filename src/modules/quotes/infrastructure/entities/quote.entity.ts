@@ -1,4 +1,4 @@
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Column,
   CreateDateColumn,
@@ -8,7 +8,7 @@ import {
 
 @Entity({ schema: 'consultations', name: 'quotes' })
 export class Quote {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @Column({ type: 'text' })

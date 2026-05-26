@@ -11,7 +11,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'wishlists' })
 @Unique(['client', 'product'])
@@ -21,7 +21,7 @@ import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 
 export class Wishlist {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @ManyToOne(() => ProfileClient, { onDelete: 'CASCADE' })

@@ -52,11 +52,11 @@ export class WalletFacade {
     private readonly getAdminCommissionUseCase: GetAdminCommissionUseCase,
   ) { }
 
-  async getWallet(userId: any) {
+  async getWallet(userId: string) {
     return this.getWalletUseCase.execute(userId);
   }
 
-  async getBalance(userId: any) {
+  async getBalance(userId: string) {
     return this.getBalanceUseCase.execute(userId);
   }
 
@@ -68,31 +68,31 @@ export class WalletFacade {
     return this.topUpUseCase.execute(userId as string, amount, 'razorpay', referenceId, externalQueryRunner);
   }
 
-  async credit(userId: any, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any) {
+  async credit(userId: string, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any) {
     return this.creditUseCase.execute(userId, amount, purpose, referenceId, externalQueryRunner);
   }
 
-  async debit(userId: any, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any, allowNegative: boolean = false) {
+  async debit(userId: string, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any, allowNegative: boolean = false) {
     return this.debitUseCase.execute(userId, amount, purpose, referenceId, externalQueryRunner, allowNegative);
   }
 
-  async reserveBalance(userId: any, amount: number, referenceId: string, externalQueryRunner?: any) {
+  async reserveBalance(userId: string, amount: number, referenceId: string, externalQueryRunner?: any) {
     return this.reserveBalanceUseCase.execute(userId, amount, referenceId, externalQueryRunner);
   }
 
-  async deductFromReserved(userId: any, amount: number, referenceId: string, externalQueryRunner?: any) {
+  async deductFromReserved(userId: string, amount: number, referenceId: string, externalQueryRunner?: any) {
     return this.deductFromReservedUseCase.execute(userId, amount, referenceId, externalQueryRunner);
   }
 
-  async releaseReserved(userId: any, amount: number, referenceId: string, externalQueryRunner?: any) {
+  async releaseReserved(userId: string, amount: number, referenceId: string, externalQueryRunner?: any) {
     return this.releaseReservedUseCase.execute(userId, amount, referenceId, externalQueryRunner);
   }
 
-  async getTransactions(userId: any, limit?: string, offset?: string, type?: string, purpose?: string) {
+  async getTransactions(userId: string, limit?: string, offset?: string, type?: string, purpose?: string) {
     return this.getTransactionsUseCase.execute(userId, limit, offset, type, purpose);
   }
 
-  async getTotalEarnings(userId: any, options: { startDate?: Date; endDate?: Date } = {}) {
+  async getTotalEarnings(userId: string, options: { startDate?: Date; endDate?: Date } = {}) {
     return this.getTotalEarningsUseCase.execute(userId, options);
   }
 
@@ -104,11 +104,11 @@ export class WalletFacade {
     return this.getWithdrawalsStatusUseCase.execute(userId);
   }
 
-  async getWithdrawals(userId: any, limit?: number, offset?: number) {
+  async getWithdrawals(userId: string, limit?: number, offset?: number) {
     return this.getWithdrawalsUseCase.execute(userId, limit, offset);
   }
 
-  async requestWithdrawal(userId: any, amount: number, bank_account_id?: string | number, idempotencyKey?: string, securityMetadata?: { ip?: string; ua?: string }) {
+  async requestWithdrawal(userId: string, amount: number, bank_account_id?: string | number, idempotencyKey?: string, securityMetadata?: { ip?: string; ua?: string }) {
     return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id, idempotencyKey, securityMetadata);
   }
 

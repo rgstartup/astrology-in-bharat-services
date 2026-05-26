@@ -8,7 +8,7 @@ export class DisputePolicy {
         }
     }
 
-    static ensureOwnedBy(dispute: Dispute, userId: number) {
+    static ensureOwnedBy(dispute: Dispute, userId: string) {
         if (dispute.client_id !== (userId as any)) {
             // In a real app, we might throw a ForbiddenError, 
             // but sticking to standard pattern for now

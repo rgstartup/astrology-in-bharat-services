@@ -10,7 +10,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { BankAccount } from '@/modules/expert/bank-accounts/infrastructure/entities/bank-account.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum WithdrawalStatus {
     PENDING = 'pending',
@@ -26,7 +26,7 @@ export enum WithdrawalStatus {
 
 @Entity({ schema: 'finance', name: 'withdrawals' })
 export class Withdrawal {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @Column({ name: 'withdrawal_no', type: 'text', nullable: true, unique: true })

@@ -7,11 +7,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ProfileExpert } from './profile-expert.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'expert', name: 'pujas' })
 export class ExpertPuja {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @ManyToOne(() => ProfileExpert, (expert) => expert.pujas, {

@@ -7,11 +7,11 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'agent', name: 'profile' })
 export class ProfileAgent {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })

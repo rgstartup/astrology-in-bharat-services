@@ -22,7 +22,8 @@ export class MarkCouponAsUsedUseCase {
       .where('LOWER(coupon.code) = LOWER(:code)', { code })
       .andWhere('coupon.is_active = :isActive', { isActive: true })
       .getOne();
-    if (!coupon) {
+    
+      if (!coupon) {
       throw new NotFoundException('Coupon not found');
     }
 

@@ -1,4 +1,5 @@
-import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -7,7 +8,7 @@ export class LoginDto {
   @IsString()
   password!: string;
 
-  @IsString()
-  @IsOptional()
-  requiredRole?: string;
+  
+  @IsEnum(RoleEnum)
+  requiredRole!: RoleEnum;
 }

@@ -29,7 +29,7 @@ export class UpdateOrderStatusUseCase {
     private dataSource: DataSource,
   ) { }
 
-  async execute(id: string, status: OrderStatus, cancellationReason?: string, merchantId?: number) {
+  async execute(id: string, status: OrderStatus, cancellationReason?: string, merchantId?: string) {
     const order = await this.orderRepo.findOne({ 
       where: { id },
       relations: ['items', 'items.product']

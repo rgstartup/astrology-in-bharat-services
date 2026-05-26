@@ -15,7 +15,7 @@ export class UsedTokensService extends BaseService<UsedTokens> {
     super(usedTokensRepo);
   }
 
-  async isTokenUsed(token: string, userId: number) {
+  async isTokenUsed(token: string, userId: string) {
     const hashedToken = createHash('sha256').update(token).digest('hex');
 
     return this.usedTokensRepo.exists({
@@ -30,7 +30,7 @@ export class UsedTokensService extends BaseService<UsedTokens> {
 
   async markTokenAsUsed(
     token: string,
-    userId: number,
+    userId: string,
     purpose?: string,
     qr?: QueryRunner,
   ) {

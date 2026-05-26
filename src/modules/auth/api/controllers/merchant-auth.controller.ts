@@ -19,7 +19,7 @@ import { MerchantLoginDto } from '../dto/merchant-login.dto';
 import { AuthFacade } from '../../application/auth.facade';
 import { JwtAuthGuard } from '../guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { DataSource } from 'typeorm';
 
 @Controller({
@@ -74,7 +74,7 @@ export class MerchantAuthController {
 
       // Verify the user is actually a merchant
       const roles = user.roles || [];
-      if (!roles.includes(RoleEnum.MERCHANT)) {
+      if (!hasRoles(roles, 'MERCHANT')) {
         throw new ForbiddenException('Only merchant accounts can login here.');
       }
 
@@ -108,7 +108,7 @@ export class MerchantAuthController {
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async getProfile(@CurrentUser('id') userId: number) {
+  async getProfile(@CurrentUser('id') userId: string) {
     try {
       const profile = await this.authFacade.getMerchantProfile(userId);
       return {
@@ -127,7 +127,7 @@ export class MerchantAuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async logout(
-    @CurrentUser('id') userId: number,
+    @CurrentUser('id') userId: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     try {

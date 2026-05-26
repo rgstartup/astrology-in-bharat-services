@@ -7,11 +7,11 @@ import {
     JoinColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'agent', name: 'listings' })
 export class AgentListing {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @Column({ type: 'varchar', length: 20 })

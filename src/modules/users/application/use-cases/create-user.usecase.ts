@@ -15,7 +15,7 @@ export class CreateUserUseCase {
 
   async execute(dto: CreateUserDto, queryRunner?: QueryRunner): Promise<User> {
     const user = new User();
-    let uid: string = "";
+    // let uid: string = "";
     user.email = dto.email;
     user.password = dto.password ?? null;
     user.name = dto.name ?? null;

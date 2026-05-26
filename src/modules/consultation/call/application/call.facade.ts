@@ -35,7 +35,7 @@ export class CallFacade {
         return this.endCallUseCase.execute(sessionId, terminatedBy, reason);
     }
 
-    async getExpertSessions(expertUserId: number, filter: CallSessionFilter, options: { limit?: number; offset?: number; search?: string } = {}) {
+    async getExpertSessions(expertUserId: string, filter: CallSessionFilter, options: { limit?: number; offset?: number; search?: string } = {}) {
         return this.getExpertCallSessionsUseCase.execute(expertUserId, filter, options);
     }
 

@@ -11,11 +11,11 @@ import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entit
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'consultations', name: 'reviews' })
 export class Review {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @Column({ type: 'uuid', name: 'client_id' })

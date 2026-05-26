@@ -10,7 +10,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum PujaAppointmentStatus {
   PENDING = 'pending',
@@ -29,7 +29,7 @@ export enum PujaMode {
 
 @Entity({ schema: 'consultations', name: 'puja_appointments' })
 export class PujaAppointment {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @ManyToOne(() => ProfileClient)

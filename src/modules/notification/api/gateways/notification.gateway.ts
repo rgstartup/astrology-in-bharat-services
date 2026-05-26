@@ -14,15 +14,15 @@ import { Logger } from '@nestjs/common';
 })
 export class NotificationGateway {
     @WebSocketServer()
-    server: Server;
+    server!: Server;
 
     private logger = new Logger('NotificationGateway');
-    private userSockets = new Map<number, string>(); // userId -> socketId
+    private userSockets = new Map<string, string>(); // userId -> socketId
 
     @SubscribeMessage('register_user')
     handleRegisterUser(
         @ConnectedSocket() client: Socket,
-        @MessageBody() payload: { userId: number },
+        @MessageBody() payload: { userId: string },
     ) {
         this.userSockets.set(payload.userId, client.id);
         client.join(`user_${payload.userId}`);
@@ -31,7 +31,7 @@ export class NotificationGateway {
     }
 
     // Method to emit notification to specific user
-    emitToUser(userId: number, event: string, data: any) {
+    emitToUser(userId: string, event: string, data: any) {
         this.server.to(`user_${userId}`).emit(event, data);
         this.logger.log(`Emitted ${event} to user ${userId}`);
     }

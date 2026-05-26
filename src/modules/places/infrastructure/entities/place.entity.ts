@@ -1,4 +1,4 @@
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Entity,
   Column,
@@ -10,7 +10,7 @@ import {
 @Entity({ schema: 'content', name: 'places_cache' })
 @Index(['query', 'location'], { unique: true })
 export class Place {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @Column({type: 'text'})
@@ -32,7 +32,7 @@ export class Place {
 @Entity({ schema: 'content', name: 'place_images_cache' })
 @Index(['query'], { unique: true })
 export class PlaceImage {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @Column({type: 'text'})

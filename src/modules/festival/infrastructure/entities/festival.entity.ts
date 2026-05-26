@@ -1,4 +1,4 @@
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Entity,
   Column,
@@ -8,7 +8,7 @@ import {
 
 @Entity({ schema: 'content', name: 'festivals' })
 export class Festival {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @Column({type: 'character varying', length: '255'})

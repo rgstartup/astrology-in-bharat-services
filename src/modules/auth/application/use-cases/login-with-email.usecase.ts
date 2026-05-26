@@ -28,18 +28,7 @@ export class LoginWithEmailUseCase {
       throw new UnauthorizedException('Invalid password. Please try again.');
     }
 
-    // Role Validation: Move logic to backend
-    if (dto.requiredRole) {
-      const hasRequiredRole = user.roles?.some((roleName: any) => 
-        (typeof roleName === 'string' ? roleName : roleName?.name || '').toLowerCase() === dto.requiredRole?.toLowerCase()
-      );
-
-      if (!hasRequiredRole) {
-        throw new ForbiddenException(`Aapke paas ${dto.requiredRole} access nahi hai. Kripya sahi dashboard se login karein.`);
-      }
-    }
-
-    AuthPolicy.ensureCanLogin(user);
+    AuthPolicy.ensureCanLogin(user, dto.requiredRole);
 
     const tokens = await this.issueTokens.execute(user, ip, userAgent);
 

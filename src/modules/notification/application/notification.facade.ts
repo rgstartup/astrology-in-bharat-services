@@ -15,7 +15,7 @@ export class NotificationFacade {
     ) { }
 
     async create(
-        userId: number,
+        userId: string,
         type: NotificationType,
         title: string,
         message: string,
@@ -24,19 +24,19 @@ export class NotificationFacade {
         return this.createNotificationUseCase.execute(userId, type, title, message, metadata);
     }
 
-    async getUserNotifications(userId: number, limit?: number, offset?: number) {
+    async getUserNotifications(userId: string, limit?: number, offset?: number) {
         return this.getNotificationsUseCase.execute(userId, limit, offset);
     }
 
-    async markAsRead(id: string, userId: number) {
+    async markAsRead(id: string, userId: string) {
         return this.markAsReadUseCase.execute(id, userId);
     }
 
-    async getUnreadCount(userId: number) {
+    async getUnreadCount(userId: string) {
         return this.getNotificationsUseCase.getUnreadCount(userId);
     }
 
-    async clearAll(userId: number) {
+    async clearAll(userId: string) {
         return this.clearAllNotificationsUseCase.execute(userId);
     }
 }

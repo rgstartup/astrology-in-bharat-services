@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum PaymentStatus {
   PENDING = 'pending',
@@ -27,7 +27,7 @@ export class ColumnNumericTransformer {
 
 @Entity({ schema: 'finance', name: 'payment_orders' })
 export class PaymentOrder {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @Column({ type: 'uuid', name: 'client_id', nullable: true })

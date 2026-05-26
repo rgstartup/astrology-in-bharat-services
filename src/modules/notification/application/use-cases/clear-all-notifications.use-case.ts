@@ -10,7 +10,7 @@ export class ClearAllNotificationsUseCase {
         private readonly notificationRepo: Repository<Notification>,
     ) { }
 
-    async execute(userId: number) {
+    async execute(userId: string) {
         await this.notificationRepo.delete({ client_id: userId as any });
         return { message: 'All notifications cleared successfully' };
     }

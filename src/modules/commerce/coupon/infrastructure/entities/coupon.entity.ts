@@ -1,4 +1,4 @@
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
     Entity,
     Column,
@@ -19,7 +19,7 @@ export enum CouponStatus {
 
 @Entity({ schema: 'commerce', name: 'coupons' })
 export class Coupon {
-    @PrimaryKeyColumn()
+    @UuidPrimaryKeyColumn()
     id!: string;
 
     @Column({ type: 'text', unique: true })

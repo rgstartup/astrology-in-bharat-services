@@ -57,7 +57,7 @@ export class UsersFacade {
     return this.deleteUserUseCase.execute(id, queryRunner);
   }
 
-  assignRole(userId: number, roleName: RoleEnum, queryRunner?: QueryRunner) {
+  assignRole(userId: string, roleName: RoleEnum, queryRunner?: QueryRunner) {
     return this.assignRoleToUserUseCase.execute(userId, roleName, queryRunner);
   }
 

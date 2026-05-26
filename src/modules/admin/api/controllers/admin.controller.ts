@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseUUIDPipe, UseInterceptors, UploadedFiles, Delete, ParseEnumPipe } from '@nestjs/common';
+import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseUUIDPipe, UseInterceptors, UploadedFiles, Delete, ParseEnumPipe, ParseIntPipe } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
@@ -19,6 +19,7 @@ import { ReviewsFacade } from '@/modules/consultation/reviews/application/review
 import { RoleEnum, RolePipe } from '@/modules/users/infrastructure/enums/Role.enum';
 import { MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
+import { PaginationDto } from '@/common/dto/pagination.dto';
 
 @Controller({
   path: 'admin',
@@ -69,7 +70,7 @@ export class AdminController {
   }
 
   @Get('analytics/user-growth')
-  async getUserGrowthStats(@Query('days', ParseUUIDPipe) days: number = 7) {
+  async getUserGrowthStats(@Query('days', ParseIntPipe) days: number = 7) {
     return this.adminFacade.getUserGrowthStats(days);
   }
 
@@ -79,17 +80,17 @@ export class AdminController {
   }
 
   @Get('analytics/revenue-trend')
-  async getRevenueTrend(@Query('days', ParseUUIDPipe) days: number = 7) {
+  async getRevenueTrend(@Query('days', ParseIntPipe) days: number = 7) {
     return this.adminFacade.getRevenueTrend(days);
   }
 
   @Get('analytics/earnings-breakdown')
-  async getEarningsBreakdown(@Query('days', ParseUUIDPipe) days: number = 7) {
+  async getEarningsBreakdown(@Query('days', ParseIntPipe) days: number = 7) {
     return this.adminFacade.getEarningsBreakdown(days);
   }
 
   @Get('analytics/top-experts')
-  async getTopExperts(@Query('limit', ParseUUIDPipe) limit: number = 5) {
+  async getTopExperts(@Query('limit', ParseIntPipe) limit: number = 5) {
     return this.adminFacade.getTopExperts(limit);
   }
 
@@ -106,10 +107,9 @@ export class AdminController {
   @Get('clients')
   async getAllUsers(
     @Query('search') search?: string,
-    @Query('page', ParseUUIDPipe) page: number = 1,
-    @Query('limit', ParseUUIDPipe) limit: number = 10,
+    @Query() pagination: PaginationDto
   ) {
-    return this.usersFacade.findAllByRole('client', search, page, limit);
+    return this.usersFacade.findAllByRole('client', search, pagination.page, pagination.limit);
   }
 
   @Get('clients/:id')
@@ -120,11 +120,10 @@ export class AdminController {
   @Get('experts')
   async getAllExperts(
     @Query('search') search?: string,
-    @Query('page', ParseUUIDPipe) page: number = 1,
-    @Query('limit', ParseUUIDPipe) limit: number = 10,
+    @Query() pagination: PaginationDto,
     @Query('status') status?: string,
   ) {
-    return this.usersFacade.findAllByRole('expert', search, page, limit, status);
+    return this.usersFacade.findAllByRole('expert', search, pagination.page, pagination.limit, status);
   }
 
   @Get('experts/:id')
@@ -151,10 +150,9 @@ export class AdminController {
   @Get('live-sessions')
   async getLiveSessions(
     @Query('type') type?: string,
-    @Query('page', ParseUUIDPipe) page: number = 1,
-    @Query('limit', ParseUUIDPipe) limit: number = 10,
+    @Query() pagination: PaginationDto
   ) {
-    return this.adminFacade.getLiveSessions(type, page, limit);
+    return this.adminFacade.getLiveSessions(type, pagination.page, pagination.limit);
   }
 
   @Get('live-sessions/stats')
@@ -201,12 +199,11 @@ export class AdminController {
   // Withdrawal Management
   @Get('withdrawals')
   async getWithdrawals(
-    @Query('page', ParseUUIDPipe) page: number = 1,
-    @Query('limit', ParseUUIDPipe) limit: number = 10,
+    @Query() pagination: PaginationDto,
     @Query('status', new ParseEnumPipe(WithdrawalStatus, {optional: true})) status?: WithdrawalStatus,
     @Query('role', RolePipe({optional: true})) role?: RoleEnum,
   ) {
-    return this.adminFacade.getWithdrawals(page, limit, status, role);
+    return this.adminFacade.getWithdrawals(pagination.page, pagination.limit, status, role);
   }
 
 
@@ -218,7 +215,7 @@ export class AdminController {
 
   @Patch('withdrawals/:id/status')
   async updateWithdrawalStatus(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() admin: User,
     @Body() body: { status: WithdrawalStatus; remark?: string },
   ) {
@@ -247,10 +244,9 @@ export class AdminController {
   async getAllMerchants(
     @Query('search') search?: string,
     @Query('status', new ParseEnumPipe(MerchantStatus, {optional: true})) status?: MerchantStatus,
-    @Query('page', ParseUUIDPipe) page: number = 1,
-    @Query('limit', ParseUUIDPipe) limit: number = 10,
+    @Query() pagination: PaginationDto,
   ) {
-    return this.adminFacade.getAllMerchants({ search, status, page, limit });
+    return this.adminFacade.getAllMerchants({ search, status, page: pagination.page, limit: pagination.limit });
   }
 
   @Patch('merchants/:id/status')
@@ -297,12 +293,11 @@ export class AdminController {
 
   @Get('agents')
   async getAgents(
-    @Query('page', ParseUUIDPipe) page: number = 1,
-    @Query('limit', ParseUUIDPipe) limit: number = 10,
+    @Query() pagination: PaginationDto,
     @Query('search') search?: string,
     @Query('status') status?: string,
   ) {
-    return this.adminFacade.getAgents({ page, limit, search, status });
+    return this.adminFacade.getAgents({ page: pagination.page, limit: pagination.limit, search, status });
   }
 
   @Get('agents/stats')
@@ -314,10 +309,9 @@ export class AdminController {
   async getListings(
     @Query('type') type?: string,
     @Query('search') search?: string,
-    @Query('page', ParseUUIDPipe) page: number = 1,
-    @Query('limit', ParseUUIDPipe) limit: number = 10,
+    @Query() pagination: PaginationDto,
   ) {
-    return this.adminFacade.getListings({ type, search, page, limit });
+    return this.adminFacade.getListings({ type, search, page: pagination.page, limit: pagination.limit });
   }
 
   @Patch('listings/:id/status')
@@ -332,10 +326,9 @@ export class AdminController {
   @Get('support/disputes')
   async getAllDisputes(
     @Query('status', new ParseEnumPipe(DisputeStatus, {optional: true})) status?: DisputeStatus,
-    @Query('page', ParseUUIDPipe) page: number = 1,
-    @Query('limit', ParseUUIDPipe) limit: number = 10,
+    @Query() pagination: PaginationDto,
   ) {
-    return this.adminFacade.getAllDisputes({ status, page: Number(page), limit: Number(limit) });
+    return this.adminFacade.getAllDisputes({ status, page: pagination.page, limit: pagination.limit });
   }
 
   @Get('support/disputes/:id')

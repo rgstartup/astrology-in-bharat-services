@@ -19,11 +19,11 @@ export enum ChatSessionStatus {
 }
 
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'consultations', name: 'chat_sessions' })
 export class ChatSession {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @ManyToOne(() => ProfileClient)

@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum AddressTag {
   HOME = 'home',
@@ -22,7 +22,7 @@ export enum AddressTag {
 @Unique(['profile_client', 'tag'])
 @Unique(['profile_expert', 'tag'])
 export class Address {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id: string;
 
   // Map property "line1" to DB column "street"

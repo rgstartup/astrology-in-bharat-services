@@ -8,11 +8,11 @@ import {
 } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'cart_items' })
 export class CartItem {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @ManyToOne(() => Cart, (cart) => cart.items, { onDelete: 'CASCADE' })

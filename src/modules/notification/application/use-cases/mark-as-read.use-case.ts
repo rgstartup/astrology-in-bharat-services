@@ -10,7 +10,7 @@ export class MarkAsReadUseCase {
         private readonly notificationRepo: Repository<Notification>,
     ) { }
 
-    async execute(id: string, userId: number) {
+    async execute(id: string, userId: string) {
      const updateResult = await this.notificationRepo.update(
       { id }, // Removed user_id as it was removed from entity
       { is_read: true },

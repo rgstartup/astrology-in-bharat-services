@@ -23,7 +23,7 @@ export class GetExpertCallSessionsUseCase {
         private expertRepo: Repository<ProfileExpert>,
     ) { }
 
-    async execute(expertUserId: number, filter: CallSessionFilter, options: { limit?: number; offset?: number; search?: string } = {}) {
+    async execute(expertuserId: string, filter: CallSessionFilter, options: { limit?: number; offset?: number; search?: string } = {}) {
         const expert = await this.expertRepo.findOne({
             where: { user_id: expertUserId }
         });

@@ -1,5 +1,5 @@
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Column,
   CreateDateColumn,
@@ -18,7 +18,7 @@ export enum MerchantStatus {
 
 @Entity({ schema: 'merchant', name: 'profile' })
 export class ProfileMerchant {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @OneToOne(() => User, { cascade: true })

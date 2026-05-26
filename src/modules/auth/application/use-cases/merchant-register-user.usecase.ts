@@ -41,7 +41,7 @@ export class MerchantRegisterUserUseCase {
         {
           name: dto.shopName,
           email: dto.email,
-          roles: roles as any,
+          roles: roles,
           password: hashedPassword,
           email_verified_at: undefined,
         },
@@ -80,17 +80,12 @@ export class MerchantRegisterUserUseCase {
       };
     });
 
-    this.sendEmail(response.email); // Fixed: response now contains email directly
+    this.sendEmail(user);
 
     return response;
   }
 
-  private sendEmail(email: string) {
-    // We need the user to sign the token
-    this.db.transaction(async (qr) => {
-        const user = await this.usersFacade.findByEmail(email, qr);
-        if (!user) return;
-
+  private sendEmail(user: User) {
         const verification_token = this.tokenCrypto.signTemporaryToken({
             userId: user.id,
             email: user.email,
@@ -103,10 +98,9 @@ export class MerchantRegisterUserUseCase {
                 user.id,
                 user.email,
                 user.name || 'user',
+                user.roles,
                 verification_token,
-                user.roles || [],
             ),
         );
-    });
   }
 }

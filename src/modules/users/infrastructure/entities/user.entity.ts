@@ -15,13 +15,12 @@ import { OAuthAccount } from '@/modules/auth/infrastructure/entities/oauth-accou
 import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
 import { RoleEnum } from '../enums/Role.enum';
 import { Exclude } from 'class-transformer';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'public', name: 'users' })
 export class User {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
-
 
   @Column({ type: 'character varying', length: 255, unique: true })
   email!: string;
@@ -45,7 +44,6 @@ export class User {
   @Column({ type: 'enum', enum: RoleEnum, array: true, default: '{client}' })
   roles!: RoleEnum[];
 
-
   @OneToMany(() => OAuthAccount, (oa) => oa.user)
   oauth_accounts!: OAuthAccount[];
 
@@ -57,7 +55,6 @@ export class User {
 
   @UpdateDateColumn({type: 'timestamptz'})
   updated_at!: Date;
-
 
   @Column({ nullable: true, type: 'uuid' })
   referred_by_id!: string | null;

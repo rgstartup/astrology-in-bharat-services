@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class GetProfileUseCase {
@@ -14,7 +15,7 @@ export class GetProfileUseCase {
     private readonly userRepo: Repository<User>,
   ) { }
 
-  async execute(userId: number, queryRunner?: QueryRunner) {
+  async execute(userId: string, queryRunner?: QueryRunner) {
     const profileRepo = queryRunner ? queryRunner.manager.getRepository(ProfileClient) : this.repo;
     const userRepo = queryRunner ? queryRunner.manager.getRepository(User) : this.userRepo;
 
@@ -26,10 +27,12 @@ export class GetProfileUseCase {
     if (!profile) {
       // Check if user exists and what their role is
       const user = await userRepo.findOne({ where: { id: userId } });
+
+
       
       const roles = user?.roles || [];
-      const hasClientRole = roles.includes('client' as any);
-      const hasExpertRole = roles.includes('expert' as any);
+      const hasClientRole = hasRoles(roles, 'CLIENT');
+      const hasExpertRole = hasRoles(roles, 'EXPERT');
 
       if (hasExpertRole && !hasClientRole) {
         throw new ForbiddenException('Aap ek Expert hain. Kripya Expert Dashboard se login karein.');

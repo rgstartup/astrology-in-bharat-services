@@ -11,12 +11,12 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
-import { PrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 
 @Entity({ schema: 'finance', name: 'wallets' })
 export class Wallet {
-  @PrimaryKeyColumn()
+  @UuidPrimaryKeyColumn()
   id!: string;
 
   @OneToOne(() => ProfileClient, { nullable: true })

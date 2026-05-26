@@ -1,6 +1,6 @@
 export class PaymentOrderCreatedEvent {
   constructor(
-    public readonly userId: number,
+    public readonly userId: string,
     public readonly razorpayOrderId: string,
     public readonly amount: number,
   ) {}
@@ -8,7 +8,7 @@ export class PaymentOrderCreatedEvent {
 
 export class PaymentVerifiedEvent {
   constructor(
-    public readonly userId: number,
+    public readonly userId: string,
     public readonly razorpayOrderId: string,
     public readonly razorpayPaymentId: string,
   ) {}

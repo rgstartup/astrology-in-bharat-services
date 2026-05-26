@@ -13,7 +13,7 @@ export class CreateNotificationUseCase {
     ) { }
 
     async execute(
-        userId: number,
+        userId: string,
         type: NotificationType,
         title: string,
         message: string,
