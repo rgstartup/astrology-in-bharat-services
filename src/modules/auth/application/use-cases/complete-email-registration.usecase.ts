@@ -96,13 +96,13 @@ export class CompleteEmailRegistrationUseCase {
             await queryRunner.manager.save(Address, newAddress);
           }
         }
-      } else if (roles.includes(RoleEnum.MERCHANT as any)) {
+      } else if (updatedUser!.roles.includes(RoleEnum.MERCHANT as any)) {
         const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
         let merchantProfile = await queryRunner.manager.findOne(ProfileMerchant, {
           where: { user_id: user.id }
         });
 
-        const profileUpdates: Partial<ProfileMerchant> = {
+        const profileUpdates: Partial<typeof ProfileMerchant.prototype> = {
           shopName: dto.shopName || dto.name,
           phone: dto.phone || '',
         };
@@ -120,7 +120,13 @@ export class CompleteEmailRegistrationUseCase {
         }
 
         if (dto.address) {
-          await this.addressService.saveAddress(merchantProfile.id, 'profile_merchant', dto.address, queryRunner);
+          const profile = await queryRunner.manager.findOne(ProfileMerchant, { where: { user: { id: user.id } } });
+          if (profile) {
+            const newAddress = new Address();
+            Object.assign(newAddress, dto.address);
+            newAddress.profile_merchant = profile;
+            await queryRunner.manager.save(Address, newAddress);
+          }
         }
 
       } else {

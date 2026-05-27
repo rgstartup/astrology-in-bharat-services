@@ -18,9 +18,9 @@ export class TokenCryptoService {
     this.config = configData;
   }
 
-  async createAccessToken<T extends Object>(payload: T) {
+  async createAccessToken<T extends object>(payload: T) {
     return this.jwtService.signAsync(payload, {
-      expiresIn: this.config.jwtExpiresIn,
+      expiresIn: this.config.jwtExpiresIn as any,
     });
   }
 
@@ -30,7 +30,7 @@ export class TokenCryptoService {
     return { raw, hash };
   }
 
-  verifyJwt<T extends Object>(token: string) {
+  verifyJwt<T extends object>(token: string) {
     return this.jwtService.verifyAsync<T>(token, {
       clockTolerance: 10,
     });
