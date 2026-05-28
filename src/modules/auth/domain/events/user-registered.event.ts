@@ -5,7 +5,7 @@ export class UserRegisteredEvent {
     public readonly userId: string,
     public readonly email: string,
     public readonly name: string,
+    public readonly roles: RoleEnum[],
     public readonly verification_token: string,
-    public readonly roles: RoleEnum[] = [],
   ) {}
 }

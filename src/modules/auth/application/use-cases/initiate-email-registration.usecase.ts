@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DatabaseService } from '@/core/database/database.service';
@@ -16,13 +16,13 @@ export class InitiateEmailRegistrationUseCase {
     private readonly tokenCrypto: TokenCryptoService,
   ) {}
 
-  async execute(email: string, role?: string) {
+  async execute(email: string, role: RoleEnum) {
     let user = await this.usersFacade.findByEmail(email);
     
-    let requestedRole = RoleEnum.CLIENT;
-    if (role?.toLowerCase() === 'expert') requestedRole = RoleEnum.EXPERT;
-    else if (role?.toLowerCase() === 'agent') requestedRole = RoleEnum.AGENT;
-    else if (role?.toLowerCase() === 'merchant') requestedRole = RoleEnum.MERCHANT;
+    // let requestedRole = role;
+    // if (role === RoleEnum.EXPERT) requestedRole = RoleEnum.EXPERT;
+    // else if (role === RoleEnum.AGENT) requestedRole = RoleEnum.AGENT;
+    // else if (role === RoleEnum.MERCHANT) requestedRole = RoleEnum.MERCHANT;
 
     if (user) {
       if (user.password || user.name) {
@@ -34,9 +34,9 @@ export class InitiateEmailRegistrationUseCase {
         return this.usersFacade.create(
           {
             email,
-            roles: [requestedRole],
-            password: null,
-            name: null,
+            roles: [role], // Default to client role if not provided
+            password: undefined,
+            name: undefined,
             email_verified_at: undefined,
           },
           queryRunner,
@@ -57,8 +57,8 @@ export class InitiateEmailRegistrationUseCase {
         user.id,
         user.email,
         'User', // Default name for the email template
-        verification_token,
         user.roles,
+        verification_token,
       ),
     );
 
