@@ -1,19 +1,18 @@
-// @ts-nocheck
-import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
 import { SessionRepository } from '../../infrastructure/repositories/session.repository';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { InvalidRefreshTokenError } from '../../domain/errors/invalid-token.error';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { Session } from '../../infrastructure/entities/session.entity';
 import { RefreshTokenPolicy } from '../../domain/policies/refresh-token.policy';
+import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 
 @Injectable()
 export class RefreshTokenUseCase {
   constructor(
     private readonly db: DatabaseService,
+    @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly sessionRepo: SessionRepository,
-    private readonly hasher: Argon2PasswordHasher,
     private readonly issueAuthTokens: IssueAuthTokensUseCase,
   ) {}
 

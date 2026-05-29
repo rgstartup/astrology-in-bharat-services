@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
-import { Argon2PasswordHasher } from '../hashing/argon2-password.hasher';
 import { AuthConfig } from '@/config/auth.config';
 import { ConfigService } from '@nestjs/config';
+import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 
 @Injectable()
 export class TokenCryptoService {
@@ -11,7 +11,7 @@ export class TokenCryptoService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly hasher: Argon2PasswordHasher,
+    @Inject(IHasherToken) private readonly hasher: IHasher,
     configService: ConfigService,
   ) {
     const configData = configService.getOrThrow<AuthConfig>('auth');

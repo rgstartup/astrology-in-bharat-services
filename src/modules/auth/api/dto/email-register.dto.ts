@@ -1,13 +1,14 @@
-import { IsEmail, IsString, IsOptional, ValidateNested, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsString, IsOptional, ValidateNested, IsNotEmpty, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 export class InitiateRegisterDto {
   @IsEmail()
   email!: string;
 
-  @IsString()
+  @IsEnum(RoleEnum)
   @IsOptional()
-  role?: string;
+  role: RoleEnum = RoleEnum.CLIENT;
 }
 
 export class AddressDto {

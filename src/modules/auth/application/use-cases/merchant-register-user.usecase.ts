@@ -1,26 +1,24 @@
-// @ts-nocheck
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MerchantRegisterDto } from '../../api/dto/merchant-register.dto';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import { DatabaseService } from '@/core/database/database.service';
-import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
+import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-
+import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 @Injectable()
 export class MerchantRegisterUserUseCase {
   constructor(
     private readonly db: DatabaseService,
     private readonly usersFacade: UsersFacade,
     private readonly eventEmitter: EventEmitter2,
-    private readonly hasher: Argon2PasswordHasher,
+    @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
@@ -70,17 +68,19 @@ export class MerchantRegisterUserUseCase {
         await queryRunner.manager.save(ProfileMerchant, profile);
       }
 
+      
+      this.sendEmail(user);
+
       // Instead of issuing tokens immediately (they need KYC or verification usually),
       // we just return user object but specs say 201 Created and return specific string.
       // Wait, spec for registration: Expected response with NO token, just merchantId, email, status.
       return { 
-        merchantId: user.uid || user.id.toString(),
+        merchantId: profile.uid,
         email: user.email,
         status: profile.status
       };
     });
 
-    this.sendEmail(user);
 
     return response;
   }

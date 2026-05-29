@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '@/common/decorators/roles.decorator';
-import { Role, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { hasRoles, Role, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 interface JwtUser {
   id: string;
@@ -33,28 +33,21 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No user found in request');
     }
 
-    const userRoles: string[] = (user.roles || []).map((r: any) =>
-      (typeof r === 'string' ? r : r?.name || '').toLowerCase()
-    );
+    const userRoles = user.roles || [];
 
-    const isUserAdmin = userRoles.includes('admin');
+    const isUserAdmin = hasRoles(userRoles, 'ADMIN');
 
-    const hasRole =
-      isUserAdmin ||
-      requiredRoles.some((reqRole) => {
-        const target = (RoleEnum[reqRole as Role] || reqRole).toLowerCase();
-        return userRoles.includes(target);
-      });
+    const canPass =  isUserAdmin || hasRoles(userRoles, ...requiredRoles);
 
     console.log('[RolesGuard] Decision:', {
       userId: user.id,
       userRoles,
       requiredRoles,
-      hasRole,
+      hasRole: canPass,
       isUserAdmin
     });
 
-    if (!hasRole) {
+    if (!canPass) {
       console.error('[RolesGuard] Access Denied:', {
         userId: user.id,
         userRoles: user.roles,

@@ -1,8 +1,5 @@
-// @ts-nocheck
-// src/auth/token.service.ts
-import * as argon2 from 'argon2';
 import ms from 'ms';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'node:crypto';
 import { QueryRunner, Repository } from 'typeorm';
@@ -12,7 +9,7 @@ import { Session } from '../entities/session.entity';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
 import { BaseService } from '@/common/services/transaction.service';
-import { Role, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 
 @Injectable()
 export class TokenService extends BaseService<Session> {
@@ -21,6 +18,7 @@ export class TokenService extends BaseService<Session> {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject(IHasherToken) private readonly hasher: IHasher,
 
     @InjectRepository(Session)
     private readonly sessionRepo: Repository<Session>,
@@ -43,11 +41,11 @@ export class TokenService extends BaseService<Session> {
   ) {
     const accessToken = await this.jwtService.signAsync(
       { userId: user.id, roles: user.roles },
-      { expiresIn: this.jwtConfig?.jwtExpiresIn as any },
+      { expiresIn: this.jwtConfig?.jwtExpiresIn},
     );
 
     const refreshTokenRaw = randomBytes(64).toString('hex');
-    const refreshTokenHash = await argon2.hash(refreshTokenRaw);
+    const refreshTokenHash = await this.hasher.hash(refreshTokenRaw);
 
     const expiresInMs = ms(
       this.jwtConfig.refreshTokenExpiresIn as ms.StringValue,
@@ -75,7 +73,7 @@ export class TokenService extends BaseService<Session> {
 
     for (const c of creds) {
       if (c.expires_at < new Date()) continue;
-      const valid = await argon2.verify(c.secret_hash, refreshToken);
+      const valid = await this.hasher.verify(c.secret_hash, refreshToken);
       if (valid) return this.generateTokens({ id: userId } as User);
     }
 

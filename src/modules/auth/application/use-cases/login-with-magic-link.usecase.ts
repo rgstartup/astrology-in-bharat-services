@@ -21,7 +21,7 @@ export class LoginWithMagicLinkUseCase {
     private readonly issueAuthTokens: IssueAuthTokensUseCase,
   ) { }
 
-  async execute(token: string, ip?: string, ua?: string) {
+  async execute(token: string, role: RoleEnum, ip?: string, ua?: string) {
     const payload = await this.verifyTokenOrFail(token);
 
     const user = await this.usersFacade.findByEmail(payload.email);
@@ -53,7 +53,7 @@ export class LoginWithMagicLinkUseCase {
       ]);
     });
 
-    const tokens = await this.issueAuthTokens.execute(user, ip, ua);
+    const tokens = await this.issueAuthTokens.execute(user, role, ip, ua);
 
     return { user: updatedUser, tokens };
   }

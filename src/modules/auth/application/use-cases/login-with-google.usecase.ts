@@ -5,7 +5,7 @@ import { DatabaseService } from '@/core/database/database.service';
 import { OAuthService } from '../../infrastructure/services/oauth.service';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
+import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 
 @Injectable()
 export class LoginWithGoogleUseCase {
@@ -28,14 +28,17 @@ export class LoginWithGoogleUseCase {
     userAgent?: string;
     role?: RoleEnum;
   }) {
+
+    const roleToAdd = input.role ||RoleEnum.CLIENT;
+
     return this.db.transaction(async (qr) => {
       // 1. Check if user exists first to handle role restrictions
       const existingUser = await this.usersFacade.findByEmail(input.email, qr);
       this.logger.log(
-        `Google Login attempt for ${input.email}. Requested role: ${input.role}. Existing user: ${!!existingUser}`,
+        `Google Login attempt for ${input.email}. Requested role: ${roleToAdd}. Existing user: ${!!existingUser}`,
       );
 
-      if (existingUser && input.role === RoleEnum.EXPERT) {
+      if (existingUser && roleToAdd === RoleEnum.EXPERT) {
         const roles = existingUser.roles || [];
         this.logger.log(`Existing user roles: ${roles.join(', ')}`);
 
@@ -56,7 +59,7 @@ export class LoginWithGoogleUseCase {
           email: input.email,
           name: input.name,
           profile: input.profile,
-          roles: [input.role ?? RoleEnum.CLIENT]
+          roles: [roleToAdd]
         },
         qr,
       );
@@ -65,6 +68,7 @@ export class LoginWithGoogleUseCase {
 
       const tokens = await this.issueTokens.execute(
         user,
+        roleToAdd,
         input.ip,
         input.userAgent,
         qr,

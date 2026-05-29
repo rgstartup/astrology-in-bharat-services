@@ -27,7 +27,7 @@ export class User {
 
   @Column({ type: 'text', select: false, nullable: true })
   @Exclude()
-  password!: string | null; // argon2 hash
+  password!: string | null;
 
   @Column({
     type: 'timestamptz',

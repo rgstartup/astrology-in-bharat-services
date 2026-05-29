@@ -1,19 +1,19 @@
-// @ts-nocheck
-import { Injectable } from '@nestjs/common';
+
+import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RegisterDto } from '../../api/dto';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import { DatabaseService } from '@/core/database/database.service';
-import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
+import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 
 @Injectable()
 export class RegisterUserUseCase {
@@ -21,7 +21,7 @@ export class RegisterUserUseCase {
     private readonly db: DatabaseService,
     private readonly usersFacade: UsersFacade,
     private readonly eventEmitter: EventEmitter2,
-    private readonly hasher: Argon2PasswordHasher,
+    @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
@@ -88,8 +88,8 @@ export class RegisterUserUseCase {
         user.id,
         user.email,
         user.name || 'user',
-        verification_token,
         user.roles,
+        verification_token,
       ),
     );
   }

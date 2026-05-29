@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
+import { IAccessTokenPayload } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -22,12 +23,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: IAccessTokenPayload) {
     // We return a simplified user object based on the JWT payload.
     // This avoids a database hit on every protected request.
     return {
-      id: payload.userId,
-      roles: payload.roles
+      id: payload.sub,
+      ...payload
     };
   }
 }

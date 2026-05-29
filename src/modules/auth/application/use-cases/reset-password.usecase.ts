@@ -1,11 +1,10 @@
-// @ts-nocheck
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { UsedTokensService } from '../../infrastructure/services/used-tokens.service';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { TokenAlreadyUsedError } from '../../domain/errors/token-already-used.error';
+import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 
 @Injectable()
 export class ResetPasswordUseCase {
@@ -13,7 +12,7 @@ export class ResetPasswordUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly usedTokenService: UsedTokensService,
-    private readonly hasher: Argon2PasswordHasher,
+    @Inject(IHasherToken) private readonly hasher: IHasher,
   ) {}
 
   async execute(token: string, password: string) {

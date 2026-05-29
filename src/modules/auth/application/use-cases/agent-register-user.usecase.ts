@@ -1,9 +1,8 @@
 // @ts-nocheck
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
-import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
+import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import * as crypto from 'crypto';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
@@ -17,6 +16,7 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 
 @Injectable()
 export class AgentRegisterUserUseCase {
@@ -25,7 +25,7 @@ export class AgentRegisterUserUseCase {
     constructor(
         private readonly db: DatabaseService,
         private readonly usersFacade: UsersFacade,
-        private readonly hasher: Argon2PasswordHasher,
+        @Inject(IHasherToken) private readonly hasher: IHasher,
         private readonly profileCreationResolver: AuthProfileCreationResolver,
         private readonly mailer: NodeMailerService,
         private readonly eventEmitter: EventEmitter2,

@@ -1,16 +1,16 @@
 // @ts-nocheck
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, Inject } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { CompleteRegisterDto } from '../../api/dto/email-register.dto';
-import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
+import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { Address } from '@/common/address/address.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 
 @Injectable()
 export class CompleteEmailRegistrationUseCase {
@@ -18,7 +18,7 @@ export class CompleteEmailRegistrationUseCase {
     private readonly db: DatabaseService,
     private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
-    private readonly hasher: Argon2PasswordHasher,
+    @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
   ) {}

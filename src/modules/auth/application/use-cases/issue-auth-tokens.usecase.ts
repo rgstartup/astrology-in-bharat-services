@@ -3,26 +3,33 @@ import { QueryRunner } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { SessionRepository } from '../../infrastructure/repositories/session.repository';
-
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { FindProfileResolver } from '../strategies/find-profile/find-profile.resolver';
+import { IAccessTokenPayload } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class IssueAuthTokensUseCase {
   constructor(
     private readonly tokenCrypto: TokenCryptoService,
     private readonly sessionRepo: SessionRepository,
+    private readonly findProfileResolver: FindProfileResolver,
   ) { }
 
   async execute(
     user: User,
+    targetRole?: RoleEnum,
     ip?: string,
     ua?: string,
     queryRunner?: QueryRunner,
   ) {
+
+    const profileId = await this.findProfileForRole(user.id, targetRole);
     
-    const accessToken = await this.tokenCrypto.createAccessToken({
-      userId: user.id,
+    const accessToken = await this.tokenCrypto.createAccessToken<IAccessTokenPayload>({
+      sub: user.id,
       roles: user.roles,
+      email: user.email,
+      profile: profileId ?? undefined,
     });
 
     const { raw, hash } = await this.tokenCrypto.createRefreshToken();
@@ -41,4 +48,12 @@ export class IssueAuthTokensUseCase {
 
     return { accessToken, refreshToken: `${savedSession.id}.${raw}` };
   }
+
+  private async findProfileForRole(userId: string, targetRole?: RoleEnum): Promise<string | null> {
+    if(!targetRole) return null;
+
+    const profileId = await this.findProfileResolver.findProfile(userId, targetRole);
+
+    return profileId; // Placeholder return  
+}
 }

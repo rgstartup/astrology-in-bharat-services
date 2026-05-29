@@ -1,50 +1,32 @@
-import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { LoginDto } from '../../api/dto';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
 import { AuthPolicy } from '../../domain/policies/auth.policy';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
-
 @Injectable()
 export class LoginWithEmailUseCase {
   constructor(
     private readonly usersFacade: UsersFacade,
-    private passwordHasher: Argon2PasswordHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
+    private readonly authPolicy: AuthPolicy,
   ) {}
 
   async execute(dto: LoginDto, ip?: string, userAgent?: string) {
     const user = await this.usersFacade.findByEmailWithPassword(dto.email);
 
-    if (!user) {
-      throw new UnauthorizedException('User not found with this email. Please sign up first.');
+    const isValidPassword = await this.authPolicy.verifyPassword(user, dto.password);
+
+    if (!user || !user.password || !isValidPassword) {
+      throw new UnauthorizedException('Invalid email or password');
     }
 
-    const isValidPassword = await this.validatePassword(dto, user);
+    this.authPolicy.ensureEmailVerified(user);
 
-    if (!isValidPassword) {
-      throw new UnauthorizedException('Invalid password. Please try again.');
-    }
+    this.authPolicy.ensureHasRequiredRole(user, dto.requiredRole);
 
-    AuthPolicy.ensureCanLogin(user, dto.requiredRole);
-
-    const tokens = await this.issueTokens.execute(user, ip, userAgent);
+    const tokens = await this.issueTokens.execute(user, dto.requiredRole, ip, userAgent);
 
     return { user, tokens };
   }
 
-  private async validatePassword(dto: LoginDto, user?: User | null) {
-    const fallbackInvalidPassword = await this.passwordHasher.hash(
-      'fallbackInvalidPassword',
-    );
-
-    const isValid = await this.passwordHasher.verify(
-      user?.password ?? fallbackInvalidPassword,
-      dto.password,
-    );
-
-    return isValid;
-  }
 }

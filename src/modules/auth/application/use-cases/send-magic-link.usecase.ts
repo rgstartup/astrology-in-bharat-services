@@ -3,6 +3,7 @@ import { UsersFacade } from '@/modules/users/application/users.facade';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { SendMagicLinkEvent } from '../../domain/events/send-magic-link.event';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class SendMagicLinkUseCase {
@@ -12,7 +13,7 @@ export class SendMagicLinkUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(email: string) {
+  async execute(email: string, roleEnum: RoleEnum) {
     const existingUser = await this.usersFacade.findByEmail(email);
 
     if (!existingUser) {

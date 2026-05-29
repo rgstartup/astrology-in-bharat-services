@@ -49,57 +49,25 @@ import { CompleteEmailRegistrationUseCase } from './application/use-cases/comple
 import { ExternalModule } from '@/external/external.module';
 import {
   AUTH_PROFILE_CREATION_STRATEGIES,
-} from './application/strategies/auth-profile-creation.strategy';
-import { ClientAuthProfileCreationStrategy } from './application/strategies/client-auth-profile-creation.strategy';
-import { ExpertAuthProfileCreationStrategy } from './application/strategies/expert-auth-profile-creation.strategy';
-import { AgentAuthProfileCreationStrategy } from './application/strategies/agent-auth-profile-creation.strategy';
-import { MerchantAuthProfileCreationStrategy } from './application/strategies/merchant-auth-profile-creation.strategy';
-import { AuthProfileCreationResolver } from './application/strategies/auth-profile-creation.resolver';
+} from './application/strategies/create-profile/auth-profile-creation.strategy';
+import { ClientAuthProfileCreationStrategy } from './application/strategies/create-profile/client-auth-profile-creation.strategy';
+import { ExpertAuthProfileCreationStrategy } from './application/strategies/create-profile/expert-auth-profile-creation.strategy';
+import { AgentAuthProfileCreationStrategy } from './application/strategies/create-profile/agent-auth-profile-creation.strategy';
+import { MerchantAuthProfileCreationStrategy } from './application/strategies/create-profile/merchant-auth-profile-creation.strategy';
+import { AuthProfileCreationResolver } from './application/strategies/create-profile/auth-profile-creation.resolver';
+import { IHasherToken } from '@/common/contracts/hasher.contract';
+import { AuthPolicy } from './domain/policies/auth.policy';
+import { ClientFindProfileStrategy } from './application/strategies/find-profile/client-find-profile.strategy';
+import { ExpertFindProfileStrategy } from './application/strategies/find-profile/expert-find-profile.strategy';
+import { AgentFindProfileStrategy } from './application/strategies/find-profile/agent-find-profile.strategy';
+import { MerchantFindProfileStrategy } from './application/strategies/find-profile/merchant-find-profile.strategy';
+import { FindProfileResolver } from './application/strategies/find-profile/find-profile.resolver';
+import { FIND_PROFILE_STRATEGIES } from './application/strategies/find-profile/find-profile.strategy';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
-@Module({
-  imports: [
-    UsersModule,
-    TypeOrmModule.forFeature([Session, OAuthAccount, UsedTokens, ProfileAgent]),
-    DatabaseModule,
-    ExternalModule,
-    ClientProfileModule,
-    ExpertProfileModule,
-    MerchantProfileModule,
-    WalletModule,
-    EmailQueueModule,
-  ],
-  providers: [
-    // AuthService,
-    // TokenService,
-    OAuthService,
-    UsedTokensService,
-    JwtStrategy,
-    JwtRefreshStrategy,
-    GoogleStrategy,
-    GoogleAuthGuard,
-    ClientAuthProfileCreationStrategy,
-    ExpertAuthProfileCreationStrategy,
-    AgentAuthProfileCreationStrategy,
-    MerchantAuthProfileCreationStrategy,
-    AuthProfileCreationResolver,
-    {
-      provide: AUTH_PROFILE_CREATION_STRATEGIES,
-      useFactory: (
-        expert: ExpertAuthProfileCreationStrategy,
-        client: ClientAuthProfileCreationStrategy,
-        agent: AgentAuthProfileCreationStrategy,
-        merchant: MerchantAuthProfileCreationStrategy,
-      ) => [expert, client, agent, merchant],
-      inject: [
-        ExpertAuthProfileCreationStrategy,
-        ClientAuthProfileCreationStrategy,
-        AgentAuthProfileCreationStrategy,
-        MerchantAuthProfileCreationStrategy,
-      ],
-    },
-
-    AuthFacade,
-    // Use case -  start
+const useCases = [
     RegisterUserUseCase,
     AgentRegisterUserUseCase,
     MerchantRegisterUserUseCase,
@@ -117,15 +85,94 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     GetMerchantProfileUseCase,
     InitiateEmailRegistrationUseCase,
     CompleteEmailRegistrationUseCase,
-    // Use case - end
+]
 
-    Argon2PasswordHasher,
-    TokenCryptoService,
-    SessionRepository,
+const handlers = [
     UserRegisteredHandler,
     ResetPasswordEventHandler,
     VerifyEmailHandler,
     SendMagicLinkEventHandler,
+]
+
+@Module({
+  imports: [
+    UsersModule,
+    TypeOrmModule.forFeature([
+      Session,
+      OAuthAccount,
+      UsedTokens,
+      ProfileAgent,
+      ProfileClient,
+      ProfileExpert,
+      ProfileMerchant,
+    ]),
+    DatabaseModule,
+    ExternalModule,
+    ClientProfileModule,
+    ExpertProfileModule,
+    MerchantProfileModule,
+    WalletModule,
+    EmailQueueModule,
+  ],
+  providers: [
+    OAuthService,
+    UsedTokensService,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    GoogleStrategy,
+    GoogleAuthGuard,
+    ClientAuthProfileCreationStrategy,
+    ExpertAuthProfileCreationStrategy,
+    AgentAuthProfileCreationStrategy,
+    MerchantAuthProfileCreationStrategy,
+    AuthProfileCreationResolver,
+    ClientFindProfileStrategy,
+    ExpertFindProfileStrategy,
+    AgentFindProfileStrategy,
+    MerchantFindProfileStrategy,
+    FindProfileResolver,
+    {
+      provide: AUTH_PROFILE_CREATION_STRATEGIES,
+      useFactory: (
+        expert: ExpertAuthProfileCreationStrategy,
+        client: ClientAuthProfileCreationStrategy,
+        agent: AgentAuthProfileCreationStrategy,
+        merchant: MerchantAuthProfileCreationStrategy,
+      ) => [expert, client, agent, merchant],
+      inject: [
+        ExpertAuthProfileCreationStrategy,
+        ClientAuthProfileCreationStrategy,
+        AgentAuthProfileCreationStrategy,
+        MerchantAuthProfileCreationStrategy,
+      ],
+    },
+    {
+      provide: FIND_PROFILE_STRATEGIES,
+      useFactory: (
+        expert: ExpertFindProfileStrategy,
+        client: ClientFindProfileStrategy,
+        agent: AgentFindProfileStrategy,
+        merchant: MerchantFindProfileStrategy,
+      ) => [expert, client, agent, merchant],
+      inject: [
+        ExpertFindProfileStrategy,
+        ClientFindProfileStrategy,
+        AgentFindProfileStrategy,
+        MerchantFindProfileStrategy,
+      ],
+    },
+
+    AuthFacade,
+    ...useCases,
+    ...handlers,
+    {
+      provide: IHasherToken,
+      useClass: Argon2PasswordHasher,
+    },
+    AuthPolicy,
+    TokenCryptoService,
+    SessionRepository,
+
   ],
   controllers: [AuthController, MerchantAuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],

@@ -56,6 +56,9 @@ import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointme
 import { OrderModule } from '@/modules/commerce/order/order.module';
 
 import { PublicSettingsController } from './api/controllers/public-settings.controller';
+import { IHasherToken } from '@/common/contracts/hasher.contract';
+import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-password.hasher';
+
 
 @Module({
   imports: [
@@ -113,6 +116,10 @@ import { PublicSettingsController } from './api/controllers/public-settings.cont
     GetAdminMerchantSalesDetailsUseCase,
     GetSystemSettingsUseCase,
     UpdateSystemSettingUseCase,
+    {
+      provide: IHasherToken,
+      useClass: Argon2PasswordHasher,
+    }
   ],
 })
 export class AdminModule { }

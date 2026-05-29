@@ -5,6 +5,7 @@ import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.ser
 import { VerifyEmailEvent } from '../../domain/events/verify-email.event';
 import { EmailVerificationPolicy } from '../../domain/policies/email-verification.policy';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class ResendVerificationEmailUseCase {
@@ -14,7 +15,7 @@ export class ResendVerificationEmailUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(email: string) {
+  async execute(email: string, targetRole: RoleEnum) {
     const existingUser = await this.usersFacade.findByEmail(email);
 
     if (!existingUser) {
