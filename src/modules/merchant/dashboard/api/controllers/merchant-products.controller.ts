@@ -13,6 +13,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
@@ -35,8 +36,8 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: string,
     @Query('status') status?: string,
     @Query('search') search?: string,
-    @Query('page', new DefaultValuePipe(1), ParseUUIDPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(20), ParseUUIDPipe) limit: number = 20,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
   ) {
     const products = await this.merchantProducts.findAll(userId as any, { status, search, page, limit });
     return { success: true, data: products };
@@ -98,3 +99,4 @@ export class MerchantProductsController {
     return { success: true, data: result };
   }
 }
+

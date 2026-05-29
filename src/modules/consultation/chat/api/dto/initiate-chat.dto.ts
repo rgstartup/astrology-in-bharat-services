@@ -1,7 +1,7 @@
-import { IsNumber, IsOptional, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsObject } from 'class-validator';
 
 export class InitiateChatDto {
-  @IsNumber()
+  @IsString()
   expertId: string;
 
   @IsOptional()

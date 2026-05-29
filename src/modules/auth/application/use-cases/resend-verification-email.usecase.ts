@@ -15,7 +15,7 @@ export class ResendVerificationEmailUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(email: string, targetRole: RoleEnum) {
+  async execute(email: string) {
     const existingUser = await this.usersFacade.findByEmail(email);
 
     if (!existingUser) {

@@ -165,6 +165,7 @@ export class CompleteEmailRegistrationUseCase {
       // 5. Issue Tokens
       const tokens = await this.issueTokens.execute(
         updatedUser!,
+        updatedUser!.roles[0] as RoleEnum,
         ip,
         userAgent,
         queryRunner,

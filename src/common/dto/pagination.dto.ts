@@ -15,6 +15,17 @@ export class PaginationDto {
   @Min(1)
   limit: number = 10;
 
+  @IsOptional()
+  search?: string;
+
+  @IsOptional()
+  status?: string;
+
+  @IsOptional()
+  type?: string;
+
+  @IsOptional()
+  role?: string;
 
 get offset(): number {
     return (this.page - 1) * this.limit;

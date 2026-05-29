@@ -82,7 +82,7 @@ export class InitiateChatUseCase {
         }
 
         const session = this.sessionRepo.create({
-            user_id: userId,
+            client_id: userId,
             expert_id: expertId,
             price_per_minute: chatPrice,
             status: ChatSessionStatus.PENDING,

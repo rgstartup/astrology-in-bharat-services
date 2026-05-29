@@ -2,7 +2,7 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class ConsultationBookDto {
     @IsNotEmpty()
-    @IsNumber()
+    @IsString()
     expert_id: string;
 
     @IsNotEmpty()

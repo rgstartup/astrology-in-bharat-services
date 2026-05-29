@@ -2,18 +2,33 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Withdrawal } from '../../infrastructure/entities/withdrawal.entity';
+import { GetWalletUseCase } from './get-wallet.use-case';
 
 @Injectable()
 export class GetWithdrawalsStatusUseCase {
   constructor(
     @InjectRepository(Withdrawal)
     private readonly withdrawalRepository: Repository<Withdrawal>,
+    private readonly getWalletUseCase: GetWalletUseCase,
   ) { }
 
   async execute(userId: string) {
+    const wallet = await this.getWalletUseCase.execute(userId);
+    let ownerKey = '';
+    let ownerId = '';
+
+    if (wallet.expert_id) { ownerKey = 'expert_id'; ownerId = wallet.expert_id; }
+    else if (wallet.merchant_id) { ownerKey = 'merchant_id'; ownerId = wallet.merchant_id; }
+    else if (wallet.agent_id) { ownerKey = 'agent_profile_id'; ownerId = wallet.agent_id; }
+
     const query = this.withdrawalRepository
-      .createQueryBuilder('w')
-      .where('w.user_id = :userId', { userId });
+      .createQueryBuilder('w');
+      
+    if (ownerKey) {
+        query.where(`w.${ownerKey} = :ownerId`, { ownerId });
+    } else {
+        query.where('1 = 0');
+    }
 
     const pendingResult = await query
       .clone()

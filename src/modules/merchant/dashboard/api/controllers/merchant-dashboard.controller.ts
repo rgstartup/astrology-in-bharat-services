@@ -14,6 +14,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   ParseEnumPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
@@ -64,8 +65,8 @@ export class MerchantDashboardController {
   @HttpCode(HttpStatus.OK)
   async orders(
     @CurrentUser('id') userId: string,
-    @Query('page', new DefaultValuePipe(1), ParseUUIDPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseUUIDPipe) limit: number = 10,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
     @Query('status') status?: string,
     @Query('search') search?: string,
   ) {
@@ -133,3 +134,4 @@ export class MerchantDashboardController {
   }
 
 }
+

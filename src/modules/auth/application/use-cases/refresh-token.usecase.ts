@@ -51,6 +51,7 @@ export class RefreshTokenUseCase {
         session.user,
         undefined,
         undefined,
+        undefined,
         queryRunner,
       );
     });

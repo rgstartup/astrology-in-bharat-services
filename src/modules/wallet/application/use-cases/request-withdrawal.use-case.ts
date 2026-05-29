@@ -283,8 +283,7 @@ export class RequestWithdrawalUseCase {
          dbBankAccountId = bank_account_id as string;
       }
 
-      const withdrawal = queryRunner.manager.create(Withdrawal, {
-        client_id: userId as any,
+      let withdrawalData: any = {
         amount,
         bank_account_id: dbBankAccountId,
         status: WithdrawalStatus.PENDING,
@@ -292,7 +291,13 @@ export class RequestWithdrawalUseCase {
         user_agent: securityMetadata?.ua,
         is_high_value: amount >= HIGH_VALUE_THRESHOLD,
         ...merchantSnapshot,
-      });
+      };
+
+      if (wallet.expert_id) withdrawalData.expert_id = wallet.expert_id;
+      else if (wallet.merchant_id) withdrawalData.merchant_id = wallet.merchant_id;
+      else if (wallet.agent_id) withdrawalData.agent_profile_id = wallet.agent_id;
+
+      const withdrawal = queryRunner.manager.create(Withdrawal, withdrawalData);
       await queryRunner.manager.save(withdrawal);
 
       // G. Generate Custom IDs (transaction_no and withdrawal_no)
@@ -308,18 +313,16 @@ export class RequestWithdrawalUseCase {
           throw new Error(`User with id ${userId} not found for transaction no generation`);
         }
         
-        const isUserClient = hasRoles(user.roles, 'CLIENT');
-            
-        if(!isUserClient){
-          throw new ForbiddenException('Only clients can have wallet transactions');
-        }
+        const rolePrefix = hasRoles(user.roles, 'EXPERT') ? 'EXPERT' : 
+                           hasRoles(user.roles, 'MERCHANT') ? 'MERCHANT' : 
+                           hasRoles(user.roles, 'AGENT') ? 'AGENT' : 'CLIENT';
 
         // Update Transaction No
-        transaction.transaction_no = generateTransactionNo('CLIENT', TransactionPurpose.WITHDRAWAL, transaction.id);
+        transaction.transaction_no = generateTransactionNo(rolePrefix, TransactionPurpose.WITHDRAWAL, transaction.id);
         await queryRunner.manager.save(transaction);
 
         // Update Withdrawal No
-        withdrawal.withdrawal_no = generateTransactionNo('CLIENT', TransactionPurpose.WITHDRAWAL, withdrawal.id);
+        withdrawal.withdrawal_no = generateTransactionNo(rolePrefix, TransactionPurpose.WITHDRAWAL, withdrawal.id);
         await queryRunner.manager.save(withdrawal);
 
         // Send instant notification

@@ -13,7 +13,7 @@ export class SendMagicLinkUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(email: string, roleEnum: RoleEnum) {
+  async execute(email: string) {
     const existingUser = await this.usersFacade.findByEmail(email);
 
     if (!existingUser) {

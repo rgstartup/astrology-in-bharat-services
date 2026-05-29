@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, HttpCode, HttpStatus, Query, DefaultValuePipe, ParseUUIDPipe, Headers, Ip } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, HttpCode, HttpStatus, Query, DefaultValuePipe, ParseUUIDPipe, Headers, Ip, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { GetMerchantFinanceStatsUseCase } from '../../application/use-cases/get-merchant-finance-stats.usecase';
@@ -33,8 +33,8 @@ export class MerchantFinanceController {
   async transactions(
     @CurrentUser('id') userId: string,
     @Query('search') search?: string,
-    @Query('page', new DefaultValuePipe(1), ParseUUIDPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseUUIDPipe) limit: number = 10,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ) {
     const transactions = await this.getTransactions.execute(userId, { search, page, limit });
     return { success: true, data: transactions };
@@ -58,3 +58,4 @@ export class MerchantFinanceController {
     };
   }
 }
+

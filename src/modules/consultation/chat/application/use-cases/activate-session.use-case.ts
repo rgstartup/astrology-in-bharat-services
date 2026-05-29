@@ -63,7 +63,7 @@ export class ActivateSessionUseCase {
             });
 
             const userData = session.metadata || {
-                name: session.client?.name,
+                name: (session.user as any)?.name || profileClient?.name,
                 dob: profileClient?.date_of_birth,
                 tob: profileClient?.time_of_birth,
                 pob: profileClient?.place_of_birth,

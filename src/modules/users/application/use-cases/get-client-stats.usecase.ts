@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class GetClientStatsUseCase {
@@ -17,19 +18,20 @@ export class GetClientStatsUseCase {
 
     const totalClients = await this.userRepository
       .createQueryBuilder('user')
-      .where(":role = ANY(user.roles)", { role: RoleEnum.CLIENT })
+      .where(":role = ANY(\"user\".roles)", { role: RoleEnum.CLIENT })
       .getCount();
 
     const recentClients = await this.userRepository
       .createQueryBuilder('user')
-      .where(":role = ANY(user.roles)", { role: RoleEnum.CLIENT })
-      .andWhere('user.created_at >= :today', { today })
+      .where(":role = ANY(\"user\".roles)", { role: RoleEnum.CLIENT })
+      .andWhere('\"user\".created_at >= :today', { today })
       .getCount();
 
     const blockedClients = await this.userRepository
       .createQueryBuilder('user')
-      .where(":role = ANY(user.roles)", { role: RoleEnum.CLIENT })
-      .andWhere('user.is_blocked = :isBlocked', { isBlocked: true })
+      .where(":role = ANY(\"user\".roles)", { role: RoleEnum.CLIENT })
+      .leftJoin(ProfileClient, 'profile', 'profile.user_id = \"user\".id')
+      .andWhere('profile.is_blocked = :isBlocked', { isBlocked: true })
       .getCount();
 
     return {

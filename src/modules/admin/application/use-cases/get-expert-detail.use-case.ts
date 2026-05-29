@@ -42,12 +42,14 @@ export class GetExpertDetailUseCase {
       where: { user: { id: user.id } }
     });
     const totalEarnings = await this.walletFacade.getTotalEarnings(user.id);
-    const chatCount = await this.chatFacade.getExpertSessionCount(profile?.id || 0, {
+    const expertProfileId = profile?.id || '00000000-0000-0000-0000-000000000000';
+    
+    const chatCount = await this.chatFacade.getExpertSessionCount(expertProfileId, {
       status: ChatSessionStatus.COMPLETED
     });
 
     const callCount = await this.callSessionRepo.count({
-      where: { expert_id: profile?.id || 0, status: CallSessionStatus.COMPLETED }
+      where: { expert_id: expertProfileId, status: CallSessionStatus.COMPLETED }
     });
 
     return {

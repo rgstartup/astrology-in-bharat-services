@@ -12,7 +12,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
+import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 
 @Injectable()
@@ -60,6 +60,7 @@ export class RegisterUserUseCase {
 
       const tokens = await this.issueTokens.execute(
         user,
+        dto.roles[0] as RoleEnum,
         ip,
         userAgent,
         queryRunner,
