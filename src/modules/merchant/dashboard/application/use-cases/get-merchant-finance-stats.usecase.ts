@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class GetMerchantFinanceStatsUseCase {
@@ -11,23 +12,34 @@ export class GetMerchantFinanceStatsUseCase {
     private readonly walletFacade: WalletFacade,
     @InjectRepository(OrderItem)
     private readonly orderItemRepo: Repository<OrderItem>,
+    @InjectRepository(ProfileMerchant)
+    private readonly merchantRepo: Repository<ProfileMerchant>,
   ) {}
 
   async execute(userId: string) {
     console.log('[FINANCE_STATS] Executing for userId:', userId);
     try {
+      // Resolve merchant profile ID from user ID
+      const merchantProfile = await this.merchantRepo.findOne({
+        where: { user_id: userId as any },
+        select: ['id'],
+      });
+      const merchantId = merchantProfile?.id;
+
       const [wallet, actualEarnings, withdrawalsStatus, grossEarningsQuery] = await Promise.all([
         this.walletFacade.getWallet(userId as any),
         this.walletFacade.getTotalEarnings(userId),
         this.walletFacade.getWithdrawalsStatus(userId as any),
-        this.orderItemRepo
-          .createQueryBuilder('oi')
-          .innerJoin('oi.order', 'o')
-          .innerJoin('oi.product', 'p')
-          .where('p.merchant_id = :userId', { userId })
-          .andWhere('o.status != :cancelled', { cancelled: OrderStatus.CANCELLED })
-          .select('SUM(oi.price * oi.quantity)', 'sum')
-          .getRawOne()
+        merchantId
+          ? this.orderItemRepo
+              .createQueryBuilder('oi')
+              .innerJoin('oi.order', 'o')
+              .innerJoin('oi.product', 'p')
+              .where('p.merchant_id = :merchantId', { merchantId })
+              .andWhere('o.status != :cancelled', { cancelled: OrderStatus.CANCELLED })
+              .select('SUM(oi.price * oi.quantity)', 'sum')
+              .getRawOne()
+          : Promise.resolve({ sum: '0' }),
       ]);
 
       const grossEarnings = Number(grossEarningsQuery?.sum) || 0;

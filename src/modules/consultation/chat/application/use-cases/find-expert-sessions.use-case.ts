@@ -39,8 +39,7 @@ export class FindExpertSessionsUseCase {
         const { limit = 20, offset = 0, search, sortBy = 'created_at', order = 'DESC' } = options;
 
         const query = this.sessionRepo.createQueryBuilder('session')
-            .leftJoinAndSelect('session.client', 'client')
-            .leftJoinAndSelect('client.user', 'user')
+            .leftJoinAndSelect('session.user', 'user')
             .where('session.expert_id = :expertId', { expertId });
 
         const now = new Date();

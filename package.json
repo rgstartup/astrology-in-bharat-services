@@ -13,7 +13,7 @@
     "start:debug": "nest start --debug --watch",
     "start:redis": "d:\\ravi\\redis\\redis-server.exe",
     "start:worker": "ts-node -r tsconfig-paths/register src/email-worker.ts",
-    "start:all": "concurrently -c \"yellow,cyan,magenta\" \"pnpm run start:redis\" \"node -e \\\"setTimeout(()=>{}, 2000)\\\" && pnpm run start:dev\" \"node -e \\\"setTimeout(()=>{}, 2000)\\\" && pnpm run start:worker\"",
+    "start:all": "concurrently -c \"yellow,cyan,magenta\" \"pnpm run start:redis\" \"ping 127.0.0.1 -n 3 > nul && pnpm run start:dev\" \"ping 127.0.0.1 -n 3 > nul && pnpm run start:worker\"",
     "start:prod": "node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",

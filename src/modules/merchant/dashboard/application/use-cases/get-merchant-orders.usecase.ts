@@ -3,23 +3,37 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class GetMerchantOrdersUseCase {
   constructor(
     @InjectRepository(OrderItem)
     private readonly orderItemRepo: Repository<OrderItem>,
+    @InjectRepository(ProfileMerchant)
+    private readonly merchantRepo: Repository<ProfileMerchant>,
   ) {}
 
   async execute(userId: string, page: number = 1, limit: number = 20, status?: string, search?: string) {
     console.log('[ALL_ORDERS] Request:', { userId, page, limit, status, search });
-    
-    // 1. Calculate Summary Statistics (Keep these global for the merchant dashboard cards)
+
+    // Resolve merchant profile ID from user ID
+    const merchantProfile = await this.merchantRepo.findOne({
+      where: { user_id: userId as any },
+      select: ['id'],
+    });
+    const merchantId = merchantProfile?.id;
+
+    if (!merchantId) {
+      return { orders: [], stats: { total: 0, pending: 0, shipped: 0, delivered: 0, cancelled: 0, revenue: 0 }, total: 0, page, limit };
+    }
+
+    // 1. Calculate Summary Statistics
     const statsResult = await this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :userId', { userId })
+      .where('p.merchant_id = :merchantId', { merchantId })
       .select([
         'COUNT(oi.id) as total',
         `SUM(CASE WHEN o.status IN ('${OrderStatus.PENDING}', '${OrderStatus.PAID}', '${OrderStatus.PROCESSING}', '${OrderStatus.PACKED}') THEN 1 ELSE 0 END) as pending`,
@@ -43,27 +57,25 @@ export class GetMerchantOrdersUseCase {
     const query = this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoinAndSelect('oi.order', 'o')
-      .leftJoinAndSelect('o.user', 'u')
+      .leftJoinAndSelect('o.client', 'client')          // ✅ Order has 'client' relation
+      .leftJoinAndSelect('client.user', 'u')             // ✅ ProfileClient has 'user' relation
       .innerJoinAndSelect('oi.product', 'p')
-      .where('p.merchant_id = :userId', { userId });
+      .where('p.merchant_id = :merchantId', { merchantId });
 
     if (status && status.toLowerCase() !== 'all') {
       const searchStatus = status.toLowerCase();
       if (searchStatus === 'pending') {
-        // Pending tab shows truly pending and paid (not yet processed/packed)
-        query.andWhere('o.status IN (:...statuses)', { 
-          statuses: [OrderStatus.PENDING, OrderStatus.PAID] 
+        query.andWhere('o.status IN (:...statuses)', {
+          statuses: [OrderStatus.PENDING, OrderStatus.PAID]
         });
       } else {
-        // Other tabs match their status exactly
         query.andWhere('o.status = :status', { status: searchStatus });
       }
     }
 
     if (search) {
-      // Postgres ILIKE for case-insensitive search
-      query.andWhere('(u.name ILIKE :searchTerm OR p.name ILIKE :searchTerm OR CAST(o.id AS TEXT) ILIKE :searchTerm)', { 
-        searchTerm: `%${search}%` 
+      query.andWhere('(u.name ILIKE :searchTerm OR p.name ILIKE :searchTerm OR CAST(o.id AS TEXT) ILIKE :searchTerm)', {
+        searchTerm: `%${search}%`
       });
     }
 
@@ -75,10 +87,10 @@ export class GetMerchantOrdersUseCase {
 
     return {
       orders: items.map((item) => ({
-        id: item.id.toString(), // Use Item ID for uniqueness in React lists
-        orderId: item.order.id.toString(), // Keep Order ID for status updates
+        id: item.id.toString(),
+        orderId: item.order.id.toString(),
         orderNumber: `ORD-${item.order.id}`,
-        customerName: item.order.client?.user?.name || 'Guest',
+        customerName: (item.order as any).client?.user?.name || 'Guest',
         amount: Number(item.price) * item.quantity,
         status: item.order.status,
         date: item.order.created_at.toISOString(),
