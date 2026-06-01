@@ -13,7 +13,7 @@
     "start:debug": "nest start --debug --watch",
     "start:redis": "d:\\ravi\\redis\\redis-server.exe",
     "start:worker": "ts-node -r tsconfig-paths/register src/email-worker.ts",
-    "start:all": "concurrently -c \"yellow,cyan,magenta\" \"pnpm run start:redis\" \"pnpm run start:dev\" \"pnpm run start:worker\"",
+    "start:all": "concurrently -c \"yellow,cyan,magenta\" \"pnpm run start:redis\" \"node -e \\\"setTimeout(()=>{}, 2000)\\\" && pnpm run start:dev\" \"node -e \\\"setTimeout(()=>{}, 2000)\\\" && pnpm run start:worker\"",
     "start:prod": "node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
@@ -118,5 +118,5 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   },
-  "packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1"
+  "packageManager": "pnpm@9.15.4"
 }

@@ -39,22 +39,14 @@ export class GetUnifiedHistoryUseCase {
       chatFilter = { expert_id: expertProfile.id };
       callFilter = { expert_id: expertProfile.id };
     } else {
-      const clientProfile = await this.clientRepo.findOne({
-          where: { user: { id: userId as any } }
-      });
-      if (clientProfile) {
-        chatFilter = { client_id: clientProfile.id };
-      } else {
-        // Fallback for ChatSession (some weird state where ProfileClient doesn't exist)
-        chatFilter = { client: { user: { id: userId } } };
-      }
+      chatFilter = { client_id: userId };
       callFilter = { user_id: userId };
     }
 
     // 2. Fetch Sessions with relations
     const chatSessions = await this.chatRepo.find({
       where: chatFilter,
-      relations: ['expert', 'expert.user', 'client', 'client.user'],
+      relations: ['expert', 'expert.user', 'user'],
       order: { created_at: 'DESC' },
     });
 
@@ -138,10 +130,10 @@ export class GetUnifiedHistoryUseCase {
       rating: review?.rating || 0,
       comment: review?.comment,
       expert_image: session.expert?.user?.profile_client?.profile_picture || (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
-      user_image: session.client?.user?.avatar || session.client?.avatar || '/images/dummy-user.jpg',
+      user_image: session.user?.avatar || '/images/dummy-user.jpg',
       expert_name: session.expert?.user?.name || session.expert?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
-      user_name: session.client?.name || session.client?.user?.name || 'Client',
+      user_name: session.user?.name || 'Client',
       expert: {
         id: session.expert?.id || 0,
         name: session.expert?.user?.name || session.expert?.name || 'Expert',
