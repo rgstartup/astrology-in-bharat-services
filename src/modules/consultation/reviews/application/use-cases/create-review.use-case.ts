@@ -8,6 +8,7 @@ import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entit
 import { Order, OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { CreateReviewDto } from '../../api/dto/create-review.dto';
 
 @Injectable()
@@ -25,6 +26,8 @@ export class CreateReviewUseCase {
     private readonly chatSessionRepository: Repository<ChatSession>,
     @InjectRepository(CallSession)
     private readonly callSessionRepository: Repository<CallSession>,
+    @InjectRepository(ProfileClient)
+    private readonly clientRepository: Repository<ProfileClient>,
     private readonly dataSource: DataSource,
   ) { }
 
@@ -39,10 +42,16 @@ export class CreateReviewUseCase {
       throw new BadRequestException('Either expertId or merchantId must be provided for expert/shop reviews');
     }
 
+    const client = await this.clientRepository.findOne({ where: { user_id: userId as any } });
+    if (!client) {
+      throw new BadRequestException('Client profile not found for this user');
+    }
+    const actualClientId = client.id;
+
     if (expertId) {
-      return this.handleExpertReview(userId, expertId, sessionId ?? 0, rating, comment, tags);
+      return this.handleExpertReview(userId, actualClientId, expertId, sessionId ?? undefined, rating, comment, tags);
     } else if (merchantId) {
-      return this.handleMerchantReview(userId, merchantId, orderId ?? 0, rating, comment, tags);
+      return this.handleMerchantReview(userId, actualClientId, merchantId, orderId ?? undefined, rating, comment, tags);
     } else {
       throw new BadRequestException('Either expertId or merchantId must be provided');
     }
@@ -70,52 +79,45 @@ export class CreateReviewUseCase {
     return cleanReview;
   }
 
-  private async handleExpertReview(userId: string, expertId: string, sessionId: string, rating: number, comment?: string, tags?: string[]) {
-    // Try lookup by primary ID first, then by client_id
+  private async handleExpertReview(userId: string, clientId: string, expertId: string, sessionId: string | undefined, rating: number, comment?: string, tags?: string[]) {
+    // Try lookup by primary ID first, then by user_id
     const expert = await this.expertRepository.findOne({ 
-      where: [{ id: expertId as any }, { client_id: expertId as any }] 
+      where: [{ id: expertId as any }, { user_id: expertId as any }] 
     });
     if (!expert) throw new NotFoundException('Expert not found');
     
     // Ensure we use the actual primary ID for the rest of the logic
     const actualExpertId = expert.id;
 
-    let chatSessionId: number | undefined = undefined;
-    let callSessionId: number | undefined = undefined;
+    let chatSessionId: string | undefined = undefined;
+    let callSessionId: string | undefined = undefined;
 
     if (sessionId) {
+      // Check chat session first
       const chatSession = await this.chatSessionRepository.findOne({ where: { id: sessionId as any } });
-      if (chatSession && chatSession.client_id === userId && chatSession.expert_id === actualExpertId) {
+      if (chatSession) {
         chatSessionId = sessionId;
+        // Check for duplicate review
+        const existingReview = await this.reviewRepository.findOne({ where: { session_id: sessionId as any } });
+        if (existingReview) throw new BadRequestException('Session already reviewed');
       } else {
+        // Try call session
         const callSession = await this.callSessionRepository.findOne({ where: { id: sessionId as any } });
-        if (callSession && callSession.client_id === userId && callSession.expert_id === actualExpertId) {
+        if (callSession) {
           callSessionId = sessionId;
+          const existingReview = await this.reviewRepository.findOne({ where: { call_session_id: sessionId as any } });
+          if (existingReview) throw new BadRequestException('Session already reviewed');
         }
       }
-
-      if (!chatSessionId && !callSessionId) {
-        throw new ForbiddenException('You can only review sessions you participated in');
-      }
-
-      // Use an explicit query object to satisfy TypeScript
-      const queryCondition: any = chatSessionId 
-        ? { session_id: chatSessionId } 
-        : { call_session_id: callSessionId };
-
-      const existingReview = await this.reviewRepository.findOne({
-        where: queryCondition
-      });
-      if (existingReview) throw new BadRequestException('Session already reviewed');
     }
 
-    console.log('[CreateReview] Payload:', { userId, expertId, sessionId, rating, comment, tags });
+    console.log('[CreateReview] Payload:', { userId, clientId, expertId, sessionId, rating, comment, tags });
 
     const review = this.reviewRepository.create({
-      client_id: userId as any,
+      client_id: clientId as any,
       expert: { id: actualExpertId } as any,
-      session_id: chatSessionId,
-      call_session_id: callSessionId,
+      session_id: chatSessionId ?? null,
+      call_session_id: callSessionId ?? null,
       rating,
       comment,
       tags,
@@ -135,7 +137,7 @@ export class CreateReviewUseCase {
     }
   }
 
-  private async handleMerchantReview(userId: string, merchantId: string, orderId: number, rating: number, comment?: string, tags?: string[]) {
+  private async handleMerchantReview(userId: string, clientId: string, merchantId: string, orderId: string | undefined, rating: number, comment?: string, tags?: string[]) {
     // Try lookup by primary ID first, then by client_id
     const merchant = await this.merchantRepository.findOne({ 
       where: [{ id: merchantId as any }, { client_id: merchantId }] 
@@ -163,15 +165,15 @@ export class CreateReviewUseCase {
 
       // Prevent duplicate review for same order and merchant
       const existingReview = await this.reviewRepository.findOne({
-        where: { order_id: orderId, merchant_id: actualMerchantId }
+        where: { order_id: orderId as any, merchant_id: actualMerchantId }
       });
       if (existingReview) throw new BadRequestException('You have already reviewed this merchant for this order');
     }
 
     const review = this.reviewRepository.create({
-      client_id: userId as any,
+      client_id: clientId as any,
       merchant_id: actualMerchantId,
-      order_id: orderId || null,
+      order_id: orderId ?? null,
       rating,
       comment,
       tags,

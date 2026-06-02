@@ -21,6 +21,7 @@ import { SendReviewResponseUseCase } from './application/use-cases/send-review-r
 import { GetApprovedPlatformReviewsUseCase } from './application/use-cases/get-approved-platform-reviews.use-case';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { Order } from '@/modules/commerce/order/infrastructure/entities/order.en
       CallSession,
       ProfileMerchant,
       Order,
+      ProfileClient,
     ]),
     WalletModule,
     NotificationModule,

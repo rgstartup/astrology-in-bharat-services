@@ -253,7 +253,7 @@ export class UpdateOrderStatusUseCase {
                             where: { id: merchantId }
                         });
 
-                        const { ProfileMerchant } = await import('@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity');
+                        const { ProfileMerchant } = await import('../../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
                         const merchantProfile = await qr.manager.findOne(ProfileMerchant, {
                             where: { user: { id: merchantId } }
                         });

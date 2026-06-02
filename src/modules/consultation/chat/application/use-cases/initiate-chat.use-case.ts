@@ -108,6 +108,16 @@ export class InitiateChatUseCase {
             relations: ['user'],
         });
 
+        if (sessionWithUser && sessionWithUser.user) {
+            const { ProfileClient } = await import('../../../../client/profile/infrastructure/entities/profile-client.entity');
+            const profileClient = await this.sessionRepo.manager.findOne(ProfileClient, {
+                where: { user: { id: sessionWithUser.user.id } }
+            });
+            if (profileClient && profileClient.profile_picture) {
+                (sessionWithUser as any).user_image = profileClient.profile_picture;
+            }
+        }
+
         return sessionWithUser || savedSession;
     }
 }

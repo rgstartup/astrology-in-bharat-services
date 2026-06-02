@@ -140,15 +140,8 @@ export class ChatController {
     if (status === 'accepted') {
         const { session, introCard } = await this.chatFacade.activateSession(sessionId);
         if (session) {
-            const enrichedSession = await this.enrichSessionTimers(session);
-            this.chatGateway.server.to(`room_${sessionId}`).emit('session_activated', enrichedSession);
-            
-            if (introCard) {
-                this.chatGateway.server.to(`room_${sessionId}`).emit('new_message', introCard);
-            }
-
-            this.chatGateway.notifyExpertStatusUpdate(session.expert_id, 'session_activated', enrichedSession);
-            return enrichedSession;
+            const enrichedSession = await this.chatGateway.activateSession(sessionId, session, introCard);
+            return enrichedSession || session;
         }
         return session;
     }
@@ -192,8 +185,8 @@ export class ChatController {
     let session: any;
 
     if (sessionIdStr) {
-      const sessionId = parseInt(sessionIdStr, 10);
-      session = await this.chatFacade.getSession(sessionId);
+      // sessionId is a UUID string — do NOT parseInt it
+      session = await this.chatFacade.getSession(sessionIdStr);
     }
 
     if (!session) {
@@ -207,7 +200,7 @@ export class ChatController {
       ? {
           id: session.expert.id,
           name: session.expert.client?.name || '',
-          image: session.expert.client?.avatar || '/images/dummy-astrologer.jpg',
+          image: session.expert.client?.avatar || '/images/dummy-expert.jpg',
           expertise: session.expert.specialization || '',
           language: session.expert.languages || '',
           experience: session.expert.experience || 0,

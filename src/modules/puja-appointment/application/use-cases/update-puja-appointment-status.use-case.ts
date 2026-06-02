@@ -73,7 +73,7 @@ export class UpdatePujaAppointmentStatusUseCase {
                     where: { id: appointment.expert.user_id as any }
                 });
 
-                const { ProfileExpert } = await import('@/modules/expert/profile/infrastructure/entities/profile-expert.entity');
+                const { ProfileExpert } = await import('../../../expert/profile/infrastructure/entities/profile-expert.entity');
                 const expertProfile = await qr.manager.findOne(ProfileExpert, {
                     where: { user: { id: appointment.expert.user_id as any } }
                 });

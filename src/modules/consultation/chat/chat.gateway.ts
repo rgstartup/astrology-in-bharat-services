@@ -123,14 +123,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { status: 'joined' };
   }
 
-  @SubscribeMessage('activate_session')
-  async handleActivateSession(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { sessionId: string },
-  ) {
-    const { session, introCard } = await this.chatFacade.activateSession(
-      payload.sessionId,
-    );
+  public async activateSession(sessionId: string, sessionData?: any, introCardData?: any) {
+    let session = sessionData;
+    let introCard = introCardData;
+
+    if (!session) {
+      const result = await this.chatFacade.activateSession(sessionId);
+      session = result.session;
+      introCard = result.introCard;
+    }
+
+    if (!session) return null;
 
     // Calculate initial timer values for immediate sync
     const wallet = await this.walletFacade.getWallet(session.client_id);
@@ -164,12 +167,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     };
 
     this.server
-      .to(`room_${payload.sessionId}`)
+      .to(`room_${sessionId}`)
       .emit('session_activated', dataWithTimers);
 
     // ✅ Broadcast Intro Card if it exists
     if (introCard) {
-      this.server.to(`room_${payload.sessionId}`).emit('new_message', introCard);
+      this.server.to(`room_${sessionId}`).emit('new_message', introCard);
     }
 
     // Notify expert dashboard directly
@@ -182,21 +185,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // Clear existing timer if any
-    if (this.sessionTimers.has(payload.sessionId)) {
-      clearInterval(this.sessionTimers.get(payload.sessionId));
+    if (this.sessionTimers.has(sessionId)) {
+      clearInterval(this.sessionTimers.get(sessionId));
     }
 
     // Start a timer that checks balance every minute
     const timer = setInterval(async () => {
       const currentSession = await this.chatFacade.getSession(
-        payload.sessionId,
+        sessionId,
       );
       if (
         !currentSession ||
         currentSession.status !== ChatSessionStatus.ACTIVE
       ) {
         clearInterval(timer);
-        this.sessionTimers.delete(payload.sessionId);
+        this.sessionTimers.delete(sessionId);
         return;
       }
 
@@ -211,17 +214,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         !currentSession.metadata?.free_limit_triggered
       ) {
         const balance = await this.walletFacade.getBalance(
-          currentSession.user_id,
+          currentSession.client_id,
         );
         const minReq = currentSession.price_per_minute * 5;
 
         // Mark as triggered in metadata to avoid multiple emits
-        await this.chatFacade.updateSessionMetadata(payload.sessionId, {
+        await this.chatFacade.updateSessionMetadata(sessionId, {
           ...currentSession.metadata,
           free_limit_triggered: true,
         });
 
-        this.server.to(`room_${payload.sessionId}`).emit('free_time_ending_soon', {
+        this.server.to(`room_${sessionId}`).emit('free_time_ending_soon', {
           message:
             balance < minReq
               ? 'Your free session is ending soon. Please recharge to continue.'
@@ -233,14 +236,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         // Set a 30s grace period to confirm or end
         setTimeout(async () => {
-          const s = await this.chatFacade.getSession(payload.sessionId);
+          const s = await this.chatFacade.getSession(sessionId);
           // If still active but no reservation done (we'd need a flag or just check balance again)
           // For now, if they don't have balance after 30s, end it.
-          const b = await this.walletFacade.getBalance(currentSession.user_id);
+          const b = await this.walletFacade.getBalance(currentSession.client_id);
           if (b < minReq && s?.status === ChatSessionStatus.ACTIVE) {
-            const summary = await this.chatFacade.endChat(payload.sessionId);
+            const summary = await this.chatFacade.endChat(sessionId);
             this.server
-              .to(`room_${payload.sessionId}`)
+              .to(`room_${sessionId}`)
               .emit('session_ended', { ...summary, reason: 'free_limit_ended_no_balance' });
           }
         }, 30000);
@@ -252,19 +255,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         : 5;
       if (durationMins >= checkThreshold) {
         const balance = await this.walletFacade.getBalance(
-          currentSession.user_id,
+          currentSession.client_id,
         );
         if (balance < currentSession.price_per_minute) {
-          this.server.to(`room_${payload.sessionId}`).emit('balance_warning', {
+          this.server.to(`room_${sessionId}`).emit('balance_warning', {
             message: 'Insufficient balance. Session will end in 30 seconds.',
           });
 
           setTimeout(async () => {
-            const s = await this.chatFacade.getSession(payload.sessionId);
+            const s = await this.chatFacade.getSession(sessionId);
             if (s?.status === ChatSessionStatus.ACTIVE) {
-              const summary = await this.chatFacade.endChat(payload.sessionId);
+              const summary = await this.chatFacade.endChat(sessionId);
               this.server
-                .to(`room_${payload.sessionId}`)
+                .to(`room_${sessionId}`)
                 .emit('session_ended', { ...summary, reason: 'insufficient_balance' });
             }
           }, 30000);
@@ -272,8 +275,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }, 10000);
 
-    this.sessionTimers.set(payload.sessionId, timer);
-    return session;
+    this.sessionTimers.set(sessionId, timer);
+    return dataWithTimers;
+  }
+
+  @SubscribeMessage('activate_session')
+  async handleActivateSession(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { sessionId: string },
+  ) {
+    await this.activateSession(payload.sessionId);
   }
 
   @SubscribeMessage('confirm_paid_continuation')

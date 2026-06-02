@@ -19,7 +19,7 @@ export class GetTotalEarningsUseCase {
       .createQueryBuilder('transaction')
       .where('transaction.wallet_id = :walletId', { walletId: wallet.id })
       .andWhere('transaction.type = :type', { type: TransactionType.CREDIT })
-      .andWhere('transaction.purpose IN (:...purposes)', { purposes: [TransactionPurpose.CONSULTATION, TransactionPurpose.PRODUCT_PURCHASE, TransactionPurpose.AGENT_COMMISSION] });
+      .andWhere('transaction.purpose IN (:...purposes)', { purposes: [TransactionPurpose.CONSULTATION, TransactionPurpose.PRODUCT_PURCHASE, TransactionPurpose.AGENT_COMMISSION, TransactionPurpose.PUJA_CONFIRMATION] });
 
     if (options.startDate) {
       query.andWhere('transaction.created_at >= :startDate', { startDate: options.startDate });
