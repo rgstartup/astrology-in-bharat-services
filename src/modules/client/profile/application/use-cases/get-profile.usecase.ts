@@ -1,56 +1,66 @@
-// @ts-nocheck
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, QueryRunner } from 'typeorm';
+import { Repository, QueryRunner, FindOneOptions } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IUser } from '@/common/decorators/current-user.decorator';
+import { FindUserUseCase } from '@/modules/users/application/use-cases/find-user.usecase';
 
 @Injectable()
 export class GetProfileUseCase {
   constructor(
     @InjectRepository(ProfileClient)
     private readonly repo: Repository<ProfileClient>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    private readonly findUserUseCase: FindUserUseCase
   ) { }
 
-  async execute(userId: string, queryRunner?: QueryRunner) {
+  async execute(user: IUser, queryRunner?: QueryRunner) {
     const profileRepo = queryRunner ? queryRunner.manager.getRepository(ProfileClient) : this.repo;
-    const userRepo = queryRunner ? queryRunner.manager.getRepository(User) : this.userRepo;
 
-    const profile = await profileRepo.findOne({
-      where: { user: { id: userId } },
+    const findOptions: FindOneOptions<ProfileClient> = {
+      where: { user: { id: user.id } },
       relations: ['user'],
-    });
+    }
 
-    if (!profile) {
-      // Check if user exists and what their role is
-      const user = await userRepo.findOne({ where: { id: userId } });
+    if(user.profile){
+      findOptions.where = { 
+        ...findOptions.where,
+        id: user.profile
+       };
+    }
+
+    const profile = await profileRepo.findOne(findOptions);
+
+    if(!profile){
+      throw new NotFoundException('No client profile found for the user');
+    }
+
+
+    // if (!profile) {
+    //   const existingUser = await this.findUserUseCase.findById(user.id, queryRunner);
 
 
       
-      const roles = user?.roles || [];
-      const hasClientRole = hasRoles(roles, 'CLIENT');
-      const hasExpertRole = hasRoles(roles, 'EXPERT');
+    //   const roles = existingUser?.roles || [];
+    //   const hasClientRole = hasRoles(roles, 'CLIENT');
+    //   const hasExpertRole = hasRoles(roles, 'EXPERT');
 
-      if (hasExpertRole && !hasClientRole) {
-        throw new ForbiddenException('Aap ek Expert hain. Kripya Expert Dashboard se login karein.');
-      }
+    //   if (hasExpertRole && !hasClientRole) {
+    //     throw new ForbiddenException('Aap ek Expert hain. Kripya Expert Dashboard se login karein.');
+    //   }
 
-      // If it's a client but no profile, return null or a basic structure
-      // We return null so the frontend knows it needs to be created
-      return null;
-    }
+    //   // If it's a client but no profile, return null or a basic structure
+    //   // We return null so the frontend knows it needs to be created
+    //   return null;
+    // }
 
     // Backend decides the final profile picture:
     // 1. If user manually uploaded a picture → use that (profile.profile_picture)
     // 2. Otherwise fallback to Gmail/OAuth avatar (profile.user.avatar)
-    const resolvedProfilePicture = profile.profile_picture || profile.user?.avatar || null;
+    // const resolvedProfilePicture = profile.profile_picture || profile.user?.avatar || null;
 
-    return {
-      ...profile,
-      profile_picture: resolvedProfilePicture, // Always the final, resolved picture
-    };
+    return profile;
+
   }
 }

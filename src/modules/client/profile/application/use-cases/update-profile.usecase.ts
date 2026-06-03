@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,6 +8,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '../../domain/events/profile-events';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Address } from '@/common/address/address.entity';
+import { IUser } from '@/common/decorators/current-user.decorator';
 
 @Injectable()
 export class UpdateProfileUseCase {
@@ -24,35 +24,38 @@ export class UpdateProfileUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(userId: string, dto: UpdateProfileClientDto) {
+  async execute(user: IUser, dto: UpdateProfileClientDto) {
     let profile = await this.repo.findOne({
-      where: { user: { id: userId } },
+      where: { 
+        user: { id: user.id }, 
+        ...(user.profile ? { id: user.profile } : {})
+      },
       relations: ['user', 'addresses'],
     });
 
     if (!profile) {
       // Auto-create profile for users that don't have one yet
-      this.logger.log(`No client profile found for user ${userId}, creating one on-the-fly`);
+      this.logger.log(`No client profile found for user ${user.id}, creating one on-the-fly`);
       profile = this.repo.create({
-        user: { id: userId } as any,
+        user: { id: user.id },
         gender: 'other',
       });
       await this.repo.save(profile);
       profile = await this.repo.findOne({
-        where: { user: { id: userId } },
+        where: { user: { id: user.id } },
         relations: ['user', 'addresses'],
       });
     }
 
     ProfilePolicy.ensureProfileExists(profile);
 
-    this.logger.log(`Updating client profile for user ${userId}`);
+    this.logger.log(`Updating client profile for user ${user.id}`);
 
     const { full_name, addresses, ...scalarFields } = dto as any;
 
     // Update the user's name in the User table if full_name is provided
     if (full_name !== undefined) {
-      await this.userRepo.update(userId, { name: full_name });
+      await this.userRepo.update(user.id, { name: full_name });
     }
 
     // Apply scalar fields to the profile
@@ -84,7 +87,7 @@ export class UpdateProfileUseCase {
 
     this.eventEmitter.emit(
       'client.profile.updated',
-      new ProfileUpdatedEvent(userId, updatedProfile.id, dto),
+      new ProfileUpdatedEvent(user.id, updatedProfile.id, dto),
     );
 
     return updatedProfile;

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CurrentUser, IUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ClientProfileFacade } from '../../application/profile.facade';
 import {
@@ -26,30 +26,30 @@ export class ProfileController {
   constructor(private readonly profileFacade: ClientProfileFacade) { }
 
   @Get()
-  async getProfile(@CurrentUser() user: User) {
-    return this.profileFacade.getProfile(user.id);
+  async getProfile(@CurrentUser() user: IUser) {
+    return this.profileFacade.getProfile(user);
   }
 
   @Post()
   async createProfile(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: CreateProfileClientDto,
   ) {
-    return this.profileFacade.createProfile(user.id, dto);
+    return this.profileFacade.createProfile(user, dto);
   }
 
   @Patch()
   async updateProfile(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdateProfileClientDto,
   ) {
-    return this.profileFacade.updateProfile(user.id, dto);
+    return this.profileFacade.updateProfile(user, dto);
   }
 
   @Patch('picture')
   @UseInterceptors(FileInterceptor('file'))
   async updateProfilePicture(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.profileFacade.updateProfilePicture(user.id, file);
@@ -58,7 +58,7 @@ export class ProfileController {
   @Post('upload-document')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocument(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.profileFacade.uploadDocument(user.id, file);
@@ -66,7 +66,7 @@ export class ProfileController {
 
   @Post('phone/send-otp')
   async sendPhoneOtp(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: SendPhoneOtpDto,
   ) {
     return this.profileFacade.sendPhoneOtp(user.id, dto.phone);
@@ -74,7 +74,7 @@ export class ProfileController {
 
   @Post('phone/verify-otp')
   async verifyPhoneOtp(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: VerifyPhoneOtpDto,
   ) {
     return this.profileFacade.verifyPhoneOtp(user.id, dto.phone, dto.code);

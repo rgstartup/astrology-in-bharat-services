@@ -3,14 +3,17 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import type { IAccessTokenPayload } from '../types/access-token.payload';
+
+
+export type IUser =  Omit<IAccessTokenPayload, 'sub'> & { id: string };
 
 export const CurrentUser = createParamDecorator(
-  <T extends keyof User | undefined>(
+  <T extends keyof IUser | undefined>(
     data: T | undefined,
     ctx: ExecutionContext,
   ) => {
-    const req = ctx.switchToHttp().getRequest<{ user?: User }>();
+    const req = ctx.switchToHttp().getRequest<{ user?: IUser }>();
 
     const user = req.user;
 
@@ -19,7 +22,7 @@ export const CurrentUser = createParamDecorator(
     }
 
     if (data) {
-      // TypeScript knows this may be undefined, so we cast as User[T] | undefined
+      // TypeScript knows this may be undefined, so we cast as IUser[T] | undefined
       return user[data];
     }
 

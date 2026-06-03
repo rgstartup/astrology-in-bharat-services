@@ -8,6 +8,7 @@ import { UploadDocumentUseCase } from './use-cases/upload-document.usecase';
 import { SendPhoneOtpUseCase } from './use-cases/send-phone-otp.usecase';
 import { VerifyPhoneOtpUseCase } from './use-cases/verify-phone-otp.usecase';
 import { CreateProfileClientDto, UpdateProfileClientDto } from '../infrastructure/dto/profile-client.dto';
+import { IUser } from '@/common/decorators/current-user.decorator';
 
 @Injectable()
 export class ClientProfileFacade {
@@ -21,20 +22,20 @@ export class ClientProfileFacade {
     private readonly verifyPhoneOtpUseCase: VerifyPhoneOtpUseCase,
   ) { }
 
-  async getProfile(userId: string, queryRunner?: QueryRunner) {
-    return this.getProfileUseCase.execute(userId, queryRunner);
+  async getProfile(user: IUser, queryRunner?: QueryRunner) {
+    return this.getProfileUseCase.execute(user, queryRunner);
   }
 
-  async createProfile(userId: string, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
-    return this.createProfileUseCase.execute(userId, dto, queryRunner);
+  async createProfile(user: IUser, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
+    return this.createProfileUseCase.execute(user, dto, queryRunner);
   }
 
-  async updateProfile(userId: string, dto: UpdateProfileClientDto) {
-    return this.updateProfileUseCase.execute(userId, dto);
+  async updateProfile(user: IUser, dto: UpdateProfileClientDto) {
+    return this.updateProfileUseCase.execute(user, dto);
   }
 
-  async updateProfilePicture(userId: string, file: Express.Multer.File) {
-    return this.updateProfilePictureUseCase.execute(userId, file);
+  async updateProfilePicture(user: IUser, file: Express.Multer.File) {
+    return this.updateProfilePictureUseCase.execute(user, file);
   }
 
   async uploadDocument(userId: string, file: Express.Multer.File) {

@@ -1,7 +1,7 @@
 export class ProfileCreatedEvent {
   constructor(
     public readonly userId: string,
-    public readonly profileId: number,
+    public readonly profileId: string,
     public readonly data: any,
   ) {}
 }
@@ -9,7 +9,7 @@ export class ProfileCreatedEvent {
 export class ProfileUpdatedEvent {
   constructor(
     public readonly userId: string,
-    public readonly profileId: number,
+    public readonly profileId: string,
     public readonly data: any,
   ) {}
 }
