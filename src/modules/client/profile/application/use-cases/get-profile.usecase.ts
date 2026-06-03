@@ -1,18 +1,14 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner, FindOneOptions } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IUser } from '@/common/decorators/current-user.decorator';
-import { FindUserUseCase } from '@/modules/users/application/use-cases/find-user.usecase';
 
 @Injectable()
 export class GetProfileUseCase {
   constructor(
     @InjectRepository(ProfileClient)
     private readonly repo: Repository<ProfileClient>,
-    private readonly findUserUseCase: FindUserUseCase
   ) { }
 
   async execute(user: IUser, queryRunner?: QueryRunner) {
