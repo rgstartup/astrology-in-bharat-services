@@ -95,13 +95,15 @@ export class ProductController {
         );
       }
     }
-    return this.productFacade.update(id, updateProductDto);
+    const result = await this.productFacade.update(id, updateProductDto);
+    return { success: true };
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.productFacade.remove(id);
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    const result = await this.productFacade.remove(id);
+    return { success: true };
   }
 }

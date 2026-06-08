@@ -34,16 +34,22 @@ export class TodosController {
     }
 
     @Patch(':id')
-    update(
+    async update(
         @CurrentUser() user: User,
         @Param('id', ParseUUIDPipe) id: string,
         @Body() dto: UpdateTodoDto,
     ) {
-        return this.todosFacade.update(user.id as any, id, dto);
+        const result = await this.todosFacade.update(user.id as any, id, dto);
+        return { success: true };
     }
 
     @Delete(':id')
-    remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-        return this.todosFacade.remove(user.id as any, id);
+    async remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+        const result = await this.todosFacade.remove(user.id as any, id);
+        if (result && result.success && 'data' in result) {
+            const { data, ...rest } = result as any;
+            return rest;
+        }
+        return result;
     }
 }

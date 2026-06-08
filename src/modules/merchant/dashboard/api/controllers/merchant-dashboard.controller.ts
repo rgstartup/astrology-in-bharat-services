@@ -128,7 +128,7 @@ export class MerchantDashboardController {
     @Body('cancellationReason') cancellationReason?: string,
   ) {
     const order = await this.orderFacade.updateOrderStatus(id, status, cancellationReason, userId as any);
-    return { success: true, data: order };
+    return { success: true };
   }
 
 }

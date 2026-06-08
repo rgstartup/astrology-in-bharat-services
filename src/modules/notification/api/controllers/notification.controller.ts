@@ -43,11 +43,13 @@ export class NotificationController {
         @CurrentUser() user: User,
         @Param('id', ParseUUIDPipe) id: string,
     ) {
-        return this.notificationFacade.markAsRead(id as any, user.id as any);
+        const result = await this.notificationFacade.markAsRead(id as any, user.id as any);
+        return { success: true };
     }
 
     @Delete('all')
     async clearAll(@CurrentUser() user: User) {
-        return this.notificationFacade.clearAll(user.id as any);
+        const result = await this.notificationFacade.clearAll(user.id as any);
+        return { success: true };
     }
 }

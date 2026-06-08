@@ -64,6 +64,11 @@ export class MerchantProfileController {
       aadharBack?: Express.Multer.File[];
     },
   ) {
-    return this.updateProfile.execute(userId, dto, files);
+    const result = await this.updateProfile.execute(userId, dto, files);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 }

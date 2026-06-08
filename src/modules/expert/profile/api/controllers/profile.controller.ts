@@ -71,75 +71,120 @@ export class ProfileController {
   }
 
   @Patch()
-  updateProfile(
+  async updateProfile(
     @CurrentUser() user: User,
     @Body() dto: UpdateProfileExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto);
+    const result = await this.profileFacade.updateProfile(user, dto);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Patch('personal-info')
-  updatePersonalInfo(
+  async updatePersonalInfo(
     @CurrentUser() user: User,
     @Body() dto: UpdatePersonalInfoExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    const result = await this.profileFacade.updateProfile(user, dto as any);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Patch('pricing')
-  updatePricing(
+  async updatePricing(
     @CurrentUser() user: User,
     @Body() dto: UpdatePricingExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    const result = await this.profileFacade.updateProfile(user, dto as any);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Patch('bank-details')
-  updateBankDetails(
+  async updateBankDetails(
     @CurrentUser() user: User,
     @Body() dto: UpdateBankDetailsExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    const result = await this.profileFacade.updateProfile(user, dto as any);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Patch('portfolio')
-  updatePortfolio(
+  async updatePortfolio(
     @CurrentUser() user: User,
     @Body() dto: UpdatePortfolioExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    const result = await this.profileFacade.updateProfile(user, dto as any);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Patch('certificates')
-  updateCertificates(
+  async updateCertificates(
     @CurrentUser() user: User,
     @Body() dto: UpdateCertificatesExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    const result = await this.profileFacade.updateProfile(user, dto as any);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Patch('documents')
-  updateDocuments(
+  async updateDocuments(
     @CurrentUser() user: User,
     @Body() dto: UpdateDocumentsExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    const result = await this.profileFacade.updateProfile(user, dto as any);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Patch('experience')
-  updateExperience(
+  async updateExperience(
     @CurrentUser() user: User,
     @Body() dto: UpdateExperienceExpertDto,
   ) {
-    return this.profileFacade.updateProfile(user, dto as any);
+    const result = await this.profileFacade.updateProfile(user, dto as any);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Patch('status')
-  updateStatus(
+  async updateStatus(
     @CurrentUser() user: User,
     @Body('is_available') is_available: boolean,
   ) {
-    return this.profileFacade.updateStatus(user, is_available);
+    const result = await this.profileFacade.updateStatus(user, is_available);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Get('list')
@@ -164,11 +209,16 @@ export class ProfileController {
   }
 
   @Delete('puja/:id')
-  deletePuja(
+  async deletePuja(
     @CurrentUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.profileFacade.deletePuja(user, id);
+    const result = await this.profileFacade.deletePuja(user, id);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Get('pujas/all')

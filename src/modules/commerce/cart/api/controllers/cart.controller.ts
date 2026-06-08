@@ -44,11 +44,13 @@ export class CartController {
     @CurrentUser() user: User,
     @Body() updateCartItemDto: UpdateCartItemDto & { productId: string },
   ) {
-    return this.cartFacade.updateCartItem(user.id, updateCartItemDto);
+    const result = await this.cartFacade.updateCartItem(user.id, updateCartItemDto);
+    return { success: true };
   }
 
   @Delete('/remove/:id')
   async removeCartItem(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    return this.cartFacade.removeCartItem(user.id, id);
+    const result = await this.cartFacade.removeCartItem(user.id, id);
+    return { success: true };
   }
 }

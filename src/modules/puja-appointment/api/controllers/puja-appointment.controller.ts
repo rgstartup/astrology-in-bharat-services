@@ -39,6 +39,7 @@ export class PujaAppointmentController {
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
   async updateStatus(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePujaAppointmentStatusDto) {
-    return await this.updatePujaAppointmentStatusUseCase.execute(id, user.id, dto);
+    const result = await this.updatePujaAppointmentStatusUseCase.execute(id, user.id, dto);
+    return { success: true };
   }
 }

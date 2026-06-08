@@ -43,7 +43,8 @@ export class ProfileController {
     @CurrentUser() user: User,
     @Body() dto: UpdateProfileClientDto,
   ) {
-    return this.profileFacade.updateProfile(user.id, dto);
+    const result = await this.profileFacade.updateProfile(user.id, dto);
+    return { success: true };
   }
 
   @Patch('picture')
@@ -52,7 +53,8 @@ export class ProfileController {
     @CurrentUser() user: User,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.profileFacade.updateProfilePicture(user.id, file);
+    const result = await this.profileFacade.updateProfilePicture(user.id, file);
+    return { success: true };
   }
 
   @Post('upload-document')

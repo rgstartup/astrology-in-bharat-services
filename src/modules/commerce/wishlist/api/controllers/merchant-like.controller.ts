@@ -38,10 +38,11 @@ export class MerchantLikeController {
   }
 
   @Delete('remove/:merchantId')
-  remove(
+  async remove(
     @CurrentUser('id') userId: string,
     @Param('merchantId', ParseUUIDPipe) merchantId: string,
   ) {
-    return this.wishlistFacade.removeMerchantFromWishlist(userId, merchantId);
+    const result = await this.wishlistFacade.removeMerchantFromWishlist(userId, merchantId);
+    return { success: true };
   }
 }

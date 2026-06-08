@@ -60,15 +60,13 @@ export class CallController {
         
         if (status === 'accepted') {
             const res = await this.callFacade.accept(req.user.id, sessionId);
-            // Notifications are handled inside fachada/uses cases for calls usually,
-            // but we'll ensure consistency if needed via gateway.
-            return res;
+            return { success: true };
         }
 
         if (status === 'rejected' || status === 'cancelled') {
             const terminator = status === 'rejected' ? 'EXPERT' : 'USER';
             const res = await this.callFacade.end(sessionId, terminator, 'Rejection/Cancellation');
-            return res;
+            return { success: true };
         }
 
         return { success: false, message: 'Invalid status update for call' };

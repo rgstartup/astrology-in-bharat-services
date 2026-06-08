@@ -79,7 +79,8 @@ export class OrderController {
         @Param('id', ParseUUIDPipe) id: string,
         @Body() dto: UpdateOrderStatusDto,
     ) {
-        return this.orderFacade.updateOrderStatus(id, dto.status, dto.cancellation_reason);
+        const result = await this.orderFacade.updateOrderStatus(id, dto.status, dto.cancellation_reason);
+        return { success: true };
     }
 
     @Get(':id')
@@ -136,7 +137,8 @@ export class OrderSingularController {
         @Param('id', ParseUUIDPipe) id: string,
         @Body() dto: UpdateOrderStatusDto,
     ) {
-        return this.orderFacade.updateOrderStatus(id, dto.status, dto.cancellation_reason);
+        const result = await this.orderFacade.updateOrderStatus(id, dto.status, dto.cancellation_reason);
+        return { success: true };
     }
 
     @Get(':id')

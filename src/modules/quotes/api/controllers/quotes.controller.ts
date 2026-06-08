@@ -46,17 +46,19 @@ export class QuotesController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update a quote' })
   @ApiResponse({ status: 200, description: 'The quote has been successfully updated.' })
-  update(
+  async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateQuoteDto: UpdateQuoteDto,
   ) {
-    return this.quotesFacade.update(id, updateQuoteDto);
+    const result = await this.quotesFacade.update(id, updateQuoteDto);
+    return { success: true };
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a quote' })
   @ApiResponse({ status: 200, description: 'The quote has been successfully deleted.' })
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.quotesFacade.remove(id);
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    const result = await this.quotesFacade.remove(id);
+    return { success: true };
   }
 }

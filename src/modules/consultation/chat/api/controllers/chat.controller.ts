@@ -141,7 +141,12 @@ export class ChatController {
         const { session, introCard } = await this.chatFacade.activateSession(sessionId);
         if (session) {
             const enrichedSession = await this.chatGateway.activateSession(sessionId, session, introCard);
-            return enrichedSession || session;
+            const res = enrichedSession || session;
+            if (res && res.success && 'data' in res) {
+                const { data, ...rest } = res as any;
+                return rest;
+            }
+            return res;
         }
         return session;
     }
@@ -151,6 +156,11 @@ export class ChatController {
         if (session) {
             this.chatGateway.server.to(`room_${sessionId}`).emit('session_ended', { status: 'rejected', id: sessionId });
             this.chatGateway.notifyExpertStatusUpdate(session.expert_id, 'session_ended', { status: 'rejected', id: sessionId });
+            const res = session as any;
+            if (res && res.success && 'data' in res) {
+                const { data, ...rest } = res;
+                return rest;
+            }
         }
         return session;
     }

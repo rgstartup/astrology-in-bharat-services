@@ -73,7 +73,7 @@ export class MerchantProductsController {
     @Body() dto: BulkUpdateStatusDto,
   ) {
     const result = await this.productFacade.bulkUpdateMerchantProductStatus(userId as any, dto.ids, dto.status);
-    return { success: true, data: result };
+    return { success: true };
   }
 
   // PUT /api/v1/merchant/products/:id
@@ -85,7 +85,7 @@ export class MerchantProductsController {
     @Body() dto: CreateMerchantProductDto,
   ) {
     const product = await this.productFacade.updateMerchantProduct(userId as any, productId, dto);
-    return { success: true, data: product };
+    return { success: true };
   }
 
   // DELETE /api/v1/merchant/products/:id
@@ -96,7 +96,7 @@ export class MerchantProductsController {
     @Param('id', ParseUUIDPipe) productId: string,
   ) {
     const result = await this.productFacade.removeMerchantProduct(userId as any, productId);
-    return { success: true, data: result };
+    return { success: true };
   }
 }
 

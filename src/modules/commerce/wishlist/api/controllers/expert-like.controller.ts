@@ -38,10 +38,11 @@ export class ExpertLikeController {
   }
 
   @Delete('remove/:expert_id')
-  removeExpert(
+  async removeExpert(
     @CurrentUser("id") userId: string,
     @Param('expert_id') expert_id: string,
   ) {
-    return this.wishlistFacade.removeExpertFromWishlist(userId, expert_id);
+    const result = await this.wishlistFacade.removeExpertFromWishlist(userId, expert_id);
+    return { success: true };
   }
 }

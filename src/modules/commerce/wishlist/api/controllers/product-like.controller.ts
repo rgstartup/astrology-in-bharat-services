@@ -39,7 +39,8 @@ export class ProductLikeController {
   }
 
   @Delete('remove/:productId')
-  remove(@CurrentUser("id") userId: string, @Param('productId') productId: string) {
-    return this.wishlistFacade.removeProductFromWishlist(userId, productId);
+  async remove(@CurrentUser("id") userId: string, @Param('productId') productId: string) {
+    const result = await this.wishlistFacade.removeProductFromWishlist(userId, productId);
+    return { success: true };
   }
 }

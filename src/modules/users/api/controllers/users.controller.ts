@@ -47,14 +47,16 @@ export class UsersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: Partial<CreateUserDto>) {
+  async update(@Param('id') id: string, @Body() updateUserDto: Partial<CreateUserDto>) {
     // TODO: Handle role updates properly or separate them
-    return this.usersFacade.update(id as any, updateUserDto as unknown as Partial<User>);
+    const result = await this.usersFacade.update(id as any, updateUserDto as unknown as Partial<User>);
+    return { success: true };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersFacade.delete(id as any);
+  async remove(@Param('id') id: string) {
+    const result = await this.usersFacade.delete(id as any);
+    return { success: true };
   }
 
   @Post(':id/roles')

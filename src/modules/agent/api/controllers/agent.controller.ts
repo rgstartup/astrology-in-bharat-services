@@ -31,7 +31,12 @@ export class AgentController {
         @CurrentUser() user: User,
         @Body() body: any
     ) {
-        return this.agentFacade.updateProfile(user.id, body);
+        const result = await this.agentFacade.updateProfile(user.id, body);
+        if (result && result.success && 'data' in result) {
+            const { data, ...rest } = result as any;
+            return rest;
+        }
+        return result;
     }
 
     @Get('dashboard/stats')

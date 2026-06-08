@@ -28,12 +28,14 @@ export class FestivalController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateFestivalDto) {
-    return this.festivalFacade.update(id as any, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateFestivalDto) {
+    const result = await this.festivalFacade.update(id as any, dto);
+    return { success: true };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.festivalFacade.remove(id as any);
+  async remove(@Param('id') id: string) {
+    const result = await this.festivalFacade.remove(id as any);
+    return { success: true };
   }
 }

@@ -48,24 +48,27 @@ export class BankAccountsController {
   }
 
   @Patch(':id')
-  update(
+  async update(
     @CurrentUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateBankAccountDto: UpdateBankAccountDto,
   ) {
-    return this.bankAccountsFacade.update(user.id as any, id, updateBankAccountDto);
+    const result = await this.bankAccountsFacade.update(user.id as any, id, updateBankAccountDto);
+    return { success: true };
   }
 
   @Patch(':id/set-primary')
-  setPrimary(
+  async setPrimary(
     @CurrentUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.bankAccountsFacade.setPrimary(user.id as any, id);
+    const result = await this.bankAccountsFacade.setPrimary(user.id as any, id);
+    return { success: true };
   }
 
   @Delete(':id')
-  remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    return this.bankAccountsFacade.remove(user.id as any, id);
+  async remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+    const result = await this.bankAccountsFacade.remove(user.id as any, id);
+    return { success: true };
   }
 }

@@ -101,7 +101,8 @@ export class ReviewsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body('status') status: string,
   ) {
-    return this.reviewsFacade.updateReviewStatus(id, status);
+    const result = await this.reviewsFacade.updateReviewStatus(id, status);
+    return { success: true };
   }
 
   // ─── Admin: Delete a review ───────────────────────────────────────────────────
@@ -109,6 +110,7 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN') 
   async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
-    return this.reviewsFacade.deleteReview(id);
+    const result = await this.reviewsFacade.deleteReview(id);
+    return { success: true };
   }
 }

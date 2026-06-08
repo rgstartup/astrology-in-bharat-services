@@ -53,12 +53,14 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body('status') status: string,
   ) {
-    return this.reviewsFacade.updateReviewStatus(id, status);
+    const result = await this.reviewsFacade.updateReviewStatus(id, status);
+    return { success: true };
   }
 
   @Delete('reviews/:id')
   async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
-    return this.reviewsFacade.deleteReview(id);
+    const result = await this.reviewsFacade.deleteReview(id);
+    return { success: true };
   }
 
   @Post('reviews/:id/response')
@@ -136,7 +138,8 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { status: string; reason?: string },
   ) {
-    return this.profileFacade.updateKycStatus(id, body.status, body.reason);
+    const result = await this.profileFacade.updateKycStatus(id, body.status, body.reason);
+    return { success: true };
   }
 
   @Patch('clients/:id/block')
@@ -144,7 +147,8 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { isBlocked: boolean },
   ) {
-    return this.usersFacade.update(id, { is_blocked: body.isBlocked } as any);
+    const result = await this.usersFacade.update(id, { is_blocked: body.isBlocked } as any);
+    return { success: true };
   }
 
   @Get('live-sessions')
@@ -193,7 +197,12 @@ export class AdminController {
 
   @Patch('coupons/:id')
   async updateCoupon(@Param('id', ParseUUIDPipe) id: string, @Body() data: any) {
-    return this.couponFacade.updateCoupon(id, data);
+    const result = await this.couponFacade.updateCoupon(id, data);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   // Withdrawal Management
@@ -219,7 +228,8 @@ export class AdminController {
     @CurrentUser() admin: User,
     @Body() body: { status: WithdrawalStatus; remark?: string },
   ) {
-    return this.adminFacade.updateWithdrawalStatus(id, body.status, admin.id, body.remark);
+    const result = await this.adminFacade.updateWithdrawalStatus(id, body.status, admin.id, body.remark);
+    return { success: true };
   }
 
   // Bulk Coupon Assignment Utilities
@@ -254,7 +264,12 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { status: MerchantStatus },
   ) {
-    return this.adminFacade.updateMerchantStatus(id, body);
+    const result = await this.adminFacade.updateMerchantStatus(id, body);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   @Get('merchant-sales')
@@ -319,7 +334,12 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body('status') status: string,
   ) {
-    return this.adminFacade.updateListingStatus(id, status);
+    const result = await this.adminFacade.updateListingStatus(id, status);
+    if (result && result.success && 'data' in result) {
+      const { data, ...rest } = result as any;
+      return rest;
+    }
+    return result;
   }
 
   // --- Support / Disputes Management ---
@@ -342,7 +362,8 @@ export class AdminController {
     @Body('status', new ParseEnumPipe(DisputeStatus)) status: DisputeStatus,
     @Body('notes') notes?: string,
   ) {
-    return this.adminFacade.updateDisputeStatus(id, status, notes);
+    const result = await this.adminFacade.updateDisputeStatus(id, status, notes);
+    return { success: true };
   }
 
   @Get('support/disputes/:id/messages')

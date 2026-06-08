@@ -57,6 +57,11 @@ export class SupportController {
         @CurrentUser() user: User,
         @Param('id', ParseUUIDPipe) id: string,
     ) {
-        return this.supportFacade.markMessagesAsRead(user.id, id);
+        const result = await this.supportFacade.markMessagesAsRead(user.id, id);
+        if (result && result.success && 'data' in result) {
+            const { data, ...rest } = result as any;
+            return rest;
+        }
+        return result;
     }
 }

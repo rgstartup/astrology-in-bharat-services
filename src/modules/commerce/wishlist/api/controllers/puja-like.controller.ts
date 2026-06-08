@@ -37,10 +37,11 @@ export class PujaLikeController {
   }
 
   @Delete('remove/:pujaId')
-  removePuja(
+  async removePuja(
     @CurrentUser("id") userId: string,
     @Param('pujaId') pujaId: string,
   ) {
-    return this.wishlistFacade.removePujaFromWishlist(userId, pujaId);
+    const result = await this.wishlistFacade.removePujaFromWishlist(userId, pujaId);
+    return { success: true };
   }
 }
