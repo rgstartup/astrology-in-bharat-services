@@ -1,5 +1,6 @@
 
 import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
@@ -24,15 +25,11 @@ export class RemoveExpertFromWishlistUseCase {
       throw new UserNotFoundError();
     }
 
-    const wishlist = await this.wishlistRepository.findOne({
-      where: { client_id: client.id, expert_id: expert_id },
-    });
+    const result = await this.wishlistRepository.delete({ client_id: client.id, expert_id: expert_id });
 
-    if (!wishlist) {
+    if (result.affected === 0) {
       throw new ExpertNotInWishlistError();
     }
-
-    await this.wishlistRepository.remove(wishlist);
 
     let profileExpert = await this.expertProfileFacade.getExpertByUserId(expert_id);
     if (!profileExpert) {
@@ -57,6 +54,6 @@ export class RemoveExpertFromWishlistUseCase {
       }
     }
 
-    return { message: 'Expert removed from wishlist' };
+    return new BooleanMessage();
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from '../../infrastructure/entities/notification.entity';
@@ -14,6 +15,7 @@ export class MarkAsReadUseCase {
      const updateResult = await this.notificationRepo.update(
       { id }, // Removed user_id as it was removed from entity
       { is_read: true },
-    );    return this.notificationRepo.findOne({ where: { id } });
+    );
+    return new BooleanMessage();
     }
 }

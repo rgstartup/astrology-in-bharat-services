@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Quote } from '../../infrastructure/entities/quote.entity';
@@ -12,10 +13,10 @@ export class UpdateQuoteUseCase {
     private readonly quoteRepository: Repository<Quote>,
   ) {}
 
-  async execute(id: string, dto: UpdateQuoteDto): Promise<Quote> {
+  async execute(id: string, dto: UpdateQuoteDto): Promise<BooleanMessage> {
     const existing = await this.quoteRepository.findOneBy({ id });
     if (!existing) throw new QuoteNotFoundError(id);
     await this.quoteRepository.update(id, dto);
-    return this.quoteRepository.findOneBy({ id }) as Promise<Quote>;
+    return new BooleanMessage();
   }
 }

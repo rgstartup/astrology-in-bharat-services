@@ -16,7 +16,6 @@ export class GetUserExpertGrowthStatsUseCase {
 
     const stats = await this.userRepository
       .createQueryBuilder('user')
-      .leftJoin('user.roles', 'role')
       .select("DATE(user.created_at)", "date")
       .addSelect("COUNT(DISTINCT CASE WHEN 'client' = ANY(user.roles) THEN user.id END)", "clientCount")
       .addSelect("COUNT(DISTINCT CASE WHEN 'expert' = ANY(user.roles) THEN user.id END)", "expertCount")

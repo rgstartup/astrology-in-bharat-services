@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
@@ -11,11 +12,10 @@ export class DeleteReviewUseCase {
   ) { }
 
   async execute(id: string) {
-    const review = await this.reviewRepository.findOne({ where: { id } });
-    if (!review) {
+    const result = await this.reviewRepository.delete(id);
+    if (result.affected === 0) {
       throw new NotFoundException(`Review with id ${id} not found`);
     }
-
-    return this.reviewRepository.remove(review);
+    return new BooleanMessage();
   }
 }

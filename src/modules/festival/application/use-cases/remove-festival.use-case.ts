@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Festival } from '../../infrastructure/entities/festival.entity';
@@ -15,6 +16,7 @@ export class RemoveFestivalUseCase {
     if (!festival) {
       throw new NotFoundException(`Festival with ID ${id} not found`);
     }
-    return this.festivalRepo.remove(festival);
+    await this.festivalRepo.remove(festival);
+    return new BooleanMessage();
   }
 }

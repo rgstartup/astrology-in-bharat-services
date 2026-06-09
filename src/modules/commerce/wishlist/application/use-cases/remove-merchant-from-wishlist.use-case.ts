@@ -1,5 +1,6 @@
 
 import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
@@ -14,20 +15,17 @@ export class RemoveMerchantFromWishlistUseCase {
     private readonly clientProfileFacade: ClientProfileFacade,
   ) {}
 
-  async execute(userId: string, merchantId: string): Promise<void> {
+  async execute(userId: string, merchantId: string): Promise<BooleanMessage> {
     const client = await this.clientProfileFacade.getProfile(userId);
     if (!client) {
       throw new UserNotFoundError();
     }
 
-    const wishlist = await this.wishlistRepository.findOne({
-      where: { client: { id: client.id }, merchant: { id: merchantId } },
-    });
+    const result = await this.wishlistRepository.delete({ client: { id: client.id } as any, merchant: { id: merchantId } as any });
 
-    if (!wishlist) {
+    if (result.affected === 0) {
       throw new MerchantNotInWishlistError();
     }
-
-    await this.wishlistRepository.delete(wishlist.id);
+    return new BooleanMessage();
   }
 }

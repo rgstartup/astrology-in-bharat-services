@@ -1,4 +1,5 @@
 import { Injectable, Inject, forwardRef, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Todo } from '../../infrastructure/entities/todo.entity';
@@ -31,6 +32,6 @@ export class RemoveTodoUseCase {
       throw new TodoNotFoundError();
     }
     await this.todoRepo.remove(todo);
-    return { success: true };
+    return new BooleanMessage();
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { PujaAppointment, PujaAppointmentStatus } from '../../infrastructure/entities/puja-appointment.entity';
@@ -22,7 +23,7 @@ export class UpdatePujaAppointmentStatusUseCase {
     private dataSource: DataSource,
   ) {}
 
-  async execute(id: string, operatingUserId: string, dto: UpdatePujaAppointmentStatusDto): Promise<PujaAppointment> {
+  async execute(id: string, operatingUserId: string, dto: UpdatePujaAppointmentStatusDto): Promise<BooleanMessage> {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
@@ -255,7 +256,7 @@ export class UpdatePujaAppointmentStatusUseCase {
         }
 
         await qr.commitTransaction();
-        return saved;
+        return new BooleanMessage();
     } catch (err) {
         await qr.rollbackTransaction();
         throw err;

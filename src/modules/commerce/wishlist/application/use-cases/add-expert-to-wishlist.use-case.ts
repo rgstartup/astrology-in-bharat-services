@@ -1,5 +1,5 @@
-
 import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
@@ -23,7 +23,7 @@ export class AddExpertToWishlistUseCase {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(userId: string, expert_id: string): Promise<Wishlist> {
+  async execute(userId: string, expert_id: string): Promise<BooleanMessage> {
     const client = await this.clientProfileFacade.getProfile(userId);
     if (!client) {
       throw new UserNotFoundError();
@@ -68,6 +68,6 @@ export class AddExpertToWishlistUseCase {
       await queryRunner.release();
     }
 
-    return savedWishlist;
+    return new BooleanMessage();
   }
 }

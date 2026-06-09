@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
@@ -37,14 +38,6 @@ export class UpdateMerchantStatusAdminUseCase {
 
     console.log(`[DEBUG] Force Updated merchant ${id} to status: ${newStatus}. isVerified: ${isVerified}`);
 
-    return {
-      success: true,
-      message: 'Merchant status updated successfully',
-      data: {
-        id,
-        status: newStatus,
-        isVerified: isVerified
-      },
-    };
+    return new BooleanMessage(true, 'Merchant status updated successfully');
   }
 }

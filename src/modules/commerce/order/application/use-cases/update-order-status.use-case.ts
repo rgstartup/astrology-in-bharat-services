@@ -1,5 +1,6 @@
 
 import { Injectable, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
@@ -197,12 +198,8 @@ export class UpdateOrderStatusUseCase {
       await queryRunner.release();
     }
 
-    const updatedOrder = await this.orderRepo.findOne({ 
-      where: { id },
-      relations: ['items', 'items.product']
-    });
-
-    // ---------------------------------------------------------
+    // Order was refetched here to get the relations, but we don't need it for BooleanMessage
+    // We only need it if we used it in the notifications, but we use `id` and `order.total_amount` which we already have.
     // ------------------------------------------------------
 
     // Create notification and emit socket event based on status
@@ -346,7 +343,7 @@ export class UpdateOrderStatusUseCase {
         emailSubject = `Order Update - Processing #${id}`;
         break;
       default:
-        return updatedOrder;
+        return new BooleanMessage();
     }
 
     // Save notification to DB via facade
@@ -419,6 +416,6 @@ export class UpdateOrderStatusUseCase {
       console.error('Failed to send status update email:', emailError);
     }
 
-    return updatedOrder;
+    return new BooleanMessage();
   }
 }

@@ -7,6 +7,7 @@ import { CallSession, CallSessionStatus, CallType } from '@/modules/consultation
 import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { ConsultationHistoryDto, ConsultationType, ConsultationStatus } from '../../api/dto/consultation-history.dto';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class GetUnifiedHistoryUseCase {
@@ -19,6 +20,8 @@ export class GetUnifiedHistoryUseCase {
     private readonly reviewRepo: Repository<Review>,
     @Inject(forwardRef(() => ExpertProfileFacade))
     private readonly expertProfileFacade: ExpertProfileFacade,
+    @InjectRepository(ProfileClient)
+    private readonly profileClientRepo: Repository<ProfileClient>,
   ) {}
 
   async execute(userId: string, limit: number = 20, offset: number = 0) {
@@ -71,26 +74,39 @@ export class GetUnifiedHistoryUseCase {
       if (r.call_session_id) callReviewMap.set(r.call_session_id, { rating: r.rating, comment: r.comment });
     });
 
-    // 4. Map to Standardized DTO
+    // 4. Fetch Client Profiles for users
+    const allUserIds = [...new Set([...chatSessions, ...callSessions].map(s => s.user?.id).filter(id => id))];
+    const clientProfiles = allUserIds.length > 0 ? await this.profileClientRepo.find({
+      where: { user_id: In(allUserIds) }
+    }) : [];
+    
+    const clientProfileMap = new Map<string, ProfileClient>();
+    clientProfiles.forEach(p => {
+      if (p.user_id) clientProfileMap.set(p.user_id, p);
+    });
+
+    // 5. Map to Standardized DTO
     const unifiedHistory: ConsultationHistoryDto[] = [
       ...chatSessions.map((s) => {
         const duration = this.calculateDuration(s.start_time, s.end_time);
-        return this.mapChatSession(s, chatReviewMap.get(s.id), duration);
+        const profile = s.user?.id ? clientProfileMap.get(s.user.id) : undefined;
+        return this.mapChatSession(s, chatReviewMap.get(s.id), duration, profile);
       }),
       ...callSessions.map((s) => {
         const duration = s.duration_seconds || 0;
-        return this.mapCallSession(s, callReviewMap.get(s.id), duration);
+        const profile = s.user?.id ? clientProfileMap.get(s.user.id) : undefined;
+        return this.mapCallSession(s, callReviewMap.get(s.id), duration, profile);
       }),
     ];
 
-    // 5. Sort by startTime / createdAt (DESC)
+    // 6. Sort by startTime / createdAt (DESC)
     unifiedHistory.sort((a, b) => {
       const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
       const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
       return timeB - timeA;
     });
 
-    // 6. Apply Pagination
+    // 7. Apply Pagination
     const limitNum = Math.min(Math.max(1, limit), 100);
     const offsetNum = Math.max(0, offset);
     const totalCount = unifiedHistory.length;
@@ -102,7 +118,7 @@ export class GetUnifiedHistoryUseCase {
     };
   }
 
-  private mapChatSession(session: ChatSession, review?: { rating: number, comment?: string }, duration: number = 0): ConsultationHistoryDto {
+  private mapChatSession(session: ChatSession, review?: { rating: number, comment?: string }, duration: number = 0, clientProfile?: ProfileClient): ConsultationHistoryDto {
     const total_cost = Number(session.total_cost || 0);
     
     return {
@@ -125,7 +141,7 @@ export class GetUnifiedHistoryUseCase {
       rating: review?.rating || 0,
       comment: review?.comment,
       expert_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
-      user_image: session.user?.avatar || '/images/dummy-user.jpg',
+      user_image: clientProfile?.profile_picture || clientProfile?.avatar || session.user?.avatar || '/images/dummy-user.jpg',
       expert_name: session.expert?.user?.name || session.expert?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
       user_name: session.user?.name || 'Client',
@@ -142,7 +158,7 @@ export class GetUnifiedHistoryUseCase {
     };
   }
 
-  private mapCallSession(session: CallSession, review?: { rating: number, comment?: string }, duration: number = 0): ConsultationHistoryDto {
+  private mapCallSession(session: CallSession, review?: { rating: number, comment?: string }, duration: number = 0, clientProfile?: ProfileClient): ConsultationHistoryDto {
     const final_price = Number(session.final_price || 0);
 
     return {
@@ -165,7 +181,7 @@ export class GetUnifiedHistoryUseCase {
       rating: review?.rating || 0,
       comment: review?.comment,
       expert_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-expert.jpg',
-      user_image: session.user?.avatar || '/images/dummy-user.jpg',
+      user_image: clientProfile?.profile_picture || clientProfile?.avatar || session.user?.avatar || '/images/dummy-user.jpg',
       expert_name: session.expert?.user?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
       user_name: session.user?.name || 'User',

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Coupon } from '../../infrastructure/entities/coupon.entity';
@@ -21,6 +22,7 @@ export class UpdateCouponUseCase {
             expiry_date: data.expiry_date ? new Date(data.expiry_date) : coupon.expiry_date,
         });
 
-        return this.couponRepository.save(updated);
+        await this.couponRepository.save(updated);
+        return new BooleanMessage();
     }
 }

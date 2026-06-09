@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileMerchant } from '../../infrastructure/entities/profile-merchant.entity';
@@ -189,47 +190,10 @@ export class UpdateMerchantProfileUseCase {
         }
       }
 
-      return {
-        success: true,
-        message: 'Profile updated successfully',
-        data: {
-          id: profile.id,
-          name: profile.shopName,
-          managerName: profile.managerName,
-          phone: profile.phone,
-          address: profile.address,
-          city: profile.city,
-          pincode: profile.pincode,
-          image: profile.image,
-          video: profile.video,
-          isOnline: profile.isOnline,
-          operationalHours: profile.operationalHours,
-          trustScore: profile.trustScore,
-          latitude: profile.latitude,
-          longitude: profile.longitude,
-          gstin: profile.gstin,
-          pan: dto.pan, 
-          isGstExempt: profile.isGstExempt,
-          bankName: profile.bankName,
-          accountHolder: profile.accountHolder,
-          accountNumber: dto.accountNumber,
-          ifsc: profile.ifsc,
-          gstCertificate: profile.gstCertificate,
-          panFront: profile.panFront,
-          panBack: profile.panBack,
-          aadharFront: profile.aadharFront,
-          aadharBack: profile.aadharBack,
-          isVerified: profile.isVerified,
-          bank_accounts: profile.bank_accounts,
-        },
-      };
+      return new BooleanMessage(true, 'Profile updated successfully');
     } catch (error) {
       this.logger.error('CRITICAL: UpdateMerchantProfileUseCase failed', error.stack);
-      return {
-        success: false,
-        message: 'Internal server error during profile update',
-        error: error.message
-      };
+      return new BooleanMessage(false, 'Internal server error during profile update');
     }
   }
 }

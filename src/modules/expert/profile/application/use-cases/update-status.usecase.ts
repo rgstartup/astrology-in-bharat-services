@@ -1,4 +1,5 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
@@ -50,6 +51,6 @@ export class UpdateStatusUseCase {
       new ExpertStatusChangedEvent(user.id as any, isAvailable),
     );
 
-    return { success: true, is_available: isAvailable };
+    return new BooleanMessage(true, 'Expert status updated successfully');
   }
 }

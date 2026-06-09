@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
@@ -11,12 +12,10 @@ export class UpdateReviewStatusUseCase {
   ) { }
 
   async execute(id: string, status: string) {
-    const review = await this.reviewRepository.findOne({ where: { id } });
-    if (!review) {
+    const result = await this.reviewRepository.update(id, { status });
+    if (result.affected === 0) {
       throw new NotFoundException(`Review with id ${id} not found`);
     }
-
-    review.status = status;
-    return this.reviewRepository.save(review);
+    return new BooleanMessage();
   }
 }

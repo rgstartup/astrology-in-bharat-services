@@ -1,5 +1,6 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentListing } from '@/modules/agent/infrastructure/entities/agent-listing.entity';
@@ -27,10 +28,6 @@ export class UpdateAdminListingStatusUseCase {
     
     await this.listingRepository.save(listing);
 
-    return {
-      success: true,
-      message: `Listing status updated to ${newStatus} successfully`,
-      data: listing,
-    };
+    return new BooleanMessage(true, `Listing status updated to ${newStatus} successfully`);
   }
 }

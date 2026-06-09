@@ -1,6 +1,6 @@
-
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { Repository } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import twilio from 'twilio';
@@ -14,7 +14,7 @@ export class VerifyPhoneOtpUseCase {
         private readonly profileRepo: Repository<ProfileClient>,
     ) { }
 
-    async execute(userId: string, phone: string, code: string): Promise<{ success: boolean; message: string }> {
+    async execute(userId: string, phone: string, code: string): Promise<BooleanMessage> {
         const accountSid = process.env.TWILIO_ACCOUNT_SID;
         const authToken = process.env.TWILIO_AUTH_TOKEN;
         const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
@@ -36,7 +36,7 @@ export class VerifyPhoneOtpUseCase {
                     profile.phone_verified_at = new Date();
                     await this.profileRepo.save(profile);
 
-                    return { success: true, message: 'Phone number verified successfully (Mock Mode).' };
+                    return new BooleanMessage(true, 'Phone number verified successfully (Mock Mode).');
                 } else {
                     throw new BadRequestException('Invalid mock OTP. Use 123456.');
                 }
@@ -68,7 +68,7 @@ export class VerifyPhoneOtpUseCase {
                 profile.phone_verified_at = new Date();
                 await this.profileRepo.save(profile);
 
-                return { success: true, message: 'Phone number verified successfully.' };
+                return new BooleanMessage(true, 'Phone number verified successfully');
             } else {
                 throw new BadRequestException('Invalid OTP or OTP expired.');
             }

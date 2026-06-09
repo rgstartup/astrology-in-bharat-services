@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
@@ -145,6 +146,6 @@ export class UpdateProfileUseCase {
       );
     }
 
-    return this.getProfileUseCase.execute(user);
+    return new BooleanMessage();
   }
 }

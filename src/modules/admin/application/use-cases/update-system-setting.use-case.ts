@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SystemSetting } from '../../infrastructure/entities/system-setting.entity';
@@ -20,6 +21,7 @@ export class UpdateSystemSettingUseCase {
             setting = this.settingRepo.create({ key, value, description });
         }
 
-        return this.settingRepo.save(setting);
+        await this.settingRepo.save(setting);
+        return new BooleanMessage();
     }
 }

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Dispute, DisputeStatus } from '../../infrastructure/entities/dispute.entity';
@@ -31,6 +32,6 @@ export class UpdateDisputeStatusUseCase {
 
         const saved = await this.disputeRepo.save(dispute);
         this.supportGateway.notifyStatusUpdate(disputeId, saved.status, saved);
-        return saved;
+        return new BooleanMessage();
     }
 }

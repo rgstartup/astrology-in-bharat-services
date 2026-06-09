@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
@@ -61,7 +62,7 @@ export class UpdateKycStatusUseCase {
       await this.userRepo.update(user!.id, { email_verified_at: new Date() });
     }
 
-    const savedProfile = await this.profileRepo.save(profile);
+    await this.profileRepo.save(profile);
 
     // Emit domain event - Side effects (sockets, emails) handled in KycStatusChangedHandler
     this.eventEmitter.emit(
@@ -69,6 +70,6 @@ export class UpdateKycStatusUseCase {
       new KycStatusChangedEvent(user!.id as any, profile.id as any, status, reason),
     );
 
-    return savedProfile;
+    return new BooleanMessage();
   }
 }

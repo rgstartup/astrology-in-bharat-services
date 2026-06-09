@@ -1,5 +1,6 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from '../../infrastructure/entities/cart.entity';
@@ -41,10 +42,6 @@ export class UpdateCartItemUseCase {
       await this.cartItemRepository.save(cartItem);
     }
 
-    // Return updated cart
-    return this.cartRepository.findOne({
-      where: { id: cart.id },
-      relations: ['items', 'items.product'],
-    });
+    return new BooleanMessage();
   }
 }

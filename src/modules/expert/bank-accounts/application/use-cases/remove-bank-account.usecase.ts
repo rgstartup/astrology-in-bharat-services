@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
@@ -25,6 +26,6 @@ export class RemoveBankAccountUseCase {
     // Emit event (optional, but good for consistency)
     this.eventEmitter.emit('expert.bank-account.removed', { userId, accountId: id });
 
-    return { message: 'Bank account deleted successfully' };
+    return new BooleanMessage();
   }
 }

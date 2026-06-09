@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { User } from '../../infrastructure/entities/user.entity';
 import { QueryRunner } from 'typeorm';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
@@ -9,9 +10,8 @@ export class UpdateUserUseCase {
     private readonly userRepository: UserRepository,
   ) { }
 
-  async execute(id: string, data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
-    const user = await this.userRepository.findById(id, true, queryRunner);
-    if (!user) throw new NotFoundException('User not found');
-    return this.userRepository.update(id as any, data, queryRunner);
+  async execute(id: string, data: Partial<User>, queryRunner?: QueryRunner): Promise<BooleanMessage> {
+    await this.userRepository.update(id as any, data, queryRunner);
+    return new BooleanMessage();
   }
 }

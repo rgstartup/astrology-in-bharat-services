@@ -1,5 +1,6 @@
 
 import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Withdrawal, WithdrawalStatus } from '../../infrastructure/entities/withdrawal.entity';
@@ -296,7 +297,7 @@ export class UpdateWithdrawalStatusUseCase {
                 console.error(`[UpdateWithdrawalStatus] Notification FAILED:`, notifyErr);
             }
 
-            return withdrawal;
+            return new BooleanMessage();
         } catch (err) {
             await queryRunner.rollbackTransaction();
             throw err;

@@ -15,7 +15,7 @@ export class FindAllOrdersUseCase {
 
   async execute() {
     return this.orderRepo.find({
-      relations: ['items', 'items.product', 'user'],
+      relations: ['items', 'items.product', 'client', 'client.user'],
       order: { created_at: 'DESC' },
     });
   }

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
@@ -39,6 +40,6 @@ export class UpdateBankAccountUseCase {
       new BankAccountUpdatedEvent(userId as any, updatedAccount.id),
     );
 
-    return updatedAccount;
+    return new BooleanMessage();
   }
 }

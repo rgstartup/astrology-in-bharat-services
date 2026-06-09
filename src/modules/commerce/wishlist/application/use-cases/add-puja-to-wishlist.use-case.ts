@@ -1,5 +1,6 @@
 
 import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
@@ -20,7 +21,7 @@ export class AddPujaToWishlistUseCase {
     private readonly expertProfileFacade: ExpertProfileFacade,
   ) {}
 
-  async execute(userId: string, pujaId: string): Promise<Wishlist> {
+  async execute(userId: string, pujaId: string): Promise<BooleanMessage> {
     const puja = await this.expertProfileFacade.getPujaById(pujaId);
     
     if (!puja) {
@@ -45,6 +46,7 @@ export class AddPujaToWishlistUseCase {
       puja,
     });
 
-    return await this.wishlistRepository.save(wishlist);
+    await this.wishlistRepository.save(wishlist);
+    return new BooleanMessage();
   }
 }

@@ -1,6 +1,6 @@
-
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { Repository } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import twilio from 'twilio';
@@ -14,7 +14,7 @@ export class SendPhoneOtpUseCase {
         private readonly profileRepo: Repository<ProfileClient>,
     ) { }
 
-    async execute(userId: string, phone: string): Promise<{ success: boolean; message: string }> {
+    async execute(userId: string, phone: string): Promise<BooleanMessage> {
         
         const accountSid = process.env.TWILIO_ACCOUNT_SID;
         const authToken = process.env.TWILIO_AUTH_TOKEN;

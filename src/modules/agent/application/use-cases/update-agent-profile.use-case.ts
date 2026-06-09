@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
@@ -44,6 +45,6 @@ export class UpdateAgentProfileUseCase {
             }
         });
 
-        return { success: true };
+        return new BooleanMessage();
     }
 }

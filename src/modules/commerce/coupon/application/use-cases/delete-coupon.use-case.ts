@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Coupon } from '../../infrastructure/entities/coupon.entity';
@@ -16,6 +17,7 @@ export class DeleteCouponUseCase {
             throw new NotFoundException('Coupon not found');
         }
 
-        return this.couponRepository.remove(coupon);
+        await this.couponRepository.remove(coupon);
+        return new BooleanMessage();
     }
 }

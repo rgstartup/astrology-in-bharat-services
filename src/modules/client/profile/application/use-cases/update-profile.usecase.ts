@@ -1,5 +1,6 @@
 
 import { Injectable, Logger } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
@@ -86,6 +87,6 @@ export class UpdateProfileUseCase {
       new ProfileUpdatedEvent(userId, updatedProfile.id, dto),
     );
 
-    return updatedProfile;
+    return new BooleanMessage();
   }
 }
