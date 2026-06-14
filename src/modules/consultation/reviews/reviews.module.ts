@@ -23,7 +23,6 @@ import { GetExpertReviewsByDateUseCase } from './application/use-cases/get-exper
 
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 import { OrderModule } from '@/modules/commerce/order/order.module';
 
 @Module({
@@ -33,7 +32,6 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
     NotificationModule,
     forwardRef(() => ExpertProfileModule),
     forwardRef(() => MerchantProfileModule),
-    forwardRef(() => ClientProfileModule),
     forwardRef(() => OrderModule),
   ],
   controllers: [ReviewsController],

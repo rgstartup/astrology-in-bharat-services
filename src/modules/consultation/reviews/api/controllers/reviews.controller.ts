@@ -16,9 +16,8 @@ import { ReviewsFacade } from '../../application/reviews.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { CreateReviewDto } from '../dto/create-review.dto';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
   path: 'reviews',
@@ -31,10 +30,10 @@ export class ReviewsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async createReview(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() clientId: string,
     @Body() body: CreateReviewDto,
   ) {
-    return this.reviewsFacade.createReview(user, body);
+    return this.reviewsFacade.createReview(clientId, body);
   }
 
   // ─── Public: Get approved platform reviews for homepage ─────────────────────

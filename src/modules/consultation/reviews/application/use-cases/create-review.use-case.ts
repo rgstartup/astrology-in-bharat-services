@@ -11,13 +11,11 @@ import { Repository, DataSource } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { CreateReviewDto } from '../../api/dto/create-review.dto';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class CreateReviewUseCase {
@@ -32,15 +30,12 @@ export class CreateReviewUseCase {
     private readonly expertProfileFacade: ExpertProfileFacade,
     @Inject(forwardRef(() => MerchantProfileFacade))
     private readonly merchantProfileFacade: MerchantProfileFacade,
-    @Inject(forwardRef(() => ClientProfileFacade))
-    private readonly clientProfileFacade: ClientProfileFacade,
     @Inject(forwardRef(() => OrderFacade))
     private readonly orderFacade: OrderFacade,
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(user: IUser, dto: CreateReviewDto): Promise<Review> {
-    const userId = user.id;
+  async execute(clientId: string, dto: CreateReviewDto): Promise<Review> {
     const {
       expert_id,
       merchantId,
@@ -53,7 +48,7 @@ export class CreateReviewUseCase {
     } = dto;
 
     if (review_type === 'platform') {
-      return this.handlePlatformReview(userId, rating, comment, tags);
+      return this.handlePlatformReview(clientId, rating, comment, tags);
     }
 
     if (!expert_id && !merchantId) {
@@ -62,16 +57,9 @@ export class CreateReviewUseCase {
       );
     }
 
-    const client = await this.clientProfileFacade.getProfile(user);
-    if (!client) {
-      throw new BadRequestException('Client profile not found for this user');
-    }
-    const actualClientId = client.id;
-
     if (expert_id) {
       return this.handleExpertReview(
-        userId,
-        actualClientId,
+        clientId,
         expert_id,
         sessionId ?? undefined,
         rating,
@@ -80,8 +68,7 @@ export class CreateReviewUseCase {
       );
     } else if (merchantId) {
       return this.handleMerchantReview(
-        userId,
-        actualClientId,
+        clientId,
         merchantId,
         orderId ?? undefined,
         rating,
@@ -96,13 +83,13 @@ export class CreateReviewUseCase {
   }
 
   private async handlePlatformReview(
-    userId: string,
+    clientId: string,
     rating: number,
     comment?: string,
     tags?: string[],
   ) {
     const review = this.reviewRepository.create({
-      client_id: userId as unknown as string,
+      client_id: clientId,
       rating,
       comment,
       tags,
@@ -131,7 +118,6 @@ export class CreateReviewUseCase {
   }
 
   private async handleExpertReview(
-    userId: string,
     clientId: string,
     expert_id: string,
     sessionId: string | undefined,
@@ -180,7 +166,6 @@ export class CreateReviewUseCase {
     }
 
     console.log('[CreateReview] Payload:', {
-      userId,
       clientId,
       expert_id,
       sessionId,
@@ -214,7 +199,6 @@ export class CreateReviewUseCase {
   }
 
   private async handleMerchantReview(
-    userId: string,
     clientId: string,
     merchantId: string,
     orderId: string | undefined,

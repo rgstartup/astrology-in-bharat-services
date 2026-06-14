@@ -22,12 +22,10 @@ export class GetApprovedPlatformReviewsUseCase {
 
     const mappedReviews = reviews.map((r) => {
       const rawAvatar =
+        r.client?.profile_picture ||
         r.client?.avatar ||
-        ((
-          (r.client as unknown as Record<string, unknown>)?.profile_client as
-            | Record<string, unknown>
-            | undefined
-        )?.profile_picture as string | undefined);
+        r.client?.user?.avatar ||
+        null;
       const fullAvatar =
         typeof rawAvatar === 'string'
           ? rawAvatar.startsWith('http')
@@ -42,7 +40,7 @@ export class GetApprovedPlatformReviewsUseCase {
         tags: r.tags,
         created_at: r.created_at,
         user: {
-          name: r.client?.name || 'Anonymous',
+          name: r.client?.name || r.client?.user?.name || 'Anonymous',
           avatar: fullAvatar,
         },
       };

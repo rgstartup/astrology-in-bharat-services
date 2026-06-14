@@ -12,7 +12,6 @@ import { SendReviewResponseUseCase } from './use-cases/send-review-response.use-
 import { GetApprovedPlatformReviewsUseCase } from './use-cases/get-approved-platform-reviews.use-case';
 import { GetExpertReviewsByDateUseCase } from './use-cases/get-expert-reviews-by-date.use-case';
 import { CreateReviewDto } from '../api/dto/create-review.dto';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class ReviewsFacade {
@@ -31,8 +30,8 @@ export class ReviewsFacade {
     private readonly getExpertReviewsByDateUseCase: GetExpertReviewsByDateUseCase,
   ) {}
 
-  async createReview(user: IUser, dto: CreateReviewDto) {
-    return this.createReviewUseCase.execute(user, dto);
+  async createReview(clientId: string, dto: CreateReviewDto) {
+    return this.createReviewUseCase.execute(clientId, dto);
   }
 
   async getExpertReviews(
