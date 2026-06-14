@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { CallType } from '../../infrastructure/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
 import { CallSessionFilter } from '../../application/use-cases/get-expert-sessions.use-case';
@@ -32,7 +32,7 @@ export class CallController {
   @Post('initiate')
   // ... (lines 14-24 remains same)
   async initiate(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() body: { expert_id: string; type?: CallType },
   ) {
     console.log(
@@ -46,7 +46,7 @@ export class CallController {
   }
 
   @Post('accept')
-  async accept(@CurrentUser() user: User, @Body() body: { sessionId: string }) {
+  async accept(@CurrentUser() user: IUser, @Body() body: { sessionId: string }) {
     console.log(
       `[CallController] Accept call: userId=${user.id}, sessionId=${body.sessionId}`,
     );
@@ -65,7 +65,7 @@ export class CallController {
 
   @Patch('session/:sessionId/status')
   async updateStatus(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Body('status') status: string,
   ) {
@@ -100,7 +100,7 @@ export class CallController {
   @Get('token/:sessionId')
   @Header('Cache-Control', 'no-store')
   async getToken(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
   ) {
     return this.callFacade.getCallToken(user.id, sessionId);
@@ -108,7 +108,7 @@ export class CallController {
 
   @Get('sessions/appointments/pending')
   @Header('Cache-Control', 'no-store')
-  async getPendingAppointments(@CurrentUser() user: User) {
+  async getPendingAppointments(@CurrentUser() user: IUser) {
     return this.callFacade.getExpertSessions(
       user.id,
       CallSessionFilter.RECENT_PENDING,
@@ -117,7 +117,7 @@ export class CallController {
 
   @Get('sessions/appointments/completed')
   @Header('Cache-Control', 'no-store')
-  async getCompletedAppointments(@CurrentUser() user: User) {
+  async getCompletedAppointments(@CurrentUser() user: IUser) {
     return this.callFacade.getExpertSessions(
       user.id,
       CallSessionFilter.RECENT_COMPLETED,
@@ -127,7 +127,7 @@ export class CallController {
   @Get('sessions/all')
   @Header('Cache-Control', 'no-store')
   async getAllSessions(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('search') search?: string,

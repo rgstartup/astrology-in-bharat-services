@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
   path: 'expert/earnings',
@@ -17,7 +17,7 @@ export class ExpertEarningsController {
 
   @Get('stats')
   getStats(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('period') period: string = 'last_6_months',
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,

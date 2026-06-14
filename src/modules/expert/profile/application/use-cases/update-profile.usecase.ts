@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { UpdateProfileExpertDto } from '../../api/dto/profile-expert.dto';
 import { Address } from '@/common/address/address.entity';
 import { GetProfileUseCase } from './get-profile.usecase';
@@ -29,7 +30,7 @@ export class UpdateProfileUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(user: User, dto: UpdateProfileExpertDto) {
+  async execute(user: IUser, dto: UpdateProfileExpertDto) {
     let profile = await this.profileRepo.findOne({
       where: { user: { id: user.id } },
       relations: ['addresses'],

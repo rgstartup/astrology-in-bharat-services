@@ -2,7 +2,7 @@ import { Controller, Get, Body, UseGuards, Query } from '@nestjs/common';
 import { WalletFacade } from '../../application/wallet.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
   path: 'wallet',
@@ -13,18 +13,18 @@ export class WalletController {
   constructor(private readonly walletFacade: WalletFacade) {}
 
   @Get()
-  getWallet(@CurrentUser() user: User) {
+  getWallet(@CurrentUser() user: IUser) {
     return this.walletFacade.getWallet(user.id);
   }
 
   @Get('balance')
-  getBalance(@CurrentUser() user: User) {
+  getBalance(@CurrentUser() user: IUser) {
     return this.walletFacade.getBalance(user.id);
   }
 
   @Get('transactions')
   getTransactions(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('type') type: string = 'all',

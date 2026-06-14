@@ -13,7 +13,7 @@ import { CreateDisputeDto } from '../dto/create-dispute.dto';
 import { SendDisputeMessageDto } from '../dto/send-dispute-message.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
   path: 'support',
@@ -24,13 +24,13 @@ export class SupportController {
   constructor(private readonly supportFacade: SupportFacade) {}
 
   @Get('disputes')
-  async getDisputes(@CurrentUser() user: User) {
+  async getDisputes(@CurrentUser() user: IUser) {
     return this.supportFacade.getDisputes(user.id);
   }
 
   @Get('disputes/:id')
   async getDisputeById(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.supportFacade.getDisputeById(user.id, id);
@@ -38,7 +38,7 @@ export class SupportController {
 
   @Post('disputes')
   async createDispute(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: CreateDisputeDto,
   ) {
     return this.supportFacade.createDispute(user.id, dto);
@@ -46,7 +46,7 @@ export class SupportController {
 
   @Get('disputes/:id/messages')
   async getMessages(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.supportFacade.getMessages(user.id, id);
@@ -54,7 +54,7 @@ export class SupportController {
 
   @Post('disputes/:id/messages')
   async sendMessage(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SendDisputeMessageDto,
   ) {
@@ -63,7 +63,7 @@ export class SupportController {
 
   @Patch('disputes/:id/messages/read')
   async markMessagesAsRead(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const result = await this.supportFacade.markMessagesAsRead(user.id, id);

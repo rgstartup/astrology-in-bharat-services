@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { GetMyRewardsUseCase } from '../../application/use-cases/get-my-rewards.use-case';
 import { ApplyCouponUseCase } from '../../application/use-cases/apply-coupon.use-case';
 
@@ -17,13 +17,13 @@ export class CouponController {
   ) {}
 
   @Get('my-rewards')
-  async getMyRewards(@CurrentUser() user: User) {
+  async getMyRewards(@CurrentUser() user: IUser) {
     return this.getMyRewardsUseCase.execute(user.id);
   }
 
   @Post('apply')
   async applyCoupon(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body()
     body: {
       code?: string;

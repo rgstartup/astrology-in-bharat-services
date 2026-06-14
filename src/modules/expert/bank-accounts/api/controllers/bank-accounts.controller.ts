@@ -18,7 +18,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
   path: 'expert/bank-accounts',
@@ -31,25 +31,25 @@ export class BankAccountsController {
 
   @Post()
   create(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() createBankAccountDto: CreateBankAccountDto,
   ) {
     return this.bankAccountsFacade.create(user.id, createBankAccountDto);
   }
 
   @Get()
-  findAll(@CurrentUser() user: User) {
+  findAll(@CurrentUser() user: IUser) {
     return this.bankAccountsFacade.findAll(user.id);
   }
 
   @Get(':id')
-  findOne(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+  findOne(@CurrentUser() user: IUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.bankAccountsFacade.findOne(user.id, id);
   }
 
   @Patch(':id')
   async update(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateBankAccountDto: UpdateBankAccountDto,
   ) {
@@ -63,7 +63,7 @@ export class BankAccountsController {
 
   @Patch(':id/set-primary')
   async setPrimary(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const _result = await this.bankAccountsFacade.setPrimary(user.id, id);
@@ -72,7 +72,7 @@ export class BankAccountsController {
 
   @Delete(':id')
   async remove(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const _result = await this.bankAccountsFacade.remove(user.id, id);

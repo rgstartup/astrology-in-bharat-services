@@ -13,7 +13,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
   path: 'expert/wallet',
@@ -25,13 +25,13 @@ export class ExpertWalletController {
   constructor(private readonly earningsFacade: ExpertEarningsFacade) {}
 
   @Get('balance')
-  async getBalance(@CurrentUser() user: User) {
+  async getBalance(@CurrentUser() user: IUser) {
     return this.earningsFacade.getWalletBalance(user.id);
   }
 
   @Get('transactions')
   getTransactions(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit: string = '10',
     @Query('page') page: string = '1',
     @Query('offset') offset: string,
@@ -53,7 +53,7 @@ export class ExpertWalletController {
 
   @Post('withdraw')
   async requestWithdrawal(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body('amount') amount: number,
     @Body('bank_account_id') bank_account_id: string | number,
     @Ip() ip: string,

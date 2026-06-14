@@ -7,6 +7,6 @@ export interface IAccessTokenPayload {
   profile?: string;
 }
 
-export interface IUser extends IAccessTokenPayload {
+export interface IUser extends Omit<IAccessTokenPayload, 'sub'> {
   id: string;
 }

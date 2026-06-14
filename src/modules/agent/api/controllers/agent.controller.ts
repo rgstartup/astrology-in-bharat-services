@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { DateRangeDto } from '@/common/dto/date-range.dto';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 import { AgentFacade } from '../../application/agent.facade';
@@ -34,13 +34,13 @@ export class AgentController {
   ) {}
 
   @Get('profile')
-  async getProfile(@CurrentUser() user: User) {
+  async getProfile(@CurrentUser() user: IUser) {
     return this.agentFacade.getProfile(user.id);
   }
 
   @Patch('profile')
   async updateProfile(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() body: Record<string, unknown>,
   ) {
     const result = await this.agentFacade.updateProfile(user.id, body);
@@ -53,7 +53,7 @@ export class AgentController {
 
   @Get('dashboard/stats')
   async getStats(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('range') range: string = '30d',
     @Query() dateRangeDto: DateRangeDto,
   ) {
@@ -62,7 +62,7 @@ export class AgentController {
 
   @Post('listings')
   async createListing(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() body: Record<string, unknown>,
   ) {
     return this.agentFacade.createListing(user.id, body);
@@ -70,7 +70,7 @@ export class AgentController {
 
   @Get('listings')
   async getListings(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query() pagination: PaginationDto,
     @Query('type') type?: string,
     @Query('search') search?: string,
@@ -80,27 +80,27 @@ export class AgentController {
 
   @Get('commissions')
   async getCommissions(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query() pagination: PaginationDto,
   ) {
     return this.agentFacade.getCommissions(user.id, pagination);
   }
 
   @Get('wallet/balance')
-  async getBalance(@CurrentUser() user: User) {
+  async getBalance(@CurrentUser() user: IUser) {
     const balance = await this.walletFacade.getBalance(user.id);
     return { balance };
   }
 
   @Get('wallet/withdrawals')
-  async getWithdrawals(@CurrentUser() user: User) {
+  async getWithdrawals(@CurrentUser() user: IUser) {
     const result = await this.walletFacade.getWithdrawals(user.id);
     return result.data;
   }
 
   @Post('wallet/withdraw')
   async requestWithdrawal(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body('amount', ParseFloatPipe) amount: number,
     @Body('bank_account_id') bankAccountId: string | number,
     @Ip() ip: string,
@@ -120,7 +120,7 @@ export class AgentController {
   }
 
   @Post('wallet/settle')
-  async settleCommissions(@CurrentUser() user: User) {
+  async settleCommissions(@CurrentUser() user: IUser) {
     return this.agentFacade.settleCommissions(user.id);
   }
 }

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { CreateProfileExpertDto } from '../../api/dto/profile-expert.dto';
 import { Address } from '@/common/address/address.entity';
 import { GetProfileUseCase } from './get-profile.usecase';
@@ -26,7 +27,7 @@ export class CreateProfileUseCase {
   ) {}
 
   async execute(
-    user: User,
+    user: IUser,
     dto: CreateProfileExpertDto,
     queryRunner?: QueryRunner,
   ) {

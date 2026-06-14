@@ -15,7 +15,7 @@ import { ChatFacade } from '../../application/chat.facade';
 import { ExpertSessionFilter } from '../../application/use-cases/find-expert-sessions.use-case';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { ChatGateway } from '../../chat.gateway';
 import { ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
 import { InitiateChatDto } from '../dto/initiate-chat.dto';
@@ -32,7 +32,7 @@ export class ChatController {
   ) {}
 
   @Post('initiate')
-  async initiateChat(@CurrentUser() user: User, @Body() dto: InitiateChatDto) {
+  async initiateChat(@CurrentUser() user: IUser, @Body() dto: InitiateChatDto) {
     const session = await this.chatFacade.initiateChat(
       user.id,
       dto.expert_id,
@@ -279,7 +279,7 @@ export class ChatController {
 
   @Get('sessions/pending')
   @Header('Cache-Control', 'no-store')
-  async getPendingSessions(@CurrentUser() user: User) {
+  async getPendingSessions(@CurrentUser() user: IUser) {
     const { data: sessions, total_count } =
       await this.chatFacade.getExpertSessions(
         user.id,
@@ -298,7 +298,7 @@ export class ChatController {
   @Get('sessions/completed')
   @Header('Cache-Control', 'no-store')
   async getCompletedSessions(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('search') search?: string,
@@ -334,7 +334,7 @@ export class ChatController {
 
   @Get('sessions/appointments/pending')
   @Header('Cache-Control', 'no-store')
-  async getRecentPendingSessions(@CurrentUser() user: User) {
+  async getRecentPendingSessions(@CurrentUser() user: IUser) {
     const { data: sessions, total_count } =
       await this.chatFacade.getExpertSessions(
         user.id,
@@ -352,7 +352,7 @@ export class ChatController {
 
   @Get('sessions/appointments/completed')
   @Header('Cache-Control', 'no-store')
-  async getRecentCompletedSessions(@CurrentUser() user: User) {
+  async getRecentCompletedSessions(@CurrentUser() user: IUser) {
     const { data: sessions, total_count } =
       await this.chatFacade.getExpertSessions(
         user.id,
@@ -371,7 +371,7 @@ export class ChatController {
   @Get('sessions/all')
   @Header('Cache-Control', 'no-store')
   async getAllSessions(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('search') search?: string,
@@ -443,7 +443,7 @@ export class ChatController {
 
   @Get('sessions/my-sessions')
   @Header('Cache-Control', 'no-store')
-  async getMySessionsAsClient(@CurrentUser() user: User) {
+  async getMySessionsAsClient(@CurrentUser() user: IUser) {
     const sessions = await this.chatFacade.getClientSessions(user.id);
     // expiryTime unused - available for future use
 
@@ -489,7 +489,7 @@ export class ChatController {
 
   @Get('sessions/active-client')
   @Header('Cache-Control', 'no-store')
-  async getActiveClientSession(@CurrentUser() user: User) {
+  async getActiveClientSession(@CurrentUser() user: IUser) {
     const session = await this.chatFacade.getActiveClientSession(user.id);
     if (!session) return null;
 

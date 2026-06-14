@@ -3,7 +3,7 @@ import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { ExpertStatusChangedEvent } from '../../domain/events/profile-events';
@@ -23,7 +23,7 @@ export class UpdateStatusUseCase {
     private readonly chatFacade: ChatFacade,
   ) {}
 
-  async execute(user: User, isAvailable: boolean) {
+  async execute(user: IUser, isAvailable: boolean) {
     const profile = await this.profileRepo.findOne({
       where: { user: { id: user.id } },
     });

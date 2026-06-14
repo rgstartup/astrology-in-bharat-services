@@ -1,7 +1,7 @@
 ﻿import { Controller, Get, Query, UseGuards, Header } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { GetUnifiedHistoryUseCase } from '../../application/use-cases/get-unified-history.use-case';
 import { CallFacade } from '@/modules/consultation/call/application/call.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
@@ -22,7 +22,7 @@ export class ConsultationController {
   @Get('history')
   @Header('Cache-Control', 'no-store')
   async getHistory(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {

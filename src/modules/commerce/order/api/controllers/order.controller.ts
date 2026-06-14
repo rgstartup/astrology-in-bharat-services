@@ -14,7 +14,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderStatusDto } from '../dto/update-order-status.dto';
 
@@ -28,13 +28,13 @@ export class OrderController {
   constructor(private readonly orderFacade: OrderFacade) {}
 
   @Post()
-  async createOrder(@CurrentUser() user: User, @Body() dto: CreateOrderDto) {
+  async createOrder(@CurrentUser() user: IUser, @Body() dto: CreateOrderDto) {
     return this.orderFacade.createOrder(user.id, dto);
   }
 
   @Get('my-orders')
   async getMyOrders(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
@@ -58,7 +58,7 @@ export class OrderController {
 
   @Get()
   async getMyOrdersAlias(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
@@ -89,7 +89,7 @@ export class OrderController {
 
   @Get(':id')
   async getOrder(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.orderFacade.getOrderById(id, user.id);
@@ -106,13 +106,13 @@ export class OrderSingularController {
   constructor(private readonly orderFacade: OrderFacade) {}
 
   @Post()
-  async createOrder(@CurrentUser() user: User, @Body() dto: CreateOrderDto) {
+  async createOrder(@CurrentUser() user: IUser, @Body() dto: CreateOrderDto) {
     return this.orderFacade.createOrder(user.id, dto);
   }
 
   @Get('my-orders')
   async getMyOrders(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
@@ -152,7 +152,7 @@ export class OrderSingularController {
 
   @Get(':id')
   async getOrder(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.orderFacade.getOrderById(id, user.id);

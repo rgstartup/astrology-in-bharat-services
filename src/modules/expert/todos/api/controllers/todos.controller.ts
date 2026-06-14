@@ -16,7 +16,7 @@ import {
 } from '../../infrastructure/dto/todo.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
   path: 'expert/todos',
@@ -27,18 +27,18 @@ export class TodosController {
   constructor(private readonly todosFacade: TodosFacade) {}
 
   @Get()
-  findAll(@CurrentUser() user: User) {
+  findAll(@CurrentUser() user: IUser) {
     return this.todosFacade.findAll(user.id);
   }
 
   @Post()
-  create(@CurrentUser() user: User, @Body() dto: CreateTodoDto) {
+  create(@CurrentUser() user: IUser, @Body() dto: CreateTodoDto) {
     return this.todosFacade.create(user.id, dto);
   }
 
   @Patch(':id')
   async update(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTodoDto,
   ) {
@@ -48,7 +48,7 @@ export class TodosController {
 
   @Delete(':id')
   async remove(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     await this.todosFacade.remove(user.id, id);

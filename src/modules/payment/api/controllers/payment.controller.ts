@@ -2,7 +2,7 @@ import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { PaymentFacade } from '../../application/payment.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { VerifyPaymentDto } from '../dto/verify-payment.dto';
 
@@ -16,7 +16,7 @@ export class PaymentController {
   @UseGuards(JwtAuthGuard)
   @Post('orders/create')
   async createOrder(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() createOrderDto: CreateOrderDto,
   ) {
     return this.paymentFacade.createOrder(user.id, createOrderDto);

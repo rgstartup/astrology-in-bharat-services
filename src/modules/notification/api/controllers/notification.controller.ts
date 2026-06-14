@@ -11,7 +11,7 @@
 import { NotificationFacade } from '../../application/notification.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
   path: 'notifications',
@@ -23,7 +23,7 @@ export class NotificationController {
 
   @Get()
   async getNotifications(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
@@ -47,14 +47,14 @@ export class NotificationController {
   }
 
   @Get('unread-count')
-  async getUnreadCount(@CurrentUser() user: User) {
+  async getUnreadCount(@CurrentUser() user: IUser) {
     const count = await this.notificationFacade.getUnreadCount(user.id);
     return { count };
   }
 
   @Patch(':id/read')
   async markAsRead(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const _result = await this.notificationFacade.markAsRead(id, user.id);
@@ -62,7 +62,7 @@ export class NotificationController {
   }
 
   @Delete('all')
-  async clearAll(@CurrentUser() user: User) {
+  async clearAll(@CurrentUser() user: IUser) {
     const _result = await this.notificationFacade.clearAll(user.id);
     return { success: true };
   }

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
@@ -31,7 +31,7 @@ export class ConsultationController {
 
   @Post('book-with-wallet')
   async bookWithWallet(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: ConsultationBookDto,
   ) {
     const { expert_id, amount } = dto;

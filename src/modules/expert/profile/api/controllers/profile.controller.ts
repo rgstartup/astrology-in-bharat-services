@@ -34,7 +34,7 @@ import { UpdateDocumentsExpertDto } from '../dto/expert-document.dto';
 import { UpdateExperienceExpertDto } from '../dto/detailed-experience.dto';
 import { QueryExpertDto } from '../dto/query-expert.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { Public } from '@/common/decorators/public.decorator';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { getErrorMessage } from '@/common/utils/get-error-message.util';
@@ -51,7 +51,7 @@ export class ProfileController {
   ) {}
 
   @Get()
-  getProfile(@CurrentUser() user: User) {
+  getProfile(@CurrentUser() user: IUser) {
     console.log('[ProfileController] GET /expert hit for user:', user.id);
     try {
       return this.profileFacade.getProfile(user);
@@ -63,7 +63,7 @@ export class ProfileController {
 
   @Post()
   createProfile(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: CreateProfileExpertDto,
   ) {
     return this.profileFacade.createProfile(user, dto);
@@ -71,7 +71,7 @@ export class ProfileController {
 
   @Patch()
   async updateProfile(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdateProfileExpertDto,
   ) {
     const result = await this.profileFacade.updateProfile(user, dto);
@@ -90,7 +90,7 @@ export class ProfileController {
 
   @Patch('personal-info')
   async updatePersonalInfo(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdatePersonalInfoExpertDto,
   ) {
     const result = await this.profileFacade.updateProfile(
@@ -112,7 +112,7 @@ export class ProfileController {
 
   @Patch('pricing')
   async updatePricing(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdatePricingExpertDto,
   ) {
     const result = await this.profileFacade.updateProfile(
@@ -134,7 +134,7 @@ export class ProfileController {
 
   @Patch('bank-details')
   async updateBankDetails(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdateBankDetailsExpertDto,
   ) {
     const result = await this.profileFacade.updateProfile(
@@ -156,7 +156,7 @@ export class ProfileController {
 
   @Patch('portfolio')
   async updatePortfolio(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdatePortfolioExpertDto,
   ) {
     const result = await this.profileFacade.updateProfile(
@@ -178,7 +178,7 @@ export class ProfileController {
 
   @Patch('certificates')
   async updateCertificates(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdateCertificatesExpertDto,
   ) {
     const result = await this.profileFacade.updateProfile(
@@ -200,7 +200,7 @@ export class ProfileController {
 
   @Patch('documents')
   async updateDocuments(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdateDocumentsExpertDto,
   ) {
     const result = await this.profileFacade.updateProfile(
@@ -222,7 +222,7 @@ export class ProfileController {
 
   @Patch('experience')
   async updateExperience(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdateExperienceExpertDto,
   ) {
     const result = await this.profileFacade.updateProfile(
@@ -244,7 +244,7 @@ export class ProfileController {
 
   @Patch('status')
   async updateStatus(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body('is_available') is_available: boolean,
   ) {
     const result = await this.profileFacade.updateStatus(user, is_available);
@@ -275,7 +275,7 @@ export class ProfileController {
 
   @Post('puja')
   upsertPuja(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: ExpertPujaDto,
     @Query('id') id?: string,
   ) {
@@ -284,7 +284,7 @@ export class ProfileController {
 
   @Delete('puja/:id')
   async deletePuja(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const result = await this.profileFacade.deletePuja(user, id);
@@ -317,7 +317,7 @@ export class ProfileController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: IUser,
   ) {
     if (!file) {
       throw new BadRequestException('File is required');
@@ -377,7 +377,7 @@ export class ProfileController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocument(
     @UploadedFile() file: Express.Multer.File,
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
   ) {
     return this.uploadFile(file, user);
   }

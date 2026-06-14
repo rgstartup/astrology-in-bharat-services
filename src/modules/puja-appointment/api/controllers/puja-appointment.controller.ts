@@ -17,7 +17,7 @@ import { GetExpertPujaAppointmentsUseCase } from '../../application/use-cases/ge
 import { UpdatePujaAppointmentStatusUseCase } from '../../application/use-cases/update-puja-appointment-status.use-case';
 import { UpdatePujaAppointmentStatusDto } from '../../application/dtos/update-puja-appointment-status.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Controller('puja-appointments')
 export class PujaAppointmentController {
@@ -31,7 +31,7 @@ export class PujaAppointmentController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async createAppointment(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Body() dto: CreatePujaAppointmentDto,
   ) {
     return await this.createPujaAppointmentUseCase.execute(user.id, dto);
@@ -39,20 +39,20 @@ export class PujaAppointmentController {
 
   @Get('user')
   @UseGuards(JwtAuthGuard)
-  async getUserAppointments(@CurrentUser() user: User) {
+  async getUserAppointments(@CurrentUser() user: IUser) {
     return await this.getUserPujaAppointmentsUseCase.execute(user.id);
   }
 
   @Get('expert')
   @UseGuards(JwtAuthGuard)
-  async getExpertAppointments(@CurrentUser() user: User) {
+  async getExpertAppointments(@CurrentUser() user: IUser) {
     return await this.getExpertPujaAppointmentsUseCase.execute(user.id);
   }
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
   async updateStatus(
-    @CurrentUser() user: User,
+    @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdatePujaAppointmentStatusDto,
   ) {

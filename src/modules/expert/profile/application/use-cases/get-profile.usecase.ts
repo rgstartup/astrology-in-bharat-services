@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { ExpertGateway } from '../../api/gateways/expert.gateway';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class GetProfileUseCase {
     private readonly expertGateway: ExpertGateway,
   ) {}
 
-  async execute(user: User, queryRunner?: QueryRunner) {
+  async execute(user: IUser, queryRunner?: QueryRunner) {
     const repo = queryRunner
       ? queryRunner.manager.getRepository(ProfileExpert)
       : this.profileRepo;

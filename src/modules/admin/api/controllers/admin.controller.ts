@@ -24,6 +24,7 @@ import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade'
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { WithdrawalStatus } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';
 import { FilterCriteria } from '../../application/use-cases/get-filtered-users.use-case';
 import { CreateAgentDto } from '../dto/create-agent.dto';
@@ -210,7 +211,7 @@ export class AdminController {
   @Post('live-sessions/:id/terminate')
   async terminateSession(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: IUser,
     @Body() body: { userMessage?: string; expertMessage?: string },
   ) {
     try {
@@ -286,7 +287,7 @@ export class AdminController {
   @Patch('withdrawals/:id/status')
   async updateWithdrawalStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: IUser,
     @Body() body: { status: WithdrawalStatus; remark?: string },
   ) {
     const _result = await this.adminFacade.updateWithdrawalStatus(
@@ -469,7 +470,7 @@ export class AdminController {
   @Post('support/disputes/:id/messages')
   async sendDisputeMessage(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: IUser,
     @Body() data: { message: string },
   ) {
     return this.adminFacade.sendDisputeMessage(id, admin.id, data);

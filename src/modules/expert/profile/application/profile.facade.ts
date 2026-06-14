@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import {
   CreateProfileExpertDto,
   UpdateProfileExpertDto,
@@ -46,23 +46,23 @@ export class ExpertProfileFacade {
     private readonly getExpertDetailUseCase: GetExpertDetailUseCase,
   ) {}
 
-  async getProfile(user: User, queryRunner?: QueryRunner) {
+  async getProfile(user: IUser, queryRunner?: QueryRunner) {
     return this.getProfileUseCase.execute(user, queryRunner);
   }
 
   async createProfile(
-    user: User,
+    user: IUser,
     dto: CreateProfileExpertDto,
     queryRunner?: QueryRunner,
   ) {
     return this.createProfileUseCase.execute(user, dto, queryRunner);
   }
 
-  async updateProfile(user: User, dto: UpdateProfileExpertDto) {
+  async updateProfile(user: IUser, dto: UpdateProfileExpertDto) {
     return this.updateProfileUseCase.execute(user, dto);
   }
 
-  async updateStatus(user: User, isAvailable: boolean) {
+  async updateStatus(user: IUser, isAvailable: boolean) {
     return this.updateStatusUseCase.execute(user, isAvailable);
   }
 
@@ -86,11 +86,11 @@ export class ExpertProfileFacade {
     return this.getExpertByUserIdUseCase.execute(userId, queryRunner);
   }
 
-  async upsertPuja(user: User, dto: ExpertPujaDto, id?: string) {
+  async upsertPuja(user: IUser, dto: ExpertPujaDto, id?: string) {
     return this.upsertPujaUseCase.execute(user, dto, id);
   }
 
-  async deletePuja(user: User, id: string) {
+  async deletePuja(user: IUser, id: string) {
     return this.deletePujaUseCase.execute(user, id);
   }
 

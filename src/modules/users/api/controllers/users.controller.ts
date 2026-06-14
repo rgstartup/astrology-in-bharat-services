@@ -16,6 +16,7 @@ import { RolesGuard } from '../../../auth/api/guards/role.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import { User } from '../../infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { RoleEnum, RolePipe } from '../../infrastructure/enums/Role.enum';
 
 @Controller('users')
@@ -36,7 +37,7 @@ export class UsersController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  getMe(@CurrentUser() user: User) {
+  getMe(@CurrentUser() user: IUser) {
     return user;
   }
 
