@@ -28,7 +28,7 @@ export class InitiateChatUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    clientId: string,
     expert_id: string,
     metadata?: Record<string, unknown>,
   ) {
@@ -36,15 +36,15 @@ export class InitiateChatUseCase {
     const existingSession = await this.sessionRepo.findOne({
       where: [
         {
-          client_id: userId as unknown as string,
+          client_id: clientId,
           status: ChatSessionStatus.ACTIVE,
         },
         {
-          client_id: userId as unknown as string,
+          client_id: clientId,
           status: ChatSessionStatus.PENDING,
         },
       ],
-      relations: ['user'],
+      relations: ['client', 'client.user'],
     });
 
     if (existingSession) {
@@ -80,7 +80,7 @@ export class InitiateChatUseCase {
     // Check for Free Consultation eligibility (First chat ever)
     const chatCount = await this.sessionRepo.count({
       where: {
-        client_id: userId as unknown as string,
+        client_id: clientId,
         status: ChatSessionStatus.COMPLETED,
       },
     });
@@ -93,7 +93,8 @@ export class InitiateChatUseCase {
 
     if (!isEligibleForFree) {
       const hasBalance = await this.walletFacade.validateBalance(
-        userId,
+        clientId,
+        'client_id',
         minBalanceRequired,
       );
       if (!hasBalance) {
@@ -104,7 +105,7 @@ export class InitiateChatUseCase {
     }
 
     const session = this.sessionRepo.create({
-      client_id: userId,
+      client_id: clientId,
       expert_id: expert_id,
       price_per_minute: chatPrice,
       status: ChatSessionStatus.PENDING,
@@ -118,22 +119,21 @@ export class InitiateChatUseCase {
     // Hold balance only if not free
     if (!isEligibleForFree) {
       await this.walletFacade.reserveBalance(
-        userId,
+        clientId,
+        'client_id',
         minBalanceRequired,
         `chat_${savedSession.id}`,
       );
     }
 
-    // Fetch again with relations to ensure 'user' (client) info is included for the expert dashboard
+    // Fetch again with relations to ensure client info is included for the expert dashboard
     const sessionWithUser = await this.sessionRepo.findOne({
       where: { id: savedSession.id },
-      relations: ['user'],
+      relations: ['client', 'client.user'],
     });
 
-    if (sessionWithUser && sessionWithUser.user) {
-      const profileClient = await this.clientProfileFacade.getProfile(
-        { id: sessionWithUser.user.id, email: '', roles: [] },
-      );
+    if (sessionWithUser && sessionWithUser.client) {
+      const profileClient = sessionWithUser.client;
       if (profileClient && profileClient.profile_picture) {
         (sessionWithUser as unknown as { user_image: string }).user_image =
           profileClient.profile_picture;

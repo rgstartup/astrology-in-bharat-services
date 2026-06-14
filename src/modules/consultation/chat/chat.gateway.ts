@@ -68,12 +68,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { status: 'registered' };
   }
 
-  async getWalletBalance(userId: string): Promise<number> {
-    return this.walletFacade.getBalance(userId);
+  async getWalletBalance(profileId: string): Promise<number> {
+    return this.walletFacade.getBalance(profileId, 'client_id');
   }
 
-  async getWallet(userId: string) {
-    return this.walletFacade.getWallet(userId);
+  async getWallet(profileId: string, walletKey: 'client_id' | 'expert_id' | 'merchant_id' | 'agent_id' = 'client_id') {
+    return this.walletFacade.getWallet(profileId, walletKey);
   }
 
   notifyExpertNewRequest(expert_id: string, session: ChatSession) {
@@ -139,7 +139,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!session) return null;
 
     // Calculate initial timer values for immediate sync
-    const wallet = await this.walletFacade.getWallet(session.client_id!);
+    const wallet = await this.walletFacade.getWallet(session.client_id!, 'client_id');
     const totalAffordableBalance =
       Number(wallet.balance) + Number(wallet.reserved_balance);
     const price = session.price_per_minute || 0;
@@ -227,6 +227,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       ) {
         const balance = await this.walletFacade.getBalance(
           currentSession.client_id,
+          'client_id',
         );
         const minReq = currentSession.price_per_minute * 5;
 
@@ -254,6 +255,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           // For now, if they don't have balance after 30s, end it.
           const b = await this.walletFacade.getBalance(
             currentSession.client_id,
+            'client_id',
           );
           if (b < minReq && s?.status === ChatSessionStatus.ACTIVE) {
             const summary = await this.chatFacade.endChat(sessionId);
@@ -272,6 +274,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (durationMins >= checkThreshold) {
         const balance = await this.walletFacade.getBalance(
           currentSession.client_id,
+          'client_id',
         );
         if (balance < currentSession.price_per_minute) {
           this.server.to(`room_${sessionId}`).emit('balance_warning', {

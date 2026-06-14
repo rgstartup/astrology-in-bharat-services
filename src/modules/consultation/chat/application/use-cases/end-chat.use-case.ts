@@ -22,7 +22,8 @@ export class EndChatUseCase {
 
   async execute(sessionId: string) {
     const session = await this.sessionRepo.findOne({
-      where: { id: sessionId as unknown as string },
+      where: { id: sessionId },
+      relations: ['client', 'client.user', 'expert', 'expert.user'],
     });
     if (!session || session.status === ChatSessionStatus.COMPLETED) {
       return session;
@@ -58,13 +59,7 @@ export class EndChatUseCase {
         'COMMISION_FOR_BUYER_AGENT',
       );
 
-    // Fetch Expert with User to check for referral
-    const sessionWithExpert = await this.sessionRepo.findOne({
-      where: { id: sessionId as unknown as string },
-      relations: ['expert', 'expert.user'],
-    });
-
-    const expert = sessionWithExpert?.expert;
+    const expert = session.expert;
     const expertUser = expert?.user;
 
     let agent_commission = 0;
@@ -84,10 +79,7 @@ export class EndChatUseCase {
     let buyer_agent_commission = 0;
     let buyer_agent_id: string | undefined = undefined;
 
-    const buyerUser = await this.sessionRepo.manager.findOne(User, {
-      where: { id: session.client_id },
-      select: ['id', 'referred_by_id'],
-    });
+    const buyerUser = session.client?.user;
 
     if (buyerUser?.referred_by_id) {
       buyer_agent_id = buyerUser.referred_by_id;
@@ -140,6 +132,7 @@ export class EndChatUseCase {
         if (total_cost > 0) {
           await this.walletFacade.deductFromReserved(
             session.client_id,
+            'client_id',
             total_cost,
             referenceId,
           );
@@ -148,6 +141,7 @@ export class EndChatUseCase {
         if (remainingReserved > 0) {
           await this.walletFacade.releaseReserved(
             session.client_id,
+            'client_id',
             remainingReserved,
             referenceId,
           );
@@ -155,12 +149,14 @@ export class EndChatUseCase {
       } else {
         await this.walletFacade.deductFromReserved(
           session.client_id,
+          'client_id',
           initialReservation,
           referenceId,
         );
         const excessCost = total_cost - initialReservation;
         await this.walletFacade.debit(
           session.client_id,
+          'client_id',
           excessCost,
           TransactionPurpose.CONSULTATION,
           referenceId,
@@ -169,33 +165,66 @@ export class EndChatUseCase {
 
       // 💳 Credit Expert and Agents (Using pre-calculated earnings)
       if (total_cost > 0) {
-        if (expertUser?.id) {
-          await this.walletFacade.credit(
-            expertUser.id,
-            session.expert_earning,
-            TransactionPurpose.CONSULTATION,
-            referenceId,
-          );
-        }
+        await this.walletFacade.credit(
+          session.expert_id,
+          'expert_id',
+          session.expert_earning,
+          TransactionPurpose.CONSULTATION,
+          referenceId,
+        );
 
         // 💰 Credit Seller's Agent
         if (agent_commission > 0 && agent_id) {
-          await this.walletFacade.credit(
-            agent_id,
-            agent_commission,
-            TransactionPurpose.AGENT_COMMISSION,
-            referenceId,
+          const { ProfileAgent } = await import(
+            '../../../../agent/infrastructure/entities/profile-agent.entity'
           );
+          const agentProfile = await this.sessionRepo.manager.findOne(
+            ProfileAgent,
+            {
+              where: { user_id: agent_id },
+              select: ['id'],
+            },
+          );
+          if (agentProfile) {
+            await this.walletFacade.credit(
+              agentProfile.id,
+              'agent_id',
+              agent_commission,
+              TransactionPurpose.AGENT_COMMISSION,
+              referenceId,
+            );
+          } else {
+            console.error(
+              `[EndChat] Seller agent profile not found for user_id: ${agent_id}`,
+            );
+          }
         }
 
         // 💰 Credit Buyer's Agent
         if (buyer_agent_commission > 0 && buyer_agent_id) {
-          await this.walletFacade.credit(
-            buyer_agent_id,
-            buyer_agent_commission,
-            TransactionPurpose.AGENT_COMMISSION,
-            `chat_buyer_ref_${sessionId}`,
+          const { ProfileAgent } = await import(
+            '../../../../agent/infrastructure/entities/profile-agent.entity'
           );
+          const agentProfile = await this.sessionRepo.manager.findOne(
+            ProfileAgent,
+            {
+              where: { user_id: buyer_agent_id },
+              select: ['id'],
+            },
+          );
+          if (agentProfile) {
+            await this.walletFacade.credit(
+              agentProfile.id,
+              'agent_id',
+              buyer_agent_commission,
+              TransactionPurpose.AGENT_COMMISSION,
+              `chat_buyer_ref_${sessionId}`,
+            );
+          } else {
+            console.error(
+              `[EndChat] Buyer agent profile not found for user_id: ${buyer_agent_id}`,
+            );
+          }
         }
       }
     } catch (error) {
@@ -205,41 +234,37 @@ export class EndChatUseCase {
     // Return updated session with user's remaining balance for the summary popup
     const remainingBalance = await this.walletFacade.getBalance(
       session.client_id,
+      'client_id',
     );
     // 🔔 Notify User
     try {
-      const sessionWithExpert = await this.sessionRepo.findOne({
-        where: { id: sessionId as unknown as string },
-        relations: ['expert', 'expert.user'],
-      });
-
-      if (sessionWithExpert) {
-        const startTime = sessionWithExpert.start_time
-          ? sessionWithExpert.start_time.toLocaleTimeString('en-IN', {
+      if (session.client?.user) {
+        const startTime = session.start_time
+          ? session.start_time.toLocaleTimeString('en-IN', {
               hour: '2-digit',
               minute: '2-digit',
             })
           : 'N/A';
-        const endTime = sessionWithExpert.end_time
-          ? sessionWithExpert.end_time.toLocaleTimeString('en-IN', {
+        const endTime = session.end_time
+          ? session.end_time.toLocaleTimeString('en-IN', {
               hour: '2-digit',
               minute: '2-digit',
             })
           : 'N/A';
-        const expertName = sessionWithExpert.expert?.user?.name || 'Astrologer';
-        const duration = sessionWithExpert.start_time
+        const expertName = session.expert?.user?.name || 'Astrologer';
+        const duration = session.start_time
           ? (
-              (sessionWithExpert.end_time.getTime() -
-                sessionWithExpert.start_time.getTime()) /
+              (session.end_time.getTime() -
+                session.start_time.getTime()) /
               60000
             ).toFixed(1)
           : '0';
 
         const title = 'Consultation Summary';
-        const message = `From ${startTime} to ${endTime} you consulted ${expertName} via Chat, total duration: ${duration} mins, total cost: ₹${sessionWithExpert.total_cost}`;
+        const message = `From ${startTime} to ${endTime} you consulted ${expertName} via Chat, total duration: ${duration} mins, total cost: ₹${session.total_cost}`;
 
         await this.notificationFacade.create(
-          sessionWithExpert.client_id,
+          session.client.user.id,
           NotificationType.GENERAL,
           title,
           message,

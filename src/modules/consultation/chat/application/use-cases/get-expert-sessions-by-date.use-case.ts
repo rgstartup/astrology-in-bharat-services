@@ -20,7 +20,7 @@ export class GetExpertSessionsByDateUseCase {
         status: ChatSessionStatus.COMPLETED,
         created_at: Between(startDate, endDate),
       },
-      relations: ['user', 'expert'],
+      relations: ['client', 'client.user', 'expert'],
     });
   }
 }

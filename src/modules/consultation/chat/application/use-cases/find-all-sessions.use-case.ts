@@ -17,7 +17,8 @@ export class FindAllSessionsUseCase {
   async execute(filter?: string, page: number = 1, limit: number = 10) {
     const query = this.sessionRepo
       .createQueryBuilder('session')
-      .leftJoinAndSelect('session.user', 'user')
+      .leftJoinAndSelect('session.client', 'client')
+      .leftJoinAndSelect('client.user', 'user')
       .leftJoinAndSelect('session.expert', 'expert')
       .leftJoinAndSelect('expert.user', 'expertUser')
       .addSelect((subQuery) => {

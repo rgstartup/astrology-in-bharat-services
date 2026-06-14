@@ -35,7 +35,7 @@ export class ActivateSessionUseCase {
   ): Promise<{ session: ChatSession; introCard?: ChatMessage }> {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
-      relations: ['user'],
+      relations: ['client', 'client.user'],
     });
     if (!session) throw new NotFoundException('Session not found');
 
@@ -53,7 +53,7 @@ export class ActivateSessionUseCase {
     session.start_time = new Date();
 
     // Calculate Max Duration based on Wallet Balance + Free Minutes
-    const balance = await this.walletFacade.getBalance(session.client_id);
+    const balance = await this.walletFacade.getBalance(session.client_id, 'client_id');
     const paidMinutes =
       session.price_per_minute > 0 ? balance / session.price_per_minute : 60; // fallback 60 mins if price is 0
     const totalMinutes =
@@ -74,13 +74,11 @@ export class ActivateSessionUseCase {
     });
 
     if (!existingCard) {
-      const profileClient = await this.clientProfileFacade.getProfile(
-        { id: session.client_id, email: '', roles: [] },
-      );
+      const profileClient = session.client;
 
       const userData = session.metadata || {
         name:
-          (session.user as unknown as { name?: string })?.name ||
+          session.client?.user?.name ||
           profileClient?.name,
         dob: profileClient?.date_of_birth,
         tob: profileClient?.time_of_birth,

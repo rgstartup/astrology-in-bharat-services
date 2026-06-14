@@ -30,6 +30,7 @@ export class ConvertToPaidUseCase {
 
     const hasBalance = await this.walletFacade.validateBalance(
       session.client_id,
+      'client_id',
       minBalanceRequired,
     );
     if (!hasBalance) {
@@ -41,6 +42,7 @@ export class ConvertToPaidUseCase {
     // Reserve balance for the continuation
     await this.walletFacade.reserveBalance(
       session.client_id,
+      'client_id',
       minBalanceRequired,
       `chat_${session.id}`,
     );

@@ -15,6 +15,7 @@ import { ChatFacade } from '../../application/chat.facade';
 import { ExpertSessionFilter } from '../../application/use-cases/find-expert-sessions.use-case';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { IUser } from '@/common/types/access-token.payload';
 import { ChatGateway } from '../../chat.gateway';
 import { ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
@@ -32,9 +33,9 @@ export class ChatController {
   ) {}
 
   @Post('initiate')
-  async initiateChat(@CurrentUser() user: IUser, @Body() dto: InitiateChatDto) {
+  async initiateChat(@CurrentProfile() clientId: string, @Body() dto: InitiateChatDto) {
     const session = await this.chatFacade.initiateChat(
-      user.id,
+      clientId,
       dto.expert_id,
       dto.metadata,
     );
@@ -50,7 +51,7 @@ export class ChatController {
     // Calculate affordable minutes for paid chat or use freeMinutes
     let maxMinutes = session.is_free ? session.free_minutes : 0;
     if (!session.is_free && session.price_per_minute > 0) {
-      const balance = await this.chatGateway.getWalletBalance(user.id);
+      const balance = await this.chatGateway.getWalletBalance(clientId);
       maxMinutes = Math.floor(balance / session.price_per_minute);
     }
 
@@ -443,8 +444,8 @@ export class ChatController {
 
   @Get('sessions/my-sessions')
   @Header('Cache-Control', 'no-store')
-  async getMySessionsAsClient(@CurrentUser() user: IUser) {
-    const sessions = await this.chatFacade.getClientSessions(user.id);
+  async getMySessionsAsClient(@CurrentProfile() clientId: string) {
+    const sessions = await this.chatFacade.getClientSessions(clientId);
     // expiryTime unused - available for future use
 
     return Promise.all(
@@ -489,8 +490,8 @@ export class ChatController {
 
   @Get('sessions/active-client')
   @Header('Cache-Control', 'no-store')
-  async getActiveClientSession(@CurrentUser() user: IUser) {
-    const session = await this.chatFacade.getActiveClientSession(user.id);
+  async getActiveClientSession(@CurrentProfile() clientId: string) {
+    const session = await this.chatFacade.getActiveClientSession(clientId);
     if (!session) return null;
 
     return this.enrichSessionTimers(
@@ -534,6 +535,7 @@ export class ChatController {
 
       const wallet = await this.chatGateway.getWallet(
         session.client_id as string,
+        'client_id',
       );
       const totalAffordableBalance =
         Number(wallet.balance) + Number(wallet.reserved_balance);

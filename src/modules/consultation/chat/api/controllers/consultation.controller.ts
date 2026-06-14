@@ -7,8 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
@@ -31,7 +30,7 @@ export class ConsultationController {
 
   @Post('book-with-wallet')
   async bookWithWallet(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Body() dto: ConsultationBookDto,
   ) {
     const { expert_id, amount } = dto;
@@ -68,7 +67,8 @@ export class ConsultationController {
 
     // 1. Validate Balance
     const hasBalance = await this.walletFacade.validateBalance(
-      user.id,
+      profileId,
+      'client_id',
       finalAmount,
     );
     if (!hasBalance) {
@@ -77,14 +77,15 @@ export class ConsultationController {
 
     // 2. Debit Wallet
     await this.walletFacade.debit(
-      user.id,
+      profileId,
+      'client_id',
       finalAmount,
       TransactionPurpose.CONSULTATION,
       `consultation_booking_${Date.now()}`,
     );
 
     if (dto.coupon_code) {
-      await this.couponFacade.markCouponAsUsed(user.id, dto.coupon_code);
+      await this.couponFacade.markCouponAsUsed(profileId, dto.coupon_code);
     }
 
     // 3. Initiate Chat Session
@@ -94,7 +95,7 @@ export class ConsultationController {
     // Given the current architecture, initiateChat handles its own balance check.
 
     // For now, we'll just initiate the chat. The user now has 'amount' less balance.
-    const session = await this.chatFacade.initiateChat(user.id, expert_id);
+    const session = await this.chatFacade.initiateChat(profileId, expert_id);
 
     return {
       success: true,

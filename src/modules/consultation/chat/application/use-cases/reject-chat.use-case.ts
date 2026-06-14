@@ -40,6 +40,7 @@ export class RejectChatUseCase {
     try {
       await this.walletFacade.releaseReserved(
         session.client_id,
+        'client_id',
         reservedAmount,
         referenceId,
       );
