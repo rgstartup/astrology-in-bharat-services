@@ -8,6 +8,7 @@ import { QueryRunner } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileMerchant } from '../infrastructure/entities/profile-merchant.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class MerchantProfileFacade {
@@ -21,8 +22,8 @@ export class MerchantProfileFacade {
     private readonly repo: Repository<ProfileMerchant>,
   ) {}
 
-  getProfile(userId: string) {
-    return this.getMerchantProfileUseCase.execute(userId);
+  getProfile(user: IUser) {
+    return this.getMerchantProfileUseCase.execute(user);
   }
 
   getProfileById(merchantId: string) {
@@ -42,7 +43,7 @@ export class MerchantProfileFacade {
   }
 
   updateProfile(
-    userId: string,
+    user: IUser,
     dto: Record<string, unknown>,
     files?: {
       image?: Express.Multer.File[];
@@ -54,7 +55,7 @@ export class MerchantProfileFacade {
       aadharBack?: Express.Multer.File[];
     },
   ) {
-    return this.updateMerchantProfileUseCase.execute(userId, dto, files);
+    return this.updateMerchantProfileUseCase.execute(user, dto, files);
   }
 
   updateProfileWithQueryRunner(

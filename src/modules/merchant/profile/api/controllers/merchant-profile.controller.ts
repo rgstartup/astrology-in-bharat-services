@@ -12,6 +12,7 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { IUser } from '@/common/types/access-token.payload';
 import { GetMerchantProfileUseCase } from '../../application/use-cases/get-merchant-profile.use-case';
 import { UpdateMerchantProfileUseCase } from '../../application/use-cases/update-merchant-profile.use-case';
 import { UpdateMerchantProfileDto } from '../dto/update-merchant-profile.dto';
@@ -33,8 +34,8 @@ export class MerchantProfileController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async findOne(@CurrentUser('id') userId: string) {
-    return this.getProfile.execute(userId);
+  async findOne(@CurrentUser() user: IUser) {
+    return this.getProfile.execute(user);
   }
 
   @Patch()
@@ -51,7 +52,7 @@ export class MerchantProfileController {
     ]),
   )
   async update(
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: IUser,
     @Body() dto: UpdateMerchantProfileDto,
     @UploadedFiles()
     files: {
@@ -64,7 +65,7 @@ export class MerchantProfileController {
       aadharBack?: Express.Multer.File[];
     },
   ) {
-    const result = await this.updateProfile.execute(userId, dto, files);
+    const result = await this.updateProfile.execute(user, dto, files);
     if (result && result.success && 'data' in result) {
       const copy = { ...(result as Record<string, unknown>) };
       delete copy.data;

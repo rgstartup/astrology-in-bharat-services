@@ -6,6 +6,7 @@ import {
   MerchantStatus,
 } from '../../infrastructure/entities/profile-merchant.entity';
 import { EncryptionService } from '@/common/services/encryption.service';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class GetMerchantProfileUseCase {
@@ -15,9 +16,12 @@ export class GetMerchantProfileUseCase {
     private readonly encryptionService: EncryptionService,
   ) {}
 
-  async execute(userId: string) {
+  async execute(user: IUser) {
+    const where = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
     const profile = await this.merchantRepository.findOne({
-      where: { user: { id: userId } },
+      where,
       relations: ['user'],
     });
 

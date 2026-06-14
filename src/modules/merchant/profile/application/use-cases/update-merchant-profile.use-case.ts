@@ -11,6 +11,7 @@ import { MerchantGateway } from '../../api/gateways/merchant.gateway';
 import { EncryptionService } from '@/common/services/encryption.service';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class UpdateMerchantProfileUseCase {
@@ -27,7 +28,7 @@ export class UpdateMerchantProfileUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    user: IUser,
     dto: UpdateMerchantProfileDto,
     files?: {
       image?: Express.Multer.File[];
@@ -39,6 +40,7 @@ export class UpdateMerchantProfileUseCase {
       aadharBack?: Express.Multer.File[];
     },
   ) {
+    const userId = user.id;
     this.logger.log(`[DEBUG] Updating profile for user ${userId}`);
     this.logger.log(
       `[DEBUG] DTO Data Received: ${JSON.stringify(dto, null, 2)}`,
@@ -51,8 +53,11 @@ export class UpdateMerchantProfileUseCase {
     );
 
     try {
+      const whereClause = user.profile
+        ? { id: user.profile, user: { id: userId } }
+        : { user: { id: userId } };
       let profile = await this.merchantRepository.findOne({
-        where: { user: { id: userId } },
+        where: whereClause,
         relations: ['user'],
       });
 
