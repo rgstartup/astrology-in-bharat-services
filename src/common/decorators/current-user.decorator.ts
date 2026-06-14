@@ -3,20 +3,14 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '../types/access-token.payload';
 
 export const CurrentUser = createParamDecorator(
-  <T extends keyof User | undefined>(
+  <T extends keyof IUser | undefined>(
     data: T | undefined,
     ctx: ExecutionContext,
   ) => {
-    const req = ctx.switchToHttp().getRequest<{ user?: User }>();
-
-    const user = req.user;
-
-    if (!user) {
-      throw new UnauthorizedException('User not found in request');
-    }
+    const user = getCurrentUser(ctx);
 
     if (data) {
       // TypeScript knows this may be undefined, so we cast as User[T] | undefined
@@ -26,3 +20,15 @@ export const CurrentUser = createParamDecorator(
     return user;
   },
 );
+
+export const getCurrentUser = (ctx: ExecutionContext) => {
+  const req = ctx.switchToHttp().getRequest<{ user?: IUser }>();
+
+  const user = req.user;
+
+  if (!user) {
+    throw new UnauthorizedException('User not found in request');
+  }
+
+  return user;
+};

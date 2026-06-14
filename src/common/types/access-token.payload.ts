@@ -6,3 +6,7 @@ export interface IAccessTokenPayload {
   roles: RoleEnum[];
   profile?: string;
 }
+
+export interface IUser extends IAccessTokenPayload {
+  id: string;
+}

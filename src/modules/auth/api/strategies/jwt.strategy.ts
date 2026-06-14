@@ -3,7 +3,10 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
-import { IAccessTokenPayload } from '@/common/types/access-token.payload';
+import {
+  IAccessTokenPayload,
+  IUser,
+} from '@/common/types/access-token.payload';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -25,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async validate(payload: IAccessTokenPayload) {
+  async validate(payload: IAccessTokenPayload): Promise<IUser> {
     // We return a simplified user object based on the JWT payload.
     // This avoids a database hit on every protected request.
     return {
