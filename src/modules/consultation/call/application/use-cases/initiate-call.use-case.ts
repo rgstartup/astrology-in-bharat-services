@@ -99,6 +99,7 @@ export class InitiateCallUseCase {
     if (!isEligibleForFree) {
       const hasBalance = await this.walletFacade.validateBalance(
         clientId,
+        'client_id',
         minBalanceRequired,
       );
       CallPolicy.ensureSufficientBalance(
@@ -127,6 +128,7 @@ export class InitiateCallUseCase {
     if (!isEligibleForFree) {
       await this.walletFacade.reserveBalance(
         clientId,
+        'client_id',
         minBalanceRequired,
         `call_${savedSession.id}`,
       );

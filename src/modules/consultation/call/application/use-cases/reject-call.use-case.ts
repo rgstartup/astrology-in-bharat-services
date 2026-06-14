@@ -50,6 +50,7 @@ export class RejectCallUseCase {
     try {
       await this.walletFacade.releaseReserved(
         session.client_id,
+        'client_id',
         reservedAmount,
         referenceId,
       );

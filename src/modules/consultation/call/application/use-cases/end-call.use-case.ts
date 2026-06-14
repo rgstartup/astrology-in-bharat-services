@@ -158,6 +158,7 @@ export class EndCallUseCase {
         if (finalPrice > 0) {
           await this.walletFacade.deductFromReserved(
             session.client_id,
+            'client_id',
             finalPrice,
             referenceId,
           );
@@ -166,6 +167,7 @@ export class EndCallUseCase {
         if (remainingReserved > 0) {
           await this.walletFacade.releaseReserved(
             session.client_id,
+            'client_id',
             remainingReserved,
             referenceId,
           );
@@ -173,12 +175,14 @@ export class EndCallUseCase {
       } else {
         await this.walletFacade.deductFromReserved(
           session.client_id,
+          'client_id',
           initialReservation,
           referenceId,
         );
         const excessCost = finalPrice - initialReservation;
         await this.walletFacade.debit(
           session.client_id,
+          'client_id',
           excessCost,
           TransactionPurpose.CONSULTATION,
           referenceId,
@@ -187,34 +191,66 @@ export class EndCallUseCase {
 
       // 💳 Credit Expert and Agents (Using pre-calculated earnings)
       if (finalPrice > 0) {
-        const expertUserId = expert?.userId as string | undefined;
-        if (expertUserId) {
-          await this.walletFacade.credit(
-            expertUserId,
-            session.expert_earning,
-            TransactionPurpose.CONSULTATION,
-            referenceId,
-          );
-        }
+        await this.walletFacade.credit(
+          session.expert_id,
+          'expert_id',
+          session.expert_earning,
+          TransactionPurpose.CONSULTATION,
+          referenceId,
+        );
 
         // 💰 Credit Seller's Agent
         if (agent_commission > 0 && agent_id) {
-          await this.walletFacade.credit(
-            agent_id,
-            agent_commission,
-            TransactionPurpose.AGENT_COMMISSION,
-            referenceId,
+          const { ProfileAgent } = await import(
+            '../../../../agent/infrastructure/entities/profile-agent.entity'
           );
+          const agentProfile = await this.sessionRepo.manager.findOne(
+            ProfileAgent,
+            {
+              where: { user_id: agent_id },
+              select: ['id'],
+            },
+          );
+          if (agentProfile) {
+            await this.walletFacade.credit(
+              agentProfile.id,
+              'agent_id',
+              agent_commission,
+              TransactionPurpose.AGENT_COMMISSION,
+              referenceId,
+            );
+          } else {
+            console.error(
+              `[EndCall] Seller agent profile not found for user_id: ${agent_id}`,
+            );
+          }
         }
 
         // 💰 Credit Buyer's Agent
         if (buyer_agent_commission > 0 && buyer_agent_id) {
-          await this.walletFacade.credit(
-            buyer_agent_id,
-            buyer_agent_commission,
-            TransactionPurpose.AGENT_COMMISSION,
-            `call_buyer_ref_${sessionId}`,
+          const { ProfileAgent } = await import(
+            '../../../../agent/infrastructure/entities/profile-agent.entity'
           );
+          const agentProfile = await this.sessionRepo.manager.findOne(
+            ProfileAgent,
+            {
+              where: { user_id: buyer_agent_id },
+              select: ['id'],
+            },
+          );
+          if (agentProfile) {
+            await this.walletFacade.credit(
+              agentProfile.id,
+              'agent_id',
+              buyer_agent_commission,
+              TransactionPurpose.AGENT_COMMISSION,
+              `call_buyer_ref_${sessionId}`,
+            );
+          } else {
+            console.error(
+              `[EndCall] Buyer agent profile not found for user_id: ${buyer_agent_id}`,
+            );
+          }
         }
       }
     } catch (error) {

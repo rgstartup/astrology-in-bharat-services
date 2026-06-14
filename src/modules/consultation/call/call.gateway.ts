@@ -128,6 +128,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.triggeredFreeLimit.add(sessionId);
         const balance = await this.walletFacade.getBalance(
           currentSession.client_id,
+          'client_id',
         );
         const minReq = currentSession.price_per_minute * 5;
 
@@ -145,7 +146,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           const s = await this.callFacade.getSession(sessionId);
-          const b = await this.walletFacade.getBalance(currentSession.client_id);
+          const b = await this.walletFacade.getBalance(currentSession.client_id, 'client_id');
           if (b < minReq && s?.status === CallSessionStatus.ACTIVE) {
             await this.callFacade.end(sessionId);
             this.server.to(`call_room_${sessionId}`).emit('call_ended', {
@@ -163,6 +164,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (durationMins >= checkThreshold) {
         const balance = await this.walletFacade.getBalance(
           currentSession.client_id,
+          'client_id',
         );
         if (balance < currentSession.price_per_minute) {
           this.server.to(`call_room_${sessionId}`).emit('balance_warning', {
