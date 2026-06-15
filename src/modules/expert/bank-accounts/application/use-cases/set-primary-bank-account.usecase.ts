@@ -6,7 +6,6 @@ import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
 import { GetBankAccountUseCase } from './get-bank-account.usecase';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrimaryBankAccountChangedEvent } from '../../domain/events/bank-account-events';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class SetPrimaryBankAccountUseCase {
@@ -17,8 +16,8 @@ export class SetPrimaryBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(user: IUser, id: string) {
-    const account = await this.getBankAccountUseCase.execute(user, id);
+  async execute(expertProfileId: string, id: string) {
+    const account = await this.getBankAccountUseCase.execute(expertProfileId, id);
 
     if (!account.expert || !account.expert_id) {
       throw new NotFoundException('No Expert profile associated');
@@ -40,7 +39,7 @@ export class SetPrimaryBankAccountUseCase {
     this.eventEmitter.emit(
       'expert.bank-account.primary-changed',
       new PrimaryBankAccountChangedEvent(
-        user.id,
+        account.expert.user_id,
         oldPrimary?.id,
         updatedAccount.id,
       ),

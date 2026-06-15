@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -17,8 +17,7 @@ import {
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'expert/bank-accounts',
@@ -31,30 +30,30 @@ export class BankAccountsController {
 
   @Post()
   create(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() expertProfileId: string,
     @Body() createBankAccountDto: CreateBankAccountDto,
   ) {
-    return this.bankAccountsFacade.create(user, createBankAccountDto);
+    return this.bankAccountsFacade.create(expertProfileId, createBankAccountDto);
   }
 
   @Get()
-  findAll(@CurrentUser() user: IUser) {
-    return this.bankAccountsFacade.findAll(user);
+  findAll(@CurrentProfile() expertProfileId: string) {
+    return this.bankAccountsFacade.findAll(expertProfileId);
   }
 
   @Get(':id')
-  findOne(@CurrentUser() user: IUser, @Param('id', ParseUUIDPipe) id: string) {
-    return this.bankAccountsFacade.findOne(user, id);
+  findOne(@CurrentProfile() expertProfileId: string, @Param('id', ParseUUIDPipe) id: string) {
+    return this.bankAccountsFacade.findOne(expertProfileId, id);
   }
 
   @Patch(':id')
   async update(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() expertProfileId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateBankAccountDto: UpdateBankAccountDto,
   ) {
-    const _result = await this.bankAccountsFacade.update(
-      user,
+    await this.bankAccountsFacade.update(
+      expertProfileId,
       id,
       updateBankAccountDto,
     );
@@ -63,19 +62,19 @@ export class BankAccountsController {
 
   @Patch(':id/set-primary')
   async setPrimary(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() expertProfileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const _result = await this.bankAccountsFacade.setPrimary(user, id);
+    await this.bankAccountsFacade.setPrimary(expertProfileId, id);
     return { success: true };
   }
 
   @Delete(':id')
   async remove(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() expertProfileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const _result = await this.bankAccountsFacade.remove(user, id);
+    await this.bankAccountsFacade.remove(expertProfileId, id);
     return { success: true };
   }
 }

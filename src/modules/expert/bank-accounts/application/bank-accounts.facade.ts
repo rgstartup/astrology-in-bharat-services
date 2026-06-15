@@ -9,7 +9,6 @@ import {
   CreateBankAccountDto,
   UpdateBankAccountDto,
 } from '../api/dto/bank-account.dto';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class BankAccountsFacade {
@@ -22,27 +21,27 @@ export class BankAccountsFacade {
     private readonly removeBankAccountUseCase: RemoveBankAccountUseCase,
   ) {}
 
-  async create(user: IUser, dto: CreateBankAccountDto) {
-    return this.createBankAccountUseCase.execute(user, dto);
+  async create(expertProfileId: string, dto: CreateBankAccountDto) {
+    return this.createBankAccountUseCase.execute(expertProfileId, dto);
   }
 
-  async findAll(user: IUser) {
-    return this.listBankAccountsUseCase.execute(user);
+  async findAll(expertProfileId: string) {
+    return this.listBankAccountsUseCase.execute(expertProfileId);
   }
 
-  async findOne(user: IUser, id: string) {
-    return this.getBankAccountUseCase.execute(user, id);
+  async findOne(expertProfileId: string, id: string) {
+    return this.getBankAccountUseCase.execute(expertProfileId, id);
   }
 
-  async update(user: IUser, id: string, dto: UpdateBankAccountDto) {
-    return this.updateBankAccountUseCase.execute(user, id, dto);
+  async update(expertProfileId: string, id: string, dto: UpdateBankAccountDto) {
+    return this.updateBankAccountUseCase.execute(expertProfileId, id, dto);
   }
 
-  async setPrimary(user: IUser, id: string) {
-    return this.setPrimaryBankAccountUseCase.execute(user, id);
+  async setPrimary(expertProfileId: string, id: string) {
+    return this.setPrimaryBankAccountUseCase.execute(expertProfileId, id);
   }
 
-  async remove(user: IUser, id: string) {
-    return this.removeBankAccountUseCase.execute(user, id);
+  async remove(expertProfileId: string, id: string) {
+    return this.removeBankAccountUseCase.execute(expertProfileId, id);
   }
 }
