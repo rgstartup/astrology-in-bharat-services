@@ -12,7 +12,6 @@ import {
   ChatSessionStatus,
 } from '../../infrastructure/entities/chat-session.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()
@@ -22,8 +21,6 @@ export class InitiateChatUseCase {
     private sessionRepo: Repository<ChatSession>,
     @Inject(forwardRef(() => ExpertProfileFacade))
     private expertProfileFacade: ExpertProfileFacade,
-    @Inject(forwardRef(() => ClientProfileFacade))
-    private clientProfileFacade: ClientProfileFacade,
     @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
   ) {}
 

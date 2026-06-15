@@ -100,19 +100,19 @@ export class ChatFacade {
   }
 
   async getExpertSessions(
-    userId: string,
+    expertProfileId: string,
     filter: ExpertSessionFilter,
     options: FindExpertSessionsOptions = {},
   ) {
-    return this.findExpertSessionsUseCase.execute(userId, filter, options);
+    return this.findExpertSessionsUseCase.execute(expertProfileId, filter, options);
   }
 
-  async getClientSessions(userId: string) {
-    return this.findClientSessionsUseCase.execute(userId);
+  async getClientSessions(clientProfileId: string) {
+    return this.findClientSessionsUseCase.execute(clientProfileId);
   }
 
-  async getActiveClientSession(userId: string) {
-    return this.findActiveClientSessionUseCase.execute(userId);
+  async getActiveClientSession(clientProfileId: string) {
+    return this.findActiveClientSessionUseCase.execute(clientProfileId);
   }
 
   async getTotalSessionsCount() {

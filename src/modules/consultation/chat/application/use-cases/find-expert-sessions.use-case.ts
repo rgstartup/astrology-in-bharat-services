@@ -1,11 +1,10 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Brackets } from 'typeorm';
 import {
   ChatSession,
   ChatSessionStatus,
 } from '../../infrastructure/entities/chat-session.entity';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 
 export enum ExpertSessionFilter {
   PENDING = 'pending',
@@ -28,19 +27,14 @@ export class FindExpertSessionsUseCase {
   constructor(
     @InjectRepository(ChatSession)
     private sessionRepo: Repository<ChatSession>,
-    @Inject(forwardRef(() => ExpertProfileFacade))
-    private expertProfileFacade: ExpertProfileFacade,
   ) {}
 
   async execute(
-    userId: string,
+    expertProfileId: string,
     filter: ExpertSessionFilter,
     options: FindExpertSessionsOptions = {},
   ) {
-    const expert = await this.expertProfileFacade.getExpertByUserId(userId);
-    if (!expert) return { data: [], total_count: 0 };
-
-    const expert_id = expert.id;
+    const expert_id = expertProfileId;
     const {
       limit = 20,
       offset = 0,

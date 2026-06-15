@@ -31,7 +31,6 @@ import { WalletModule } from '@/modules/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 
 @Module({
   imports: [
@@ -40,7 +39,6 @@ import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/p
     NotificationModule,
     forwardRef(() => CouponModule),
     forwardRef(() => ExpertProfileModule),
-    forwardRef(() => ClientProfileModule),
   ],
   providers: [
     ChatGateway,

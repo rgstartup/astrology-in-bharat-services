@@ -8,16 +8,13 @@ import { Review } from '@/modules/consultation/reviews/infrastructure/entities/r
 import { CallModule } from './call/call.module';
 import { ChatModule } from './chat/chat.module';
 import { ReviewsModule } from './reviews/reviews.module';
-import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ChatSession, CallSession, Review, ProfileClient]),
+    TypeOrmModule.forFeature([ChatSession, CallSession, Review]),
     forwardRef(() => ChatModule),
     forwardRef(() => CallModule),
     forwardRef(() => ReviewsModule),
-    forwardRef(() => ExpertProfileModule),
   ],
   controllers: [ConsultationController],
   providers: [GetUnifiedHistoryUseCase],

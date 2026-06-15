@@ -1,4 +1,4 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import {
@@ -11,7 +11,6 @@ import {
   CallType,
 } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import {
   ConsultationHistoryDto,
   ConsultationType,
@@ -28,32 +27,18 @@ export class GetUnifiedHistoryUseCase {
     private readonly callRepo: Repository<CallSession>,
     @InjectRepository(Review)
     private readonly reviewRepo: Repository<Review>,
-    @Inject(forwardRef(() => ExpertProfileFacade))
-    private readonly expertProfileFacade: ExpertProfileFacade,
-    @InjectRepository(ProfileClient)
-    private readonly profileClientRepo: Repository<ProfileClient>,
   ) {}
 
-  async execute(userId: string, limit: number = 20, offset: number = 0) {
-    // 1. Detect Role: Check if the user is an Expert
-    const expertProfile =
-      await this.expertProfileFacade.getExpertByUserId(userId);
-
-    const isExpert = !!expertProfile;
-
+  async execute(profileId: string, isExpert: boolean, limit: number = 20, offset: number = 0) {
     let chatFilter = {};
     let callFilter = {};
 
     if (isExpert) {
-      chatFilter = { expert_id: expertProfile.id };
-      callFilter = { expert_id: expertProfile.id };
+      chatFilter = { expert_id: profileId };
+      callFilter = { expert_id: profileId };
     } else {
-      chatFilter = { client_id: userId };
-      // CallSession.client_id → ProfileClient.id, so look up profile first
-      const clientProfile = await this.profileClientRepo.findOne({
-        where: { user_id: userId },
-      });
-      callFilter = clientProfile ? { client_id: clientProfile.id } : { client_id: '__none__' };
+      chatFilter = { client_id: profileId };
+      callFilter = { client_id: profileId };
     }
 
     // 2. Fetch Sessions with relations

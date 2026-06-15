@@ -16,7 +16,6 @@ import {
   MessageType,
 } from '../../infrastructure/entities/chat-message.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 
 @Injectable()
 export class ActivateSessionUseCase {
@@ -25,8 +24,6 @@ export class ActivateSessionUseCase {
     private sessionRepo: Repository<ChatSession>,
     @InjectRepository(ChatMessage)
     private messageRepo: Repository<ChatMessage>,
-    @Inject(forwardRef(() => ClientProfileFacade))
-    private clientProfileFacade: ClientProfileFacade,
     @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
   ) {}
 

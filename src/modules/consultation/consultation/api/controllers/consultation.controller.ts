@@ -1,7 +1,9 @@
-﻿import { Controller, Get, Query, UseGuards, Header } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Header } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { IUser } from '@/common/types/access-token.payload';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { GetUnifiedHistoryUseCase } from '../../application/use-cases/get-unified-history.use-case';
 import { CallFacade } from '@/modules/consultation/call/application/call.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
@@ -22,6 +24,7 @@ export class ConsultationController {
   @Get('history')
   @Header('Cache-Control', 'no-store')
   async getHistory(
+    @CurrentProfile() profileId: string,
     @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
@@ -29,8 +32,11 @@ export class ConsultationController {
     const limitNum = limit ? parseInt(limit, 10) : 20;
     const offsetNum = offset ? parseInt(offset, 10) : 0;
 
+    const isExpert = user.roles.includes(RoleEnum.EXPERT);
+
     const { data, totalCount } = await this.getUnifiedHistoryUseCase.execute(
-      user.id,
+      profileId,
+      isExpert,
       limitNum,
       offsetNum,
     );
