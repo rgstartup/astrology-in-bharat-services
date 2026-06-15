@@ -26,9 +26,9 @@ export class GetUserOrdersUseCase {
       order: { created_at: 'DESC' },
     });
 
-    // 2. Fetch Puja Appointments (as Service Orders) — keyed to user ID
+    // 2. Fetch Puja Appointments (as Service Orders) — keyed to client profile ID
     const pujaOrders =
-      await this.pujaAppointmentFacade.getUserAppointments(userId);
+      await this.pujaAppointmentFacade.getUserAppointments(profileId);
 
     // 3. Normalize and Combine
     const normalizedProducts = productOrders.map((o) => ({

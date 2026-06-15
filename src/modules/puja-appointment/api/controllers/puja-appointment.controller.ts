@@ -1,11 +1,10 @@
-﻿import {
+import {
   Controller,
   Post,
   Get,
   Body,
   Param,
   UseGuards,
-  Request,
   Patch,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -17,6 +16,7 @@ import { GetExpertPujaAppointmentsUseCase } from '../../application/use-cases/ge
 import { UpdatePujaAppointmentStatusUseCase } from '../../application/use-cases/update-puja-appointment-status.use-case';
 import { UpdatePujaAppointmentStatusDto } from '../../application/dtos/update-puja-appointment-status.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { IUser } from '@/common/types/access-token.payload';
 
 @Controller('puja-appointments')
@@ -39,26 +39,26 @@ export class PujaAppointmentController {
 
   @Get('user')
   @UseGuards(JwtAuthGuard)
-  async getUserAppointments(@CurrentUser() user: IUser) {
-    return await this.getUserPujaAppointmentsUseCase.execute(user.id);
+  async getUserAppointments(@CurrentProfile() profileId: string) {
+    return await this.getUserPujaAppointmentsUseCase.execute(profileId);
   }
 
   @Get('expert')
   @UseGuards(JwtAuthGuard)
-  async getExpertAppointments(@CurrentUser() user: IUser) {
-    return await this.getExpertPujaAppointmentsUseCase.execute(user.id);
+  async getExpertAppointments(@CurrentProfile() profileId: string) {
+    return await this.getExpertPujaAppointmentsUseCase.execute(profileId);
   }
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
   async updateStatus(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdatePujaAppointmentStatusDto,
   ) {
     const _result = await this.updatePujaAppointmentStatusUseCase.execute(
       id,
-      user.id,
+      profileId,
       dto,
     );
     return { success: true };

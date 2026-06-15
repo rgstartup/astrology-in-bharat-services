@@ -14,7 +14,7 @@ import {
 } from '../../infrastructure/entities/puja-appointment.entity';
 import { CreatePujaAppointmentDto } from '../dtos/create-puja-appointment.dto';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { ExpertGateway } from '@/modules/expert/profile/api/gateways/expert.gateway';
@@ -25,10 +25,10 @@ export class CreatePujaAppointmentUseCase {
   constructor(
     @InjectRepository(PujaAppointment)
     private pujaAppointmentRepository: Repository<PujaAppointment>,
+    @InjectRepository(ProfileClient)
+    private readonly clientProfileRepo: Repository<ProfileClient>,
     @Inject(forwardRef(() => ExpertProfileFacade))
     private readonly expertProfileFacade: ExpertProfileFacade,
-    @Inject(forwardRef(() => ClientProfileFacade))
-    private readonly clientProfileFacade: ClientProfileFacade,
     private readonly notificationFacade: NotificationFacade,
     private readonly expertGateway: ExpertGateway,
   ) {}
@@ -44,7 +44,15 @@ export class CreatePujaAppointmentUseCase {
       throw new NotFoundException('Puja not found');
     }
 
-    const clientProfile = await this.clientProfileFacade.getProfile(user);
+    const clientProfileId = user.profile;
+    if (!clientProfileId) {
+      throw new NotFoundException('Client profile not found');
+    }
+
+    const clientProfile = await this.clientProfileRepo.findOne({
+      where: { id: clientProfileId },
+      relations: ['user'],
+    });
 
     if (!clientProfile) {
       throw new NotFoundException('Client profile not found');

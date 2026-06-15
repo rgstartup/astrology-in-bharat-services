@@ -32,7 +32,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
   async execute(
     id: string,
-    operatingUserId: string,
+    operatingProfileId: string,
     dto: UpdatePujaAppointmentStatusDto,
   ): Promise<BooleanMessage> {
     const qr = this.dataSource.createQueryRunner();
@@ -50,12 +50,11 @@ export class UpdatePujaAppointmentStatusUseCase {
       }
 
       // Determine who is performing the update
-      const isExpert =
-        (appointment.expert.user_id as unknown as string) === operatingUserId;
-      const isClient = appointment.client?.user_id === operatingUserId;
+      const isExpert = appointment.expert_id === operatingProfileId;
+      const isClient = appointment.client_id === operatingProfileId;
 
       if (!isExpert && !isClient) {
-        throw new NotFoundException('Appointment not found for this user');
+        throw new NotFoundException('Appointment not found for this profile');
       }
 
       // Rules for client update

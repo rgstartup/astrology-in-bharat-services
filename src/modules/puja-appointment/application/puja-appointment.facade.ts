@@ -11,8 +11,8 @@ export class PujaAppointmentFacade {
     private readonly getExpertPujaAppointmentsUseCase: GetExpertPujaAppointmentsUseCase,
   ) {}
 
-  getUserAppointments(userId: string) {
-    return this.getUserPujaAppointmentsUseCase.execute(userId);
+  getUserAppointments(clientProfileId: string) {
+    return this.getUserPujaAppointmentsUseCase.execute(clientProfileId);
   }
 
   getPujaEarnings(dateLimit: Date) {

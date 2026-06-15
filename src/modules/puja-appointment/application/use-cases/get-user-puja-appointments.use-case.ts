@@ -10,9 +10,9 @@ export class GetUserPujaAppointmentsUseCase {
     private pujaAppointmentRepository: Repository<PujaAppointment>,
   ) {}
 
-  async execute(userId: string): Promise<PujaAppointment[]> {
+  async execute(clientProfileId: string): Promise<PujaAppointment[]> {
     return await this.pujaAppointmentRepository.find({
-      where: { client: { user_id: userId } },
+      where: { client_id: clientProfileId },
       relations: ['client', 'client.user', 'expert', 'expert.user', 'puja'],
       order: { created_at: 'DESC' },
     });
