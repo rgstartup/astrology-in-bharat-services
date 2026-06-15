@@ -5,8 +5,14 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+
+export type ProfileType = Exclude<RoleEnum, RoleEnum.ADMIN>;
 
 export enum NotificationType {
   ORDER_CREATED = 'order_created',
@@ -25,12 +31,33 @@ export class Notification {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user!: User | null;
+  @Column({ name: 'client_id', type: 'uuid', nullable: true })
+  client_id!: string | null;
 
-  @Column({ name: 'user_id', type: 'uuid', nullable: true })
-  user_id!: string | null;
+  @ManyToOne(() => ProfileClient, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'client_id' })
+  client!: ProfileClient | null;
+
+  @Column({ name: 'expert_id', type: 'uuid', nullable: true })
+  expert_id!: string | null;
+
+  @ManyToOne(() => ProfileExpert, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'expert_id' })
+  expert!: ProfileExpert | null;
+
+  @Column({ name: 'merchant_id', type: 'uuid', nullable: true })
+  merchant_id!: string | null;
+
+  @ManyToOne(() => ProfileMerchant, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'merchant_id' })
+  merchant!: ProfileMerchant | null;
+
+  @Column({ name: 'agent_id', type: 'uuid', nullable: true })
+  agent_id!: string | null;
+
+  @ManyToOne(() => ProfileAgent, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'agent_id' })
+  agent!: ProfileAgent | null;
 
   @Column({
     type: 'enum',

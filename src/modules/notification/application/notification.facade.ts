@@ -3,7 +3,12 @@ import { CreateNotificationUseCase } from './use-cases/create-notification.use-c
 import { GetNotificationsUseCase } from './use-cases/get-notifications.use-case';
 import { MarkAsReadUseCase } from './use-cases/mark-as-read.use-case';
 import { ClearAllNotificationsUseCase } from './use-cases/clear-all-notifications.use-case';
-import { NotificationType } from '../infrastructure/entities/notification.entity';
+import {
+  NotificationType,
+  ProfileType,
+} from '../infrastructure/entities/notification.entity';
+
+export type { ProfileType };
 
 @Injectable()
 export class NotificationFacade {
@@ -15,14 +20,16 @@ export class NotificationFacade {
   ) {}
 
   async create(
-    userId: string,
+    profileId: string,
+    profileType: ProfileType,
     type: NotificationType,
     title: string,
     message: string,
     metadata?: Record<string, unknown>,
   ) {
     return this.createNotificationUseCase.execute(
-      userId,
+      profileId,
+      profileType,
       type,
       title,
       message,
@@ -30,19 +37,24 @@ export class NotificationFacade {
     );
   }
 
-  async getUserNotifications(userId: string, limit?: number, offset?: number) {
-    return this.getNotificationsUseCase.execute(userId, limit, offset);
+  async getUserNotifications(
+    profileId: string,
+    profileType: ProfileType,
+    limit?: number,
+    offset?: number,
+  ) {
+    return this.getNotificationsUseCase.execute(profileId, profileType, limit, offset);
   }
 
-  async markAsRead(id: string, userId: string) {
-    return this.markAsReadUseCase.execute(id, userId);
+  async markAsRead(id: string, _profileId: string) {
+    return this.markAsReadUseCase.execute(id, _profileId);
   }
 
-  async getUnreadCount(userId: string) {
-    return this.getNotificationsUseCase.getUnreadCount(userId);
+  async getUnreadCount(profileId: string, profileType: ProfileType) {
+    return this.getNotificationsUseCase.getUnreadCount(profileId, profileType);
   }
 
-  async clearAll(userId: string) {
-    return this.clearAllNotificationsUseCase.execute(userId);
+  async clearAll(profileId: string, profileType: ProfileType) {
+    return this.clearAllNotificationsUseCase.execute(profileId, profileType);
   }
 }

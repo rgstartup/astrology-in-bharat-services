@@ -1,3 +1,4 @@
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import {
   Injectable,
   NotFoundException,
@@ -243,7 +244,8 @@ export class UpdatePujaAppointmentStatusUseCase {
           // 4. Notify Expert
           try {
             await this.notificationFacade.create(
-              appointment.expert.user_id as unknown as string,
+              appointment.expert.id,
+              RoleEnum.EXPERT,
               NotificationType.GENERAL,
               'Puja Confirmed! (Paid)',
               `User ${appointment.client?.user?.name || 'Client'} has paid for the ${appointment.puja?.name || 'Puja'} Ritual scheduled for ${String(appointment.scheduled_date || 'TBD')}.`,
@@ -323,7 +325,8 @@ export class UpdatePujaAppointmentStatusUseCase {
 
         try {
           await this.notificationFacade.create(
-            (appointment.client?.user_id as unknown as string) || '',
+            appointment.client?.id || '',
+            RoleEnum.CLIENT,
             NotificationType.GENERAL,
             title,
             message,
@@ -345,7 +348,8 @@ export class UpdatePujaAppointmentStatusUseCase {
       ) {
         try {
           await this.notificationFacade.create(
-            appointment.expert.user_id as unknown as string,
+            appointment.expert.id,
+            RoleEnum.EXPERT,
             NotificationType.GENERAL,
             'Reschedule Accepted!',
             `User ${appointment.client?.user?.name || 'Client'} has accepted your proposed time for ${appointment.puja?.name || 'Puja'}.`,

@@ -24,7 +24,11 @@ import { MerchantProfileFacade } from '@/modules/merchant/profile/application/pr
 import { AgentFacade } from '@/modules/agent/application/agent.facade';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AdminAuditLog } from '@/modules/admin/infrastructure/entities/admin-audit-log.entity';
-import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import {
+  NotificationType,
+  ProfileType,
+} from '@/modules/notification/infrastructure/entities/notification.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class UpdateWithdrawalStatusUseCase {
@@ -408,28 +412,23 @@ export class UpdateWithdrawalStatusUseCase {
           message = `Your payout request of ₹${Number(withdrawal.amount).toLocaleString('en-IN')} was rejected/cancelled. Reason: ${remark || 'N/A'}. The amount has been refunded to your wallet.`;
         }
 
-        let userId = '';
+        let notifyProfileId: string | null = null;
+        let notifyProfileType: ProfileType | null = null;
         if (withdrawal.expert_id) {
-          const expert = await this.expertFacade.getExpertById(
-            withdrawal.expert_id,
-          );
-          if (expert) userId = expert.userId as string;
+          notifyProfileId = withdrawal.expert_id;
+          notifyProfileType = RoleEnum.EXPERT;
         } else if (withdrawal.merchant_id) {
-          const merchant = await this.merchantFacade.getProfileById(
-            withdrawal.merchant_id,
-          );
-          if (merchant) userId = merchant.user_id;
+          notifyProfileId = withdrawal.merchant_id;
+          notifyProfileType = RoleEnum.MERCHANT;
         } else if (withdrawal.agent_profile_id) {
-          const agent = await this.dataSource
-            .getRepository('ProfileAgent')
-            .findOne({ where: { id: withdrawal.agent_profile_id } });
-          if (agent)
-            userId = (agent as Record<string, unknown>).user_id as string;
+          notifyProfileId = withdrawal.agent_profile_id;
+          notifyProfileType = RoleEnum.AGENT;
         }
 
-        if (userId) {
+        if (notifyProfileId && notifyProfileType) {
           await this.notificationFacade.create(
-            userId,
+            notifyProfileId,
+            notifyProfileType,
             NotificationType.GENERAL,
             title,
             message,

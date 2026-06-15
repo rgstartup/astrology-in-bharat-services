@@ -1,3 +1,4 @@
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Injectable, Logger } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -220,7 +221,8 @@ export class UpdateMerchantProfileUseCase {
       // Trigger security notification if bank details changed
       if (bankDetailsChanged) {
         await this.notificationFacade.create(
-          userId,
+          profile.id,
+          RoleEnum.MERCHANT,
           NotificationType.GENERAL,
           'Security Alert: Bank Details Updated',
           'Your bank account information has been updated. If you did not make this change, please contact support immediately for security.',

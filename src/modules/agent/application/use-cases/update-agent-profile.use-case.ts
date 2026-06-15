@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { DatabaseService } from '@/core/database/database.service';
 import { IUser } from '@/common/types/access-token.payload';
 
@@ -55,9 +56,10 @@ export class UpdateAgentProfileUseCase {
         },
       );
 
-      if (bankDetailsChanged) {
+      if (bankDetailsChanged && currentProfile) {
         await this.notificationFacade.create(
-          userId,
+          currentProfile.id,
+          RoleEnum.AGENT,
           NotificationType.GENERAL,
           'Security Alert: Bank Details Updated',
           'Your bank account information has been updated. If you did not make this change, please contact support immediately for security.',

@@ -1,3 +1,4 @@
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -29,7 +30,8 @@ export class SendReviewResponseUseCase {
 
     // Send notification to the astrologer (expert)
     await this.notificationFacade.create(
-      review.expert.user.id,
+      review.expert.id,
+      RoleEnum.EXPERT,
       NotificationType.GENERAL,
       'Admin Message regarding review',
       message,

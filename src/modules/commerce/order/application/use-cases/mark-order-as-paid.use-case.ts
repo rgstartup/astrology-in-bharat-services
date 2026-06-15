@@ -1,3 +1,4 @@
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
@@ -6,7 +7,10 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import {
+  NotificationType,
+  ProfileType,
+} from '@/modules/notification/infrastructure/entities/notification.entity';
 
 @Injectable()
 export class MarkOrderAsPaidUseCase {
@@ -84,10 +88,11 @@ export class MarkOrderAsPaidUseCase {
           .execute();
 
         // Send Order Placed Notification
-        if (clientProfile.user_id) {
+        if (clientProfile.id) {
           try {
             await this.notificationFacade.create(
-              clientProfile.user_id,
+              clientProfile.id,
+              RoleEnum.CLIENT,
               NotificationType.ORDER_PLACED,
               'Order Placed Successfully',
               `Your order #${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
@@ -105,6 +110,7 @@ export class MarkOrderAsPaidUseCase {
             try {
               await this.notificationFacade.create(
                 mId as string,
+                RoleEnum.MERCHANT,
                 NotificationType.ORDER_PLACED,
                 'New Order Received!',
                 `You have received a new order (#${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,

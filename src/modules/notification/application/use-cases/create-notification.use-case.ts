@@ -4,8 +4,10 @@ import { Repository } from 'typeorm';
 import {
   Notification,
   NotificationType,
+  ProfileType,
 } from '../../infrastructure/entities/notification.entity';
 import { NotificationGateway } from '../../api/gateways/notification.gateway';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class CreateNotificationUseCase {
@@ -16,14 +18,16 @@ export class CreateNotificationUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    profileId: string,
+    profileType: ProfileType,
     type: NotificationType,
     title: string,
     message: string,
     metadata?: Record<string, unknown>,
   ) {
+    const profileFk = this.buildProfileFk(profileId, profileType);
     const notification = this.notificationRepo.create({
-      user_id: userId,
+      ...profileFk,
       type,
       title,
       message,
@@ -31,10 +35,9 @@ export class CreateNotificationUseCase {
     });
     const savedNotification = await this.notificationRepo.save(notification);
 
-    // Emit real-time notification via WebSocket
     try {
-      this.notificationGateway.emitToUser(
-        userId,
+      this.notificationGateway.emitToProfile(
+        profileId,
         'new_notification',
         savedNotification,
       );
@@ -43,5 +46,21 @@ export class CreateNotificationUseCase {
     }
 
     return savedNotification;
+  }
+
+  private buildProfileFk(
+    profileId: string,
+    profileType: ProfileType,
+  ): Partial<Notification> {
+    switch (profileType) {
+      case RoleEnum.CLIENT:
+        return { client_id: profileId };
+      case RoleEnum.EXPERT:
+        return { expert_id: profileId };
+      case RoleEnum.MERCHANT:
+        return { merchant_id: profileId };
+      case RoleEnum.AGENT:
+        return { agent_id: profileId };
+    }
   }
 }

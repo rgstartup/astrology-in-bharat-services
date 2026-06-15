@@ -19,7 +19,11 @@ import {
 import { Wallet, WalletKey } from '../../infrastructure/entities/wallet.entity';
 import { Idempotency } from '../../infrastructure/entities/idempotency.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import {
+  NotificationType,
+  ProfileType,
+} from '@/modules/notification/infrastructure/entities/notification.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { AdminFacade } from '@/modules/admin/application/admin.facade';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
@@ -109,8 +113,15 @@ export class RequestWithdrawalUseCase {
     // 2.1 KYC / Verification Check
     let walletOwnerId = profileId;
     let ownerIdField = '';
-    let resolvedUserId = '';
     let rolePrefix: 'CLIENT' | 'EXPERT' | 'MERCHANT' | 'AGENT' | 'ADMIN' = 'CLIENT';
+    const profileType: ProfileType =
+      walletKey === 'expert_id'
+        ? RoleEnum.EXPERT
+        : walletKey === 'merchant_id'
+          ? RoleEnum.MERCHANT
+          : walletKey === 'agent_id'
+            ? RoleEnum.AGENT
+            : RoleEnum.CLIENT;
 
     if (walletKey === 'expert_id') {
       const profile_expert = await this.expertFacade.getExpertById(profileId);
@@ -121,7 +132,6 @@ export class RequestWithdrawalUseCase {
         );
       }
       ownerIdField = 'w.expert_id';
-      resolvedUserId = profile_expert.user_id as unknown as string;
       rolePrefix = 'EXPERT';
     } else if (walletKey === 'merchant_id') {
       const profile_merchant = await this.merchantFacade.getProfileById(profileId);
@@ -135,7 +145,6 @@ export class RequestWithdrawalUseCase {
         );
       }
       ownerIdField = 'w.merchant_id';
-      resolvedUserId = profile_merchant.user_id as unknown as string;
       rolePrefix = 'MERCHANT';
     } else if (walletKey === 'agent_id') {
       const { ProfileAgent } = await import(
@@ -151,7 +160,6 @@ export class RequestWithdrawalUseCase {
         );
       }
       ownerIdField = 'w.agent_profile_id';
-      resolvedUserId = agent_profile.user_id as unknown as string;
       rolePrefix = 'AGENT';
     } else {
       throw new BadRequestException(
@@ -375,7 +383,8 @@ export class RequestWithdrawalUseCase {
 
         // Send instant notification
         await this.notificationFacade.create(
-          resolvedUserId,
+          profileId,
+          profileType,
           NotificationType.GENERAL,
           'Withdrawal Request Received',
           `A payout request of ₹${amount.toLocaleString('en-IN')} (${withdrawal.withdrawal_no}) has been submitted successfully. It is currently under review by our team.`,

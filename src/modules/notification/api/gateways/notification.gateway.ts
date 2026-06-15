@@ -17,23 +17,22 @@ export class NotificationGateway {
   server!: Server;
 
   private logger = new Logger('NotificationGateway');
-  private userSockets = new Map<string, string>(); // userId -> socketId
+  private profileSockets = new Map<string, string>(); // profileId -> socketId
 
   @SubscribeMessage('register_user')
   async handleRegisterUser(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { userId: string },
+    @MessageBody() payload: { profileId: string },
   ) {
-    this.userSockets.set(payload.userId, client.id);
-    await client.join(`user_${payload.userId}`);
-    this.logger.log(`User ${payload.userId} registered for notifications`);
+    this.profileSockets.set(payload.profileId, client.id);
+    await client.join(`profile_${payload.profileId}`);
+    this.logger.log(`Profile ${payload.profileId} registered for notifications`);
     return { status: 'registered' };
   }
 
-  // Method to emit notification to specific user
-  emitToUser(userId: string, event: string, data: unknown) {
-    this.server.to(`user_${userId}`).emit(event, data);
-    this.logger.log(`Emitted ${event} to user ${userId}`);
+  emitToProfile(profileId: string, event: string, data: unknown) {
+    this.server.to(`profile_${profileId}`).emit(event, data);
+    this.logger.log(`Emitted ${event} to profile ${profileId}`);
   }
 
   // Method to emit to all admins

@@ -12,9 +12,12 @@ import {
 } from '../../infrastructure/entities/transaction.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
-import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import {
+  NotificationType,
+  ProfileType,
+} from '@/modules/notification/infrastructure/entities/notification.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 
 @Injectable()
@@ -44,15 +47,14 @@ export class CreditUseCase {
       await qr.startTransaction();
     }
 
-    // Resolve user_id upfront for RECHARGE notifications (client wallets only)
-    let notifyUserId: string | null = null;
-    if (purpose === TransactionPurpose.RECHARGE && walletKey === 'client_id') {
-      const profile = await this.dataSource.manager.findOne(ProfileClient, {
-        where: { id: profileId },
-        select: ['user_id'],
-      });
-      notifyUserId = profile?.user_id ?? null;
-    }
+    const profileType: ProfileType =
+      walletKey === 'expert_id'
+        ? RoleEnum.EXPERT
+        : walletKey === 'merchant_id'
+          ? RoleEnum.MERCHANT
+          : walletKey === 'agent_id'
+            ? RoleEnum.AGENT
+            : RoleEnum.CLIENT;
 
     try {
       this.logger.log(
@@ -156,18 +158,19 @@ export class CreditUseCase {
       if (!externalQueryRunner) {
         await qr.commitTransaction();
 
-        if (purpose === TransactionPurpose.RECHARGE && notifyUserId) {
+        if (purpose === TransactionPurpose.RECHARGE && walletKey === 'client_id') {
           try {
             const title = 'Wallet Recharged';
             const message = `Your wallet has been credited with ₹${amount}`;
             await this.notificationFacade.create(
-              notifyUserId,
+              profileId,
+              profileType,
               NotificationType.WALLET_RECHARGE,
               title,
               message,
               { amount, referenceId },
             );
-            this.notificationGateway.emitToUser(notifyUserId, 'wallet_updated', {
+            this.notificationGateway.emitToProfile(profileId, 'wallet_updated', {
               type: 'credit',
               amount,
               title,

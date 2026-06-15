@@ -1,3 +1,4 @@
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -264,7 +265,8 @@ export class EndChatUseCase {
         const message = `From ${startTime} to ${endTime} you consulted ${expertName} via Chat, total duration: ${duration} mins, total cost: ₹${session.total_cost}`;
 
         await this.notificationFacade.create(
-          session.client.user.id,
+          session.client_id,
+          RoleEnum.CLIENT,
           NotificationType.GENERAL,
           title,
           message,

@@ -39,7 +39,7 @@ export class RazorpayProvider implements IPaymentGateway {
       const order = await this.razorpay.orders.create({
         amount: options.amount,
         currency: options.currency,
-        receipt: options.receiptId,
+        receipt: options.receipt,
         notes: options.notes,
       });
 

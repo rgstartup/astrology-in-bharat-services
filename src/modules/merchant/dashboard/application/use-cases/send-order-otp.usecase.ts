@@ -1,3 +1,4 @@
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Injectable } from '@nestjs/common';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
@@ -24,11 +25,12 @@ export class SendOrderOtpUseCase {
     const title = 'Delivery Verification';
     const message = `Your delivery verification OTP for order #${orderId} is ${otp}. Please share this with the delivery partner.`;
 
-    const targetUserId = order.client?.user?.id || order.client_id;
+    const targetProfileId = order.client_id as string;
 
     // 1. Save Notification
     await this.notificationFacade.create(
-      targetUserId as string,
+      targetProfileId,
+      RoleEnum.CLIENT,
       NotificationType.ORDER_SHIPPED, // Reusing SHIPPED type for OTP context
       title,
       message,
@@ -36,8 +38,8 @@ export class SendOrderOtpUseCase {
     );
 
     // 2. Emit Socket
-    this.notificationGateway.emitToUser(
-      targetUserId as string,
+    this.notificationGateway.emitToProfile(
+      targetProfileId,
       'order_status_updated',
       {
         orderId,

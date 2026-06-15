@@ -11,8 +11,11 @@ import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import {
+  NotificationType,
+} from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
@@ -503,20 +506,21 @@ export class UpdateOrderStatusUseCase {
         return new BooleanMessage();
     }
 
-    const targetUserId = order.client?.user?.id || order.client_id;
+    const targetProfileId = order.client_id as string;
 
     // Save notification to DB via facade
     await this.notificationFacade.create(
-      targetUserId as string,
+      targetProfileId,
+      RoleEnum.CLIENT,
       notificationType,
       title,
       message,
       { orderId: id, status, amount: order.total_amount },
     );
 
-    // Emit real-time socket event to user
-    this.notificationGateway.emitToUser(
-      targetUserId as string,
+    // Emit real-time socket event to profile
+    this.notificationGateway.emitToProfile(
+      targetProfileId,
       'order_status_updated',
       {
         orderId: id,

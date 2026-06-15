@@ -1,3 +1,4 @@
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import {
   Injectable,
   NotFoundException,
@@ -87,7 +88,8 @@ export class CreatePujaAppointmentUseCase {
     if (expertProfile && (expertProfile.user_id as unknown as string)) {
       try {
         await this.notificationFacade.create(
-          expertProfile.user_id as unknown as string,
+          expertProfile.id,
+          RoleEnum.EXPERT,
           NotificationType.PUJA_BOOKING,
           'New Puja Booking Request',
           `You have received a new booking request for ${puja.name}.`,

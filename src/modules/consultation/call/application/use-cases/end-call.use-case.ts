@@ -1,3 +1,4 @@
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -315,6 +316,7 @@ export class EndCallUseCase {
 
         await this.notificationFacade.create(
           savedSession.client_id,
+          RoleEnum.CLIENT,
           NotificationType.GENERAL,
           title,
           message,
