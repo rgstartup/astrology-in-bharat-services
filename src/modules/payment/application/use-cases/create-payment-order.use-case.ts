@@ -11,7 +11,6 @@ import {
 } from '../../infrastructure/entities/payment-order.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { ConfigService } from '@nestjs/config';
 import { DomainError } from '@/common/types/domain.error';
 import { PaymentOrderCreationFailedError } from '../../domain/errors/payment.errors';
@@ -27,9 +26,8 @@ export class CreatePaymentOrderUseCase {
     @Inject(PAYMENT_GATEWAY)
     private readonly paymentGateway: IPaymentGateway,
     private readonly orderFacade: OrderFacade,
-    private readonly clientProfileFacade: ClientProfileFacade,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async execute(user: IUser, dto: CreateOrderDto) {
     const userId = user.id;
@@ -55,14 +53,12 @@ export class CreatePaymentOrderUseCase {
       const order = await this.paymentGateway.createOrder({
         amount: options.amount,
         currency: options.currency,
-        receiptId: options.receipt,
+        receipt: options.receipt,
         notes: options.notes,
       });
 
-      const clientProfile = await this.clientProfileFacade.getProfile(user);
-
       const paymentOrder = this.paymentOrderRepo.create({
-        client_id: clientProfile ? clientProfile.id : null,
+        client_id: user.profile || null,
         razorpay_order_id: order.providerOrderId,
         amount,
         notes: options.notes,

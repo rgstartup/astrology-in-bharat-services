@@ -1,7 +1,7 @@
 export interface PaymentOrderOptions {
   amount: number; // In smallest currency unit (e.g., paise)
   currency: string;
-  receiptId: string;
+  receipt: string;
   notes?: Record<string, any>;
 }
 

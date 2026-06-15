@@ -10,7 +10,6 @@ import { HandleWebhookUseCase } from './application/use-cases/handle-webhook.use
 import { PaymentGatewayModule } from '@/external/payment/payment-gateway.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { OrderModule } from '@/modules/commerce/order/order.module';
-import { ProfileModule } from '@/modules/client/profile/profile.module';
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { ProfileModule } from '@/modules/client/profile/profile.module';
     PaymentGatewayModule,
     WalletModule,
     OrderModule,
-    ProfileModule,
   ],
   controllers: [PaymentController, WebhookController],
   providers: [
