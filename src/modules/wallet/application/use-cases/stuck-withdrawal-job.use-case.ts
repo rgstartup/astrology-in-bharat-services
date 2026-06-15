@@ -38,7 +38,7 @@ export class StuckWithdrawalJob {
 
       for (const withdrawal of stuckWithdrawals) {
         this.logger.warn(
-          `Stuck Withdrawal ID: ${withdrawal.id}, Expert/Merchant ID: ${withdrawal.expert_id || withdrawal.merchant_id}, Amount: ${withdrawal.amount}`,
+          `Stuck Withdrawal ID: ${withdrawal.id}, Expert/Merchant/Agent ID: ${withdrawal.expert_id || withdrawal.merchant_id || withdrawal.agent_profile_id}, Amount: ${withdrawal.amount}`,
         );
 
         // Add a remark to bring it to admin's attention if not already flagged

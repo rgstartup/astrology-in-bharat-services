@@ -26,6 +26,8 @@ export class GetPendingWithdrawalsUseCase {
       .leftJoinAndSelect('expert.user', 'expertUser')
       .leftJoinAndSelect('w.merchant', 'merchant')
       .leftJoinAndSelect('merchant.user', 'merchantUser')
+      .leftJoinAndSelect('w.agent', 'agent')
+      .leftJoinAndSelect('agent.user', 'agentUser')
       .leftJoinAndSelect('w.bankAccount', 'bankAccount')
       .orderBy('w.created_at', 'DESC')
       .skip(offset)
@@ -56,8 +58,7 @@ export class GetPendingWithdrawalsUseCase {
         userName:
           item.expert?.user?.name ||
           item.merchant?.user?.name ||
-          (item as unknown as { agent?: { user?: { name?: string } } }).agent
-            ?.user?.name ||
+          item.agent?.user?.name ||
           'Unknown',
         withdrawalNo: item.withdrawal_no,
         bankAccount: item.bankAccount
