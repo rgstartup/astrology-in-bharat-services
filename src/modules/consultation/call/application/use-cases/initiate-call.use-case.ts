@@ -14,7 +14,7 @@ import {
   CallType,
 } from '../../infrastructure/entities/call-session.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { TwilioService } from '../../infrastructure/services/twilio.service';
 import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';

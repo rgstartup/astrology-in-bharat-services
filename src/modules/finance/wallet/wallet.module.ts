@@ -5,12 +5,12 @@ import { Transaction } from './infrastructure/entities/transaction.entity';
 import { Withdrawal } from './infrastructure/entities/withdrawal.entity';
 import { Idempotency } from './infrastructure/entities/idempotency.entity';
 import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
-import { AgentModule } from '../agent/agent.module';
-import { UsersModule } from '../users/users.module';
-import { AdminModule } from '../admin/admin.module';
-import { ProfileModule as ExpertProfileModule } from '../expert/profile/profile.module';
-import { ProfileModule as ClientProfileModule } from '../client/profile/profile.module';
-import { MerchantModule } from '../merchant/merchant.module';
+import { AgentModule } from '@/modules/agent/agent.module';
+import { UsersModule } from '@/modules/users/users.module';
+import { AdminModule } from '@/modules/admin/admin.module';
+import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { MerchantModule } from '@/modules/merchant/merchant.module';
 import { WalletController } from './api/controllers/wallet.controller';
 import { PayoutWebhookController } from './api/controllers/payout-webhook.controller';
 import { WalletFacade } from './application/wallet.facade';
@@ -39,8 +39,8 @@ import { ReconcileWalletUseCase } from './application/use-cases/reconcile-wallet
 import { StuckWithdrawalJob } from './application/use-cases/stuck-withdrawal-job.use-case';
 import { RazorpayPayoutService } from './infrastructure/gateways/razorpay-payout.service';
 import { NotificationModule } from '@/modules/notification/notification.module';
-
 import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts.module';
+import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 
 @Module({
   imports: [
@@ -59,6 +59,7 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
     forwardRef(() => ClientProfileModule),
     forwardRef(() => MerchantModule),
     forwardRef(() => AgentModule),
+    CommissionsModule,
   ],
   providers: [
     WalletFacade,

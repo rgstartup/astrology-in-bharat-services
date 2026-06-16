@@ -9,7 +9,7 @@ import { AuthModule } from '@/modules/auth/auth.module';
 import { ClientModule } from '@/modules/client/client.module';
 import { ExpertModule } from '@/modules/expert/expert.module';
 import { ExternalModule } from './external/external.module';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { FinanceModule } from '@/modules/finance/finance.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { PaymentModule } from '@/modules/payment/payment.module';
 import { FestivalModule } from '@/modules/festival/festival.module';
@@ -47,7 +47,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     ClientModule,
     ExpertModule,
     ExternalModule,
-    WalletModule,
+    FinanceModule,
     NotificationModule,
     PaymentModule,
     FestivalModule,

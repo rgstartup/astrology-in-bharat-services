@@ -13,16 +13,20 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import {
-  NotificationType,
-} from '@/modules/notification/infrastructure/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import {
+  WalletFacade,
+  CommissionEventType,
+  CommissionType,
+  CommissionAppliesRole,
+} from '@/modules/finance/wallet/application/wallet.facade';
+import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { LedgerReferenceType } from '@/modules/finance/commissions/infrastructure/entities/ledger-entry.entity';
 import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
@@ -95,16 +99,16 @@ export class UpdateOrderStatusUseCase {
       // Append Audit Log
       const updatedBy = user?.id || merchantId || 'system';
       const role = user?.roles?.[0] || (merchantId ? 'merchant' : 'system');
-      
+
       const newHistoryEntry = {
         status: status,
         updated_by: updatedBy,
         role: role,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
-      
-      order.status_history = Array.isArray(order.status_history) 
-        ? [...order.status_history, newHistoryEntry] 
+
+      order.status_history = Array.isArray(order.status_history)
+        ? [...order.status_history, newHistoryEntry]
         : [newHistoryEntry];
 
       // Generate Delivery OTP when status becomes SHIPPED
@@ -125,23 +129,28 @@ export class UpdateOrderStatusUseCase {
       // 2. Logic for PAID status (Manual update)
       if (status === OrderStatus.PAID && oldStatus !== OrderStatus.PAID) {
         try {
-          let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
-            where: { id: order.client_id },
-            select: ['id'],
-          });
+          const clientProfile = await queryRunner.manager.findOne(
+            ProfileClient,
+            {
+              where: { id: order.client_id },
+              select: ['id'],
+            },
+          );
           if (!clientProfile) {
-            console.error('[ORDER_STATUS_TRACKING] Client profile not found for ID:', order.client_id);
+            console.error(
+              '[ORDER_STATUS_TRACKING] Client profile not found for ID:',
+              order.client_id,
+            );
           } else {
-
-          await queryRunner.manager
-            .createQueryBuilder()
-            .update(ProfileClient)
-            .set({
-              total_spending: () =>
-                `COALESCE(total_spending, 0) + ${Number(order.total_amount)}`,
-            })
-            .where('id = :id', { id: clientProfile.id })
-            .execute();
+            await queryRunner.manager
+              .createQueryBuilder()
+              .update(ProfileClient)
+              .set({
+                total_spending: () =>
+                  `COALESCE(total_spending, 0) + ${Number(order.total_amount)}`,
+              })
+              .where('id = :id', { id: clientProfile.id })
+              .execute();
           }
         } catch (e) {
           console.error('[ORDER_STATUS_TRACKING] Client spending error:', e);
@@ -345,19 +354,6 @@ export class UpdateOrderStatusUseCase {
           });
 
           if (orderWithItems) {
-            const gstRate =
-              await this.walletFacade.getAdminCommissionFromSetting(
-                'GST_PERCENTAGE',
-              );
-            const platformFeeRate =
-              await this.walletFacade.getAdminCommissionFromSetting(
-                'COMMISION_FROM_PUJA_SHOP',
-              );
-            const buyerAgentRateSetting =
-              await this.walletFacade.getAdminCommissionFromSetting(
-                'COMMISION_FOR_BUYER_AGENT',
-              );
-
             for (const item of orderWithItems.items) {
               const itemTotal = Number(item.price) * (item.quantity || 1);
               const merchantId = item.product?.merchant_id;
@@ -377,20 +373,53 @@ export class UpdateOrderStatusUseCase {
                   },
                 );
 
-                // 1. Seller's Agent Commission (Current Logic: 30-day window)
+                // Resolve commissions via rules engine
+                const [
+                  platformFeeResolved,
+                  gstResolved,
+                  buyerAgentItemResolved,
+                ] = await Promise.all([
+                  this.walletFacade.resolveCommission(
+                    CommissionEventType.PRODUCT_ORDER,
+                    CommissionType.PLATFORM_FEE,
+                    merchantProfile?.id ?? null,
+                    CommissionAppliesRole.MERCHANT,
+                    itemTotal,
+                  ),
+                  this.walletFacade.resolveCommission(
+                    CommissionEventType.PRODUCT_ORDER,
+                    CommissionType.GST,
+                    null,
+                    CommissionAppliesRole.ALL,
+                    itemTotal,
+                  ),
+                  this.walletFacade.resolveCommission(
+                    CommissionEventType.PRODUCT_ORDER,
+                    CommissionType.BUYER_AGENT,
+                    orderWithItems.client_id,
+                    CommissionAppliesRole.CLIENT,
+                    itemTotal,
+                  ),
+                ]);
+
+                // 1. Seller's Agent Commission
                 let agent_commission = 0;
                 let agent_id: string | undefined = undefined;
 
                 if (merchantUser?.referred_by_id && merchantProfile) {
                   agent_id = merchantUser.referred_by_id;
-                  const effectiveAgentRate =
-                    merchantProfile.agent_commission_rate ?? platformFeeRate;
-                  agent_commission = Number(
-                    (itemTotal * (effectiveAgentRate / 100)).toFixed(2),
-                  );
+                  const sellerAgentResolved =
+                    await this.walletFacade.resolveCommission(
+                      CommissionEventType.PRODUCT_ORDER,
+                      CommissionType.SELLER_AGENT,
+                      merchantProfile.id,
+                      CommissionAppliesRole.MERCHANT,
+                      itemTotal,
+                    );
+                  agent_commission = sellerAgentResolved.amount;
                 }
 
-                // 2. Buyer's Agent Commission (New Logic: If buyer has an agent assigned)
+                // 2. Buyer's Agent Commission
                 let buyer_agent_commission = 0;
                 let buyer_agent_id: string | undefined = undefined;
 
@@ -401,16 +430,13 @@ export class UpdateOrderStatusUseCase {
 
                 if (buyerUser?.referred_by_id) {
                   buyer_agent_id = buyerUser.referred_by_id;
-                  buyer_agent_commission = Number(
-                    (itemTotal * (buyerAgentRateSetting / 100)).toFixed(2),
-                  );
+                  buyer_agent_commission = buyerAgentItemResolved.amount;
                 }
 
                 // 3. Platform Fee & GST
-                const platformFee = Number(
-                  (itemTotal * (platformFeeRate / 100)).toFixed(2),
-                );
-                const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
+                const platformFee = platformFeeResolved.amount;
+                const gst_rate = gstResolved.amount;
+                const gst = Number((platformFee * (gst_rate / 100)).toFixed(2));
 
                 // 4. Final Merchant Net Share
                 const merchantNet = Number(
@@ -442,13 +468,10 @@ export class UpdateOrderStatusUseCase {
                   const { ProfileAgent } = await import(
                     '../../../../agent/infrastructure/entities/profile-agent.entity'
                   );
-                  const agentProfile = await qr.manager.findOne(
-                    ProfileAgent,
-                    {
-                      where: { user_id: agent_id },
-                      select: ['id'],
-                    },
-                  );
+                  const agentProfile = await qr.manager.findOne(ProfileAgent, {
+                    where: { user_id: agent_id },
+                    select: ['id'],
+                  });
                   if (agentProfile) {
                     await this.walletFacade.credit(
                       agentProfile.id,
@@ -470,13 +493,10 @@ export class UpdateOrderStatusUseCase {
                   const { ProfileAgent } = await import(
                     '../../../../agent/infrastructure/entities/profile-agent.entity'
                   );
-                  const agentProfile = await qr.manager.findOne(
-                    ProfileAgent,
-                    {
-                      where: { user_id: buyer_agent_id },
-                      select: ['id'],
-                    },
-                  );
+                  const agentProfile = await qr.manager.findOne(ProfileAgent, {
+                    where: { user_id: buyer_agent_id },
+                    select: ['id'],
+                  });
                   if (agentProfile) {
                     await this.walletFacade.credit(
                       agentProfile.id,
@@ -491,6 +511,33 @@ export class UpdateOrderStatusUseCase {
                       `[OrderSettlement] Buyer agent profile not found for user_id: ${buyer_agent_id}`,
                     );
                   }
+                }
+
+                // Write financial ledger entry
+                try {
+                  await this.walletFacade.createLedgerEntry(
+                    {
+                      referenceId: `order_item_${item.id}`,
+                      referenceType: LedgerReferenceType.ORDER,
+                      grossAmount: itemTotal,
+                      platformFee,
+                      gst,
+                      sellerAgentCommission: agent_commission,
+                      buyerAgentCommission: buyer_agent_commission,
+                      providerNet: merchantNet,
+                      clientProfileId: orderWithItems.client_id,
+                      providerProfileId: merchantProfile?.id ?? null,
+                      sellerAgentProfileId: agent_id ?? null,
+                      buyerAgentProfileId: buyer_agent_id ?? null,
+                      commissionRuleId: platformFeeResolved.ruleId,
+                    },
+                    qr,
+                  );
+                } catch (err) {
+                  console.error(
+                    `[OrderSettlement] Failed to write ledger entry for item ${item.id}:`,
+                    err,
+                  );
                 }
               }
             }
@@ -523,7 +570,7 @@ export class UpdateOrderStatusUseCase {
         return new BooleanMessage();
     }
 
-    const targetProfileId = order.client_id as string;
+    const targetProfileId = order.client_id;
 
     // Save notification to DB via facade
     await this.notificationFacade.create(

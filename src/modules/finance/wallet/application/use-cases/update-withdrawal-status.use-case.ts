@@ -328,7 +328,7 @@ export class UpdateWithdrawalStatusUseCase {
 
           // Create refund transaction (Ledger)
           const { generateTransactionNo } = await import(
-            '../../../../common/utils/transaction-no.util'
+            '@/common/utils/transaction-no.util'
           );
           const transaction = queryRunner.manager.create(Transaction, {
             wallet_id: wallet.id as string,

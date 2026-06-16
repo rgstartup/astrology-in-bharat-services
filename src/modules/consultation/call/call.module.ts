@@ -2,7 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CallSession } from './infrastructure/entities/call-session.entity';
 import { TwilioService } from './infrastructure/services/twilio.service';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { InitiateCallUseCase } from './application/use-cases/initiate-call.use-case';

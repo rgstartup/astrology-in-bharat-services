@@ -1,8 +1,9 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
   Body,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -60,14 +61,12 @@ export class SettingsController {
     ];
     const settings = await this.getSystemSettings.execute(keys);
 
-    // Ensure all keys are present in the response
     const result: Record<string, string> = {};
     keys.forEach((key) => {
       const found = settings.find((s) => s.key === key);
       if (found) {
         result[key] = found.value;
       } else {
-        // Defaults based on key
         if (key === 'GST_PERCENTAGE') result[key] = '18';
         else result[key] = '3';
       }

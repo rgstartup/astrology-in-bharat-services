@@ -4,7 +4,7 @@ import { ReviewsController } from './api/controllers/reviews.controller';
 import { Review } from './infrastructure/entities/review.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 
 import { ReviewsFacade } from './application/reviews.facade';

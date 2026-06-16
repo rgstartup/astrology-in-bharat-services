@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 
 @Injectable()
 export class RequestWithdrawalUseCase {

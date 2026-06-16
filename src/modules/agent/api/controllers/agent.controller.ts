@@ -19,7 +19,7 @@ import { IUser } from '@/common/types/access-token.payload';
 import { DateRangeDto } from '@/common/dto/date-range.dto';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 import { AgentFacade } from '../../application/agent.facade';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 
 @Controller({
   path: 'agent',

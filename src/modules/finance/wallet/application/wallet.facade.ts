@@ -20,13 +20,25 @@ import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-sta
 import { GetAdminWithdrawalStatsUseCase } from './use-cases/get-admin-withdrawal-stats.use-case';
 import { GetMerchantTransactionsUseCase } from './use-cases/get-merchant-transactions.use-case';
 import { GetAdminRevenueTrendUseCase } from './use-cases/get-admin-revenue-trend.use-case';
+import { ResolveCommissionUseCase } from '@/modules/finance/commissions/application/use-cases/resolve-commission.use-case';
+import {
+  CreateLedgerEntryUseCase,
+  LedgerEntryInput,
+} from '@/modules/finance/commissions/application/use-cases/create-ledger-entry.use-case';
 import { TransactionPurpose } from '../infrastructure/entities/transaction.entity';
 import { WalletKey } from '../infrastructure/entities/wallet.entity';
 import { WithdrawalStatus } from '../infrastructure/entities/withdrawal.entity';
+import {
+  CommissionAppliesRole,
+  CommissionEventType,
+  CommissionType,
+} from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
 import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, QueryRunner } from 'typeorm';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+
+export { CommissionEventType, CommissionType, CommissionAppliesRole };
 
 export { WalletKey };
 
@@ -56,6 +68,8 @@ export class WalletFacade {
     private readonly getAdminCommissionUseCase: GetAdminCommissionUseCase,
     private readonly getMerchantTransactionsUseCase: GetMerchantTransactionsUseCase,
     private readonly getAdminRevenueTrendUseCase: GetAdminRevenueTrendUseCase,
+    private readonly resolveCommissionUseCase: ResolveCommissionUseCase,
+    private readonly createLedgerEntryUseCase: CreateLedgerEntryUseCase,
   ) {}
 
   async getWallet(profileId: string, walletKey: WalletKey) {
@@ -313,5 +327,25 @@ export class WalletFacade {
 
   async getAdminRevenueTrend(days?: number) {
     return this.getAdminRevenueTrendUseCase.execute(days);
+  }
+
+  async resolveCommission(
+    eventType: CommissionEventType,
+    commissionType: CommissionType,
+    profileId: string | null,
+    role: CommissionAppliesRole,
+    grossAmount: number,
+  ) {
+    return this.resolveCommissionUseCase.execute(
+      eventType,
+      commissionType,
+      profileId,
+      role,
+      grossAmount,
+    );
+  }
+
+  async createLedgerEntry(input: LedgerEntryInput, qr?: QueryRunner) {
+    return this.createLedgerEntryUseCase.execute(input, qr);
   }
 }

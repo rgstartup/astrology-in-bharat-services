@@ -6,13 +6,18 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import {
+  CommissionsFacade,
+  CommissionEventType,
+  CommissionType,
+  CommissionAppliesRole,
+} from '@/modules/finance/commissions/application/commissions.facade';
 
 @Injectable()
 export class SettleAgentCommissionsUseCase {
@@ -20,12 +25,11 @@ export class SettleAgentCommissionsUseCase {
     private readonly databaseService: DatabaseService,
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
+    private readonly commissionsFacade: CommissionsFacade,
     @InjectRepository(ProfileAgent)
     private readonly profileAgentRepo: Repository<ProfileAgent>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-    @InjectRepository(SystemSetting)
-    private readonly systemSettingRepo: Repository<SystemSetting>,
   ) {}
 
   async execute(userId: string) {
@@ -68,49 +72,39 @@ export class SettleAgentCommissionsUseCase {
 
       const usersForStats = await qbUsers.getMany();
 
-      const settings = await queryRunner.manager.find(SystemSetting, {
-        where: {
-          key: In([
-            'COMMISSION_FROM_CLIENT',
-            'COMMISSION_FROM_ASTROLOGER',
-            'COMMISSION_FROM_PUJA_SHOP',
-            'COMMISION_FROM_CLIENT',
-            'COMMISION_FROM_ASTROLOGER',
-            'COMMISION_FROM_PUJA_SHOP',
-          ]),
-        },
-      });
-
-      const getSettingValue = (keys: string[], defaultValue: number) => {
-        const setting = settings.find((s) => keys.includes(s.key));
-        return setting ? parseFloat(setting.value) : defaultValue;
-      };
-
-      const clientCommPercent = getSettingValue(
-        ['COMMISSION_FROM_CLIENT', 'COMMISSION_FROM_CLIENT'],
-        3,
-      );
-      const expertCommPercent = getSettingValue(
-        ['COMMISSION_FROM_ASTROLOGER', 'COMMISSION_FROM_ASTROLOGER'],
-        3,
-      );
-
       let totalAgentCommissionCalculated = 0;
-      usersForStats.forEach((uObj) => {
+      for (const uObj of usersForStats) {
         const u = uObj as User & {
-          profile_expert?: { total_earning?: number };
-          profile_client?: { total_spending?: number };
+          profile_expert?: { id?: string; total_earning?: number };
+          profile_client?: { id?: string; total_spending?: number };
         };
         if (u.profile_expert) {
           const earning = Number(u.profile_expert.total_earning || 0);
-          totalAgentCommissionCalculated += (earning * expertCommPercent) / 100;
+          if (earning > 0) {
+            const { amount } = await this.commissionsFacade.resolveCommission(
+              CommissionEventType.CHAT,
+              CommissionType.SELLER_AGENT,
+              u.profile_expert.id ?? null,
+              CommissionAppliesRole.EXPERT,
+              earning,
+            );
+            totalAgentCommissionCalculated += amount;
+          }
         }
         if (u.profile_client) {
           const spending = Number(u.profile_client.total_spending || 0);
-          totalAgentCommissionCalculated +=
-            (spending * clientCommPercent) / 100;
+          if (spending > 0) {
+            const { amount } = await this.commissionsFacade.resolveCommission(
+              CommissionEventType.CHAT,
+              CommissionType.BUYER_AGENT,
+              u.profile_client.id ?? null,
+              CommissionAppliesRole.CLIENT,
+              spending,
+            );
+            totalAgentCommissionCalculated += amount;
+          }
         }
-      });
+      }
 
       const currentBalance = await this.walletFacade.getBalance(
         profile.id,
@@ -139,7 +133,7 @@ export class SettleAgentCommissionsUseCase {
       }
 
       const { TransactionPurpose } = await import(
-        '@/modules/wallet/infrastructure/entities/transaction.entity'
+        '@/modules/finance/wallet/infrastructure/entities/transaction.entity'
       );
 
       await this.walletFacade.credit(

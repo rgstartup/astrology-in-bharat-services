@@ -22,7 +22,7 @@ import { CartModule } from '@/modules/commerce/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 import { ProductModule } from '@/modules/commerce/product/product.module';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';

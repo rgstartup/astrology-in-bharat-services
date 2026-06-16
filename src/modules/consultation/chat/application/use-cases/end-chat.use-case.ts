@@ -6,8 +6,14 @@ import {
   ChatSession,
   ChatSessionStatus,
 } from '../../infrastructure/entities/chat-session.entity';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import {
+  WalletFacade,
+  CommissionEventType,
+  CommissionType,
+  CommissionAppliesRole,
+} from '@/modules/finance/wallet/application/wallet.facade';
+import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { LedgerReferenceType } from '@/modules/finance/commissions/infrastructure/entities/ledger-entry.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -48,35 +54,55 @@ export class EndChatUseCase {
       total_cost = Number((billableMins * session.price_per_minute).toFixed(2));
     }
 
-    // Fetch all required commission percentages
-    const platformFeeRate =
-      await this.walletFacade.getAdminCommissionFromSetting(
-        'COMMISION_FROM_ASTROLOGER',
-      );
-    const gstRate =
-      await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
-    const buyerAgentRateSetting =
-      await this.walletFacade.getAdminCommissionFromSetting(
-        'COMMISION_FOR_BUYER_AGENT',
-      );
-
     const expert = session.expert;
     const expertUser = expert?.user;
+
+    // Resolve commissions via rules engine (falls back to system_settings)
+    const [platformFeeResolved, gstResolved, buyerAgentResolved] =
+      await Promise.all([
+        this.walletFacade.resolveCommission(
+          CommissionEventType.CHAT,
+          CommissionType.PLATFORM_FEE,
+          session.expert_id,
+          CommissionAppliesRole.EXPERT,
+          total_cost,
+        ),
+        this.walletFacade.resolveCommission(
+          CommissionEventType.CHAT,
+          CommissionType.GST,
+          null,
+          CommissionAppliesRole.ALL,
+          total_cost,
+        ),
+        this.walletFacade.resolveCommission(
+          CommissionEventType.CHAT,
+          CommissionType.BUYER_AGENT,
+          session.client_id,
+          CommissionAppliesRole.CLIENT,
+          total_cost,
+        ),
+      ]);
+
+    const platform_fee = platformFeeResolved.amount;
+    const gst_rate = gstResolved.amount; // GST resolve returns the % rate for chat
+    const gst = Number((platform_fee * (gst_rate / 100)).toFixed(2));
 
     let agent_commission = 0;
     let agent_id: string | undefined = undefined;
 
-    // Check if Agent Commission is applicable (Referred)
+    // Seller's agent commission (Referred expert)
     if (expertUser?.referred_by_id && expert) {
       agent_id = expertUser.referred_by_id;
-      const effectiveAgentRate =
-        expert.agent_commission_rate ?? platformFeeRate;
-      agent_commission = Number(
-        (total_cost * (effectiveAgentRate / 100)).toFixed(2),
+      const sellerAgentResolved = await this.walletFacade.resolveCommission(
+        CommissionEventType.CHAT,
+        CommissionType.SELLER_AGENT,
+        session.expert_id,
+        CommissionAppliesRole.EXPERT,
+        total_cost,
       );
+      agent_commission = sellerAgentResolved.amount;
     }
 
-    // Fetch Buyer's Agent
     let buyer_agent_commission = 0;
     let buyer_agent_id: string | undefined = undefined;
 
@@ -84,15 +110,8 @@ export class EndChatUseCase {
 
     if (buyerUser?.referred_by_id) {
       buyer_agent_id = buyerUser.referred_by_id;
-      buyer_agent_commission = Number(
-        (total_cost * (buyerAgentRateSetting / 100)).toFixed(2),
-      );
+      buyer_agent_commission = buyerAgentResolved.amount;
     }
-
-    const platform_fee = Number(
-      (total_cost * (platformFeeRate / 100)).toFixed(2),
-    );
-    const gst = Number((platform_fee * (gstRate / 100)).toFixed(2));
 
     // Expert Net = Total - Platform - GST - Agent (Seller) - Agent (Buyer)
     const expert_earning = Number(
@@ -124,6 +143,27 @@ export class EndChatUseCase {
     await this.sessionRepo.save(session);
 
     const referenceId = `chat_${sessionId}`;
+
+    // Write financial ledger entry
+    try {
+      await this.walletFacade.createLedgerEntry({
+        referenceId,
+        referenceType: LedgerReferenceType.CHAT,
+        grossAmount: total_cost,
+        platformFee: platform_fee,
+        gst,
+        sellerAgentCommission: agent_commission,
+        buyerAgentCommission: buyer_agent_commission,
+        providerNet: expert_earning,
+        clientProfileId: session.client_id,
+        providerProfileId: session.expert_id,
+        sellerAgentProfileId: agent_id ?? null,
+        buyerAgentProfileId: buyer_agent_id ?? null,
+        commissionRuleId: platformFeeResolved.ruleId,
+      });
+    } catch (err) {
+      console.error(`[EndChat] Failed to write ledger entry for ${sessionId}:`, err);
+    }
 
     // 🏦 Settlement Logic
     try {

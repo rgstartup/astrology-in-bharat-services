@@ -25,7 +25,7 @@ import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facad
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { IUser } from '@/common/types/access-token.payload';
-import { WithdrawalStatus } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';
+import { WithdrawalStatus } from '@/modules/finance/wallet/infrastructure/entities/withdrawal.entity';
 import { FilterCriteria } from '../../application/use-cases/get-filtered-users.use-case';
 import { CreateAgentDto } from '../dto/create-agent.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';

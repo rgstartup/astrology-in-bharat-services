@@ -13,7 +13,7 @@ import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merch
 import { OrderStatus } from '../infrastructure/entities/order.entity';
 import { CreateOrderDto } from '../api/dto/create-order.dto';
 import { QueryRunner } from 'typeorm';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 
 @Injectable()
 export class OrderFacade {

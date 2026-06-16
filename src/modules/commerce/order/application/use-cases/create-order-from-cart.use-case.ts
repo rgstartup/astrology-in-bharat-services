@@ -17,8 +17,8 @@ import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
+import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {

@@ -133,14 +133,10 @@ export class CallController {
     @Query('offset') offset?: string,
     @Query('search') search?: string,
   ) {
-    return this.callFacade.getExpertSessions(
-      profileId,
-      CallSessionFilter.ALL,
-      {
-        limit: limit ? parseInt(limit) : undefined,
-        offset: offset ? parseInt(offset) : undefined,
-        search,
-      },
-    );
+    return this.callFacade.getExpertSessions(profileId, CallSessionFilter.ALL, {
+      limit: limit ? parseInt(limit) : undefined,
+      offset: offset ? parseInt(offset) : undefined,
+      search,
+    });
   }
 }

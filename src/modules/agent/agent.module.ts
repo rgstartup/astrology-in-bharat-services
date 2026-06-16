@@ -4,14 +4,14 @@ import { ProfileAgent } from './infrastructure/entities/profile-agent.entity';
 import { AgentListing } from './infrastructure/entities/agent-listing.entity';
 import { AgentController } from './api/controllers/agent.controller';
 import { DatabaseModule } from '@/core/database/database.module';
-import { WalletModule } from '../wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { CallSession } from '../consultation/call/infrastructure/entities/call-session.entity';
 import { ChatSession } from '../consultation/chat/infrastructure/entities/chat-session.entity';
 import { PujaAppointment } from '../puja-appointment/infrastructure/entities/puja-appointment.entity';
 import { Order } from '../commerce/order/infrastructure/entities/order.entity';
 import { NotificationModule } from '../notification/notification.module';
 import { User } from '../users/infrastructure/entities/user.entity';
-import { SystemSetting } from '../admin/infrastructure/entities/system-setting.entity';
+import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 
 import { AgentFacade } from './application/agent.facade';
 import { ProfileModule as ExpertProfileModule } from '../expert/profile/profile.module';
@@ -42,10 +42,10 @@ import { AdminModule } from '../admin/admin.module';
       PujaAppointment,
       Order,
       User,
-      SystemSetting,
     ]),
     DatabaseModule,
     forwardRef(() => WalletModule),
+    CommissionsModule,
     NotificationModule,
     UsersModule,
     forwardRef(() => AdminModule),

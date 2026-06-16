@@ -10,7 +10,7 @@ import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallAcceptedEvent } from '../../domain/events/call.events';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { CallSessionAccessDeniedError } from '../../domain/errors/call.errors';
 
 @Injectable()

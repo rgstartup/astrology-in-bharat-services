@@ -12,7 +12,8 @@ import { GetMerchantFinanceStatsUseCase } from './application/use-cases/get-merc
 import { SendOrderOtpUseCase } from './application/use-cases/send-order-otp.usecase';
 import { MerchantProductsController } from './api/controllers/merchant-products.controller';
 import { MerchantFinanceController } from './api/controllers/merchant-finance.controller';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
+import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 import { OrderModule } from '@/modules/commerce/order/order.module';
 import { ProductModule } from '@/modules/commerce/product/product.module';
 import { ConsultationModule } from '@/modules/consultation/consultation.module';
@@ -25,6 +26,7 @@ import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
   imports: [
     TypeOrmModule.forFeature([ProfileMerchant]),
     forwardRef(() => WalletModule),
+    CommissionsModule,
     OrderModule,
     ProductModule,
     forwardRef(() => ConsultationModule),

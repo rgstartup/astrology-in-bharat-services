@@ -27,7 +27,7 @@ import { UpdateSessionMetadataUseCase } from './application/use-cases/update-ses
 import { GetChatEarningsUseCase } from './application/use-cases/get-chat-earnings.use-case';
 import { GetExpertSessionsByDateUseCase } from './application/use-cases/get-expert-sessions-by-date.use-case';
 
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';

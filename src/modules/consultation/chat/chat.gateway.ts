@@ -17,7 +17,7 @@ import {
   ChatSessionStatus,
   ChatSession,
 } from './infrastructure/entities/chat-session.entity';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 
 @WebSocketGateway({
   cors: {

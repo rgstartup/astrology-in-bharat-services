@@ -1,9 +1,15 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import {
+  CommissionsFacade,
+  CommissionEventType,
+  CommissionType,
+  CommissionAppliesRole,
+} from '@/modules/finance/commissions/application/commissions.facade';
 
 @Injectable()
 export class GetMerchantFinanceStatsUseCase {
@@ -11,6 +17,7 @@ export class GetMerchantFinanceStatsUseCase {
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
     private readonly orderFacade: OrderFacade,
+    private readonly commissionsFacade: CommissionsFacade,
     @InjectRepository(ProfileMerchant)
     private readonly merchantRepo: Repository<ProfileMerchant>,
   ) {}
@@ -38,16 +45,27 @@ export class GetMerchantFinanceStatsUseCase {
             : Promise.resolve(0),
         ]);
 
-      const platformFeeRate =
-        await this.walletFacade.getAdminCommissionFromSetting(
-          'COMMISION_FROM_PUJA_SHOP',
-        );
-      const gstRate =
-        await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
-
-      const estimatedFee = grossEarnings * (platformFeeRate / 100);
-      const estimatedGst = estimatedFee * (gstRate / 100);
-      const netEarnings = grossEarnings - estimatedFee - estimatedGst;
+      const [feeResult, gstResult] =
+        grossEarnings > 0
+          ? await Promise.all([
+              this.commissionsFacade.resolveCommission(
+                CommissionEventType.PRODUCT_ORDER,
+                CommissionType.PLATFORM_FEE,
+                merchantId,
+                CommissionAppliesRole.MERCHANT,
+                grossEarnings,
+              ),
+              this.commissionsFacade.resolveCommission(
+                CommissionEventType.PRODUCT_ORDER,
+                CommissionType.GST,
+                merchantId,
+                CommissionAppliesRole.MERCHANT,
+                grossEarnings,
+              ),
+            ])
+          : [{ amount: 0 }, { amount: 0 }];
+      const netEarnings =
+        grossEarnings - feeResult.amount - gstResult.amount;
 
       console.log('[FINANCE_STATS] Data retrieved:', {
         wallet,

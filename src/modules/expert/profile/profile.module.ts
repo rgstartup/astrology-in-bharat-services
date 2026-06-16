@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { forwardRef } from '@nestjs/common';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 

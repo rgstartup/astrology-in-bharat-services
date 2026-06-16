@@ -20,7 +20,7 @@ import { GetAdminMerchantSalesOverviewUseCase } from './application/use-cases/ge
 import { GetAdminMerchantSalesDetailsUseCase } from './application/use-cases/get-admin-merchant-sales-details.use-case';
 
 import { UsersModule } from '@/modules/users/users.module';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 // import { ChatModule } from '@/modules/chat/chat.module';
 import { ProfileModule } from '@/modules/expert/profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -35,7 +35,7 @@ import { ExternalModule } from '@/external/external.module';
 import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
 import { User } from '../users/infrastructure/entities/user.entity';
 import { AgentListing } from '../agent/infrastructure/entities/agent-listing.entity';
-import { Transaction } from '../wallet/infrastructure/entities/transaction.entity';
+import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { SupportModule } from '../support/support.module';
 import { PujaAppointment } from '../puja-appointment/infrastructure/entities/puja-appointment.entity';
 import { OrderItem } from '../commerce/order/infrastructure/entities/order-item.entity';
@@ -52,6 +52,7 @@ import { PublicStatsController } from './api/controllers/public-stats.controller
 import { GetSupportSettingsUseCase } from './application/use-cases/get-support-settings.usecase';
 import { GetSystemSettingsUseCase } from './application/use-cases/get-system-settings.use-case';
 import { UpdateSystemSettingUseCase } from './application/use-cases/update-system-setting.use-case';
+import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 import { ConsultationModule } from '../consultation/consultation.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { OrderModule } from '@/modules/commerce/order/order.module';
@@ -85,6 +86,7 @@ import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-pass
     UsersModule,
     ExternalModule,
     forwardRef(() => WalletModule),
+    CommissionsModule,
     forwardRef(() => ConsultationModule),
     forwardRef(() => ProfileModule),
     forwardRef(() => MerchantModule),

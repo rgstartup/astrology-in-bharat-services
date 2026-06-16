@@ -11,9 +11,15 @@ import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallEndedEvent } from '../../domain/events/call.events';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import {
+  WalletFacade,
+  CommissionEventType,
+  CommissionType,
+  CommissionAppliesRole,
+} from '@/modules/finance/wallet/application/wallet.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { LedgerReferenceType } from '@/modules/finance/commissions/infrastructure/entities/ledger-entry.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -76,23 +82,41 @@ export class EndCallUseCase {
     const referenceId = `call_${sessionId}`;
     const finalPrice = session.final_price || 0;
 
-    // Fetch all required commission percentages
-    const platformFeeRate =
-      await this.walletFacade.getAdminCommissionFromSetting(
-        'COMMISION_FROM_ASTROLOGER',
-      );
-    const gstRate =
-      await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
-    const buyerAgentRateSetting =
-      await this.walletFacade.getAdminCommissionFromSetting(
-        'COMMISION_FOR_BUYER_AGENT',
-      );
-
     // Fetch Expert with User (user relation loaded by getExpertById)
     const expert = await this.expertProfileFacade.getExpertById(
       session.expert_id,
     );
     const expertUser = expert?.user as unknown as User | null;
+
+    // Resolve commissions via rules engine (falls back to system_settings)
+    const [platformFeeResolved, gstResolved, buyerAgentResolved] =
+      await Promise.all([
+        this.walletFacade.resolveCommission(
+          CommissionEventType.CALL,
+          CommissionType.PLATFORM_FEE,
+          session.expert_id,
+          CommissionAppliesRole.EXPERT,
+          finalPrice,
+        ),
+        this.walletFacade.resolveCommission(
+          CommissionEventType.CALL,
+          CommissionType.GST,
+          null,
+          CommissionAppliesRole.ALL,
+          finalPrice,
+        ),
+        this.walletFacade.resolveCommission(
+          CommissionEventType.CALL,
+          CommissionType.BUYER_AGENT,
+          session.client_id,
+          CommissionAppliesRole.CLIENT,
+          finalPrice,
+        ),
+      ]);
+
+    const platformFee = platformFeeResolved.amount;
+    const gst_rate = gstResolved.amount;
+    const gst = Number((platformFee * (gst_rate / 100)).toFixed(2));
 
     let agent_commission = 0;
     let agent_id: string | undefined = undefined;
@@ -100,11 +124,14 @@ export class EndCallUseCase {
     // 1. Seller's Agent Commission (Always paid if referred)
     if (expertUser?.referred_by_id && expert) {
       agent_id = expertUser.referred_by_id;
-      const effectiveAgentRate =
-        expert.agent_commission_rate ?? platformFeeRate;
-      agent_commission = Number(
-        (finalPrice * (Number(effectiveAgentRate) / 100)).toFixed(2),
+      const sellerAgentResolved = await this.walletFacade.resolveCommission(
+        CommissionEventType.CALL,
+        CommissionType.SELLER_AGENT,
+        session.expert_id,
+        CommissionAppliesRole.EXPERT,
+        finalPrice,
       );
+      agent_commission = sellerAgentResolved.amount;
     }
 
     // 2. Buyer's Agent Commission (If buyer has an agent assigned)
@@ -114,18 +141,10 @@ export class EndCallUseCase {
     const buyerUser = session.client?.user as User | null;
     if (buyerUser?.referred_by_id) {
       buyer_agent_id = buyerUser.referred_by_id;
-      buyer_agent_commission = Number(
-        (finalPrice * (buyerAgentRateSetting / 100)).toFixed(2),
-      );
+      buyer_agent_commission = buyerAgentResolved.amount;
     }
 
-    // 3. Platform Fee & GST
-    const platformFee = Number(
-      (finalPrice * (platformFeeRate / 100)).toFixed(2),
-    );
-    const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
-
-    // Expert Net = Total - Platform - GST - Agent (Seller) - Agent (Buyer)
+    // 3. Expert Net = Total - Platform - GST - Agent (Seller) - Agent (Buyer)
     const expertShare = Number(
       (
         finalPrice -
@@ -151,6 +170,27 @@ export class EndCallUseCase {
       expertShare: expertShare,
       agent_commission,
     };
+
+    // Write financial ledger entry
+    try {
+      await this.walletFacade.createLedgerEntry({
+        referenceId,
+        referenceType: LedgerReferenceType.CALL,
+        grossAmount: finalPrice,
+        platformFee,
+        gst,
+        sellerAgentCommission: agent_commission,
+        buyerAgentCommission: buyer_agent_commission,
+        providerNet: expertShare,
+        clientProfileId: session.client_id,
+        providerProfileId: session.expert_id,
+        sellerAgentProfileId: agent_id ?? null,
+        buyerAgentProfileId: buyer_agent_id ?? null,
+        commissionRuleId: platformFeeResolved.ruleId,
+      });
+    } catch (err) {
+      console.error(`[EndCall] Failed to write ledger entry for ${sessionId}:`, err);
+    }
 
     // 🏦 Settlement Logic
     const initialReservation = session.price_per_minute * 5;

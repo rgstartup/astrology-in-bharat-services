@@ -8,7 +8,7 @@ import { CreatePaymentOrderUseCase } from './application/use-cases/create-paymen
 import { VerifyPaymentUseCase } from './application/use-cases/verify-payment.use-case';
 import { HandleWebhookUseCase } from './application/use-cases/handle-webhook.use-case';
 import { PaymentGatewayModule } from '@/external/payment/payment-gateway.module';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { OrderModule } from '@/modules/commerce/order/order.module';
 
 @Module({

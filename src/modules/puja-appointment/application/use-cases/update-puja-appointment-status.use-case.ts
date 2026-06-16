@@ -14,8 +14,14 @@ import {
 import { UpdatePujaAppointmentStatusDto } from '../dtos/update-puja-appointment-status.dto';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import {
+  WalletFacade,
+  CommissionEventType,
+  CommissionType,
+  CommissionAppliesRole,
+} from '@/modules/finance/wallet/application/wallet.facade';
+import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { LedgerReferenceType } from '@/modules/finance/commissions/infrastructure/entities/ledger-entry.entity';
 import { TodosFacade } from '@/modules/expert/todos/application/todos.facade';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
@@ -87,45 +93,55 @@ export class UpdatePujaAppointmentStatusUseCase {
           // --- PAYMENT LOGIC WITH ATOMIC TRANSACTION ---
           const totalAmount = appointment.price;
 
-          // Fetch all required commission percentages
-          const platformFeeRate =
-            await this.walletFacade.getAdminCommissionFromSetting(
-              'COMMISION_FROM_ASTROLOGER',
-            );
-          const gstRate =
-            await this.walletFacade.getAdminCommissionFromSetting(
-              'GST_PERCENTAGE',
-            );
-          const buyerAgentRateSetting =
-            await this.walletFacade.getAdminCommissionFromSetting(
-              'COMMISION_FOR_BUYER_AGENT',
-            );
-
           // Fetch Expert's full user profile for referral check
           const expertUser = await qr.manager.findOne(User, {
             where: { id: appointment.expert.user_id as unknown as string },
           });
 
-          const { ProfileExpert } = await import(
-            '../../../expert/profile/infrastructure/entities/profile-expert.entity'
-          );
-          const expertProfile = await qr.manager.findOne(ProfileExpert, {
-            where: {
-              user: { id: appointment.expert.user_id as unknown as string },
-            },
-          });
+          // Resolve commissions via rules engine
+          const [platformFeeResolved, gstResolved, buyerAgentResolved] =
+            await Promise.all([
+              this.walletFacade.resolveCommission(
+                CommissionEventType.PUJA,
+                CommissionType.PLATFORM_FEE,
+                appointment.expert.id,
+                CommissionAppliesRole.EXPERT,
+                totalAmount,
+              ),
+              this.walletFacade.resolveCommission(
+                CommissionEventType.PUJA,
+                CommissionType.GST,
+                null,
+                CommissionAppliesRole.ALL,
+                totalAmount,
+              ),
+              this.walletFacade.resolveCommission(
+                CommissionEventType.PUJA,
+                CommissionType.BUYER_AGENT,
+                appointment.client?.id ?? null,
+                CommissionAppliesRole.CLIENT,
+                totalAmount,
+              ),
+            ]);
+
+          const platformFee = platformFeeResolved.amount;
+          const gst_rate = gstResolved.amount;
+          const gst = Number((platformFee * (gst_rate / 100)).toFixed(2));
 
           let agent_commission = 0;
           let agent_id: string | undefined = undefined;
 
           // Check if Seller Agent Commission is applicable (Referred)
-          if (expertUser?.referred_by_id && expertProfile) {
+          if (expertUser?.referred_by_id) {
             agent_id = expertUser.referred_by_id;
-            const effectiveAgentRate =
-              expertProfile.agent_commission_rate ?? platformFeeRate;
-            agent_commission = Number(
-              (totalAmount * (effectiveAgentRate / 100)).toFixed(2),
+            const sellerAgentResolved = await this.walletFacade.resolveCommission(
+              CommissionEventType.PUJA,
+              CommissionType.SELLER_AGENT,
+              appointment.expert.id,
+              CommissionAppliesRole.EXPERT,
+              totalAmount,
             );
+            agent_commission = sellerAgentResolved.amount;
           }
 
           let buyer_agent_commission = 0;
@@ -140,15 +156,8 @@ export class UpdatePujaAppointmentStatusUseCase {
 
           if (buyerUser?.referred_by_id) {
             buyer_agent_id = buyerUser.referred_by_id;
-            buyer_agent_commission = Number(
-              (totalAmount * (buyerAgentRateSetting / 100)).toFixed(2),
-            );
+            buyer_agent_commission = buyerAgentResolved.amount;
           }
-
-          const platformFee = Number(
-            (totalAmount * (platformFeeRate / 100)).toFixed(2),
-          );
-          const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
 
           // Expert Net = Total - Platform - GST - Agent (Seller) - Agent (Buyer)
           const expertNetShare = Number(
@@ -225,6 +234,30 @@ export class UpdatePujaAppointmentStatusUseCase {
                 qr,
               );
             }
+          }
+
+          // Write financial ledger entry
+          try {
+            await this.walletFacade.createLedgerEntry(
+              {
+                referenceId: `puja_appt_${appointment.id}`,
+                referenceType: LedgerReferenceType.PUJA,
+                grossAmount: totalAmount,
+                platformFee,
+                gst,
+                sellerAgentCommission: agent_commission,
+                buyerAgentCommission: buyer_agent_commission,
+                providerNet: expertNetShare,
+                clientProfileId: appointment.client?.id ?? null,
+                providerProfileId: appointment.expert?.id ?? null,
+                sellerAgentProfileId: agent_id ?? null,
+                buyerAgentProfileId: buyer_agent_id ?? null,
+                commissionRuleId: platformFeeResolved.ruleId,
+              },
+              qr,
+            );
+          } catch (err) {
+            console.error('Failed to write puja ledger entry:', err);
           }
 
           // 3. Create Todo for Expert

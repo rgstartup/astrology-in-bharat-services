@@ -362,7 +362,7 @@ export class RequestWithdrawalUseCase {
       // G. Generate Custom IDs (transaction_no and withdrawal_no)
       try {
         const { generateTransactionNo } = await import(
-          '../../../../common/utils/transaction-no.util'
+          '@/common/utils/transaction-no.util'
         );
 
         // Update Transaction No
