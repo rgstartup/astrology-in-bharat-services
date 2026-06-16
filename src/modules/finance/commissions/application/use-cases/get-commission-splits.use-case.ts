@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { LedgerEntry } from '@/modules/finance/commissions/infrastructure/entities/ledger-entry.entity';
+import { CommissionSplit } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 import {
-  QueryLedgerDto,
-  QueryLedgerSummaryDto,
-} from '../../api/dto/query-ledger.dto';
+  QueryCommissionSplitsDto,
+  QueryCommissionSplitsSummaryDto,
+} from '../../api/dto/query-commission-splits.dto';
 
-export { QueryLedgerDto, QueryLedgerSummaryDto };
+export { QueryCommissionSplitsDto, QueryCommissionSplitsSummaryDto };
 
-export interface LedgerSummary {
+export interface CommissionSplitsSummary {
   total_gross: number;
   total_platform_fee: number;
   total_gst: number;
@@ -21,45 +21,45 @@ export interface LedgerSummary {
 }
 
 @Injectable()
-export class GetLedgerUseCase {
+export class GetCommissionSplitsUseCase {
   constructor(
-    @InjectRepository(LedgerEntry)
-    private readonly ledgerRepo: Repository<LedgerEntry>,
+    @InjectRepository(CommissionSplit)
+    private readonly splitRepo: Repository<CommissionSplit>,
   ) {}
 
-  async execute(filters: QueryLedgerDto = {}): Promise<{
-    data: LedgerEntry[];
+  async execute(filters: QueryCommissionSplitsDto = {}): Promise<{
+    data: CommissionSplit[];
     meta: { total: number; limit: number; offset: number };
   }> {
     const limit = filters.limit ?? 20;
     const offset = filters.offset ?? 0;
 
-    const qb = this.ledgerRepo
-      .createQueryBuilder('entry')
-      .orderBy('entry.created_at', 'DESC')
+    const qb = this.splitRepo
+      .createQueryBuilder('split')
+      .orderBy('split.created_at', 'DESC')
       .skip(offset)
       .take(limit);
 
     if (filters.reference_type) {
-      qb.andWhere('entry.reference_type = :ref_type', {
+      qb.andWhere('split.reference_type = :ref_type', {
         ref_type: filters.reference_type,
       });
     }
     if (filters.from_date) {
-      qb.andWhere('entry.created_at >= :from', {
+      qb.andWhere('split.created_at >= :from', {
         from: new Date(filters.from_date),
       });
     }
     if (filters.to_date) {
-      qb.andWhere('entry.created_at <= :to', { to: new Date(filters.to_date) });
+      qb.andWhere('split.created_at <= :to', { to: new Date(filters.to_date) });
     }
     if (filters.provider_profile_id) {
-      qb.andWhere('entry.provider_profile_id = :provider', {
+      qb.andWhere('split.provider_profile_id = :provider', {
         provider: filters.provider_profile_id,
       });
     }
     if (filters.client_profile_id) {
-      qb.andWhere('entry.client_profile_id = :client', {
+      qb.andWhere('split.client_profile_id = :client', {
         client: filters.client_profile_id,
       });
     }
@@ -68,43 +68,45 @@ export class GetLedgerUseCase {
     return { data, meta: { total, limit, offset } };
   }
 
-  async summary(filters: QueryLedgerSummaryDto = {}): Promise<LedgerSummary> {
-    const qb = this.ledgerRepo.createQueryBuilder('entry');
+  async summary(
+    filters: QueryCommissionSplitsSummaryDto = {},
+  ): Promise<CommissionSplitsSummary> {
+    const qb = this.splitRepo.createQueryBuilder('split');
 
     if (filters.reference_type) {
-      qb.andWhere('entry.reference_type = :ref_type', {
+      qb.andWhere('split.reference_type = :ref_type', {
         ref_type: filters.reference_type,
       });
     }
     if (filters.from_date) {
-      qb.andWhere('entry.created_at >= :from', {
+      qb.andWhere('split.created_at >= :from', {
         from: new Date(filters.from_date),
       });
     }
     if (filters.to_date) {
-      qb.andWhere('entry.created_at <= :to', { to: new Date(filters.to_date) });
+      qb.andWhere('split.created_at <= :to', { to: new Date(filters.to_date) });
     }
     if (filters.provider_profile_id) {
-      qb.andWhere('entry.provider_profile_id = :provider', {
+      qb.andWhere('split.provider_profile_id = :provider', {
         provider: filters.provider_profile_id,
       });
     }
 
     const raw = await qb
       .select('COUNT(*)', 'count')
-      .addSelect('SUM(entry.gross_amount)', 'total_gross')
-      .addSelect('SUM(entry.platform_fee)', 'total_platform_fee')
-      .addSelect('SUM(entry.gst)', 'total_gst')
-      .addSelect('SUM(entry.platform_net)', 'total_platform_net')
+      .addSelect('SUM(split.gross_amount)', 'total_gross')
+      .addSelect('SUM(split.platform_fee)', 'total_platform_fee')
+      .addSelect('SUM(split.gst)', 'total_gst')
+      .addSelect('SUM(split.platform_net)', 'total_platform_net')
       .addSelect(
-        'SUM(entry.seller_agent_commission)',
+        'SUM(split.seller_agent_commission)',
         'total_seller_agent_commission',
       )
       .addSelect(
-        'SUM(entry.buyer_agent_commission)',
+        'SUM(split.buyer_agent_commission)',
         'total_buyer_agent_commission',
       )
-      .addSelect('SUM(entry.provider_net)', 'total_provider_net')
+      .addSelect('SUM(split.provider_net)', 'total_provider_net')
       .getRawOne<Record<string, string>>();
 
     return {

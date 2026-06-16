@@ -22,9 +22,9 @@ import { GetMerchantTransactionsUseCase } from './use-cases/get-merchant-transac
 import { GetAdminRevenueTrendUseCase } from './use-cases/get-admin-revenue-trend.use-case';
 import { ResolveCommissionUseCase } from '@/modules/finance/commissions/application/use-cases/resolve-commission.use-case';
 import {
-  CreateLedgerEntryUseCase,
-  LedgerEntryInput,
-} from '@/modules/finance/commissions/application/use-cases/create-ledger-entry.use-case';
+  CreateCommissionSplitUseCase,
+  CommissionSplitInput,
+} from '@/modules/finance/commissions/application/use-cases/create-commission-split.use-case';
 import { TransactionPurpose } from '../infrastructure/entities/transaction.entity';
 import { WalletKey } from '../infrastructure/entities/wallet.entity';
 import { WithdrawalStatus } from '../infrastructure/entities/withdrawal.entity';
@@ -69,7 +69,7 @@ export class WalletFacade {
     private readonly getMerchantTransactionsUseCase: GetMerchantTransactionsUseCase,
     private readonly getAdminRevenueTrendUseCase: GetAdminRevenueTrendUseCase,
     private readonly resolveCommissionUseCase: ResolveCommissionUseCase,
-    private readonly createLedgerEntryUseCase: CreateLedgerEntryUseCase,
+    private readonly createCommissionSplitUseCase: CreateCommissionSplitUseCase,
   ) {}
 
   async getWallet(profileId: string, walletKey: WalletKey) {
@@ -345,7 +345,7 @@ export class WalletFacade {
     );
   }
 
-  async createLedgerEntry(input: LedgerEntryInput, qr?: QueryRunner) {
-    return this.createLedgerEntryUseCase.execute(input, qr);
+  async createCommissionSplit(input: CommissionSplitInput, qr?: QueryRunner) {
+    return this.createCommissionSplitUseCase.execute(input, qr);
   }
 }

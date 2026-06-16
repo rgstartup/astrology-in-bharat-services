@@ -26,7 +26,7 @@ import {
   CommissionAppliesRole,
 } from '@/modules/finance/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
-import { LedgerReferenceType } from '@/modules/finance/commissions/infrastructure/entities/ledger-entry.entity';
+import { SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
@@ -97,7 +97,7 @@ export class UpdateOrderStatusUseCase {
       }
 
       // Append Audit Log
-      const updatedBy = user?.id || merchantId || 'system';
+      const updatedBy: string = user?.profile || merchantId || 'system';
       const role = user?.roles?.[0] || (merchantId ? 'merchant' : 'system');
 
       const newHistoryEntry = {
@@ -515,10 +515,10 @@ export class UpdateOrderStatusUseCase {
 
                 // Write financial ledger entry
                 try {
-                  await this.walletFacade.createLedgerEntry(
+                  await this.walletFacade.createCommissionSplit(
                     {
                       referenceId: `order_item_${item.id}`,
-                      referenceType: LedgerReferenceType.ORDER,
+                      referenceType: SplitReferenceType.ORDER,
                       grossAmount: itemTotal,
                       platformFee,
                       gst,

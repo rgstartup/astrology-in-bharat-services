@@ -1,11 +1,11 @@
 import { IsEnum, IsOptional, IsUUID, IsDateString, IsInt, Min } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
-import { LedgerReferenceType } from '@/modules/finance/commissions/infrastructure/entities/ledger-entry.entity';
+import { Type } from 'class-transformer';
+import { SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 
-export class QueryLedgerDto {
+export class QueryCommissionSplitsDto {
   @IsOptional()
-  @IsEnum(LedgerReferenceType)
-  reference_type?: LedgerReferenceType;
+  @IsEnum(SplitReferenceType)
+  reference_type?: SplitReferenceType;
 
   @IsOptional()
   @IsDateString()
@@ -36,10 +36,10 @@ export class QueryLedgerDto {
   offset?: number;
 }
 
-export class QueryLedgerSummaryDto {
+export class QueryCommissionSplitsSummaryDto {
   @IsOptional()
-  @IsEnum(LedgerReferenceType)
-  reference_type?: LedgerReferenceType;
+  @IsEnum(SplitReferenceType)
+  reference_type?: SplitReferenceType;
 
   @IsOptional()
   @IsDateString()

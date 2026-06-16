@@ -8,23 +8,23 @@ import {
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { CommissionRule } from './commission-rule.entity';
 
-export enum LedgerReferenceType {
+export enum SplitReferenceType {
   CHAT = 'chat',
   CALL = 'call',
   PUJA = 'puja',
   ORDER = 'order',
 }
 
-@Entity({ schema: 'finance', name: 'ledger_entries' })
-export class LedgerEntry {
+@Entity({ schema: 'finance', name: 'commission_splits' })
+export class CommissionSplit {
   @UuidPrimaryKeyColumn()
   id!: string;
 
   @Column({ type: 'text' })
   reference_id!: string;
 
-  @Column({ type: 'enum', enum: LedgerReferenceType })
-  reference_type!: LedgerReferenceType;
+  @Column({ type: 'enum', enum: SplitReferenceType })
+  reference_type!: SplitReferenceType;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   gross_amount!: number;

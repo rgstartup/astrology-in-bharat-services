@@ -4,40 +4,40 @@ import { CreateCommissionRuleUseCase } from './use-cases/create-commission-rule.
 import { UpdateCommissionRuleUseCase } from './use-cases/update-commission-rule.use-case';
 import { ListCommissionRulesUseCase } from './use-cases/list-commission-rules.use-case';
 import {
-  GetLedgerUseCase,
-  LedgerSummary,
-} from './use-cases/get-ledger.use-case';
+  GetCommissionSplitsUseCase,
+  CommissionSplitsSummary,
+} from './use-cases/get-commission-splits.use-case';
 import { ResolveCommissionUseCase } from './use-cases/resolve-commission.use-case';
 import {
-  CreateLedgerEntryUseCase,
-  LedgerEntryInput,
-} from './use-cases/create-ledger-entry.use-case';
+  CreateCommissionSplitUseCase,
+  CommissionSplitInput,
+} from './use-cases/create-commission-split.use-case';
 import { CreateCommissionRuleDto } from '../api/dto/create-commission-rule.dto';
 import { UpdateCommissionRuleDto } from '../api/dto/update-commission-rule.dto';
 import { QueryCommissionRulesDto } from '../api/dto/query-commission-rules.dto';
 import {
-  QueryLedgerDto,
-  QueryLedgerSummaryDto,
-} from '../api/dto/query-ledger.dto';
+  QueryCommissionSplitsDto,
+  QueryCommissionSplitsSummaryDto,
+} from '../api/dto/query-commission-splits.dto';
 import {
   CommissionEventType,
   CommissionType,
   CommissionAppliesRole,
 } from '../infrastructure/entities/commission-rule.entity';
 import { CommissionRule } from '../infrastructure/entities/commission-rule.entity';
-import { LedgerEntry } from '../infrastructure/entities/ledger-entry.entity';
+import { CommissionSplit } from '../infrastructure/entities/commission-split.entity';
 
 export {
   CommissionEventType,
   CommissionType,
   CommissionAppliesRole,
-  LedgerEntryInput,
+  CommissionSplitInput,
   CreateCommissionRuleDto,
   UpdateCommissionRuleDto,
   QueryCommissionRulesDto,
-  QueryLedgerDto,
-  QueryLedgerSummaryDto,
-  LedgerSummary,
+  QueryCommissionSplitsDto,
+  QueryCommissionSplitsSummaryDto,
+  CommissionSplitsSummary,
 };
 
 @Injectable()
@@ -46,9 +46,9 @@ export class CommissionsFacade {
     private readonly createCommissionRuleUseCase: CreateCommissionRuleUseCase,
     private readonly updateCommissionRuleUseCase: UpdateCommissionRuleUseCase,
     private readonly listCommissionRulesUseCase: ListCommissionRulesUseCase,
-    private readonly getLedgerUseCase: GetLedgerUseCase,
+    private readonly getCommissionSplitsUseCase: GetCommissionSplitsUseCase,
     private readonly resolveCommissionUseCase: ResolveCommissionUseCase,
-    private readonly createLedgerEntryUseCase: CreateLedgerEntryUseCase,
+    private readonly createCommissionSplitUseCase: CreateCommissionSplitUseCase,
   ) {}
 
   createRule(dto: CreateCommissionRuleDto): Promise<CommissionRule> {
@@ -70,15 +70,17 @@ export class CommissionsFacade {
     return this.listCommissionRulesUseCase.execute(query);
   }
 
-  getLedger(query: QueryLedgerDto = {}): Promise<{
-    data: LedgerEntry[];
+  getCommissionSplits(query: QueryCommissionSplitsDto = {}): Promise<{
+    data: CommissionSplit[];
     meta: { total: number; limit: number; offset: number };
   }> {
-    return this.getLedgerUseCase.execute(query);
+    return this.getCommissionSplitsUseCase.execute(query);
   }
 
-  getLedgerSummary(query: QueryLedgerSummaryDto = {}): Promise<LedgerSummary> {
-    return this.getLedgerUseCase.summary(query);
+  getCommissionSplitsSummary(
+    query: QueryCommissionSplitsSummaryDto = {},
+  ): Promise<CommissionSplitsSummary> {
+    return this.getCommissionSplitsUseCase.summary(query);
   }
 
   resolveCommission(
@@ -97,10 +99,10 @@ export class CommissionsFacade {
     );
   }
 
-  createLedgerEntry(
-    input: LedgerEntryInput,
+  createCommissionSplit(
+    input: CommissionSplitInput,
     qr?: QueryRunner,
-  ): Promise<LedgerEntry> {
-    return this.createLedgerEntryUseCase.execute(input, qr);
+  ): Promise<CommissionSplit> {
+    return this.createCommissionSplitUseCase.execute(input, qr);
   }
 }

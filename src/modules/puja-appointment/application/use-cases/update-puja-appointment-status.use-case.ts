@@ -21,7 +21,7 @@ import {
   CommissionAppliesRole,
 } from '@/modules/finance/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
-import { LedgerReferenceType } from '@/modules/finance/commissions/infrastructure/entities/ledger-entry.entity';
+import { SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 import { TodosFacade } from '@/modules/expert/todos/application/todos.facade';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
@@ -238,10 +238,10 @@ export class UpdatePujaAppointmentStatusUseCase {
 
           // Write financial ledger entry
           try {
-            await this.walletFacade.createLedgerEntry(
+            await this.walletFacade.createCommissionSplit(
               {
                 referenceId: `puja_appt_${appointment.id}`,
-                referenceType: LedgerReferenceType.PUJA,
+                referenceType: SplitReferenceType.PUJA,
                 grossAmount: totalAmount,
                 platformFee,
                 gst,

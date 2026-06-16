@@ -19,7 +19,7 @@ import {
 } from '@/modules/finance/wallet/application/wallet.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
-import { LedgerReferenceType } from '@/modules/finance/commissions/infrastructure/entities/ledger-entry.entity';
+import { SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -173,9 +173,9 @@ export class EndCallUseCase {
 
     // Write financial ledger entry
     try {
-      await this.walletFacade.createLedgerEntry({
+      await this.walletFacade.createCommissionSplit({
         referenceId,
-        referenceType: LedgerReferenceType.CALL,
+        referenceType: SplitReferenceType.CALL,
         grossAmount: finalPrice,
         platformFee,
         gst,
