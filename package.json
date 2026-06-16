@@ -11,7 +11,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:redis": "d:\\ravi\\redis\\redis-server.exe",
+    "start:redis": "redis-server",
     "start:worker": "ts-node -r tsconfig-paths/register src/email-worker.ts",
     "start:all": "concurrently -c \"yellow,cyan,magenta\" \"pnpm run start:redis\" \"ping 127.0.0.1 -n 3 > nul && pnpm run start:dev\" \"ping 127.0.0.1 -n 3 > nul && pnpm run start:worker\"",
     "start:prod": "node dist/src/main",
