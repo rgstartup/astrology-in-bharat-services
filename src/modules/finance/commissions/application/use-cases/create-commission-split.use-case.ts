@@ -1,10 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import {
   CommissionSplit,
   SplitReferenceType,
 } from '../../infrastructure/entities/commission-split.entity';
+import {
+  GeneralLedgerEntry,
+  GeneralLedgerEntryType,
+  GeneralLedgerEventType,
+  GeneralLedgerPartyType,
+} from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 
 export interface CommissionSplitInput {
   referenceId: string;
@@ -22,8 +28,17 @@ export interface CommissionSplitInput {
   commissionRuleId?: string | null;
 }
 
+const splitRefTypeToLedgerEventType: Record<SplitReferenceType, GeneralLedgerEventType> = {
+  [SplitReferenceType.CHAT]: GeneralLedgerEventType.CONSULTATION,
+  [SplitReferenceType.CALL]: GeneralLedgerEventType.CONSULTATION,
+  [SplitReferenceType.PUJA]: GeneralLedgerEventType.PUJA,
+  [SplitReferenceType.ORDER]: GeneralLedgerEventType.PRODUCT_ORDER,
+};
+
 @Injectable()
 export class CreateCommissionSplitUseCase {
+  private readonly logger = new Logger(CreateCommissionSplitUseCase.name);
+
   constructor(
     @InjectRepository(CommissionSplit)
     private readonly splitRepo: Repository<CommissionSplit>,
@@ -49,9 +64,34 @@ export class CreateCommissionSplitUseCase {
     split.buyer_agent_profile_id = input.buyerAgentProfileId ?? null;
     split.commission_rule_id = input.commissionRuleId ?? null;
 
-    if (qr) {
-      return qr.manager.save(CommissionSplit, split);
+    const saved = qr
+      ? await qr.manager.save(CommissionSplit, split)
+      : await this.splitRepo.save(split);
+
+    // Write platform revenue entry to general ledger — non-blocking
+    if (saved.platform_net > 0) {
+      try {
+        const platformEntry = new GeneralLedgerEntry();
+        platformEntry.event_id = saved.reference_id;
+        platformEntry.event_type = splitRefTypeToLedgerEventType[saved.reference_type];
+        platformEntry.entry_type = GeneralLedgerEntryType.CREDIT;
+        platformEntry.party_type = GeneralLedgerPartyType.PLATFORM;
+        platformEntry.party_id = null;
+        platformEntry.amount = saved.platform_net;
+        platformEntry.note = `platform_fee=${saved.platform_fee} gst=${saved.gst}`;
+
+        if (qr) {
+          await qr.manager.save(GeneralLedgerEntry, platformEntry);
+        } else {
+          await this.splitRepo.manager.save(GeneralLedgerEntry, platformEntry);
+        }
+      } catch (glErr) {
+        this.logger.error(
+          `[COMMISSION_SPLIT] Platform ledger write failed: ${(glErr as Error).message}`,
+        );
+      }
     }
-    return this.splitRepo.save(split);
+
+    return saved;
   }
 }

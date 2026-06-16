@@ -13,6 +13,12 @@ import {
 import { InsufficientBalanceError } from '../../domain/errors/insufficient-balance.error';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
+import {
+  GeneralLedgerEntry,
+  GeneralLedgerEntryType,
+  GeneralLedgerEventType,
+  GeneralLedgerPartyType,
+} from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 
 @Injectable()
 export class DebitUseCase {
@@ -111,6 +117,38 @@ export class DebitUseCase {
       } catch (err) {
         this.logger.error(
           `[DEBIT_TX] Failed to generate transaction no: ${(err as Error).message}`,
+        );
+      }
+
+      // General ledger entry — non-blocking
+      try {
+        const purposeToEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+          [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
+          [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
+          [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
+          [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
+          [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+          [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
+          [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+        };
+        const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
+          client_id: GeneralLedgerPartyType.CLIENT,
+          expert_id: GeneralLedgerPartyType.EXPERT,
+          merchant_id: GeneralLedgerPartyType.MERCHANT,
+          agent_id: GeneralLedgerPartyType.AGENT,
+        };
+        const glEntry = qr.manager.create(GeneralLedgerEntry, {
+          event_id: referenceId ?? null,
+          event_type: purposeToEventType[purpose],
+          entry_type: GeneralLedgerEntryType.DEBIT,
+          party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+          party_id: profileId,
+          amount,
+        });
+        await qr.manager.save(GeneralLedgerEntry, glEntry);
+      } catch (glErr) {
+        this.logger.error(
+          `[DEBIT_TX] General ledger write failed: ${(glErr as Error).message}`,
         );
       }
 
