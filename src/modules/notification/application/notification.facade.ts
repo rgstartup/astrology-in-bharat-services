@@ -43,7 +43,12 @@ export class NotificationFacade {
     limit?: number,
     offset?: number,
   ) {
-    return this.getNotificationsUseCase.execute(profileId, profileType, limit, offset);
+    return this.getNotificationsUseCase.execute(
+      profileId,
+      profileType,
+      limit,
+      offset,
+    );
   }
 
   async markAsRead(id: string, _profileId: string) {

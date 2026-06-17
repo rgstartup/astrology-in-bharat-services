@@ -45,7 +45,11 @@ export class GetExpertDetailUseCase {
       relations: ['addresses'],
     });
 
-    const clientProfile = await this.clientProfileFacade.getProfile({ id: user.id, email: user.email || '', roles: [] });
+    const clientProfile = await this.clientProfileFacade.getProfile({
+      id: user.id,
+      email: user.email || '',
+      roles: [],
+    });
     const expertProfileId =
       profile?.id || '00000000-0000-0000-0000-000000000000';
     const total_earnings = await this.walletFacade.getTotalEarnings(

@@ -8,7 +8,7 @@ import {
   LedgerJobPayload,
   LEDGER_QUEUE,
   LEDGER_JOB,
-} from '@/modules/queue/services/ledger-queue.service';
+} from '@/core/queue/services/ledger-queue.service';
 
 @Processor(LEDGER_QUEUE)
 export class LedgerProcessor extends WorkerHost {

@@ -6,10 +6,7 @@ import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { ConsultationModule } from '@/modules/consultation/consultation.module';
 
 @Module({
-  imports: [
-    forwardRef(() => ConsultationModule),
-    WalletModule,
-  ],
+  imports: [forwardRef(() => ConsultationModule), WalletModule],
   controllers: [ExpertDashboardController],
   providers: [ExpertDashboardFacade, GetDashboardStatsUseCase],
 })

@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet, WalletKey } from '../../infrastructure/entities/wallet.entity';
 import {
@@ -18,16 +14,20 @@ import {
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
 } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
-import { LedgerQueueService } from '@/modules/queue/services/ledger-queue.service';
+import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
 
-const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+const purposeToLedgerEventType: Record<
+  TransactionPurpose,
+  GeneralLedgerEventType
+> = {
   [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
   [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
   [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
   [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
   [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
   [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-  [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+  [TransactionPurpose.AGENT_COMMISSION]:
+    GeneralLedgerEventType.AGENT_COMMISSION,
 };
 
 const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
@@ -44,7 +44,7 @@ export class DebitUseCase {
   constructor(
     private readonly dataSource: DataSource,
     private readonly ledgerQueueService: LedgerQueueService,
-  ) {}
+  ) { }
 
   async execute(
     profileId: string,
@@ -145,7 +145,8 @@ export class DebitUseCase {
         event_id: referenceId ?? null,
         event_type: purposeToLedgerEventType[purpose],
         entry_type: GeneralLedgerEntryType.DEBIT,
-        party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+        party_type:
+          walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
         party_id: profileId,
         amount,
       });

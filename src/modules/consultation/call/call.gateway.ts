@@ -146,7 +146,10 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           const s = await this.callFacade.getSession(sessionId);
-          const b = await this.walletFacade.getBalance(currentSession.client_id, 'client_id');
+          const b = await this.walletFacade.getBalance(
+            currentSession.client_id,
+            'client_id',
+          );
           if (b < minReq && s?.status === CallSessionStatus.ACTIVE) {
             await this.callFacade.end(sessionId);
             this.server.to(`call_room_${sessionId}`).emit('call_ended', {

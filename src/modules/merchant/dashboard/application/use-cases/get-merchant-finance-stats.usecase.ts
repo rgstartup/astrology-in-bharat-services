@@ -64,8 +64,7 @@ export class GetMerchantFinanceStatsUseCase {
               ),
             ])
           : [{ amount: 0 }, { amount: 0 }];
-      const netEarnings =
-        grossEarnings - feeResult.amount - gstResult.amount;
+      const netEarnings = grossEarnings - feeResult.amount - gstResult.amount;
 
       console.log('[FINANCE_STATS] Data retrieved:', {
         wallet,

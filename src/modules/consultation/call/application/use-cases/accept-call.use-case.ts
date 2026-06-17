@@ -59,7 +59,10 @@ export class AcceptCallUseCase {
     session.start_time = new Date();
 
     // Calculate Max Duration based on Wallet Balance + Free Minutes
-    const balance = await this.walletFacade.getBalance(session.client_id, 'client_id');
+    const balance = await this.walletFacade.getBalance(
+      session.client_id,
+      'client_id',
+    );
     const paidMinutes =
       session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
     const totalMinutes =
@@ -108,7 +111,11 @@ export class AcceptCallUseCase {
     );
     this.eventEmitter.emit(
       'call.accepted',
-      new CallAcceptedEvent(savedSession.id, expertProfileId, savedSession.type),
+      new CallAcceptedEvent(
+        savedSession.id,
+        expertProfileId,
+        savedSession.type,
+      ),
     );
 
     return result;

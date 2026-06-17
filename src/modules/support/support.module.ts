@@ -15,9 +15,7 @@ import { SupportController } from './api/controllers/support.controller';
 import { SupportGateway } from './api/support.gateway';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Dispute, DisputeMessage]),
-  ],
+  imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage])],
   providers: [
     SupportFacade,
     SupportGateway,

@@ -1,4 +1,9 @@
-import { Injectable, Inject, forwardRef, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  forwardRef,
+  BadRequestException,
+} from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
@@ -232,8 +237,10 @@ export class GetAgentStatsUseCase {
       expertEarnings =
         roleStats.find((r) => r.role_name === 'expert')?.total_comm || 0;
 
-      const withdrawalStats =
-        await this.walletFacade.getWithdrawalsStatus(profile.id, 'agent_id');
+      const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(
+        profile.id,
+        'agent_id',
+      );
 
       const revenueGrowthRaw: Array<{
         name: string;

@@ -31,7 +31,10 @@ export class ChatController {
   ) {}
 
   @Post('initiate')
-  async initiateChat(@CurrentProfile() clientId: string, @Body() dto: InitiateChatDto) {
+  async initiateChat(
+    @CurrentProfile() clientId: string,
+    @Body() dto: InitiateChatDto,
+  ) {
     const session = await this.chatFacade.initiateChat(
       clientId,
       dto.expert_id,

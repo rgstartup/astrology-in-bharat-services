@@ -111,9 +111,10 @@ export class RequestWithdrawalUseCase {
       );
 
     // 2.1 KYC / Verification Check
-    let walletOwnerId = profileId;
+    const walletOwnerId = profileId;
     let ownerIdField = '';
-    let rolePrefix: 'CLIENT' | 'EXPERT' | 'MERCHANT' | 'AGENT' | 'ADMIN' = 'CLIENT';
+    let rolePrefix: 'CLIENT' | 'EXPERT' | 'MERCHANT' | 'AGENT' | 'ADMIN' =
+      'CLIENT';
     const profileType: ProfileType =
       walletKey === 'expert_id'
         ? RoleEnum.EXPERT
@@ -125,7 +126,8 @@ export class RequestWithdrawalUseCase {
 
     if (walletKey === 'expert_id') {
       const profile_expert = await this.expertFacade.getExpertById(profileId);
-      if (!profile_expert) throw new BadRequestException('Expert profile not found');
+      if (!profile_expert)
+        throw new BadRequestException('Expert profile not found');
       if (profile_expert.kyc_status !== 'approved') {
         throw new BadRequestException(
           'Your KYC is not approved. Please complete verification to withdraw funds.',
@@ -134,8 +136,10 @@ export class RequestWithdrawalUseCase {
       ownerIdField = 'w.expert_id';
       rolePrefix = 'EXPERT';
     } else if (walletKey === 'merchant_id') {
-      const profile_merchant = await this.merchantFacade.getProfileById(profileId);
-      if (!profile_merchant) throw new BadRequestException('Merchant profile not found');
+      const profile_merchant =
+        await this.merchantFacade.getProfileById(profileId);
+      if (!profile_merchant)
+        throw new BadRequestException('Merchant profile not found');
       if (
         profile_merchant.status !== ('active' as unknown) &&
         !profile_merchant.isVerified
@@ -153,7 +157,8 @@ export class RequestWithdrawalUseCase {
       const agent_profile = await this.dataSource
         .getRepository(ProfileAgent)
         .findOne({ where: { id: profileId } });
-      if (!agent_profile) throw new BadRequestException('Agent profile not found');
+      if (!agent_profile)
+        throw new BadRequestException('Agent profile not found');
       if (!agent_profile.pan_no || !agent_profile.bank_name) {
         throw new BadRequestException(
           'Please complete your agent profile and bank details to withdraw funds.',
@@ -260,7 +265,8 @@ export class RequestWithdrawalUseCase {
         }
 
         if (!merchantSnapshot.merchant_bank_name && bank_account_id) {
-          const expertProfile = await this.expertFacade.getExpertById(profileId);
+          const expertProfile =
+            await this.expertFacade.getExpertById(profileId);
           if (expertProfile) {
             const bankAccount = (await this.dataSource
               .getRepository('BankAccount')

@@ -98,7 +98,10 @@ export class AgentController {
   async getWithdrawals(@CurrentUser() user: IUser) {
     const profile = await this.agentFacade.getProfile(user);
     if (!profile) throw new BadRequestException('Agent profile not found');
-    const result = await this.walletFacade.getWithdrawals(profile.id, 'agent_id');
+    const result = await this.walletFacade.getWithdrawals(
+      profile.id,
+      'agent_id',
+    );
     return result.data;
   }
 

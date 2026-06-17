@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet, WalletKey } from '../../infrastructure/entities/wallet.entity';
 import {
@@ -24,16 +20,20 @@ import {
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
 } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
-import { LedgerQueueService } from '@/modules/queue/services/ledger-queue.service';
+import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
 
-const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+const purposeToLedgerEventType: Record<
+  TransactionPurpose,
+  GeneralLedgerEventType
+> = {
   [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
   [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
   [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
   [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
   [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
   [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-  [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+  [TransactionPurpose.AGENT_COMMISSION]:
+    GeneralLedgerEventType.AGENT_COMMISSION,
 };
 
 const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
@@ -52,7 +52,7 @@ export class CreditUseCase {
     private readonly notificationFacade: NotificationFacade,
     private readonly notificationGateway: NotificationGateway,
     private readonly ledgerQueueService: LedgerQueueService,
-  ) {}
+  ) { }
 
   async execute(
     profileId: string,
@@ -108,9 +108,7 @@ export class CreditUseCase {
         .where(`${walletKey} = :profileId`, { profileId })
         .execute();
 
-      this.logger.log(
-        `[CREDIT_TX] Balance added for profile ${profileId}`,
-      );
+      this.logger.log(`[CREDIT_TX] Balance added for profile ${profileId}`);
 
       const balanceBefore = Number(wallet.balance) || 0;
       const balanceAfter = balanceBefore + Number(amount);
@@ -154,7 +152,8 @@ export class CreditUseCase {
         event_id: referenceId ?? null,
         event_type: purposeToLedgerEventType[purpose],
         entry_type: GeneralLedgerEntryType.CREDIT,
-        party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+        party_type:
+          walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
         party_id: profileId,
         amount,
       });
@@ -192,7 +191,10 @@ export class CreditUseCase {
       if (!externalQueryRunner) {
         await qr.commitTransaction();
 
-        if (purpose === TransactionPurpose.RECHARGE && walletKey === 'client_id') {
+        if (
+          purpose === TransactionPurpose.RECHARGE &&
+          walletKey === 'client_id'
+        ) {
           try {
             const title = 'Wallet Recharged';
             const message = `Your wallet has been credited with ₹${amount}`;
@@ -204,12 +206,16 @@ export class CreditUseCase {
               message,
               { amount, referenceId },
             );
-            this.notificationGateway.emitToProfile(profileId, 'wallet_updated', {
-              type: 'credit',
-              amount,
-              title,
-              message,
-            });
+            this.notificationGateway.emitToProfile(
+              profileId,
+              'wallet_updated',
+              {
+                type: 'credit',
+                amount,
+                title,
+                message,
+              },
+            );
           } catch (notifErr) {
             this.logger.error(
               `[CREDIT_TX] Notification failed: ${(notifErr as Error).message}`,

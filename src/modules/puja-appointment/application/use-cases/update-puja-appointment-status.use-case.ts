@@ -134,13 +134,14 @@ export class UpdatePujaAppointmentStatusUseCase {
           // Check if Seller Agent Commission is applicable (Referred)
           if (expertUser?.referred_by_id) {
             agent_id = expertUser.referred_by_id;
-            const sellerAgentResolved = await this.walletFacade.resolveCommission(
-              CommissionEventType.PUJA,
-              CommissionType.SELLER_AGENT,
-              appointment.expert.id,
-              CommissionAppliesRole.EXPERT,
-              totalAmount,
-            );
+            const sellerAgentResolved =
+              await this.walletFacade.resolveCommission(
+                CommissionEventType.PUJA,
+                CommissionType.SELLER_AGENT,
+                appointment.expert.id,
+                CommissionAppliesRole.EXPERT,
+                totalAmount,
+              );
             agent_commission = sellerAgentResolved.amount;
           }
 

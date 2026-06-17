@@ -96,7 +96,7 @@ export class MarkOrderAsPaidUseCase {
               NotificationType.ORDER_PLACED,
               'Order Placed Successfully',
               `Your order #${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
-              { orderId: order.id }
+              { orderId: order.id },
             );
           } catch (notifErr) {
             console.error('[MARK_AS_PAID] Notification error:', notifErr);
@@ -105,19 +105,28 @@ export class MarkOrderAsPaidUseCase {
 
         // Send Notification to Merchants
         if (order.items && order.items.length > 0) {
-          const merchantIds = [...new Set(order.items.map(item => item.product?.merchant_id).filter(Boolean))];
+          const merchantIds = [
+            ...new Set(
+              order.items
+                .map((item) => item.product?.merchant_id)
+                .filter(Boolean),
+            ),
+          ];
           for (const mId of merchantIds) {
             try {
               await this.notificationFacade.create(
-                mId as string,
+                mId,
                 RoleEnum.MERCHANT,
                 NotificationType.ORDER_PLACED,
                 'New Order Received!',
                 `You have received a new order (#${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,
-                { orderId: order.id }
+                { orderId: order.id },
               );
             } catch (mErr) {
-              console.error('[MARK_AS_PAID] Merchant notification error:', mErr);
+              console.error(
+                '[MARK_AS_PAID] Merchant notification error:',
+                mErr,
+              );
             }
           }
         }

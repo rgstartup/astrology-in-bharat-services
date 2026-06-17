@@ -162,7 +162,10 @@ export class EndChatUseCase {
         commissionRuleId: platformFeeResolved.ruleId,
       });
     } catch (err) {
-      console.error(`[EndChat] Failed to write ledger entry for ${sessionId}:`, err);
+      console.error(
+        `[EndChat] Failed to write ledger entry for ${sessionId}:`,
+        err,
+      );
     }
 
     // 🏦 Settlement Logic
@@ -295,8 +298,7 @@ export class EndChatUseCase {
         const expertName = session.expert?.user?.name || 'Astrologer';
         const duration = session.start_time
           ? (
-              (session.end_time.getTime() -
-                session.start_time.getTime()) /
+              (session.end_time.getTime() - session.start_time.getTime()) /
               60000
             ).toFixed(1)
           : '0';

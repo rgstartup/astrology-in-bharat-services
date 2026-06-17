@@ -121,7 +121,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.walletFacade.getBalance(profileId, 'client_id');
   }
 
-  async getWallet(profileId: string, walletKey: 'client_id' | 'expert_id' | 'merchant_id' | 'agent_id' = 'client_id') {
+  async getWallet(
+    profileId: string,
+    walletKey:
+      | 'client_id'
+      | 'expert_id'
+      | 'merchant_id'
+      | 'agent_id' = 'client_id',
+  ) {
     return this.walletFacade.getWallet(profileId, walletKey);
   }
 
@@ -188,7 +195,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!session) return null;
 
     // Calculate initial timer values for immediate sync
-    const wallet = await this.walletFacade.getWallet(session.client_id!, 'client_id');
+    const wallet = await this.walletFacade.getWallet(
+      session.client_id!,
+      'client_id',
+    );
     const totalAffordableBalance =
       Number(wallet.balance) + Number(wallet.reserved_balance);
     const price = session.price_per_minute || 0;

@@ -57,12 +57,7 @@ export class AgentFacade {
     type?: string,
     search?: string,
   ) {
-    return this.getAgentListingsUseCase.execute(
-      user,
-      pagination,
-      type,
-      search,
-    );
+    return this.getAgentListingsUseCase.execute(user, pagination, type, search);
   }
 
   async getCommissions(userId: string, pagination: PaginationDto) {

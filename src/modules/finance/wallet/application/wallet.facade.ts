@@ -214,7 +214,10 @@ export class WalletFacade {
     merchantProfileId: string,
     options: { search?: string; page?: number; limit?: number },
   ) {
-    return this.getMerchantTransactionsUseCase.execute(merchantProfileId, options);
+    return this.getMerchantTransactionsUseCase.execute(
+      merchantProfileId,
+      options,
+    );
   }
 
   async getTotalEarnings(

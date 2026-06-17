@@ -15,7 +15,7 @@ import { CommissionsFacade } from './application/commissions.facade';
 import { CommissionRulesController } from './api/controllers/commission-rules.controller';
 import { CommissionSplitsController } from './api/controllers/commission-splits.controller';
 
-import { QueueModule } from '@/modules/queue/queue.module';
+import { QueueModule } from '@/core/queue/queue.module';
 
 @Module({
   imports: [
@@ -44,4 +44,4 @@ import { QueueModule } from '@/modules/queue/queue.module';
     CreateCommissionSplitUseCase,
   ],
 })
-export class CommissionsModule {}
+export class CommissionsModule { }

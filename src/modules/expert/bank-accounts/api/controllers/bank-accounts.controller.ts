@@ -33,7 +33,10 @@ export class BankAccountsController {
     @CurrentProfile() expertProfileId: string,
     @Body() createBankAccountDto: CreateBankAccountDto,
   ) {
-    return this.bankAccountsFacade.create(expertProfileId, createBankAccountDto);
+    return this.bankAccountsFacade.create(
+      expertProfileId,
+      createBankAccountDto,
+    );
   }
 
   @Get()
@@ -42,7 +45,10 @@ export class BankAccountsController {
   }
 
   @Get(':id')
-  findOne(@CurrentProfile() expertProfileId: string, @Param('id', ParseUUIDPipe) id: string) {
+  findOne(
+    @CurrentProfile() expertProfileId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.bankAccountsFacade.findOne(expertProfileId, id);
   }
 

@@ -86,7 +86,7 @@ export class EndCallUseCase {
     const expert = await this.expertProfileFacade.getExpertById(
       session.expert_id,
     );
-    const expertUser = expert?.user as unknown as User | null;
+    const expertUser = expert?.user as User | null;
 
     // Resolve commissions via rules engine (falls back to system_settings)
     const [platformFeeResolved, gstResolved, buyerAgentResolved] =
@@ -189,7 +189,10 @@ export class EndCallUseCase {
         commissionRuleId: platformFeeResolved.ruleId,
       });
     } catch (err) {
-      console.error(`[EndCall] Failed to write ledger entry for ${sessionId}:`, err);
+      console.error(
+        `[EndCall] Failed to write ledger entry for ${sessionId}:`,
+        err,
+      );
     }
 
     // 🏦 Settlement Logic
@@ -344,7 +347,9 @@ export class EndCallUseCase {
             })
           : 'N/A';
         const expertName =
-          (expertUser?.name as string | null) || (expert.name as string | null) || 'Astrologer';
+          (expertUser?.name as string | null) ||
+          (expert.name as string | null) ||
+          'Astrologer';
         const duration = savedSession.duration_seconds
           ? (savedSession.duration_seconds / 60).toFixed(1)
           : '0';

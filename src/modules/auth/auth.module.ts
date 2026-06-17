@@ -12,7 +12,7 @@ import { DatabaseModule } from '@/core/database/database.module';
 import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
-import { QueueModule } from '../queue/queue.module';
+import { QueueModule } from '@/core/queue/queue.module';
 import { AgentModule } from '@/modules/agent/agent.module';
 
 import { UsedTokens } from './infrastructure/entities/used-tokens.entity';
@@ -176,4 +176,4 @@ const handlers = [
   controllers: [AuthController, MerchantAuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

@@ -17,8 +17,15 @@ export class UpdateBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(expertProfileId: string, id: string, dto: UpdateBankAccountDto) {
-    const account = await this.getBankAccountUseCase.execute(expertProfileId, id);
+  async execute(
+    expertProfileId: string,
+    id: string,
+    dto: UpdateBankAccountDto,
+  ) {
+    const account = await this.getBankAccountUseCase.execute(
+      expertProfileId,
+      id,
+    );
 
     if (!account.expert || !account.expert_id) {
       throw new NotFoundException('No Expert profile associated');

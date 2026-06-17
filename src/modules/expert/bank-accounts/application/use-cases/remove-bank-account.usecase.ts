@@ -17,7 +17,10 @@ export class RemoveBankAccountUseCase {
   ) {}
 
   async execute(expertProfileId: string, id: string) {
-    const account = await this.getBankAccountUseCase.execute(expertProfileId, id);
+    const account = await this.getBankAccountUseCase.execute(
+      expertProfileId,
+      id,
+    );
 
     BankAccountPolicy.ensureCanDelete(account);
 

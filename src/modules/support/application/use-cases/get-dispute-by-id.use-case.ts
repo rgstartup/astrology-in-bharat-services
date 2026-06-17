@@ -18,9 +18,12 @@ export class GetDisputeByIdUseCase {
       .where('dispute.id = :disputeId', { disputeId });
 
     if (!isAdmin) {
-      query.andWhere('(dispute.client_id = :profileId OR dispute.expert_id = :profileId)', {
-        profileId,
-      });
+      query.andWhere(
+        '(dispute.client_id = :profileId OR dispute.expert_id = :profileId)',
+        {
+          profileId,
+        },
+      );
     }
 
     const dispute = await query.getOne();

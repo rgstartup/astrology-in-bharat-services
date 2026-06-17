@@ -16,16 +16,13 @@ export class SendOrderOtpUseCase {
   ) {}
 
   async execute(merchantId: string, orderId: string) {
-    const { order } = await this.orderFacade.sendOrderOtp(
-      orderId,
-      merchantId,
-    );
+    const { order } = await this.orderFacade.sendOrderOtp(orderId, merchantId);
 
     const otp = order.delivery_otp;
     const title = 'Delivery Verification';
     const message = `Your delivery verification OTP for order #${orderId} is ${otp}. Please share this with the delivery partner.`;
 
-    const targetProfileId = order.client_id as string;
+    const targetProfileId = order.client_id;
 
     // 1. Save Notification
     await this.notificationFacade.create(

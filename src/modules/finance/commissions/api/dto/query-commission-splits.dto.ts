@@ -1,4 +1,11 @@
-import { IsEnum, IsOptional, IsUUID, IsDateString, IsInt, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsUUID,
+  IsDateString,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 

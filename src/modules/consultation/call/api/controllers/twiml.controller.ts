@@ -64,7 +64,10 @@ export class TwimlController {
         });
 
         if (session) {
-          const balance = await this.walletFacade.getBalance(session.client_id, 'client_id');
+          const balance = await this.walletFacade.getBalance(
+            session.client_id,
+            'client_id',
+          );
           // Safety check: ensure price_per_minute is a positive number to avoid division by zero or Infinity
           const price = session.price_per_minute || 0;
 

@@ -8,7 +8,10 @@
   ParseUUIDPipe,
   Query,
 } from '@nestjs/common';
-import { NotificationFacade, ProfileType } from '../../application/notification.facade';
+import {
+  NotificationFacade,
+  ProfileType,
+} from '../../application/notification.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
@@ -64,7 +67,10 @@ export class NotificationController {
     @CurrentProfile() profileId: string,
   ) {
     const profileType = deriveProfileType(user.roles);
-    const count = await this.notificationFacade.getUnreadCount(profileId, profileType);
+    const count = await this.notificationFacade.getUnreadCount(
+      profileId,
+      profileType,
+    );
     return { count };
   }
 
@@ -83,7 +89,10 @@ export class NotificationController {
     @CurrentProfile() profileId: string,
   ) {
     const profileType = deriveProfileType(user.roles);
-    const _result = await this.notificationFacade.clearAll(profileId, profileType);
+    const _result = await this.notificationFacade.clearAll(
+      profileId,
+      profileType,
+    );
     return { success: true };
   }
 }

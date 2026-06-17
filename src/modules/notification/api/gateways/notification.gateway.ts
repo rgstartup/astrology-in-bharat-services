@@ -26,7 +26,9 @@ export class NotificationGateway {
   ) {
     this.profileSockets.set(payload.profileId, client.id);
     await client.join(`profile_${payload.profileId}`);
-    this.logger.log(`Profile ${payload.profileId} registered for notifications`);
+    this.logger.log(
+      `Profile ${payload.profileId} registered for notifications`,
+    );
     return { status: 'registered' };
   }
 

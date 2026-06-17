@@ -15,7 +15,12 @@ export class GetNotificationsUseCase {
     private readonly notificationRepo: Repository<Notification>,
   ) {}
 
-  async execute(profileId: string, profileType: ProfileType, limit?: number, offset?: number) {
+  async execute(
+    profileId: string,
+    profileType: ProfileType,
+    limit?: number,
+    offset?: number,
+  ) {
     const where = this.buildWhere(profileId, profileType);
     const [data, totalCount] = await this.notificationRepo.findAndCount({
       where,

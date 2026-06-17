@@ -10,7 +10,7 @@ import {
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
 } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
-import { LedgerQueueService } from '@/modules/queue/services/ledger-queue.service';
+import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
 
 export interface CommissionSplitInput {
   referenceId: string;
@@ -28,7 +28,10 @@ export interface CommissionSplitInput {
   commissionRuleId?: string | null;
 }
 
-const splitRefTypeToLedgerEventType: Record<SplitReferenceType, GeneralLedgerEventType> = {
+const splitRefTypeToLedgerEventType: Record<
+  SplitReferenceType,
+  GeneralLedgerEventType
+> = {
   [SplitReferenceType.CHAT]: GeneralLedgerEventType.CONSULTATION,
   [SplitReferenceType.CALL]: GeneralLedgerEventType.CONSULTATION,
   [SplitReferenceType.PUJA]: GeneralLedgerEventType.PUJA,
@@ -43,7 +46,7 @@ export class CreateCommissionSplitUseCase {
     @InjectRepository(CommissionSplit)
     private readonly splitRepo: Repository<CommissionSplit>,
     private readonly ledgerQueueService: LedgerQueueService,
-  ) {}
+  ) { }
 
   async execute(
     input: CommissionSplitInput,

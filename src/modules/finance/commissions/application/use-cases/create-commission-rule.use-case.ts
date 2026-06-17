@@ -31,8 +31,12 @@ export class CreateCommissionRuleUseCase {
       applies_to_id: dto.applies_to_id ?? null,
       priority: dto.priority ?? 0,
       is_active: dto.is_active ?? true,
-      effective_from: dto.effective_from ? new Date(dto.effective_from) : new Date(),
-      effective_until: dto.effective_until ? new Date(dto.effective_until) : null,
+      effective_from: dto.effective_from
+        ? new Date(dto.effective_from)
+        : new Date(),
+      effective_until: dto.effective_until
+        ? new Date(dto.effective_until)
+        : null,
       tiers: (dto.tiers ?? []).map((t) => {
         const tier = new CommissionTier();
         tier.from_amount = t.from_amount;

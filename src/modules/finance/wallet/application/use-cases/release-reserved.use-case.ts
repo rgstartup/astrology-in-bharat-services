@@ -32,7 +32,9 @@ export class ReleaseReservedUseCase {
       });
 
       if (!wallet || Number(wallet.reserved_balance) < amount) {
-        throw new BadRequestException('Insufficient reserved balance to release');
+        throw new BadRequestException(
+          'Insufficient reserved balance to release',
+        );
       }
 
       const balanceBefore = Number(wallet.balance) || 0;

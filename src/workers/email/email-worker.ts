@@ -14,6 +14,6 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   // Keep the standalone process alive
-  setInterval(() => { }, 1000 * 60 * 60);
+  setInterval(() => {}, 1000 * 60 * 60);
 }
 bootstrap().catch((err) => console.error('Error starting Email Worker:', err));

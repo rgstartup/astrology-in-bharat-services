@@ -42,7 +42,7 @@ import { NotificationModule } from '@/modules/notification/notification.module';
 import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts.module';
 import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 import { GeneralLedgerEntry } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
-import { QueueModule } from '@/modules/queue/queue.module';
+import { QueueModule } from '@/core/queue/queue.module';
 
 @Module({
   imports: [
@@ -95,4 +95,4 @@ import { QueueModule } from '@/modules/queue/queue.module';
   controllers: [WalletController, PayoutWebhookController],
   exports: [WalletFacade],
 })
-export class WalletModule {}
+export class WalletModule { }

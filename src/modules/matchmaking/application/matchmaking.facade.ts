@@ -13,10 +13,7 @@ export class MatchmakingFacade {
     girl: Record<string, any>,
     boy: Record<string, any>,
   ) {
-    return this.calculateKundliMatchingUseCase.execute(
-      girl as any,
-      boy as any,
-    );
+    return this.calculateKundliMatchingUseCase.execute(girl as any, boy as any);
   }
 
   calculateLovePercentage(

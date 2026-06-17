@@ -50,7 +50,10 @@ export class ActivateSessionUseCase {
     session.start_time = new Date();
 
     // Calculate Max Duration based on Wallet Balance + Free Minutes
-    const balance = await this.walletFacade.getBalance(session.client_id, 'client_id');
+    const balance = await this.walletFacade.getBalance(
+      session.client_id,
+      'client_id',
+    );
     const paidMinutes =
       session.price_per_minute > 0 ? balance / session.price_per_minute : 60; // fallback 60 mins if price is 0
     const totalMinutes =
@@ -74,9 +77,7 @@ export class ActivateSessionUseCase {
       const profileClient = session.client;
 
       const userData = session.metadata || {
-        name:
-          session.client?.user?.name ||
-          profileClient?.name,
+        name: session.client?.user?.name || profileClient?.name,
         dob: profileClient?.date_of_birth,
         tob: profileClient?.time_of_birth,
         pob: profileClient?.place_of_birth,

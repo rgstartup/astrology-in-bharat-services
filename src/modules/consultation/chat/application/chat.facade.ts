@@ -108,7 +108,11 @@ export class ChatFacade {
     filter: ExpertSessionFilter,
     options: FindExpertSessionsOptions = {},
   ) {
-    return this.findExpertSessionsUseCase.execute(expertProfileId, filter, options);
+    return this.findExpertSessionsUseCase.execute(
+      expertProfileId,
+      filter,
+      options,
+    );
   }
 
   async getClientSessions(clientProfileId: string) {
