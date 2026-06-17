@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EmailQueueService } from './email-queue.service';
+import { EmailQueueService } from './services/email-queue.service';
+import { LedgerQueueService, LEDGER_QUEUE } from './services/ledger-queue.service';
 import { RedisConfig } from '@/config/redis.config';
 
 @Module({
@@ -22,11 +23,12 @@ import { RedisConfig } from '@/config/redis.config';
         };
       },
     }),
-    BullModule.registerQueue({
-      name: 'email',
-    }),
+    BullModule.registerQueue(
+      { name: 'email' },
+      { name: LEDGER_QUEUE }
+    ),
   ],
-  providers: [EmailQueueService],
-  exports: [EmailQueueService, BullModule],
+  providers: [EmailQueueService, LedgerQueueService],
+  exports: [EmailQueueService, LedgerQueueService, BullModule],
 })
-export class EmailQueueModule {}
+export class QueueModule {}

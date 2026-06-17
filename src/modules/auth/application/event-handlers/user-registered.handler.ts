@@ -1,7 +1,7 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
-import { EmailQueueService } from '@/modules/email-queue/email-queue.service';
+import { EmailQueueService } from '@/modules/queue/services/email-queue.service';
 import { ConfigService } from '@nestjs/config';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 

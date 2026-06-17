@@ -20,11 +20,28 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 import {
-  GeneralLedgerEntry,
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
 } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+import { LedgerQueueService } from '@/modules/queue/services/ledger-queue.service';
+
+const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+  [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
+  [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
+  [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
+  [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
+  [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+  [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
+  [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+};
+
+const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
+  client_id: GeneralLedgerPartyType.CLIENT,
+  expert_id: GeneralLedgerPartyType.EXPERT,
+  merchant_id: GeneralLedgerPartyType.MERCHANT,
+  agent_id: GeneralLedgerPartyType.AGENT,
+};
 
 @Injectable()
 export class CreditUseCase {
@@ -34,6 +51,7 @@ export class CreditUseCase {
     private readonly dataSource: DataSource,
     private readonly notificationFacade: NotificationFacade,
     private readonly notificationGateway: NotificationGateway,
+    private readonly ledgerQueueService: LedgerQueueService,
   ) {}
 
   async execute(
@@ -131,37 +149,15 @@ export class CreditUseCase {
         );
       }
 
-      // General ledger entry — non-blocking
-      try {
-        const purposeToEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
-          [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
-          [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
-          [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
-          [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
-          [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
-          [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-          [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
-        };
-        const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
-          client_id: GeneralLedgerPartyType.CLIENT,
-          expert_id: GeneralLedgerPartyType.EXPERT,
-          merchant_id: GeneralLedgerPartyType.MERCHANT,
-          agent_id: GeneralLedgerPartyType.AGENT,
-        };
-        const glEntry = qr.manager.create(GeneralLedgerEntry, {
-          event_id: referenceId ?? null,
-          event_type: purposeToEventType[purpose],
-          entry_type: GeneralLedgerEntryType.CREDIT,
-          party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
-          party_id: profileId,
-          amount,
-        });
-        await qr.manager.save(GeneralLedgerEntry, glEntry);
-      } catch (glErr) {
-        this.logger.error(
-          `[CREDIT_TX] General ledger write failed: ${(glErr as Error).message}`,
-        );
-      }
+      // Enqueue general ledger entry — fire-and-forget, never blocks the tx
+      void this.ledgerQueueService.enqueue({
+        event_id: referenceId ?? null,
+        event_type: purposeToLedgerEventType[purpose],
+        entry_type: GeneralLedgerEntryType.CREDIT,
+        party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+        party_id: profileId,
+        amount,
+      });
 
       // Update expert earning tracking
       if (

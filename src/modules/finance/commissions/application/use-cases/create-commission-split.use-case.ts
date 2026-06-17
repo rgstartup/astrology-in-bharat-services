@@ -6,11 +6,11 @@ import {
   SplitReferenceType,
 } from '../../infrastructure/entities/commission-split.entity';
 import {
-  GeneralLedgerEntry,
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
 } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+import { LedgerQueueService } from '@/modules/queue/services/ledger-queue.service';
 
 export interface CommissionSplitInput {
   referenceId: string;
@@ -42,6 +42,7 @@ export class CreateCommissionSplitUseCase {
   constructor(
     @InjectRepository(CommissionSplit)
     private readonly splitRepo: Repository<CommissionSplit>,
+    private readonly ledgerQueueService: LedgerQueueService,
   ) {}
 
   async execute(
@@ -68,28 +69,17 @@ export class CreateCommissionSplitUseCase {
       ? await qr.manager.save(CommissionSplit, split)
       : await this.splitRepo.save(split);
 
-    // Write platform revenue entry to general ledger — non-blocking
+    // Enqueue platform revenue entry — fire-and-forget
     if (saved.platform_net > 0) {
-      try {
-        const platformEntry = new GeneralLedgerEntry();
-        platformEntry.event_id = saved.reference_id;
-        platformEntry.event_type = splitRefTypeToLedgerEventType[saved.reference_type];
-        platformEntry.entry_type = GeneralLedgerEntryType.CREDIT;
-        platformEntry.party_type = GeneralLedgerPartyType.PLATFORM;
-        platformEntry.party_id = null;
-        platformEntry.amount = saved.platform_net;
-        platformEntry.note = `platform_fee=${saved.platform_fee} gst=${saved.gst}`;
-
-        if (qr) {
-          await qr.manager.save(GeneralLedgerEntry, platformEntry);
-        } else {
-          await this.splitRepo.manager.save(GeneralLedgerEntry, platformEntry);
-        }
-      } catch (glErr) {
-        this.logger.error(
-          `[COMMISSION_SPLIT] Platform ledger write failed: ${(glErr as Error).message}`,
-        );
-      }
+      void this.ledgerQueueService.enqueue({
+        event_id: saved.reference_id,
+        event_type: splitRefTypeToLedgerEventType[saved.reference_type],
+        entry_type: GeneralLedgerEntryType.CREDIT,
+        party_type: GeneralLedgerPartyType.PLATFORM,
+        party_id: null,
+        amount: saved.platform_net,
+        note: `platform_fee=${saved.platform_fee} gst=${saved.gst}`,
+      });
     }
 
     return saved;

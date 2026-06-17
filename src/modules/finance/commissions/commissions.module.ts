@@ -15,6 +15,8 @@ import { CommissionsFacade } from './application/commissions.facade';
 import { CommissionRulesController } from './api/controllers/commission-rules.controller';
 import { CommissionSplitsController } from './api/controllers/commission-splits.controller';
 
+import { QueueModule } from '@/modules/queue/queue.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -24,6 +26,7 @@ import { CommissionSplitsController } from './api/controllers/commission-splits.
       SystemSetting,
       GeneralLedgerEntry,
     ]),
+    QueueModule,
   ],
   providers: [
     ResolveCommissionUseCase,
