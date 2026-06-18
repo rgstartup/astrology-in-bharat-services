@@ -1,6 +1,6 @@
 import { Controller, Get, Logger, Req, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Request, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import 'dotenv/config';
 
