@@ -27,6 +27,11 @@ export const NodemailerProvider: Provider = {
         user: email.user as string,
         pass: ((email.pass as string) || '').replace(/\s+/g, ''),
       },
+      logger: true,
+      debug: true,
+      connectionTimeout: 10000, // 10 seconds timeout
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
   },
 };
