@@ -15,6 +15,9 @@ import { RedisConfig } from '@/config/redis.config';
           connection: {
             host: redisConfig?.host || 'localhost',
             port: redisConfig?.port || 6379,
+            password: redisConfig?.password,
+            username: redisConfig?.username,
+            tls: redisConfig?.tls,
           },
         };
       },
