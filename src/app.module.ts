@@ -26,6 +26,7 @@ import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointme
 import { MerchantModule } from './modules/merchant/merchant.module';
 import { ConsultationModule } from './modules/consultation/consultation.module';
 import { CommerceModule } from './modules/commerce/commerce.module';
+import { EmailWorkerModule } from './modules/email-worker/email-worker.module';
 import { APP_GUARD } from '@nestjs/core';
 import { BlockStatusGuard } from '@/common/guards/block-status.guard';
 
@@ -63,6 +64,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     MerchantModule,
     ConsultationModule,
     CommerceModule,
+    EmailWorkerModule,
   ],
   providers: [
     {
