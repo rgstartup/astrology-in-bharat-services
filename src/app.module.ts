@@ -26,8 +26,14 @@ import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointme
 import { MerchantModule } from './modules/merchant/merchant.module';
 import { ConsultationModule } from './modules/consultation/consultation.module';
 import { CommerceModule } from './modules/commerce/commerce.module';
+import { APP_GUARD } from '@nestjs/core';
+import { BlockStatusGuard } from '@/common/guards/block-status.guard';
+
+import { EventEmitterModule } from '@nestjs/event-emitter';
+
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
@@ -57,6 +63,12 @@ import { CommerceModule } from './modules/commerce/commerce.module';
     MerchantModule,
     ConsultationModule,
     CommerceModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: BlockStatusGuard,
+    },
   ],
 })
 export class AppModule {}

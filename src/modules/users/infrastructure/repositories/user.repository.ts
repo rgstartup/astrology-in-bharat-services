@@ -5,6 +5,7 @@ import { BaseService } from '@/common/services/transaction.service';
 import { User } from '../entities/user.entity';
 import { RoleEnum } from '../enums/Role.enum';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class UserRepository extends BaseService<User> {
@@ -52,13 +53,18 @@ export class UserRepository extends BaseService<User> {
     all: boolean = true,
     queryRunner?: QueryRunner,
   ): Promise<User | null> {
-    return this.getRepo(queryRunner).findOne({
-      where: { id },
-      relations: {
-        oauth_accounts: all,
-        sessions: all,
-      },
-    });
+    const query = this.getRepo(queryRunner)
+      .createQueryBuilder('user')
+      .where('user.id = :id', { id });
+
+    if (all) {
+      query.leftJoinAndSelect('user.oauth_accounts', 'oauth_accounts')
+           .leftJoinAndSelect('user.sessions', 'sessions')
+           .leftJoinAndMapOne('user.profile_client', ProfileClient, 'profile_client', 'profile_client.user_id = user.id')
+           .leftJoinAndMapOne('user.profile_expert', ProfileExpert, 'profile_expert', 'profile_expert.user_id = user.id');
+    }
+
+    return query.getOne();
   }
 
   async update(

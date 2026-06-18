@@ -23,6 +23,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class UpdateOrderStatusUseCase {
@@ -43,6 +44,7 @@ export class UpdateOrderStatusUseCase {
     status: OrderStatus,
     cancellationReason?: string,
     merchantId?: string,
+    user?: IUser,
   ) {
     const order = await this.orderRepo.findOne({
       where: { id },
@@ -89,6 +91,21 @@ export class UpdateOrderStatusUseCase {
       if (cancellationReason) {
         order.cancellation_reason = cancellationReason;
       }
+
+      // Append Audit Log
+      const updatedBy = user?.id || merchantId || 'system';
+      const role = user?.roles?.[0] || (merchantId ? 'merchant' : 'system');
+      
+      const newHistoryEntry = {
+        status: status,
+        updated_by: updatedBy,
+        role: role,
+        updated_at: new Date().toISOString()
+      };
+      
+      order.status_history = Array.isArray(order.status_history) 
+        ? [...order.status_history, newHistoryEntry] 
+        : [newHistoryEntry];
 
       // Generate Delivery OTP when status becomes SHIPPED
       if (status === OrderStatus.SHIPPED && !order.delivery_otp) {

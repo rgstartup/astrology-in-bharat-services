@@ -38,6 +38,7 @@ import {
 import { MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
 import { PaginationDto } from '@/common/dto/pagination.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Controller({
   path: 'admin',
@@ -53,6 +54,7 @@ export class AdminController {
     private readonly chatFacade: ChatFacade,
     private readonly couponFacade: CouponFacade,
     private readonly reviewsFacade: ReviewsFacade,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // Review Management
@@ -183,6 +185,14 @@ export class AdminController {
     const _result = await this.usersFacade.update(id, {
       is_blocked: body.isBlocked,
     } as Partial<User>);
+    
+    if (body.isBlocked) {
+      console.log(`[AdminController] Emitting user.blocked for user: ${id}`);
+      this.eventEmitter.emit('user.blocked', { userId: id });
+    } else {
+      console.log(`[AdminController] Unblocking user: ${id}`);
+    }
+
     return { success: true };
   }
 

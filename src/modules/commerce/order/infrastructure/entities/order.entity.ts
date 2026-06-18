@@ -96,6 +96,9 @@ export class Order {
   })
   items!: OrderItem[];
 
+  @Column({ name: 'status_history', type: 'jsonb', default: [] })
+  status_history!: Array<{ status: string; updated_by: string; updated_at: string; role: string }>;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;
 

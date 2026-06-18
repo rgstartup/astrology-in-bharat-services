@@ -74,11 +74,11 @@ export class GetAgentStatsUseCase {
       }
 
       const registeredUserIds = (profile?.registered_user_ids || []).filter(
-        (id) => id && typeof id === 'number',
+        (id) => id && typeof id === 'string',
       );
       const registeredAstrologerIds = (
         profile?.registered_astrologer_ids || []
-      ).filter((id) => id && typeof id === 'number');
+      ).filter((id) => id && typeof id === 'string');
       const allRegisteredIds = Array.from(
         new Set([...registeredUserIds, ...registeredAstrologerIds]),
       );
@@ -246,12 +246,12 @@ export class GetAgentStatsUseCase {
                     TO_CHAR(t.created_at, 'MM') as month_num
                 FROM finance.transactions t
                 JOIN finance.wallets w ON t.wallet_id = w.id
-                WHERE w.user_id = $1 AND t.purpose = 'agent_commission'
+                WHERE w.agent_id = $1 AND t.purpose = 'agent_commission'
                 AND t.created_at >= ${fromDate}
                 GROUP BY name, month_num
                 ORDER BY month_num ASC
             `,
-        [userId],
+        [profile.id],
       );
 
       const registrationActivityRaw: Array<{
@@ -281,10 +281,10 @@ export class GetAgentStatsUseCase {
                 SELECT SUM(t.amount)::float as total
                 FROM finance.transactions t
                 JOIN finance.wallets w ON t.wallet_id = w.id
-                WHERE w.user_id = $1 AND t.purpose = 'agent_commission'
+                WHERE w.agent_id = $1 AND t.purpose = 'agent_commission'
                 AND t.created_at >= ${fromDate}
             `,
-          [userId],
+          [profile.id],
         );
 
       const agentsWithHigherEarnings = await this.profileAgentRepo.count({

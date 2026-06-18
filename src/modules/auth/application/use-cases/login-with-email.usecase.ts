@@ -1,4 +1,4 @@
-﻿import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from '../../api/dto';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthPolicy } from '../../domain/policies/auth.policy';

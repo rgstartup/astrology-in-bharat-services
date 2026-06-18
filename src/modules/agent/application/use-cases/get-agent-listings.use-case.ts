@@ -222,7 +222,7 @@ export class GetAgentListingsUseCase {
       if (isPlaceType || isAll) {
         const qb = this.agentListingRepo
           .createQueryBuilder('al')
-          .where('al.agent_id = :agentId', { agentId: Number(userId) });
+          .where('al.agent_id = :agentId', { agentId: userId });
 
         if (isPlaceType) {
           qb.andWhere('al.type = :type', { type });

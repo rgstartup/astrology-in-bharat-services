@@ -1,4 +1,4 @@
-﻿// src/users/user.entity.ts
+// src/users/user.entity.ts
 import {
   Entity,
   Column,
@@ -37,6 +37,9 @@ export class User {
 
   @Column({ type: 'text', nullable: true })
   avatar!: string | null;
+
+  @Column({ type: 'boolean', default: false })
+  is_blocked!: boolean;
 
   @Column({ type: 'enum', enum: RoleEnum, array: true, default: '{client}' })
   roles!: RoleEnum[];

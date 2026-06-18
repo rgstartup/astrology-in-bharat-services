@@ -77,12 +77,14 @@ export class OrderFacade {
     status: OrderStatus,
     cancellationReason?: string,
     merchantId?: string,
+    user?: any,
   ) {
     return this.updateOrderStatusUseCase.execute(
       id,
       status,
       cancellationReason,
       merchantId,
+      user,
     );
   }
 

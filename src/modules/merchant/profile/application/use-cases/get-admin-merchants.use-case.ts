@@ -53,6 +53,26 @@ export class GetAdminMerchantsUseCase {
         };
       }
 
+      const merchantIds = merchants.map((m) => m.id);
+      const itemsSoldMap = new Map<string, number>();
+      
+      try {
+        const salesData = await this.merchantRepository.manager.query(
+          `SELECT p.merchant_id, SUM(oi.quantity) as items_sold
+           FROM commerce.products p
+           JOIN commerce.order_items oi ON p.id = oi.product_id
+           WHERE p.merchant_id = ANY($1)
+           GROUP BY p.merchant_id`,
+          [merchantIds]
+        );
+        
+        for (const row of salesData) {
+          itemsSoldMap.set(row.merchant_id, Number(row.items_sold));
+        }
+      } catch (error) {
+        console.error('Failed to calculate items sold:', error);
+      }
+
       return {
         data: merchants.map((m) => {
           const decryptedPan = this.encryptionService.decrypt(m.pan);
@@ -87,6 +107,7 @@ export class GetAdminMerchantsUseCase {
             panBack: m.panBack,
             aadharFront: m.aadharFront,
             aadharBack: m.aadharBack,
+            items: itemsSoldMap.get(m.id) || 0,
             fullDetails: {
               pan: decryptedPan,
               accountNumber: decryptedAcc,

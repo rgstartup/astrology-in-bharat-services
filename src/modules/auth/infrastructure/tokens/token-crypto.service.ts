@@ -20,7 +20,7 @@ export class TokenCryptoService {
 
   async createAccessToken<T extends object>(payload: T) {
     return this.jwtService.signAsync(payload, {
-      expiresIn: this.config.jwtExpiresIn as string | number,
+      expiresIn: this.config.jwtExpiresIn as any,
     });
   }
 

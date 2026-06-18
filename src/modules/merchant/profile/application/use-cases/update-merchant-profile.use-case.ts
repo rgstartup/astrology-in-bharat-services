@@ -1,5 +1,5 @@
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -138,6 +138,16 @@ export class UpdateMerchantProfileUseCase {
       // Convert strings to booleans for multipart form data
       const isOnline =
         dto.isOnline === true || dto.isOnline === 'true' || dto.isOnline === 1;
+
+      if (dto.isOnline !== undefined && isOnline) {
+        if (profile.user?.is_blocked) {
+          throw new ForbiddenException('Your account has been blocked by the administrator. You cannot perform this action.');
+        }
+        if (profile.status !== 'active') {
+          throw new ForbiddenException('Your account is inactive. You cannot go online.');
+        }
+      }
+
       const statusChanged =
         dto.isOnline !== undefined && !!profile.isOnline !== !!isOnline;
       if (dto.isOnline !== undefined) profile.isOnline = !!isOnline;

@@ -10,6 +10,7 @@ import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @WebSocketGateway({
   cors: {
@@ -28,7 +29,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private logger: Logger = new Logger('ExpertGateway');
 
   // Track online experts: userId -> Set of socketIds
-  private expertSockets: Map<number, Set<string>> = new Map();
+  private expertSockets: Map<string, Set<string>> = new Map();
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -94,7 +95,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('expert_online')
   async handleExpertOnline(client: Socket, payload: { userId: string }) {
-    const userId = Number(payload.userId);
+    const userId = payload.userId;
     if (!userId) return { status: 'error', message: 'Invalid userId' };
 
     if (!this.expertSockets.has(userId)) {
@@ -149,7 +150,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('expert_offline')
   async handleExpertOffline(client: Socket, payload: { userId: string }) {
-    const userId = Number(payload.userId);
+    const userId = payload.userId;
     if (!userId) return { status: 'error', message: 'Invalid userId' };
 
     const socketIds = this.expertSockets.get(userId);
@@ -218,6 +219,51 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Method to check if an expert is online
   isExpertOnline(userId: string): boolean {
-    return this.expertSockets.has(Number(userId));
+    return this.expertSockets.has(userId);
+  }
+
+  @OnEvent('user.blocked')
+  async handleUserBlocked(payload: { userId: string }) {
+    console.log(`[ExpertGateway] Received user.blocked event for userId: ${payload.userId}`);
+    const { userId } = payload;
+    this.logger.warn(`[Socket] Force disconnecting blocked user ${userId}`);
+    
+    // Disconnect socket if connected
+    const socketIds = this.expertSockets.get(userId);
+    if (socketIds && socketIds.size > 0) {
+      for (const socketId of socketIds) {
+        const client = this.server.sockets.sockets.get(socketId);
+        if (client) {
+          // Tell the frontend that it is now offline so the UI updates automatically
+          client.emit('expert_status_changed', {
+            expert_id: userId,
+            is_available: false,
+            status: 'offline',
+            timestamp: new Date().toISOString(),
+          });
+          
+          client.emit('error', { message: 'Your account has been blocked by the administrator. You cannot perform this action.' });
+          
+          // Delay disconnect to ensure packets are flushed
+          setTimeout(() => {
+            try {
+              client.disconnect(true);
+            } catch (e) {}
+          }, 1000);
+        }
+      }
+      this.expertSockets.delete(userId);
+    }
+
+    // Force offline in database directly
+    try {
+      await this.profileRepo.update(
+        { user: { id: userId } },
+        { is_available: false }
+      );
+      this.logger.log(`[Socket] Blocked user ${userId} forced offline in database`);
+    } catch (error) {
+      this.logger.error(`[Socket] Failed to force offline blocked user ${userId}:`, error);
+    }
   }
 }

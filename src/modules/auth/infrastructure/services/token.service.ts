@@ -41,7 +41,7 @@ export class TokenService extends BaseService<Session> {
   ) {
     const accessToken = await this.jwtService.signAsync(
       { userId: user.id, roles: user.roles },
-      { expiresIn: this.jwtConfig?.jwtExpiresIn },
+      { expiresIn: this.jwtConfig?.jwtExpiresIn as any },
     );
 
     const refreshTokenRaw = randomBytes(64).toString('hex');

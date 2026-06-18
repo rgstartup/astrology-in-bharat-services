@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef, ForbiddenException } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -27,9 +27,18 @@ export class UpdateStatusUseCase {
     const where = user.profile
       ? { id: user.profile, user: { id: user.id } }
       : { user: { id: user.id } };
-    const profile = await this.profileRepo.findOne({ where });
+    const profile = await this.profileRepo.findOne({ where, relations: ['user'] });
 
     ProfilePolicy.ensureProfileExists(profile);
+
+    // Only block the action if they are trying to go ONLINE while blocked
+    if (profile.user?.is_blocked && isAvailable) {
+      throw new ForbiddenException('Your account has been blocked by the administrator. You cannot perform this action.');
+    }
+
+    if (isAvailable && profile.kyc_status !== 'approved') {
+      throw new ForbiddenException('Your account is inactive. You cannot go online.');
+    }
 
     // Business Logic: Prevent going offline if there are active sessions
     if (isAvailable === false) {

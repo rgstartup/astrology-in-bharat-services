@@ -17,6 +17,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderStatusDto } from '../dto/update-order-status.dto';
+import { IUser } from '@/common/types/access-token.payload';
 
 // Standard Controller (Plural 'orders') - Restores /api/v1/orders
 @Controller({
@@ -85,11 +86,14 @@ export class OrderController {
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateOrderStatusDto,
+    @CurrentUser() user: IUser,
   ) {
     const _result = await this.orderFacade.updateOrderStatus(
       id,
       dto.status,
       dto.cancellation_reason,
+      undefined,
+      user,
     );
     return { success: true };
   }
@@ -154,11 +158,14 @@ export class OrderSingularController {
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateOrderStatusDto,
+    @CurrentUser() user: IUser,
   ) {
     const _result = await this.orderFacade.updateOrderStatus(
       id,
       dto.status,
       dto.cancellation_reason,
+      undefined,
+      user,
     );
     return { success: true };
   }
