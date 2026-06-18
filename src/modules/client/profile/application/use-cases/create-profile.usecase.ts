@@ -6,6 +6,7 @@ import { CreateProfileClientDto } from '../../infrastructure/dto/profile-client.
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileCreatedEvent } from '../../domain/events/profile-events';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import * as crypto from 'crypto';
 import { BaseService } from '@/common/services/transaction.service';
 
 @Injectable()
@@ -34,6 +35,9 @@ export class CreateProfileUseCase extends BaseService<ProfileClient> {
     const profile = repo.create();
     Object.assign(profile, dto);
     profile.user = { id: userId } as unknown as User;
+    
+    const suffix = crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
+    profile.uid = `AIB-USR-${suffix}`;
 
     const savedProfile = await repo.save(profile);
 
