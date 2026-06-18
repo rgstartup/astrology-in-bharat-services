@@ -65,7 +65,7 @@ export class GetMerchantDetailsUseCase {
     return {
       id: merchant.id,
       name: merchant.shopName || merchant.user?.name || 'Unnamed Shop',
-      image: merchant.user?.avatar || '',
+      image: merchant.image || merchant.user?.avatar || '',
       address: merchant.address || '',
       city: merchant.city || '',
       pincode: merchant.pincode || '',
