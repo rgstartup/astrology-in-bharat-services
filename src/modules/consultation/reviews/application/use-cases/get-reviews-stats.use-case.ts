@@ -25,6 +25,7 @@ export class GetReviewsStatsUseCase {
       .select('CAST(review.rating AS INTEGER)', 'rating')
       .addSelect('COUNT(*)', 'count')
       .where('review.expert_id = :expert_id', { expert_id })
+      .andWhere('review.status = :status', { status: 'approved' })
       .groupBy('review.rating')
       .getRawMany();
 
