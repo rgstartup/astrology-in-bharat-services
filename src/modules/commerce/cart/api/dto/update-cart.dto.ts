@@ -1,9 +1,8 @@
-import { IsInt, IsNotEmpty, IsPositive } from 'class-validator';
+import { IsInt, IsNotEmpty, IsPositive, IsString } from 'class-validator';
 
 export class UpdateCartItemDto {
   @IsNotEmpty()
-  @IsInt()
-  @IsPositive()
+  @IsString()
   productId: string;
 
   @IsNotEmpty()
