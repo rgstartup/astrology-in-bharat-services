@@ -37,16 +37,25 @@ export class GetReviewsStatsUseCase {
       '5': 0,
     };
 
+    let calculatedTotalReviews = 0;
+    let sumRatings = 0;
+
     const countsResult = result as Array<Record<string, string>>;
     countsResult.forEach((row) => {
       const ratingKey = row.rating.toString();
       if (Object.prototype.hasOwnProperty.call(counts, ratingKey)) {
-        counts[ratingKey] = parseInt(row.count, 10);
+        const count = parseInt(row.count, 10);
+        counts[ratingKey] = count;
+        calculatedTotalReviews += count;
+        sumRatings += (parseInt(ratingKey, 10) * count);
       }
     });
+
+    const averageRating = calculatedTotalReviews > 0 ? sumRatings / calculatedTotalReviews : 0;
+
     return {
-      rating: expert.rating,
-      totalReviews: expert.total_reviews,
+      rating: Number(averageRating.toFixed(1)),
+      totalReviews: calculatedTotalReviews,
       counts,
     };
   }
