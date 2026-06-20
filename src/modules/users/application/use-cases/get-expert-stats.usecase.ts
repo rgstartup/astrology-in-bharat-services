@@ -13,59 +13,40 @@ export class GetExpertStatsUseCase {
   ) {}
 
   async execute() {
-    const total_experts = await this.userRepository
-      .createQueryBuilder('user')
-      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
-      .getCount();
 
-    const activeExperts = await this.userRepository
-      .createQueryBuilder('user')
-      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
-      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
-      .andWhere('profile.kyc_status = :status', { status: 'approved' })
-      .getCount();
-
-    const pendingExperts = await this.userRepository
-      .createQueryBuilder('user')
-      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
-      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
-      .andWhere('profile.kyc_status = :status', { status: 'pending' })
-      .getCount();
-
-    const blockedExperts = await this.userRepository
-      .createQueryBuilder('user')
-      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
-      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
-      .andWhere('profile.is_blocked = :isBlocked', { isBlocked: true })
-      .getCount();
-
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const recentExperts = await this.userRepository
+    const result = await this.userRepository
       .createQueryBuilder('user')
-      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
-      .andWhere('"user".created_at >= :today', { today })
-      .getCount();
-
-    const rejectedExperts = await this.userRepository
-      .createQueryBuilder('user')
-      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
       .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
-      .andWhere('profile.kyc_status = :status', { status: 'rejected' })
-      .getCount();
+      .select([
+        'COUNT(*) AS total_experts',
+        'COUNT(*) FILTER (WHERE profile.kyc_status = :approved) AS active_experts',
+        'COUNT(*) FILTER (WHERE profile.kyc_status = :pending) AS pending_experts',
+        'COUNT(*) FILTER (WHERE profile.kyc_status = :rejected) AS rejected_experts',
+        'COUNT(*) FILTER (WHERE profile.is_blocked) AS blocked_experts',
+        'COUNT(*) FILTER (WHERE user.created_at >= today) = :today AS recent_experts',
+      ])
+      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
+      .setParameters({
+        role: RoleEnum.EXPERT,
+        approved: "approved",
+        pending: "pending",
+        rejected: "rejected",
+        today
+      })
+      .getRawOne()
 
     return {
-      total_experts,
-      activeExperts,
-      pendingExperts,
-      rejectedExperts,
-      blockedExperts,
-      recentExperts,
+      total_experts: Number(result.total_experts),
+      activeExperts: result.active_experts,
+      pendingExperts: result.pending_experts,
+      rejectedExperts: result.rejected_experts,
+      blockedExperts: result.blocked_experts,
+      recentExperts: result.recent_experts,
       trends: {
-        recent: recentExperts,
+        recent: result.recent_experts,
       },
     };
   }
