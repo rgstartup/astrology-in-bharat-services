@@ -19,6 +19,8 @@ export class SaveMessageUseCase {
     senderType: 'user' | 'expert',
     content: string,
     type: MessageType = MessageType.TEXT,
+    attachmentUrl?: string,
+    attachmentType?: string,
   ) {
     const message = this.messageRepo.create({
       session_id: sessionId,
@@ -26,6 +28,8 @@ export class SaveMessageUseCase {
       sender_type: senderType,
       content,
       type,
+      attachment_url: attachmentUrl,
+      attachment_type: attachmentType,
     });
 
     return this.messageRepo.save(message);
