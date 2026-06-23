@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryBuilder, Repository, SelectQueryBuilder } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
 
 @Injectable()
@@ -39,13 +39,7 @@ export class GetAdminReviewsUseCase {
       queryBuilder.andWhere('review.status = :status', { status });
     }
 
-    if (ratingType === 'good') {
-      queryBuilder.andWhere('review.rating >= 4');
-    } else if (ratingType === 'moderate') {
-      queryBuilder.andWhere('review.rating = 3');
-    } else if (ratingType === 'bad') {
-      queryBuilder.andWhere('review.rating <= 2');
-    }
+    this.addRating(ratingType, queryBuilder)
 
     if (search) {
       queryBuilder.andWhere(
@@ -99,5 +93,12 @@ export class GetAdminReviewsUseCase {
       page,
       limit,
     };
+  }
+
+
+  private addRating(rating_type: string | undefined, queryBuilder: SelectQueryBuilder<Review>){
+    if(rating_type === 'good') return queryBuilder.andWhere('review.rating >= 4');
+    if(rating_type === 'moderate') return queryBuilder.andWhere('review.rating = 3')
+      return queryBuilder.andWhere('review.rating <= 2')
   }
 }
