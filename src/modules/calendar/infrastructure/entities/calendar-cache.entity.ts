@@ -1,4 +1,4 @@
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '../../../../common/decorators/primary-key.decorator';
 import {
   Entity,
   Column,

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
-import { GetDailyPanchangUseCase } from './get-daily-panchang.usecase';
+import { GetYearlyFestivalsUseCase } from './get-yearly-festivals.usecase';
 
 @Injectable()
 export class GetMonthlyCalendarUseCase {
@@ -11,7 +11,7 @@ export class GetMonthlyCalendarUseCase {
   constructor(
     @InjectRepository(CalendarCache)
     private readonly cacheRepository: Repository<CalendarCache>,
-    private readonly getDailyPanchangUseCase: GetDailyPanchangUseCase,
+    private readonly getYearlyFestivalsUseCase: GetYearlyFestivalsUseCase,
   ) {}
 
   async execute(
@@ -22,7 +22,7 @@ export class GetMonthlyCalendarUseCase {
     lang: string = 'en',
   ) {
     const type = 'monthly';
-    const cacheKey = `${year}-${month}-${lat}-${lon}-${lang}-v2`;
+    const cacheKey = `${year}-${month}-${lang}-v3`;
 
     const cached = await this.cacheRepository.findOne({
       where: { type, cacheKey },
@@ -34,29 +34,36 @@ export class GetMonthlyCalendarUseCase {
 
     this.logger.log(`Fetching fresh monthly calendar for ${cacheKey}`);
 
-    // Get last day of the month
-    const lastDay = new Date(year, month, 0).getDate();
-    const monthlyData: unknown[] = [];
+    let festivalsRaw: any = {};
+    try {
+      festivalsRaw = await this.getYearlyFestivalsUseCase.execute(year, lang);
+    } catch (e) {
+      this.logger.error('Failed to fetch yearly festivals', e);
+    }
 
-    const sleep = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
+    const festivalsList = (festivalsRaw?.data || []) as any[];
+
+    const lastDay = new Date(year, month, 0).getDate();
+    const monthlyData: any[] = [];
+    const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
     for (let day = 1; day <= lastDay; day++) {
       const paddedDay = day.toString().padStart(2, '0');
       const paddedMonth = month.toString().padStart(2, '0');
       const dateStr = `${year}-${paddedMonth}-${paddedDay}`;
+      
+      const dateObj = new Date(year, month - 1, day);
+      const dayName = WEEKDAYS[dateObj.getDay()];
 
-      this.logger.debug(`Fetching panchang for ${dateStr}`);
-      const dailyData = await this.getDailyPanchangUseCase.execute(
-        dateStr,
-        lat,
-        lon,
-        lang,
-      );
-      monthlyData.push(dailyData);
+      const dayFestivals = festivalsList
+        .filter((f) => f.date && f.date.startsWith(dateStr))
+        .map((f) => f.name);
 
-      // Avoid Prokerala rate limit (429) — wait 1s between each call
-      if (day < lastDay) await sleep(1000);
+      monthlyData.push({
+        date: dateStr,
+        dayName,
+        festivals: dayFestivals,
+      });
     }
 
     const newCache = this.cacheRepository.create({

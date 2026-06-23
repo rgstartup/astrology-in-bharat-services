@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
-import { ProkeralaService } from '@/external/prokerala/prokerala.service';
+import { ProkeralaService } from '../../../../external/prokerala/prokerala.service';
 
 @Injectable()
 export class GetDailyPanchangUseCase {
@@ -34,7 +34,7 @@ export class GetDailyPanchangUseCase {
       string,
       unknown
     >;
-    const panchang = (data.panchang || rawResponse?.panchang || {}) as Record<
+    const panchang = (data.panchang || rawResponse?.panchang || data || {}) as Record<
       string,
       unknown
     >;
@@ -108,7 +108,7 @@ export class GetDailyPanchangUseCase {
         end: 'N/A',
       },
 
-      shubh_muhurat: {
+      shubhMuhurat: {
         abhijit: getMuhurat(auspicious, 'abhijit') || {
           start: 'N/A',
           end: 'N/A',
@@ -118,8 +118,8 @@ export class GetDailyPanchangUseCase {
           end: 'N/A',
         },
       },
-      ashubh_muhurat: {
-        rahu_kalam: getMuhurat(inauspicious, 'rahu') || {
+      ashubhMuhurat: {
+        rahuKalam: getMuhurat(inauspicious, 'rahu') || {
           start: 'N/A',
           end: 'N/A',
         },
@@ -146,7 +146,7 @@ export class GetDailyPanchangUseCase {
 
   async execute(date: string, lat: string, lon: string, lang: string = 'en') {
     const type = 'daily';
-    const cacheKey = `${date}-${lat}-${lon}-${lang}-v3`; // Increment version to bypass old caches
+    const cacheKey = `${date}-${lat}-${lon}-${lang}-v5`; // Increment version to bypass old caches
 
     const cached = await this.cacheRepository.findOne({
       where: { type, cacheKey },
