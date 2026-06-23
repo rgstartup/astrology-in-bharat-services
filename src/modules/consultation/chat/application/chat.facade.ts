@@ -85,6 +85,8 @@ export class ChatFacade {
     senderType: 'user' | 'expert',
     content: string,
     type?: MessageType,
+    attachmentUrl?: string,
+    attachmentType?: string,
   ) {
     return this.saveMessageUseCase.execute(
       sessionId,
@@ -92,6 +94,8 @@ export class ChatFacade {
       senderType,
       content,
       type,
+      attachmentUrl,
+      attachmentType,
     );
   }
 

@@ -9,6 +9,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger, Inject, forwardRef } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { ChatFacade } from './application/chat.facade';
 import { MessageType } from './infrastructure/entities/chat-message.entity';
 import {
@@ -30,12 +32,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private logger: Logger = new Logger('ChatGateway');
   private sessionTimers = new Map<string, NodeJS.Timeout>();
   private expertSockets = new Map<string, string>(); // expert_id -> socketId
+  private disconnectTimers = new Map<string, NodeJS.Timeout>(); // expert_id -> timeout
 
   constructor(
     @Inject(forwardRef(() => ChatFacade))
     private readonly chatFacade: ChatFacade,
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
+    @InjectRepository(ChatSession)
+    private readonly sessionRepo: Repository<ChatSession>,
   ) {}
 
   handleConnection(client: Socket) {
@@ -49,6 +54,25 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (socketId === client.id) {
         this.expertSockets.delete(expert_id);
         this.logger.log(`Expert ${expert_id} unregistered due to disconnect`);
+        
+        // Start a 15-second timer to end their active chats if they don't reconnect
+        const timer = setTimeout(async () => {
+          this.logger.log(`Expert ${expert_id} did not reconnect in 15s. Ending their active chats.`);
+          try {
+            const activeSessions = await this.sessionRepo.find({
+              where: { expert_id, status: ChatSessionStatus.ACTIVE }
+            });
+            for (const session of activeSessions) {
+              await this.chatFacade.endChat(session.id);
+              this.logger.log(`Ended active session ${session.id} due to expert disconnect timeout.`);
+            }
+          } catch (error) {
+            this.logger.error(`Error ending active chats for expert ${expert_id}:`, error);
+          }
+          this.disconnectTimers.delete(expert_id);
+        }, 15000);
+        
+        this.disconnectTimers.set(expert_id, timer);
         break;
       }
     }
@@ -65,7 +89,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `Expert ${payload.expert_id} registered and joined expert_${payload.expert_id}`,
     );
 
+    if (this.disconnectTimers.has(payload.expert_id)) {
+      clearTimeout(this.disconnectTimers.get(payload.expert_id)!);
+      this.disconnectTimers.delete(payload.expert_id);
+      this.logger.log(`Expert ${payload.expert_id} reconnected. Cancelled disconnect timer.`);
+    }
+
     return { status: 'registered' };
+  }
+
+  @SubscribeMessage('force_end_active_chats')
+  async handleForceEndActiveChats(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { expert_id: string },
+  ) {
+    this.logger.log(`Received force_end_active_chats for expert ${payload.expert_id}`);
+    try {
+      const activeSessions = await this.sessionRepo.find({
+        where: { expert_id: payload.expert_id, status: ChatSessionStatus.ACTIVE }
+      });
+      for (const session of activeSessions) {
+        await this.chatFacade.endChat(session.id);
+        this.logger.log(`Ended active session ${session.id} due to explicit offline toggle.`);
+      }
+    } catch (error) {
+      this.logger.error(`Error ending active chats for expert ${payload.expert_id} on force end:`, error);
+    }
   }
 
   async getWalletBalance(profileId: string): Promise<number> {
@@ -338,6 +387,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       senderType: 'user' | 'expert';
       content: string;
       type?: MessageType;
+      attachmentUrl?: string;
+      attachmentType?: string;
     },
   ) {
     // Validation: Only allow messages if session is active
@@ -352,6 +403,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.senderType,
       payload.content,
       payload.type || MessageType.TEXT,
+      payload.attachmentUrl,
+      payload.attachmentType,
     );
 
     this.server.to(`room_${payload.sessionId}`).emit('new_message', savedMsg);
