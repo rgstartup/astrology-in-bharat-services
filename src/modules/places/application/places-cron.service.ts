@@ -12,11 +12,11 @@ export class PlacesCronService {
     private readonly refreshPlaceImagesCacheUseCase: RefreshPlaceImagesCacheUseCase,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron('0 0 * * 0') // Every Sunday at midnight (Weekly)
   async handleCron() {
-    this.logger.log('Starting daily Places cache refresh...');
+    this.logger.log('Starting weekly Places cache cleanup...');
     await this.refreshPlaceSearchCacheUseCase.execute();
     await this.refreshPlaceImagesCacheUseCase.execute();
-    this.logger.log('Places cache refresh completed.');
+    this.logger.log('Weekly Places cache cleanup completed.');
   }
 }

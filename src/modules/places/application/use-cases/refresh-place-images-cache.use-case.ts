@@ -17,22 +17,12 @@ export class RefreshPlaceImagesCacheUseCase {
   ) {}
 
   async execute() {
-    const allImages = await this.imageRepository.find();
-    for (const entry of allImages) {
-      try {
-        const rawResults = await this.serperService.fetchImages(entry.query);
-        const normalizedResults = this.placesMapper.mapSerperImages(
-          (rawResults.images as Record<string, unknown>[]) || [],
-        );
-        entry.results = normalizedResults;
-        entry.last_synced = new Date();
-        await this.imageRepository.save(entry);
-        this.logger.log(`Refreshed images for: ${entry.query}`);
-      } catch (error) {
-        this.logger.error(
-          `Failed to refresh images for ${entry.query}: ${(error as Error).message}`,
-        );
-      }
+    this.logger.log('Starting weekly Places image cache cleanup...');
+    try {
+      await this.imageRepository.clear(); // Truncates the table to clear all cached images
+      this.logger.log('Successfully cleared all cached images to fetch fresh data on next search.');
+    } catch (error) {
+      this.logger.error(`Failed to clear image cache: ${(error as Error).message}`);
     }
   }
 }

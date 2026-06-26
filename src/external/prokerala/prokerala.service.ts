@@ -1,5 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ProkeralaCacheEntity } from './entities/prokerala-cache.entity';
 
 export interface ProkeralaPersonParam {
   datetime: string;
@@ -17,7 +20,11 @@ export class ProkeralaService {
   private accessToken: string | null = null;
   private tokenExpiry: number | null = null;
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    @InjectRepository(ProkeralaCacheEntity)
+    private readonly cacheRepo: Repository<ProkeralaCacheEntity>,
+  ) {}
 
   private async getAccessToken(): Promise<string> {
     if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
@@ -97,6 +104,15 @@ export class ProkeralaService {
   }
 
   async getDailyHoroscope(sign: string, lang: string = 'en') {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const cacheKey = `horoscope-${sign}-${lang}-${todayStr}`;
+
+    const cached = await this.cacheRepo.findOne({ where: { cacheKey } });
+    if (cached) {
+      console.log(`[ProkeralaService] Returning DB cached horoscope for ${cacheKey}`);
+      return cached.data;
+    }
+
     const token = await this.getAccessToken();
     const today = new Date().toISOString();
 
@@ -148,6 +164,11 @@ export class ProkeralaService {
       }
     }
 
+    try {
+      await this.cacheRepo.save(this.cacheRepo.create({ cacheKey, data: result }));
+    } catch (e) {
+      console.error(`[ProkeralaService] Failed to save cache for ${cacheKey}`, e);
+    }
     return result;
   }
 
@@ -219,6 +240,92 @@ export class ProkeralaService {
     );
 
     return this.handleResponse(response);
+  }
+
+  async getPanchang(params: {
+    datetime: string;
+    lat: string;
+    lon: string;
+    lang?: string;
+  }) {
+    const dateStr = params.datetime.split('T')[0];
+    const cacheKey = `panchang-${dateStr}-${params.lat}-${params.lon}-${params.lang || 'en'}`;
+    
+    const cached = await this.cacheRepo.findOne({ where: { cacheKey } });
+    if (cached) {
+      console.log(`[ProkeralaService] Returning DB cached panchang for ${cacheKey}`);
+      return cached.data;
+    }
+
+    const token = await this.getAccessToken();
+
+    const queryParams = new URLSearchParams({
+      ayanamsa: '1',
+      datetime: params.datetime,
+      coordinates: `${params.lat},${params.lon}`,
+      la: params.lang || 'en',
+    });
+
+    const response = await fetch(
+      `https://api.prokerala.com/v2/astrology/panchang/advanced?${queryParams.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    const result = await this.handleResponse(response);
+    try {
+      await this.cacheRepo.save(this.cacheRepo.create({ cacheKey, data: result }));
+    } catch (e) {
+      console.error(`[ProkeralaService] Failed to save cache for ${cacheKey}`, e);
+    }
+    return result;
+  }
+
+  async getPlanetaryPositions(params: {
+    datetime: string;
+    lat: string;
+    lon: string;
+    lang?: string;
+  }) {
+    const dateStr = params.datetime.split('T')[0];
+    const cacheKey = `planets-${dateStr}-${params.lat}-${params.lon}-${params.lang || 'en'}`;
+    
+    const cached = await this.cacheRepo.findOne({ where: { cacheKey } });
+    if (cached) {
+      console.log(`[ProkeralaService] Returning DB cached planetary positions for ${cacheKey}`);
+      return cached.data;
+    }
+
+    const token = await this.getAccessToken();
+
+    const queryParams = new URLSearchParams({
+      ayanamsa: '1',
+      datetime: params.datetime,
+      coordinates: `${params.lat},${params.lon}`,
+      la: params.lang || 'en',
+    });
+
+    const response = await fetch(
+      `https://api.prokerala.com/v2/astrology/planet-position?${queryParams.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    const result = await this.handleResponse(response);
+    try {
+      await this.cacheRepo.save(this.cacheRepo.create({ cacheKey, data: result }));
+    } catch (e) {
+      console.error(`[ProkeralaService] Failed to save cache for ${cacheKey}`, e);
+    }
+    return result;
   }
 
   async getKundliMatching(

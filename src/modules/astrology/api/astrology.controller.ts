@@ -61,6 +61,37 @@ export class AstrologyController {
     });
   }
 
+  @Get('panchang')
+  async getPanchang(
+    @Query('datetime') datetime: string,
+    @Query('lat') lat: string,
+    @Query('lon') lon: string,
+    @Query('lang') lang?: string,
+  ) {
+    return this.astrologyFacade.getPanchang({ datetime, lat, lon, lang });
+  }
+
+  @Get('planetary-positions')
+  async getPlanetaryPositions(
+    @Query('datetime') datetime: string,
+    @Query('lat') lat: string,
+    @Query('lon') lon: string,
+    @Query('lang') lang?: string,
+  ) {
+    return this.astrologyFacade.getPlanetaryPositions({ datetime, lat, lon, lang });
+  }
+
+  @Get('lucky-stats')
+  getLuckyStats(
+    @Query('sign') sign: string,
+    @Query('date') dateStr: string,
+  ) {
+    return {
+      status: 'ok',
+      data: this.astrologyFacade.getLuckyStats(sign, dateStr)
+    };
+  }
+
   @Get('kundli-matching')
   async getKundliMatching(
     @Query('girl_dob') girl_dob: string,

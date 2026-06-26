@@ -8,7 +8,7 @@ import { PlacesMapper } from '../places.mapper';
 @Injectable()
 export class SearchPlacesUseCase {
   private readonly logger = new Logger(SearchPlacesUseCase.name);
-  private readonly CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly CACHE_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
   constructor(
     @InjectRepository(Place)

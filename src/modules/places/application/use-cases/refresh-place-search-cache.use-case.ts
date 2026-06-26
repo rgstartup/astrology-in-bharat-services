@@ -17,28 +17,12 @@ export class RefreshPlaceSearchCacheUseCase {
   ) {}
 
   async execute() {
-    this.logger.log('Starting daily Places cache refresh...');
-    const allPlaces = await this.placeRepository.find();
-    for (const entry of allPlaces) {
-      try {
-        const rawResults = await this.serperService.fetchPlaces(
-          entry.query,
-          entry.location,
-        );
-        const normalizedResults = this.placesMapper.mapSerperPlaces(
-          (rawResults.places as Record<string, unknown>[]) || [],
-        );
-        entry.results = normalizedResults;
-        entry.last_synced = new Date();
-        await this.placeRepository.save(entry);
-        this.logger.log(
-          `Refreshed places for: ${entry.query} in ${entry.location}`,
-        );
-      } catch (error) {
-        this.logger.error(
-          `Failed to refresh places for ${entry.query}: ${(error as Error).message}`,
-        );
-      }
+    this.logger.log('Starting weekly Places search cache cleanup...');
+    try {
+      await this.placeRepository.clear(); // Truncates the table to clear all cached places
+      this.logger.log('Successfully cleared all cached places to fetch fresh data on next search.');
+    } catch (error) {
+      this.logger.error(`Failed to clear places cache: ${(error as Error).message}`);
     }
   }
 }

@@ -7,6 +7,9 @@ import { GetDailyHoroscopeUseCase } from './application/use-cases/get-daily-horo
 import { GetMangalDoshaUseCase } from './application/use-cases/get-mangal-dosha.use-case';
 import { GetBirthDetailsUseCase } from './application/use-cases/get-birth-details.use-case';
 import { GetKundliMatchingUseCase } from './application/use-cases/get-kundli-matching.use-case';
+import { GetPanchangUseCase } from './application/use-cases/get-panchang.use-case';
+import { GetPlanetaryPositionsUseCase } from './application/use-cases/get-planetary-positions.use-case';
+import { GetLuckyStatsUseCase } from './application/use-cases/get-lucky-stats.use-case';
 
 @Module({
   imports: [ProkeralaModule],
@@ -18,6 +21,9 @@ import { GetKundliMatchingUseCase } from './application/use-cases/get-kundli-mat
     GetMangalDoshaUseCase,
     GetBirthDetailsUseCase,
     GetKundliMatchingUseCase,
+    GetPanchangUseCase,
+    GetPlanetaryPositionsUseCase,
+    GetLuckyStatsUseCase,
   ],
   exports: [AstrologyFacade],
 })
