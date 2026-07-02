@@ -49,7 +49,7 @@ export class LoginWithGoogleUseCase {
             `User ${input.email} is not an expert. Blocking login.`,
           );
           throw new ForbiddenException(
-            'This account is registered as a customer. Please use an astrologer account.',
+            'Forbidden access. You do not have the required permissions.',
           );
         }
       }
