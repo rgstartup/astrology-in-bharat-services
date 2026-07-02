@@ -1,0 +1,531 @@
+﻿
+> astrology-in-bharat-services@0.0.1 lint
+> eslint "{src,apps,libs,test}/**/*.ts" --fix
+
+
+D:\ravi\astrology-in-bharat-services\src\clear-cache.ts
+  28:1  warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+
+D:\ravi\astrology-in-bharat-services\src\common\decorators\primary-key.decorator.ts
+  11:21  error  Unsafe member access [methodName] on an `any` value                                                                                                                                                        @typescript-eslint/no-unsafe-member-access
+  12:17  error  Unsafe member access [propertyName] on an `any` value. `this` is typed as `any`.
+You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function  @typescript-eslint/no-unsafe-member-access
+  13:14  error  Unsafe member access [propertyName] on an `any` value. `this` is typed as `any`.
+You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function  @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\common\decorators\roles.decorator.ts
+  2:16  error  'RoleEnum' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\common\decorators\time.decorator.ts
+  45:17  error    Unsafe array destructuring of an `any` array value                                      @typescript-eslint/no-unsafe-assignment
+  46:17  error    Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  46:53  error    Unsafe member access [relatedPropertyName] on an `any` value                            @typescript-eslint/no-unsafe-member-access
+  46:53  error    Computed name [relatedPropertyName] resolves to an `any` value                          @typescript-eslint/no-unsafe-member-access
+  48:27  warning  Unsafe argument of type `any` assigned to a parameter of type `string | number | Date`  @typescript-eslint/no-unsafe-argument
+  48:46  warning  Unsafe argument of type `any` assigned to a parameter of type `string | number | Date`  @typescript-eslint/no-unsafe-argument
+  51:17  error    Unsafe array destructuring of an `any` array value                                      @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\common\decorators\uuid-primary-key.decorator.ts
+   7:36  warning  Unsafe argument of type `any` assigned to a parameter of type `Object`                                                                                                                                    @typescript-eslint/no-unsafe-argument
+  12:12  error    Unsafe member access [methodKey] on an `any` value                                                                                                                                                        @typescript-eslint/no-unsafe-member-access
+  13:17  error    Unsafe member access [propertyKey] on an `any` value. `this` is typed as `any`.
+You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function  @typescript-eslint/no-unsafe-member-access
+  14:14  error    Unsafe member access [propertyKey] on an `any` value. `this` is typed as `any`.
+You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function  @typescript-eslint/no-unsafe-member-access
+  19:20  warning  Unsafe argument of type `any` assigned to a parameter of type `Object`                                                                                                                                    @typescript-eslint/no-unsafe-argument
+
+D:\ravi\astrology-in-bharat-services\src\common\dto\date-range.dto.ts
+  5:26  error  Unsafe member access .endDate on an `any` value    @typescript-eslint/no-unsafe-member-access
+  9:26  error  Unsafe member access .startDate on an `any` value  @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\common\services\encryption.service.ts
+  37:15  error  Unsafe member access .stack on an `any` value  @typescript-eslint/no-unsafe-member-access
+  61:14  error  'error' is defined but never used              @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\common\utils\get-error-message.util.ts
+  9:19  error  'error' will use Object's default stringification format ('[object Object]') when stringified  @typescript-eslint/no-base-to-string
+
+D:\ravi\astrology-in-bharat-services\src\core\database\database.module.ts
+  13:7  error  Async method 'useFactory' has no 'await' expression  @typescript-eslint/require-await
+
+D:\ravi\astrology-in-bharat-services\src\core\jwt\jwt.module.ts
+  12:7  error  Async method 'useFactory' has no 'await' expression  @typescript-eslint/require-await
+
+D:\ravi\astrology-in-bharat-services\src\external\cloudinary\cloudinary.service.ts
+  18:29  error    Expected the Promise rejection reason to be an Error                                                                                                                @typescript-eslint/prefer-promise-reject-errors
+  33:7   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  37:29  error    Expected the Promise rejection reason to be an Error                                                                                                                @typescript-eslint/prefer-promise-reject-errors
+
+D:\ravi\astrology-in-bharat-services\src\external\nodemailer\nodemailer.provider.ts
+  1:10  error  'EmailConfig' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\external\serper\serper.service.ts
+  30:7   error  Unsafe return of a value of type `any`                  @typescript-eslint/no-unsafe-return
+  31:29  error  'unknown' overrides all other types in this union type  @typescript-eslint/no-redundant-type-constituents
+  59:7   error  Unsafe return of a value of type `any`                  @typescript-eslint/no-unsafe-return
+  60:29  error  'unknown' overrides all other types in this union type  @typescript-eslint/no-redundant-type-constituents
+
+D:\ravi\astrology-in-bharat-services\src\main.ts
+  34:33  warning  Unsafe argument of type `any` assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+  35:9   error    Unsafe call of a(n) `any` typed value                                               @typescript-eslint/no-unsafe-call
+  35:17  error    Unsafe member access .endsWith on an `any` value                                    @typescript-eslint/no-unsafe-member-access
+  37:9   error    Unsafe call of a(n) `any` typed value                                               @typescript-eslint/no-unsafe-call
+  39:9   error    Unsafe call of a(n) `any` typed value                                               @typescript-eslint/no-unsafe-call
+
+D:\ravi\astrology-in-bharat-services\src\modules\admin\api\controllers\admin.controller.ts
+   73:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   79:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  169:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  182:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  247:21  error  '_data' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  282:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  332:21  error  '_data' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  415:21  error  '_data' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  446:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\admin\api\controllers\public-stats.controller.ts
+  78:29  error  Unsafe array destructuring of a tuple element with an `any` value  @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\admin\api\controllers\settings.controller.ts
+  16:10  error  'RoleEnum' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\admin\application\use-cases\get-support-settings.usecase.ts
+  15:11  error  'settings' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\admin\infrastructure\entities\admin-audit-log.entity.ts
+  6:3  error  'ManyToOne' is defined but never used   @typescript-eslint/no-unused-vars
+  7:3  error  'JoinColumn' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\agent\api\controllers\agent.controller.ts
+  48:21  error  '_data' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\agent\application\use-cases\get-admin-agents.use-case.ts
+  24:11  error  'skip' is assigned a value but never used               @typescript-eslint/no-unused-vars
+  44:11  error  'clientCommPercent' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  45:11  error  'expertCommPercent' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\agent\application\use-cases\get-admin-listings.use-case.ts
+  92:36  warning  Unsafe argument of type `any` assigned to a parameter of type `RoleEnum`  @typescript-eslint/no-unsafe-argument
+  97:36  warning  Unsafe argument of type `any` assigned to a parameter of type `RoleEnum`  @typescript-eslint/no-unsafe-argument
+
+D:\ravi\astrology-in-bharat-services\src\modules\agent\application\use-cases\get-agent-commissions.use-case.ts
+  50:22  error  The two values in this comparison do not have a shared enum type  @typescript-eslint/no-unsafe-enum-comparison
+
+D:\ravi\astrology-in-bharat-services\src\modules\agent\application\use-cases\get-agent-listings.use-case.ts
+  117:15  error  'settings' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  127:15  error  Unsafe assignment of an `any` value                       @typescript-eslint/no-unsafe-assignment
+  169:19  error  Unsafe assignment of an `any` value                       @typescript-eslint/no-unsafe-assignment
+  169:27  error  Unsafe call of a(n) `any` typed value                     @typescript-eslint/no-unsafe-call
+  169:39  error  Unsafe member access .find on an `any` value              @typescript-eslint/no-unsafe-member-access
+  176:13  error  Unsafe assignment of an `any` value                       @typescript-eslint/no-unsafe-assignment
+  176:40  error  Unsafe member access .total_commission on an `any` value  @typescript-eslint/no-unsafe-member-access
+  177:13  error  Unsafe assignment of an `any` value                       @typescript-eslint/no-unsafe-assignment
+  177:42  error  Unsafe member access .total_gross on an `any` value       @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\agent\application\use-cases\get-agent-stats.use-case.ts
+   64:9   error  'chartInterval' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  201:13  error  Unsafe assignment of an `any` value                 @typescript-eslint/no-unsafe-assignment
+  221:7   error  Unsafe assignment of an `any` value                 @typescript-eslint/no-unsafe-assignment
+  222:9   error  Unsafe call of a(n) `any` typed value               @typescript-eslint/no-unsafe-call
+  222:19  error  Unsafe member access .find on an `any` value        @typescript-eslint/no-unsafe-member-access
+  225:12  error  Unsafe member access .total_comm on an `any` value  @typescript-eslint/no-unsafe-member-access
+  230:13  error  Unsafe assignment of an `any` value                 @typescript-eslint/no-unsafe-assignment
+  246:13  error  Unsafe assignment of an `any` value                 @typescript-eslint/no-unsafe-assignment
+  263:13  error  Unsafe assignment of an `any` value                 @typescript-eslint/no-unsafe-assignment
+  300:47  error  Unsafe member access [0] on an `any` value          @typescript-eslint/no-unsafe-member-access
+  301:52  error  Unsafe member access [0] on an `any` value          @typescript-eslint/no-unsafe-member-access
+  314:9   error  Unsafe assignment of an `any` value                 @typescript-eslint/no-unsafe-assignment
+  315:28  error  Unsafe member access .length on an `any` value      @typescript-eslint/no-unsafe-member-access
+  318:9   error  Unsafe assignment of an `any` value                 @typescript-eslint/no-unsafe-assignment
+  318:32  error  Unsafe call of a(n) `any` typed value               @typescript-eslint/no-unsafe-call
+  318:56  error  Unsafe member access .map on an `any` value         @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\agent\application\use-cases\update-agent-profile.use-case.ts
+  49:11  error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\api\controllers\auth.controller.ts
+   47:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+   47:11  error    Unsafe member access .ip on an `error` typed value                                        @typescript-eslint/no-unsafe-member-access
+   48:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+   48:7   error    Unsafe call of a(n) `error` type typed value                                              @typescript-eslint/no-unsafe-call
+   48:11  error    Unsafe member access .get on an `error` typed value                                       @typescript-eslint/no-unsafe-member-access
+   68:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+   68:11  error    Unsafe member access .ip on an `error` typed value                                        @typescript-eslint/no-unsafe-member-access
+   69:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+   69:7   error    Unsafe call of a(n) `error` type typed value                                              @typescript-eslint/no-unsafe-call
+   69:11  error    Unsafe member access .get on an `error` typed value                                       @typescript-eslint/no-unsafe-member-access
+   84:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+   84:11  error    Unsafe member access .ip on an `error` typed value                                        @typescript-eslint/no-unsafe-member-access
+   85:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+   85:7   error    Unsafe call of a(n) `error` type typed value                                              @typescript-eslint/no-unsafe-call
+   85:11  error    Unsafe member access .get on an `error` typed value                                       @typescript-eslint/no-unsafe-member-access
+  101:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+  101:11  error    Unsafe member access .ip on an `error` typed value                                        @typescript-eslint/no-unsafe-member-access
+  102:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+  102:7   error    Unsafe call of a(n) `error` type typed value                                              @typescript-eslint/no-unsafe-call
+  102:11  error    Unsafe member access .get on an `error` typed value                                       @typescript-eslint/no-unsafe-member-access
+  136:55  warning  Unsafe argument of type error typed assigned to a parameter of type `string`              @typescript-eslint/no-unsafe-argument
+  136:59  error    Unsafe member access ['refreshToken'] on an `error` typed value                           @typescript-eslint/no-unsafe-member-access
+  153:55  error    '_req' is defined but never used                                                          @typescript-eslint/no-unused-vars
+  167:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+  167:11  error    Unsafe member access .ip on an `error` typed value                                        @typescript-eslint/no-unsafe-member-access
+  168:7   warning  Unsafe argument of type error typed assigned to a parameter of type `string | undefined`  @typescript-eslint/no-unsafe-argument
+  168:7   error    Unsafe call of a(n) `error` type typed value                                              @typescript-eslint/no-unsafe-call
+  168:11  error    Unsafe member access .get on an `error` typed value                                       @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\api\controllers\google-auth.controller.ts
+  78:9  error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\api\controllers\merchant-auth.controller.ts
+  23:3  error  'RoleEnum' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\api\dto\login.dto.ts
+  2:27  error  'IsOptional' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\api\guards\google-auth.guard.ts
+   18:11   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   19:11   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   19:28   error    Unsafe member access .query on an `any` value                           @typescript-eslint/no-unsafe-member-access
+   21:11   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   21:32   error    Unsafe member access .role on an `any` value                            @typescript-eslint/no-unsafe-member-access
+   21:59   error    Unsafe member access .role on an `any` value                            @typescript-eslint/no-unsafe-member-access
+   21:76   error    Unsafe member access .role on an `any` value                            @typescript-eslint/no-unsafe-member-access
+   22:11   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   23:21   error    Unsafe member access .referralCode on an `any` value                    @typescript-eslint/no-unsafe-member-access
+   23:56   error    Unsafe member access .referralCode on an `any` value                    @typescript-eslint/no-unsafe-member-access
+   24:15   error    Unsafe member access .referralCode on an `any` value                    @typescript-eslint/no-unsafe-member-access
+   25:11   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   26:21   error    Unsafe member access .redirect_uri on an `any` value                    @typescript-eslint/no-unsafe-member-access
+   26:56   error    Unsafe member access .redirect_uri on an `any` value                    @typescript-eslint/no-unsafe-member-access
+   27:15   error    Unsafe member access .redirect_uri on an `any` value                    @typescript-eslint/no-unsafe-member-access
+   30:7    error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   31:7    error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   32:7    error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   47:11   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   48:11   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   51:17   error    Unsafe member access ._auth_guard_handled on an `any` value             @typescript-eslint/no-unsafe-member-access
+   53:66   error    Unsafe member access .url on an `any` value                             @typescript-eslint/no-unsafe-member-access
+   53:131  error    Unsafe member access .user on an `any` value                            @typescript-eslint/no-unsafe-member-access
+   55:7    error    Unsafe return of a value of type `any`                                  @typescript-eslint/no-unsafe-return
+   55:30   error    Unsafe member access .user on an `any` value                            @typescript-eslint/no-unsafe-member-access
+   57:13   error    Unsafe member access ._auth_guard_handled on an `any` value             @typescript-eslint/no-unsafe-member-access
+   60:51   error    Unsafe member access .url on an `any` value                             @typescript-eslint/no-unsafe-member-access
+   67:15   error    Unsafe member access .user on an `any` value                            @typescript-eslint/no-unsafe-member-access
+   70:18   error    Unsafe member access .headersSent on an `any` value                     @typescript-eslint/no-unsafe-member-access
+   72:45   error    Unsafe member access .url on an `any` value                             @typescript-eslint/no-unsafe-member-access
+   78:13   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   78:33   error    Unsafe member access .query on an `any` value                           @typescript-eslint/no-unsafe-member-access
+   82:11   error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   82:49   warning  Unsafe argument of type `any` assigned to a parameter of type `string`  @typescript-eslint/no-unsafe-argument
+   83:17   error    Empty block statement                                                   no-empty
+  120:7    error    Unsafe call of a(n) `any` typed value                                   @typescript-eslint/no-unsafe-call
+  120:16   error    Unsafe member access .redirect on an `any` value                        @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\api\guards\optional-auth.guard.ts
+   7:28  error  'info' is defined but never used        @typescript-eslint/no-unused-vars
+  11:5   error  Unsafe return of a value of type `any`  @typescript-eslint/no-unsafe-return
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\api\strategies\google.strategy.ts
+  65:9  error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\api\strategies\jwt-refresh.strategy.ts
+  11:3   error  Async method 'validate' has no 'await' expression  @typescript-eslint/require-await
+  12:11  error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+  21:5   error  Unsafe assignment of an `any` value                @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\api\strategies\jwt.strategy.ts
+  19:18  error  Unsafe return of a value of type `any`             @typescript-eslint/no-unsafe-return
+  19:23  error  Unsafe member access .cookies on an `any` value    @typescript-eslint/no-unsafe-member-access
+  26:3   error  Async method 'validate' has no 'await' expression  @typescript-eslint/require-await
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\event-handlers\user-registered.handler.ts
+  41:9  error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\event-handlers\verify-email.handler.ts
+  34:9  error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\strategies\create-profile\client-auth-profile-creation.strategy.ts
+  24:9  warning  Unsafe argument of type `any` assigned to a parameter of type `CreateProfileClientDto`  @typescript-eslint/no-unsafe-argument
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\strategies\create-profile\expert-auth-profile-creation.strategy.ts
+  24:9  warning  Unsafe argument of type `any` assigned to a parameter of type `CreateProfileExpertDto`  @typescript-eslint/no-unsafe-argument
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\use-cases\agent-register-user.usecase.ts
+  124:15  error  Unsafe member access .stack on an `any` value  @typescript-eslint/no-unsafe-member-access
+  144:11  error  Unsafe assignment of an `any` value            @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\use-cases\complete-email-registration.usecase.ts
+   42:17  error    Unsafe member access .email on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  102:11  warning  Unsafe argument of type `any` assigned to a parameter of type `_QueryDeepPartialEntity<ProfileExpert>`  @typescript-eslint/no-unsafe-argument
+  183:11  warning  Unsafe argument of type `any` assigned to a parameter of type `_QueryDeepPartialEntity<ProfileClient>`  @typescript-eslint/no-unsafe-argument
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\use-cases\get-merchant-profile.usecase.ts
+  9:10  error  'User' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\use-cases\login-with-email.usecase.ts
+  1:45  error  'Inject' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\use-cases\merchant-register-user.usecase.ts
+  28:43  error  'ip' is defined but never used         @typescript-eslint/no-unused-vars
+  28:56  error  'userAgent' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\use-cases\register-user.usecase.ts
+  16:3  error  'RoleEnum' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\use-cases\resend-verification-email.usecase.ts
+  8:10  error  'RoleEnum' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\application\use-cases\send-magic-link.usecase.ts
+  6:10  error  'RoleEnum' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\infrastructure\services\oauth.service.ts
+  55:9   error  Unsafe assignment of an `any` value             @typescript-eslint/no-unsafe-assignment
+  55:30  error  Unsafe member access .photos on an `any` value  @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\auth\infrastructure\tokens\token-crypto.service.ts
+  23:7  error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\client\profile\api\controllers\profile.controller.ts
+  48:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  58:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\client\profile\application\profile.facade.ts
+  3:10  error  'ProfileUpdatedEvent' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\client\profile\application\use-cases\get-profile.usecase.ts
+  3:3  error  'NotFoundException' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\client\profile\application\use-cases\send-phone-otp.usecase.ts
+  1:43  error  'Logger' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\client\profile\application\use-cases\update-profile-picture.usecase.ts
+  22:9  error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\client\profile\application\use-cases\update-profile-with-query-runner.usecase.ts
+  5:10  error  'UpdateProfileClientDto' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\client\profile\application\use-cases\upload-document.usecase.ts
+  35:9  error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+D:\ravi\astrology-in-bharat-services\src\modules\client\profile\application\use-cases\verify-phone-otp.usecase.ts
+  1:43  error  'Logger' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\cart\api\controllers\cart.controller.ts
+  10:3   error  'Req' is defined but never used              @typescript-eslint/no-unused-vars
+  46:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  58:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\cart\cart.module.ts
+  13:10  error  'User' is defined but never used           @typescript-eslint/no-unused-vars
+  14:10  error  'ProfileClient' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\coupon\application\use-cases\apply-coupon.use-case.ts
+  43:47  error  Invalid type "Date" of template literal expression  @typescript-eslint/restrict-template-expressions
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\coupon\application\use-cases\get-coupon-stats.use-case.ts
+   3:22  error    'MoreThanOrEqual' is defined but never used                             @typescript-eslint/no-unused-vars
+  37:11  error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  47:27  warning  Unsafe argument of type `any` assigned to a parameter of type `string`  @typescript-eslint/no-unsafe-argument
+  47:38  error    Unsafe member access .sum on an `any` value                             @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\coupon\application\use-cases\get-coupons.use-case.ts
+  48:23  error  'params.search' will use Object's default stringification format ('[object Object]') when stringified  @typescript-eslint/no-base-to-string
+  48:23  error  Invalid type "{}" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\api\controllers\order.controller.ts
+   82:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  145:11  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\api\dto\create-order.dto.ts
+  2:3  error  'IsNotEmpty' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\application\order.facade.ts
+  156:5  error  Unsafe return of a value of type `Promise<any>`  @typescript-eslint/no-unsafe-return
+  162:5  error  Unsafe return of a value of type `Promise<any>`  @typescript-eslint/no-unsafe-return
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\application\use-cases\create-order-from-cart.use-case.ts
+   49:11  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  191:75  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  193:43  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  266:9   error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  305:16  error  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+  317:44  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  320:43  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\application\use-cases\find-all-orders.use-case.ts
+  23:3   error  Async method 'getExpertProductRevenueAndCount' has no 'await' expression  @typescript-eslint/require-await
+  23:41  error  'expertProfileId' is defined but never used                               @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\application\use-cases\get-admin-merchant-sales-overview.use-case.ts
+  41:15  error  Unsafe assignment of an `any` value                   @typescript-eslint/no-unsafe-assignment
+  42:27  error  Unsafe member access .userId on an `any` value        @typescript-eslint/no-unsafe-member-access
+  55:39  error  Unsafe member access .totalRevenue on an `any` value  @typescript-eslint/no-unsafe-member-access
+  56:38  error  Unsafe member access .totalOrders on an `any` value   @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\application\use-cases\get-order-earnings.use-case.ts
+  14:11  error    Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  21:23  warning  Unsafe argument of type `any` assigned to a parameter of type `string`  @typescript-eslint/no-unsafe-argument
+  21:37  error    Unsafe member access .total on an `any` value                           @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\application\use-cases\merchant-order-queries.use-case.ts
+  178:5  error  Unsafe return of a value of type `any`  @typescript-eslint/no-unsafe-return
+  195:5  error  Unsafe return of a value of type `any`  @typescript-eslint/no-unsafe-return
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\application\use-cases\update-order-status.use-case.ts
+   13:10  error  'ProfileExpert' is defined but never used          @typescript-eslint/no-unused-vars
+  101:13  error  'updatedOrder' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  177:19  error  Unsafe assignment of an error typed value          @typescript-eslint/no-unsafe-assignment
+  303:9   error  Unexpected lexical declaration in case block       no-case-declarations
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\order\order.module.ts
+  24:10  error  'User' is defined but never used             @typescript-eslint/no-unused-vars
+  28:10  error  'PujaAppointment' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\product\api\controllers\product.controller.ts
+    4:3   error  'Post' is defined but never used                 @typescript-eslint/no-unused-vars
+   11:3   error  'UploadedFiles' is defined but never used        @typescript-eslint/no-unused-vars
+   20:10  error  'CreateProductDto' is defined but never used     @typescript-eslint/no-unused-vars
+   25:10  error  'AnyFilesInterceptor' is defined but never used  @typescript-eslint/no-unused-vars
+   96:11  error  'result' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  104:11  error  'result' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\product\application\use-cases\merchant-products.usecase.ts
+  188:11  error  Unsafe assignment of an `any` value            @typescript-eslint/no-unsafe-assignment
+  199:5   error  Unsafe return of a value of type `any`         @typescript-eslint/no-unsafe-return
+  199:12  error  Unsafe call of a(n) `any` typed value          @typescript-eslint/no-unsafe-call
+  199:24  error  Unsafe member access .map on an `any` value    @typescript-eslint/no-unsafe-member-access
+  200:7   error  Unsafe assignment of an `any` value            @typescript-eslint/no-unsafe-assignment
+  200:15  error  Unsafe member access .name on an `any` value   @typescript-eslint/no-unsafe-member-access
+  201:23  error  Unsafe member access .stock on an `any` value  @typescript-eslint/no-unsafe-member-access
+  203:11  error  Unsafe member access .stock on an `any` value  @typescript-eslint/no-unsafe-member-access
+  203:38  error  Unsafe member access .stock on an `any` value  @typescript-eslint/no-unsafe-member-access
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\wishlist\api\controllers\expert-like.controller.ts
+  44:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\wishlist\api\controllers\merchant-like.controller.ts
+  42:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\wishlist\api\controllers\product-like.controller.ts
+  44:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\wishlist\api\controllers\puja-like.controller.ts
+  44:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\commerce\wishlist\application\use-cases\add-expert-to-wishlist.use-case.ts
+  14:3   error  'NotAnExpertError' is defined but never used         @typescript-eslint/no-unused-vars
+  57:11  error  '_savedWishlist' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\consultation\call\domain\errors\call.errors.ts
+  22:3   error  Definition for rule '@typescript-eslint/no-unused-vars`n  // eslint-disable-next-line @typescript-eslint/no-unused-vars' was not found  @typescript-eslint/no-unused-vars`n  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  23:15  error  '_minMinutes' is defined but never used                                                                                                 @typescript-eslint/no-unused-vars
+  23:36  error  '_minBalanceRequired' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+  23:65  error  '_type' is defined but never used                                                                                                       @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\consultation\chat\api\controllers\consultation.controller.ts
+  60:11  error  'discountAmount' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\consultation\consultation\api\controllers\consultation.controller.ts
+  69:14  error  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+  79:14  error  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\consultation\reviews\application\use-cases\create-review.use-case.ts
+  115:18  error  '_expert_id' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  116:20  error  '_merchant_id' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  117:17  error  '_order_id' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  118:19  error  '_session_id' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  119:24  error  '_call_session_id' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  120:15  error  '_expert' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  121:17  error  '_merchant' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  122:14  error  '_order' is assigned a value but never used            @typescript-eslint/no-unused-vars
+  123:16  error  '_session' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  124:20  error  '_callSession' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\expert\bank-accounts\api\controllers\bank-accounts.controller.ts
+  56:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  69:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  78:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\expert\profile\api\controllers\profile.controller.ts
+  320:20  error  'user' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\expert\profile\application\use-cases\create-profile.usecase.ts
+  36:11  error  '_addressRepo' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\expert\profile\application\use-cases\get-admin-expert-detail.use-case.ts
+  14:3  error  'CallSession' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\expert\profile\application\use-cases\get-profile.usecase.ts
+  45:29  error  '_expert' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  55:37  error  '_pe' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  55:58  error  '_pc' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\expert\profile\application\use-cases\puja\delete-puja.usecase.ts
+  1:22  error  'Logger' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\expert\todos\api\controllers\todos.controller.ts
+  45:11  error  '_result' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  54:11  error  '_result' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  55:26  error  Unsafe member access .success on an `error` typed value  @typescript-eslint/no-unsafe-member-access
+  56:15  error  'data' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  59:5   error  Unsafe return of a value of type error                   @typescript-eslint/no-unsafe-return
+
+D:\ravi\astrology-in-bharat-services\src\modules\festival\api\controllers\festival.controller.ts
+  41:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  47:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\festival\application\use-cases\update-festival.use-case.ts
+  15:29  error  '_dto' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\merchant\profile\application\profile.facade.ts
+  76:57  error  'remarks' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\notification\api\controllers\notification.controller.ts
+  60:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  66:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\notification\application\use-cases\mark-as-read.use-case.ts
+  14:29  error  'userId' is defined but never used                  @typescript-eslint/no-unused-vars
+  15:11  error  '_updateResult' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\puja-appointment\api\controllers\puja-appointment.controller.ts
+  59:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\quotes\api\controllers\quotes.controller.ts
+  59:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  70:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\support\api\controllers\support.controller.ts
+  77:15  error  'data' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\support\application\use-cases\get-messages.use-case.ts
+   1:22  error  'NotFoundException' is defined but never used  @typescript-eslint/no-unused-vars
+  16:11  error  '_dispute' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\support\application\use-cases\mark-as-read.use-case.ts
+   1:22  error  'NotFoundException' is defined but never used  @typescript-eslint/no-unused-vars
+  16:11  error  '_dispute' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\support\application\use-cases\send-message.use-case.ts
+  1:22  error  'NotFoundException' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\users\api\controllers\users.controller.ts
+  54:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  63:11  error  '_result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\users\api\dto\user.dto.ts
+   2:10  error  'Type' is defined but never used            @typescript-eslint/no-unused-vars
+   4:3   error  'IsBoolean' is defined but never used       @typescript-eslint/no-unused-vars
+  10:3   error  'ValidateNested' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\users\application\use-cases\find-user.usecase.ts
+  1:22  error  'NotFoundException' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\users\application\use-cases\update-user.usecase.ts
+  1:22  error  'NotFoundException' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\ravi\astrology-in-bharat-services\src\modules\wallet\api\controllers\wallet.controller.ts
+  1:27  error  'Post' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 308 problems (281 errors, 27 warnings)
+

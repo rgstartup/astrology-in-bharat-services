@@ -1,0 +1,103 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import {
+  ProfileMerchant,
+  MerchantStatus,
+} from '../../infrastructure/entities/profile-merchant.entity';
+import { EncryptionService } from '@/common/services/encryption.service';
+import { IUser } from '@/common/types/access-token.payload';
+
+@Injectable()
+export class GetMerchantProfileUseCase {
+  constructor(
+    @InjectRepository(ProfileMerchant)
+    private readonly merchantRepository: Repository<ProfileMerchant>,
+    private readonly encryptionService: EncryptionService,
+  ) {}
+
+  async execute(user: IUser) {
+    const where = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
+    const profile = await this.merchantRepository.findOne({
+      where,
+      relations: ['user'],
+    });
+
+    if (!profile) {
+      return {
+        success: true,
+        exists: false,
+        data: {
+          id: null,
+          name: '',
+          managerName: '',
+          phone: '',
+          address: '',
+          city: '',
+          pincode: '',
+          image: null,
+          video: null,
+          status: MerchantStatus.PENDING_VERIFICATION,
+          isOnline: true,
+          operationalHours: '10:00 AM - 08:30 PM',
+          trustScore: '99.8',
+          latitude: null,
+          longitude: null,
+          gstin: null,
+          pan: null,
+          isGstExempt: false,
+          bankName: null,
+          accountHolder: null,
+          accountNumber: null,
+          ifsc: null,
+          gstCertificate: null,
+          panFront: null,
+          panBack: null,
+          aadharFront: null,
+          aadharBack: null,
+          isVerified: false,
+        },
+      };
+    }
+
+    return {
+      success: true,
+      exists: true,
+      data: {
+        id: profile.id,
+        name: profile.shopName || profile.user?.name || '',
+        managerName: profile.managerName,
+        phone: profile.phone,
+        address: profile.address,
+        city: profile.city,
+        pincode: profile.pincode,
+        image: profile.image || profile.user?.avatar,
+        video: profile.video,
+        status: profile.status,
+        isOnline: profile.isOnline,
+        operationalHours: profile.operationalHours,
+        trustScore: profile.trustScore,
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+        gstin: profile.gstin,
+        pan: profile.pan ? this.encryptionService.decrypt(profile.pan) : null,
+        isGstExempt: profile.isGstExempt,
+        bankName: profile.bankName,
+        accountHolder: profile.accountHolder,
+        accountNumber: profile.accountNumber
+          ? this.encryptionService.decrypt(profile.accountNumber)
+          : null,
+        ifsc: profile.ifsc,
+        gstCertificate: profile.gstCertificate,
+        panFront: profile.panFront,
+        panBack: profile.panBack,
+        aadharFront: profile.aadharFront,
+        aadharBack: profile.aadharBack,
+        isVerified: profile.status === MerchantStatus.ACTIVE,
+        bank_accounts: profile.bank_accounts,
+      },
+    };
+  }
+}
