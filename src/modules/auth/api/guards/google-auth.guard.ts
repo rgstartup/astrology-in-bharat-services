@@ -122,16 +122,15 @@ export class GoogleAuthGuard extends AuthGuard('google') {
         redirectBase.includes(astrologerUrl)
       ) {
         // Astrologer dashboard login is at the root /
-        // Strip /login if it was accidentally added or passed
-        redirectBase = redirectBase.replace(/\/login$/, '');
+        const parsed = new URL(redirectBase);
+        redirectBase = parsed.origin;
       } else if (
         redirectBase.includes('localhost:3000') ||
         redirectBase.includes(fallbackUrl)
       ) {
         // Main app login is at /sign-in
-        if (!redirectBase.endsWith('/sign-in')) {
-          redirectBase += '/sign-in';
-        }
+        const parsed = new URL(redirectBase);
+        redirectBase = `${parsed.origin}/sign-in`;
       }
 
       const errorMessage = err?.message || 'Google authentication failed';

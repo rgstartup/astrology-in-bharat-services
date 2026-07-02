@@ -28,9 +28,15 @@ export class GetProfileUseCase {
     });
 
     if (!profile) {
-      throw new NotFoundException(
-        `Expert profile for user ${user.id} not found`,
-      );
+      // Instead of throwing 404, we return a stub so the frontend knows they are authenticated and need to complete onboarding
+      return {
+        id: null,
+        user: {
+          id: user.id,
+          email: user.email,
+          roles: user.roles,
+        }
+      } as any;
     }
 
     this.logger.log(

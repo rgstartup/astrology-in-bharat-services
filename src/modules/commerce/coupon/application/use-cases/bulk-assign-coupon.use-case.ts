@@ -40,7 +40,7 @@ export class BulkAssignCouponUseCase {
     await this.databaseService.transaction(async (queryRunner) => {
       for (const userId of userIds) {
         const profileClient = await this.clientProfileFacade.getProfile({ id: userId, email: '', roles: [] });
-        if (!profileClient) continue;
+        if (!profileClient || !profileClient.id) continue;
 
         const existing = await queryRunner.manager.findOne(UserCoupon, {
           where: { client_id: profileClient.id, coupon_id: coupon.id },

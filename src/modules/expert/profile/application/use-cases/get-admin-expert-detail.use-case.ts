@@ -76,7 +76,7 @@ export class GetExpertDetailUseCase {
       dob: profile?.date_of_birth
         ? new Date(profile.date_of_birth).toISOString()
         : null,
-      phone: profile?.phone_number || clientProfile?.phone || '',
+      phone: profile?.phone_number || (clientProfile as any)?.phone || '',
       languages: profile?.languages ? profile.languages.split(',') : [],
       bio: profile?.bio || '',
       experience: profile?.experience_in_years || 0,

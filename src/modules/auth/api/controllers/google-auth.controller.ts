@@ -151,20 +151,46 @@ export class GoogleAuthController {
       }
     }
 
-    // Redirect to frontend with tokens in URL (for frontend middleware to pick up)
-    const redirectUrl = `${frontendUrl}${frontendUrl.includes('?') ? '&' : '?'}accessToken=${authData.accessToken as string}&refreshToken=${authData.refreshToken as string}`;
+    // Determine the final page to land on after auth
+    let finalPage = '/client/profile'; // default
+    if (frontendUrl) {
+      try {
+        const parsed = new URL(frontendUrl);
+        finalPage = parsed.pathname || '/client/profile';
+      } catch {
+        // keep default
+      }
+    }
 
-    return res.redirect(redirectUrl);
+    // Get the frontend base origin from frontendUrl (which is correctly resolved based on app or role)
+    let dynamicFrontendOrigin = this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    if (frontendUrl) {
+      try {
+        const parsedUrl = new URL(frontendUrl);
+        dynamicFrontendOrigin = parsedUrl.origin;
+      } catch {
+        // Fallback
+      }
+    }
+
+    // Redirect through Next.js set-tokens route which sets proper server-side HttpOnly cookies
+    // This works on both HTTP (localhost) and HTTPS (production)
+    const setTokensUrl = `${dynamicFrontendOrigin}/api/auth/set-tokens?accessToken=${authData.accessToken as string}&refreshToken=${authData.refreshToken as string}&redirect=${encodeURIComponent(finalPage)}`;
+
+    this.logger.log(`[GoogleCallback] Redirecting to set-tokens: ${setTokensUrl.replace(/accessToken=[^&]+/, 'accessToken=REDACTED').replace(/refreshToken=[^&]+/, 'refreshToken=REDACTED')}`);
+
+    return res.redirect(setTokensUrl);
   }
 
   private setCookies(
     tokens: { accessToken?: string; refreshToken?: string },
     res: Response,
   ) {
+    const isProduction = process.env.NODE_ENV === 'production';
     const cookieOptions: CookieOptions = {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/',
     };
 

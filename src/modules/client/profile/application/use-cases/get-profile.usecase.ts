@@ -1,4 +1,4 @@
-﻿import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner, FindOptionsWhere } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
@@ -35,7 +35,11 @@ export class GetProfileUseCase {
         queryRunner,
       );
 
-      const roles = existingUser?.roles || [];
+      if (!existingUser) {
+        return null; // Should not happen, but satisfies TS
+      }
+
+      const roles = existingUser.roles || [];
       const hasClientRole = hasRoles(roles, 'CLIENT');
       const hasExpertRole = hasRoles(roles, 'EXPERT');
 
@@ -46,8 +50,17 @@ export class GetProfileUseCase {
       }
 
       // If it's a client but no profile, return null or a basic structure
-      // We return null so the frontend knows it needs to be created
-      return null;
+      // Return the base user so frontend knows they are logged in but need onboarding
+      return {
+        id: null, // No profile ID yet
+        user: {
+          id: existingUser.id,
+          name: existingUser.name,
+          email: existingUser.email,
+          roles: existingUser.roles,
+          avatar: existingUser.avatar,
+        }
+      } as any; // Cast to 'any' to satisfy ProfileClient return type for other internal use-cases
     }
 
     // Backend decides the final profile picture:

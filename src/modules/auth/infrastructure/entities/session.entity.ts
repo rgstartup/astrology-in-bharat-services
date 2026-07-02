@@ -40,7 +40,7 @@ export class Session {
   @Column({ type: 'character varying', length: 100, nullable: true })
   ip_address!: string | null;
 
-  @Column({ type: 'character varying', length: 100, nullable: true })
+  @Column({ type: 'text', nullable: true })
   user_agent!: string | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
