@@ -407,7 +407,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.attachmentType,
     );
 
-    this.server.to(`room_${payload.sessionId}`).emit('new_message', savedMsg);
+    // Use client to ensure we are emitting in the correct namespace
+    // client.to(room) emits to everyone in the room EXCEPT the sender
+    client.to(`room_${payload.sessionId}`).emit('new_message', savedMsg);
+    // client.emit sends to the sender themselves
+    client.emit('new_message', savedMsg);
     return savedMsg;
   }
 
