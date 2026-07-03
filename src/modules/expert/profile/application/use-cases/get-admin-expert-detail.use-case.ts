@@ -73,35 +73,35 @@ export class GetExpertDetailUseCase {
       email: user.email,
       avatar: user.avatar,
       gender: profile?.gender || null,
-      dob: profile?.date_of_birth
+      date_of_birth: profile?.date_of_birth
         ? new Date(profile.date_of_birth).toISOString()
         : null,
-      phone: profile?.phone_number || (clientProfile as any)?.phone || '',
-      languages: profile?.languages ? profile.languages.split(',') : [],
+      phone_number: profile?.phone_number || (clientProfile as any)?.phone || '',
+      languages: profile?.languages ? profile.languages.split(',').map((l: string) => l.trim()) : [],
       bio: profile?.bio || '',
-      experience: profile?.experience_in_years || 0,
+      experience_in_years: profile?.experience_in_years || 0,
       specialization: profile?.specialization || '',
       rating: profile?.rating || 0,
-      consultationCount: chatCount + callCount,
+      consultation_count: chatCount + callCount,
       total_earnings: total_earnings,
+      kyc_status: profile?.kyc_status || 'pending',
+      rejection_reason: profile?.rejection_reason || null,
       intro_video_url:
         profile?.video ||
         (profile?.videos && profile.videos.length > 0 ? profile.videos[0] : ''),
       gallery: profile?.gallery || [],
       documents: profile?.documents || [],
+      certificates: profile?.certificates || [],
       addresses:
         profile?.addresses?.map((addr) => ({
-          houseNo: addr.house_no || '',
+          house_no: addr.house_no || '',
+          line1: addr.line1 || addr.house_no || '',
           district: addr.district || '',
-          city: addr.city || '',
+          city: addr.city || addr.district || '',
           state: addr.state || '',
           country: addr.country || '',
           pincode: addr.pincode || addr.zip_code || '',
         })) || [],
-      kyc_details: {
-        status: profile?.kyc_status || 'pending',
-        reason: profile?.rejection_reason || null,
-      },
     };
   }
 }

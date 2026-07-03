@@ -1,4 +1,4 @@
-﻿import { IsObject, IsOptional, IsNumber, IsString } from 'class-validator';
+import { IsObject, IsOptional, IsNumber, IsString } from 'class-validator';
 
 export class CreateOrderDto {
   @IsOptional()
@@ -20,4 +20,9 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   payment_method?: string;
+
+  // Split Payment: Amount to deduct from wallet (remaining will go to Razorpay)
+  @IsOptional()
+  @IsNumber()
+  wallet_amount_to_use?: number;
 }

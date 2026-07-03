@@ -205,12 +205,14 @@ export class CreateOrderFromCartUseCase {
         );
       }
 
-      // 2.5 Handle Wallet Payment
+      // 2.5 Handle Payment Method
       const method = dto.payment_method?.toLowerCase();
       const isWalletPayment = method === 'wallet';
+      const isSplitPayment = method === 'split';
+      const walletAmountToUse = Number(dto.wallet_amount_to_use || 0);
 
       if (isWalletPayment) {
-        // Validation before debit
+        // Full Wallet Payment
         const hasBalance = await this.walletFacade.validateBalance(
           profileId,
           'client_id',
@@ -220,13 +222,11 @@ export class CreateOrderFromCartUseCase {
           throw new BadRequestException('Insufficient wallet balance');
         }
 
-        // Force Number conversion to be safe against any decimal-to-string conversion
         const finalDebitAmount = Number(totalAmount);
         this.logger.log(
-          `[CREATE_ORDER] [WALLET_DEBIT] Final calculated debit amount: ₹${finalDebitAmount} (Type: ${typeof finalDebitAmount})`,
+          `[CREATE_ORDER] [WALLET_DEBIT] Full wallet payment: ₹${finalDebitAmount}`,
         );
 
-        // Debit user wallet
         await this.walletFacade.debit(
           profileId,
           'client_id',
@@ -239,11 +239,49 @@ export class CreateOrderFromCartUseCase {
           `[CREATE_ORDER] [WALLET_DEBIT] Successfully debited ₹${finalDebitAmount} from user ${userId}`,
         );
 
-        // Mark coupon as used if applied
         if (dto.coupon_code) {
-          this.logger.log(
-            `[CREATE_ORDER] [COUPON] Marking coupon ${dto.coupon_code} as used for profile ${profileId}`,
+          await this.couponFacade.markCouponAsUsed(
+            profileId,
+            dto.coupon_code,
+            queryRunner.manager,
           );
+        }
+      } else if (isSplitPayment && walletAmountToUse > 0) {
+        // Split Payment: Deduct wallet portion now, Razorpay will handle the rest
+        if (walletAmountToUse > totalAmount) {
+          throw new BadRequestException(
+            'Wallet amount to use cannot exceed total order amount',
+          );
+        }
+
+        const hasBalance = await this.walletFacade.validateBalance(
+          profileId,
+          'client_id',
+          walletAmountToUse,
+        );
+        if (!hasBalance) {
+          throw new BadRequestException(
+            `Insufficient wallet balance. You need ₹${walletAmountToUse} in wallet for split payment`,
+          );
+        }
+
+        this.logger.log(
+          `[CREATE_ORDER] [SPLIT_PAYMENT] Deducting ₹${walletAmountToUse} from wallet. Remaining ₹${totalAmount - walletAmountToUse} via Razorpay`,
+        );
+
+        await this.walletFacade.debit(
+          profileId,
+          'client_id',
+          walletAmountToUse,
+          TransactionPurpose.PRODUCT_PURCHASE,
+          `order_split_wallet_payment`,
+          queryRunner,
+        );
+        this.logger.log(
+          `[CREATE_ORDER] [SPLIT_PAYMENT] Successfully debited wallet portion ₹${walletAmountToUse}`,
+        );
+
+        if (dto.coupon_code) {
           await this.couponFacade.markCouponAsUsed(
             profileId,
             dto.coupon_code,
@@ -258,10 +296,16 @@ export class CreateOrderFromCartUseCase {
       ).toString();
 
       // 3. Create Order record using profileId directly as client_id
+      const isSplitPaymentActive = method === 'split' && walletAmountToUse > 0;
+      const razorpayAmountDue = isSplitPaymentActive
+        ? totalAmount - walletAmountToUse
+        : totalAmount;
+
       const order = queryRunner.manager.create(Order, {
         client_id: profileId,
         total_amount: totalAmount,
         shipping_address: shipping_address,
+        // Wallet=PAID, Split=PENDING (waiting for Razorpay), others=PENDING
         status: isWalletPayment ? OrderStatus.PAID : OrderStatus.PENDING,
         payment_method: dto.payment_method || 'razorpay',
         delivery_otp: deliveryOtp,
@@ -304,7 +348,11 @@ export class CreateOrderFromCartUseCase {
         /* ignore socket errors */
       }
 
-      return savedOrder;
+      return {
+        ...savedOrder,
+        razorpay_amount_due: razorpayAmountDue,
+        wallet_amount_used: isSplitPaymentActive ? walletAmountToUse : 0,
+      };
     } catch (error: unknown) {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction();

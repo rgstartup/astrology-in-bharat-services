@@ -25,8 +25,8 @@ export class GetExpertStatsUseCase {
         'COUNT(*) FILTER (WHERE profile.kyc_status = :approved) AS active_experts',
         'COUNT(*) FILTER (WHERE profile.kyc_status = :pending) AS pending_experts',
         'COUNT(*) FILTER (WHERE profile.kyc_status = :rejected) AS rejected_experts',
-        'COUNT(*) FILTER (WHERE profile.is_blocked) AS blocked_experts',
-        'COUNT(*) FILTER (WHERE user.created_at >= today) = :today AS recent_experts',
+        'COUNT(*) FILTER (WHERE "user".is_blocked = true) AS blocked_experts',
+        'COUNT(*) FILTER (WHERE "user".created_at >= :today) AS recent_experts',
       ])
       .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
       .setParameters({
