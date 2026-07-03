@@ -170,11 +170,3 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
----
-
-## 👨‍💻 Author
-
-- **Name** - Ravi Rai
-- **GitHub** - [Ravi5612](https://github.com/Ravi5612)
-- **Email** - [ravirai84272@gmail.com](mailto:ravirai84272@gmail.com)
-
