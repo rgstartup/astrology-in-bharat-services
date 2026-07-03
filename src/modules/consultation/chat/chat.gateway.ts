@@ -232,6 +232,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .to(`room_${sessionId}`)
       .emit('session_activated', dataWithTimers);
 
+    // ✅ Broadcast expert is now BUSY (blocks new requests on user-facing listing cards)
+    this.server.emit('expert_busy_changed', {
+      expert_id: session.expert_id,
+      is_busy: true,
+    });
+
     // ✅ Broadcast Intro Card if it exists
     if (introCard) {
       this.server.to(`room_${sessionId}`).emit('new_message', introCard);
@@ -391,28 +397,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       attachmentType?: string;
     },
   ) {
+    console.log(`[ChatGateway] Received send_message from ${payload.senderType} (${payload.senderId}) for room_${payload.sessionId}. Payload:`, payload);
     // Validation: Only allow messages if session is active
     const session = await this.chatFacade.getSession(payload.sessionId);
     if (!session || session.status !== ChatSessionStatus.ACTIVE) {
+      console.log(`[ChatGateway] Chat is not active for session ${payload.sessionId}. Status: ${session?.status}`);
       return { status: 'error', message: 'Chat is not active' };
     }
 
-    const savedMsg = await this.chatFacade.saveMessage(
-      payload.sessionId,
-      payload.senderId,
-      payload.senderType,
-      payload.content,
-      payload.type || MessageType.TEXT,
-      payload.attachmentUrl,
-      payload.attachmentType,
-    );
+    try {
+      const savedMsg = await this.chatFacade.saveMessage(
+        payload.sessionId,
+        payload.senderId,
+        payload.senderType,
+        payload.content,
+        payload.type || MessageType.TEXT,
+        payload.attachmentUrl,
+        payload.attachmentType,
+      );
+      
+      console.log(`[ChatGateway] Message saved successfully. Emitting new_message to room_${payload.sessionId}...`, savedMsg);
 
-    // Use client to ensure we are emitting in the correct namespace
-    // client.to(room) emits to everyone in the room EXCEPT the sender
-    client.to(`room_${payload.sessionId}`).emit('new_message', savedMsg);
-    // client.emit sends to the sender themselves
-    client.emit('new_message', savedMsg);
-    return savedMsg;
+      // Use client to ensure we are emitting in the correct namespace
+      // client.to(room) emits to everyone in the room EXCEPT the sender
+      client.to(`room_${payload.sessionId}`).emit('new_message', savedMsg);
+      // client.emit sends to the sender themselves
+      client.emit('new_message', savedMsg);
+      
+      console.log(`[ChatGateway] Broadcast complete for message ${savedMsg.id}`);
+      return savedMsg;
+    } catch (error) {
+      console.error(`[ChatGateway] Error saving message:`, error);
+      return { status: 'error', message: 'Error saving message' };
+    }
   }
 
   @SubscribeMessage('end_chat')
@@ -424,6 +441,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Broadcast to the room so BOTH User and Expert know immediately
     this.server.to(`room_${payload.sessionId}`).emit('session_ended', session);
+
+    // ✅ Broadcast expert is now FREE again
+    if (session && session.expert_id) {
+      this.server.emit('expert_busy_changed', {
+        expert_id: session.expert_id,
+        is_busy: false,
+      });
+    }
 
     // Notify expert dashboard directly (if they are in dashboard view)
     if (session && session.expert_id) {

@@ -70,6 +70,22 @@ export class InitiateChatUseCase {
       );
     }
 
+    // ✅ Check if expert is already busy in an active or pending chat session
+    const expertBusySession = await this.sessionRepo.findOne({
+      where: [
+        { expert_id, status: ChatSessionStatus.ACTIVE },
+        { expert_id, status: ChatSessionStatus.PENDING },
+      ],
+    });
+
+    if (expertBusySession) {
+      throw new BadRequestException(
+        expertBusySession.status === ChatSessionStatus.ACTIVE
+          ? 'This astrologer is currently busy in a consultation. Please try again after some time.'
+          : 'This astrologer already has a pending request. Please try again in a few minutes.',
+      );
+    }
+
     const chatPrice = Number(expert.chat_price) || 0;
     const minMins = 5;
     const minBalanceRequired = chatPrice * minMins;
