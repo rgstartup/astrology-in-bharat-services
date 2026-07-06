@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../../infrastructure/entities/product.entity';
 import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
+import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class FindAllProductsUseCase {
@@ -22,7 +23,13 @@ export class FindAllProductsUseCase {
 
     const query = this.productRepository
       .createQueryBuilder('product')
-      .where('product.is_active = :isActive', { isActive: true });
+      .innerJoin(
+        ProfileMerchant,
+        'merchantProfile',
+        'merchantProfile.user_id = product.merchant_id'
+      )
+      .where('product.is_active = :isActive', { isActive: true })
+      .andWhere('merchantProfile.status = :merchantStatus', { merchantStatus: MerchantStatus.ACTIVE });
 
     if (merchantId) {
       // Find the client_id associated with this merchant profile id
