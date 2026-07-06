@@ -4,6 +4,11 @@ import { Repository } from 'typeorm';
 import { KundliReport } from '../../infrastructure/entities/kundli-report.entity';
 import { ProkeralaService, ProkeralaPersonParam } from '@/external/prokerala/prokerala.service';
 
+export interface KundliPersonDetails extends ProkeralaPersonParam {
+  name?: string;
+  place?: string;
+}
+
 @Injectable()
 export class GenerateAndSaveKundliReportUseCase {
   constructor(
@@ -14,8 +19,8 @@ export class GenerateAndSaveKundliReportUseCase {
 
   async execute(
     clientId: string,
-    girlParams: ProkeralaPersonParam,
-    boyParams: ProkeralaPersonParam,
+    girlParams: KundliPersonDetails,
+    boyParams: KundliPersonDetails,
     ayanamsa?: string,
   ) {
     // 1. Fetch matching result from Prokerala

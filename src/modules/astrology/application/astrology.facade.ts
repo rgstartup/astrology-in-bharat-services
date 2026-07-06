@@ -7,7 +7,7 @@ import { GetKundliMatchingUseCase } from './use-cases/get-kundli-matching.use-ca
 import { GetPanchangUseCase } from './use-cases/get-panchang.use-case';
 import { GetPlanetaryPositionsUseCase } from './use-cases/get-planetary-positions.use-case';
 import { GetLuckyStatsUseCase } from './use-cases/get-lucky-stats.use-case';
-import { GenerateAndSaveKundliReportUseCase } from './use-cases/generate-and-save-kundli-report.use-case';
+import { GenerateAndSaveKundliReportUseCase, KundliPersonDetails } from './use-cases/generate-and-save-kundli-report.use-case';
 import { GetMyKundliReportsUseCase } from './use-cases/get-my-kundli-reports.use-case';
 import { DeleteKundliReportUseCase } from './use-cases/delete-kundli-report.use-case';
 import { ProkeralaPersonParam } from '@/external/prokerala/prokerala.service';
@@ -93,8 +93,8 @@ export class AstrologyFacade {
 
   async generateAndSaveKundliReport(
     clientId: string,
-    girlParams: ProkeralaPersonParam,
-    boyParams: ProkeralaPersonParam,
+    girlParams: KundliPersonDetails,
+    boyParams: KundliPersonDetails,
     ayanamsa?: string,
   ) {
     return this.generateAndSaveKundliReportUseCase.execute(
