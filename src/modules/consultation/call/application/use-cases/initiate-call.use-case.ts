@@ -76,6 +76,23 @@ export class InitiateCallUseCase {
     CallPolicy.ensureExpertExists(expert as unknown as ProfileExpert);
     CallPolicy.ensureExpertAvailable(Boolean(expert.is_available));
 
+    // ✅ Check if expert is already busy in an active or pending call/video session
+    const expertBusyCall = await this.sessionRepo.findOne({
+      where: [
+        { expert_id, status: CallSessionStatus.ACTIVE },
+        { expert_id, status: CallSessionStatus.PENDING },
+      ],
+    });
+
+    if (expertBusyCall) {
+      const busyType = expertBusyCall.type === CallType.VIDEO ? 'video call' : 'audio call';
+      throw new InternalServerErrorException(
+        expertBusyCall.status === CallSessionStatus.ACTIVE
+          ? `This astrologer is currently busy in a ${busyType}. Please try again after some time.`
+          : `This astrologer already has a pending ${busyType} request. Please try again in a few minutes.`,
+      );
+    }
+
     const callPrice =
       type === CallType.VIDEO
         ? Number(expert.video_call_price) ||

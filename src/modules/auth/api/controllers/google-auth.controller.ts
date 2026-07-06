@@ -22,6 +22,7 @@ export class GoogleAuthController {
       this.config.get<string>('FRONTEND_URL'),
       this.config.get<string>('ADMIN_FRONTEND_URL'),
       this.config.get<string>('ASTROLOGER_FRONTEND_URL'),
+      this.config.get<string>('MERCHANT_FRONTEND_URL'),
     ]
       .filter((v): v is string => Boolean(v))
       .map((v) => v.replace(/\/+$/, ''));

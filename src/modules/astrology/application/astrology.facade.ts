@@ -7,6 +7,9 @@ import { GetKundliMatchingUseCase } from './use-cases/get-kundli-matching.use-ca
 import { GetPanchangUseCase } from './use-cases/get-panchang.use-case';
 import { GetPlanetaryPositionsUseCase } from './use-cases/get-planetary-positions.use-case';
 import { GetLuckyStatsUseCase } from './use-cases/get-lucky-stats.use-case';
+import { GenerateAndSaveKundliReportUseCase, KundliPersonDetails } from './use-cases/generate-and-save-kundli-report.use-case';
+import { GetMyKundliReportsUseCase } from './use-cases/get-my-kundli-reports.use-case';
+import { DeleteKundliReportUseCase } from './use-cases/delete-kundli-report.use-case';
 import { ProkeralaPersonParam } from '@/external/prokerala/prokerala.service';
 
 @Injectable()
@@ -20,6 +23,9 @@ export class AstrologyFacade {
     private readonly getPanchangUseCase: GetPanchangUseCase,
     private readonly getPlanetaryPositionsUseCase: GetPlanetaryPositionsUseCase,
     private readonly getLuckyStatsUseCase: GetLuckyStatsUseCase,
+    private readonly generateAndSaveKundliReportUseCase: GenerateAndSaveKundliReportUseCase,
+    private readonly getMyKundliReportsUseCase: GetMyKundliReportsUseCase,
+    private readonly deleteKundliReportUseCase: DeleteKundliReportUseCase,
   ) {}
 
   async getGunaMilan(
@@ -83,6 +89,28 @@ export class AstrologyFacade {
 
   getLuckyStats(sign: string, dateStr: string) {
     return this.getLuckyStatsUseCase.execute(sign, dateStr);
+  }
+
+  async generateAndSaveKundliReport(
+    clientId: string,
+    girlParams: KundliPersonDetails,
+    boyParams: KundliPersonDetails,
+    ayanamsa?: string,
+  ) {
+    return this.generateAndSaveKundliReportUseCase.execute(
+      clientId,
+      girlParams,
+      boyParams,
+      ayanamsa,
+    );
+  }
+
+  async getMyKundliReports(clientId: string) {
+    return this.getMyKundliReportsUseCase.execute(clientId);
+  }
+
+  async deleteKundliReport(clientId: string, reportId: string) {
+    return this.deleteKundliReportUseCase.execute(clientId, reportId);
   }
 }
 

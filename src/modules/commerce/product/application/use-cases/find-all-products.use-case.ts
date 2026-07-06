@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../../infrastructure/entities/product.entity';
 import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
+import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class FindAllProductsUseCase {
@@ -22,7 +23,13 @@ export class FindAllProductsUseCase {
 
     const query = this.productRepository
       .createQueryBuilder('product')
-      .where('product.is_active = :isActive', { isActive: true });
+      .innerJoin(
+        ProfileMerchant,
+        'merchantProfile',
+        'merchantProfile.user_id = product.merchant_id'
+      )
+      .where('product.is_active = :isActive', { isActive: true })
+      .andWhere('merchantProfile.status = :merchantStatus', { merchantStatus: MerchantStatus.ACTIVE });
 
     if (merchantId) {
       // Find the client_id associated with this merchant profile id
@@ -47,6 +54,29 @@ export class FindAllProductsUseCase {
       .take(limit)
       .getManyAndCount();
 
+    // Fetch likes count for all products in one query
+    const productIds = products.map((p) => p.id);
+    let likesMap: Record<string, number> = {};
+
+    if (productIds.length > 0) {
+      const likesResult = await this.productRepository.manager
+        .createQueryBuilder()
+        .select('w.product_id', 'product_id')
+        .addSelect('COUNT(w.id)', 'total_likes')
+        .from('commerce.wishlists', 'w')
+        .where('w.product_id IN (:...ids)', { ids: productIds })
+        .groupBy('w.product_id')
+        .getRawMany();
+
+      likesMap = likesResult.reduce(
+        (acc, row) => {
+          acc[row.product_id] = parseInt(row.total_likes, 10) || 0;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+    }
+
     return {
       success: true,
       data: products.map((p) => ({
@@ -59,6 +89,7 @@ export class FindAllProductsUseCase {
         percentage_off: p.percentage_off ?? 0,
         product_name: p.name,
         product_image: p.image_url ?? '',
+        total_likes: likesMap[p.id] ?? 0,
       })),
       meta: {
         total,
