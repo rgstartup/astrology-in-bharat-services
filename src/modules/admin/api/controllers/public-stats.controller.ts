@@ -8,6 +8,7 @@ import {
 } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { Public } from '@/common/decorators/public.decorator';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
@@ -25,6 +26,8 @@ export class PublicStatsController {
     private readonly userRepo: Repository<User>,
     @InjectRepository(ProfileExpert)
     private readonly expertRepo: Repository<ProfileExpert>,
+    @InjectRepository(ChatSession)
+    private readonly chatSessionRepo: Repository<ChatSession>,
   ) {}
 
   @Public()
@@ -111,6 +114,68 @@ export class PublicStatsController {
         data: {
           total_experts: 1200,
           totalServices: 45000,
+        },
+      };
+    }
+  }
+
+  @Public()
+  @Get('platform-stats')
+  async getPlatformStats() {
+    try {
+      const [totalUsers, verifiedAstrologers, totalConsultations, totalProductsSold] = await Promise.all([
+        // Total registered clients
+        this.userRepo
+          .createQueryBuilder('user')
+          .where(':role = ANY(user.roles)', { role: RoleEnum.CLIENT })
+          .getCount(),
+
+        // Verified (KYC approved) astrologers
+        this.expertRepo
+          .createQueryBuilder('expert')
+          .where('expert.kyc_status = :status', { status: 'approved' })
+          .getCount(),
+
+        // Total completed consultations
+        this.chatSessionRepo.count({
+          where: {
+            status: In([ChatSessionStatus.COMPLETED, ChatSessionStatus.ACTIVE]),
+          },
+        }),
+
+        // Total products sold
+        this.orderRepo.count({
+          where: {
+            status: In([
+              OrderStatus.DELIVERED,
+              OrderStatus.PAID,
+              OrderStatus.SHIPPED,
+              OrderStatus.PROCESSING,
+              OrderStatus.PACKED,
+            ]),
+          },
+        }),
+      ]);
+
+      return {
+        success: true,
+        data: {
+          totalUsers,
+          verifiedAstrologers,
+          totalConsultations,
+          totalProductsSold,
+        },
+      };
+    } catch (error) {
+      console.error('[PublicStatsController] Error fetching platform stats:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch platform stats',
+        data: {
+          totalUsers: 0,
+          verifiedAstrologers: 0,
+          totalConsultations: 0,
+          totalProductsSold: 0,
         },
       };
     }

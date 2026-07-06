@@ -1,4 +1,6 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, UseGuards, Delete, Param } from '@nestjs/common';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { AstrologyFacade } from '../application/astrology.facade';
 
 @Controller('astrology')
@@ -109,5 +111,43 @@ export class AstrologyController {
       { datetime: boy_dob, lat: boy_lat, lon: boy_lon, tz: boy_tz },
       ayanamsa,
     );
+  }
+
+  @Post('kundli-reports')
+  @UseGuards(JwtAuthGuard)
+  async generateAndSaveKundliReport(
+    @CurrentUser() user: any,
+    @Body('girl_dob') girl_dob: string,
+    @Body('girl_lat') girl_lat: string,
+    @Body('girl_lon') girl_lon: string,
+    @Body('girl_tz') girl_tz: string,
+    @Body('girl_name') girl_name: string,
+    @Body('girl_place') girl_place: string,
+    @Body('boy_dob') boy_dob: string,
+    @Body('boy_lat') boy_lat: string,
+    @Body('boy_lon') boy_lon: string,
+    @Body('boy_tz') boy_tz: string,
+    @Body('boy_name') boy_name: string,
+    @Body('boy_place') boy_place: string,
+    @Body('ayanamsa') ayanamsa?: string,
+  ) {
+    return this.astrologyFacade.generateAndSaveKundliReport(
+      user.profile,
+      { datetime: girl_dob, lat: girl_lat, lon: girl_lon, tz: girl_tz, name: girl_name, place: girl_place },
+      { datetime: boy_dob, lat: boy_lat, lon: boy_lon, tz: boy_tz, name: boy_name, place: boy_place },
+      ayanamsa,
+    );
+  }
+
+  @Get('my-kundli-reports')
+  @UseGuards(JwtAuthGuard)
+  async getMyKundliReports(@CurrentUser() user: any) {
+    return this.astrologyFacade.getMyKundliReports(user.profile);
+  }
+
+  @Delete('kundli-reports/:id')
+  @UseGuards(JwtAuthGuard)
+  async deleteKundliReport(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.astrologyFacade.deleteKundliReport(user.profile, id);
   }
 }

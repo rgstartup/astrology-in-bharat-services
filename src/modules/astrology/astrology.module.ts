@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AstrologyController } from './api/astrology.controller';
 import { ProkeralaModule } from '@/external/prokerala/prokerala.module';
 import { AstrologyFacade } from './application/astrology.facade';
@@ -10,9 +11,13 @@ import { GetKundliMatchingUseCase } from './application/use-cases/get-kundli-mat
 import { GetPanchangUseCase } from './application/use-cases/get-panchang.use-case';
 import { GetPlanetaryPositionsUseCase } from './application/use-cases/get-planetary-positions.use-case';
 import { GetLuckyStatsUseCase } from './application/use-cases/get-lucky-stats.use-case';
+import { KundliReport } from './infrastructure/entities/kundli-report.entity';
+import { GenerateAndSaveKundliReportUseCase } from './application/use-cases/generate-and-save-kundli-report.use-case';
+import { GetMyKundliReportsUseCase } from './application/use-cases/get-my-kundli-reports.use-case';
+import { DeleteKundliReportUseCase } from './application/use-cases/delete-kundli-report.use-case';
 
 @Module({
-  imports: [ProkeralaModule],
+  imports: [ProkeralaModule, TypeOrmModule.forFeature([KundliReport])],
   controllers: [AstrologyController],
   providers: [
     AstrologyFacade,
@@ -24,6 +29,9 @@ import { GetLuckyStatsUseCase } from './application/use-cases/get-lucky-stats.us
     GetPanchangUseCase,
     GetPlanetaryPositionsUseCase,
     GetLuckyStatsUseCase,
+    GenerateAndSaveKundliReportUseCase,
+    GetMyKundliReportsUseCase,
+    DeleteKundliReportUseCase,
   ],
   exports: [AstrologyFacade],
 })
