@@ -3,6 +3,9 @@ import { GetEarningsStatsUseCase } from './use-cases/get-earnings-stats.use-case
 import { GetWalletBalanceUseCase } from './use-cases/get-wallet-balance.use-case';
 import { GetWalletTransactionsUseCase } from './use-cases/get-wallet-transactions.use-case';
 import { RequestWithdrawalUseCase } from './use-cases/request-withdrawal.use-case';
+import { GetExpertTransactionsDto } from '../api/dto/get-expert-transactions.dto';
+import { RequestExpertWithdrawalDto } from '../api/dto/request-expert-withdrawal.dto';
+import { GetExpertEarningsStatsDto } from '../api/dto/get-expert-earnings-stats.dto';
 
 @Injectable()
 export class ExpertEarningsFacade {
@@ -15,16 +18,9 @@ export class ExpertEarningsFacade {
 
   async getStats(
     expertProfileId: string,
-    period: string,
-    startDate?: string,
-    endDate?: string,
+    dto: GetExpertEarningsStatsDto,
   ) {
-    return this.getEarningsStatsUseCase.execute(
-      expertProfileId,
-      period,
-      startDate,
-      endDate,
-    );
+    return this.getEarningsStatsUseCase.execute(expertProfileId, dto);
   }
 
   async getWalletBalance(expertProfileId: string) {
@@ -33,29 +29,20 @@ export class ExpertEarningsFacade {
 
   async getTransactions(
     expertProfileId: string,
-    limit: number,
-    offset: number,
-    type: string,
+    dto: GetExpertTransactionsDto,
   ) {
-    return this.getWalletTransactionsUseCase.execute(
-      expertProfileId,
-      limit,
-      offset,
-      type,
-    );
+    return this.getWalletTransactionsUseCase.execute(expertProfileId, dto);
   }
 
   async requestWithdrawal(
     expertProfileId: string,
-    amount: number,
-    bank_account_id: string | number,
+    dto: RequestExpertWithdrawalDto,
     idempotencyKey?: string,
     securityMetadata?: { ip?: string; ua?: string },
   ) {
     return this.requestWithdrawalUseCase.execute(
       expertProfileId,
-      amount,
-      bank_account_id,
+      dto,
       idempotencyKey,
       securityMetadata,
     );

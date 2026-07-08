@@ -9,6 +9,8 @@ import { CallType } from '@/modules/consultation/call/infrastructure/entities/ca
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
+import { GetExpertEarningsStatsDto } from '../../api/dto/get-expert-earnings-stats.dto';
+
 @Injectable()
 export class GetEarningsStatsUseCase {
   constructor(
@@ -23,10 +25,9 @@ export class GetEarningsStatsUseCase {
 
   async execute(
     expertProfileId: string,
-    period: string,
-    startDateStr?: string,
-    endDateStr?: string,
+    dto: GetExpertEarningsStatsDto,
   ) {
+    const { period = 'last_6_months', startDate: startDateStr, endDate: endDateStr } = dto;
     const expert = await this.expertRepo.findOne({
       where: { id: expertProfileId },
     });
