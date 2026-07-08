@@ -15,7 +15,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
-import { DateRangeDto } from '@/common/dto/date-range.dto';
+import { GetAgentStatsDto } from '../../api/dto/get-agent-stats.dto';
 import { IUser } from '@/common/types/access-token.payload';
 import {
   CommissionsFacade,
@@ -41,9 +41,10 @@ export class GetAgentStatsUseCase {
 
   async execute(
     user: IUser,
-    range: string = '30d',
-    dateRangeDto?: DateRangeDto,
+    dto: GetAgentStatsDto,
   ) {
+    const range = dto.range || '30d';
+    const dateRangeDto = dto;
     const userId = user.id;
     const queryRunner = this.databaseService.getQueryRunner();
     await queryRunner.connect();

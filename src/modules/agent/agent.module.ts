@@ -29,6 +29,7 @@ import { GetAdminAgentsUseCase } from './application/use-cases/get-admin-agents.
 import { GetAdminAgentStatsUseCase } from './application/use-cases/get-admin-agent-stats.use-case';
 import { GetAdminListingsUseCase } from './application/use-cases/get-admin-listings.use-case';
 import { UpdateAdminListingStatusUseCase } from './application/use-cases/update-admin-listing-status.use-case';
+import { RequestAgentWithdrawalUseCase } from './application/use-cases/request-agent-withdrawal.use-case';
 import { UsersModule } from '../users/users.module';
 import { AdminModule } from '../admin/admin.module';
 
@@ -68,6 +69,7 @@ import { AdminModule } from '../admin/admin.module';
     GetAdminAgentStatsUseCase,
     GetAdminListingsUseCase,
     UpdateAdminListingStatusUseCase,
+    RequestAgentWithdrawalUseCase,
   ],
   exports: [AgentFacade],
 })
