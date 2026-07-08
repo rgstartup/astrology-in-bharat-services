@@ -28,6 +28,7 @@ export class ConsultationController {
     @CurrentUser() user: IUser,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Query('search') search?: string,
   ) {
     const limitNum = limit ? parseInt(limit, 10) : 20;
     const offsetNum = offset ? parseInt(offset, 10) : 0;
@@ -39,6 +40,7 @@ export class ConsultationController {
       isExpert,
       limitNum,
       offsetNum,
+      search,
     );
 
     return {
