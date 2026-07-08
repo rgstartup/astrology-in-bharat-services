@@ -183,6 +183,7 @@ export class CreateReviewUseCase {
       comment,
       tags,
       review_type: 'expert',
+      status: 'approved',
     });
 
     console.log('[CreateReview] Review Object created:', review);
@@ -257,6 +258,7 @@ export class CreateReviewUseCase {
       comment,
       tags,
       review_type: 'merchant',
+      status: 'approved',
     });
 
     const savedReview = await this.reviewRepository.save(review);

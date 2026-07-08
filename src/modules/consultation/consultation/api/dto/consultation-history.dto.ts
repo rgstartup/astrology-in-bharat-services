@@ -21,6 +21,7 @@ export class ConsultationExpertDto {
 
 export class ConsultationHistoryDto {
   id: string;
+  displayId?: string;
   type: ConsultationType;
   status: ConsultationStatus;
   startTime: Date | null;

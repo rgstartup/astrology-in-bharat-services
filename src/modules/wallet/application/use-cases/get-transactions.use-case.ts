@@ -118,7 +118,20 @@ export class GetTransactionsUseCase {
           }
         } else if (tx.purpose === TransactionPurpose.REFUND) {
           description = 'Refund Issued';
-          if (tx.reference_id) description = `Refund (#${tx.reference_id})`;
+          if (tx.reference_id) {
+            const regex = /^(chat|call|video)_([a-f0-9\-]{36})$/i;
+            const match = tx.reference_id.match(regex);
+            if (match) {
+              const typeStr = match[1].toLowerCase();
+              const uuid = match[2];
+              const typeLabel = typeStr === 'chat' ? 'CHAT' : typeStr === 'video' ? 'VID' : 'CALL';
+              const lastPart = uuid.split('-').pop() || '';
+              const formattedId = `AIB-${typeLabel}-${lastPart.slice(-6).toUpperCase()}`;
+              description = `Refund (${formattedId})`;
+            } else {
+              description = `Refund (#${tx.reference_id})`;
+            }
+          }
         } else if (tx.purpose === TransactionPurpose.WITHDRAWAL) {
           description = 'Payout Request';
           if (status === 'rejected') description = 'Payout Rejected';
@@ -126,8 +139,18 @@ export class GetTransactionsUseCase {
             description = 'Payout Completed';
         }
 
+        let formatted_transaction_no = tx.transaction_no;
+        if (formatted_transaction_no && formatted_transaction_no.startsWith('AIB-USR-RECH-')) {
+          const parts = formatted_transaction_no.split('-');
+          if (parts.length >= 6) {
+            const lastPart = parts[parts.length - 1];
+            formatted_transaction_no = `AIB-RECH-${lastPart.slice(-6).toUpperCase()}`;
+          }
+        }
+
         return {
           ...tx,
+          transaction_no: formatted_transaction_no,
           bank_account,
           status,
           remark,

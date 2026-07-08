@@ -29,7 +29,7 @@ export class GetUnifiedHistoryUseCase {
     private readonly reviewRepo: Repository<Review>,
   ) {}
 
-  async execute(profileId: string, isExpert: boolean, limit: number = 20, offset: number = 0) {
+  async execute(profileId: string, isExpert: boolean, limit: number = 20, offset: number = 0, search: string = '') {
     let chatFilter = {};
     let callFilter = {};
 
@@ -122,11 +122,21 @@ export class GetUnifiedHistoryUseCase {
       return timeB - timeA;
     });
 
-    // 7. Apply Pagination
+    // 7. Apply Filter
+    let filteredHistory = unifiedHistory;
+    if (search && search.trim()) {
+      const lowerSearch = search.toLowerCase();
+      filteredHistory = unifiedHistory.filter((h) => 
+        (h.displayId && h.displayId.toLowerCase().includes(lowerSearch)) ||
+        (h.id && h.id.toLowerCase().includes(lowerSearch))
+      );
+    }
+
+    // 8. Apply Pagination
     const limitNum = Math.min(Math.max(1, limit), 100);
     const offsetNum = Math.max(0, offset);
-    const totalCount = unifiedHistory.length;
-    const paginatedData = unifiedHistory.slice(offsetNum, offsetNum + limitNum);
+    const totalCount = filteredHistory.length;
+    const paginatedData = filteredHistory.slice(offsetNum, offsetNum + limitNum);
 
     return {
       data: paginatedData,
@@ -141,9 +151,11 @@ export class GetUnifiedHistoryUseCase {
     clientProfile?: ProfileClient,
   ): ConsultationHistoryDto {
     const total_cost = Number(session.total_cost || 0);
+    const displayId = `AIB-CHAT-${session.id.split('-').pop()?.substring(6).toUpperCase()}`;
 
     return {
       id: session.id,
+      displayId: displayId,
       type: ConsultationType.CHAT,
       status: this.mapChatStatus(session.status, duration),
       startTime: session.start_time || session.created_at,
@@ -197,9 +209,12 @@ export class GetUnifiedHistoryUseCase {
     clientProfile?: ProfileClient,
   ): ConsultationHistoryDto {
     const final_price = Number(session.final_price || 0);
+    const typeLabel = session.type === CallType.VIDEO ? 'VID' : 'CALL';
+    const displayId = `AIB-${typeLabel}-${session.id.split('-').pop()?.substring(6).toUpperCase()}`;
 
     return {
       id: session.id,
+      displayId: displayId,
       type:
         session.type === CallType.VIDEO
           ? ConsultationType.VIDEO_CALL
