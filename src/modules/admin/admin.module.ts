@@ -61,6 +61,18 @@ import { PublicSettingsController } from './api/controllers/public-settings.cont
 import { IHasherToken } from '@/common/contracts/hasher.contract';
 import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-password.hasher';
 
+// New Use Cases
+import { GetAdminClientsUseCase } from './application/use-cases/get-admin-clients.use-case';
+import { GetAdminExpertsUseCase } from './application/use-cases/get-admin-experts.use-case';
+import { GetLiveSessionsUseCase } from './application/use-cases/get-live-sessions.use-case';
+import { TerminateSessionUseCase } from './application/use-cases/terminate-session.use-case';
+import { GetAdminWithdrawalsUseCase } from './application/use-cases/get-admin-withdrawals.use-case';
+import { UpdateWithdrawalStatusUseCase } from './application/use-cases/update-withdrawal-status.use-case';
+import { UpdateExpertStatusUseCase } from './application/use-cases/update-expert-status.use-case';
+import { GetAdminDisputesUseCase } from './application/use-cases/get-admin-disputes.use-case';
+import { UpdateDisputeStatusUseCase } from './application/use-cases/update-dispute-status.use-case';
+import { UpdateSupportSettingsUseCase } from './application/use-cases/update-support-settings.use-case';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -128,6 +140,18 @@ import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-pass
       provide: IHasherToken,
       useClass: Argon2PasswordHasher,
     },
+
+    // Registering new Use Cases
+    GetAdminClientsUseCase,
+    GetAdminExpertsUseCase,
+    GetLiveSessionsUseCase,
+    TerminateSessionUseCase,
+    GetAdminWithdrawalsUseCase,
+    UpdateWithdrawalStatusUseCase,
+    UpdateExpertStatusUseCase,
+    GetAdminDisputesUseCase,
+    UpdateDisputeStatusUseCase,
+    UpdateSupportSettingsUseCase,
   ],
   exports: [AdminFacade],
 })

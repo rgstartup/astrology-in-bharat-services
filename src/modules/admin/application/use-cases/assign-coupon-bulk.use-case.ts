@@ -1,9 +1,7 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
-import {
-  GetFilteredUsersUseCase,
-  FilterCriteria,
-} from './get-filtered-users.use-case';
+import { GetFilteredUsersUseCase } from './get-filtered-users.use-case';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
+import { AssignCouponBulkDto } from '../../api/dto/assign-coupon-bulk.dto';
 
 @Injectable()
 export class AssignCouponBulkUseCase {
@@ -14,7 +12,9 @@ export class AssignCouponBulkUseCase {
     private readonly getFilteredUsersUseCase: GetFilteredUsersUseCase,
   ) {}
 
-  async execute(couponCode: string, filters: FilterCriteria) {
+  async execute(dto: AssignCouponBulkDto) {
+    const { couponCode, filters } = dto;
+
     // Get all matched users (without pagination limit)
     const matchedUsers = await this.getFilteredUsersUseCase.executeList({
       ...filters,
@@ -37,3 +37,4 @@ export class AssignCouponBulkUseCase {
     return this.couponFacade.bulkAssign(couponCode, userIds);
   }
 }
+

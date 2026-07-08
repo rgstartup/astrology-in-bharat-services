@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -11,9 +10,14 @@ import {
 import { GetSupportSettingsUseCase } from '../../application/use-cases/get-support-settings.usecase';
 import { GetSystemSettingsUseCase } from '../../application/use-cases/get-system-settings.use-case';
 import { UpdateSystemSettingUseCase } from '../../application/use-cases/update-system-setting.use-case';
+import { UpdateSupportSettingsUseCase } from '../../application/use-cases/update-support-settings.use-case';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
+
+// New DTO imports
+import { UpdateSystemSettingDto } from '../../api/dto/update-system-setting.dto';
+import { UpdateSupportSettingsDto } from '../../api/dto/update-support-settings.dto';
 
 @Controller('admin/settings')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -23,6 +27,7 @@ export class SettingsController {
     private readonly getSupportSettings: GetSupportSettingsUseCase,
     private readonly getSystemSettings: GetSystemSettingsUseCase,
     private readonly updateSystemSetting: UpdateSystemSettingUseCase,
+    private readonly updateSupportSettings: UpdateSupportSettingsUseCase,
   ) {}
 
   @Get('support')
@@ -39,14 +44,8 @@ export class SettingsController {
 
   @Post('system')
   @HttpCode(HttpStatus.OK)
-  async updateSystem(
-    @Body() body: { key: string; value: string; description?: string },
-  ) {
-    return this.updateSystemSetting.execute(
-      body.key,
-      body.value,
-      body.description,
-    );
+  async updateSystem(@Body() body: UpdateSystemSettingDto) {
+    return this.updateSystemSetting.execute(body);
   }
 
   @Get('commissions')
@@ -78,7 +77,7 @@ export class SettingsController {
   @HttpCode(HttpStatus.OK)
   async updateCommissions(@Body() body: Record<string, string>) {
     const promises = Object.entries(body).map(([key, value]) =>
-      this.updateSystemSetting.execute(key, value.toString()),
+      this.updateSystemSetting.execute({ key, value: value.toString() }),
     );
     await Promise.all(promises);
     return { success: true };
@@ -86,15 +85,7 @@ export class SettingsController {
 
   @Post('support')
   @HttpCode(HttpStatus.OK)
-  async updateSupport(
-    @Body() body: { email: string; phone: string; whatsapp: string },
-  ) {
-    const promises = [
-      this.updateSystemSetting.execute('support_email', body.email),
-      this.updateSystemSetting.execute('support_phone', body.phone),
-      this.updateSystemSetting.execute('support_whatsapp', body.whatsapp),
-    ];
-    await Promise.all(promises);
-    return { success: true };
+  async updateSupport(@Body() body: UpdateSupportSettingsDto) {
+    return this.updateSupportSettings.execute(body);
   }
 }

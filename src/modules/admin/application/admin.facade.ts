@@ -28,6 +28,32 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
 import { GetSystemSettingsUseCase } from './use-cases/get-system-settings.use-case';
 
+// New DTO imports
+import { GetClientsDto } from '../api/dto/get-clients.dto';
+import { GetExpertsDto } from '../api/dto/get-experts.dto';
+import { GetLiveSessionsDto } from '../api/dto/get-live-sessions.dto';
+import { TerminateSessionDto } from '../api/dto/terminate-session.dto';
+import { GetWithdrawalsDto } from '../api/dto/get-withdrawals.dto';
+import { UpdateWithdrawalStatusDto } from '../api/dto/update-withdrawal-status.dto';
+import { UpdateExpertStatusDto } from '../api/dto/update-expert-status.dto';
+import { AssignCouponBulkDto } from '../api/dto/assign-coupon-bulk.dto';
+import { GetAdminMerchantsDto } from '../api/dto/get-merchants.dto';
+import { GetAgentsDto } from '../api/dto/get-agents.dto';
+import { GetAdminListingsDto } from '../api/dto/get-listings.dto';
+import { GetDisputesDto } from '../api/dto/get-disputes.dto';
+import { UpdateDisputeStatusDto } from '../api/dto/update-dispute-status.dto';
+
+// New Use Case imports
+import { GetAdminClientsUseCase } from './use-cases/get-admin-clients.use-case';
+import { GetAdminExpertsUseCase } from './use-cases/get-admin-experts.use-case';
+import { GetLiveSessionsUseCase } from './use-cases/get-live-sessions.use-case';
+import { TerminateSessionUseCase } from './use-cases/terminate-session.use-case';
+import { GetAdminWithdrawalsUseCase } from './use-cases/get-admin-withdrawals.use-case';
+import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-status.use-case';
+import { UpdateExpertStatusUseCase } from './use-cases/update-expert-status.use-case';
+import { GetAdminDisputesUseCase } from './use-cases/get-admin-disputes.use-case';
+import { UpdateDisputeStatusUseCase } from './use-cases/update-dispute-status.use-case';
+
 @Injectable()
 export class AdminFacade {
   constructor(
@@ -55,6 +81,17 @@ export class AdminFacade {
     @Inject(forwardRef(() => SupportFacade))
     private readonly supportFacade: SupportFacade,
     private readonly getSystemSettingsUseCase: GetSystemSettingsUseCase,
+
+    // Injecting new use cases
+    private readonly getAdminClientsUseCase: GetAdminClientsUseCase,
+    private readonly getAdminExpertsUseCase: GetAdminExpertsUseCase,
+    private readonly getLiveSessionsUseCase: GetLiveSessionsUseCase,
+    private readonly terminateSessionUseCase: TerminateSessionUseCase,
+    private readonly getAdminWithdrawalsUseCase: GetAdminWithdrawalsUseCase,
+    private readonly updateWithdrawalStatusUseCase: UpdateWithdrawalStatusUseCase,
+    private readonly updateExpertStatusUseCase: UpdateExpertStatusUseCase,
+    private readonly getAdminDisputesUseCase: GetAdminDisputesUseCase,
+    private readonly updateDisputeStatusUseCase: UpdateDisputeStatusUseCase,
   ) {}
 
   async getDashboardStats() {
@@ -69,46 +106,36 @@ export class AdminFacade {
     return this.getExpertDetailUseCase.execute(id);
   }
 
-  async getLiveSessions(filter?: string, page?: number, limit?: number) {
-    return this.chatFacade.findAllSessions(filter, page, limit);
+  async getAllClients(dto: GetClientsDto) {
+    return this.getAdminClientsUseCase.execute(dto);
+  }
+
+  async getAllExperts(dto: GetExpertsDto) {
+    return this.getAdminExpertsUseCase.execute(dto);
+  }
+
+  async getLiveSessions(dto: GetLiveSessionsDto) {
+    return this.getLiveSessionsUseCase.execute(dto);
   }
 
   async terminateSession(
     sessionId: string,
     adminId: string,
-    userMessage?: string,
-    expertMessage?: string,
+    dto: TerminateSessionDto,
   ) {
-    return this.chatFacade.adminTerminateSession(
-      sessionId,
-      adminId,
-      userMessage,
-      expertMessage,
-    );
+    return this.terminateSessionUseCase.execute(sessionId, adminId, dto);
   }
 
-  async getWithdrawals(
-    page: number = 1,
-    limit: number = 10,
-    status?: WithdrawalStatus,
-    role?: RoleEnum,
-  ) {
-    const offset = (page - 1) * limit;
-    return this.walletFacade.getPendingWithdrawals(limit, offset, status, role);
+  async getWithdrawals(dto: GetWithdrawalsDto) {
+    return this.getAdminWithdrawalsUseCase.execute(dto);
   }
 
   async updateWithdrawalStatus(
     id: string,
-    status: WithdrawalStatus,
     adminId: string,
-    remark?: string,
+    dto: UpdateWithdrawalStatusDto,
   ) {
-    return this.walletFacade.updateWithdrawalStatus(
-      id,
-      status,
-      adminId,
-      remark,
-    );
+    return this.updateWithdrawalStatusUseCase.execute(id, adminId, dto);
   }
 
   async getWithdrawalStats(role?: RoleEnum) {
@@ -123,29 +150,24 @@ export class AdminFacade {
     return this.getFilteredUsersUseCase.executeList(filters);
   }
 
-  async assignCouponBulk(couponCode: string, filters: FilterCriteria) {
-    return this.assignCouponBulkUseCase.execute(couponCode, filters);
+  async assignCouponBulk(dto: AssignCouponBulkDto) {
+    return this.assignCouponBulkUseCase.execute(dto);
   }
 
   async createAgent(dto: CreateAgentDto, files?: Record<string, unknown>) {
     return this.createAgentUseCase.execute(dto, files);
   }
 
-  async getAgents(params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    status?: string;
-  }) {
-    return this.getAgentsUseCase.execute(params);
+  async getAgents(dto: GetAgentsDto) {
+    return this.getAgentsUseCase.execute(dto);
   }
 
   async getAgentStats() {
     return this.getAgentStatsUseCase.execute();
   }
 
-  async getListings(params?: Record<string, unknown>) {
-    return this.getAdminListingsUseCase.execute(params);
+  async getListings(dto: GetAdminListingsDto) {
+    return this.getAdminListingsUseCase.execute(dto);
   }
 
   async updateListingStatus(id: string, status: string) {
@@ -165,24 +187,20 @@ export class AdminFacade {
   }
 
   // --- Support / Disputes Management ---
-  async getAllDisputes(params?: {
-    status?: DisputeStatus;
-    page?: number;
-    limit?: number;
-  }) {
-    return this.supportFacade.getAllDisputes(params);
+  async getAllDisputes(dto: GetDisputesDto) {
+    return this.getAdminDisputesUseCase.execute(dto);
   }
 
   async getDisputeById(disputeId: string) {
     return this.supportFacade.getDisputeByIdForAdmin(disputeId);
   }
 
-  async updateDisputeStatus(
-    disputeId: string,
-    status: DisputeStatus,
-    notes?: string,
-  ) {
-    return this.supportFacade.updateDisputeStatus(disputeId, { status, notes });
+  async updateDisputeStatus(id: string, dto: UpdateDisputeStatusDto) {
+    return this.updateDisputeStatusUseCase.execute(id, dto);
+  }
+
+  async updateExpertStatus(id: string, dto: UpdateExpertStatusDto) {
+    return this.updateExpertStatusUseCase.execute(id, dto);
   }
 
   async getDisputeMessages(disputeId: string) {
@@ -197,13 +215,8 @@ export class AdminFacade {
     return this.supportFacade.sendAdminMessage(adminId, disputeId, data);
   }
 
-  async getAllMerchants(params: {
-    search?: string;
-    status?: string;
-    page?: number;
-    limit?: number;
-  }) {
-    return this.getAdminMerchantsUseCase.execute(params);
+  async getAllMerchants(dto: GetAdminMerchantsDto) {
+    return this.getAdminMerchantsUseCase.execute(dto);
   }
 
   async updateMerchantStatus(

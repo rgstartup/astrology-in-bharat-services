@@ -15,7 +15,6 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
@@ -26,8 +25,6 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { IUser } from '@/common/types/access-token.payload';
 import { WithdrawalStatus } from '@/modules/finance/wallet/infrastructure/entities/withdrawal.entity';
-import { FilterCriteria } from '../../application/use-cases/get-filtered-users.use-case';
-import { CreateAgentDto } from '../dto/create-agent.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
@@ -37,9 +34,24 @@ import {
 } from '@/modules/users/infrastructure/enums/Role.enum';
 import { MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
-import { PaginationDto } from '@/common/dto/pagination.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { GetReviewsDTO } from '../dto/get-reviews.dto';
+import { CreateAgentDto } from '../dto/create-agent.dto';
+
+// New DTO imports
+import { GetClientsDto } from '../dto/get-clients.dto';
+import { GetExpertsDto } from '../dto/get-experts.dto';
+import { GetLiveSessionsDto } from '../dto/get-live-sessions.dto';
+import { TerminateSessionDto } from '../dto/terminate-session.dto';
+import { GetWithdrawalsDto } from '../dto/get-withdrawals.dto';
+import { UpdateWithdrawalStatusDto } from '../dto/update-withdrawal-status.dto';
+import { UpdateExpertStatusDto } from '../dto/update-expert-status.dto';
+import { AssignCouponBulkDto } from '../dto/assign-coupon-bulk.dto';
+import { GetAdminMerchantsDto } from '../dto/get-merchants.dto';
+import { GetAgentsDto } from '../dto/get-agents.dto';
+import { GetAdminListingsDto } from '../dto/get-listings.dto';
+import { GetDisputesDto } from '../dto/get-disputes.dto';
+import { UpdateDisputeStatusDto } from '../dto/update-dispute-status.dto';
 
 @Controller({
   path: 'admin',
@@ -51,7 +63,6 @@ export class AdminController {
   constructor(
     private readonly adminFacade: AdminFacade,
     private readonly usersFacade: UsersFacade,
-    private readonly profileFacade: ExpertProfileFacade,
     private readonly chatFacade: ChatFacade,
     private readonly couponFacade: CouponFacade,
     private readonly reviewsFacade: ReviewsFacade,
@@ -80,7 +91,6 @@ export class AdminController {
   @Delete('reviews/:id')
   async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
     return this.reviewsFacade.deleteReview(id);
-
   }
 
   @Post('reviews/:id/response')
@@ -127,16 +137,8 @@ export class AdminController {
   }
 
   @Get('clients')
-  async getAllUsers(
-    @Query('search') search: string | undefined,
-    @Query() pagination: PaginationDto,
-  ) {
-    return this.usersFacade.findAllByRole(
-      'client',
-      search,
-      pagination.page,
-      pagination.limit,
-    );
+  async getAllUsers(@Query() query: GetClientsDto) {
+    return this.adminFacade.getAllClients(query);
   }
 
   @Get('clients/:id')
@@ -145,18 +147,8 @@ export class AdminController {
   }
 
   @Get('experts')
-  async getAllExperts(
-    @Query('search') search: string | undefined,
-    @Query() pagination: PaginationDto,
-    @Query('status') status?: string,
-  ) {
-    return this.usersFacade.findAllByRole(
-      'expert',
-      search,
-      pagination.page,
-      pagination.limit,
-      status,
-    );
+  async getAllExperts(@Query() query: GetExpertsDto) {
+    return this.adminFacade.getAllExperts(query);
   }
 
   @Get('experts/:id')
@@ -167,13 +159,9 @@ export class AdminController {
   @Patch('experts/:id/status')
   async updateExpertStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { status: string; reason?: string },
+    @Body() body: UpdateExpertStatusDto,
   ) {
-    const _result = await this.profileFacade.updateKycStatus(
-      id,
-      body.status,
-      body.reason,
-    );
+    await this.adminFacade.updateExpertStatus(id, body);
     return { success: true };
   }
 
@@ -197,15 +185,8 @@ export class AdminController {
   }
 
   @Get('live-sessions')
-  async getLiveSessions(
-    @Query('type') type: string | undefined,
-    @Query() pagination: PaginationDto,
-  ) {
-    return this.adminFacade.getLiveSessions(
-      type,
-      pagination.page,
-      pagination.limit,
-    );
+  async getLiveSessions(@Query() query: GetLiveSessionsDto) {
+    return this.adminFacade.getLiveSessions(query);
   }
 
   @Get('live-sessions/stats')
@@ -222,14 +203,13 @@ export class AdminController {
   async terminateSession(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() admin: IUser,
-    @Body() body: { userMessage?: string; expertMessage?: string },
+    @Body() body: TerminateSessionDto,
   ) {
     try {
       return await this.adminFacade.terminateSession(
         id,
         admin.id,
-        body.userMessage,
-        body.expertMessage,
+        body,
       );
     } catch (error: unknown) {
       return {
@@ -237,7 +217,7 @@ export class AdminController {
         message:
           error instanceof Error
             ? error.message
-            : 'Failed to update commission',
+            : 'Failed to terminate session',
       };
     }
   }
@@ -273,18 +253,8 @@ export class AdminController {
 
   // Withdrawal Management
   @Get('withdrawals')
-  async getWithdrawals(
-    @Query() pagination: PaginationDto,
-    @Query('status', new ParseEnumPipe(WithdrawalStatus, { optional: true }))
-    status?: WithdrawalStatus,
-    @Query('role', RolePipe({ optional: true })) role?: RoleEnum,
-  ) {
-    return this.adminFacade.getWithdrawals(
-      pagination.page,
-      pagination.limit,
-      status,
-      role,
-    );
+  async getWithdrawals(@Query() query: GetWithdrawalsDto) {
+    return this.adminFacade.getWithdrawals(query);
   }
 
   @Get('withdrawals/stats')
@@ -298,13 +268,12 @@ export class AdminController {
   async updateWithdrawalStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() admin: IUser,
-    @Body() body: { status: WithdrawalStatus; remark?: string },
+    @Body() body: UpdateWithdrawalStatusDto,
   ) {
-    const _result = await this.adminFacade.updateWithdrawalStatus(
+    await this.adminFacade.updateWithdrawalStatus(
       id,
-      body.status,
       admin.id,
-      body.remark,
+      body,
     );
     return { success: true };
   }
@@ -322,25 +291,13 @@ export class AdminController {
   }
 
   @Post('coupons/assign-bulk')
-  async assignCouponBulk(
-    @Body() dto: { couponCode: string; filters: FilterCriteria },
-  ) {
-    return this.adminFacade.assignCouponBulk(dto.couponCode, dto.filters);
+  async assignCouponBulk(@Body() dto: AssignCouponBulkDto) {
+    return this.adminFacade.assignCouponBulk(dto);
   }
 
   @Get('merchants')
-  async getAllMerchants(
-    @Query('search') search: string | undefined,
-    @Query('status', new ParseEnumPipe(MerchantStatus, { optional: true }))
-    status: MerchantStatus | undefined,
-    @Query() pagination: PaginationDto,
-  ) {
-    return this.adminFacade.getAllMerchants({
-      search,
-      status,
-      page: pagination.page,
-      limit: pagination.limit,
-    });
+  async getAllMerchants(@Query() query: GetAdminMerchantsDto) {
+    return this.adminFacade.getAllMerchants(query);
   }
 
   @Patch('merchants/:id/status')
@@ -366,7 +323,7 @@ export class AdminController {
     return this.adminFacade.getMerchantSalesDetails(id);
   }
 
-  // â”€â”€ Agents Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Agents Endpoints ──────────────────────────────────────────────────────────
   @Post('agents')
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -394,17 +351,8 @@ export class AdminController {
   }
 
   @Get('agents')
-  async getAgents(
-    @Query() pagination: PaginationDto,
-    @Query('search') search?: string,
-    @Query('status') status?: string,
-  ) {
-    return this.adminFacade.getAgents({
-      page: pagination.page,
-      limit: pagination.limit,
-      search,
-      status,
-    });
+  async getAgents(@Query() query: GetAgentsDto) {
+    return this.adminFacade.getAgents(query);
   }
 
   @Get('agents/stats')
@@ -413,17 +361,8 @@ export class AdminController {
   }
 
   @Get('listings')
-  async getListings(
-    @Query('type') type: string | undefined,
-    @Query('search') search: string | undefined,
-    @Query() pagination: PaginationDto,
-  ) {
-    return this.adminFacade.getListings({
-      type,
-      search,
-      page: pagination.page,
-      limit: pagination.limit,
-    });
+  async getListings(@Query() query: GetAdminListingsDto) {
+    return this.adminFacade.getListings(query);
   }
 
   @Patch('listings/:id/status')
@@ -441,16 +380,8 @@ export class AdminController {
 
   // --- Support / Disputes Management ---
   @Get('support/disputes')
-  async getAllDisputes(
-    @Query('status', new ParseEnumPipe(DisputeStatus, { optional: true }))
-    status: DisputeStatus | undefined,
-    @Query() pagination: PaginationDto,
-  ) {
-    return this.adminFacade.getAllDisputes({
-      status,
-      page: pagination.page,
-      limit: pagination.limit,
-    });
+  async getAllDisputes(@Query() query: GetDisputesDto) {
+    return this.adminFacade.getAllDisputes(query);
   }
 
   @Get('support/disputes/:id')
@@ -461,14 +392,9 @@ export class AdminController {
   @Patch('support/disputes/:id/status')
   async updateDisputeStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body('status', new ParseEnumPipe(DisputeStatus)) status: DisputeStatus,
-    @Body('notes') notes?: string,
+    @Body() body: UpdateDisputeStatusDto,
   ) {
-    const _result = await this.adminFacade.updateDisputeStatus(
-      id,
-      status,
-      notes,
-    );
+    await this.adminFacade.updateDisputeStatus(id, body);
     return { success: true };
   }
 

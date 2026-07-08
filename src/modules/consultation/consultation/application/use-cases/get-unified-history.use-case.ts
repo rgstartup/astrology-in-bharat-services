@@ -34,6 +34,7 @@ export class GetUnifiedHistoryUseCase {
     isExpert: boolean,
     limit: number = 20,
     offset: number = 0,
+    search?: string,
   ) {
     let chatFilter = {};
     let callFilter = {};
