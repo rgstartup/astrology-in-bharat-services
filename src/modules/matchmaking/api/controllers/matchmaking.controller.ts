@@ -10,18 +10,13 @@ export class MatchmakingController {
   @Public()
   @Post('guna-milan')
   async getGunaMilan(@Body() dto: GunaMilanRequestDto) {
-    return this.matchmakingFacade.calculateKundliMatching(dto.girl, dto.boy);
+    return this.matchmakingFacade.calculateKundliMatching(dto);
   }
 
   @Public()
   @Post('love-calculator')
   // eslint-disable-next-line @typescript-eslint/require-await
   async calculateLove(@Body() dto: LoveCalculatorDto) {
-    return this.matchmakingFacade.calculateLovePercentage(
-      dto.yourName,
-      dto.partnerName,
-      dto.yourGender,
-      dto.partnerGender,
-    );
+    return this.matchmakingFacade.calculateLovePercentage(dto);
   }
 }
