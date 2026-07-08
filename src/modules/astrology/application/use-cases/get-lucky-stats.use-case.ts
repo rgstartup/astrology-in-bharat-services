@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { GetLuckyStatsDto } from '../../api/dto/get-lucky-stats.dto';
 
 @Injectable()
 export class GetLuckyStatsUseCase {
-  execute(sign: string, dateStr: string) {
+  execute(dto: GetLuckyStatsDto) {
+    const { sign, date: dateStr } = dto;
     const signLower = sign.toLowerCase();
     
     // 1. Numerology of the Date
