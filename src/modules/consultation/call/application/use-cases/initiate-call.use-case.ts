@@ -4,6 +4,7 @@ import {
   Logger,
   Inject,
   forwardRef,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -60,11 +61,14 @@ export class InitiateCallUseCase {
         };
       }
 
-      throw new InternalServerErrorException(
-        existingSession.status === CallSessionStatus.ACTIVE
+      throw new BadRequestException({
+        message: existingSession.status === CallSessionStatus.ACTIVE
           ? `You already have an ongoing ${existingSession.type} call with another astrologer.`
           : `You already have a pending ${existingSession.type} call request with another astrologer. Please wait for them to accept or cancel it.`,
-      );
+        existingSessionId: existingSession.id,
+        existingExpertId: existingSession.expert_id,
+        existingStatus: existingSession.status,
+      });
     }
 
     const expert = await this.expertProfileFacade.getExpertById(expert_id);
