@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Param,
@@ -17,6 +17,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { IUser } from '@/common/types/access-token.payload';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { GetNotificationsDto } from '../dto/get-notifications.dto';
 
 function deriveProfileType(roles: RoleEnum[]): ProfileType {
   if (roles.includes(RoleEnum.EXPERT)) return RoleEnum.EXPERT;
@@ -37,26 +38,22 @@ export class NotificationController {
   async getNotifications(
     @CurrentUser() user: IUser,
     @CurrentProfile() profileId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query() dto: GetNotificationsDto,
   ) {
-    const limitNum = limit ? parseInt(limit, 10) : 20;
-    const offsetNum = offset ? parseInt(offset, 10) : 0;
     const profileType = deriveProfileType(user.roles);
     const { data, totalCount } =
       await this.notificationFacade.getUserNotifications(
         profileId,
         profileType,
-        limitNum,
-        offsetNum,
+        dto,
       );
     return {
       success: true,
       data,
       meta: {
         totalCount,
-        limit: limitNum,
-        offset: offsetNum,
+        limit: dto.limit ?? 20,
+        offset: dto.offset ?? 0,
       },
     };
   }

@@ -7,6 +7,7 @@ import {
 } from '../../infrastructure/entities/notification.entity';
 import { FindOptionsWhere } from 'typeorm';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { GetNotificationsDto } from '../../api/dto/get-notifications.dto';
 
 @Injectable()
 export class GetNotificationsUseCase {
@@ -18,9 +19,9 @@ export class GetNotificationsUseCase {
   async execute(
     profileId: string,
     profileType: ProfileType,
-    limit?: number,
-    offset?: number,
+    dto: GetNotificationsDto,
   ) {
+    const { limit = 20, offset = 0 } = dto;
     const where = this.buildWhere(profileId, profileType);
     const [data, totalCount] = await this.notificationRepo.findAndCount({
       where,
