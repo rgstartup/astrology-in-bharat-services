@@ -24,6 +24,8 @@ import { NotificationFacade } from '@/modules/notification/application/notificat
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
+import { EndCallDto } from '../../api/dto/end-call.dto';
+
 @Injectable()
 export class EndCallUseCase {
   constructor(
@@ -39,7 +41,10 @@ export class EndCallUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(sessionId: string, terminatedBy?: string, reason?: string) {
+  async execute(
+    dto: EndCallDto,
+  ) {
+    const { sessionId, endedBy: terminatedBy, reason } = dto;
     console.log(
       `[EndCallUseCase] sessionId: ${sessionId}, terminatedBy: ${terminatedBy}, reason: ${reason}`,
     );

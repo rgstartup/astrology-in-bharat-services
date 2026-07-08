@@ -18,6 +18,8 @@ import {
 } from '../../api/dto/consultation-history.dto';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
+import { GetUnifiedHistoryDto } from '../../api/dto/get-unified-history.dto';
+
 @Injectable()
 export class GetUnifiedHistoryUseCase {
   constructor(
@@ -32,10 +34,9 @@ export class GetUnifiedHistoryUseCase {
   async execute(
     profileId: string,
     isExpert: boolean,
-    limit: number = 20,
-    offset: number = 0,
-    search?: string,
+    dto: GetUnifiedHistoryDto,
   ) {
+    const { limit = 20, offset = 0, search } = dto;
     let chatFilter = {};
     let callFilter = {};
 

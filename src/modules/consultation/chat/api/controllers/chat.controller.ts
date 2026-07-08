@@ -18,6 +18,7 @@ import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { ChatGateway } from '../../chat.gateway';
 import { ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
 import { InitiateChatDto } from '../dto/initiate-chat.dto';
+import { GetExpertChatSessionsDto } from '../dto/get-expert-chat-sessions.dto';
 
 @Controller({
   path: 'chat',
@@ -301,24 +302,15 @@ export class ChatController {
   @Header('Cache-Control', 'no-store')
   async getCompletedSessions(
     @CurrentProfile() profileId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
-    @Query('search') search?: string,
-    @Query('sortBy') sortBy?: string,
-    @Query('order') order?: 'ASC' | 'DESC',
+    @Query() dto: GetExpertChatSessionsDto,
   ) {
-    const options = {
-      limit: limit ? parseInt(limit, 10) : 20,
-      offset: offset ? parseInt(offset, 10) : 0,
-      search,
-      sortBy,
-      order,
-    };
+    const limitNum = dto.limit ? dto.limit : 20;
+    const offsetNum = dto.offset ? dto.offset : 0;
     const { data: sessions, total_count } =
       await this.chatFacade.getExpertSessions(
         profileId,
         ExpertSessionFilter.COMPLETED,
-        options,
+        dto,
       );
     const data = await this.processSessions(
       sessions as unknown as Record<string, unknown>[],
@@ -328,8 +320,8 @@ export class ChatController {
       data,
       meta: {
         totalCount: total_count,
-        limit: options.limit,
-        offset: options.offset,
+        limit: limitNum,
+        offset: offsetNum,
       },
     };
   }
@@ -374,24 +366,15 @@ export class ChatController {
   @Header('Cache-Control', 'no-store')
   async getAllSessions(
     @CurrentProfile() profileId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
-    @Query('search') search?: string,
-    @Query('sortBy') sortBy?: string,
-    @Query('order') order?: 'ASC' | 'DESC',
+    @Query() dto: GetExpertChatSessionsDto,
   ) {
-    const options = {
-      limit: limit ? parseInt(limit, 10) : 20,
-      offset: offset ? parseInt(offset, 10) : 0,
-      search,
-      sortBy,
-      order,
-    };
+    const limitNum = dto.limit ? dto.limit : 20;
+    const offsetNum = dto.offset ? dto.offset : 0;
     const { data: sessions, total_count } =
       await this.chatFacade.getExpertSessions(
         profileId,
         ExpertSessionFilter.ALL,
-        options,
+        dto,
       );
     const data = await this.processSessions(
       sessions as unknown as Record<string, unknown>[],
@@ -402,8 +385,8 @@ export class ChatController {
       data,
       meta: {
         totalCount: total_count,
-        limit: options.limit,
-        offset: options.offset,
+        limit: limitNum,
+        offset: offsetNum,
       },
     };
   }

@@ -18,6 +18,8 @@ import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { CreateReviewDto } from '../dto/create-review.dto';
+import { GetReviewsDto } from '../dto/get-reviews.dto';
+import { GetAdminReviewsDto } from '../dto/get-admin-reviews.dto';
 
 @Controller({
   path: 'reviews',
@@ -48,10 +50,9 @@ export class ReviewsController {
   @Get('expert/:expert_id')
   async getReviews(
     @Param('expert_id', ParseUUIDPipe) expert_id: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query() dto: GetReviewsDto,
   ) {
-    return this.reviewsFacade.getExpertReviews(expert_id, page, limit);
+    return this.reviewsFacade.getExpertReviews(expert_id, dto);
   }
 
   @Get('expert/:expert_id/stats')
@@ -63,10 +64,9 @@ export class ReviewsController {
   @Get('merchant/:merchantId')
   async getMerchantReviews(
     @Param('merchantId', ParseUUIDPipe) merchantId: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query() dto: GetReviewsDto,
   ) {
-    return this.reviewsFacade.getMerchantReviews(merchantId, page, limit);
+    return this.reviewsFacade.getMerchantReviews(merchantId, dto);
   }
 
   // ─── Admin: Get all reviews (with filters) ───────────────────────────────────
@@ -74,21 +74,9 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async adminGetAllReviews(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(15), ParseIntPipe) limit: number,
-    @Query('status') status?: string,
-    @Query('search') search?: string,
-    @Query('ratingType') ratingType?: string,
-    @Query('review_type') review_type?: string,
+    @Query() dto: GetAdminReviewsDto,
   ) {
-    return this.reviewsFacade.getAdminReviews({
-      page,
-      limit,
-      status,
-      search,
-      ratingType,
-      review_type,
-    });
+    return this.reviewsFacade.getAdminReviews(dto);
   }
 
   // ─── Admin: Get reviews stats ─────────────────────────────────────────────────

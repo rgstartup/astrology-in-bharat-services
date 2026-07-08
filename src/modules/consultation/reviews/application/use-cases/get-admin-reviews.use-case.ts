@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { QueryBuilder, Repository, SelectQueryBuilder } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
 
+import { GetAdminReviewsDto } from '../../api/dto/get-admin-reviews.dto';
+
 @Injectable()
 export class GetAdminReviewsUseCase {
   constructor(
@@ -10,14 +12,9 @@ export class GetAdminReviewsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) {}
 
-  async execute(params: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    search?: string;
-    ratingType?: string;
-    review_type?: string;
-  }) {
+  async execute(
+    dto: GetAdminReviewsDto,
+  ) {
     const {
       page = 1,
       limit = 15,
@@ -25,7 +22,7 @@ export class GetAdminReviewsUseCase {
       search,
       ratingType,
       review_type,
-    } = params;
+    } = dto;
 
     const queryBuilder = this.reviewRepository
       .createQueryBuilder('review')

@@ -22,6 +22,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallInitiatedEvent } from '../../domain/events/call.events';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
+import { InitiateCallDto } from '../../api/dto/initiate-call.dto';
+
 @Injectable()
 export class InitiateCallUseCase {
   private readonly logger = new Logger(InitiateCallUseCase.name);
@@ -40,9 +42,9 @@ export class InitiateCallUseCase {
 
   async execute(
     clientId: string,
-    expert_id: string,
-    type: CallType = CallType.AUDIO,
+    dto: InitiateCallDto,
   ) {
+    const { expert_id, type = CallType.AUDIO } = dto;
     // Block duplicate sessions — client can only have ONE active/pending call at a time
     const existingSession = await this.sessionRepo.findOne({
       where: [

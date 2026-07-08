@@ -16,6 +16,9 @@ import { CallType } from '../../infrastructure/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
 import { CallSessionFilter } from '../../application/use-cases/get-expert-sessions.use-case';
 import { CallGateway } from '../../call.gateway';
+import { InitiateCallDto } from '../dto/initiate-call.dto';
+import { EndCallDto } from '../dto/end-call.dto';
+import { GetCallSessionsDto } from '../dto/get-call-sessions.dto';
 
 @Controller({
   path: 'call',
@@ -31,15 +34,14 @@ export class CallController {
   @Post('initiate')
   async initiate(
     @CurrentProfile() clientId: string,
-    @Body() body: { expert_id: string; type?: CallType },
+    @Body() dto: InitiateCallDto,
   ) {
     console.log(
-      `[CallController] Initiate call: clientId=${clientId}, expert_id=${body.expert_id}, type=${body.type || CallType.AUDIO}`,
+      `[CallController] Initiate call: clientId=${clientId}, expert_id=${dto.expert_id}, type=${dto.type || CallType.AUDIO}`,
     );
     return this.callFacade.initiate(
       clientId,
-      body.expert_id,
-      body.type || CallType.AUDIO,
+      dto,
     );
   }
 
@@ -56,12 +58,12 @@ export class CallController {
 
   @Post('end')
   async end(
-    @Body() body: { sessionId: string; endedBy?: string; reason?: string },
+    @Body() dto: EndCallDto,
   ) {
     console.log(
-      `[CallController] End call: sessionId=${body.sessionId}, endedBy=${body.endedBy}`,
+      `[CallController] End call: sessionId=${dto.sessionId}, endedBy=${dto.endedBy}`,
     );
-    return this.callFacade.end(body.sessionId, body.endedBy, body.reason);
+    return this.callFacade.end(dto);
   }
 
   @Patch('session/:sessionId/status')
@@ -129,14 +131,8 @@ export class CallController {
   @Header('Cache-Control', 'no-store')
   async getAllSessions(
     @CurrentProfile() profileId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
-    @Query('search') search?: string,
+    @Query() dto: GetCallSessionsDto,
   ) {
-    return this.callFacade.getExpertSessions(profileId, CallSessionFilter.ALL, {
-      limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined,
-      search,
-    });
+    return this.callFacade.getExpertSessions(profileId, CallSessionFilter.ALL, dto);
   }
 }
