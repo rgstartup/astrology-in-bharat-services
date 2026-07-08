@@ -6,6 +6,8 @@ import { UpdateFestivalUseCase } from './use-cases/update-festival.use-case';
 import { RemoveFestivalUseCase } from './use-cases/remove-festival.use-case';
 import { CreateFestivalDto, UpdateFestivalDto } from '../api/dto/festival.dto';
 
+import { GetFestivalsDto } from '../api/dto/get-festivals.dto';
+
 @Injectable()
 export class FestivalFacade {
   constructor(
@@ -16,8 +18,8 @@ export class FestivalFacade {
     private readonly removeFestivalUseCase: RemoveFestivalUseCase,
   ) {}
 
-  async findAll(year?: number, month?: number) {
-    return this.getAllFestivalsUseCase.execute(year, month);
+  async findAll(dto: GetFestivalsDto) {
+    return this.getAllFestivalsUseCase.execute(dto);
   }
 
   async findOne(id: string) {
