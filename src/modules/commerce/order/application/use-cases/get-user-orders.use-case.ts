@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { PujaAppointmentFacade } from '@/modules/puja-appointment/application/puja-appointment.facade';
+import { GetMyOrdersDto } from '../../api/dto/get-my-orders.dto';
 
 @Injectable()
 export class GetUserOrdersUseCase {
@@ -16,9 +17,10 @@ export class GetUserOrdersUseCase {
   async execute(
     profileId: string,
     userId: string,
-    limit?: number,
-    offset?: number,
+    dto: GetMyOrdersDto,
   ) {
+    const { limit, offset } = dto;
+
     // 1. Fetch Product Orders by client profile ID
     const productOrders = await this.orderRepo.find({
       where: { client_id: profileId },

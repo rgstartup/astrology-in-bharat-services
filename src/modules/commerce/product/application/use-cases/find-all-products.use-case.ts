@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Product } from '../../infrastructure/entities/product.entity';
 import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
 import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { GetProductsDto } from '../../api/dto/get-products.dto';
 
 @Injectable()
 export class FindAllProductsUseCase {
@@ -13,12 +14,8 @@ export class FindAllProductsUseCase {
     private readonly merchantFacade: MerchantProfileFacade,
   ) {}
 
-  async execute(filters: {
-    merchantId?: string;
-    page?: number;
-    limit?: number;
-  }) {
-    const { merchantId, page = 1, limit = 10 } = filters;
+  async execute(dto: GetProductsDto) {
+    const { merchantId, page = 1, limit = 10 } = dto;
     const skip = (page - 1) * limit;
 
     const query = this.productRepository

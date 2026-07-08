@@ -62,10 +62,9 @@ export class OrderFacade {
   async getUserOrders(
     profileId: string,
     userId: string,
-    limit?: number,
-    offset?: number,
+    dto: import('../api/dto/get-my-orders.dto').GetMyOrdersDto,
   ) {
-    return this.getUserOrdersUseCase.execute(profileId, userId, limit, offset);
+    return this.getUserOrdersUseCase.execute(profileId, userId, dto);
   }
 
   async getOrderById(id: string, profileId: string) {

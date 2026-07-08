@@ -7,6 +7,7 @@ import { RemoveProductUseCase } from './use-cases/remove-product.use-case';
 import { MerchantProductsUseCase } from './use-cases/merchant-products.usecase';
 import { CreateProductDto } from '../api/dto/create-product.dto';
 import { UpdateProductDto } from '../api/dto/update-product.dto';
+import { GetProductsDto } from '../api/dto/get-products.dto';
 
 @Injectable()
 export class ProductFacade {
@@ -23,15 +24,8 @@ export class ProductFacade {
     return this.createProductUseCase.execute(dto);
   }
 
-  findAll(
-    filters: {
-      merchantId?: string;
-      expert_id?: string;
-      page?: number;
-      limit?: number;
-    } = {},
-  ) {
-    return this.findAllProductsUseCase.execute(filters);
+  findAll(dto: GetProductsDto = {}) {
+    return this.findAllProductsUseCase.execute(dto);
   }
 
   findOne(id: string) {

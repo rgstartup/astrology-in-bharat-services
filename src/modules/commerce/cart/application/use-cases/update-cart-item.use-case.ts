@@ -17,7 +17,7 @@ export class UpdateCartItemUseCase {
 
   async execute(
     profileId: string,
-    updateCartItemDto: UpdateCartItemDto & { productId: string },
+    updateCartItemDto: UpdateCartItemDto,
   ) {
     const { productId, quantity } = updateCartItemDto;
 
