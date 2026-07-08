@@ -20,6 +20,8 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { GetMerchantFinanceStatsUseCase } from '../../application/use-cases/get-merchant-finance-stats.usecase';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { GetMerchantFinanceTransactionsDto } from '../dto/get-merchant-finance-transactions.dto';
+import { RequestMerchantWithdrawalDto } from '../dto/request-merchant-withdrawal.dto';
 
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -49,9 +51,7 @@ export class MerchantFinanceController {
   @HttpCode(HttpStatus.OK)
   async transactions(
     @CurrentUser('id') userId: string,
-    @Query('search') search?: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query() dto: GetMerchantFinanceTransactionsDto,
   ) {
     const profile = await this.merchantRepo.findOne({
       where: { user_id: userId },
@@ -60,7 +60,7 @@ export class MerchantFinanceController {
 
     const transactions = await this.walletFacade.getMerchantTransactions(
       profile.id,
-      { search, page, limit },
+      dto,
     );
     return { success: true, data: transactions };
   }
@@ -69,8 +69,7 @@ export class MerchantFinanceController {
   @HttpCode(HttpStatus.OK)
   async withdraw(
     @CurrentUser('id') userId: string,
-    @Body('amount') amount: number,
-    @Body('bankAccountId') bankAccountId: string | number,
+    @Body() dto: RequestMerchantWithdrawalDto,
     @Ip() ip: string,
     @Headers('user-agent') ua: string,
     @Headers('x-idempotency-key') idempotencyKey: string,
@@ -83,8 +82,8 @@ export class MerchantFinanceController {
     const withdrawal = await this.walletFacade.requestWithdrawal(
       profile.id,
       'merchant_id',
-      amount,
-      bankAccountId,
+      dto.amount,
+      dto.bankAccountId,
       idempotencyKey,
       { ip, ua },
     );

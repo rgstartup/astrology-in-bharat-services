@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
+import { GetMerchantOrdersDto } from '../../api/dto/get-merchant-orders.dto';
+
 @Injectable()
 export class GetMerchantOrdersUseCase {
   constructor(
@@ -14,11 +16,9 @@ export class GetMerchantOrdersUseCase {
 
   async execute(
     userId: string,
-    page: number = 1,
-    limit: number = 20,
-    status?: string,
-    search?: string,
+    dto: GetMerchantOrdersDto,
   ) {
+    const { page = 1, limit = 20, status, search } = dto;
     const merchantId = userId;
 
     if (!merchantId) {
