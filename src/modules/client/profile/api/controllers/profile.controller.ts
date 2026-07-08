@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -70,7 +70,7 @@ export class ProfileController {
 
   @Post('phone/send-otp')
   async sendPhoneOtp(@CurrentUser() user: IUser, @Body() dto: SendPhoneOtpDto) {
-    return this.profileFacade.sendPhoneOtp(user.id, dto.phone);
+    return this.profileFacade.sendPhoneOtp(user.id, dto);
   }
 
   @Post('phone/verify-otp')
@@ -78,6 +78,6 @@ export class ProfileController {
     @CurrentUser() user: IUser,
     @Body() dto: VerifyPhoneOtpDto,
   ) {
-    return this.profileFacade.verifyPhoneOtp(user.id, dto.phone, dto.code);
+    return this.profileFacade.verifyPhoneOtp(user.id, dto);
   }
 }

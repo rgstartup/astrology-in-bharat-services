@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { ProfileClient } from '../infrastructure/entities/profile-client.entity';
 import { GetProfileUseCase } from './use-cases/get-profile.usecase';
@@ -12,6 +12,10 @@ import {
   CreateProfileClientDto,
   UpdateProfileClientDto,
 } from '../infrastructure/dto/profile-client.dto';
+import {
+  SendPhoneOtpDto,
+  VerifyPhoneOtpDto,
+} from '../infrastructure/dto/profile-phone-otp.dto';
 import { UpdateClientProfileWithQueryRunnerUseCase } from './use-cases/update-profile-with-query-runner.usecase';
 import { IUser } from '@/common/types/access-token.payload';
 
@@ -52,12 +56,12 @@ export class ClientProfileFacade {
     return this.uploadDocumentUseCase.execute(userId, file);
   }
 
-  async sendPhoneOtp(userId: string, phone: string) {
-    return this.sendPhoneOtpUseCase.execute(userId, phone);
+  async sendPhoneOtp(userId: string, dto: SendPhoneOtpDto) {
+    return this.sendPhoneOtpUseCase.execute(userId, dto);
   }
 
-  async verifyPhoneOtp(userId: string, phone: string, code: string) {
-    return this.verifyPhoneOtpUseCase.execute(userId, phone, code);
+  async verifyPhoneOtp(userId: string, dto: VerifyPhoneOtpDto) {
+    return this.verifyPhoneOtpUseCase.execute(userId, dto);
   }
 
   async updateProfileWithQueryRunner(
