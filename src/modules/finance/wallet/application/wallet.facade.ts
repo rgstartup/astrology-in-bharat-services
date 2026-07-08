@@ -9,6 +9,7 @@ import { ReserveBalanceUseCase } from './use-cases/reserve-balance.use-case';
 import { DeductFromReservedUseCase } from './use-cases/deduct-from-reserved.use-case';
 import { ReleaseReservedUseCase } from './use-cases/release-reserved.use-case';
 import { GetTransactionsUseCase } from './use-cases/get-transactions.use-case';
+import { GetTransactionsDto } from '../api/dto/get-transactions.dto';
 import { GetTotalEarningsUseCase } from './use-cases/get-total-earnings.use-case';
 import { GetGlobalEarningsUseCase } from './use-cases/get-global-earnings.use-case';
 import { GetAdminCommissionUseCase } from './use-cases/get-admin-commission.use-case';
@@ -193,21 +194,22 @@ export class WalletFacade {
   async getTransactions(
     profileId: string,
     walletKey: WalletKey,
-    limit?: string,
+    dtoOrLimit?: GetTransactionsDto | string,
     offset?: string,
     type?: string,
     purpose?: string,
   ) {
-    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    if (dtoOrLimit && typeof dtoOrLimit === 'object') {
+      return this.getTransactionsUseCase.execute(profileId, walletKey, dtoOrLimit);
+    }
+    const limitNum = dtoOrLimit ? parseInt(dtoOrLimit, 10) : undefined;
     const offsetNum = offset ? parseInt(offset, 10) : undefined;
-    return this.getTransactionsUseCase.execute(
-      profileId,
-      walletKey,
-      limitNum,
-      offsetNum,
+    return this.getTransactionsUseCase.execute(profileId, walletKey, {
+      limit: limitNum,
+      offset: offsetNum,
       type,
       purpose,
-    );
+    });
   }
 
   async getMerchantTransactions(

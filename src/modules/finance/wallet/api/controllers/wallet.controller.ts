@@ -3,6 +3,8 @@ import { WalletFacade } from '../../application/wallet.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
+import { GetTransactionsDto } from '../dto/get-transactions.dto';
+
 @Controller({
   path: 'wallet',
   version: '1',
@@ -24,20 +26,12 @@ export class WalletController {
   @Get('transactions')
   getTransactions(
     @CurrentProfile() clientProfileId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
-    @Query('type') type: string = 'all',
-    @Query('purpose') purpose?: string,
+    @Query() dto: GetTransactionsDto,
   ) {
-    const limitNum = limit || '10';
-    const offsetNum = offset || '0';
     return this.walletFacade.getTransactions(
       clientProfileId,
       'client_id',
-      limitNum,
-      offsetNum,
-      type,
-      purpose,
+      dto,
     );
   }
 }
