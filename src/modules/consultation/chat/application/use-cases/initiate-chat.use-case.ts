@@ -51,11 +51,14 @@ export class InitiateChatUseCase {
       }
 
       // Different expert → block completely
-      throw new BadRequestException(
-        existingSession.status === ChatSessionStatus.ACTIVE
+      throw new BadRequestException({
+        message: existingSession.status === ChatSessionStatus.ACTIVE
           ? 'You already have an ongoing chat session with another astrologer. Please end it before starting a new one.'
           : 'You already have a pending chat request with another astrologer. Please wait for it to expire or cancel it first.',
-      );
+        existingSessionId: existingSession.id,
+        existingExpertId: existingSession.expert_id,
+        existingStatus: existingSession.status,
+      });
     }
 
     const expert = await this.expertProfileFacade.getExpertById(expert_id);
