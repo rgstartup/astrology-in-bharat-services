@@ -35,6 +35,10 @@ export class ProfileExpertDto {
 
   @IsOptional()
   @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
   bio?: string;
 
   @IsNumber()

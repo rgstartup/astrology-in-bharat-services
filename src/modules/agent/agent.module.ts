@@ -11,6 +11,7 @@ import { PujaAppointment } from '../puja-appointment/infrastructure/entities/puj
 import { Order } from '../commerce/order/infrastructure/entities/order.entity';
 import { NotificationModule } from '../notification/notification.module';
 import { User } from '../users/infrastructure/entities/user.entity';
+import { SystemSetting } from '../admin/infrastructure/entities/system-setting.entity';
 import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 
 import { AgentFacade } from './application/agent.facade';
@@ -43,6 +44,7 @@ import { AdminModule } from '../admin/admin.module';
       PujaAppointment,
       Order,
       User,
+      SystemSetting,
     ]),
     DatabaseModule,
     forwardRef(() => WalletModule),
