@@ -36,20 +36,21 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   handleConnection(client: Socket) {
-    this.logger.log(`Client connected to call: ${client.id}`);
+    this.logger.log(`[CallGateway] ✅ Client connected: ${client.id} | Total registered experts: ${this.expertSockets.size}`);
   }
 
   handleDisconnect(client: Socket) {
-    this.logger.log(`Client disconnected from call: ${client.id}`);
+    this.logger.log(`[CallGateway] ❌ Client disconnected: ${client.id}`);
     for (const [expert_id, socketId] of this.expertSockets.entries()) {
       if (socketId === client.id) {
         this.expertSockets.delete(expert_id);
         this.logger.log(
-          `Expert ${expert_id} unregistered from call due to disconnect`,
+          `[CallGateway] 🔴 Expert ${expert_id} UNREGISTERED from call (socket disconnected)`,
         );
         break;
       }
     }
+    this.logger.log(`[CallGateway] Remaining registered experts: ${this.expertSockets.size}`);
   }
 
   @SubscribeMessage('register_expert')
@@ -57,20 +58,32 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { expert_id: string },
   ) {
+    this.logger.log(`[CallGateway] 📝 register_expert received: expert_id=${payload.expert_id}, socketId=${client.id}`);
     this.expertSockets.set(payload.expert_id, client.id);
     await client.join(`expert_${payload.expert_id}`);
     this.logger.log(
-      `Expert ${payload.expert_id} registered for calls. Socket ID: ${client.id}`,
+      `[CallGateway] ✅ Expert ${payload.expert_id} REGISTERED for calls. Socket ID: ${client.id} | Total experts: ${this.expertSockets.size}`,
     );
+    // Log all registered experts
+    this.logger.log(`[CallGateway] Registered experts map: ${JSON.stringify(Object.fromEntries(this.expertSockets))}`);
     return { status: 'registered' };
   }
 
   notifyExpertNewCall(expert_id: string, callData: unknown) {
     const roomName = `expert_${expert_id}`;
+    const isExpertRegistered = this.expertSockets.has(expert_id);
+    const expertSocketId = this.expertSockets.get(expert_id);
+    this.logger.log(`[CallGateway] 📞 notifyExpertNewCall called for expert_id=${expert_id}`);
+    this.logger.log(`[CallGateway] Is expert registered in socket map? ${isExpertRegistered} | socketId: ${expertSocketId || 'NOT FOUND'}`);
+    this.logger.log(`[CallGateway] All registered experts: ${JSON.stringify(Object.fromEntries(this.expertSockets))}`);
+    this.logger.log(`[CallGateway] Emitting 'new_call_request' to room: ${roomName}`);
     this.server.to(roomName).emit('new_call_request', callData);
     this.logger.log(
-      `[Notification] ✅ Emitted new_call_request to ${roomName} for sessionId: ${(callData as { session: { id: string } }).session.id}`,
+      `[CallGateway] ✅ Emitted new_call_request to ${roomName} for sessionId: ${(callData as { session: { id: string } }).session.id}`,
     );
+    if (!isExpertRegistered) {
+      this.logger.error(`[CallGateway] ⚠️  WARNING: Expert ${expert_id} is NOT registered in expertSockets map! Popup will NOT appear!`);
+    }
   }
 
   notifyExpertStatusUpdate(
@@ -102,6 +115,15 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   startSessionTimer(sessionId: string) {
+    // Skip invalid (non-UUID) sessionIds — e.g. legacy numeric IDs from old DB records
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(sessionId)) {
+      this.logger.warn(
+        `[Timer] Skipping invalid sessionId (not a UUID): "${sessionId}"`,
+      );
+      return;
+    }
     if (this.sessionTimers.has(sessionId)) return;
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
