@@ -22,6 +22,7 @@ import { AgentModule } from '@/modules/agent/agent.module';
 import { AstrologyModule } from '@/modules/astrology/astrology.module';
 import { CalendarModule } from '@/modules/calendar/calendar.module';
 import { PlacesModule } from '@/modules/places/places.module';
+import { LocationsModule } from '@/modules/locations/locations.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { MerchantModule } from './modules/merchant/merchant.module';
 import { ConsultationModule } from './modules/consultation/consultation.module';
@@ -59,6 +60,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     AgentModule,
     AstrologyModule,
     PlacesModule,
+    LocationsModule,
     CalendarModule,
     PujaAppointmentModule,
     MerchantModule,

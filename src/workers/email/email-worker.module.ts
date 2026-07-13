@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ExternalModule } from '@/external/external.module';
 import { EmailProcessor } from './application/email.processor';
 import { QueueModule } from '@/core/queue/queue.module';
+import { DatabaseModule } from '@/core/database/database.module';
 import configs from '@/config';
 
 @Module({
@@ -11,6 +12,7 @@ import configs from '@/config';
       isGlobal: true,
       load: configs,
     }),
+    DatabaseModule,
     ExternalModule, // Brings in NodeMailerService
     QueueModule,
   ],
