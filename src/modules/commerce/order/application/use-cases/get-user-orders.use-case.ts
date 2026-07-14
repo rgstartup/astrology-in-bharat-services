@@ -37,22 +37,22 @@ export class GetUserOrdersUseCase {
       id: o.id,
       tracking_id: `ORD-${o.id}`,
       type: 'product',
-      name: o.items.length > 0 ? o.items[0].product.name : 'Product Order',
+      name: o.items.length > 0 ? (o.items[0].product?.name || 'Product Order') : 'Product Order',
       item_count: o.items.length,
       amount: Number(o.total_amount),
       status: o.status,
       date: o.created_at,
-      merchant_id: o.items.length > 0 ? o.items[0].product.merchant_id : null,
+      merchant_id: o.items.length > 0 ? (o.items[0].product?.merchant_id || null) : null,
       payment_method: o.payment_method,
       delivery_otp: [OrderStatus.SHIPPED, OrderStatus.PACKED].includes(o.status)
         ? o.delivery_otp
         : null,
       items: o.items.map((i) => ({
         id: i.id,
-        name: i.product.name,
+        name: i.product?.name || 'Unknown Product',
         quantity: i.quantity,
         price: Number(i.price),
-        image: i.product.image_url,
+        image: i.product?.image_url || '',
       })),
     }));
 
