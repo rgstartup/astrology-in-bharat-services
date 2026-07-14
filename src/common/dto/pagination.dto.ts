@@ -1,4 +1,3 @@
-// pagination.dto.ts
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Min } from 'class-validator';
 
@@ -27,7 +26,13 @@ export class PaginationDto {
   @IsOptional()
   role?: string;
 
-  get offset(): number {
-    return (this.page - 1) * this.limit;
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  offset?: number;
+
+  get skip(): number {
+    return this.offset !== undefined ? this.offset : (this.page - 1) * this.limit;
   }
 }

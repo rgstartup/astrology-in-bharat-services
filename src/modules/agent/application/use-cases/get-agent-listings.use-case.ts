@@ -113,7 +113,7 @@ export class GetAgentListingsUseCase {
         qb.orderBy('u.created_at', 'DESC');
 
         if (!isAll) {
-          qb.skip(pagination.offset).take(pagination.limit);
+          qb.skip(pagination.skip).take(pagination.limit);
         }
 
         const [users, total] = await qb.getManyAndCount();
@@ -238,7 +238,7 @@ export class GetAgentListingsUseCase {
         qb.orderBy('al.created_at', 'DESC');
 
         if (!isAll) {
-          qb.skip(pagination.offset).take(pagination.limit);
+          qb.skip(pagination.skip).take(pagination.limit);
         }
 
         const [places, total] = await qb.getManyAndCount();
@@ -270,7 +270,7 @@ export class GetAgentListingsUseCase {
       const allTotal = userTotal + placeTotal;
 
       if (isAll) {
-        const start = pagination.offset;
+        const start = pagination.skip;
         return {
           data: allData.slice(start, start + pagination.limit),
           total: allTotal,

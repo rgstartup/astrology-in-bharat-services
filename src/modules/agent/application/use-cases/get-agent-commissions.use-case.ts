@@ -35,7 +35,7 @@ export class GetAgentCommissionsUseCase {
     }
     const profileId = agentProfile.id;
 
-    const offset = pagination.offset;
+    const offset = pagination.skip;
     const result = await this.walletFacade.getTransactions(
       profileId,
       'agent_id',

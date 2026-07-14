@@ -95,7 +95,7 @@ export class MarkOrderAsPaidUseCase {
               RoleEnum.CLIENT,
               NotificationType.ORDER_PLACED,
               'Order Placed Successfully',
-              `Your order #${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
+              `Your order AIB-ORD-${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
               { orderId: order.id },
             );
           } catch (notifErr) {
@@ -119,7 +119,7 @@ export class MarkOrderAsPaidUseCase {
                 RoleEnum.MERCHANT,
                 NotificationType.ORDER_PLACED,
                 'New Order Received!',
-                `You have received a new order (#${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,
+                `You have received a new order (AIB-ORD-${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,
                 { orderId: order.id },
               );
             } catch (mErr) {
