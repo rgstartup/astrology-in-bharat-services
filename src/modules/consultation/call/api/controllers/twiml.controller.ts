@@ -103,12 +103,14 @@ export class TwimlController {
 
       const conferenceRoomName = `call_room_${sessionId}`;
 
+      const isExpert = callerIdentity.includes('expert_');
+
       // Apply timeLimit to the Dial
       const dial = response.dial({ timeLimit: timeLimit });
       dial.conference(
         {
-          startConferenceOnEnter: true,
-          endConferenceOnExit: true,
+          startConferenceOnEnter: isExpert,
+          endConferenceOnExit: false,
           beep: 'false',
           muted: false,
           waitUrl: '',

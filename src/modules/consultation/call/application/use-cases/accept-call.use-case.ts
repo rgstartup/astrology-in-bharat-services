@@ -31,7 +31,7 @@ export class AcceptCallUseCase {
   async execute(expertProfileId: string, sessionId: string) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
-      relations: ['client', 'expert', 'expert.user'],
+      relations: ['client', 'client.user', 'expert', 'expert.user'],
     });
 
     CallPolicy.ensureSessionExists(session);

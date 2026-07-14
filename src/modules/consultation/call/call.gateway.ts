@@ -231,8 +231,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `end_call received for sessionId=${payload.sessionId} from ${client.id}`,
     );
     try {
-      await this.callFacade.end(payload.sessionId);
+      const session = await this.callFacade.end(payload.sessionId);
       this.stopSessionTimer(payload.sessionId);
+      this.server.to(`call_room_${payload.sessionId}`).emit('call_ended', session);
       return { status: 'ended' };
     } catch (error: unknown) {
       this.logger.error(

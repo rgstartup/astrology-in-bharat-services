@@ -60,7 +60,14 @@ export class EndCallUseCase {
       session.status === CallSessionStatus.COMPLETED ||
       session.status === CallSessionStatus.CANCELLED
     ) {
-      return session;
+      const existingSplit = {
+        totalAmount: session.total_cost || session.final_price || 0,
+        totalCost: session.total_cost || session.final_price || 0,
+        platformFee: session.platform_fee || 0,
+        expertShare: session.expert_earning || 0,
+        agent_commission: session.agent_commission || 0,
+      };
+      return { ...session, split: existingSplit, terminatedBy: session.terminated_by };
     }
 
     session.status = CallSessionStatus.COMPLETED;
@@ -380,9 +387,21 @@ export class EndCallUseCase {
       );
     }
 
+    let remainingBalance = 0;
+    try {
+      remainingBalance = await this.walletFacade.getBalance(
+        savedSession.client_id,
+        'client_id',
+      );
+    } catch (err) {
+      console.error(`Failed to fetch remaining balance for ${sessionId}:`, err);
+    }
+
     return {
       ...savedSession,
+      remainingBalance,
       split,
+      terminatedBy: savedSession.terminated_by,
     };
   }
 }
