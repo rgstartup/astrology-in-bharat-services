@@ -33,6 +33,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private sessionTimers = new Map<string, NodeJS.Timeout>();
   private expertSockets = new Map<string, string>(); // expert_id -> socketId
   private disconnectTimers = new Map<string, NodeJS.Timeout>(); // expert_id -> timeout
+  private socketToSession = new Map<string, string>(); // socketId -> sessionId
+  private sessionDisconnectTimeouts = new Map<string, NodeJS.Timeout>(); // sessionId -> timeout
 
   constructor(
     @Inject(forwardRef(() => ChatFacade))
@@ -49,6 +51,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected from chat: ${client.id}`);
+
+    // Auto-disconnect logic for sessions (Grace period 30s)
+    const sessionId = this.socketToSession.get(client.id);
+    if (sessionId) {
+      this.logger.log(`[ChatGateway] Socket ${client.id} belonged to active session ${sessionId}. Starting 30s auto-end timer.`);
+      const timeout = setTimeout(async () => {
+        try {
+          const session = await this.chatFacade.getSession(sessionId);
+          if (session && session.status === ChatSessionStatus.ACTIVE) {
+            this.logger.warn(`[ChatGateway] ⏱️ 30s grace period expired for chat session ${sessionId}. Auto-ending chat.`);
+            const summary = await this.chatFacade.endChat(sessionId);
+            this.server.to(`room_${sessionId}`).emit('session_ended', {
+              ...summary,
+              reason: 'socket_disconnected',
+              message: 'Chat ended due to lost connection.',
+            });
+            if (this.sessionTimers.has(sessionId)) {
+              clearInterval(this.sessionTimers.get(sessionId));
+              this.sessionTimers.delete(sessionId);
+            }
+          }
+        } catch (e) {
+          this.logger.error(`[ChatGateway] Failed to auto-end session ${sessionId}`, e);
+        }
+        this.sessionDisconnectTimeouts.delete(sessionId);
+      }, 30000); // 30 seconds
+      this.sessionDisconnectTimeouts.set(sessionId, timeout);
+      this.socketToSession.delete(client.id);
+    }
+
     // Remove from expert map if exists
     for (const [expert_id, socketId] of this.expertSockets.entries()) {
       if (socketId === client.id) {
@@ -175,6 +207,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     void client.join(`room_${payload.sessionId}`);
     this.logger.log(`Client ${client.id} joined room_${payload.sessionId}`);
+
+    // Track for auto-disconnect
+    this.socketToSession.set(client.id, payload.sessionId);
+
+    // Clear any existing session disconnect timeout if they reconnected in time
+    if (this.sessionDisconnectTimeouts.has(payload.sessionId)) {
+      this.logger.log(`[ChatGateway] 🔄 User reconnected to chat session ${payload.sessionId}. Cleared auto-end timer.`);
+      clearTimeout(this.sessionDisconnectTimeouts.get(payload.sessionId));
+      this.sessionDisconnectTimeouts.delete(payload.sessionId);
+    }
+
     return { status: 'joined' };
   }
 
@@ -283,6 +326,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const now = new Date();
       const durationMs = now.getTime() - currentSession.start_time.getTime();
       const durationMins = Math.floor(durationMs / 60000);
+
+      // Hard Limit: End any chat over 60 minutes
+      if (durationMins >= 60) {
+        this.logger.warn(`[ChatGateway] Session ${sessionId} reached 1 hour max limit. Force ending.`);
+        const summary = await this.chatFacade.endChat(sessionId);
+        this.server.to(`room_${sessionId}`).emit('session_ended', {
+          ...summary,
+          reason: 'max_duration_reached',
+          message: 'Maximum chat duration of 1 hour reached.',
+        });
+        clearInterval(timer);
+        this.sessionTimers.delete(sessionId);
+        return;
+      }
 
       // 1. Handle Free Session Expiry
       if (

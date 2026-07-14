@@ -129,10 +129,10 @@ export class GetEarningsStatsUseCase {
     ]);
 
     const chatRevenue = sessions.reduce(
-      (acc, s) => acc + (s.total_cost || 0),
+      (acc, s) => acc + Number(s.expert_earning || s.total_cost || 0),
       0,
     );
-    const callRevenue = calls.reduce((acc, c) => acc + (c.final_price || 0), 0);
+    const callRevenue = calls.reduce((acc, c) => acc + Number(c.expert_earning || c.final_price || 0), 0);
     const pujaRevenue = pujas.reduce(
       (acc, p) => acc + (Number(p.price) || 0),
       0,
@@ -263,11 +263,11 @@ export class GetEarningsStatsUseCase {
 
     addDataToTrends(
       sessions as unknown as Record<string, unknown>[],
-      (s) => (s.total_cost as number) || 0,
+      (s) => Number(s.expert_earning || s.total_cost || 0),
     );
     addDataToTrends(
       calls as unknown as Record<string, unknown>[],
-      (c) => (c.final_price as number) || 0,
+      (c) => Number(c.expert_earning || c.final_price || 0),
     );
     addDataToTrends(
       pujas as unknown as Record<string, unknown>[],
@@ -310,16 +310,16 @@ export class GetEarningsStatsUseCase {
 
     sessions.forEach((s) =>
       updateTopUser(
-        s.expert_id as unknown as string,
-        s.total_cost || 0,
-        s.expert as { name?: string; avatar?: string } | null,
+        s.client_id as unknown as string,
+        Number(s.expert_earning) || Number(s.total_cost) || 0,
+        s.client?.user as { name?: string; avatar?: string } | null,
       ),
     );
     calls.forEach((c) =>
       updateTopUser(
-        c.expert_id as unknown as string,
-        c.final_price || 0,
-        c.expert as { name?: string; avatar?: string } | null,
+        c.client_id as unknown as string,
+        Number(c.expert_earning) || Number(c.final_price) || 0,
+        c.client?.user as { name?: string; avatar?: string } | null,
       ),
     );
     pujas.forEach((p) =>
@@ -359,7 +359,7 @@ export class GetEarningsStatsUseCase {
       serviceStatsMap.set('Call Consultation', {
         id: 'srv_call',
         name: 'Call Consultation',
-        amount: audioCalls.reduce((acc, c) => acc + (c.final_price || 0), 0),
+        amount: audioCalls.reduce((acc, c) => acc + Number(c.expert_earning || c.final_price || 0), 0),
         usage: audioCalls.length,
       });
     }
@@ -367,7 +367,7 @@ export class GetEarningsStatsUseCase {
       serviceStatsMap.set('Video Call Consultation', {
         id: 'srv_video',
         name: 'Video Call Consultation',
-        amount: videoCalls.reduce((acc, c) => acc + (c.final_price || 0), 0),
+        amount: videoCalls.reduce((acc, c) => acc + Number(c.expert_earning || c.final_price || 0), 0),
         usage: videoCalls.length,
       });
     }

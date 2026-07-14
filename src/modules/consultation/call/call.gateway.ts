@@ -27,6 +27,8 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private expertSockets = new Map<string, string>(); // expert_id -> socketId
   private sessionTimers = new Map<string, NodeJS.Timeout>();
   private triggeredFreeLimit = new Set<string>();
+  private socketToSession = new Map<string, string>(); // socketId -> sessionId
+  private disconnectTimeouts = new Map<string, NodeJS.Timeout>(); // sessionId -> timeout
 
   constructor(
     @Inject(forwardRef(() => CallFacade))
@@ -41,6 +43,32 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect(client: Socket) {
     this.logger.log(`[CallGateway] ❌ Client disconnected: ${client.id}`);
+    
+    // Auto-disconnect logic (Grace period 30s)
+    const sessionId = this.socketToSession.get(client.id);
+    if (sessionId) {
+      this.logger.log(`[CallGateway] Socket ${client.id} belonged to active session ${sessionId}. Starting 30s auto-end timer.`);
+      const timeout = setTimeout(async () => {
+        try {
+          const session = await this.callFacade.getSession(sessionId);
+          if (session && session.status === CallSessionStatus.ACTIVE) {
+            this.logger.warn(`[CallGateway] ⏱️ 30s grace period expired for session ${sessionId}. Auto-ending call.`);
+            await this.callFacade.end({ sessionId, endedBy: 'system', reason: 'socket_disconnected' });
+            this.stopSessionTimer(sessionId);
+            this.server.to(`call_room_${sessionId}`).emit('call_ended', {
+              reason: 'socket_disconnected',
+              message: 'Call ended due to lost connection.',
+            });
+          }
+        } catch (e) {
+          this.logger.error(`[CallGateway] Failed to auto-end session ${sessionId}`, e);
+        }
+        this.disconnectTimeouts.delete(sessionId);
+      }, 30000); // 30 seconds
+      this.disconnectTimeouts.set(sessionId, timeout);
+      this.socketToSession.delete(client.id);
+    }
+
     for (const [expert_id, socketId] of this.expertSockets.entries()) {
       if (socketId === client.id) {
         this.expertSockets.delete(expert_id);
@@ -108,6 +136,16 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `Client ${client.id} joined call_room_${payload.sessionId}`,
     );
 
+    // Track for auto-disconnect
+    this.socketToSession.set(client.id, payload.sessionId);
+    
+    // Clear any existing disconnect timeout if they reconnected in time
+    if (this.disconnectTimeouts.has(payload.sessionId)) {
+      this.logger.log(`[CallGateway] 🔄 User reconnected to session ${payload.sessionId}. Cleared auto-end timer.`);
+      clearTimeout(this.disconnectTimeouts.get(payload.sessionId));
+      this.disconnectTimeouts.delete(payload.sessionId);
+    }
+
     // Start timer if session is already active (e.g. on rejoin)
     void this.startSessionTimer(payload.sessionId);
 
@@ -140,6 +178,18 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const now = new Date();
       const durationMs = now.getTime() - currentSession.start_time.getTime();
       const durationMins = Math.floor(durationMs / 60000);
+
+      // Hard Limit: End any call over 60 minutes
+      if (durationMins >= 60) {
+        this.logger.warn(`[CallGateway] Session ${sessionId} reached 1 hour max limit. Force ending.`);
+        await this.callFacade.end({ sessionId, endedBy: 'system', reason: 'max_duration_reached' });
+        this.server.to(`call_room_${sessionId}`).emit('call_ended', {
+          reason: 'max_duration_reached',
+          message: 'Maximum call duration of 1 hour reached.',
+        });
+        this.stopSessionTimer(sessionId);
+        return;
+      }
 
       // 1. Handle Free Session Expiry
       if (
