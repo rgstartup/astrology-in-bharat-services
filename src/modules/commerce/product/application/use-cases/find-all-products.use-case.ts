@@ -23,13 +23,7 @@ export class FindAllProductsUseCase {
 
     const query = this.productRepository
       .createQueryBuilder('product')
-      .innerJoin(
-        ProfileMerchant,
-        'merchantProfile',
-        'merchantProfile.user_id = product.merchant_id'
-      )
-      .where('product.is_active = :isActive', { isActive: true })
-      .andWhere('merchantProfile.status = :merchantStatus', { merchantStatus: MerchantStatus.ACTIVE });
+      .where('product.is_active = :isActive', { isActive: true });
 
     if (merchantId) {
       // If not a valid UUID, return empty result immediately
@@ -44,6 +38,7 @@ export class FindAllProductsUseCase {
       // Find the user_id associated with this merchant profile id
       const merchant = await this.merchantFacade.getProfileById(merchantId);
       if (merchant) {
+        // Filter by merchant's user_id (stored as merchant_id in products table)
         query.andWhere('product.merchant_id = :userId', {
           userId: merchant.user_id,
         });
@@ -55,6 +50,15 @@ export class FindAllProductsUseCase {
           meta: { total: 0, page, limit, totalPages: 0 },
         };
       }
+    } else {
+      // When fetching all products (no specific merchant), only show from active merchants
+      query
+        .innerJoin(
+          ProfileMerchant,
+          'merchantProfile',
+          'merchantProfile.user_id = product.merchant_id'
+        )
+        .andWhere('merchantProfile.status = :merchantStatus', { merchantStatus: MerchantStatus.ACTIVE });
     }
 
     const [products, total] = await query

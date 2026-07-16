@@ -23,11 +23,7 @@ export class GetMerchantPerformanceUseCase {
       await this.reviewsFacade.getMerchantReviewsStats(merchantId);
 
     const distribution = statsResult?.distribution || {
-      '1': 0,
-      '2': 0,
-      '3': 0,
-      '4': 0,
-      '5': 0,
+      '1': 0, '2': 0, '3': 0, '4': 0, '5': 0,
     };
 
     // 2. Sales Chart Data (Last 7 Days)
@@ -35,14 +31,24 @@ export class GetMerchantPerformanceUseCase {
       merchantId,
     )) as Array<{ date: string; revenue: string | number }>;
 
-    console.log(
-      `[PERFORMANCE_DEBUG] Fetching for userId: ${userId}, merchantId: ${merchantId}`,
-    );
-    console.log(`[PERFORMANCE_DEBUG] Raw query items: ${salesResult.length}`);
-    console.log(
-      `[PERFORMANCE_DEBUG] Raw results:`,
-      JSON.stringify(salesResult),
-    );
+    // 3. Growth Rate: current month vs last month
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+    const [currentMonthEarnings, lastMonthEarnings] = await Promise.all([
+      this.orderFacade.getMerchantGrossMonthlyEarnings(merchantId, startOfCurrentMonth).catch(() => 0),
+      this.orderFacade.getMerchantGrossMonthlyEarnings(merchantId, startOfLastMonth, endOfLastMonth).catch(() => 0),
+    ]);
+
+    let growthRate = '+0.0%';
+    if (lastMonthEarnings > 0) {
+      const pct = ((currentMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100;
+      growthRate = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+    } else if (currentMonthEarnings > 0) {
+      growthRate = '+100.0%'; // First month with earnings
+    }
 
     // Map to 7-day structure
     const days: string[] = [];
@@ -62,11 +68,6 @@ export class GetMerchantPerformanceUseCase {
       };
     });
 
-    console.log(
-      `[PERFORMANCE_DEBUG] Final sales_data:`,
-      JSON.stringify(sales_data),
-    );
-
     const profile = await this.profileRepo.findOne({
       where: { user_id: userId },
     });
@@ -78,6 +79,9 @@ export class GetMerchantPerformanceUseCase {
       weekly_target_progress: 45,
       current_tier: profile?.isVerified ? 'Silver' : 'Bronze',
       sales_data,
+      growthRate,
+      currentMonthEarnings,
+      lastMonthEarnings,
     };
   }
 }

@@ -120,10 +120,12 @@ export class OrderFacade {
   async getMerchantGrossMonthlyEarnings(
     merchantId: string,
     startOfMonth: Date,
+    endDate?: Date,
   ) {
     return this.merchantOrderQueriesUseCase.getMerchantGrossMonthlyEarnings(
       merchantId,
       startOfMonth,
+      endDate,
     );
   }
 

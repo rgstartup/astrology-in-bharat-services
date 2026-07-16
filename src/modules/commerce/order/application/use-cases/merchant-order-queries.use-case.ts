@@ -42,17 +42,22 @@ export class MerchantOrderQueriesUseCase {
   async getMerchantGrossMonthlyEarnings(
     merchantId: string,
     startOfMonth: Date,
+    endDate?: Date,
   ): Promise<number> {
-    const monthlyEarningsQuery = (await this.orderItemRepo
+    const qb = this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
       .where('p.merchant_id = :merchantId', { merchantId })
       .andWhere('oi.status = :delivered', { delivered: 'delivered' })
       .andWhere('oi.created_at >= :startOfMonth', { startOfMonth })
-      .select('SUM(oi.price * oi.quantity)', 'sum')
-      .getRawOne()) as { sum?: string | number };
+      .select('SUM(oi.price * oi.quantity)', 'sum');
 
+    if (endDate) {
+      qb.andWhere('oi.created_at <= :endDate', { endDate });
+    }
+
+    const monthlyEarningsQuery = (await qb.getRawOne()) as { sum?: string | number };
     return Number(monthlyEarningsQuery?.sum) || 0;
   }
 
