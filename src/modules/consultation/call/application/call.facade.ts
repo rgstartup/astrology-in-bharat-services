@@ -12,6 +12,7 @@ import { RejectCallUseCase } from './use-cases/reject-call.use-case';
 import { CountExpertCallSessionsUseCase } from './use-cases/count-expert-sessions.use-case';
 import { GetExpertCallsByDateUseCase } from './use-cases/get-expert-calls-by-date.use-case';
 import { GetCallEarningsUseCase } from './use-cases/get-call-earnings.use-case';
+import { ConvertToPaidUseCase } from './use-cases/convert-to-paid.use-case';
 import {
   CallType,
   CallSessionStatus,
@@ -37,6 +38,7 @@ export class CallFacade {
     private readonly countExpertCallSessionsUseCase: CountExpertCallSessionsUseCase,
     private readonly getExpertCallsByDateUseCase: GetExpertCallsByDateUseCase,
     private readonly getCallEarningsUseCase: GetCallEarningsUseCase,
+    private readonly convertToPaidUseCase: ConvertToPaidUseCase,
   ) {}
 
   async initiate(
@@ -63,6 +65,10 @@ export class CallFacade {
       return this.endCallUseCase.execute({ sessionId: dtoOrSessionId, endedBy: terminatedBy, reason });
     }
     return this.endCallUseCase.execute(dtoOrSessionId);
+  }
+
+  async convertToPaid(sessionId: string) {
+    return this.convertToPaidUseCase.execute(sessionId);
   }
 
   async getExpertSessions(

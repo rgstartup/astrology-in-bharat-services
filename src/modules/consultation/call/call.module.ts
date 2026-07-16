@@ -15,6 +15,7 @@ import { RejectCallUseCase } from './application/use-cases/reject-call.use-case'
 import { GetCallEarningsUseCase } from './application/use-cases/get-call-earnings.use-case';
 import { CountExpertCallSessionsUseCase } from './application/use-cases/count-expert-sessions.use-case';
 import { GetExpertCallsByDateUseCase } from './application/use-cases/get-expert-calls-by-date.use-case';
+import { ConvertToPaidUseCase } from './application/use-cases/convert-to-paid.use-case';
 
 import { CallController } from './api/controllers/call.controller';
 import { TwimlController } from './api/controllers/twiml.controller';
@@ -42,6 +43,7 @@ import { CallFacade } from './application/call.facade';
     GetCallEarningsUseCase,
     CountExpertCallSessionsUseCase,
     GetExpertCallsByDateUseCase,
+    ConvertToPaidUseCase,
     CallGateway,
   ],
   exports: [

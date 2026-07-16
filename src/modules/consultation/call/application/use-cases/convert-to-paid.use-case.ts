@@ -7,14 +7,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatSession } from '../../infrastructure/entities/chat-session.entity';
+import { CallSession } from '../../infrastructure/entities/call-session.entity';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 
 @Injectable()
 export class ConvertToPaidUseCase {
   constructor(
-    @InjectRepository(ChatSession)
-    private sessionRepo: Repository<ChatSession>,
+    @InjectRepository(CallSession)
+    private sessionRepo: Repository<CallSession>,
     @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
   ) {}
 
@@ -24,9 +24,9 @@ export class ConvertToPaidUseCase {
     });
     if (!session) throw new NotFoundException('Session not found');
 
-    const chatPrice = session.price_per_minute || 0;
-    const minMins = 5;
-    const minBalanceRequired = chatPrice * minMins;
+    const callPrice = session.price_per_minute || 0;
+    const minMins = 1; // Wait, for chat it was 5 mins, let's reserve 5 mins for call continuation too
+    const minBalanceRequired = callPrice * 5;
 
     const hasBalance = await this.walletFacade.validateBalance(
       session.client_id,
@@ -44,7 +44,7 @@ export class ConvertToPaidUseCase {
       session.client_id,
       'client_id',
       minBalanceRequired,
-      `chat_${session.id}`,
+      `call_${session.id}`,
     );
 
     // ✅ Update session to indicate it is now a paid session
