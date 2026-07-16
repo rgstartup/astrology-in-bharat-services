@@ -12,6 +12,9 @@ import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/enti
 import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { NotificationFacade } from '@/modules/notification/application/notification.facade';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 
 @Injectable()
 export class UpdateDisputeStatusUseCase {
@@ -22,6 +25,7 @@ export class UpdateDisputeStatusUseCase {
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
     private readonly dataSource: DataSource,
+    private readonly notificationFacade: NotificationFacade,
   ) {}
 
   async execute(disputeId: string, data: { status: string; notes?: string }) {
@@ -78,6 +82,16 @@ export class UpdateDisputeStatusUseCase {
                    `dispute_debit_${dispute.id}_${Date.now()}`,
                    undefined,
                    true // allowNegative
+                 );
+
+                 const reasonMessage = data.notes || dispute.description || 'Admin processed refund for a dispute';
+                 await this.notificationFacade.create(
+                   merchantProfile.id,
+                   RoleEnum.MERCHANT,
+                   NotificationType.GENERAL,
+                   'Wallet Debited due to Refund',
+                   `An amount of ₹${netToDebit} has been debited from your wallet for Order #${item.order_id}. Reason: ${reasonMessage}`,
+                   { orderId: item.order_id, disputeId }
                  );
                } catch(e) {
                  console.error(`[DISPUTE_REFUND_DEBIT] Failed to debit merchant ${merchantProfile.id}:`, e);
