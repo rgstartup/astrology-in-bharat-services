@@ -214,20 +214,30 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
           balance,
         });
 
-        // Auto-end after 30s if no balance
+        // Auto-end after 30s if not confirmed
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           const s = await this.callFacade.getSession(sessionId);
-          const b = await this.walletFacade.getBalance(
-            currentSession.client_id,
-            'client_id',
-          );
-          if (b < minReq && s?.status === CallSessionStatus.ACTIVE) {
-            await this.callFacade.end(sessionId);
+          if (s?.status === CallSessionStatus.ACTIVE && s.is_free) {
+            await this.callFacade.end({ sessionId, endedBy: 'system', reason: 'free_limit_ended_no_confirmation' });
             this.server.to(`call_room_${sessionId}`).emit('call_ended', {
-              reason: 'free_limit_ended_no_balance',
+              reason: 'free_limit_ended_no_confirmation',
               message: 'Your free consultation has ended.',
             });
+            this.stopSessionTimer(sessionId);
+            
+            // ✅ Broadcast expert is now FREE again
+            if (s.expert_id) {
+              this.server.emit('expert_busy_changed', {
+                expert_id: s.expert_id,
+                is_busy: false,
+              });
+              this.notifyExpertStatusUpdate(
+                s.expert_id,
+                'call_ended',
+                s,
+              );
+            }
           }
         }, 30000);
       }
@@ -290,6 +300,26 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         `Failed to end call sessionId=${payload.sessionId}`,
         error,
       );
+      return { status: 'error', message: (error as Error).message };
+    }
+  }
+
+  @SubscribeMessage('confirm_paid_continuation')
+  async handleConfirmContinuation(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { sessionId: string },
+  ) {
+    try {
+      const session = await this.callFacade.convertToPaid(payload.sessionId);
+      this.server
+        .to(`call_room_${payload.sessionId}`)
+        .emit('continuation_confirmed', {
+          message:
+            'Continuation confirmed. Call will continue as a paid session.',
+          session,
+        });
+      return { status: 'success' };
+    } catch (error: unknown) {
       return { status: 'error', message: (error as Error).message };
     }
   }

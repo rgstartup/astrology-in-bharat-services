@@ -373,18 +373,33 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           const s = await this.chatFacade.getSession(sessionId);
-          // If still active but no reservation done (we'd need a flag or just check balance again)
-          // For now, if they don't have balance after 30s, end it.
-          const b = await this.walletFacade.getBalance(
-            currentSession.client_id,
-            'client_id',
-          );
-          if (b < minReq && s?.status === ChatSessionStatus.ACTIVE) {
+          // If still active AND still free, it means they didn't confirm continuation. 
+          // End unconditionally regardless of balance to enforce business logic on backend.
+          if (s?.status === ChatSessionStatus.ACTIVE && s.is_free) {
             const summary = await this.chatFacade.endChat(sessionId);
             this.server.to(`room_${sessionId}`).emit('session_ended', {
               ...summary,
-              reason: 'free_limit_ended_no_balance',
+              reason: 'free_limit_ended_no_confirmation',
             });
+            
+            // Clean up timers
+            if (this.sessionTimers.has(sessionId)) {
+              clearInterval(this.sessionTimers.get(sessionId));
+              this.sessionTimers.delete(sessionId);
+            }
+            
+            // ✅ Broadcast expert is now FREE again
+            if (s.expert_id) {
+              this.server.emit('expert_busy_changed', {
+                expert_id: s.expert_id,
+                is_busy: false,
+              });
+              this.notifyExpertStatusUpdate(
+                s.expert_id,
+                'session_ended',
+                summary,
+              );
+            }
           }
         }, 30000);
       }
