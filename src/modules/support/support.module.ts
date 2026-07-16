@@ -15,9 +15,10 @@ import { SupportController } from './api/controllers/support.controller';
 import { SupportGateway } from './api/support.gateway';
 
 import { WalletModule } from '../finance/wallet/wallet.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage]), forwardRef(() => WalletModule)],
+  imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage]), forwardRef(() => WalletModule), NotificationModule],
   providers: [
     SupportFacade,
     SupportGateway,

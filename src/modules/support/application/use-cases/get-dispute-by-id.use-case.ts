@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Dispute } from '../../infrastructure/entities/dispute.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class GetDisputeByIdUseCase {
@@ -23,8 +25,18 @@ export class GetDisputeByIdUseCase {
       .leftJoinAndSelect('dispute.order', 'order')
       .leftJoinAndSelect('order.items', 'orderItems')
       .leftJoinAndSelect('orderItems.product', 'product')
-      .leftJoinAndSelect('product.merchant', 'merchant')
-      .leftJoinAndSelect('merchant.user', 'merchantUser')
+      .leftJoinAndMapOne(
+        'product.merchant',
+        ProfileMerchant,
+        'merchant',
+        'merchant.user_id = product.merchant_id'
+      )
+      .leftJoinAndMapOne(
+        'merchant.user',
+        User,
+        'merchantUser',
+        'merchantUser.id = merchant.user_id'
+      )
       .leftJoinAndSelect('dispute.puja', 'puja')
       .leftJoinAndSelect('puja.expert', 'pujaExpert')
       .leftJoinAndSelect('pujaExpert.user', 'pujaExpertUser')
