@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Dispute } from './infrastructure/entities/dispute.entity';
 import { DisputeMessage } from './infrastructure/entities/dispute-message.entity';
@@ -17,7 +17,7 @@ import { SupportGateway } from './api/support.gateway';
 import { WalletModule } from '../finance/wallet/wallet.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage]), WalletModule],
+  imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage]), forwardRef(() => WalletModule)],
   providers: [
     SupportFacade,
     SupportGateway,
