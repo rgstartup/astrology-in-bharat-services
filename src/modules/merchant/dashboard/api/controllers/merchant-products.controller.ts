@@ -22,6 +22,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { ProductFacade } from '@/modules/commerce/product/application/product.facade';
 import { CreateMerchantProductDto } from '../dto/create-merchant-product.dto';
 import { BulkUpdateStatusDto } from '../dto/bulk-update-status.dto';
+import { GetMerchantProductsDto } from '../dto/get-merchant-products.dto';
 
 @Controller({ path: 'merchant/products', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -34,17 +35,9 @@ export class MerchantProductsController {
   @HttpCode(HttpStatus.OK)
   async findAll(
     @CurrentUser('id') userId: string,
-    @Query('status') status?: string,
-    @Query('search') search?: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
+    @Query() dto: GetMerchantProductsDto,
   ) {
-    const products = await this.productFacade.findMerchantProducts(userId, {
-      status,
-      search,
-      page,
-      limit,
-    });
+    const products = await this.productFacade.findMerchantProducts(userId, { ...dto } as Record<string, unknown>);
     return { success: true, data: products };
   }
 

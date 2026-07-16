@@ -15,7 +15,10 @@ export class RemoveMerchantFromWishlistUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(profileId: string, merchantId: string): Promise<BooleanMessage> {
+  async execute(
+    profileId: string,
+    merchantId: string,
+  ): Promise<BooleanMessage> {
     if (!profileId) {
       throw new UserNotFoundError();
     }

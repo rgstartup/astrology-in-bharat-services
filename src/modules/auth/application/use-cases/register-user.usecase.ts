@@ -9,7 +9,7 @@ import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';

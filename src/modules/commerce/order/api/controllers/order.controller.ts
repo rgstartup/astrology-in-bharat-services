@@ -17,6 +17,7 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderStatusDto } from '../dto/update-order-status.dto';
+import { GetMyOrdersDto } from '../dto/get-my-orders.dto';
 import { IUser } from '@/common/types/access-token.payload';
 
 // Standard Controller (Plural 'orders') - Restores /api/v1/orders
@@ -41,16 +42,14 @@ export class OrderController {
   async getMyOrders(
     @CurrentProfile() profileId: string,
     @CurrentUser('id') userId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query() dto: GetMyOrdersDto,
   ) {
-    const limitNum = limit ? parseInt(limit, 10) : 10;
-    const offsetNum = offset ? parseInt(offset, 10) : 0;
+    const limitNum = dto.limit ? dto.limit : 10;
+    const offsetNum = dto.offset ? dto.offset : 0;
     const { data, total_count } = await this.orderFacade.getUserOrders(
       profileId,
       userId,
-      limitNum,
-      offsetNum,
+      dto,
     );
     return {
       success: true,
@@ -67,10 +66,9 @@ export class OrderController {
   async getMyOrdersAlias(
     @CurrentProfile() profileId: string,
     @CurrentUser('id') userId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query() dto: GetMyOrdersDto,
   ) {
-    return this.getMyOrders(profileId, userId, limit, offset);
+    return this.getMyOrders(profileId, userId, dto);
   }
 
   @Roles('ADMIN')
@@ -95,6 +93,16 @@ export class OrderController {
       undefined,
       user,
     );
+    return { success: true };
+  }
+  @Patch(':id/cancel')
+  async cancelOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('cancellation_reason') cancellationReason: string,
+    @CurrentProfile() profileId: string,
+    @CurrentUser() user: IUser,
+  ) {
+    await this.orderFacade.cancelUserOrder(id, profileId, cancellationReason || 'Cancelled by user', user);
     return { success: true };
   }
 
@@ -129,16 +137,14 @@ export class OrderSingularController {
   async getMyOrders(
     @CurrentProfile() profileId: string,
     @CurrentUser('id') userId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query() dto: GetMyOrdersDto,
   ) {
-    const limitNum = limit ? parseInt(limit, 10) : 10;
-    const offsetNum = offset ? parseInt(offset, 10) : 0;
+    const limitNum = dto.limit ? dto.limit : 10;
+    const offsetNum = dto.offset ? dto.offset : 0;
     const { data, total_count } = await this.orderFacade.getUserOrders(
       profileId,
       userId,
-      limitNum,
-      offsetNum,
+      dto,
     );
     return {
       success: true,
@@ -167,6 +173,16 @@ export class OrderSingularController {
       undefined,
       user,
     );
+    return { success: true };
+  }
+  @Patch(':id/cancel')
+  async cancelOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('cancellation_reason') cancellationReason: string,
+    @CurrentProfile() profileId: string,
+    @CurrentUser() user: IUser,
+  ) {
+    await this.orderFacade.cancelUserOrder(id, profileId, cancellationReason || 'Cancelled by user', user);
     return { success: true };
   }
 

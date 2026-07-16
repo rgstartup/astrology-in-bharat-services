@@ -39,7 +39,7 @@ export class CartController {
   @Put('/update')
   async updateCartItem(
     @CurrentProfile() profileId: string,
-    @Body() updateCartItemDto: UpdateCartItemDto & { productId: string },
+    @Body() updateCartItemDto: UpdateCartItemDto,
   ) {
     const _result = await this.cartFacade.updateCartItem(
       profileId,

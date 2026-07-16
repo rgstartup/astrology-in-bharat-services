@@ -20,8 +20,8 @@ export class CreateDisputeUseCase {
     const isExpert = user.roles.includes(RoleEnum.EXPERT);
 
     const dispute = this.disputeRepo.create({
-      client_id: !isExpert ? (user.profile || null) : null,
-      expert_id: isExpert ? (user.profile || null) : null,
+      client_id: !isExpert ? user.profile || null : null,
+      expert_id: isExpert ? user.profile || null : null,
       type: dto.type,
       category: dto.category,
       description: dto.description,

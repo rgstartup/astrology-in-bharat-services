@@ -7,10 +7,20 @@ import { GetKundliMatchingUseCase } from './use-cases/get-kundli-matching.use-ca
 import { GetPanchangUseCase } from './use-cases/get-panchang.use-case';
 import { GetPlanetaryPositionsUseCase } from './use-cases/get-planetary-positions.use-case';
 import { GetLuckyStatsUseCase } from './use-cases/get-lucky-stats.use-case';
-import { GenerateAndSaveKundliReportUseCase, KundliPersonDetails } from './use-cases/generate-and-save-kundli-report.use-case';
+import { GenerateAndSaveKundliReportUseCase } from './use-cases/generate-and-save-kundli-report.use-case';
 import { GetMyKundliReportsUseCase } from './use-cases/get-my-kundli-reports.use-case';
 import { DeleteKundliReportUseCase } from './use-cases/delete-kundli-report.use-case';
-import { ProkeralaPersonParam } from '@/external/prokerala/prokerala.service';
+
+// DTO imports
+import { GetGunaMilanDto } from '../api/dto/get-guna-milan.dto';
+import { GetDailyHoroscopeDto } from '../api/dto/get-daily-horoscope.dto';
+import { GetMangalDoshaDto } from '../api/dto/get-mangal-dosha.dto';
+import { GetBirthDetailsDto } from '../api/dto/get-birth-details.dto';
+import { GetPanchangDto } from '../api/dto/get-panchang.dto';
+import { GetPlanetaryPositionsDto } from '../api/dto/get-planetary-positions.dto';
+import { GetLuckyStatsDto } from '../api/dto/get-lucky-stats.dto';
+import { GetKundliMatchingDto } from '../api/dto/get-kundli-matching.dto';
+import { GenerateKundliReportDto } from '../api/dto/generate-kundli-report.dto';
 
 @Injectable()
 export class AstrologyFacade {
@@ -28,81 +38,43 @@ export class AstrologyFacade {
     private readonly deleteKundliReportUseCase: DeleteKundliReportUseCase,
   ) {}
 
-  async getGunaMilan(
-    girlParams: ProkeralaPersonParam,
-    boyParams: ProkeralaPersonParam,
-  ) {
-    return this.getGunaMilanUseCase.execute(girlParams, boyParams);
+  async getGunaMilan(dto: GetGunaMilanDto) {
+    return this.getGunaMilanUseCase.execute(dto);
   }
 
-  async getDailyHoroscope(sign: string, lang?: string) {
-    return this.getDailyHoroscopeUseCase.execute(sign, lang);
+  async getDailyHoroscope(dto: GetDailyHoroscopeDto) {
+    return this.getDailyHoroscopeUseCase.execute(dto);
   }
 
-  async getMangalDosha(params: {
-    datetime: string;
-    lat: string;
-    lon: string;
-    lang?: string;
-  }) {
-    return this.getMangalDoshaUseCase.execute(params);
+  async getMangalDosha(dto: GetMangalDoshaDto) {
+    return this.getMangalDoshaUseCase.execute(dto);
   }
 
-  async getBirthDetails(params: {
-    datetime: string;
-    lat: string;
-    lon: string;
-    ayanamsa?: string;
-  }) {
-    return this.getBirthDetailsUseCase.execute(params);
+  async getBirthDetails(dto: GetBirthDetailsDto) {
+    return this.getBirthDetailsUseCase.execute(dto);
   }
 
-  async getPanchang(params: {
-    datetime: string;
-    lat: string;
-    lon: string;
-    lang?: string;
-  }) {
-    return this.getPanchangUseCase.execute(params);
+  async getPanchang(dto: GetPanchangDto) {
+    return this.getPanchangUseCase.execute(dto);
   }
 
-  async getPlanetaryPositions(params: {
-    datetime: string;
-    lat: string;
-    lon: string;
-    lang?: string;
-  }) {
-    return this.getPlanetaryPositionsUseCase.execute(params);
+  async getPlanetaryPositions(dto: GetPlanetaryPositionsDto) {
+    return this.getPlanetaryPositionsUseCase.execute(dto);
   }
 
-  async getKundliMatching(
-    girlParams: ProkeralaPersonParam,
-    boyParams: ProkeralaPersonParam,
-    ayanamsa?: string,
-  ) {
-    return this.getKundliMatchingUseCase.execute(
-      girlParams,
-      boyParams,
-      ayanamsa,
-    );
+  async getKundliMatching(dto: GetKundliMatchingDto) {
+    return this.getKundliMatchingUseCase.execute(dto);
   }
 
-  getLuckyStats(sign: string, dateStr: string) {
-    return this.getLuckyStatsUseCase.execute(sign, dateStr);
+  getLuckyStats(dto: GetLuckyStatsDto) {
+    return this.getLuckyStatsUseCase.execute(dto);
   }
 
   async generateAndSaveKundliReport(
     clientId: string,
-    girlParams: KundliPersonDetails,
-    boyParams: KundliPersonDetails,
-    ayanamsa?: string,
+    dto: GenerateKundliReportDto,
   ) {
-    return this.generateAndSaveKundliReportUseCase.execute(
-      clientId,
-      girlParams,
-      boyParams,
-      ayanamsa,
-    );
+    return this.generateAndSaveKundliReportUseCase.execute(clientId, dto);
   }
 
   async getMyKundliReports(clientId: string) {
@@ -113,4 +85,3 @@ export class AstrologyFacade {
     return this.deleteKundliReportUseCase.execute(clientId, reportId);
   }
 }
-

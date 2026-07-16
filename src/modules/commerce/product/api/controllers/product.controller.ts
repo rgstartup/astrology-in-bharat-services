@@ -10,12 +10,11 @@ import {
   UseInterceptors,
   InternalServerErrorException,
   Query,
-  DefaultValuePipe,
   ParseUUIDPipe,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { ProductFacade } from '../../application/product.facade';
 import { UpdateProductDto } from '../dto/update-product.dto';
+import { GetProductsDto } from '../dto/get-products.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -36,15 +35,9 @@ export class ProductController {
 
   @Get()
   findAll(
-    @Query('merchantId') merchantId?: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query() dto: GetProductsDto,
   ) {
-    return this.productFacade.findAll({
-      merchantId: merchantId ? merchantId : undefined,
-      page,
-      limit,
-    });
+    return this.productFacade.findAll(dto);
   }
 
   @Get(':id')

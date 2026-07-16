@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Product } from '../../infrastructure/entities/product.entity';
 import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
 import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { GetProductsDto } from '../../api/dto/get-products.dto';
 
 @Injectable()
 export class FindAllProductsUseCase {
@@ -13,39 +14,51 @@ export class FindAllProductsUseCase {
     private readonly merchantFacade: MerchantProfileFacade,
   ) {}
 
-  async execute(filters: {
-    merchantId?: string;
-    page?: number;
-    limit?: number;
-  }) {
-    const { merchantId, page = 1, limit = 10 } = filters;
+  async execute(dto: GetProductsDto) {
+    const { merchantId, page = 1, limit = 10 } = dto;
     const skip = (page - 1) * limit;
+
+    // Validate merchantId is a proper UUID before hitting DB
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
     const query = this.productRepository
       .createQueryBuilder('product')
-      .innerJoin(
-        ProfileMerchant,
-        'merchantProfile',
-        'merchantProfile.user_id = product.merchant_id'
-      )
-      .where('product.is_active = :isActive', { isActive: true })
-      .andWhere('merchantProfile.status = :merchantStatus', { merchantStatus: MerchantStatus.ACTIVE });
+      .where('product.is_active = :isActive', { isActive: true });
 
     if (merchantId) {
-      // Find the client_id associated with this merchant profile id
-      const merchant = await this.merchantFacade.getProfileById(merchantId);
-      if (merchant) {
-        query.andWhere('product.merchant_id = :userId', {
-          userId: merchant.user_id,
-        });
-      } else {
-        // If merchant not found, we shouldn't return any products for this merchantId
+      // If not a valid UUID, return empty result immediately
+      if (!UUID_REGEX.test(merchantId)) {
         return {
           success: true,
           data: [],
           meta: { total: 0, page, limit, totalPages: 0 },
         };
       }
+
+      // Find the user_id associated with this merchant profile id
+      const merchant = await this.merchantFacade.getProfileById(merchantId);
+      if (merchant) {
+        // Filter by merchant's user_id (stored as merchant_id in products table)
+        query.andWhere('product.merchant_id = :userId', {
+          userId: merchant.user_id,
+        });
+      } else {
+        // If merchant not found, return empty
+        return {
+          success: true,
+          data: [],
+          meta: { total: 0, page, limit, totalPages: 0 },
+        };
+      }
+    } else {
+      // When fetching all products (no specific merchant), only show from active merchants
+      query
+        .innerJoin(
+          ProfileMerchant,
+          'merchantProfile',
+          'merchantProfile.user_id = product.merchant_id'
+        )
+        .andWhere('merchantProfile.status = :merchantStatus', { merchantStatus: MerchantStatus.ACTIVE });
     }
 
     const [products, total] = await query

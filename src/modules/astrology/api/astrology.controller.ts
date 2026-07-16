@@ -3,139 +3,73 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { AstrologyFacade } from '../application/astrology.facade';
 
+// DTO imports
+import { GetGunaMilanDto } from './dto/get-guna-milan.dto';
+import { GetDailyHoroscopeDto } from './dto/get-daily-horoscope.dto';
+import { GetMangalDoshaDto } from './dto/get-mangal-dosha.dto';
+import { GetBirthDetailsDto } from './dto/get-birth-details.dto';
+import { GetPanchangDto } from './dto/get-panchang.dto';
+import { GetPlanetaryPositionsDto } from './dto/get-planetary-positions.dto';
+import { GetLuckyStatsDto } from './dto/get-lucky-stats.dto';
+import { GetKundliMatchingDto } from './dto/get-kundli-matching.dto';
+import { GenerateKundliReportDto } from './dto/generate-kundli-report.dto';
+
 @Controller('astrology')
 export class AstrologyController {
   constructor(private readonly astrologyFacade: AstrologyFacade) {}
 
   @Get('guna-milan')
-  async getGunaMilan(
-    @Query('girl_dob') girl_dob: string,
-    @Query('girl_lat') girl_lat: string,
-    @Query('girl_lon') girl_lon: string,
-    @Query('girl_tz') girl_tz: string,
-    @Query('boy_dob') boy_dob: string,
-    @Query('boy_lat') boy_lat: string,
-    @Query('boy_lon') boy_lon: string,
-    @Query('boy_tz') boy_tz: string,
-  ) {
-    return this.astrologyFacade.getGunaMilan(
-      {
-        datetime: girl_dob,
-        location: { lat: girl_lat, lon: girl_lon, tz: girl_tz },
-      },
-      {
-        datetime: boy_dob,
-        location: { lat: boy_lat, lon: boy_lon, tz: boy_tz },
-      },
-    );
+  async getGunaMilan(@Query() query: GetGunaMilanDto) {
+    return this.astrologyFacade.getGunaMilan(query);
   }
 
   @Get('horoscope-daily')
-  async getDailyHoroscope(
-    @Query('sign') sign: string,
-    @Query('lang') lang?: string,
-  ) {
-    return this.astrologyFacade.getDailyHoroscope(sign, lang);
+  async getDailyHoroscope(@Query() query: GetDailyHoroscopeDto) {
+    return this.astrologyFacade.getDailyHoroscope(query);
   }
 
   @Get('mangal-dosha')
-  async getMangalDosha(
-    @Query('datetime') datetime: string,
-    @Query('lat') lat: string,
-    @Query('lon') lon: string,
-    @Query('lang') lang?: string,
-  ) {
-    return this.astrologyFacade.getMangalDosha({ datetime, lat, lon, lang });
+  async getMangalDosha(@Query() query: GetMangalDoshaDto) {
+    return this.astrologyFacade.getMangalDosha(query);
   }
 
   @Get('birth-details')
-  async getBirthDetails(
-    @Query('datetime') datetime: string,
-    @Query('lat') lat: string,
-    @Query('lon') lon: string,
-    @Query('ayanamsa') ayanamsa?: string,
-  ) {
-    return this.astrologyFacade.getBirthDetails({
-      datetime,
-      lat,
-      lon,
-      ayanamsa,
-    });
+  async getBirthDetails(@Query() query: GetBirthDetailsDto) {
+    return this.astrologyFacade.getBirthDetails(query);
   }
 
   @Get('panchang')
-  async getPanchang(
-    @Query('datetime') datetime: string,
-    @Query('lat') lat: string,
-    @Query('lon') lon: string,
-    @Query('lang') lang?: string,
-  ) {
-    return this.astrologyFacade.getPanchang({ datetime, lat, lon, lang });
+  async getPanchang(@Query() query: GetPanchangDto) {
+    return this.astrologyFacade.getPanchang(query);
   }
 
   @Get('planetary-positions')
-  async getPlanetaryPositions(
-    @Query('datetime') datetime: string,
-    @Query('lat') lat: string,
-    @Query('lon') lon: string,
-    @Query('lang') lang?: string,
-  ) {
-    return this.astrologyFacade.getPlanetaryPositions({ datetime, lat, lon, lang });
+  async getPlanetaryPositions(@Query() query: GetPlanetaryPositionsDto) {
+    return this.astrologyFacade.getPlanetaryPositions(query);
   }
 
   @Get('lucky-stats')
-  getLuckyStats(
-    @Query('sign') sign: string,
-    @Query('date') dateStr: string,
-  ) {
+  getLuckyStats(@Query() query: GetLuckyStatsDto) {
     return {
       status: 'ok',
-      data: this.astrologyFacade.getLuckyStats(sign, dateStr)
+      data: this.astrologyFacade.getLuckyStats(query),
     };
   }
 
   @Get('kundli-matching')
-  async getKundliMatching(
-    @Query('girl_dob') girl_dob: string,
-    @Query('girl_lat') girl_lat: string,
-    @Query('girl_lon') girl_lon: string,
-    @Query('girl_tz') girl_tz: string,
-    @Query('boy_dob') boy_dob: string,
-    @Query('boy_lat') boy_lat: string,
-    @Query('boy_lon') boy_lon: string,
-    @Query('boy_tz') boy_tz: string,
-    @Query('ayanamsa') ayanamsa?: string,
-  ) {
-    return this.astrologyFacade.getKundliMatching(
-      { datetime: girl_dob, lat: girl_lat, lon: girl_lon, tz: girl_tz },
-      { datetime: boy_dob, lat: boy_lat, lon: boy_lon, tz: boy_tz },
-      ayanamsa,
-    );
+  async getKundliMatching(@Query() query: GetKundliMatchingDto) {
+    return this.astrologyFacade.getKundliMatching(query);
   }
 
   @Post('kundli-reports')
   @UseGuards(JwtAuthGuard)
   async generateAndSaveKundliReport(
     @CurrentUser() user: any,
-    @Body('girl_dob') girl_dob: string,
-    @Body('girl_lat') girl_lat: string,
-    @Body('girl_lon') girl_lon: string,
-    @Body('girl_tz') girl_tz: string,
-    @Body('girl_name') girl_name: string,
-    @Body('girl_place') girl_place: string,
-    @Body('boy_dob') boy_dob: string,
-    @Body('boy_lat') boy_lat: string,
-    @Body('boy_lon') boy_lon: string,
-    @Body('boy_tz') boy_tz: string,
-    @Body('boy_name') boy_name: string,
-    @Body('boy_place') boy_place: string,
-    @Body('ayanamsa') ayanamsa?: string,
+    @Body() body: GenerateKundliReportDto,
   ) {
     return this.astrologyFacade.generateAndSaveKundliReport(
       user.profile,
-      { datetime: girl_dob, lat: girl_lat, lon: girl_lon, tz: girl_tz, name: girl_name, place: girl_place },
-      { datetime: boy_dob, lat: boy_lat, lon: boy_lon, tz: boy_tz, name: boy_name, place: boy_place },
-      ayanamsa,
+      body,
     );
   }
 

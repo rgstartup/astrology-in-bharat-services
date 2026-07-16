@@ -46,7 +46,10 @@ export class PlacesMapper {
         id: `img_${Date.now()}_${index}`,
         title: (item.title as string) || 'Sacred Place View',
         thumbnail_url: this.filterImageUrl(
-          (item.imageUrl as string) || (item.image_url as string) || (item.thumbnailUrl as string) || (item.thumbnail_url as string),
+          (item.imageUrl as string) ||
+            (item.image_url as string) ||
+            (item.thumbnailUrl as string) ||
+            (item.thumbnail_url as string),
         ),
         address: 'N/A',
         rating: 0,

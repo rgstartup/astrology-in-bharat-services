@@ -5,7 +5,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -45,7 +45,11 @@ export class GetExpertDetailUseCase {
       relations: ['addresses'],
     });
 
-    const clientProfile = await this.clientProfileFacade.getProfile({ id: user.id, email: user.email || '', roles: [] });
+    const clientProfile = await this.clientProfileFacade.getProfile({
+      id: user.id,
+      email: user.email || '',
+      roles: [],
+    });
     const expertProfileId =
       profile?.id || '00000000-0000-0000-0000-000000000000';
     const total_earnings = await this.walletFacade.getTotalEarnings(

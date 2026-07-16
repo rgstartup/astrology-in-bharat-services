@@ -13,6 +13,8 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
+import { GetExpertTransactionsDto } from '../dto/get-expert-transactions.dto';
+import { RequestExpertWithdrawalDto } from '../dto/request-expert-withdrawal.dto';
 
 @Controller({
   path: 'expert/wallet',
@@ -31,38 +33,22 @@ export class ExpertWalletController {
   @Get('transactions')
   getTransactions(
     @CurrentProfile() expertProfileId: string,
-    @Query('limit') limit: string = '10',
-    @Query('page') page: string = '1',
-    @Query('offset') offset: string,
-    @Query('type') type: string = 'all',
+    @Query() dto: GetExpertTransactionsDto,
   ) {
-    const parsedLimit = parseInt(limit, 10) || 10;
-    const parsedPage = parseInt(page, 10) || 1;
-    const parsedOffset = offset
-      ? parseInt(offset, 10)
-      : (parsedPage - 1) * parsedLimit;
-
-    return this.earningsFacade.getTransactions(
-      expertProfileId,
-      parsedLimit,
-      parsedOffset,
-      type,
-    );
+    return this.earningsFacade.getTransactions(expertProfileId, dto);
   }
 
   @Post('withdraw')
   async requestWithdrawal(
     @CurrentProfile() expertProfileId: string,
-    @Body('amount') amount: number,
-    @Body('bank_account_id') bank_account_id: string | number,
+    @Body() dto: RequestExpertWithdrawalDto,
     @Ip() ip: string,
     @Headers('user-agent') ua: string,
     @Headers('x-idempotency-key') idempotencyKey: string,
   ) {
     return this.earningsFacade.requestWithdrawal(
       expertProfileId,
-      amount,
-      bank_account_id,
+      dto,
       idempotencyKey,
       { ip, ua },
     );

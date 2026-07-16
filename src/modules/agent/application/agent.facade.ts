@@ -12,10 +12,16 @@ import { GetAdminAgentsUseCase } from './use-cases/get-admin-agents.use-case';
 import { GetAdminAgentStatsUseCase } from './use-cases/get-admin-agent-stats.use-case';
 import { GetAdminListingsUseCase } from './use-cases/get-admin-listings.use-case';
 import { UpdateAdminListingStatusUseCase } from './use-cases/update-admin-listing-status.use-case';
+import { RequestAgentWithdrawalUseCase } from './use-cases/request-agent-withdrawal.use-case';
 import { DateRangeDto } from '@/common/dto/date-range.dto';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 import { QueryRunner } from 'typeorm';
 import { IUser } from '@/common/types/access-token.payload';
+
+// New DTO imports
+import { GetAgentStatsDto } from '../api/dto/get-agent-stats.dto';
+import { GetAgentListingsDto } from '../api/dto/get-agent-listings.dto';
+import { RequestAgentWithdrawalDto } from '../api/dto/request-agent-withdrawal.dto';
 
 @Injectable()
 export class AgentFacade {
@@ -33,6 +39,7 @@ export class AgentFacade {
     private readonly getAdminAgentStatsUseCase: GetAdminAgentStatsUseCase,
     private readonly getAdminListingsUseCase: GetAdminListingsUseCase,
     private readonly updateAdminListingStatusUseCase: UpdateAdminListingStatusUseCase,
+    private readonly requestAgentWithdrawalUseCase: RequestAgentWithdrawalUseCase,
   ) {}
 
   async getProfile(user: IUser) {
@@ -43,26 +50,12 @@ export class AgentFacade {
     return this.updateAgentProfileUseCase.execute(user, body);
   }
 
-  async getStats(
-    user: IUser,
-    range: string = '30d',
-    dateRangeDto?: DateRangeDto,
-  ) {
-    return this.getAgentStatsUseCase.execute(user, range, dateRangeDto);
+  async getStats(user: IUser, dto: GetAgentStatsDto) {
+    return this.getAgentStatsUseCase.execute(user, dto);
   }
 
-  async getListings(
-    user: IUser,
-    pagination: PaginationDto,
-    type?: string,
-    search?: string,
-  ) {
-    return this.getAgentListingsUseCase.execute(
-      user,
-      pagination,
-      type,
-      search,
-    );
+  async getListings(user: IUser, dto: GetAgentListingsDto) {
+    return this.getAgentListingsUseCase.execute(user, dto);
   }
 
   async getCommissions(userId: string, pagination: PaginationDto) {
@@ -75,6 +68,20 @@ export class AgentFacade {
 
   async createListing(userId: string, body: Record<string, unknown>) {
     return this.createAgentListingUseCase.execute(userId, body);
+  }
+
+  async requestWithdrawal(
+    user: IUser,
+    dto: RequestAgentWithdrawalDto,
+    idempotencyKey: string,
+    ipUa: { ip: string; ua: string },
+  ) {
+    return this.requestAgentWithdrawalUseCase.execute(
+      user,
+      dto,
+      idempotencyKey,
+      ipUa,
+    );
   }
 
   async incrementRegistrationsWithQueryRunner(

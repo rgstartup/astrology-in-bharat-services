@@ -18,6 +18,8 @@ import {
 } from '../../api/dto/consultation-history.dto';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
+import { GetUnifiedHistoryDto } from '../../api/dto/get-unified-history.dto';
+
 @Injectable()
 export class GetUnifiedHistoryUseCase {
   constructor(
@@ -29,7 +31,12 @@ export class GetUnifiedHistoryUseCase {
     private readonly reviewRepo: Repository<Review>,
   ) {}
 
-  async execute(profileId: string, isExpert: boolean, limit: number = 20, offset: number = 0, search: string = '') {
+  async execute(
+    profileId: string,
+    isExpert: boolean,
+    dto: GetUnifiedHistoryDto,
+  ) {
+    const { limit = 20, offset = 0, search } = dto;
     let chatFilter = {};
     let callFilter = {};
 
@@ -126,9 +133,10 @@ export class GetUnifiedHistoryUseCase {
     let filteredHistory = unifiedHistory;
     if (search && search.trim()) {
       const lowerSearch = search.toLowerCase();
-      filteredHistory = unifiedHistory.filter((h) => 
-        (h.displayId && h.displayId.toLowerCase().includes(lowerSearch)) ||
-        (h.id && h.id.toLowerCase().includes(lowerSearch))
+      filteredHistory = unifiedHistory.filter(
+        (h) =>
+          (h.displayId && h.displayId.toLowerCase().includes(lowerSearch)) ||
+          (h.id && h.id.toLowerCase().includes(lowerSearch)),
       );
     }
 
@@ -136,7 +144,10 @@ export class GetUnifiedHistoryUseCase {
     const limitNum = Math.min(Math.max(1, limit), 100);
     const offsetNum = Math.max(0, offset);
     const totalCount = filteredHistory.length;
-    const paginatedData = filteredHistory.slice(offsetNum, offsetNum + limitNum);
+    const paginatedData = filteredHistory.slice(
+      offsetNum,
+      offsetNum + limitNum,
+    );
 
     return {
       data: paginatedData,

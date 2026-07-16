@@ -17,7 +17,10 @@ export class SetPrimaryBankAccountUseCase {
   ) {}
 
   async execute(expertProfileId: string, id: string) {
-    const account = await this.getBankAccountUseCase.execute(expertProfileId, id);
+    const account = await this.getBankAccountUseCase.execute(
+      expertProfileId,
+      id,
+    );
 
     if (!account.expert || !account.expert_id) {
       throw new NotFoundException('No Expert profile associated');

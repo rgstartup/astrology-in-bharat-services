@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExpertPuja } from '../../../infrastructure/entities/expert-puja.entity';
@@ -7,6 +12,13 @@ import { IUser } from '@/common/types/access-token.payload';
 import { ExpertPujaDto } from '../../../api/dto/expert-puja.dto';
 import { GetProfileUseCase } from '../get-profile.usecase';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import sharp from 'sharp';
+
+// Required image specs
+const REQUIRED_RATIO = 16 / 9;
+const MIN_WIDTH = 1280;
+const MIN_HEIGHT = 720;
+const RATIO_TOLERANCE = 0.05; // 5% tolerance
 
 @Injectable()
 export class UpsertPujaUseCase {
@@ -20,6 +32,32 @@ export class UpsertPujaUseCase {
     private readonly getProfileUseCase: GetProfileUseCase,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
+
+  private async validateImageDimensions(base64: string): Promise<void> {
+    // Remove data URI prefix if present (e.g., "data:image/jpeg;base64,")
+    const base64Data = base64.includes(',') ? base64.split(',')[1] : base64;
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const metadata = await sharp(buffer).metadata();
+    const { width, height } = metadata;
+
+    if (!width || !height) {
+      throw new BadRequestException('Could not read image dimensions.');
+    }
+
+    if (width < MIN_WIDTH || height < MIN_HEIGHT) {
+      throw new BadRequestException(
+        `Puja image is too small. Minimum size is ${MIN_WIDTH}×${MIN_HEIGHT}px. Your image is ${width}×${height}px.`,
+      );
+    }
+
+    const ratio = width / height;
+    if (Math.abs(ratio - REQUIRED_RATIO) > RATIO_TOLERANCE) {
+      throw new BadRequestException(
+        `Puja image must be in 16:9 ratio (e.g., 1280×720, 1920×1080). Your image ratio is ${width}:${height}.`,
+      );
+    }
+  }
 
   async execute(user: IUser, dto: ExpertPujaDto, id?: string) {
     const where = user.profile
@@ -48,6 +86,9 @@ export class UpsertPujaUseCase {
     }
 
     if (dto.puja_image) {
+      // Validate image dimensions before uploading
+      await this.validateImageDimensions(dto.puja_image);
+
       try {
         const uploadResult = (await this.cloudinaryService.uploadBase64(
           dto.puja_image,
@@ -55,6 +96,7 @@ export class UpsertPujaUseCase {
         )) as Record<string, unknown>;
         puja.puja_image_url = uploadResult.secure_url as string;
       } catch (error) {
+        if (error instanceof BadRequestException) throw error;
         this.logger.error('Failed to upload puja image:', error);
       }
     }

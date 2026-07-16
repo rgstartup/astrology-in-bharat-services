@@ -10,9 +10,11 @@ import { GetMerchantAnalyticsUseCase } from './application/use-cases/get-merchan
 import { VerifyOrderOtpUseCase } from './application/use-cases/verify-order-otp.usecase';
 import { GetMerchantFinanceStatsUseCase } from './application/use-cases/get-merchant-finance-stats.usecase';
 import { SendOrderOtpUseCase } from './application/use-cases/send-order-otp.usecase';
+import { CalculateMerchantEarningsUseCase } from './application/use-cases/calculate-merchant-earnings.usecase';
 import { MerchantProductsController } from './api/controllers/merchant-products.controller';
 import { MerchantFinanceController } from './api/controllers/merchant-finance.controller';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
+import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 import { OrderModule } from '@/modules/commerce/order/order.module';
 import { ProductModule } from '@/modules/commerce/product/product.module';
 import { ConsultationModule } from '@/modules/consultation/consultation.module';
@@ -25,6 +27,7 @@ import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
   imports: [
     TypeOrmModule.forFeature([ProfileMerchant]),
     forwardRef(() => WalletModule),
+    CommissionsModule,
     OrderModule,
     ProductModule,
     forwardRef(() => ConsultationModule),
@@ -47,6 +50,7 @@ import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
     VerifyOrderOtpUseCase,
     GetMerchantFinanceStatsUseCase,
     SendOrderOtpUseCase,
+    CalculateMerchantEarningsUseCase,
   ],
 })
 export class MerchantDashboardModule {}

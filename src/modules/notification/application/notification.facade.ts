@@ -8,6 +8,8 @@ import {
   ProfileType,
 } from '../infrastructure/entities/notification.entity';
 
+import { GetNotificationsDto } from '../api/dto/get-notifications.dto';
+
 export type { ProfileType };
 
 @Injectable()
@@ -40,10 +42,13 @@ export class NotificationFacade {
   async getUserNotifications(
     profileId: string,
     profileType: ProfileType,
-    limit?: number,
-    offset?: number,
+    dto: GetNotificationsDto,
   ) {
-    return this.getNotificationsUseCase.execute(profileId, profileType, limit, offset);
+    return this.getNotificationsUseCase.execute(
+      profileId,
+      profileType,
+      dto,
+    );
   }
 
   async markAsRead(id: string, _profileId: string) {

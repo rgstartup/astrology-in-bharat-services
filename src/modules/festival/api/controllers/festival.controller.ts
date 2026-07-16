@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -12,17 +12,16 @@ import { FestivalFacade } from '../../application/festival.facade';
 import { CreateFestivalDto, UpdateFestivalDto } from '../dto/festival.dto';
 import { Public } from '@/common/decorators/public.decorator';
 
+import { GetFestivalsDto } from '../dto/get-festivals.dto';
+
 @Controller('festivals')
 export class FestivalController {
   constructor(private readonly festivalFacade: FestivalFacade) {}
 
   @Public()
   @Get()
-  findAll(@Query('year') year?: number, @Query('month') month?: number) {
-    return this.festivalFacade.findAll(
-      Number(year) || undefined,
-      Number(month) || undefined,
-    );
+  findAll(@Query() dto: GetFestivalsDto) {
+    return this.festivalFacade.findAll(dto);
   }
 
   @Public()

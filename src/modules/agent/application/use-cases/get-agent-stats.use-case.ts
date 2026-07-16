@@ -1,18 +1,28 @@
-import { Injectable, Inject, forwardRef, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  forwardRef,
+  BadRequestException,
+} from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, MoreThan } from 'typeorm';
+import { Repository, MoreThan } from 'typeorm';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 import { AgentListing } from '../../infrastructure/entities/agent-listing.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
-import { DateRangeDto } from '@/common/dto/date-range.dto';
+import { GetAgentStatsDto } from '../../api/dto/get-agent-stats.dto';
 import { IUser } from '@/common/types/access-token.payload';
+import {
+  CommissionsFacade,
+  CommissionEventType,
+  CommissionType,
+  CommissionAppliesRole,
+} from '@/modules/finance/commissions/application/commissions.facade';
 
 @Injectable()
 export class GetAgentStatsUseCase {
@@ -20,21 +30,21 @@ export class GetAgentStatsUseCase {
     private readonly databaseService: DatabaseService,
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
+    private readonly commissionsFacade: CommissionsFacade,
     @InjectRepository(ProfileAgent)
     private readonly profileAgentRepo: Repository<ProfileAgent>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     @InjectRepository(AgentListing)
     private readonly agentListingRepo: Repository<AgentListing>,
-    @InjectRepository(SystemSetting)
-    private readonly systemSettingRepo: Repository<SystemSetting>,
   ) {}
 
   async execute(
     user: IUser,
-    range: string = '30d',
-    dateRangeDto?: DateRangeDto,
+    dto: GetAgentStatsDto,
   ) {
+    const range = dto.range || '30d';
+    const dateRangeDto = dto;
     const userId = user.id;
     const queryRunner = this.databaseService.getQueryRunner();
     await queryRunner.connect();
@@ -136,36 +146,33 @@ export class GetAgentStatsUseCase {
 
       const usersForStats = await qbUsers.getMany();
 
-      const settings = await this.systemSettingRepo.find({
-        where: {
-          key: In([
-            'COMMISION_FROM_CLIENT',
-            'COMMISSION_FROM_CLIENT',
-            'COMMISION_FROM_ASTROLOGER',
-            'COMMISSION_FROM_ASTROLOGER',
-            'COMMISION_FROM_PUJA_SHOP',
-            'COMMISSION_FROM_PUJA_SHOP',
-          ]),
-        },
-      });
-
-      const getGlobalSetting = (keys: string[], defaultValue: number) => {
-        const setting = settings.find((s) => keys.includes(s.key));
-        return setting ? parseFloat(setting.value) : defaultValue;
-      };
-
-      const expertCommPercent = getGlobalSetting(
-        ['COMMISION_FROM_ASTROLOGER', 'COMMISSION_FROM_ASTROLOGER'],
-        3,
-      );
-      const clientCommPercent = getGlobalSetting(
-        ['COMMISION_FROM_CLIENT', 'COMMISSION_FROM_CLIENT'],
-        3,
-      );
-      const shopCommPercent = getGlobalSetting(
-        ['COMMISION_FROM_PUJA_SHOP', 'COMMISSION_FROM_PUJA_SHOP'],
-        3,
-      );
+      const [expertCommResult, clientCommResult, shopCommResult] =
+        await Promise.all([
+          this.commissionsFacade.resolveCommission(
+            CommissionEventType.CHAT,
+            CommissionType.SELLER_AGENT,
+            null,
+            CommissionAppliesRole.EXPERT,
+            100,
+          ),
+          this.commissionsFacade.resolveCommission(
+            CommissionEventType.CHAT,
+            CommissionType.BUYER_AGENT,
+            null,
+            CommissionAppliesRole.CLIENT,
+            100,
+          ),
+          this.commissionsFacade.resolveCommission(
+            CommissionEventType.PRODUCT_ORDER,
+            CommissionType.SELLER_AGENT,
+            null,
+            CommissionAppliesRole.MERCHANT,
+            100,
+          ),
+        ]);
+      const expertCommPercent = expertCommResult.amount;
+      const clientCommPercent = clientCommResult.amount;
+      const shopCommPercent = shopCommResult.amount;
 
       let expertEarnings = 0;
       const shopEarnings = 0;
@@ -231,8 +238,10 @@ export class GetAgentStatsUseCase {
       expertEarnings =
         roleStats.find((r) => r.role_name === 'expert')?.total_comm || 0;
 
-      const withdrawalStats =
-        await this.walletFacade.getWithdrawalsStatus(profile.id, 'agent_id');
+      const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(
+        profile.id,
+        'agent_id',
+      );
 
       const revenueGrowthRaw: Array<{
         name: string;

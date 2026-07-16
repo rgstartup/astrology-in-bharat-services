@@ -27,7 +27,7 @@ export class CartFacade {
 
   async updateCartItem(
     profileId: string,
-    updateCartItemDto: UpdateCartItemDto & { productId: string },
+    updateCartItemDto: UpdateCartItemDto,
   ) {
     return this.updateCartItemUseCase.execute(profileId, updateCartItemDto);
   }

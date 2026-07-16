@@ -1,5 +1,5 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 

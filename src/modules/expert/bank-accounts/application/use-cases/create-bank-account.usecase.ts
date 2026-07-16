@@ -24,11 +24,15 @@ export class CreateBankAccountUseCase {
   ) {}
 
   async execute(expertProfileId: string, dto: CreateBankAccountDto) {
-    this.logger.log(`Starting bank account creation for expert profile ${expertProfileId}`);
+    this.logger.log(
+      `Starting bank account creation for expert profile ${expertProfileId}`,
+    );
     this.logger.debug(`Incoming DTO: ${JSON.stringify(dto)}`);
 
     try {
-      const profile = await this.profileRepo.findOne({ where: { id: expertProfileId } });
+      const profile = await this.profileRepo.findOne({
+        where: { id: expertProfileId },
+      });
       if (!profile) throw new NotFoundException('Expert profile not found');
       this.logger.log(`Found expert profile ID ${profile.id}`);
 

@@ -10,7 +10,7 @@ import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallAcceptedEvent } from '../../domain/events/call.events';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { CallSessionAccessDeniedError } from '../../domain/errors/call.errors';
 
 @Injectable()
@@ -31,7 +31,7 @@ export class AcceptCallUseCase {
   async execute(expertProfileId: string, sessionId: string) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
-      relations: ['client', 'expert', 'expert.user'],
+      relations: ['client', 'client.user', 'expert', 'expert.user'],
     });
 
     CallPolicy.ensureSessionExists(session);
@@ -59,7 +59,10 @@ export class AcceptCallUseCase {
     session.start_time = new Date();
 
     // Calculate Max Duration based on Wallet Balance + Free Minutes
-    const balance = await this.walletFacade.getBalance(session.client_id, 'client_id');
+    const balance = await this.walletFacade.getBalance(
+      session.client_id,
+      'client_id',
+    );
     const paidMinutes =
       session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
     const totalMinutes =
@@ -108,7 +111,11 @@ export class AcceptCallUseCase {
     );
     this.eventEmitter.emit(
       'call.accepted',
-      new CallAcceptedEvent(savedSession.id, expertProfileId, savedSession.type),
+      new CallAcceptedEvent(
+        savedSession.id,
+        expertProfileId,
+        savedSession.type,
+      ),
     );
 
     return result;

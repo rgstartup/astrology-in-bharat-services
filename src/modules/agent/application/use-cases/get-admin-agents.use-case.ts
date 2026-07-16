@@ -58,7 +58,11 @@ export class GetAdminAgentsUseCase {
         let totalAgentCommission = 0;
 
         // Replicating calculation logic from AgentStats using AgentFacade
-        const profile = await this.agentFacade.getProfile({ id: u.id, email: u.email || '', roles: [] });
+        const profile = await this.agentFacade.getProfile({
+          id: u.id,
+          email: u.email || '',
+          roles: [],
+        });
 
         if (profile) {
           // Fallback for missing exact calculation if UsersFacade doesn't provide it

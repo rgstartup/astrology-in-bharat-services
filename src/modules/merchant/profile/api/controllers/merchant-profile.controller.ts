@@ -44,6 +44,7 @@ export class MerchantProfileController {
     FileFieldsInterceptor([
       { name: 'image', maxCount: 1 },
       { name: 'video', maxCount: 1 },
+      { name: 'gallery', maxCount: 10 },
       { name: 'gstCertificate', maxCount: 1 },
       { name: 'panFront', maxCount: 1 },
       { name: 'panBack', maxCount: 1 },
@@ -58,6 +59,7 @@ export class MerchantProfileController {
     files: {
       image?: Express.Multer.File[];
       video?: Express.Multer.File[];
+      gallery?: Express.Multer.File[];
       gstCertificate?: Express.Multer.File[];
       panFront?: Express.Multer.File[];
       panBack?: Express.Multer.File[];

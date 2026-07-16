@@ -1,5 +1,5 @@
 import { Role, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { TransactionPurpose } from '../../modules/wallet/infrastructure/entities/transaction.entity';
+import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
 export function generateTransactionNo(
   role: Role,

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -103,8 +103,14 @@ export class UpdateProfileUseCase {
     }
     if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
 
-    if (dto.documents !== undefined)
+    if (dto.documents !== undefined) {
+      if (profile.kyc_status === 'approved' || profile.kyc_status === 'active') {
+        throw new ForbiddenException(
+          'Your account is verified. You cannot modify your verified documents. Please contact Admin.',
+        );
+      }
       profile.documents = dto.documents as unknown as Record<string, unknown>[];
+    }
     if (dto.gallery !== undefined) profile.gallery = dto.gallery;
     if (dto.videos !== undefined) profile.videos = dto.videos;
     if (dto.video !== undefined) profile.video = dto.video;
@@ -152,9 +158,24 @@ export class UpdateProfileUseCase {
     }
 
     if ((dto as unknown as { name?: string }).name !== undefined) {
+      const newName = (dto as unknown as { name?: string }).name as string;
+      const currentUser = await this.userRepo.findOne({ where: { id: user.id } });
+      
+      const currentNameStr = currentUser?.name?.trim() || "";
+      const newNameStr = newName?.trim() || "";
+
+      if (currentNameStr !== newNameStr && currentNameStr !== "") {
+        if (profile.kyc_status === 'approved' || profile.kyc_status === 'active') {
+          throw new ForbiddenException(
+            'Your account is verified. You cannot change your name. Please contact Admin.',
+          );
+        }
+      }
+      
       await this.userRepo.update(user.id, {
-        name: (dto as unknown as { name?: string }).name as string,
+        name: newNameStr || null,
       });
+
     }
 
     const savedProfile = await this.profileRepo.save(profile);

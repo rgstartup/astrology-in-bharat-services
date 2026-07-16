@@ -23,6 +23,7 @@ import { RejectChatUseCase } from './use-cases/reject-chat.use-case';
 import { UpdateSessionMetadataUseCase } from './use-cases/update-session-metadata.use-case';
 import { GetChatEarningsUseCase } from './use-cases/get-chat-earnings.use-case';
 import { GetExpertSessionsByDateUseCase } from './use-cases/get-expert-sessions-by-date.use-case';
+import { GetExpertChatSessionsDto } from '../api/dto/get-expert-chat-sessions.dto';
 import { MessageType } from '../infrastructure/entities/chat-message.entity';
 import { ChatSessionStatus } from '../infrastructure/entities/chat-session.entity';
 
@@ -106,9 +107,13 @@ export class ChatFacade {
   async getExpertSessions(
     expertProfileId: string,
     filter: ExpertSessionFilter,
-    options: FindExpertSessionsOptions = {},
+    options: GetExpertChatSessionsDto = {},
   ) {
-    return this.findExpertSessionsUseCase.execute(expertProfileId, filter, options);
+    return this.findExpertSessionsUseCase.execute(
+      expertProfileId,
+      filter,
+      options,
+    );
   }
 
   async getClientSessions(clientProfileId: string) {

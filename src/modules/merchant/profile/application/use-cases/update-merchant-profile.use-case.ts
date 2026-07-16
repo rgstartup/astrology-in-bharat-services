@@ -34,6 +34,7 @@ export class UpdateMerchantProfileUseCase {
     files?: {
       image?: Express.Multer.File[];
       video?: Express.Multer.File[];
+      gallery?: Express.Multer.File[];
       gstCertificate?: Express.Multer.File[];
       panFront?: Express.Multer.File[];
       panBack?: Express.Multer.File[];
@@ -152,6 +153,19 @@ export class UpdateMerchantProfileUseCase {
         dto.isOnline !== undefined && !!profile.isOnline !== !!isOnline;
       if (dto.isOnline !== undefined) profile.isOnline = !!isOnline;
 
+      if (dto.description !== undefined) profile.description = dto.description;
+      if (dto.features !== undefined) {
+        if (typeof dto.features === 'string') {
+          try {
+            profile.features = JSON.parse(dto.features);
+          } catch (e: unknown) {
+            this.logger.error('Failed to parse features JSON', (e as Error).stack);
+          }
+        } else {
+          profile.features = dto.features as string[];
+        }
+      }
+
       // Handle new verification fields
       if (dto.gstin) profile.gstin = dto.gstin;
       if (dto.pan && this.encryptionService) {
@@ -212,6 +226,41 @@ export class UpdateMerchantProfileUseCase {
             );
           }
         }
+      }
+
+      // Handle Gallery Uploads
+      let galleryUrls: string[] = [];
+      if (dto.gallery) {
+        if (typeof dto.gallery === 'string') {
+          try {
+            const parsed = JSON.parse(dto.gallery);
+            if (Array.isArray(parsed)) galleryUrls = parsed;
+          } catch (e: unknown) {
+            this.logger.error('Failed to parse gallery JSON', (e as Error).stack);
+          }
+        } else if (Array.isArray(dto.gallery)) {
+          galleryUrls = dto.gallery as string[];
+        }
+      }
+      
+      if (files?.gallery?.length) {
+        for (const file of files.gallery) {
+          try {
+            const uploadResult = (await this.cloudinary.uploadImage(
+              file,
+            )) as Record<string, unknown>;
+            if (uploadResult && 'secure_url' in uploadResult) {
+              galleryUrls.push(uploadResult.secure_url as string);
+            }
+          } catch (error: unknown) {
+            this.logger.error('Failed to upload gallery image', (error as Error).stack);
+          }
+        }
+      }
+      
+      // Update gallery only if either existing URLs were sent or new files were uploaded
+      if (dto.gallery !== undefined || files?.gallery?.length) {
+        profile.gallery = galleryUrls;
       }
 
       // Detect bank details change for security notification

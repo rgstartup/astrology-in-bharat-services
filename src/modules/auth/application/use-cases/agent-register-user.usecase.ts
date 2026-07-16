@@ -13,7 +13,7 @@ import { AgentFacade } from '@/modules/agent/application/agent.facade';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { ConfigService } from '@nestjs/config';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';

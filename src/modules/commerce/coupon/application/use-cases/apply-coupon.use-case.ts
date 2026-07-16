@@ -12,6 +12,7 @@ import {
   CouponType,
 } from '../../infrastructure/entities/coupon.entity';
 import { UserCoupon } from '../../infrastructure/entities/user-coupon.entity';
+import { ApplyCouponDto } from '../../api/dto/apply-coupon.dto';
 
 @Injectable()
 export class ApplyCouponUseCase {
@@ -24,7 +25,10 @@ export class ApplyCouponUseCase {
     private readonly userCouponRepo: Repository<UserCoupon>,
   ) {}
 
-  async execute(code: string, amount: number) {
+  async execute(dto: ApplyCouponDto) {
+    const code = dto.code || dto.couponCode || '';
+    const amount = dto.amount || dto.orderValue || 0;
+
     // 1. Find active coupon
     const coupon = await this.couponRepo
       .createQueryBuilder('coupon')

@@ -6,7 +6,6 @@ import {
   Body,
   Post,
   Query,
-  ParseFloatPipe,
   Ip,
   Headers,
   BadRequestException,
@@ -16,10 +15,14 @@ import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { IUser } from '@/common/types/access-token.payload';
-import { DateRangeDto } from '@/common/dto/date-range.dto';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 import { AgentFacade } from '../../application/agent.facade';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
+
+// New DTO imports
+import { GetAgentStatsDto } from '../dto/get-agent-stats.dto';
+import { GetAgentListingsDto } from '../dto/get-agent-listings.dto';
+import { RequestAgentWithdrawalDto } from '../dto/request-agent-withdrawal.dto';
 
 @Controller({
   path: 'agent',
@@ -54,10 +57,9 @@ export class AgentController {
   @Get('dashboard/stats')
   async getStats(
     @CurrentUser() user: IUser,
-    @Query('range') range: string = '30d',
-    @Query() dateRangeDto: DateRangeDto,
+    @Query() query: GetAgentStatsDto,
   ) {
-    return this.agentFacade.getStats(user, range, dateRangeDto);
+    return this.agentFacade.getStats(user, query);
   }
 
   @Post('listings')
@@ -71,11 +73,9 @@ export class AgentController {
   @Get('listings')
   async getListings(
     @CurrentUser() user: IUser,
-    @Query() pagination: PaginationDto,
-    @Query('type') type?: string,
-    @Query('search') search?: string,
+    @Query() query: GetAgentListingsDto,
   ) {
-    return this.agentFacade.getListings(user, pagination, type, search);
+    return this.agentFacade.getListings(user, query);
   }
 
   @Get('commissions')
@@ -98,29 +98,27 @@ export class AgentController {
   async getWithdrawals(@CurrentUser() user: IUser) {
     const profile = await this.agentFacade.getProfile(user);
     if (!profile) throw new BadRequestException('Agent profile not found');
-    const result = await this.walletFacade.getWithdrawals(profile.id, 'agent_id');
+    const result = await this.walletFacade.getWithdrawals(
+      profile.id,
+      'agent_id',
+    );
     return result.data;
   }
 
   @Post('wallet/withdraw')
   async requestWithdrawal(
     @CurrentUser() user: IUser,
-    @Body('amount', ParseFloatPipe) amount: number,
-    @Body('bank_account_id') bankAccountId: string | number,
+    @Body() body: RequestAgentWithdrawalDto,
     @Ip() ip: string,
     @Headers('user-agent') ua: string,
     @Headers('x-idempotency-key') idempotencyKey: string,
   ) {
-    if (amount < 500) {
+    if (body.amount < 500) {
       throw new BadRequestException('Minimum withdrawal amount is ₹500');
     }
-    const profile = await this.agentFacade.getProfile(user);
-    if (!profile) throw new BadRequestException('Agent profile not found');
-    return this.walletFacade.requestWithdrawal(
-      profile.id,
-      'agent_id',
-      amount,
-      bankAccountId,
+    return this.agentFacade.requestWithdrawal(
+      user,
+      body,
       idempotencyKey,
       { ip, ua },
     );

@@ -2,7 +2,7 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
@@ -35,7 +35,7 @@ export class GetAgentCommissionsUseCase {
     }
     const profileId = agentProfile.id;
 
-    const offset = pagination.offset;
+    const offset = pagination.skip;
     const result = await this.walletFacade.getTransactions(
       profileId,
       'agent_id',

@@ -14,6 +14,8 @@ export enum CallSessionFilter {
   ALL = 'all',
 }
 
+import { GetCallSessionsDto } from '../../api/dto/get-call-sessions.dto';
+
 @Injectable()
 export class GetExpertCallSessionsUseCase {
   constructor(
@@ -24,7 +26,7 @@ export class GetExpertCallSessionsUseCase {
   async execute(
     expertProfileId: string,
     filter: CallSessionFilter,
-    options: { limit?: number; offset?: number; search?: string } = {},
+    options: GetCallSessionsDto = {},
   ) {
     const queryBuilder = this.sessionRepo
       .createQueryBuilder('session')

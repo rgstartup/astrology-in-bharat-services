@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Festival } from '../../infrastructure/entities/festival.entity';
 
+import { GetFestivalsDto } from '../../api/dto/get-festivals.dto';
+
 @Injectable()
 export class GetAllFestivalsUseCase {
   private readonly cache = new Map<string, Record<string, unknown>[]>();
@@ -12,7 +14,8 @@ export class GetAllFestivalsUseCase {
     private readonly festivalRepo: Repository<Festival>,
   ) {}
 
-  async execute(year?: number, month?: number) {
+  async execute(dto: GetFestivalsDto) {
+    const { year, month } = dto;
     const targetYear = year || new Date().getFullYear();
     const cacheKey = `${targetYear}`;
 

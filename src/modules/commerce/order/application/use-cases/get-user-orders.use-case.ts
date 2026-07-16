@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { PujaAppointmentFacade } from '@/modules/puja-appointment/application/puja-appointment.facade';
+import { GetMyOrdersDto } from '../../api/dto/get-my-orders.dto';
 
 @Injectable()
 export class GetUserOrdersUseCase {
@@ -16,9 +17,10 @@ export class GetUserOrdersUseCase {
   async execute(
     profileId: string,
     userId: string,
-    limit?: number,
-    offset?: number,
+    dto: GetMyOrdersDto,
   ) {
+    const { limit, offset } = dto;
+
     // 1. Fetch Product Orders by client profile ID
     const productOrders = await this.orderRepo.find({
       where: { client_id: profileId },
@@ -31,32 +33,79 @@ export class GetUserOrdersUseCase {
       await this.pujaAppointmentFacade.getUserAppointments(profileId);
 
     // 3. Normalize and Combine
-    const normalizedProducts = productOrders.map((o) => ({
-      id: o.id,
-      tracking_id: `ORD-${o.id}`,
-      type: 'product',
-      name: o.items.length > 0 ? o.items[0].product.name : 'Product Order',
-      item_count: o.items.length,
-      amount: Number(o.total_amount),
-      status: o.status,
-      date: o.created_at,
-      merchant_id: o.items.length > 0 ? o.items[0].product.merchant_id : null,
-      payment_method: o.payment_method,
-      delivery_otp: [OrderStatus.SHIPPED, OrderStatus.PACKED].includes(o.status)
-        ? o.delivery_otp
-        : null,
-      items: o.items.map((i) => ({
-        id: i.id,
-        name: i.product.name,
-        quantity: i.quantity,
-        price: Number(i.price),
-        image: i.product.image_url,
-      })),
-    }));
+    const normalizedProducts = productOrders.map((o) => {
+      // Group items by merchant
+      const merchantGroups: Record<string, {
+        merchant_id: string;
+        merchant_name: string;
+        status: string;
+        delivery_otp: string | null;
+        cancellation_reason: string | null;
+        items: any[];
+      }> = {};
+
+      (o.items || []).forEach((i) => {
+        const mId = i.product?.merchant_id || 'unknown';
+        const mName = (i.product as any)?.merchant?.shopName || (i.product as any)?.merchant?.name || 'Shop';
+        if (!merchantGroups[mId]) {
+          merchantGroups[mId] = { 
+            merchant_id: mId, 
+            merchant_name: mName, 
+            status: i.status || 'pending',
+            delivery_otp: i.delivery_otp || null,
+            cancellation_reason: i.cancellation_reason || null,
+            items: [] 
+          };
+        }
+        merchantGroups[mId].items.push({
+          id: i.id,
+          name: i.product?.name || 'Unknown Product',
+          quantity: i.quantity,
+          price: Number(i.price),
+          image: i.product?.image_url || '',
+          merchant_id: mId,
+          merchant_name: mName,
+          status: i.status || 'pending',
+          cancellation_reason: i.cancellation_reason || null,
+        });
+      });
+      const cancelableStatuses = [OrderStatus.PENDING, OrderStatus.PAID, OrderStatus.PROCESSING];
+      const isStatusCancelable = cancelableStatuses.includes(o.status);
+      const allItemsCancelled = (o.items || []).length > 0 && (o.items || []).every(i => i.status === OrderStatus.CANCELLED);
+      const is_cancelable = isStatusCancelable && !allItemsCancelled;
+
+      return {
+        id: o.id,
+        tracking_id: `AIB-ORD-${o.id.split('-')[0].toUpperCase()}`,
+        type: 'product',
+        name: o.items?.length > 0 ? (o.items[0].product?.name || 'Product Order') : 'Product Order',
+        item_count: o.items?.length || 0,
+        amount: Number(o.total_amount),
+        status: o.status,
+        is_cancelable,
+        date: o.created_at,
+        merchant_id: o.items?.length > 0 ? (o.items[0].product?.merchant_id || null) : null,
+        payment_method: o.payment_method,
+        shipping_address: o.shipping_address,
+        delivery_otp: o.delivery_otp || null,
+        merchant_groups: Object.values(merchantGroups),
+        items: (o.items || []).map((i) => ({
+          id: i.id,
+          name: i.product?.name || 'Unknown Product',
+          quantity: i.quantity,
+          price: Number(i.price),
+          image: i.product?.image_url || '',
+          merchant_id: i.product?.merchant_id || null,
+          merchant_name: (i.product as any)?.merchant?.shopName || (i.product as any)?.merchant?.name || 'Shop',
+          cancellation_reason: i.cancellation_reason || null,
+          status: i.status || 'pending',
+        })),
+      };
+    });
 
     const normalizedPujas = pujaOrders.map((p) => ({
       id: p.id,
-      tracking_id: `PUJA-${p.id}`,
+      tracking_id: `AIB-PUJA-${p.id.split('-')[0].toUpperCase()}`,
       type: 'puja',
       name: p.puja?.name || 'Puja Service',
       item_count: 1,

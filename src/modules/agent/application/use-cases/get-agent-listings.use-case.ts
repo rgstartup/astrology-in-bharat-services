@@ -10,7 +10,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { PaginationDto } from '@/common/dto/pagination.dto';
+import { GetAgentListingsDto } from '../../api/dto/get-agent-listings.dto';
 import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
@@ -29,10 +29,10 @@ export class GetAgentListingsUseCase {
 
   async execute(
     user: IUser,
-    pagination: PaginationDto,
-    type?: string,
-    search?: string,
+    dto: GetAgentListingsDto,
   ) {
+    const { type, search } = dto;
+    const pagination = dto;
     const userId = user.id;
     const queryRunner = this.databaseService.getQueryRunner();
     await queryRunner.connect();
@@ -113,7 +113,7 @@ export class GetAgentListingsUseCase {
         qb.orderBy('u.created_at', 'DESC');
 
         if (!isAll) {
-          qb.skip(pagination.offset).take(pagination.limit);
+          qb.skip(pagination.skip).take(pagination.limit);
         }
 
         const [users, total] = await qb.getManyAndCount();
@@ -238,7 +238,7 @@ export class GetAgentListingsUseCase {
         qb.orderBy('al.created_at', 'DESC');
 
         if (!isAll) {
-          qb.skip(pagination.offset).take(pagination.limit);
+          qb.skip(pagination.skip).take(pagination.limit);
         }
 
         const [places, total] = await qb.getManyAndCount();
@@ -270,7 +270,7 @@ export class GetAgentListingsUseCase {
       const allTotal = userTotal + placeTotal;
 
       if (isAll) {
-        const start = pagination.offset;
+        const start = pagination.skip;
         return {
           data: allData.slice(start, start + pagination.limit),
           total: allTotal,

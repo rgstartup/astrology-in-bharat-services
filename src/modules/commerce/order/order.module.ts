@@ -1,4 +1,4 @@
-﻿import { Module, forwardRef } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './infrastructure/entities/order.entity';
 import { OrderItem } from './infrastructure/entities/order-item.entity';
@@ -13,6 +13,7 @@ import { SetOrderRazorpayIdUseCase } from './application/use-cases/set-order-raz
 import { GetUserOrdersUseCase } from './application/use-cases/get-user-orders.use-case';
 import { GetOrderByIdUseCase } from './application/use-cases/get-order-by-id.use-case';
 import { UpdateOrderStatusUseCase } from './application/use-cases/update-order-status.use-case';
+import { CancelUserOrderUseCase } from './application/use-cases/cancel-user-order.use-case';
 import { FindAllOrdersUseCase } from './application/use-cases/find-all-orders.use-case';
 import { GetOrderEarningsUseCase } from './application/use-cases/get-order-earnings.use-case';
 import { MerchantOrderQueriesUseCase } from './application/use-cases/merchant-order-queries.use-case';
@@ -22,7 +23,7 @@ import { CartModule } from '@/modules/commerce/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 import { ProductModule } from '@/modules/commerce/product/product.module';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
@@ -55,6 +56,7 @@ import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profi
     GetUserOrdersUseCase,
     GetOrderByIdUseCase,
     UpdateOrderStatusUseCase,
+    CancelUserOrderUseCase,
     FindAllOrdersUseCase,
     GetOrderEarningsUseCase,
     MerchantOrderQueriesUseCase,

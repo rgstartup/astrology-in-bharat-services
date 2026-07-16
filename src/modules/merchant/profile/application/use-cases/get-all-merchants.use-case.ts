@@ -7,6 +7,8 @@ import {
 } from '../../infrastructure/entities/profile-merchant.entity';
 import { Wishlist } from '@/modules/commerce/wishlist/infrastructure/entities/wishlist.entity';
 
+import { GetPublicMerchantsDto } from '../../api/dto/get-public-merchants.dto';
+
 @Injectable()
 export class GetAllMerchantsUseCase {
   constructor(
@@ -17,15 +19,10 @@ export class GetAllMerchantsUseCase {
   ) {}
 
   async execute(
-    filters: {
-      search?: string;
-      city?: string;
-      page?: number;
-      limit?: number;
-      currentUserId?: string;
-    } = {},
+    dto: GetPublicMerchantsDto,
+    currentUserId?: string,
   ) {
-    const { search, city, page = 1, limit = 10, currentUserId } = filters;
+    const { search, city, page = 1, limit = 10 } = dto;
     const skip = (page - 1) * limit;
 
     const query = this.merchantRepository

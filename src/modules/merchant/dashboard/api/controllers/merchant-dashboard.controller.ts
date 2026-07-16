@@ -27,6 +27,8 @@ import { SendOrderOtpUseCase } from '../../application/use-cases/send-order-otp.
 import { VerifyOrderOtpUseCase } from '../../application/use-cases/verify-order-otp.usecase';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { GetMerchantOrdersDto } from '../dto/get-merchant-orders.dto';
+import { UpdateMerchantOrderStatusDto } from '../dto/update-merchant-order-status.dto';
 
 @Controller({
   path: 'merchant',
@@ -58,18 +60,9 @@ export class MerchantDashboardController {
   @HttpCode(HttpStatus.OK)
   async orders(
     @CurrentUser('id') userId: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
-    @Query('status') status?: string,
-    @Query('search') search?: string,
+    @Query() dto: GetMerchantOrdersDto,
   ) {
-    const orders = await this.getAllOrders.execute(
-      userId,
-      page,
-      limit,
-      status,
-      search,
-    );
+    const orders = await this.getAllOrders.execute(userId, dto);
     return { success: true, data: orders };
   }
 
@@ -125,13 +118,12 @@ export class MerchantDashboardController {
   async updateStatus(
     @CurrentUser('id') userId: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body('status') status: OrderStatus,
-    @Body('cancellationReason') cancellationReason?: string,
+    @Body() dto: UpdateMerchantOrderStatusDto,
   ) {
     await this.orderFacade.updateOrderStatus(
       id,
-      status,
-      cancellationReason,
+      dto.status,
+      dto.cancellationReason,
       userId,
     );
     return { success: true };

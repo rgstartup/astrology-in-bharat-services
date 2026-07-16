@@ -12,6 +12,8 @@ import { SendReviewResponseUseCase } from './use-cases/send-review-response.use-
 import { GetApprovedPlatformReviewsUseCase } from './use-cases/get-approved-platform-reviews.use-case';
 import { GetExpertReviewsByDateUseCase } from './use-cases/get-expert-reviews-by-date.use-case';
 import { CreateReviewDto } from '../api/dto/create-review.dto';
+import { GetReviewsDto } from '../api/dto/get-reviews.dto';
+import { GetAdminReviewsDto } from '../api/dto/get-admin-reviews.dto';
 
 @Injectable()
 export class ReviewsFacade {
@@ -23,8 +25,8 @@ export class ReviewsFacade {
     private readonly getMerchantReviewsStatsUseCase: GetMerchantReviewsStatsUseCase,
     private readonly getAdminReviewsUseCase: GetAdminReviewsUseCase,
     private readonly getAdminReviewsStatsUseCase: GetAdminReviewsStatsUseCase,
-    private readonly updateReviewStatusUseCase: UpdateReviewStatusUseCase,
     private readonly deleteReviewUseCase: DeleteReviewUseCase,
+    private readonly updateReviewStatusUseCase: UpdateReviewStatusUseCase,
     private readonly sendReviewResponseUseCase: SendReviewResponseUseCase,
     private readonly getApprovedPlatformReviewsUseCase: GetApprovedPlatformReviewsUseCase,
     private readonly getExpertReviewsByDateUseCase: GetExpertReviewsByDateUseCase,
@@ -36,18 +38,16 @@ export class ReviewsFacade {
 
   async getExpertReviews(
     expert_id: string,
-    page: number = 1,
-    limit: number = 20,
+    dto: GetReviewsDto,
   ) {
-    return this.getExpertReviewsUseCase.execute(expert_id, page, limit);
+    return this.getExpertReviewsUseCase.execute(expert_id, dto);
   }
 
   async getMerchantReviews(
     merchantId: string,
-    page: number = 1,
-    limit: number = 20,
+    dto: GetReviewsDto,
   ) {
-    return this.getMerchantReviewsUseCase.execute(merchantId, page, limit);
+    return this.getMerchantReviewsUseCase.execute(merchantId, dto);
   }
 
   async getReviewsStats(expert_id: string) {
@@ -58,15 +58,10 @@ export class ReviewsFacade {
     return this.getMerchantReviewsStatsUseCase.execute(merchantId);
   }
 
-  async getAdminReviews(params: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    search?: string;
-    ratingType?: string;
-    review_type?: string;
-  }) {
-    return this.getAdminReviewsUseCase.execute(params);
+  async getAdminReviews(
+    dto: GetAdminReviewsDto,
+  ) {
+    return this.getAdminReviewsUseCase.execute(dto);
   }
 
   async getAllReviewsStats() {

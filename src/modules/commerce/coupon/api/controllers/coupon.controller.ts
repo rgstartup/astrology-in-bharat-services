@@ -3,6 +3,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { GetMyRewardsUseCase } from '../../application/use-cases/get-my-rewards.use-case';
 import { ApplyCouponUseCase } from '../../application/use-cases/apply-coupon.use-case';
+import { ApplyCouponDto } from '../dto/apply-coupon.dto';
 
 @Controller({
   path: 'coupons',
@@ -23,16 +24,8 @@ export class CouponController {
   @Post('apply')
   async applyCoupon(
     @Body()
-    body: {
-      code?: string;
-      couponCode?: string;
-      amount?: number;
-      orderValue?: number;
-      serviceType?: string;
-    },
+    dto: ApplyCouponDto,
   ) {
-    const code = body.code || body.couponCode || '';
-    const amount = body.amount || body.orderValue || 0;
-    return this.applyCouponUseCase.execute(code, amount);
+    return this.applyCouponUseCase.execute(dto);
   }
 }

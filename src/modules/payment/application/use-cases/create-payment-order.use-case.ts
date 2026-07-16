@@ -27,7 +27,7 @@ export class CreatePaymentOrderUseCase {
     private readonly paymentGateway: IPaymentGateway,
     private readonly orderFacade: OrderFacade,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   async execute(user: IUser, dto: CreateOrderDto) {
     const userId = user.id;

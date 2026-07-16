@@ -1,9 +1,10 @@
-﻿import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { Repository } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import twilio from 'twilio';
+import { SendPhoneOtpDto } from '../../infrastructure/dto/profile-phone-otp.dto';
 
 @Injectable()
 export class SendPhoneOtpUseCase {
@@ -14,7 +15,8 @@ export class SendPhoneOtpUseCase {
     private readonly profileRepo: Repository<ProfileClient>,
   ) {}
 
-  async execute(userId: string, phone: string): Promise<BooleanMessage> {
+  async execute(userId: string, dto: SendPhoneOtpDto): Promise<BooleanMessage> {
+    const { phone } = dto;
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;

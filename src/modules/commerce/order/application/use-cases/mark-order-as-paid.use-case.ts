@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import {
@@ -95,8 +95,8 @@ export class MarkOrderAsPaidUseCase {
               RoleEnum.CLIENT,
               NotificationType.ORDER_PLACED,
               'Order Placed Successfully',
-              `Your order #${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
-              { orderId: order.id }
+              `Your order AIB-ORD-${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
+              { orderId: order.id },
             );
           } catch (notifErr) {
             console.error('[MARK_AS_PAID] Notification error:', notifErr);
@@ -105,19 +105,28 @@ export class MarkOrderAsPaidUseCase {
 
         // Send Notification to Merchants
         if (order.items && order.items.length > 0) {
-          const merchantIds = [...new Set(order.items.map(item => item.product?.merchant_id).filter(Boolean))];
+          const merchantIds = [
+            ...new Set(
+              order.items
+                .map((item) => item.product?.merchant_id)
+                .filter(Boolean),
+            ),
+          ];
           for (const mId of merchantIds) {
             try {
               await this.notificationFacade.create(
-                mId as string,
+                mId,
                 RoleEnum.MERCHANT,
                 NotificationType.ORDER_PLACED,
                 'New Order Received!',
-                `You have received a new order (#${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,
-                { orderId: order.id }
+                `You have received a new order (AIB-ORD-${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,
+                { orderId: order.id },
               );
             } catch (mErr) {
-              console.error('[MARK_AS_PAID] Merchant notification error:', mErr);
+              console.error(
+                '[MARK_AS_PAID] Merchant notification error:',
+                mErr,
+              );
             }
           }
         }

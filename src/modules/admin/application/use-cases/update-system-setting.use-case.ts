@@ -3,6 +3,7 @@ import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SystemSetting } from '../../infrastructure/entities/system-setting.entity';
+import { UpdateSystemSettingDto } from '../../api/dto/update-system-setting.dto';
 
 @Injectable()
 export class UpdateSystemSettingUseCase {
@@ -11,7 +12,8 @@ export class UpdateSystemSettingUseCase {
     private readonly settingRepo: Repository<SystemSetting>,
   ) {}
 
-  async execute(key: string, value: string, description?: string) {
+  async execute(dto: UpdateSystemSettingDto) {
+    const { key, value, description } = dto;
     let setting = await this.settingRepo.findOne({ where: { key } });
 
     if (setting) {
@@ -25,3 +27,4 @@ export class UpdateSystemSettingUseCase {
     return new BooleanMessage();
   }
 }
+

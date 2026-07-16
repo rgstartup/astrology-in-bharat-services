@@ -26,17 +26,27 @@ export class NotificationGateway {
   ) {
     this.profileSockets.set(payload.profileId, client.id);
     await client.join(`profile_${payload.profileId}`);
-    this.logger.log(`Profile ${payload.profileId} registered for notifications`);
+    this.logger.log(
+      `Profile ${payload.profileId} registered for notifications`,
+    );
     return { status: 'registered' };
   }
 
   emitToProfile(profileId: string, event: string, data: unknown) {
+    if (!this.server) {
+      this.logger.warn(`Cannot emit event ${event} because WebSocketServer is not initialized.`);
+      return;
+    }
     this.server.to(`profile_${profileId}`).emit(event, data);
     this.logger.log(`Emitted ${event} to profile ${profileId}`);
   }
 
   // Method to emit to all admins
   emitToAdmins(event: string, data: unknown) {
+    if (!this.server) {
+      this.logger.warn(`Cannot emit event ${event} to admins because WebSocketServer is not initialized.`);
+      return;
+    }
     this.server.to('admin_room').emit(event, data);
     this.logger.log(`Emitted ${event} to all admins`);
   }

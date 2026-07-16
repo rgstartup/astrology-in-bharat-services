@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
 
+import { GetReviewsDto } from '../../api/dto/get-reviews.dto';
+
 @Injectable()
 export class GetMerchantReviewsUseCase {
   constructor(
@@ -10,7 +12,11 @@ export class GetMerchantReviewsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) {}
 
-  async execute(merchantId: string, page: number = 1, limit: number = 10) {
+  async execute(
+    merchantId: string,
+    dto: GetReviewsDto,
+  ) {
+    const { page = 1, limit = 10 } = dto;
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await this.reviewRepository.findAndCount({

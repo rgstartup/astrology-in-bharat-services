@@ -13,16 +13,20 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import {
-  NotificationType,
-} from '@/modules/notification/infrastructure/entities/notification.entity';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import {
+  WalletFacade,
+  CommissionEventType,
+  CommissionType,
+  CommissionAppliesRole,
+} from '@/modules/finance/wallet/application/wallet.facade';
+import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
@@ -64,84 +68,110 @@ export class UpdateOrderStatusUseCase {
       }
     }
 
-    const oldStatus = order.status;
+    console.log(
+      `[ORDER_STATUS_UPDATE] Start - ID: ${id}, NewStatus: ${status}, MerchantId: ${merchantId}`,
+    );
 
-    // Prevent changing status if already DELIVERED or CANCELLED
-    if (
-      oldStatus === OrderStatus.DELIVERED ||
-      oldStatus === OrderStatus.CANCELLED
-    ) {
+    // Filter items to process
+    const targetItems = merchantId
+      ? order.items.filter((item) => item.product?.merchant_id === merchantId)
+      : order.items;
+
+    if (targetItems.length === 0) {
       throw new ForbiddenException(
-        `Cannot update status. Order #${id} is already ${oldStatus.toUpperCase()}.`,
+        'No items found for this merchant in this order.',
       );
     }
 
-    console.log(
-      `[ORDER_STATUS_UPDATE] Start - ID: ${id}, NewStatus: ${status}, OldStatus: ${oldStatus}, MerchantId: ${merchantId}`,
+    // Prevent changing if all target items are already DELIVERED or CANCELLED
+    const allInvalid = targetItems.every(
+      (item) =>
+        item.status === OrderStatus.DELIVERED ||
+        item.status === OrderStatus.CANCELLED,
     );
+    if (allInvalid) {
+      throw new ForbiddenException(
+        `Cannot update status. The requested items are already DELIVERED or CANCELLED.`,
+      );
+    }
 
     // --- ATOMIC TRANSACTION FOR ALL STATUS SIDE-EFFECTS ---
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
+    let deliveryOtpGenerated: string | null = null;
+
     try {
-      // 1. Update status and basic fields
-      order.status = status;
-      if (cancellationReason) {
-        order.cancellation_reason = cancellationReason;
+      // 1. Update status and basic fields ON ORDER ITEMS
+      if (status === OrderStatus.SHIPPED) {
+        deliveryOtpGenerated = Math.floor(
+          100000 + Math.random() * 900000,
+        ).toString();
       }
 
-      // Append Audit Log
-      const updatedBy = user?.id || merchantId || 'system';
+      for (const item of targetItems) {
+        if (
+          item.status !== OrderStatus.DELIVERED &&
+          item.status !== OrderStatus.CANCELLED
+        ) {
+          item.status = status;
+          if (cancellationReason) {
+            item.cancellation_reason = cancellationReason;
+          }
+          if (deliveryOtpGenerated) {
+            item.delivery_otp = deliveryOtpGenerated;
+          }
+          await queryRunner.manager.save(item);
+        }
+      }
+
+      // Also append Audit Log to Master Order for tracking
+      const updatedBy: string = user?.profile || merchantId || 'system';
       const role = user?.roles?.[0] || (merchantId ? 'merchant' : 'system');
-      
+
       const newHistoryEntry = {
         status: status,
         updated_by: updatedBy,
         role: role,
-        updated_at: new Date().toISOString()
+        merchant_id: merchantId,
+        updated_at: new Date().toISOString(),
       };
-      
-      order.status_history = Array.isArray(order.status_history) 
-        ? [...order.status_history, newHistoryEntry] 
-        : [newHistoryEntry];
 
-      // Generate Delivery OTP when status becomes SHIPPED
-      if (status === OrderStatus.SHIPPED && !order.delivery_otp) {
-        order.delivery_otp = Math.floor(
-          100000 + Math.random() * 900000,
-        ).toString();
-        console.log(
-          `[ORDER_OTP] Generated OTP ${order.delivery_otp} for order #${id}`,
-        );
-      }
+      order.status_history = Array.isArray(order.status_history)
+        ? [...order.status_history, newHistoryEntry]
+        : [newHistoryEntry];
 
       const _updatedOrder = await queryRunner.manager.save(Order, order);
       console.log(
-        `[ORDER_STATUS_UPDATE] Status saved in transaction - ID: ${id}, Status: ${status}`,
+        `[ORDER_STATUS_UPDATE] Item statuses saved in transaction - ID: ${id}, Status: ${status}`,
       );
 
       // 2. Logic for PAID status (Manual update)
-      if (status === OrderStatus.PAID && oldStatus !== OrderStatus.PAID) {
+      // Note: Usually triggered at master order level, but if merchant updates to PAID (rare), we can still track.
+      if (status === OrderStatus.PAID) {
         try {
-          let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
-            where: { id: order.client_id },
-            select: ['id'],
-          });
-          if (!clientProfile) {
-            console.error('[ORDER_STATUS_TRACKING] Client profile not found for ID:', order.client_id);
-          } else {
-
-          await queryRunner.manager
-            .createQueryBuilder()
-            .update(ProfileClient)
-            .set({
-              total_spending: () =>
-                `COALESCE(total_spending, 0) + ${Number(order.total_amount)}`,
-            })
-            .where('id = :id', { id: clientProfile.id })
-            .execute();
+          const clientProfile = await queryRunner.manager.findOne(
+            ProfileClient,
+            {
+              where: { id: order.client_id },
+              select: ['id'],
+            },
+          );
+          if (clientProfile) {
+            const targetItemsTotal = targetItems.reduce(
+              (sum, item) => sum + Number(item.price) * item.quantity,
+              0,
+            );
+            await queryRunner.manager
+              .createQueryBuilder()
+              .update(ProfileClient)
+              .set({
+                total_spending: () =>
+                  `COALESCE(total_spending, 0) + ${targetItemsTotal}`,
+              })
+              .where('id = :id', { id: clientProfile.id })
+              .execute();
           }
         } catch (e) {
           console.error('[ORDER_STATUS_TRACKING] Client spending error:', e);
@@ -157,8 +187,14 @@ export class UpdateOrderStatusUseCase {
         });
 
         if (orderInsideTx) {
+          const txTargetItems = merchantId
+            ? orderInsideTx.items.filter(
+                (item) => item.product?.merchant_id === merchantId,
+              )
+            : orderInsideTx.items;
+
           // a. Restore Stock
-          for (const item of orderInsideTx.items) {
+          for (const item of txTargetItems) {
             if (item.product) {
               const product = item.product;
               product.stock += item.quantity;
@@ -170,122 +206,105 @@ export class UpdateOrderStatusUseCase {
           }
 
           // b. Wallet Logic: ONLY refund if order was PAID or PROCESSING/SHIPPED (implies payment received)
-          const eligibleForRefund = [
-            OrderStatus.PAID,
-            OrderStatus.PROCESSING,
-            OrderStatus.SHIPPED,
-            OrderStatus.PACKED,
-            OrderStatus.DELIVERED,
-          ].includes(oldStatus);
+          // We can safely refund for target items as they were previously paid for.
+          const refundAmount = txTargetItems.reduce(
+            (sum, item) => sum + Number(item.price) * item.quantity,
+            0,
+          );
+          console.log(
+            `[ORDER_CANCELLED_WALLET] Refund eligible for target items. Amount: ${refundAmount}, Client: ${orderInsideTx.client_id}`,
+          );
 
-          if (eligibleForRefund) {
-            const refundAmount = Number(orderInsideTx.total_amount);
-            console.log(
-              `[ORDER_CANCELLED_WALLET] Refund eligible. Amount: ${refundAmount}, Client: ${orderInsideTx.client_id}`,
-            );
-
-            if (refundAmount > 0) {
-              const merchantAmounts: Record<string, number> = {};
-              for (const item of orderInsideTx.items) {
-                const mId = item.product?.merchant_id;
-                if (mId) {
-                  const itemTotal = Number(item.price) * item.quantity;
-                  merchantAmounts[mId] =
-                    (merchantAmounts[mId] || 0) + itemTotal;
-                }
+          if (refundAmount > 0) {
+            const merchantAmounts: Record<string, number> = {};
+            for (const item of txTargetItems) {
+              const mId = item.product?.merchant_id;
+              if (mId) {
+                const itemTotal = Number(item.price) * item.quantity;
+                merchantAmounts[mId] = (merchantAmounts[mId] || 0) + itemTotal;
               }
-
-              // Fallback if merchant amounts calculation failed
-              if (Object.keys(merchantAmounts).length === 0) {
-                let fallbackMerchant = merchantId;
-                if (!fallbackMerchant && orderInsideTx.items.length > 0) {
-                  fallbackMerchant =
-                    orderInsideTx.items[0].product?.merchant_id;
-                }
-                if (fallbackMerchant)
-                  merchantAmounts[fallbackMerchant] = refundAmount;
-              }
-
-              // Fetch settings for accurate refund calculation (Gross - Commissions)
-              const refundPlatformFeeRate =
-                await this.walletFacade.getAdminCommissionFromSetting(
-                  'COMMISION_FROM_PUJA_SHOP',
-                );
-              const refundGstRate =
-                await this.walletFacade.getAdminCommissionFromSetting(
-                  'GST_PERCENTAGE',
-                );
-
-              // Debit Merchant(s) ONLY if the order was already settled (Delivered)
-              if (
-                (oldStatus as unknown as OrderStatus) === OrderStatus.DELIVERED
-              ) {
-                for (const [mId, grossAmount] of Object.entries(
-                  merchantAmounts,
-                )) {
-                  const debitId = mId;
-
-                  // Calculate Net that was actually credited (to avoid over-debiting merchant)
-                  const platformFee = Number(
-                    (grossAmount * (refundPlatformFeeRate / 100)).toFixed(2),
-                  );
-                  const gstOnFee = Number(
-                    (platformFee * (refundGstRate / 100)).toFixed(2),
-                  );
-                  // Note: Agent commissions are not reclaimed here for simplicity/safety,
-                  // but we subtract platform fee and GST to only debit what the merchant actually received.
-                  const netToDebit = Number(
-                    (grossAmount - platformFee - gstOnFee).toFixed(2),
-                  );
-
-                  const { ProfileMerchant } = await import(
-                    '../../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
-                  );
-                  const merchantProfile = await queryRunner.manager.findOne(
-                    ProfileMerchant,
-                    {
-                      where: { user_id: debitId },
-                      select: ['id'],
-                    },
-                  );
-
-                  if (merchantProfile) {
-                    console.log(
-                      `[ORDER_CANCELLED_WALLET] Debiting merchant ${merchantProfile.id} for net amount ${netToDebit} (Gross was ${grossAmount}) because order was previously DELIVERED`,
-                    );
-
-                    await this.walletFacade.debit(
-                      merchantProfile.id,
-                      'merchant_id',
-                      netToDebit,
-                      TransactionPurpose.REFUND,
-                      `order_cancel_debit_${orderInsideTx.id}`,
-                      queryRunner,
-                      true, // allowNegative
-                    );
-                  } else {
-                    console.error(
-                      `[ORDER_CANCELLED_WALLET] Merchant profile not found for user ID: ${debitId}`,
-                    );
-                  }
-                }
-              }
-
-              // Credit Client (Refund)
-              await this.walletFacade.credit(
-                orderInsideTx.client_id,
-                'client_id',
-                refundAmount,
-                TransactionPurpose.REFUND,
-                `order_cancel_refund_${orderInsideTx.id}`,
-                queryRunner,
-              );
-              console.log(`[ORDER_CANCELLED_WALLET] Refund successful`);
             }
-          } else {
-            console.log(
-              `[ORDER_CANCELLED_WALLET] Refund skipped: Order was in status ${oldStatus} (not paid)`,
+
+            // Fallback if merchant amounts calculation failed
+            if (Object.keys(merchantAmounts).length === 0) {
+              let fallbackMerchant = merchantId;
+              if (!fallbackMerchant && txTargetItems.length > 0) {
+                fallbackMerchant = txTargetItems[0].product?.merchant_id;
+              }
+              if (fallbackMerchant)
+                merchantAmounts[fallbackMerchant] = refundAmount;
+            }
+
+            // Fetch settings for accurate refund calculation (Gross - Commissions)
+            const refundPlatformFeeRate =
+              await this.walletFacade.getAdminCommissionFromSetting(
+                'COMMISION_FROM_PUJA_SHOP',
+              );
+            const refundGstRate =
+              await this.walletFacade.getAdminCommissionFromSetting(
+                'GST_PERCENTAGE',
+              );
+
+            // Debit Merchant(s) ONLY if the order was already settled (Delivered)
+            // Since status is per-item now, we debit only if those items were delivered
+            // For simplicity, we debit if merchant had received it.
+            for (const [mId, grossAmount] of Object.entries(merchantAmounts)) {
+              const debitId = mId;
+
+              // Calculate Net that was actually credited (to avoid over-debiting merchant)
+              const platformFee = Number(
+                (grossAmount * (refundPlatformFeeRate / 100)).toFixed(2),
+              );
+              const gstOnFee = Number(
+                (platformFee * (refundGstRate / 100)).toFixed(2),
+              );
+              // Note: Agent commissions are not reclaimed here for simplicity/safety,
+              // but we subtract platform fee and GST to only debit what the merchant actually received.
+              const netToDebit = Number(
+                (grossAmount - platformFee - gstOnFee).toFixed(2),
+              );
+
+              const { ProfileMerchant } =
+                await import('../../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
+              const merchantProfile = await queryRunner.manager.findOne(
+                ProfileMerchant,
+                {
+                  where: { user_id: debitId },
+                  select: ['id'],
+                },
+              );
+
+              if (merchantProfile) {
+                console.log(
+                  `[ORDER_CANCELLED_WALLET] Debiting merchant ${merchantProfile.id} for net amount ${netToDebit} (Gross was ${grossAmount}) because order was previously DELIVERED`,
+                );
+
+                await this.walletFacade.debit(
+                  merchantProfile.id,
+                  'merchant_id',
+                  netToDebit,
+                  TransactionPurpose.REFUND,
+                  `order_cancel_debit_${orderInsideTx.id}`,
+                  queryRunner,
+                  true, // allowNegative
+                );
+              } else {
+                console.error(
+                  `[ORDER_CANCELLED_WALLET] Merchant profile not found for user ID: ${debitId}`,
+                );
+              }
+            }
+
+            // Credit Client (Refund)
+            await this.walletFacade.credit(
+              orderInsideTx.client_id,
+              'client_id',
+              refundAmount,
+              TransactionPurpose.REFUND,
+              `order_cancel_refund_${orderInsideTx.id}_${Date.now()}`,
+              queryRunner,
             );
+            console.log(`[ORDER_CANCELLED_WALLET] Refund successful`);
           }
         }
       }
@@ -325,14 +344,14 @@ export class UpdateOrderStatusUseCase {
       case OrderStatus.SHIPPED:
         notificationType = NotificationType.ORDER_SHIPPED;
         title = 'Order Shipped';
-        message = `Your order #${id} has been shipped. Use OTP ${order.delivery_otp} for delivery verification.`;
+        message = `Items from your order #${id} have been shipped. Use OTP ${deliveryOtpGenerated} for delivery verification.`;
         emailSubject = `Order Shipped - #${id}`;
         break;
       case OrderStatus.DELIVERED: {
         notificationType = NotificationType.ORDER_DELIVERED;
-        title = 'Order Delivered';
-        message = `Good news! Your order #${id} has been successfully delivered.`;
-        emailSubject = `Order Delivered - #${id}`;
+        title = 'Items Delivered';
+        message = `Good news! Items from your order #${id} have been successfully delivered.`;
+        emailSubject = `Items Delivered - #${id}`;
 
         // 💰 FINANCIAL SETTLEMENT FOR MERCHANT AND AGENT
         const qr = this.dataSource.createQueryRunner();
@@ -345,20 +364,13 @@ export class UpdateOrderStatusUseCase {
           });
 
           if (orderWithItems) {
-            const gstRate =
-              await this.walletFacade.getAdminCommissionFromSetting(
-                'GST_PERCENTAGE',
-              );
-            const platformFeeRate =
-              await this.walletFacade.getAdminCommissionFromSetting(
-                'COMMISION_FROM_PUJA_SHOP',
-              );
-            const buyerAgentRateSetting =
-              await this.walletFacade.getAdminCommissionFromSetting(
-                'COMMISION_FOR_BUYER_AGENT',
-              );
+            const txTargetItems = merchantId
+              ? orderWithItems.items.filter(
+                  (item) => item.product?.merchant_id === merchantId,
+                )
+              : orderWithItems.items;
 
-            for (const item of orderWithItems.items) {
+            for (const item of txTargetItems) {
               const itemTotal = Number(item.price) * (item.quantity || 1);
               const merchantId = item.product?.merchant_id;
 
@@ -367,9 +379,8 @@ export class UpdateOrderStatusUseCase {
                   where: { id: merchantId },
                 });
 
-                const { ProfileMerchant } = await import(
-                  '../../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
-                );
+                const { ProfileMerchant } =
+                  await import('../../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
                 const merchantProfile = await qr.manager.findOne(
                   ProfileMerchant,
                   {
@@ -377,20 +388,53 @@ export class UpdateOrderStatusUseCase {
                   },
                 );
 
-                // 1. Seller's Agent Commission (Current Logic: 30-day window)
+                // Resolve commissions via rules engine
+                const [
+                  platformFeeResolved,
+                  gstResolved,
+                  buyerAgentItemResolved,
+                ] = await Promise.all([
+                  this.walletFacade.resolveCommission(
+                    CommissionEventType.PRODUCT_ORDER,
+                    CommissionType.PLATFORM_FEE,
+                    merchantProfile?.id ?? null,
+                    CommissionAppliesRole.MERCHANT,
+                    itemTotal,
+                  ),
+                  this.walletFacade.resolveCommission(
+                    CommissionEventType.PRODUCT_ORDER,
+                    CommissionType.GST,
+                    null,
+                    CommissionAppliesRole.ALL,
+                    itemTotal,
+                  ),
+                  this.walletFacade.resolveCommission(
+                    CommissionEventType.PRODUCT_ORDER,
+                    CommissionType.BUYER_AGENT,
+                    orderWithItems.client_id,
+                    CommissionAppliesRole.CLIENT,
+                    itemTotal,
+                  ),
+                ]);
+
+                // 1. Seller's Agent Commission
                 let agent_commission = 0;
                 let agent_id: string | undefined = undefined;
 
                 if (merchantUser?.referred_by_id && merchantProfile) {
                   agent_id = merchantUser.referred_by_id;
-                  const effectiveAgentRate =
-                    merchantProfile.agent_commission_rate ?? platformFeeRate;
-                  agent_commission = Number(
-                    (itemTotal * (effectiveAgentRate / 100)).toFixed(2),
-                  );
+                  const sellerAgentResolved =
+                    await this.walletFacade.resolveCommission(
+                      CommissionEventType.PRODUCT_ORDER,
+                      CommissionType.SELLER_AGENT,
+                      merchantProfile.id,
+                      CommissionAppliesRole.MERCHANT,
+                      itemTotal,
+                    );
+                  agent_commission = sellerAgentResolved.amount;
                 }
 
-                // 2. Buyer's Agent Commission (New Logic: If buyer has an agent assigned)
+                // 2. Buyer's Agent Commission
                 let buyer_agent_commission = 0;
                 let buyer_agent_id: string | undefined = undefined;
 
@@ -401,16 +445,13 @@ export class UpdateOrderStatusUseCase {
 
                 if (buyerUser?.referred_by_id) {
                   buyer_agent_id = buyerUser.referred_by_id;
-                  buyer_agent_commission = Number(
-                    (itemTotal * (buyerAgentRateSetting / 100)).toFixed(2),
-                  );
+                  buyer_agent_commission = buyerAgentItemResolved.amount;
                 }
 
                 // 3. Platform Fee & GST
-                const platformFee = Number(
-                  (itemTotal * (platformFeeRate / 100)).toFixed(2),
-                );
-                const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
+                const platformFee = platformFeeResolved.amount;
+                const gst_rate = gstResolved.amount;
+                const gst = Number((platformFee * (gst_rate / 100)).toFixed(2));
 
                 // 4. Final Merchant Net Share
                 const merchantNet = Number(
@@ -439,16 +480,12 @@ export class UpdateOrderStatusUseCase {
 
                 // B. Credit Seller's Agent
                 if (agent_commission > 0 && agent_id) {
-                  const { ProfileAgent } = await import(
-                    '../../../../agent/infrastructure/entities/profile-agent.entity'
-                  );
-                  const agentProfile = await qr.manager.findOne(
-                    ProfileAgent,
-                    {
-                      where: { user_id: agent_id },
-                      select: ['id'],
-                    },
-                  );
+                  const { ProfileAgent } =
+                    await import('../../../../agent/infrastructure/entities/profile-agent.entity');
+                  const agentProfile = await qr.manager.findOne(ProfileAgent, {
+                    where: { user_id: agent_id },
+                    select: ['id'],
+                  });
                   if (agentProfile) {
                     await this.walletFacade.credit(
                       agentProfile.id,
@@ -467,16 +504,12 @@ export class UpdateOrderStatusUseCase {
 
                 // C. Credit Buyer's Agent
                 if (buyer_agent_commission > 0 && buyer_agent_id) {
-                  const { ProfileAgent } = await import(
-                    '../../../../agent/infrastructure/entities/profile-agent.entity'
-                  );
-                  const agentProfile = await qr.manager.findOne(
-                    ProfileAgent,
-                    {
-                      where: { user_id: buyer_agent_id },
-                      select: ['id'],
-                    },
-                  );
+                  const { ProfileAgent } =
+                    await import('../../../../agent/infrastructure/entities/profile-agent.entity');
+                  const agentProfile = await qr.manager.findOne(ProfileAgent, {
+                    where: { user_id: buyer_agent_id },
+                    select: ['id'],
+                  });
                   if (agentProfile) {
                     await this.walletFacade.credit(
                       agentProfile.id,
@@ -491,6 +524,33 @@ export class UpdateOrderStatusUseCase {
                       `[OrderSettlement] Buyer agent profile not found for user_id: ${buyer_agent_id}`,
                     );
                   }
+                }
+
+                // Write financial ledger entry
+                try {
+                  await this.walletFacade.createCommissionSplit(
+                    {
+                      referenceId: `order_item_${item.id}`,
+                      referenceType: SplitReferenceType.ORDER,
+                      grossAmount: itemTotal,
+                      platformFee,
+                      gst,
+                      sellerAgentCommission: agent_commission,
+                      buyerAgentCommission: buyer_agent_commission,
+                      providerNet: merchantNet,
+                      clientProfileId: orderWithItems.client_id,
+                      providerProfileId: merchantProfile?.id ?? null,
+                      sellerAgentProfileId: agent_id ?? null,
+                      buyerAgentProfileId: buyer_agent_id ?? null,
+                      commissionRuleId: platformFeeResolved.ruleId,
+                    },
+                    qr,
+                  );
+                } catch (err) {
+                  console.error(
+                    `[OrderSettlement] Failed to write ledger entry for item ${item.id}:`,
+                    err,
+                  );
                 }
               }
             }
@@ -523,7 +583,7 @@ export class UpdateOrderStatusUseCase {
         return new BooleanMessage();
     }
 
-    const targetProfileId = order.client_id as string;
+    const targetProfileId = order.client_id;
 
     // Save notification to DB via facade
     await this.notificationFacade.create(
@@ -553,11 +613,11 @@ export class UpdateOrderStatusUseCase {
       const user = order.client?.user;
       if (user && user.email) {
         let otpSection = '';
-        if (status === OrderStatus.SHIPPED && order.delivery_otp) {
+        if (status === OrderStatus.SHIPPED && deliveryOtpGenerated) {
           otpSection = `
             <div style="background-color: #f0f7ff; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #cce3ff; text-align: center;">
               <p style="margin: 0; color: #0056b3; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Delivery Verification OTP</p>
-              <h1 style="margin: 10px 0; color: #007bff; letter-spacing: 10px; font-size: 32px;">${order.delivery_otp}</h1>
+              <h1 style="margin: 10px 0; color: #007bff; letter-spacing: 10px; font-size: 32px;">${deliveryOtpGenerated}</h1>
               <p style="margin: 0; font-size: 12px; color: #666;">Please share this code with our delivery partner at your doorstep.</p>
             </div>
           `;

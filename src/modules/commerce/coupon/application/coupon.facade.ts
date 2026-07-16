@@ -22,7 +22,7 @@ export class CouponFacade {
   ) {}
 
   async applyCoupon(code: string, amount: number) {
-    return this.applyCouponUseCase.execute(code, amount);
+    return this.applyCouponUseCase.execute({ code, amount });
   }
 
   async markCouponAsUsed(profileId: string, code: string, manager?: unknown) {

@@ -5,7 +5,7 @@ import { Public } from '@/common/decorators/public.decorator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CallSession } from '../../infrastructure/entities/call-session.entity';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 
 @Controller({
   path: 'call',
@@ -64,7 +64,10 @@ export class TwimlController {
         });
 
         if (session) {
-          const balance = await this.walletFacade.getBalance(session.client_id, 'client_id');
+          const balance = await this.walletFacade.getBalance(
+            session.client_id,
+            'client_id',
+          );
           // Safety check: ensure price_per_minute is a positive number to avoid division by zero or Infinity
           const price = session.price_per_minute || 0;
 
@@ -100,12 +103,14 @@ export class TwimlController {
 
       const conferenceRoomName = `call_room_${sessionId}`;
 
+      const isExpert = callerIdentity.includes('expert_');
+
       // Apply timeLimit to the Dial
       const dial = response.dial({ timeLimit: timeLimit });
       dial.conference(
         {
-          startConferenceOnEnter: true,
-          endConferenceOnExit: true,
+          startConferenceOnEnter: isExpert,
+          endConferenceOnExit: false,
           beep: 'false',
           muted: false,
           waitUrl: '',

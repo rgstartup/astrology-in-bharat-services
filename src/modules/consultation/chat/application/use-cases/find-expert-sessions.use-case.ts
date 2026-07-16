@@ -22,6 +22,8 @@ export interface FindExpertSessionsOptions {
   order?: 'ASC' | 'DESC' | 'asc' | 'desc';
 }
 
+import { GetExpertChatSessionsDto } from '../../api/dto/get-expert-chat-sessions.dto';
+
 @Injectable()
 export class FindExpertSessionsUseCase {
   constructor(
@@ -32,7 +34,7 @@ export class FindExpertSessionsUseCase {
   async execute(
     expertProfileId: string,
     filter: ExpertSessionFilter,
-    options: FindExpertSessionsOptions = {},
+    options: GetExpertChatSessionsDto = {},
   ) {
     const expert_id = expertProfileId;
     const {

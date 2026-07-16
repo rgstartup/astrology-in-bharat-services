@@ -17,8 +17,8 @@ import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
+import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {
@@ -315,13 +315,15 @@ export class CreateOrderFromCartUseCase {
 
       const savedOrder = await queryRunner.manager.save(Order, order);
 
-      // 4. Create Order Items & Credit Experts if Wallet Payment
+      // 4. Create Order Items
+      const initialStatus = isWalletPayment ? OrderStatus.PAID : OrderStatus.PENDING;
       for (const item of itemsToCreate) {
         const orderItem = queryRunner.manager.create(OrderItem, {
           order_id: savedOrder.id,
           product_id: item.product_id,
           quantity: item.quantity,
           price: item.price,
+          status: initialStatus,
         });
         await queryRunner.manager.save(OrderItem, orderItem);
       }

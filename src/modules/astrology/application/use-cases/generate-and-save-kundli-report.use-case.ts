@@ -2,9 +2,12 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { KundliReport } from '../../infrastructure/entities/kundli-report.entity';
-import { ProkeralaService, ProkeralaPersonParam } from '@/external/prokerala/prokerala.service';
+import { ProkeralaService } from '@/external/prokerala/prokerala.service';
+import { GenerateKundliReportDto } from '../../api/dto/generate-kundli-report.dto';
 
-export interface KundliPersonDetails extends ProkeralaPersonParam {
+export interface KundliPersonDetails {
+  datetime: string;
+  location: { lat: string; lon: string; tz: string };
   name?: string;
   place?: string;
 }
@@ -17,12 +20,37 @@ export class GenerateAndSaveKundliReportUseCase {
     private readonly reportRepository: Repository<KundliReport>,
   ) {}
 
-  async execute(
-    clientId: string,
-    girlParams: KundliPersonDetails,
-    boyParams: KundliPersonDetails,
-    ayanamsa?: string,
-  ) {
+  async execute(clientId: string, dto: GenerateKundliReportDto) {
+    const {
+      girl_dob,
+      girl_lat,
+      girl_lon,
+      girl_tz,
+      girl_name,
+      girl_place,
+      boy_dob,
+      boy_lat,
+      boy_lon,
+      boy_tz,
+      boy_name,
+      boy_place,
+      ayanamsa,
+    } = dto;
+
+    const girlParams: KundliPersonDetails = {
+      datetime: girl_dob,
+      location: { lat: girl_lat, lon: girl_lon, tz: girl_tz },
+      name: girl_name,
+      place: girl_place,
+    };
+
+    const boyParams: KundliPersonDetails = {
+      datetime: boy_dob,
+      location: { lat: boy_lat, lon: boy_lon, tz: boy_tz },
+      name: boy_name,
+      place: boy_place,
+    };
+
     // 1. Fetch matching result from Prokerala
     const result = await this.prokeralaService.getKundliMatching(
       girlParams,

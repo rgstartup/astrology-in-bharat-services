@@ -78,21 +78,17 @@ export class PublicStatsController {
   @Get('expert-hub')
   async getExpertHubStats() {
     try {
-      const [total_experts, servicesDataRaw] = await Promise.all([
+      const [total_experts, totalServices] = await Promise.all([
         this.userRepo
           .createQueryBuilder('user')
           .where(':role = Any(user.roles)', { role: RoleEnum.EXPERT })
           .getCount(),
-        this.expertRepo
-          .createQueryBuilder('expert')
-          .select('SUM(expert.consultation_count)', 'totalServices')
-          .getRawOne<{ totalServices: string | null }>(),
+        this.chatSessionRepo.count({
+          where: {
+            status: In([ChatSessionStatus.COMPLETED, ChatSessionStatus.ACTIVE]),
+          },
+        }),
       ]);
-
-      const servicesData = servicesDataRaw ?? { totalServices: null };
-      const totalServices = parseInt(
-        (servicesData.totalServices as string) || '0',
-      );
 
       return {
         success: true,

@@ -31,6 +31,7 @@ export class MerchantProductsUseCase {
 
     return {
       id: p.id,
+      short_id: String(p.id).slice(-8).toUpperCase(),
       name: p.name,
       productName: p.name,
       category: p.category ?? 'General',
@@ -63,7 +64,7 @@ export class MerchantProductsUseCase {
       .take(limit);
 
     if (search) {
-      qb.andWhere('LOWER(p.name) LIKE :search', {
+      qb.andWhere('(LOWER(p.name) LIKE :search OR CAST(p.id AS text) LIKE :search OR LOWER(p.sku) LIKE :search)', {
         search: `%${search.toLowerCase()}%`,
       });
     }
@@ -129,7 +130,8 @@ export class MerchantProductsUseCase {
     if (dto.original_price !== undefined)
       updates.original_price = dto.original_price;
     if (dto.image_url !== undefined) updates.image_url = dto.image_url;
-    else if ((dto as any).imageUrl !== undefined) updates.image_url = (dto as any).imageUrl;
+    else if ((dto as any).imageUrl !== undefined)
+      updates.image_url = (dto as any).imageUrl;
     if (dto.gallery !== undefined) updates.gallery = dto.gallery;
     if (dto.stock !== undefined) updates.stock = dto.stock;
     if (dto.status !== undefined) {
@@ -209,7 +211,11 @@ export class MerchantProductsUseCase {
       name: p.name,
       stock: Number(p.stock),
       status:
-        Number(p.stock) > 10 ? 'Healthy' : Number(p.stock) > 0 ? 'Low Stock' : 'Out of Stock',
+        Number(p.stock) > 10
+          ? 'Healthy'
+          : Number(p.stock) > 0
+            ? 'Low Stock'
+            : 'Out of Stock',
     }));
   }
 }

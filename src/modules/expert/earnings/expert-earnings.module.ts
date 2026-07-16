@@ -8,7 +8,7 @@ import { GetWalletBalanceUseCase } from './application/use-cases/get-wallet-bala
 import { GetWalletTransactionsUseCase } from './application/use-cases/get-wallet-transactions.use-case';
 import { RequestWithdrawalUseCase } from './application/use-cases/request-withdrawal.use-case';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { WalletModule } from '@/modules/wallet/wallet.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 
 import { ConsultationModule } from '@/modules/consultation/consultation.module';
 import { OrderModule } from '@/modules/commerce/order/order.module';

@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Param,
@@ -8,12 +8,16 @@
   ParseUUIDPipe,
   Query,
 } from '@nestjs/common';
-import { NotificationFacade, ProfileType } from '../../application/notification.facade';
+import {
+  NotificationFacade,
+  ProfileType,
+} from '../../application/notification.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { IUser } from '@/common/types/access-token.payload';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { GetNotificationsDto } from '../dto/get-notifications.dto';
 
 function deriveProfileType(roles: RoleEnum[]): ProfileType {
   if (roles.includes(RoleEnum.EXPERT)) return RoleEnum.EXPERT;
@@ -34,26 +38,22 @@ export class NotificationController {
   async getNotifications(
     @CurrentUser() user: IUser,
     @CurrentProfile() profileId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query() dto: GetNotificationsDto,
   ) {
-    const limitNum = limit ? parseInt(limit, 10) : 20;
-    const offsetNum = offset ? parseInt(offset, 10) : 0;
     const profileType = deriveProfileType(user.roles);
     const { data, totalCount } =
       await this.notificationFacade.getUserNotifications(
         profileId,
         profileType,
-        limitNum,
-        offsetNum,
+        dto,
       );
     return {
       success: true,
       data,
       meta: {
         totalCount,
-        limit: limitNum,
-        offset: offsetNum,
+        limit: dto.limit ?? 20,
+        offset: dto.offset ?? 0,
       },
     };
   }
@@ -61,10 +61,15 @@ export class NotificationController {
   @Get('unread-count')
   async getUnreadCount(
     @CurrentUser() user: IUser,
-    @CurrentProfile() profileId: string,
   ) {
+    if (!user.profile) {
+      return { count: 0 };
+    }
     const profileType = deriveProfileType(user.roles);
-    const count = await this.notificationFacade.getUnreadCount(profileId, profileType);
+    const count = await this.notificationFacade.getUnreadCount(
+      user.profile,
+      profileType,
+    );
     return { count };
   }
 
@@ -83,7 +88,10 @@ export class NotificationController {
     @CurrentProfile() profileId: string,
   ) {
     const profileType = deriveProfileType(user.roles);
-    const _result = await this.notificationFacade.clearAll(profileId, profileType);
+    const _result = await this.notificationFacade.clearAll(
+      profileId,
+      profileType,
+    );
     return { success: true };
   }
 }

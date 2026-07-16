@@ -335,14 +335,22 @@ export class ProkeralaService {
   ) {
     const token = await this.getAccessToken();
 
+    const girlLat = girl.lat ?? girl.location?.lat;
+    const girlLon = girl.lon ?? girl.location?.lon;
+    const girlTz = girl.tz ?? girl.location?.tz ?? '5.5';
+
+    const boyLat = boy.lat ?? boy.location?.lat;
+    const boyLon = boy.lon ?? boy.location?.lon;
+    const boyTz = boy.tz ?? boy.location?.tz ?? '5.5';
+
     const params = new URLSearchParams({
       ayanamsa,
       girl_dob: girl.datetime,
-      girl_coordinates: `${girl.lat},${girl.lon}`,
-      girl_timezone: (girl.tz || '5.5').toString(),
+      girl_coordinates: `${girlLat},${girlLon}`,
+      girl_timezone: girlTz.toString(),
       boy_dob: boy.datetime,
-      boy_coordinates: `${boy.lat},${boy.lon}`,
-      boy_timezone: (boy.tz || '5.5').toString(),
+      boy_coordinates: `${boyLat},${boyLon}`,
+      boy_timezone: boyTz.toString(),
     });
 
     const response = await fetch(

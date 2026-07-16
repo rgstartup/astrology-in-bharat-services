@@ -8,9 +8,9 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
-import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
-import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { ConsultationBookDto } from '../dto/consultation-book.dto';

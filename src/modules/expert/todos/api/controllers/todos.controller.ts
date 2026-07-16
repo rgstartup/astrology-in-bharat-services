@@ -31,7 +31,10 @@ export class TodosController {
   }
 
   @Post()
-  create(@CurrentProfile() expertProfileId: string, @Body() dto: CreateTodoDto) {
+  create(
+    @CurrentProfile() expertProfileId: string,
+    @Body() dto: CreateTodoDto,
+  ) {
     return this.todosFacade.create(expertProfileId, dto);
   }
 

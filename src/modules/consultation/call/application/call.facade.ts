@@ -17,6 +17,10 @@ import {
   CallSessionStatus,
 } from '../infrastructure/entities/call-session.entity';
 
+import { InitiateCallDto } from '../api/dto/initiate-call.dto';
+import { EndCallDto } from '../api/dto/end-call.dto';
+import { GetCallSessionsDto } from '../api/dto/get-call-sessions.dto';
+
 @Injectable()
 export class CallFacade {
   constructor(
@@ -37,24 +41,34 @@ export class CallFacade {
 
   async initiate(
     clientId: string,
-    expert_id: string,
+    dtoOrExpertId: InitiateCallDto | string,
     type: CallType = CallType.AUDIO,
   ) {
-    return this.initiateCallUseCase.execute(clientId, expert_id, type);
+    if (typeof dtoOrExpertId === 'string') {
+      return this.initiateCallUseCase.execute(clientId, { expert_id: dtoOrExpertId, type });
+    }
+    return this.initiateCallUseCase.execute(clientId, dtoOrExpertId);
   }
 
   async accept(expertProfileId: string, sessionId: string) {
     return this.acceptCallUseCase.execute(expertProfileId, sessionId);
   }
 
-  async end(sessionId: string, terminatedBy?: string, reason?: string) {
-    return this.endCallUseCase.execute(sessionId, terminatedBy, reason);
+  async end(
+    dtoOrSessionId: EndCallDto | string,
+    terminatedBy?: string,
+    reason?: string,
+  ) {
+    if (typeof dtoOrSessionId === 'string') {
+      return this.endCallUseCase.execute({ sessionId: dtoOrSessionId, endedBy: terminatedBy, reason });
+    }
+    return this.endCallUseCase.execute(dtoOrSessionId);
   }
 
   async getExpertSessions(
     expertProfileId: string,
     filter: CallSessionFilter,
-    options: { limit?: number; offset?: number; search?: string } = {},
+    options: GetCallSessionsDto = {},
   ) {
     return this.getExpertCallSessionsUseCase.execute(
       expertProfileId,

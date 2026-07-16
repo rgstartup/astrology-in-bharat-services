@@ -11,8 +11,8 @@ import { JwtStrategy } from './api/strategies/jwt.strategy';
 import { DatabaseModule } from '@/core/database/database.module';
 import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
-import { WalletModule } from '@/modules/wallet/wallet.module';
-import { EmailQueueModule } from '../email-queue/email-queue.module';
+import { WalletModule } from '@/modules/finance/wallet/wallet.module';
+import { QueueModule } from '@/core/queue/queue.module';
 import { AgentModule } from '@/modules/agent/agent.module';
 
 import { UsedTokens } from './infrastructure/entities/used-tokens.entity';
@@ -112,7 +112,7 @@ const handlers = [
     MerchantProfileModule,
     AgentModule,
     WalletModule,
-    EmailQueueModule,
+    QueueModule,
   ],
   providers: [
     OAuthService,
@@ -176,4 +176,4 @@ const handlers = [
   controllers: [AuthController, MerchantAuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

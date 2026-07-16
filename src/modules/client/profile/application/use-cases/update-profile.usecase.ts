@@ -62,7 +62,16 @@ export class UpdateProfileUseCase {
 
     // Update the user's name in the User table if full_name is provided
     if (full_name !== undefined) {
+      this.logger.log(`Updating full_name in users table for user ${user.id}: ${full_name}`);
       await this.usersFacade.update(user.id, { name: full_name });
+    }
+
+    // Update the user's master avatar if profile_picture is provided
+    if ((scalarFields as any).profile_picture !== undefined) {
+      this.logger.log(`Updating avatar in users table for user ${user.id}: ${(scalarFields as any).profile_picture}`);
+      await this.usersFacade.update(user.id, { avatar: (scalarFields as any).profile_picture });
+    } else {
+      this.logger.log(`No profile_picture provided in update payload for user ${user.id}. Payload: ${JSON.stringify(scalarFields)}`);
     }
 
     // Apply scalar fields to the profile

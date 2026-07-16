@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 
+import { GetReviewsDto } from '../../api/dto/get-reviews.dto';
+
 @Injectable()
 export class GetExpertReviewsUseCase {
   constructor(
@@ -13,7 +15,11 @@ export class GetExpertReviewsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) {}
 
-  async execute(expert_id: string, page: number = 1, limit: number = 20) {
+  async execute(
+    expert_id: string,
+    dto: GetReviewsDto,
+  ) {
+    const { page = 1, limit = 20 } = dto;
     const expert =
       (await this.expertProfileFacade.getExpertById(expert_id)) ||
       (await this.expertProfileFacade.getExpertByUserId(expert_id));
