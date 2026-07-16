@@ -14,7 +14,20 @@ export class GetDisputeByIdUseCase {
     const query = this.disputeRepo
       .createQueryBuilder('dispute')
       .leftJoinAndSelect('dispute.client', 'client')
+      .leftJoinAndSelect('client.user', 'clientUser')
       .leftJoinAndSelect('dispute.expert', 'expert')
+      .leftJoinAndSelect('expert.user', 'expertUser')
+      .leftJoinAndSelect('dispute.consultation', 'consultation')
+      .leftJoinAndSelect('consultation.expert', 'consultationExpert')
+      .leftJoinAndSelect('consultationExpert.user', 'consultationExpertUser')
+      .leftJoinAndSelect('dispute.order', 'order')
+      .leftJoinAndSelect('order.items', 'orderItems')
+      .leftJoinAndSelect('orderItems.product', 'product')
+      .leftJoinAndSelect('product.merchant', 'merchant')
+      .leftJoinAndSelect('merchant.user', 'merchantUser')
+      .leftJoinAndSelect('dispute.puja', 'puja')
+      .leftJoinAndSelect('puja.expert', 'pujaExpert')
+      .leftJoinAndSelect('pujaExpert.user', 'pujaExpertUser')
       .where('dispute.id = :disputeId', { disputeId });
 
     if (!isAdmin) {
