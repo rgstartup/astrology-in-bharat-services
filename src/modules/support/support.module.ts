@@ -14,8 +14,10 @@ import { UpdateDisputeStatusUseCase } from './application/use-cases/update-dispu
 import { SupportController } from './api/controllers/support.controller';
 import { SupportGateway } from './api/support.gateway';
 
+import { WalletModule } from '../finance/wallet/wallet.module';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage])],
+  imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage]), WalletModule],
   providers: [
     SupportFacade,
     SupportGateway,
