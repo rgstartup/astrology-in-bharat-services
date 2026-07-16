@@ -94,8 +94,10 @@ export class GetAdminReviewsUseCase {
 
 
   private addRating(rating_type: string | undefined, queryBuilder: SelectQueryBuilder<Review>){
+    if(!rating_type || rating_type === 'all') return queryBuilder;
     if(rating_type === 'good') return queryBuilder.andWhere('review.rating >= 4');
-    if(rating_type === 'moderate') return queryBuilder.andWhere('review.rating = 3')
-      return queryBuilder.andWhere('review.rating <= 2')
+    if(rating_type === 'moderate') return queryBuilder.andWhere('review.rating = 3');
+    if(rating_type === 'bad') return queryBuilder.andWhere('review.rating <= 2');
+    return queryBuilder;
   }
 }

@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, Min, IsString } from 'class-validator';
 
 export class UpdatePricingExpertDto {
   @IsOptional()
@@ -40,4 +40,8 @@ export class UpdatePricingExpertDto {
   @IsOptional()
   @IsBoolean()
   expert?: boolean;
+
+  @IsOptional()
+  @IsString()
+  specialization?: string;
 }

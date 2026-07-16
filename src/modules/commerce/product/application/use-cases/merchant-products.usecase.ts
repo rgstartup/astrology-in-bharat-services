@@ -31,6 +31,7 @@ export class MerchantProductsUseCase {
 
     return {
       id: p.id,
+      short_id: String(p.id).slice(-8).toUpperCase(),
       name: p.name,
       productName: p.name,
       category: p.category ?? 'General',
@@ -63,7 +64,7 @@ export class MerchantProductsUseCase {
       .take(limit);
 
     if (search) {
-      qb.andWhere('LOWER(p.name) LIKE :search', {
+      qb.andWhere('(LOWER(p.name) LIKE :search OR CAST(p.id AS text) LIKE :search OR LOWER(p.sku) LIKE :search)', {
         search: `%${search.toLowerCase()}%`,
       });
     }

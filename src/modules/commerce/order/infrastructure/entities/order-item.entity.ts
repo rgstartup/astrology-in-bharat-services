@@ -34,6 +34,24 @@ export class OrderItem {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price!: number;
 
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'paid', 'processing', 'packed', 'shipped', 'delivered', 'cancelled'],
+    default: 'pending',
+  })
+  status!: string;
+
+  @Column({
+    name: 'delivery_otp',
+    type: 'character varying',
+    length: 100,
+    nullable: true,
+  })
+  delivery_otp!: string | null;
+
+  @Column({ name: 'cancellation_reason', type: 'text', nullable: true })
+  cancellation_reason!: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;
 }

@@ -95,6 +95,16 @@ export class OrderController {
     );
     return { success: true };
   }
+  @Patch(':id/cancel')
+  async cancelOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('cancellation_reason') cancellationReason: string,
+    @CurrentProfile() profileId: string,
+    @CurrentUser() user: IUser,
+  ) {
+    await this.orderFacade.cancelUserOrder(id, profileId, cancellationReason || 'Cancelled by user', user);
+    return { success: true };
+  }
 
   @Get(':id')
   async getOrder(
@@ -163,6 +173,16 @@ export class OrderSingularController {
       undefined,
       user,
     );
+    return { success: true };
+  }
+  @Patch(':id/cancel')
+  async cancelOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('cancellation_reason') cancellationReason: string,
+    @CurrentProfile() profileId: string,
+    @CurrentUser() user: IUser,
+  ) {
+    await this.orderFacade.cancelUserOrder(id, profileId, cancellationReason || 'Cancelled by user', user);
     return { success: true };
   }
 

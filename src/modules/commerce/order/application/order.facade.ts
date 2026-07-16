@@ -6,6 +6,7 @@ import { SetOrderRazorpayIdUseCase } from './use-cases/set-order-razorpay-id.use
 import { GetUserOrdersUseCase } from './use-cases/get-user-orders.use-case';
 import { GetOrderByIdUseCase } from './use-cases/get-order-by-id.use-case';
 import { UpdateOrderStatusUseCase } from './use-cases/update-order-status.use-case';
+import { CancelUserOrderUseCase } from './use-cases/cancel-user-order.use-case';
 import { FindAllOrdersUseCase } from './use-cases/find-all-orders.use-case';
 import { GetOrderEarningsUseCase } from './use-cases/get-order-earnings.use-case';
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
@@ -24,6 +25,7 @@ export class OrderFacade {
     private readonly getUserOrdersUseCase: GetUserOrdersUseCase,
     private readonly getOrderByIdUseCase: GetOrderByIdUseCase,
     private readonly updateOrderStatusUseCase: UpdateOrderStatusUseCase,
+    private readonly cancelUserOrderUseCase: CancelUserOrderUseCase,
     private readonly findAllOrdersUseCase: FindAllOrdersUseCase,
     private readonly getOrderEarningsUseCase: GetOrderEarningsUseCase,
     private readonly merchantOrderQueriesUseCase: MerchantOrderQueriesUseCase,
@@ -85,6 +87,10 @@ export class OrderFacade {
       merchantId,
       user,
     );
+  }
+
+  async cancelUserOrder(orderId: string, profileId: string, cancellationReason: string, user: import('@/common/types/access-token.payload').IUser) {
+    return this.cancelUserOrderUseCase.execute(orderId, profileId, cancellationReason, user);
   }
 
   async findAllOrders() {

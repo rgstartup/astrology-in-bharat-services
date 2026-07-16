@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderItem } from '../../infrastructure/entities/order-item.entity';
@@ -32,7 +32,7 @@ export class MerchantOrderQueriesUseCase {
       .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
       .where('p.merchant_id = :merchantId', { merchantId })
-      .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
+      .andWhere('oi.status = :delivered', { delivered: 'delivered' })
       .select('SUM(oi.price * oi.quantity)', 'sum')
       .getRawOne()) as { sum?: string | number };
 
@@ -48,7 +48,7 @@ export class MerchantOrderQueriesUseCase {
       .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
       .where('p.merchant_id = :merchantId', { merchantId })
-      .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
+      .andWhere('oi.status = :delivered', { delivered: 'delivered' })
       .andWhere('oi.created_at >= :startOfMonth', { startOfMonth })
       .select('SUM(oi.price * oi.quantity)', 'sum')
       .getRawOne()) as { sum?: string | number };
@@ -69,7 +69,7 @@ export class MerchantOrderQueriesUseCase {
       .where('product.merchant_id = :merchantId', { merchantId });
 
     if (filters?.status) {
-      query.andWhere('order.status = :status', { status: filters.status });
+      query.andWhere('oi.status = :status', { status: filters.status });
     }
 
     query.orderBy('order.created_at', 'DESC');
@@ -98,22 +98,26 @@ export class MerchantOrderQueriesUseCase {
     });
 
     if (!order) {
-      throw new Error('Order not found');
+      throw new NotFoundException('Order not found');
     }
 
     const merchantItems = order.items.filter(
       (item) => item.product.merchant_id === merchantId,
     );
     if (merchantItems.length === 0) {
-      throw new Error('No products from your shop found in this order');
+      throw new NotFoundException('No products from your shop found in this order');
     }
 
-    // Generate OTP if not exists
-    if (!order.delivery_otp) {
-      order.delivery_otp = Math.floor(
+    // Generate OTP if not exists on items
+    let currentOtp = merchantItems.find(i => i.delivery_otp)?.delivery_otp;
+    if (!currentOtp) {
+      currentOtp = Math.floor(
         100000 + Math.random() * 900000,
       ).toString();
-      await this.orderRepo.save(order);
+      for (const item of merchantItems) {
+        item.delivery_otp = currentOtp;
+        await this.orderItemRepo.save(item);
+      }
     }
 
     // OTP logic is handled via NotificationFacade or similar usually, but for now we just return the order client info
@@ -135,18 +139,19 @@ export class MerchantOrderQueriesUseCase {
     });
 
     if (!order) {
-      throw new Error('Order not found');
-    }
-
-    if (order.delivery_otp !== otp) {
-      throw new Error('Invalid delivery OTP');
+      throw new NotFoundException('Order not found');
     }
 
     const merchantItems = order.items.filter(
       (item) => item.product.merchant_id === merchantId,
     );
     if (merchantItems.length === 0) {
-      throw new Error('No products from your shop found in this order');
+      throw new NotFoundException('No products from your shop found in this order');
+    }
+
+    const validOtp = merchantItems.some(item => item.delivery_otp === otp);
+    if (!validOtp) {
+      throw new BadRequestException('Invalid delivery OTP');
     }
 
     let grossTotal = 0;
@@ -186,6 +191,7 @@ export class MerchantOrderQueriesUseCase {
       INNER JOIN commerce.products p ON p.id = oi.product_id
       WHERE p.merchant_id = $1
       AND oi.created_at >= $2
+      AND oi.status = 'delivered'
       GROUP BY TO_CHAR(oi.created_at, 'FMMon DD')
       ORDER BY MIN(oi.created_at) ASC
     `,
@@ -228,14 +234,12 @@ export class MerchantOrderQueriesUseCase {
       .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
       .where('p.merchant_id = :merchantId', { merchantId })
-      .select([
-        'COUNT(oi.id) as total',
-        `SUM(CASE WHEN o.status IN ('pending', 'paid', 'processing', 'packed') THEN 1 ELSE 0 END) as pending`,
-        `SUM(CASE WHEN o.status = 'shipped' THEN 1 ELSE 0 END) as shipped`,
-        `SUM(CASE WHEN o.status = 'delivered' THEN 1 ELSE 0 END) as delivered`,
-        `SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END) as cancelled`,
-        `SUM(CASE WHEN o.status != 'cancelled' THEN oi.price * oi.quantity ELSE 0 END) as revenue`,
-      ])
+      .select('COUNT(oi.id)', 'total')
+      .addSelect(`SUM(CASE WHEN oi.status IN ('pending', 'paid', 'processing', 'packed') THEN 1 ELSE 0 END)`, 'pending')
+      .addSelect(`SUM(CASE WHEN oi.status = 'shipped' THEN 1 ELSE 0 END)`, 'shipped')
+      .addSelect(`SUM(CASE WHEN oi.status = 'delivered' THEN 1 ELSE 0 END)`, 'delivered')
+      .addSelect(`SUM(CASE WHEN oi.status = 'cancelled' THEN 1 ELSE 0 END)`, 'cancelled')
+      .addSelect(`SUM(CASE WHEN oi.status = 'delivered' THEN oi.price * oi.quantity ELSE 0 END)`, 'revenue')
       .getRawOne()) as Record<string, string | number>;
 
     const stats = {
@@ -259,11 +263,11 @@ export class MerchantOrderQueriesUseCase {
     if (status && status.toLowerCase() !== 'all') {
       const searchStatus = status.toLowerCase();
       if (searchStatus === 'pending') {
-        query.andWhere('o.status IN (:...statuses)', {
+        query.andWhere('oi.status IN (:...statuses)', {
           statuses: ['pending', 'paid'],
         });
       } else {
-        query.andWhere('o.status = :status', { status: searchStatus });
+        query.andWhere('oi.status = :status', { status: searchStatus });
       }
     }
 

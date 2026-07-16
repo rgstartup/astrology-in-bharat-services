@@ -18,6 +18,9 @@ export class FindAllProductsUseCase {
     const { merchantId, page = 1, limit = 10 } = dto;
     const skip = (page - 1) * limit;
 
+    // Validate merchantId is a proper UUID before hitting DB
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
     const query = this.productRepository
       .createQueryBuilder('product')
       .innerJoin(
@@ -29,14 +32,23 @@ export class FindAllProductsUseCase {
       .andWhere('merchantProfile.status = :merchantStatus', { merchantStatus: MerchantStatus.ACTIVE });
 
     if (merchantId) {
-      // Find the client_id associated with this merchant profile id
+      // If not a valid UUID, return empty result immediately
+      if (!UUID_REGEX.test(merchantId)) {
+        return {
+          success: true,
+          data: [],
+          meta: { total: 0, page, limit, totalPages: 0 },
+        };
+      }
+
+      // Find the user_id associated with this merchant profile id
       const merchant = await this.merchantFacade.getProfileById(merchantId);
       if (merchant) {
         query.andWhere('product.merchant_id = :userId', {
           userId: merchant.user_id,
         });
       } else {
-        // If merchant not found, we shouldn't return any products for this merchantId
+        // If merchant not found, return empty
         return {
           success: true,
           data: [],

@@ -61,11 +61,13 @@ export class NotificationController {
   @Get('unread-count')
   async getUnreadCount(
     @CurrentUser() user: IUser,
-    @CurrentProfile() profileId: string,
   ) {
+    if (!user.profile) {
+      return { count: 0 };
+    }
     const profileType = deriveProfileType(user.roles);
     const count = await this.notificationFacade.getUnreadCount(
-      profileId,
+      user.profile,
       profileType,
     );
     return { count };

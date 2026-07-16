@@ -63,11 +63,11 @@ export class GetProfileUseCase {
       } as any; // Cast to 'any' to satisfy ProfileClient return type for other internal use-cases
     }
 
-    // Backend decides the final profile picture:
-    // 1. If user manually uploaded a picture â†’ use that (profile.profile_picture)
-    // 2. Otherwise fallback to Gmail/OAuth avatar (profile.user.avatar)
+    // Priority: 1. Client profile's local avatar, 2. User's global avatar (master)
     const resolvedProfilePicture =
       profile.profile_picture || profile.user?.avatar || null;
+      
+    console.log(`[GetProfileUseCase] User ${user.id} - DB user.avatar: ${profile.user?.avatar}, profile_picture: ${profile.profile_picture} -> resolved: ${resolvedProfilePicture}`);
 
     return {
       ...profile,

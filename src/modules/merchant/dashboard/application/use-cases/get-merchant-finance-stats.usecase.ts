@@ -2,24 +2,17 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import {
-  CommissionsFacade,
-  CommissionEventType,
-  CommissionType,
-  CommissionAppliesRole,
-} from '@/modules/finance/commissions/application/commissions.facade';
+import { CalculateMerchantEarningsUseCase } from './calculate-merchant-earnings.usecase';
 
 @Injectable()
 export class GetMerchantFinanceStatsUseCase {
   constructor(
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
-    private readonly orderFacade: OrderFacade,
-    private readonly commissionsFacade: CommissionsFacade,
     @InjectRepository(ProfileMerchant)
     private readonly merchantRepo: Repository<ProfileMerchant>,
+    private readonly calculateEarnings: CalculateMerchantEarningsUseCase,
   ) {}
 
   async execute(userId: string) {
@@ -35,44 +28,13 @@ export class GetMerchantFinanceStatsUseCase {
         throw new Error('Merchant profile not found');
       }
 
-      const [wallet, actual_earnings, withdrawalsStatus, grossEarnings] =
+      const [wallet, actual_earnings, withdrawalsStatus, earnings] =
         await Promise.all([
           this.walletFacade.getWallet(merchantId, 'merchant_id'),
           this.walletFacade.getTotalEarnings(merchantId, 'merchant_id'),
           this.walletFacade.getWithdrawalsStatus(merchantId, 'merchant_id'),
-          merchantId
-            ? this.orderFacade.getMerchantGrossTotalEarnings(merchantId)
-            : Promise.resolve(0),
+          this.calculateEarnings.execute(userId),
         ]);
-
-      const [feeResult, gstResult] =
-        grossEarnings > 0
-          ? await Promise.all([
-              this.commissionsFacade.resolveCommission(
-                CommissionEventType.PRODUCT_ORDER,
-                CommissionType.PLATFORM_FEE,
-                merchantId,
-                CommissionAppliesRole.MERCHANT,
-                grossEarnings,
-              ),
-              this.commissionsFacade.resolveCommission(
-                CommissionEventType.PRODUCT_ORDER,
-                CommissionType.GST,
-                merchantId,
-                CommissionAppliesRole.MERCHANT,
-                grossEarnings,
-              ),
-            ])
-          : [{ amount: 0 }, { amount: 0 }];
-      const netEarnings = grossEarnings - feeResult.amount - gstResult.amount;
-
-      console.log('[FINANCE_STATS] Data retrieved:', {
-        wallet,
-        actual_earnings,
-        withdrawalsStatus,
-        grossEarnings,
-        netEarnings,
-      });
 
       // Calculate next payout date (Next Monday at 10 AM)
       const next_payout_date = new Date();
@@ -81,7 +43,7 @@ export class GetMerchantFinanceStatsUseCase {
       next_payout_date.setHours(10, 0, 0, 0);
 
       const result = {
-        totalEarnings: Number(netEarnings.toFixed(2)),
+        totalEarnings: earnings.netTotal,
         actualEarnings: Number(actual_earnings) || 0,
         availableBalance: Number(wallet?.balance) || 0,
         pendingPayout: Number(withdrawalsStatus?.pending_amount) || 0,

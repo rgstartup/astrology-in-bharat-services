@@ -315,13 +315,15 @@ export class CreateOrderFromCartUseCase {
 
       const savedOrder = await queryRunner.manager.save(Order, order);
 
-      // 4. Create Order Items & Credit Experts if Wallet Payment
+      // 4. Create Order Items
+      const initialStatus = isWalletPayment ? OrderStatus.PAID : OrderStatus.PENDING;
       for (const item of itemsToCreate) {
         const orderItem = queryRunner.manager.create(OrderItem, {
           order_id: savedOrder.id,
           product_id: item.product_id,
           quantity: item.quantity,
           price: item.price,
+          status: initialStatus,
         });
         await queryRunner.manager.save(OrderItem, orderItem);
       }

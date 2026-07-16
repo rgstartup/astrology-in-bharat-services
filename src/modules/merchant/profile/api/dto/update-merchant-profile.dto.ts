@@ -1,4 +1,4 @@
-﻿import { IsString, IsOptional, Matches, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, Matches, IsNotEmpty } from 'class-validator';
 
 export class UpdateMerchantProfileDto {
   @IsString({ message: 'Store name must be a string' })
@@ -83,4 +83,14 @@ export class UpdateMerchantProfileDto {
   @IsOptional()
   @IsString()
   bank_accounts?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  features?: string | string[];
+
+  @IsOptional()
+  gallery?: string | string[];
 }
