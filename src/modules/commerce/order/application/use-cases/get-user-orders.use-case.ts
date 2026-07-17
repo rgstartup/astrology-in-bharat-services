@@ -81,6 +81,7 @@ export class GetUserOrdersUseCase {
         name: o.items?.length > 0 ? (o.items[0].product?.name || 'Product Order') : 'Product Order',
         item_count: o.items?.length || 0,
         amount: Number(o.total_amount),
+        shipping_charge: Number(o.shipping_charge) || 0,
         status: o.status,
         is_cancelable,
         date: o.created_at,
