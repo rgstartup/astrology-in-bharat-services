@@ -100,6 +100,15 @@ export class Order {
   })
   shipping_charge!: number;
 
+  @Column({
+    name: 'platform_fee',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
+  platform_fee!: number;
+
   @OneToMany(() => OrderItem, (item: OrderItem) => item.order, {
     cascade: true,
   })

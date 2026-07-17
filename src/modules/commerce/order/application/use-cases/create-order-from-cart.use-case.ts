@@ -339,6 +339,7 @@ export class CreateOrderFromCartUseCase {
         coupon_code: dto.coupon_code,
         discount_amount: Math.round(Number(discountAmount)),
         shipping_charge: Math.round(Number(totalShipping)),
+        platform_fee: Math.round(Number(platformFee)),
       });
 
       const savedOrder = await queryRunner.manager.save(Order, order);
