@@ -80,6 +80,7 @@ export class GetMerchantOrdersUseCase {
             amount: 0,
             status: item.status || item.order?.status || 'pending',
             date: item.order?.created_at ? new Date(item.order.created_at).toISOString() : new Date().toISOString(),
+            shippingCharge: item.order?.shipping_charge ? Number(item.order.shipping_charge) : 0,
             itemsCount: 0,
             productName: item.product?.name || 'Unknown Product',
             items: []

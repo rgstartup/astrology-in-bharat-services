@@ -46,6 +46,8 @@ export class MerchantProductsUseCase {
       description: p.description,
       original_price: Number(p.original_price ?? p.price),
       created_at: p.created_at,
+      is_shipping_chargeable: p.is_shipping_chargeable ?? false,
+      shipping_charge: Number(p.shipping_charge ?? 0),
     };
   }
 
@@ -102,6 +104,8 @@ export class MerchantProductsUseCase {
       stock: dto.stock ?? 0,
       is_active: isActive,
       merchant_id: merchantId,
+      is_shipping_chargeable: dto.is_shipping_chargeable ?? false,
+      shipping_charge: dto.shipping_charge ?? 0,
     });
     const saved = await this.productRepo.save(product);
     return this.toResponse(saved);
@@ -137,6 +141,8 @@ export class MerchantProductsUseCase {
     if (dto.status !== undefined) {
       updates.is_active = dto.status === MerchantProductStatus.ACTIVE;
     }
+    if (dto.is_shipping_chargeable !== undefined) updates.is_shipping_chargeable = dto.is_shipping_chargeable;
+    if (dto.shipping_charge !== undefined) updates.shipping_charge = dto.shipping_charge;
 
     await this.productRepo.update(productId, updates);
     const updated = await this.productRepo.findOneBy({

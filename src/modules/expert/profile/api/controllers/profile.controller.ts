@@ -314,7 +314,7 @@ export class ProfileController {
   }
 
   @Post('upload-file')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() _user: IUser,
@@ -374,7 +374,7 @@ export class ProfileController {
   @Post('upload-document')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('AGENT')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }))
   async uploadDocument(
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: IUser,

@@ -57,6 +57,7 @@ export class SettingsController {
       'COMMISION_FROM_PUJA_SHOP',
       'GST_PERCENTAGE',
       'COMMISION_FOR_BUYER_AGENT',
+      'PLATFORM_FEE',
     ];
     const settings = await this.getSystemSettings.execute(keys);
 
@@ -67,6 +68,7 @@ export class SettingsController {
         result[key] = found.value;
       } else {
         if (key === 'GST_PERCENTAGE') result[key] = '18';
+        else if (key === 'PLATFORM_FEE') result[key] = '50';
         else result[key] = '3';
       }
     });

@@ -53,8 +53,23 @@ export class CreateProductDto {
   @IsOptional()
   status?: string;
 
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   gallery?: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  is_shipping_chargeable?: boolean;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  shipping_charge?: number;
 }

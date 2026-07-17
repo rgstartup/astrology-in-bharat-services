@@ -205,95 +205,32 @@ export class UpdateOrderStatusUseCase {
             }
           }
 
-          // b. Wallet Logic: ONLY refund if order was PAID or PROCESSING/SHIPPED (implies payment received)
-          // We can safely refund for target items as they were previously paid for.
-          const refundAmount = txTargetItems.reduce(
+          // b. Wallet Logic: Refund to user
+          let refundAmount = txTargetItems.reduce(
             (sum, item) => sum + Number(item.price) * item.quantity,
             0,
           );
+          
           console.log(
-            `[ORDER_CANCELLED_WALLET] Refund eligible for target items. Amount: ${refundAmount}, Client: ${orderInsideTx.client_id}`,
+            `[ORDER_CANCELLED_WALLET] Base product refund for target items: ${refundAmount}, Client: ${orderInsideTx.client_id}`,
           );
 
           if (refundAmount > 0) {
-            const merchantAmounts: Record<string, number> = {};
-            for (const item of txTargetItems) {
-              const mId = item.product?.merchant_id;
-              if (mId) {
-                const itemTotal = Number(item.price) * item.quantity;
-                merchantAmounts[mId] = (merchantAmounts[mId] || 0) + itemTotal;
-              }
+            // Check if this results in a full cancellation of the entire order
+            const isFullCancellation = orderInsideTx.items.every(
+              (item) => item.status === OrderStatus.CANCELLED,
+            );
+
+            if (isFullCancellation) {
+              const platformFee = await this.walletFacade.getAdminCommissionFromSetting('PLATFORM_FEE');
+              const shippingCharge = Number(orderInsideTx.shipping_charge) || 0;
+              refundAmount += platformFee + shippingCharge;
+              console.log(`[ORDER_CANCELLED_WALLET] Full order cancellation detected. Added platform fee (${platformFee}) and shipping (${shippingCharge}) to refund.`);
             }
 
-            // Fallback if merchant amounts calculation failed
-            if (Object.keys(merchantAmounts).length === 0) {
-              let fallbackMerchant = merchantId;
-              if (!fallbackMerchant && txTargetItems.length > 0) {
-                fallbackMerchant = txTargetItems[0].product?.merchant_id;
-              }
-              if (fallbackMerchant)
-                merchantAmounts[fallbackMerchant] = refundAmount;
-            }
-
-            // Fetch settings for accurate refund calculation (Gross - Commissions)
-            const refundPlatformFeeRate =
-              await this.walletFacade.getAdminCommissionFromSetting(
-                'COMMISION_FROM_PUJA_SHOP',
-              );
-            const refundGstRate =
-              await this.walletFacade.getAdminCommissionFromSetting(
-                'GST_PERCENTAGE',
-              );
-
-            // Debit Merchant(s) ONLY if the order was already settled (Delivered)
-            // Since status is per-item now, we debit only if those items were delivered
-            // For simplicity, we debit if merchant had received it.
-            for (const [mId, grossAmount] of Object.entries(merchantAmounts)) {
-              const debitId = mId;
-
-              // Calculate Net that was actually credited (to avoid over-debiting merchant)
-              const platformFee = Number(
-                (grossAmount * (refundPlatformFeeRate / 100)).toFixed(2),
-              );
-              const gstOnFee = Number(
-                (platformFee * (refundGstRate / 100)).toFixed(2),
-              );
-              // Note: Agent commissions are not reclaimed here for simplicity/safety,
-              // but we subtract platform fee and GST to only debit what the merchant actually received.
-              const netToDebit = Number(
-                (grossAmount - platformFee - gstOnFee).toFixed(2),
-              );
-
-              const { ProfileMerchant } =
-                await import('../../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
-              const merchantProfile = await queryRunner.manager.findOne(
-                ProfileMerchant,
-                {
-                  where: { user_id: debitId },
-                  select: ['id'],
-                },
-              );
-
-              if (merchantProfile) {
-                console.log(
-                  `[ORDER_CANCELLED_WALLET] Debiting merchant ${merchantProfile.id} for net amount ${netToDebit} (Gross was ${grossAmount}) because order was previously DELIVERED`,
-                );
-
-                await this.walletFacade.debit(
-                  merchantProfile.id,
-                  'merchant_id',
-                  netToDebit,
-                  TransactionPurpose.REFUND,
-                  `order_cancel_debit_${orderInsideTx.id}`,
-                  queryRunner,
-                  true, // allowNegative
-                );
-              } else {
-                console.error(
-                  `[ORDER_CANCELLED_WALLET] Merchant profile not found for user ID: ${debitId}`,
-                );
-              }
-            }
+            // Note: We DO NOT debit the merchant here because the merchant is ONLY paid when the order status 
+            // becomes DELIVERED. Since a DELIVERED order cannot be cancelled through this flow, the merchant 
+            // has never received any money for this order yet, so there is nothing to debit.
 
             // Credit Client (Refund)
             await this.walletFacade.credit(
@@ -304,7 +241,7 @@ export class UpdateOrderStatusUseCase {
               `order_cancel_refund_${orderInsideTx.id}_${Date.now()}`,
               queryRunner,
             );
-            console.log(`[ORDER_CANCELLED_WALLET] Refund successful`);
+            console.log(`[ORDER_CANCELLED_WALLET] Refund successful. Total refunded: ${refundAmount}`);
           }
         }
       }

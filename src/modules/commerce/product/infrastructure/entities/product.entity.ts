@@ -51,6 +51,18 @@ export class Product {
   @Column({ name: 'merchant_id', type: 'uuid', nullable: true })
   merchant_id!: string;
 
+  @Column({ type: 'bool', default: false, name: 'is_shipping_chargeable' })
+  is_shipping_chargeable!: boolean;
+
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    name: 'shipping_charge',
+  })
+  shipping_charge!: number;
+
   @Column({ type: 'bool', default: true, name: 'is_active' })
   is_active!: boolean;
 

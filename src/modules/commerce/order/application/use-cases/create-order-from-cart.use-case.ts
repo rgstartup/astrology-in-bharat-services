@@ -66,6 +66,7 @@ export class CreateOrderFromCartUseCase {
         quantity: number;
         price: number;
         merchant_id: string | null;
+        shipping_charge: number;
       }[] = [];
 
       if (dto.product_id) {
@@ -100,6 +101,7 @@ export class CreateOrderFromCartUseCase {
           quantity: quantity,
           price: price,
           merchant_id: product.merchant_id,
+          shipping_charge: product.is_shipping_chargeable ? Number(product.shipping_charge) || 0 : 0,
         });
 
         // Deduct stock safely & atomically
@@ -140,6 +142,7 @@ export class CreateOrderFromCartUseCase {
             quantity: qty,
             price: price,
             merchant_id: product.merchant_id,
+            shipping_charge: product.is_shipping_chargeable ? Number(product.shipping_charge) || 0 : 0,
           });
 
           // Deduct stock safely & atomically
@@ -196,6 +199,30 @@ export class CreateOrderFromCartUseCase {
       } else {
         this.logger.log(`[CREATE_ORDER] No coupon_code provided in DTO`);
       }
+
+      // Calculate Total Shipping
+      let totalShipping = 0;
+      const merchantShippingMap = new Map<string, number>();
+
+      for (const item of itemsToCreate) {
+        const merchantKey = item.merchant_id || 'platform';
+        const currentMaxShipping = merchantShippingMap.get(merchantKey) || 0;
+        if (item.shipping_charge > currentMaxShipping) {
+          merchantShippingMap.set(merchantKey, item.shipping_charge);
+        }
+      }
+
+      for (const shipping of merchantShippingMap.values()) {
+        totalShipping += shipping;
+      }
+
+      this.logger.log(`[CREATE_ORDER] Total shipping calculated: ₹${totalShipping}`);
+      totalAmount += totalShipping;
+
+      // Add Platform Fee
+      const platformFee = await this.walletFacade.getAdminCommissionFromSetting('PLATFORM_FEE');
+      totalAmount += platformFee;
+      this.logger.log(`[CREATE_ORDER] Added platform fee ₹${platformFee}. Final totalAmount: ₹${totalAmount}`);
 
       // --- FAIL-SAFE: Re-verify totalAmount is a valid number ---
       totalAmount = Number(totalAmount);
@@ -310,7 +337,8 @@ export class CreateOrderFromCartUseCase {
         payment_method: dto.payment_method || 'razorpay',
         delivery_otp: deliveryOtp,
         coupon_code: dto.coupon_code,
-        discount_amount: discountAmount,
+        discount_amount: Math.round(Number(discountAmount)),
+        shipping_charge: Math.round(Number(totalShipping)),
       });
 
       const savedOrder = await queryRunner.manager.save(Order, order);

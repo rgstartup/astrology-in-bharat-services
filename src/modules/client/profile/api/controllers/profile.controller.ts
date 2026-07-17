@@ -50,7 +50,7 @@ export class ProfileController {
   }
 
   @Patch('picture')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }))
   async updateProfilePicture(
     @CurrentUser() user: IUser,
     @UploadedFile() file: Express.Multer.File,
@@ -60,7 +60,7 @@ export class ProfileController {
   }
 
   @Post('upload-document')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }))
   async uploadDocument(
     @CurrentUser() user: IUser,
     @UploadedFile() file: Express.Multer.File,
