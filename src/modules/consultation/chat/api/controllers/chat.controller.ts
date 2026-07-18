@@ -87,6 +87,20 @@ export class ChatController {
     return sessionWithExpiry;
   }
 
+  /**
+   * GET /api/v1/chat/eligibility?expert_id=<uuid>
+   * Returns eligibility info for the current user to start a chat with an expert.
+   * Business logic is fully handled on the backend.
+   */
+  @Get('eligibility')
+  @Header('Cache-Control', 'no-store')
+  async checkEligibility(
+    @CurrentProfile() clientId: string,
+    @Query('expert_id') expertId: string,
+  ) {
+    return this.chatFacade.checkEligibility(clientId, expertId);
+  }
+
   @Post('activate/:sessionId')
   async activateSession(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
     const { session, introCard } =

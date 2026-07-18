@@ -23,6 +23,7 @@ import { RejectChatUseCase } from './use-cases/reject-chat.use-case';
 import { UpdateSessionMetadataUseCase } from './use-cases/update-session-metadata.use-case';
 import { GetChatEarningsUseCase } from './use-cases/get-chat-earnings.use-case';
 import { GetExpertSessionsByDateUseCase } from './use-cases/get-expert-sessions-by-date.use-case';
+import { CheckChatEligibilityUseCase } from './use-cases/check-chat-eligibility.use-case';
 import { GetExpertChatSessionsDto } from '../api/dto/get-expert-chat-sessions.dto';
 import { MessageType } from '../infrastructure/entities/chat-message.entity';
 import { ChatSessionStatus } from '../infrastructure/entities/chat-session.entity';
@@ -50,7 +51,12 @@ export class ChatFacade {
     private readonly updateSessionMetadataUseCase: UpdateSessionMetadataUseCase,
     private readonly getChatEarningsUseCase: GetChatEarningsUseCase,
     private readonly getExpertSessionsByDateUseCase: GetExpertSessionsByDateUseCase,
+    private readonly checkChatEligibilityUseCase: CheckChatEligibilityUseCase,
   ) {}
+
+  async checkEligibility(clientId: string, expertId: string) {
+    return this.checkChatEligibilityUseCase.execute(clientId, expertId);
+  }
 
   async initiateChat(
     userId: string,
