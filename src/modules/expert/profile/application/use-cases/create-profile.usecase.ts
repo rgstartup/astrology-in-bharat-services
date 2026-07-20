@@ -55,6 +55,7 @@ export class CreateProfileUseCase {
           : undefined,
         specialization: dto.specialization,
         bio: dto.bio,
+        about: dto.about,
         experience_in_years: dto.experience_in_years,
         languages: dto.languages ? dto.languages.join(',') : undefined,
         phone_number: dto.phone_number,

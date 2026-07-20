@@ -34,6 +34,10 @@ export class CreateAgentDto {
 
   @IsOptional()
   @IsString()
+  district?: string;
+
+  @IsOptional()
+  @IsString()
   state?: string;
 
   @IsOptional()

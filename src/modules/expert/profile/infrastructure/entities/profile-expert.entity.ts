@@ -66,6 +66,9 @@ export class ProfileExpert {
   @Column({ type: 'text', nullable: true })
   bio!: string | null;
 
+  @Column({ type: 'text', nullable: true })
+  about!: string | null;
+
   @Column({
     type: 'int',
     default: 0,

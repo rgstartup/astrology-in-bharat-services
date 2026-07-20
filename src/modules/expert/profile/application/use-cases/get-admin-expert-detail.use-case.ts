@@ -83,6 +83,7 @@ export class GetExpertDetailUseCase {
       phone_number: profile?.phone_number || (clientProfile as any)?.phone || '',
       languages: profile?.languages ? profile.languages.split(',').map((l: string) => l.trim()) : [],
       bio: profile?.bio || '',
+      about: profile?.about || '',
       experience_in_years: profile?.experience_in_years || 0,
       specialization: profile?.specialization || '',
       rating: profile?.rating || 0,

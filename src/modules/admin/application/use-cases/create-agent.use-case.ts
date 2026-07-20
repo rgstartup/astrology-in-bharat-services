@@ -65,6 +65,7 @@ export class CreateAgentUseCase {
         phone: dto.phone,
         address: dto.address,
         city: dto.city,
+        district: dto.district,
         state: dto.state,
         aadhaar_no: dto.aadhaar_no,
         pan_no: dto.pan_no,

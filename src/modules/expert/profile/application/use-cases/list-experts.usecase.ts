@@ -176,6 +176,7 @@ export class ListExpertsUseCase {
         plain.rating = ex.rating !== undefined ? Math.round(ex.rating) : 5;
         plain.ratings = plain.rating; // align both rating and ratings
         plain.bio = ex.bio || '';
+        plain.about = ex.about || '';
         plain.detailed_experience = ex.detailed_experience || [];
         plain.gallery = ex.gallery || [];
         plain.videos = ex.videos || [];

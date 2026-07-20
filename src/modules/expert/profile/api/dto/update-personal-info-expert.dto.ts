@@ -28,6 +28,10 @@ export class UpdatePersonalInfoExpertDto {
 
   @IsOptional()
   @IsString()
+  about?: string;
+
+  @IsOptional()
+  @IsString()
   specialization?: string;
 
   @IsOptional()

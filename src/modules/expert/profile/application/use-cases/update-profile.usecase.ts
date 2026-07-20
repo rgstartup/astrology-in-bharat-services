@@ -65,6 +65,7 @@ export class UpdateProfileUseCase {
     if (dto.specialization !== undefined)
       profile.specialization = dto.specialization;
     if (dto.bio !== undefined) profile.bio = dto.bio;
+    if (dto.about !== undefined) profile.about = dto.about;
     if (dto.experience_in_years !== undefined)
       profile.experience_in_years = dto.experience_in_years;
 

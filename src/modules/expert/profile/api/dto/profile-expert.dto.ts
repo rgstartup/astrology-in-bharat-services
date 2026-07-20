@@ -11,6 +11,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PartialType } from '@nestjs/mapped-types';
 import { ExpertDocumentDto } from './expert-document.dto';
 import { DetailedExperienceDto } from './detailed-experience.dto';
@@ -40,6 +41,11 @@ export class ProfileExpertDto {
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  about?: string;
 
   @IsNumber()
   @Min(0)
