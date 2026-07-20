@@ -154,6 +154,8 @@ export class UpdateMerchantProfileUseCase {
       if (dto.isOnline !== undefined) profile.isOnline = !!isOnline;
 
       if (dto.description !== undefined) profile.description = dto.description;
+      if (dto.establishedSince !== undefined) profile.established = dto.establishedSince;
+
       if (dto.features !== undefined) {
         if (typeof dto.features === 'string') {
           try {

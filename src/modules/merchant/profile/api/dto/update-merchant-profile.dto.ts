@@ -93,4 +93,8 @@ export class UpdateMerchantProfileDto {
 
   @IsOptional()
   gallery?: string | string[];
+
+  @IsOptional()
+  @IsString()
+  establishedSince?: string;
 }
