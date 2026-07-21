@@ -53,6 +53,7 @@ import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-sta
 import { UpdateExpertStatusUseCase } from './use-cases/update-expert-status.use-case';
 import { GetAdminDisputesUseCase } from './use-cases/get-admin-disputes.use-case';
 import { UpdateDisputeStatusUseCase } from './use-cases/update-dispute-status.use-case';
+import { ToggleUserBlockUseCase, ToggleUserBlockInput } from './use-cases/toggle-user-block.use-case';
 
 @Injectable()
 export class AdminFacade {
@@ -92,6 +93,7 @@ export class AdminFacade {
     private readonly updateExpertStatusUseCase: UpdateExpertStatusUseCase,
     private readonly getAdminDisputesUseCase: GetAdminDisputesUseCase,
     private readonly updateDisputeStatusUseCase: UpdateDisputeStatusUseCase,
+    private readonly toggleUserBlockUseCase: ToggleUserBlockUseCase,
   ) {}
 
   async getDashboardStats() {
@@ -108,6 +110,10 @@ export class AdminFacade {
 
   async getAllClients(dto: GetClientsDto) {
     return this.getAdminClientsUseCase.execute(dto);
+  }
+
+  async toggleUserBlock(input: ToggleUserBlockInput) {
+    return this.toggleUserBlockUseCase.execute(input);
   }
 
   async getAllExperts(dto: GetExpertsDto) {

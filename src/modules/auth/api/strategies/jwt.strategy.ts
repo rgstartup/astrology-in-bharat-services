@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -7,10 +7,14 @@ import {
   IAccessTokenPayload,
   IUser,
 } from '@/common/types/access-token.payload';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(config: ConfigService) {
+  constructor(
+    config: ConfigService,
+    private readonly usersFacade: UsersFacade,
+  ) {
     const authConfig = config.get<AuthConfig>('auth');
 
     if (!authConfig) {
@@ -20,11 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: import('express').Request) => {
-          console.log('[JwtStrategy] Incoming request to:', req.url);
-          console.log('[JwtStrategy] Incoming request headers:', req.headers);
-          console.log('[JwtStrategy] Incoming request cookies:', req.cookies);
           const token = req?.cookies?.accessToken ?? null;
-          console.log('[JwtStrategy] Extracted accessToken from cookies:', token ? 'Found' : 'Missing');
           return token;
         },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -33,13 +33,19 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async validate(payload: IAccessTokenPayload): Promise<IUser> {
-    // We return a simplified user object based on the JWT payload.
-    // This avoids a database hit on every protected request.
+    // Perform a live DB check to ensure the user hasn't been deleted or blocked
+    const user = await this.usersFacade.findById(payload.sub);
+    
+    if (!user) {
+      throw new UnauthorizedException('User account has been deleted or disabled');
+    }
+
     return {
       id: payload.sub,
       ...payload,
+      roles: user.roles,
+      admin_permissions: user.admin_permissions,
     };
   }
 }

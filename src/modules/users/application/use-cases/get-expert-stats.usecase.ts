@@ -39,14 +39,14 @@ export class GetExpertStatsUseCase {
       .getRawOne()
 
     return {
-      total_experts: Number(result.total_experts),
-      activeExperts: result.active_experts,
-      pendingExperts: result.pending_experts,
-      rejectedExperts: result.rejected_experts,
-      blockedExperts: result.blocked_experts,
-      recentExperts: result.recent_experts,
+      totalExperts: Number(result.total_experts),
+      activeExperts: Number(result.active_experts),
+      pendingExperts: Number(result.pending_experts),
+      rejectedExperts: Number(result.rejected_experts),
+      blockedExperts: Number(result.blocked_experts),
+      recentExperts: Number(result.recent_experts),
       trends: {
-        recent: result.recent_experts,
+        recent: Number(result.recent_experts),
       },
     };
   }

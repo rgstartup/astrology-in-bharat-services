@@ -30,6 +30,7 @@ export class IssueAuthTokensUseCase {
         roles: user.roles,
         email: user.email,
         profile: profileId ?? undefined,
+        admin_permissions: user.admin_permissions ?? null,
       });
 
     const { raw, hash } = await this.tokenCrypto.createRefreshToken();

@@ -73,6 +73,14 @@ import { GetAdminDisputesUseCase } from './application/use-cases/get-admin-dispu
 import { UpdateDisputeStatusUseCase } from './application/use-cases/update-dispute-status.use-case';
 import { UpdateSupportSettingsUseCase } from './application/use-cases/update-support-settings.use-case';
 
+// Sub-Admin Use Cases & Controller
+import { CreateSubAdminUseCase } from './application/use-cases/create-sub-admin.use-case';
+import { GetSubAdminsUseCase } from './application/use-cases/get-sub-admins.use-case';
+import { UpdateSubAdminUseCase } from './application/use-cases/update-sub-admin.use-case';
+import { DeleteSubAdminUseCase } from './application/use-cases/delete-sub-admin.use-case';
+import { SubAdminController } from './api/controllers/sub-admin.controller';
+import { ToggleUserBlockUseCase } from './application/use-cases/toggle-user-block.use-case';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -113,6 +121,7 @@ import { UpdateSupportSettingsUseCase } from './application/use-cases/update-sup
     SettingsController,
     PublicStatsController,
     PublicSettingsController,
+    SubAdminController,
   ],
   providers: [
     AdminFacade,
@@ -152,6 +161,15 @@ import { UpdateSupportSettingsUseCase } from './application/use-cases/update-sup
     GetAdminDisputesUseCase,
     UpdateDisputeStatusUseCase,
     UpdateSupportSettingsUseCase,
+
+    // Sub-Admin Use Cases
+    CreateSubAdminUseCase,
+    GetSubAdminsUseCase,
+    UpdateSubAdminUseCase,
+    DeleteSubAdminUseCase,
+
+    // User Block Audit
+    ToggleUserBlockUseCase,
   ],
   exports: [AdminFacade],
 })

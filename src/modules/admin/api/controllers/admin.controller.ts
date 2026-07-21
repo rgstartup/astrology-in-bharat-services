@@ -19,6 +19,9 @@ import { AdminFacade } from '../../application/admin.facade';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { AdminPermissionGuard } from '@/common/guards/admin-permission.guard';
+import { RequirePermissions } from '@/common/decorators/permissions.decorator';
+import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermission.enum';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -57,7 +60,7 @@ import { UpdateDisputeStatusDto } from '../dto/update-dispute-status.dto';
   path: 'admin',
   version: '1',
 })
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, AdminPermissionGuard)
 @Roles('ADMIN', 'AGENT')
 export class AdminController {
   constructor(
@@ -70,16 +73,17 @@ export class AdminController {
   ) {}
 
   // Review Management
+  @RequirePermissions(AdminPermission.REVIEWS_MODERATION)
   @Get('reviews')
   async getReviews(@Query() query: GetReviewsDTO) {
     return this.reviewsFacade.getAdminReviews(query);
   }
-
+  @RequirePermissions(AdminPermission.REVIEWS_MODERATION)
   @Get('reviews/stats')
   async getReviewStats() {
     return this.reviewsFacade.getAllReviewsStats();
   }
-
+  @RequirePermissions(AdminPermission.REVIEWS_MODERATION)
   @Patch('reviews/:id/status')
   async updateReviewStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -87,12 +91,12 @@ export class AdminController {
   ) {
     return this.reviewsFacade.updateReviewStatus(id, status);
   }
-
+  @RequirePermissions(AdminPermission.REVIEWS_MODERATION)
   @Delete('reviews/:id')
   async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
     return this.reviewsFacade.deleteReview(id);
   }
-
+  @RequirePermissions(AdminPermission.REVIEWS_MODERATION)
   @Post('reviews/:id/response')
   async sendReviewResponse(
     @Param('id', ParseUUIDPipe) id: string,
@@ -100,62 +104,62 @@ export class AdminController {
   ) {
     return this.reviewsFacade.sendReviewResponse(id, message);
   }
-
+  @RequirePermissions(AdminPermission.ANALYTICS_DASHBOARD)
   @Get('analytics/user-growth')
   async getUserGrowthStats(@Query('days', ParseIntPipe) days: number = 7) {
     return this.adminFacade.getUserGrowthStats(days);
   }
-
+  @RequirePermissions(AdminPermission.ANALYTICS_DASHBOARD)
   @Get('dashboard/stats')
   async getDashboardStats() {
     return this.adminFacade.getDashboardStats();
   }
-
+  @RequirePermissions(AdminPermission.ANALYTICS_DASHBOARD)
   @Get('analytics/revenue-trend')
   async getRevenueTrend(@Query('days', ParseIntPipe) days: number = 7) {
     return this.adminFacade.getRevenueTrend(days);
   }
-
+  @RequirePermissions(AdminPermission.ANALYTICS_DASHBOARD)
   @Get('analytics/earnings-breakdown')
   async getEarningsBreakdown(@Query('days', ParseIntPipe) days: number = 7) {
     return this.adminFacade.getEarningsBreakdown(days);
   }
-
+  @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
   @Get('analytics/top-experts')
   async getTopExperts(@Query('limit', ParseIntPipe) limit: number = 5) {
     return this.adminFacade.getTopExperts(limit);
   }
-
+  @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
   @Get('experts/stats')
   async getExpertsStats() {
     return this.usersFacade.getExpertStats();
   }
-
+  @RequirePermissions(AdminPermission.USER_MANAGEMENT)
   @Get('clients/stats')
   async getClientStats() {
     return this.usersFacade.getClientStats();
   }
-
+  @RequirePermissions(AdminPermission.USER_MANAGEMENT)
   @Get('clients')
   async getAllUsers(@Query() query: GetClientsDto) {
     return this.adminFacade.getAllClients(query);
   }
-
+  @RequirePermissions(AdminPermission.USER_MANAGEMENT)
   @Get('clients/:id')
   async getClientDetail(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersFacade.findById(id);
   }
-
+  @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
   @Get('experts')
   async getAllExperts(@Query() query: GetExpertsDto) {
     return this.adminFacade.getAllExperts(query);
   }
-
+  @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
   @Get('experts/:id')
   async getExpertDetail(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminFacade.getExpertDetail(id);
   }
-
+  @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
   @Patch('experts/:id/status')
   async updateExpertStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -164,41 +168,43 @@ export class AdminController {
     await this.adminFacade.updateExpertStatus(id, body);
     return { success: true };
   }
-
+  @RequirePermissions(AdminPermission.USER_MANAGEMENT)
   @Patch('clients/:id/block')
   async toggleUserBlock(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { isBlocked: boolean },
+    @CurrentUser() admin: IUser,
   ) {
-    const _result = await this.usersFacade.update(id, {
-      is_blocked: body.isBlocked,
-    } as Partial<User>);
-    
+    const result = await this.adminFacade.toggleUserBlock({
+      targetUserId: id,
+      isBlocked: body.isBlocked,
+      adminId: admin.id,
+      adminName: admin.email, // email use karo kyunki name optional ho sakta hai
+    });
+
+    // Agar block ho raha hai to event emit karo (existing logic preserved)
     if (body.isBlocked) {
-      console.log(`[AdminController] Emitting user.blocked for user: ${id}`);
       this.eventEmitter.emit('user.blocked', { userId: id });
-    } else {
-      console.log(`[AdminController] Unblocking user: ${id}`);
     }
 
-    return { success: true };
+    return result;
   }
-
+  @RequirePermissions(AdminPermission.LIVE_SESSIONS)
   @Get('live-sessions')
   async getLiveSessions(@Query() query: GetLiveSessionsDto) {
     return this.adminFacade.getLiveSessions(query);
   }
-
+  @RequirePermissions(AdminPermission.LIVE_SESSIONS)
   @Get('live-sessions/stats')
   async getLiveSessionStats() {
     return this.chatFacade.getSessionStats();
   }
-
+  @RequirePermissions(AdminPermission.LIVE_SESSIONS)
   @Get('live-sessions/:id/history')
   async getChatHistory(@Param('id', ParseUUIDPipe) id: string) {
     return this.chatFacade.getHistory(id);
   }
-
+  @RequirePermissions(AdminPermission.LIVE_SESSIONS)
   @Post('live-sessions/:id/terminate')
   async terminateSession(
     @Param('id', ParseUUIDPipe) id: string,
@@ -206,11 +212,7 @@ export class AdminController {
     @Body() body: TerminateSessionDto,
   ) {
     try {
-      return await this.adminFacade.terminateSession(
-        id,
-        admin.id,
-        body,
-      );
+      return await this.adminFacade.terminateSession(id, admin.id, body);
     } catch (error: unknown) {
       return {
         success: false,
@@ -223,21 +225,22 @@ export class AdminController {
   }
 
   // Coupon Management
+  @RequirePermissions(AdminPermission.COUPONS_OFFERS)
   @Get('coupons')
   async getCoupons(@Query() query: Record<string, unknown>) {
     return this.couponFacade.getCoupons(query);
   }
-
+  @RequirePermissions(AdminPermission.COUPONS_OFFERS)
   @Get('coupons/stats')
   async getCouponStats() {
     return this.couponFacade.getCouponStats();
   }
-
+  @RequirePermissions(AdminPermission.COUPONS_OFFERS)
   @Post('coupons')
   async createCoupon(@Body() data: Record<string, unknown>) {
     return this.couponFacade.createCoupon(data);
   }
-
+  @RequirePermissions(AdminPermission.COUPONS_OFFERS)
   @Patch('coupons/:id')
   async updateCoupon(
     @Param('id', ParseUUIDPipe) id: string,
@@ -252,54 +255,52 @@ export class AdminController {
   }
 
   // Withdrawal Management
+  @RequirePermissions(AdminPermission.PAYOUT_REQUESTS)
   @Get('withdrawals')
   async getWithdrawals(@Query() query: GetWithdrawalsDto) {
     return this.adminFacade.getWithdrawals(query);
   }
-
+  @RequirePermissions(AdminPermission.PAYOUT_REQUESTS)
   @Get('withdrawals/stats')
   async getWithdrawalStats(
     @Query('role', RolePipe({ optional: true })) role?: RoleEnum,
   ) {
     return this.adminFacade.getWithdrawalStats(role);
   }
-
+  @RequirePermissions(AdminPermission.PAYOUT_REQUESTS)
   @Patch('withdrawals/:id/status')
   async updateWithdrawalStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() admin: IUser,
     @Body() body: UpdateWithdrawalStatusDto,
   ) {
-    await this.adminFacade.updateWithdrawalStatus(
-      id,
-      admin.id,
-      body,
-    );
+    await this.adminFacade.updateWithdrawalStatus(id, admin.id, body);
     return { success: true };
   }
 
   // Bulk Coupon Assignment Utilities
+  @RequirePermissions(AdminPermission.USER_MANAGEMENT)
   @Post('clients/filter-count')
   async getFilteredUsersCount(@Body() filters: Record<string, unknown>) {
     const count = await this.adminFacade.getFilteredUsersCount(filters);
     return { count };
   }
-
+  @RequirePermissions(AdminPermission.USER_MANAGEMENT)
   @Post('clients/filtered-list')
   async getFilteredUsersList(@Body() filters: Record<string, unknown>) {
     return this.adminFacade.getFilteredUsersList(filters);
   }
-
+  @RequirePermissions(AdminPermission.COUPONS_OFFERS)
   @Post('coupons/assign-bulk')
   async assignCouponBulk(@Body() dto: AssignCouponBulkDto) {
     return this.adminFacade.assignCouponBulk(dto);
   }
-
+  @RequirePermissions(AdminPermission.SHOP_MANAGEMENT)
   @Get('merchants')
   async getAllMerchants(@Query() query: GetAdminMerchantsDto) {
     return this.adminFacade.getAllMerchants(query);
   }
-
+  @RequirePermissions(AdminPermission.SHOP_MANAGEMENT)
   @Patch('merchants/:id/status')
   async updateMerchantStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -312,12 +313,12 @@ export class AdminController {
     }
     return result;
   }
-
+  @RequirePermissions(AdminPermission.SHOP_MANAGEMENT)
   @Get('merchant-sales')
   async getMerchantSalesOverview() {
     return this.adminFacade.getMerchantSalesOverview();
   }
-
+  @RequirePermissions(AdminPermission.SHOP_MANAGEMENT)
   @Get('merchant-sales/:id')
   async getMerchantSalesDetails(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminFacade.getMerchantSalesDetails(id);
@@ -332,6 +333,7 @@ export class AdminController {
       { name: 'pan_doc', maxCount: 1 },
     ]),
   )
+  @RequirePermissions(AdminPermission.AGENT_MANAGEMENT)
   async createAgent(
     @Body() dto: CreateAgentDto,
     @UploadedFiles()
@@ -349,22 +351,22 @@ export class AdminController {
     };
     return this.adminFacade.createAgent(dto, filesToUpload);
   }
-
+  @RequirePermissions(AdminPermission.AGENT_MANAGEMENT)
   @Get('agents')
   async getAgents(@Query() query: GetAgentsDto) {
     return this.adminFacade.getAgents(query);
   }
-
+  @RequirePermissions(AdminPermission.AGENT_MANAGEMENT)
   @Get('agents/stats')
   async getAgentStats() {
     return this.adminFacade.getAgentStats();
   }
-
+  @RequirePermissions(AdminPermission.PRODUCTS)
   @Get('listings')
   async getListings(@Query() query: GetAdminListingsDto) {
     return this.adminFacade.getListings(query);
   }
-
+  @RequirePermissions(AdminPermission.PRODUCTS)
   @Patch('listings/:id/status')
   async updateListingStatus(
     @Param('id', ParseUUIDPipe) id: string,

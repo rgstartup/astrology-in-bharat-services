@@ -88,7 +88,7 @@ export class GetAdminDashboardStatsUseCase {
 
     return {
       totalChatSessions: chatSessionsCount,
-      totalExperts: expertStats.total_experts,
+      totalExperts: expertStats.totalExperts,
       totalUsers: clientStats.totalUsers,
       totalEarnings: total_earnings,
       adminEarnings: admin_earnings,

@@ -20,6 +20,17 @@ export class AuthPolicy {
   }
 
   ensureHasRequiredRole(user: User, role: RoleEnum) {
+    // Agar login portal "ADMIN" role maang raha hai, to teeno admin types allow karo
+    if (role === RoleEnum.ADMIN) {
+      const hasAnyAdminRole = user.roles.some((r) =>
+        [RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN, RoleEnum.SUB_ADMIN].includes(r),
+      );
+      if (!hasAnyAdminRole) {
+        throw new RequiredRoleMissingError();
+      }
+      return true;
+    }
+
     if (!user.roles.includes(role)) {
       throw new RequiredRoleMissingError();
     }
