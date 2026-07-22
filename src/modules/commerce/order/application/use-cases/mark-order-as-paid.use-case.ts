@@ -5,9 +5,10 @@ import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
-import { NotificationFacade } from '@/modules/notification/application/notification.facade';
+import { Coupon, CouponStatus } from '@/modules/commerce/coupon/infrastructure/entities/coupon.entity';
+import { UserCoupon } from '@/modules/commerce/coupon/infrastructure/entities/user-coupon.entity';
 import {
+  Notification,
   NotificationType,
   ProfileType,
 } from '@/modules/notification/infrastructure/entities/notification.entity';
@@ -19,9 +20,6 @@ export class MarkOrderAsPaidUseCase {
     private orderRepo: Repository<Order>,
     @Inject(forwardRef(() => WalletFacade))
     private walletFacade: WalletFacade,
-    @Inject(forwardRef(() => CouponFacade))
-    private couponFacade: CouponFacade,
-    private notificationFacade: NotificationFacade,
     private dataSource: DataSource,
   ) {}
 
@@ -51,11 +49,34 @@ export class MarkOrderAsPaidUseCase {
       // 1.5 Mark Coupon as used if applied
       if (order.coupon_code) {
         try {
-          await this.couponFacade.markCouponAsUsed(
-            order.client_id,
-            order.coupon_code,
-            qr.manager,
-          );
+          const couponEntity = await qr.manager
+            .createQueryBuilder(Coupon, 'coupon')
+            .where('LOWER(coupon.code) = LOWER(:code)', { code: order.coupon_code })
+            .andWhere('coupon.is_active = :isActive', { isActive: true })
+            .andWhere('coupon.status = :status', { status: CouponStatus.ACTIVE })
+            .getOne();
+
+          if (couponEntity) {
+            couponEntity.usage_count += 1;
+            await qr.manager.save(Coupon, couponEntity);
+
+            let userCoupon = await qr.manager.findOne(UserCoupon, {
+              where: { client_id: order.client_id, coupon_id: couponEntity.id },
+            });
+
+            if (userCoupon) {
+              userCoupon.is_used = true;
+              userCoupon.used_at = new Date();
+            } else {
+              userCoupon = qr.manager.create(UserCoupon, {
+                client_id: order.client_id,
+                coupon_id: couponEntity.id,
+                is_used: true,
+                used_at: new Date(),
+              });
+            }
+            await qr.manager.save(UserCoupon, userCoupon);
+          }
         } catch (e) {
           console.error('[MARK_AS_PAID] Coupon marking error:', e);
           // Don't fail the whole transaction if coupon marking fails, but it's better to log it.
@@ -90,14 +111,14 @@ export class MarkOrderAsPaidUseCase {
         // Send Order Placed Notification
         if (clientProfile.id) {
           try {
-            await this.notificationFacade.create(
-              clientProfile.id,
-              RoleEnum.CLIENT,
-              NotificationType.ORDER_PLACED,
-              'Order Placed Successfully',
-              `Your order AIB-ORD-${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
-              { orderId: order.id },
-            );
+            const notif = qr.manager.create(Notification, {
+              client_id: clientProfile.id,
+              type: NotificationType.ORDER_PLACED,
+              title: 'Order Placed Successfully',
+              message: `Your order AIB-ORD-${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
+              metadata: { orderId: order.id },
+            });
+            await qr.manager.save(Notification, notif);
           } catch (notifErr) {
             console.error('[MARK_AS_PAID] Notification error:', notifErr);
           }
@@ -114,14 +135,14 @@ export class MarkOrderAsPaidUseCase {
           ];
           for (const mId of merchantIds) {
             try {
-              await this.notificationFacade.create(
-                mId,
-                RoleEnum.MERCHANT,
-                NotificationType.ORDER_PLACED,
-                'New Order Received!',
-                `You have received a new order (AIB-ORD-${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,
-                { orderId: order.id },
-              );
+              const notif = qr.manager.create(Notification, {
+                merchant_id: mId,
+                type: NotificationType.ORDER_PLACED,
+                title: 'New Order Received!',
+                message: `You have received a new order (AIB-ORD-${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,
+                metadata: { orderId: order.id },
+              });
+              await qr.manager.save(Notification, notif);
             } catch (mErr) {
               console.error(
                 '[MARK_AS_PAID] Merchant notification error:',

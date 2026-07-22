@@ -31,6 +31,7 @@ import { AdminModule } from '@/modules/admin/admin.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
+import { QueueModule } from '@/core/queue/queue.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profi
     forwardRef(() => CouponModule),
     forwardRef(() => AdminModule),
     forwardRef(() => MerchantProfileModule),
+    QueueModule,
   ],
   controllers: [OrderController, OrderSingularController],
   providers: [

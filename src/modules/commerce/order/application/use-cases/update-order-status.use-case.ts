@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Inject,
   forwardRef,
+  BadRequestException,
 } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,21 +13,21 @@ import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { Notification, NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
-import {
-  WalletFacade,
-  CommissionEventType,
-  CommissionType,
-  CommissionAppliesRole,
-} from '@/modules/finance/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
-import { SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
+import { TransactionPurpose, Transaction, TransactionType } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { CommissionRule, CommissionType, CommissionEventType, CommissionAppliesRole, CommissionRateType } from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
+import { CommissionSplit, SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
+import { CommissionTier } from '@/modules/finance/commissions/infrastructure/entities/commission-tier.entity';
+import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
+import { GeneralLedgerEntryType, GeneralLedgerEventType, GeneralLedgerPartyType } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
@@ -34,12 +35,9 @@ export class UpdateOrderStatusUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-    private usersFacade: UsersFacade,
-    private notificationFacade: NotificationFacade,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
-    @Inject(forwardRef(() => WalletFacade))
-    private walletFacade: WalletFacade,
+    private ledgerQueueService: LedgerQueueService,
     private dataSource: DataSource,
   ) {}
 
@@ -222,7 +220,7 @@ export class UpdateOrderStatusUseCase {
             );
 
             if (isFullCancellation) {
-              const platformFee = await this.walletFacade.getAdminCommissionFromSetting('PLATFORM_FEE');
+              const platformFee = await this.getAdminCommissionFromSetting(queryRunner.manager, 'PLATFORM_FEE');
               const shippingCharge = Number(orderInsideTx.shipping_charge) || 0;
               refundAmount += platformFee + shippingCharge;
               console.log(`[ORDER_CANCELLED_WALLET] Full order cancellation detected. Added platform fee (${platformFee}) and shipping (${shippingCharge}) to refund.`);
@@ -233,13 +231,13 @@ export class UpdateOrderStatusUseCase {
             // has never received any money for this order yet, so there is nothing to debit.
 
             // Credit Client (Refund)
-            await this.walletFacade.credit(
+            await this.credit(
+              queryRunner.manager,
               orderInsideTx.client_id,
               'client_id',
               refundAmount,
               TransactionPurpose.REFUND,
               `order_cancel_refund_${orderInsideTx.id}_${Date.now()}`,
-              queryRunner,
             );
             console.log(`[ORDER_CANCELLED_WALLET] Refund successful. Total refunded: ${refundAmount}`);
           }
@@ -331,21 +329,24 @@ export class UpdateOrderStatusUseCase {
                   gstResolved,
                   buyerAgentItemResolved,
                 ] = await Promise.all([
-                  this.walletFacade.resolveCommission(
+                  this.resolveCommission(
+                    qr.manager,
                     CommissionEventType.PRODUCT_ORDER,
                     CommissionType.PLATFORM_FEE,
                     merchantProfile?.id ?? null,
                     CommissionAppliesRole.MERCHANT,
                     itemTotal,
                   ),
-                  this.walletFacade.resolveCommission(
+                  this.resolveCommission(
+                    qr.manager,
                     CommissionEventType.PRODUCT_ORDER,
                     CommissionType.GST,
                     null,
                     CommissionAppliesRole.ALL,
                     itemTotal,
                   ),
-                  this.walletFacade.resolveCommission(
+                  this.resolveCommission(
+                    qr.manager,
                     CommissionEventType.PRODUCT_ORDER,
                     CommissionType.BUYER_AGENT,
                     orderWithItems.client_id,
@@ -361,7 +362,8 @@ export class UpdateOrderStatusUseCase {
                 if (merchantUser?.referred_by_id && merchantProfile) {
                   agent_id = merchantUser.referred_by_id;
                   const sellerAgentResolved =
-                    await this.walletFacade.resolveCommission(
+                    await this.resolveCommission(
+                      qr.manager,
                       CommissionEventType.PRODUCT_ORDER,
                       CommissionType.SELLER_AGENT,
                       merchantProfile.id,
@@ -405,13 +407,13 @@ export class UpdateOrderStatusUseCase {
 
                 // A. Credit Merchant
                 if (merchantProfile) {
-                  await this.walletFacade.credit(
+                  await this.credit(
+                    qr.manager,
                     merchantProfile.id,
                     'merchant_id',
                     merchantNet,
                     TransactionPurpose.CONSULTATION, // Reusing for earnings
                     `order_item_${item.id}`,
-                    qr,
                   );
                 }
 
@@ -424,13 +426,13 @@ export class UpdateOrderStatusUseCase {
                     select: ['id'],
                   });
                   if (agentProfile) {
-                    await this.walletFacade.credit(
+                    await this.credit(
+                      qr.manager,
                       agentProfile.id,
                       'agent_id',
                       agent_commission,
                       TransactionPurpose.AGENT_COMMISSION,
                       `order_item_${item.id}`,
-                      qr,
                     );
                   } else {
                     console.error(
@@ -448,13 +450,13 @@ export class UpdateOrderStatusUseCase {
                     select: ['id'],
                   });
                   if (agentProfile) {
-                    await this.walletFacade.credit(
+                    await this.credit(
+                      qr.manager,
                       agentProfile.id,
                       'agent_id',
                       buyer_agent_commission,
                       TransactionPurpose.AGENT_COMMISSION,
                       `order_item_buyer_ref_${item.id}`,
-                      qr,
                     );
                   } else {
                     console.error(
@@ -465,7 +467,8 @@ export class UpdateOrderStatusUseCase {
 
                 // Write financial ledger entry
                 try {
-                  await this.walletFacade.createCommissionSplit(
+                  await this.createCommissionSplit(
+                    qr.manager,
                     {
                       referenceId: `order_item_${item.id}`,
                       referenceType: SplitReferenceType.ORDER,
@@ -481,7 +484,6 @@ export class UpdateOrderStatusUseCase {
                       buyerAgentProfileId: buyer_agent_id ?? null,
                       commissionRuleId: platformFeeResolved.ruleId,
                     },
-                    qr,
                   );
                 } catch (err) {
                   console.error(
@@ -522,15 +524,16 @@ export class UpdateOrderStatusUseCase {
 
     const targetProfileId = order.client_id;
 
-    // Save notification to DB via facade
-    await this.notificationFacade.create(
-      targetProfileId,
-      RoleEnum.CLIENT,
-      notificationType,
+    // Save notification to DB directly instead of using facade
+    const notificationRepo = this.dataSource.getRepository(Notification);
+    const notification = notificationRepo.create({
+      client_id: targetProfileId,
+      type: notificationType,
       title,
       message,
-      { orderId: id, status, amount: order.total_amount },
-    );
+      metadata: { orderId: id, status, amount: order.total_amount },
+    });
+    await notificationRepo.save(notification);
 
     // Emit real-time socket event to profile
     this.notificationGateway.emitToProfile(
@@ -594,5 +597,353 @@ export class UpdateOrderStatusUseCase {
     }
 
     return new BooleanMessage();
+  }
+
+  private async getAdminCommissionFromSetting(manager: any, key: string): Promise<number> {
+    try {
+      let setting = await manager.findOne(SystemSetting, { where: { key } });
+      if (!setting) {
+        const altKey = key.includes('COMMISSION')
+          ? key.replace('COMMISSION', 'COMMISION')
+          : key.replace('COMMISION', 'COMMISSION');
+        setting = await manager.findOne(SystemSetting, { where: { key: altKey } });
+      }
+      if (setting && setting.value) {
+        return parseFloat(setting.value);
+      }
+    } catch (e) {
+      console.error(`[UpdateOrderStatus] Failed to fetch setting ${key}:`, e);
+    }
+    return 3;
+  }
+
+  private async resolveCommission(
+    manager: any,
+    eventType: CommissionEventType,
+    commissionType: CommissionType,
+    profileId: string | null,
+    role: CommissionAppliesRole,
+    grossAmount: number,
+  ): Promise<{ amount: number; ruleId: string | null }> {
+    const now = new Date();
+
+    const rules = await manager.find(CommissionRule, {
+      where: {
+        event_type: eventType,
+        commission_type: commissionType,
+        is_active: true,
+      },
+      relations: ['tiers'],
+      order: { priority: 'DESC' },
+    });
+
+    const activeRules = rules.filter(
+      (r: any) =>
+        r.effective_from <= now &&
+        (r.effective_until === null || r.effective_until >= now),
+    );
+
+    const rule: any =
+      (profileId
+        ? activeRules.find((r: any) => r.applies_to_id === profileId)
+        : undefined) ??
+      activeRules.find(
+        (r: any) => r.applies_to_role === role && r.applies_to_id === null,
+      ) ??
+      activeRules.find(
+        (r: any) =>
+          r.applies_to_role === CommissionAppliesRole.ALL &&
+          r.applies_to_id === null,
+      );
+
+    if (!rule) {
+      const legacyAmount = await this.fromLegacySetting(
+        manager,
+        eventType,
+        commissionType,
+        grossAmount,
+      );
+      return { amount: legacyAmount, ruleId: null };
+    }
+
+    const matchedTier = (rule.tiers ?? []).find(
+      (t: any) =>
+        grossAmount >= Number(t.from_amount) &&
+        (t.to_amount === null || grossAmount <= Number(t.to_amount)),
+    );
+    const effectiveRate = matchedTier?.rate ?? rule.rate;
+    const effectiveMinCap = matchedTier?.min_cap ?? rule.min_cap;
+    const effectiveMaxCap = matchedTier?.max_cap ?? rule.max_cap;
+
+    let raw =
+      rule.rate_type === CommissionRateType.FIXED
+        ? Number(effectiveRate)
+        : grossAmount * (Number(effectiveRate) / 100);
+
+    if (effectiveMinCap !== null && effectiveMinCap !== undefined) {
+      raw = Math.max(raw, Number(effectiveMinCap));
+    }
+    if (effectiveMaxCap !== null && effectiveMaxCap !== undefined) {
+      raw = Math.min(raw, Number(effectiveMaxCap));
+    }
+
+    return { amount: Number(raw.toFixed(2)), ruleId: rule.id };
+  }
+
+  private async fromLegacySetting(
+    manager: any,
+    eventType: CommissionEventType,
+    commissionType: CommissionType,
+    grossAmount: number,
+  ): Promise<number> {
+    const LEGACY_SETTING_MAP: Partial<
+      Record<CommissionEventType, Partial<Record<CommissionType, string[]>>>
+    > = {
+      [CommissionEventType.CHAT]: {
+        [CommissionType.PLATFORM_FEE]: [
+          'COMMISION_FROM_ASTROLOGER',
+          'COMMISSION_FROM_ASTROLOGER',
+        ],
+        [CommissionType.SELLER_AGENT]: [
+          'COMMISION_FROM_ASTROLOGER',
+          'COMMISSION_FROM_ASTROLOGER',
+        ],
+        [CommissionType.BUYER_AGENT]: [
+          'COMMISION_FOR_BUYER_AGENT',
+          'COMMISSION_FOR_BUYER_AGENT',
+        ],
+        [CommissionType.GST]: ['GST_PERCENTAGE'],
+      },
+      [CommissionEventType.CALL]: {
+        [CommissionType.PLATFORM_FEE]: [
+          'COMMISION_FROM_ASTROLOGER',
+          'COMMISSION_FROM_ASTROLOGER',
+        ],
+        [CommissionType.SELLER_AGENT]: [
+          'COMMISION_FROM_ASTROLOGER',
+          'COMMISSION_FROM_ASTROLOGER',
+        ],
+        [CommissionType.BUYER_AGENT]: [
+          'COMMISION_FOR_BUYER_AGENT',
+          'COMMISSION_FOR_BUYER_AGENT',
+        ],
+        [CommissionType.GST]: ['GST_PERCENTAGE'],
+      },
+      [CommissionEventType.PUJA]: {
+        [CommissionType.PLATFORM_FEE]: [
+          'COMMISION_FROM_ASTROLOGER',
+          'COMMISSION_FROM_ASTROLOGER',
+        ],
+        [CommissionType.SELLER_AGENT]: [
+          'COMMISION_FROM_ASTROLOGER',
+          'COMMISSION_FROM_ASTROLOGER',
+        ],
+        [CommissionType.BUYER_AGENT]: [
+          'COMMISION_FOR_BUYER_AGENT',
+          'COMMISSION_FOR_BUYER_AGENT',
+        ],
+        [CommissionType.GST]: ['GST_PERCENTAGE'],
+      },
+      [CommissionEventType.PRODUCT_ORDER]: {
+        [CommissionType.PLATFORM_FEE]: [
+          'COMMISION_FROM_PUJA_SHOP',
+          'COMMISSION_FROM_PUJA_SHOP',
+        ],
+        [CommissionType.SELLER_AGENT]: [
+          'COMMISION_FROM_PUJA_SHOP',
+          'COMMISSION_FROM_PUJA_SHOP',
+        ],
+        [CommissionType.BUYER_AGENT]: [
+          'COMMISION_FOR_BUYER_AGENT',
+          'COMMISSION_FOR_BUYER_AGENT',
+        ],
+        [CommissionType.GST]: ['GST_PERCENTAGE'],
+      },
+    };
+
+    const DEFAULT_RATES: Partial<Record<CommissionType, number>> = {
+      [CommissionType.PLATFORM_FEE]: 3,
+      [CommissionType.SELLER_AGENT]: 3,
+      [CommissionType.BUYER_AGENT]: 3,
+      [CommissionType.GST]: 18,
+    };
+
+    const keys = LEGACY_SETTING_MAP[eventType]?.[commissionType] ?? [];
+    for (const key of keys) {
+      const setting = await manager.findOne(SystemSetting, { where: { key } });
+      if (setting?.value) {
+        const rate = parseFloat(setting.value);
+        if (commissionType === CommissionType.GST) {
+          return rate;
+        }
+        return Number((grossAmount * (rate / 100)).toFixed(2));
+      }
+    }
+    const defaultRate = DEFAULT_RATES[commissionType] ?? 3;
+    if (commissionType === CommissionType.GST) return defaultRate;
+    return Number((grossAmount * (defaultRate / 100)).toFixed(2));
+  }
+
+  private async credit(
+    manager: any,
+    profileId: string,
+    walletKey: string,
+    amount: number,
+    purpose: TransactionPurpose,
+    referenceId?: string,
+  ): Promise<Wallet> {
+    if (amount <= 0) throw new BadRequestException('Amount must be positive');
+
+    let wallet = await manager.findOne(Wallet, {
+      where: { [walletKey]: profileId },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    if (!wallet) {
+      const newWallet = new Wallet();
+      Object.assign(newWallet, { [walletKey]: profileId });
+      newWallet.balance = 0;
+      newWallet.reserved_balance = 0;
+      wallet = await manager.save(Wallet, newWallet);
+    }
+
+    await manager
+      .createQueryBuilder()
+      .update(Wallet)
+      .set({ balance: () => `balance + ${Number(amount)}` })
+      .where(`${walletKey} = :profileId`, { profileId })
+      .execute();
+
+    const balanceBefore = Number(wallet.balance) || 0;
+    const balanceAfter = balanceBefore + Number(amount);
+
+    const transaction = manager.create(Transaction, {
+      wallet_id: wallet.id,
+      amount,
+      balance_before: balanceBefore,
+      balance_after: balanceAfter,
+      type: TransactionType.CREDIT,
+      purpose,
+      reference_id: referenceId,
+    });
+    const savedTx = await manager.save(Transaction, transaction);
+
+    try {
+      const roleForTx =
+        walletKey === 'expert_id'
+          ? 'EXPERT'
+          : walletKey === 'merchant_id'
+            ? 'MERCHANT'
+            : walletKey === 'agent_id'
+              ? 'AGENT'
+              : 'CLIENT';
+
+      savedTx.transaction_no = generateTransactionNo(
+        roleForTx,
+        purpose,
+        savedTx.id,
+      );
+      await manager.save(Transaction, savedTx);
+    } catch (err) {
+      console.error(`[CREDIT_TX] Failed to generate transaction no: ${(err as Error).message}`);
+    }
+
+    const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+      [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
+      [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
+      [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
+      [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
+      [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+      [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
+      [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+    };
+
+    const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
+      client_id: GeneralLedgerPartyType.CLIENT,
+      expert_id: GeneralLedgerPartyType.EXPERT,
+      merchant_id: GeneralLedgerPartyType.MERCHANT,
+      agent_id: GeneralLedgerPartyType.AGENT,
+    };
+
+    void this.ledgerQueueService.enqueue({
+      event_id: referenceId ?? null,
+      event_type: purposeToLedgerEventType[purpose],
+      entry_type: GeneralLedgerEntryType.CREDIT,
+      party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+      party_id: profileId,
+      amount,
+    });
+
+    if (
+      walletKey === 'expert_id' &&
+      (purpose === TransactionPurpose.CONSULTATION ||
+        purpose === TransactionPurpose.PRODUCT_PURCHASE)
+    ) {
+      try {
+        const expertProfile = await manager.findOne(ProfileExpert, {
+          where: { id: profileId },
+          select: ['id'],
+        });
+
+        if (expertProfile) {
+          await manager
+            .createQueryBuilder()
+            .update(ProfileExpert)
+            .set({
+              total_earning: () => `COALESCE(total_earning, 0) + ${Number(amount)}`,
+            })
+            .where('id = :id', { id: expertProfile.id })
+            .execute();
+        }
+      } catch (e) {
+        console.error(`[CREDIT_TX] Earning tracking failed: ${(e as Error).message}`);
+      }
+    }
+
+    return wallet;
+  }
+
+  private async createCommissionSplit(
+    manager: any,
+    input: any,
+  ): Promise<CommissionSplit> {
+    const split = new CommissionSplit();
+    split.reference_id = input.referenceId;
+    split.reference_type = input.referenceType;
+    split.gross_amount = input.grossAmount;
+    split.platform_fee = input.platformFee;
+    split.gst = input.gst;
+    split.seller_agent_commission = input.sellerAgentCommission;
+    split.buyer_agent_commission = input.buyerAgentCommission;
+    split.provider_net = input.providerNet;
+    split.platform_net = Number((input.platformFee + input.gst).toFixed(2));
+    split.client_profile_id = input.clientProfileId ?? null;
+    split.provider_profile_id = input.providerProfileId ?? null;
+    split.seller_agent_profile_id = input.sellerAgentProfileId ?? null;
+    split.buyer_agent_profile_id = input.buyerAgentProfileId ?? null;
+    split.commission_rule_id = input.commissionRuleId ?? null;
+
+    const saved = await manager.save(CommissionSplit, split);
+
+    const splitRefTypeToLedgerEventType: Record<SplitReferenceType, GeneralLedgerEventType> = {
+      [SplitReferenceType.CHAT]: GeneralLedgerEventType.CONSULTATION,
+      [SplitReferenceType.CALL]: GeneralLedgerEventType.CONSULTATION,
+      [SplitReferenceType.PUJA]: GeneralLedgerEventType.PUJA,
+      [SplitReferenceType.ORDER]: GeneralLedgerEventType.PRODUCT_ORDER,
+    };
+
+    if (saved.platform_net > 0) {
+      void this.ledgerQueueService.enqueue({
+        event_id: saved.reference_id,
+        event_type: splitRefTypeToLedgerEventType[saved.reference_type],
+        entry_type: GeneralLedgerEntryType.CREDIT,
+        party_type: GeneralLedgerPartyType.PLATFORM,
+        party_id: null,
+        amount: saved.platform_net,
+        note: `platform_fee=${saved.platform_fee} gst=${saved.gst}`,
+      });
+    }
+
+    return saved;
   }
 }

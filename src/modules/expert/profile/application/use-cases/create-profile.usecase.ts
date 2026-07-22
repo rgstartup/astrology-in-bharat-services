@@ -6,7 +6,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { IUser } from '@/common/types/access-token.payload';
 import { CreateProfileExpertDto } from '../../api/dto/profile-expert.dto';
 import { Address } from '@/common/address/address.entity';
-import { GetProfileUseCase } from './get-profile.usecase';
+import { ExpertGateway } from '../../api/gateways/expert.gateway';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   ProfileUpdatedEvent,
@@ -22,7 +22,7 @@ export class CreateProfileUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
     @InjectRepository(Address)
     private readonly addressRepo: Repository<Address>,
-    private readonly getProfileUseCase: GetProfileUseCase,
+    private readonly expertGateway: ExpertGateway,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -114,7 +114,7 @@ export class CreateProfileUseCase {
         );
       }
 
-      return this.getProfileUseCase.execute(user, queryRunner);
+      return this.getProfileData(user, queryRunner);
     } catch (error) {
       this.logger.error(
         `Failed to create profile for user: ${user.id}`,
@@ -122,5 +122,78 @@ export class CreateProfileUseCase {
       );
       throw error;
     }
+  }
+
+  private async getProfileData(user: IUser, queryRunner?: QueryRunner) {
+    const repo = queryRunner
+      ? queryRunner.manager.getRepository(ProfileExpert)
+      : this.profileRepo;
+    const where = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
+    const profile = await repo.findOne({
+      where,
+      relations: ['user', 'addresses', 'pujas'],
+    });
+
+    if (!profile) {
+      return {
+        id: null,
+        user: {
+          id: user.id,
+          email: user.email,
+          roles: user.roles,
+        }
+      } as any;
+    }
+
+    const plain: Record<string, unknown> = { ...profile };
+
+    try {
+      if (Array.isArray(plain.pujas)) {
+        plain.pujas = (plain.pujas as unknown[]).map(
+          (p: Record<string, unknown>) => {
+            const { expert: _expert, ...rest } = p;
+            return rest;
+          },
+        );
+      }
+
+      if (Array.isArray(plain.addresses)) {
+        plain.addresses = (plain.addresses as unknown[]).map(
+          (a: Record<string, unknown>) => {
+            const { profile_expert: _pe, profile_client: _pc, ...rest } = a;
+            return rest;
+          },
+        );
+      }
+
+      plain.languages = profile.languages
+        ? profile.languages
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+
+      plain.userId = profile.user?.id;
+      plain.isAvailable = profile.is_available;
+
+      if (profile.user?.id) {
+        plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
+      } else {
+        plain.is_online = false;
+      }
+
+      plain.total_likes = (profile as any).total_likes || 0;
+      plain.custom_services = profile.custom_services || [];
+    } catch (err) {
+      this.logger.error(
+        `Error processing profile for user ${user.id}: ${(err as Error).message}`,
+        (err as Error).stack,
+      );
+      throw err;
+    }
+
+    return plain;
   }
 }

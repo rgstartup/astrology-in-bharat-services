@@ -10,15 +10,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { OrderItem } from '../../infrastructure/entities/order-item.entity';
-import { CartFacade } from '@/modules/commerce/cart/application/cart.facade';
 import { Cart } from '@/modules/commerce/cart/infrastructure/entities/cart.entity';
+import { CartItem } from '@/modules/commerce/cart/infrastructure/entities/cart-item.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
-import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
+import { Coupon, CouponStatus, CouponType } from '@/modules/commerce/coupon/infrastructure/entities/coupon.entity';
+import { UserCoupon } from '@/modules/commerce/coupon/infrastructure/entities/user-coupon.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { TransactionPurpose, Transaction, TransactionType } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {
@@ -31,12 +34,6 @@ export class CreateOrderFromCartUseCase {
     private orderItemRepo: Repository<OrderItem>,
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
-    @Inject(forwardRef(() => CartFacade))
-    private cartFacade: CartFacade,
-    @Inject(forwardRef(() => WalletFacade))
-    private walletFacade: WalletFacade,
-    @Inject(forwardRef(() => CouponFacade))
-    private couponFacade: CouponFacade,
     private dataSource: DataSource,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
@@ -50,6 +47,14 @@ export class CreateOrderFromCartUseCase {
     if (!shipping_address) {
       throw new BadRequestException('Shipping address is required');
     }
+
+    let platformSetting = await this.dataSource.getRepository(SystemSetting).findOne({ where: { key: 'PLATFORM_FEE' } });
+    if (!platformSetting) {
+      platformSetting = await this.dataSource.getRepository(SystemSetting).findOne({
+        where: { key: 'PLATFORM_FEE'.includes('COMMISSION') ? 'PLATFORM_FEE'.replace('COMMISSION', 'COMMISION') : 'PLATFORM_FEE'.replace('COMMISION', 'COMMISSION') }
+      });
+    }
+    const platformFee = platformSetting && platformSetting.value ? parseFloat(platformSetting.value) : 3;
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -116,7 +121,10 @@ export class CreateOrderFromCartUseCase {
         );
       } else {
         // 2. Handle Cart-based Order
-        const cart = (await this.cartFacade.getCart(profileId)) as Cart;
+        const cart = await queryRunner.manager.findOne(Cart, {
+          where: { client_id: profileId },
+          relations: ['items', 'items.product']
+        });
         if (!cart || !cart.items || cart.items.length === 0) {
           throw new BadRequestException('Cart is empty');
         }
@@ -170,32 +178,45 @@ export class CreateOrderFromCartUseCase {
 
       // 2.3 Apply Coupon if provided
       let discountAmount = 0;
+      let couponEntity: Coupon | null = null;
       if (dto.coupon_code) {
-        try {
-          const couponResult = await this.couponFacade.applyCoupon(
-            dto.coupon_code,
-            totalAmount,
-          );
-          if (couponResult && couponResult.success) {
-            discountAmount = couponResult.discount;
-            totalAmount = couponResult.final_amount;
-            this.logger.log(
-              `[CREATE_ORDER] Coupon applied successfully: ${dto.coupon_code}. Discount: ₹${discountAmount}, New totalAmount: ₹${totalAmount}`,
-            );
-          } else {
-            this.logger.warn(
-              `[CREATE_ORDER] Coupon application failed (success=false) for: ${dto.coupon_code}`,
-            );
-          }
-        } catch (error: unknown) {
-          this.logger.error(
-            `[CREATE_ORDER] Error applying coupon ${dto.coupon_code}: ${error instanceof Error ? error.message : String(error)}`,
-          );
-          throw new BadRequestException(
-            (error instanceof Error ? error.message : String(error)) ||
-              'Invalid coupon code',
-          );
+        couponEntity = await queryRunner.manager
+          .createQueryBuilder(Coupon, 'coupon')
+          .where('LOWER(coupon.code) = LOWER(:code)', { code: dto.coupon_code })
+          .andWhere('coupon.is_active = :isActive', { isActive: true })
+          .andWhere('coupon.status = :status', { status: CouponStatus.ACTIVE })
+          .getOne();
+
+        if (!couponEntity) {
+          throw new BadRequestException('Invalid coupon code');
         }
+
+        if (couponEntity.expiry_date && new Date(couponEntity.expiry_date) < new Date()) {
+          throw new BadRequestException('This coupon has expired');
+        }
+
+        if (couponEntity.max_usage_limit && couponEntity.usage_count >= couponEntity.max_usage_limit) {
+          throw new BadRequestException('This coupon has reached its usage limit');
+        }
+
+        if (couponEntity.min_order_value && totalAmount < couponEntity.min_order_value) {
+          throw new BadRequestException(`Minimum order value of ₹${couponEntity.min_order_value} is required for this coupon`);
+        }
+
+        if (couponEntity.type === CouponType.PERCENTAGE) {
+          discountAmount = (totalAmount * couponEntity.value) / 100;
+          if (couponEntity.max_discount && discountAmount > couponEntity.max_discount) {
+            discountAmount = couponEntity.max_discount;
+          }
+        } else {
+          discountAmount = couponEntity.value;
+        }
+
+        discountAmount = Math.min(discountAmount, totalAmount);
+        discountAmount = Number(discountAmount.toFixed(2));
+        totalAmount = Number((totalAmount - discountAmount).toFixed(2));
+        
+        this.logger.log(`[CREATE_ORDER] Coupon applied successfully: ${dto.coupon_code}. Discount: ₹${discountAmount}, New totalAmount: ₹${totalAmount}`);
       } else {
         this.logger.log(`[CREATE_ORDER] No coupon_code provided in DTO`);
       }
@@ -220,7 +241,6 @@ export class CreateOrderFromCartUseCase {
       totalAmount += totalShipping;
 
       // Add Platform Fee
-      const platformFee = await this.walletFacade.getAdminCommissionFromSetting('PLATFORM_FEE');
       totalAmount += platformFee;
       this.logger.log(`[CREATE_ORDER] Added platform fee ₹${platformFee}. Final totalAmount: ₹${totalAmount}`);
 
@@ -240,12 +260,22 @@ export class CreateOrderFromCartUseCase {
 
       if (isWalletPayment) {
         // Full Wallet Payment
-        const hasBalance = await this.walletFacade.validateBalance(
-          profileId,
-          'client_id',
-          totalAmount,
-        );
-        if (!hasBalance) {
+        let wallet = await queryRunner.manager.findOne(Wallet, {
+          where: { client_id: profileId },
+          lock: { mode: 'pessimistic_write' },
+        });
+
+        if (!wallet) {
+          wallet = queryRunner.manager.create(Wallet, {
+            client_id: profileId,
+            balance: 0,
+            reserved_balance: 0,
+          });
+          wallet = await queryRunner.manager.save(Wallet, wallet);
+        }
+
+        const balance = Number(wallet.balance) || 0;
+        if (balance < totalAmount) {
           throw new BadRequestException('Insufficient wallet balance');
         }
 
@@ -254,24 +284,62 @@ export class CreateOrderFromCartUseCase {
           `[CREATE_ORDER] [WALLET_DEBIT] Full wallet payment: ₹${finalDebitAmount}`,
         );
 
-        await this.walletFacade.debit(
-          profileId,
-          'client_id',
-          finalDebitAmount,
-          TransactionPurpose.PRODUCT_PURCHASE,
-          `order_wallet_payment`,
-          queryRunner,
-        );
+        await queryRunner.manager
+          .createQueryBuilder()
+          .update(Wallet)
+          .set({ balance: () => `balance - ${finalDebitAmount}` })
+          .where('client_id = :profileId', { profileId })
+          .execute();
+
+        const balanceBefore = balance;
+        const balanceAfter = balanceBefore - finalDebitAmount;
+
+        const transaction = queryRunner.manager.create(Transaction, {
+          wallet_id: wallet.id,
+          amount: finalDebitAmount,
+          balance_before: balanceBefore,
+          balance_after: balanceAfter,
+          type: TransactionType.DEBIT,
+          purpose: TransactionPurpose.PRODUCT_PURCHASE,
+          reference_id: `order_wallet_payment`,
+        });
+        const savedTx = await queryRunner.manager.save(Transaction, transaction);
+        
+        try {
+          savedTx.transaction_no = generateTransactionNo(
+            'CLIENT',
+            TransactionPurpose.PRODUCT_PURCHASE,
+            savedTx.id,
+          );
+          await queryRunner.manager.save(Transaction, savedTx);
+        } catch (err) {
+          this.logger.error(`[CREATE_ORDER] Failed to generate transaction no: ${(err as Error).message}`);
+        }
+
         this.logger.log(
           `[CREATE_ORDER] [WALLET_DEBIT] Successfully debited ₹${finalDebitAmount} from user ${userId}`,
         );
 
-        if (dto.coupon_code) {
-          await this.couponFacade.markCouponAsUsed(
-            profileId,
-            dto.coupon_code,
-            queryRunner.manager,
-          );
+        if (couponEntity) {
+          couponEntity.usage_count += 1;
+          await queryRunner.manager.save(Coupon, couponEntity);
+          
+          let userCoupon = await queryRunner.manager.findOne(UserCoupon, {
+            where: { client_id: profileId, coupon_id: couponEntity.id },
+          });
+
+          if (userCoupon) {
+            userCoupon.is_used = true;
+            userCoupon.used_at = new Date();
+          } else {
+            userCoupon = queryRunner.manager.create(UserCoupon, {
+              client_id: profileId,
+              coupon_id: couponEntity.id,
+              is_used: true,
+              used_at: new Date(),
+            });
+          }
+          await queryRunner.manager.save(UserCoupon, userCoupon);
         }
       } else if (isSplitPayment && walletAmountToUse > 0) {
         // Split Payment: Deduct wallet portion now, Razorpay will handle the rest
@@ -281,12 +349,22 @@ export class CreateOrderFromCartUseCase {
           );
         }
 
-        const hasBalance = await this.walletFacade.validateBalance(
-          profileId,
-          'client_id',
-          walletAmountToUse,
-        );
-        if (!hasBalance) {
+        let wallet = await queryRunner.manager.findOne(Wallet, {
+          where: { client_id: profileId },
+          lock: { mode: 'pessimistic_write' },
+        });
+
+        if (!wallet) {
+          wallet = queryRunner.manager.create(Wallet, {
+            client_id: profileId,
+            balance: 0,
+            reserved_balance: 0,
+          });
+          wallet = await queryRunner.manager.save(Wallet, wallet);
+        }
+
+        const balance = Number(wallet.balance) || 0;
+        if (balance < walletAmountToUse) {
           throw new BadRequestException(
             `Insufficient wallet balance. You need ₹${walletAmountToUse} in wallet for split payment`,
           );
@@ -296,24 +374,62 @@ export class CreateOrderFromCartUseCase {
           `[CREATE_ORDER] [SPLIT_PAYMENT] Deducting ₹${walletAmountToUse} from wallet. Remaining ₹${totalAmount - walletAmountToUse} via Razorpay`,
         );
 
-        await this.walletFacade.debit(
-          profileId,
-          'client_id',
-          walletAmountToUse,
-          TransactionPurpose.PRODUCT_PURCHASE,
-          `order_split_wallet_payment`,
-          queryRunner,
-        );
+        await queryRunner.manager
+          .createQueryBuilder()
+          .update(Wallet)
+          .set({ balance: () => `balance - ${walletAmountToUse}` })
+          .where('client_id = :profileId', { profileId })
+          .execute();
+
+        const balanceBefore = balance;
+        const balanceAfter = balanceBefore - walletAmountToUse;
+
+        const transaction = queryRunner.manager.create(Transaction, {
+          wallet_id: wallet.id,
+          amount: walletAmountToUse,
+          balance_before: balanceBefore,
+          balance_after: balanceAfter,
+          type: TransactionType.DEBIT,
+          purpose: TransactionPurpose.PRODUCT_PURCHASE,
+          reference_id: `order_split_wallet_payment`,
+        });
+        const savedTx = await queryRunner.manager.save(Transaction, transaction);
+        
+        try {
+          savedTx.transaction_no = generateTransactionNo(
+            'CLIENT',
+            TransactionPurpose.PRODUCT_PURCHASE,
+            savedTx.id,
+          );
+          await queryRunner.manager.save(Transaction, savedTx);
+        } catch (err) {
+          this.logger.error(`[CREATE_ORDER] Failed to generate transaction no: ${(err as Error).message}`);
+        }
+
         this.logger.log(
           `[CREATE_ORDER] [SPLIT_PAYMENT] Successfully debited wallet portion ₹${walletAmountToUse}`,
         );
 
-        if (dto.coupon_code) {
-          await this.couponFacade.markCouponAsUsed(
-            profileId,
-            dto.coupon_code,
-            queryRunner.manager,
-          );
+        if (couponEntity) {
+          couponEntity.usage_count += 1;
+          await queryRunner.manager.save(Coupon, couponEntity);
+          
+          let userCoupon = await queryRunner.manager.findOne(UserCoupon, {
+            where: { client_id: profileId, coupon_id: couponEntity.id },
+          });
+
+          if (userCoupon) {
+            userCoupon.is_used = true;
+            userCoupon.used_at = new Date();
+          } else {
+            userCoupon = queryRunner.manager.create(UserCoupon, {
+              client_id: profileId,
+              coupon_id: couponEntity.id,
+              is_used: true,
+              used_at: new Date(),
+            });
+          }
+          await queryRunner.manager.save(UserCoupon, userCoupon);
         }
       }
 
@@ -359,7 +475,13 @@ export class CreateOrderFromCartUseCase {
 
       // 5. Clear Cart
       if (!dto.product_id) {
-        await this.cartFacade.clearCart(profileId);
+        const cartToClear = await queryRunner.manager.findOne(Cart, {
+          where: { client_id: profileId },
+          relations: ['items'],
+        });
+        if (cartToClear && cartToClear.items.length > 0) {
+          await queryRunner.manager.remove(CartItem, cartToClear.items);
+        }
       }
 
       await queryRunner.commitTransaction();

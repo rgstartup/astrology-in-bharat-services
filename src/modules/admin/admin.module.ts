@@ -37,6 +37,7 @@ import { User } from '../users/infrastructure/entities/user.entity';
 import { AgentListing } from '../agent/infrastructure/entities/agent-listing.entity';
 import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { SupportModule } from '../support/support.module';
+import { Dispute } from '../support/infrastructure/entities/dispute.entity';
 import { PujaAppointment } from '../puja-appointment/infrastructure/entities/puja-appointment.entity';
 import { OrderItem } from '../commerce/order/infrastructure/entities/order-item.entity';
 import { Product } from '../commerce/product/infrastructure/entities/product.entity';
@@ -101,6 +102,7 @@ import { ToggleUserBlockUseCase } from './application/use-cases/toggle-user-bloc
       ProfileMerchant,
       ProfileExpert,
       ProfileClient,
+      Dispute,
     ]),
 
     UsersModule,

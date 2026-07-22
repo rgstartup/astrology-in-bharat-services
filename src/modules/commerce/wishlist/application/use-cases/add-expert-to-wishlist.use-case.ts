@@ -58,10 +58,10 @@ export class AddExpertToWishlistUseCase {
     await queryRunner.startTransaction();
     try {
       const currentLikes = Number(expert.total_likes) || 0;
-      await this.expertProfileFacade.updateProfileWithQueryRunner(
-        expert.user_id || expert.id,
+      await queryRunner.manager.update(
+        ProfileExpert,
+        { id: expert.id },
         { total_likes: currentLikes + 1 },
-        queryRunner,
       );
       await queryRunner.commitTransaction();
     } catch (err) {

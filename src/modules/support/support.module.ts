@@ -32,6 +32,6 @@ import { NotificationModule } from '../notification/notification.module';
     UpdateDisputeStatusUseCase,
   ],
   controllers: [SupportController],
-  exports: [SupportFacade],
+  exports: [SupportFacade, SupportGateway],
 })
 export class SupportModule {}

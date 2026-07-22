@@ -9,7 +9,6 @@ import { IUser } from '@/common/types/access-token.payload';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '../../domain/events/profile-events';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { Address, AddressTag } from '@/common/address/address.entity';
 
 @Injectable()
@@ -19,7 +18,8 @@ export class UpdateProfileUseCase {
   constructor(
     @InjectRepository(ProfileClient)
     private readonly repo: Repository<ProfileClient>,
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     @InjectRepository(Address)
     private readonly addressRepo: Repository<Address>,
     private readonly eventEmitter: EventEmitter2,
@@ -63,13 +63,13 @@ export class UpdateProfileUseCase {
     // Update the user's name in the User table if full_name is provided
     if (full_name !== undefined) {
       this.logger.log(`Updating full_name in users table for user ${user.id}: ${full_name}`);
-      await this.usersFacade.update(user.id, { name: full_name });
+      await this.userRepo.update({ id: user.id }, { name: full_name });
     }
 
     // Update the user's master avatar if profile_picture is provided
     if ((scalarFields as any).profile_picture !== undefined) {
       this.logger.log(`Updating avatar in users table for user ${user.id}: ${(scalarFields as any).profile_picture}`);
-      await this.usersFacade.update(user.id, { avatar: (scalarFields as any).profile_picture });
+      await this.userRepo.update({ id: user.id }, { avatar: (scalarFields as any).profile_picture });
     } else {
       this.logger.log(`No profile_picture provided in update payload for user ${user.id}. Payload: ${JSON.stringify(scalarFields)}`);
     }

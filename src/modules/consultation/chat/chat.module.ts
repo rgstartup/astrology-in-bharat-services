@@ -32,6 +32,7 @@ import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
+import { QueueModule } from '@/core/queue/queue.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/p
     NotificationModule,
     forwardRef(() => CouponModule),
     forwardRef(() => ExpertProfileModule),
+    QueueModule,
   ],
   providers: [
     ChatGateway,

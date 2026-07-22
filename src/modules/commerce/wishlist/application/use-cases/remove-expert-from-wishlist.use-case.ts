@@ -52,10 +52,10 @@ export class RemoveExpertFromWishlistUseCase {
         await queryRunner.connect();
         await queryRunner.startTransaction();
         try {
-          await this.expertProfileFacade.updateProfileWithQueryRunner(
-            profileExpert.user_id || profileExpert.id,
+          await queryRunner.manager.update(
+            ProfileExpert,
+            { id: profileExpert.id },
             { total_likes: currentLikes - 1 },
-            queryRunner,
           );
           await queryRunner.commitTransaction();
         } catch (err) {

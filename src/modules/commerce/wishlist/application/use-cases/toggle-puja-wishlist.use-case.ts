@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { DataSource } from 'typeorm';
+import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 
 @Injectable()
 export class TogglePujaWishlistUseCase {
@@ -10,6 +12,7 @@ export class TogglePujaWishlistUseCase {
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
     private readonly expertProfileFacade: ExpertProfileFacade,
+    private readonly dataSource: DataSource,
   ) {}
 
   async execute(
@@ -28,7 +31,7 @@ export class TogglePujaWishlistUseCase {
 
     if (existing) {
       await this.wishlistRepository.remove(existing);
-      await this.expertProfileFacade.updatePujaLikes(pujaId, -1);
+      await this.dataSource.manager.decrement(ExpertPuja, { id: pujaId }, 'total_likes', 1);
       currentTotalLikes = Math.max(0, currentTotalLikes - 1);
       liked = false;
     } else {
@@ -37,7 +40,7 @@ export class TogglePujaWishlistUseCase {
         puja,
       });
       await this.wishlistRepository.save(wishlist);
-      await this.expertProfileFacade.updatePujaLikes(pujaId, 1);
+      await this.dataSource.manager.increment(ExpertPuja, { id: pujaId }, 'total_likes', 1);
       currentTotalLikes = currentTotalLikes + 1;
       liked = true;
     }

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
-import { GetYearlyFestivalsUseCase } from './get-yearly-festivals.usecase';
+import { ProkeralaService } from '../../../../external/prokerala/prokerala.service';
 
 @Injectable()
 export class GetMonthlyCalendarUseCase {
@@ -11,7 +11,7 @@ export class GetMonthlyCalendarUseCase {
   constructor(
     @InjectRepository(CalendarCache)
     private readonly cacheRepository: Repository<CalendarCache>,
-    private readonly getYearlyFestivalsUseCase: GetYearlyFestivalsUseCase,
+    private readonly prokeralaService: ProkeralaService,
   ) {}
 
   async execute(
@@ -34,9 +34,29 @@ export class GetMonthlyCalendarUseCase {
 
     this.logger.log(`Fetching fresh monthly calendar for ${cacheKey}`);
 
+    // Inline: fetch yearly festivals (was previously in GetYearlyFestivalsUseCase)
     let festivalsRaw: any = {};
     try {
-      festivalsRaw = await this.getYearlyFestivalsUseCase.execute(year, lang);
+      const festivalCacheKey = `${year}-${lang}`;
+      const festivalCacheType = 'festivals';
+      const cachedFestivals = await this.cacheRepository.findOne({
+        where: { type: festivalCacheType, cacheKey: festivalCacheKey },
+      });
+
+      if (cachedFestivals) {
+        this.logger.log(`Serving cached yearly festivals for ${festivalCacheKey}`);
+        festivalsRaw = cachedFestivals.response;
+      } else {
+        this.logger.log(`Fetching fresh yearly festivals for ${festivalCacheKey}`);
+        const festivalResponse = await this.prokeralaService.getFestivals(year, lang);
+        const newFestivalCache = this.cacheRepository.create({
+          type: festivalCacheType,
+          cacheKey: festivalCacheKey,
+          response: festivalResponse,
+        });
+        await this.cacheRepository.save(newFestivalCache);
+        festivalsRaw = festivalResponse;
+      }
     } catch (e) {
       this.logger.error('Failed to fetch yearly festivals', e);
     }

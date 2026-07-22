@@ -9,8 +9,8 @@ import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
-import { UpdateProfileWithQueryRunnerUseCase as UpdateMerchantProfileWithQueryRunnerUseCase } from '@/modules/merchant/profile/application/use-cases/update-profile-with-query-runner.usecase';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 @Injectable()
 export class MerchantRegisterUserUseCase {
@@ -22,7 +22,6 @@ export class MerchantRegisterUserUseCase {
     private readonly issueTokens: IssueAuthTokensUseCase,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
-    private readonly updateMerchantProfileWithQueryRunnerUseCase: UpdateMerchantProfileWithQueryRunnerUseCase,
   ) {}
 
   async execute(dto: MerchantRegisterDto, _ip?: string, _userAgent?: string) {
@@ -49,14 +48,22 @@ export class MerchantRegisterUserUseCase {
 
       await this.profileCreationResolver.ensureProfile(user, queryRunner);
 
-      await this.updateMerchantProfileWithQueryRunnerUseCase.execute(
-        user.id,
-        {
+      let profile = await queryRunner.manager.findOne(ProfileMerchant, {
+        where: { user_id: user.id as unknown as ProfileMerchant['user_id'] },
+      });
+
+      if (profile) {
+        Object.assign(profile, { shopName: dto.shopName, phone: dto.phone });
+        await queryRunner.manager.save(ProfileMerchant, profile);
+      } else {
+        profile = queryRunner.manager.create(ProfileMerchant, {
+          user: { id: user.id },
+          user_id: user.id,
           shopName: dto.shopName,
           phone: dto.phone,
-        },
-        queryRunner,
-      );
+        });
+        await queryRunner.manager.save(ProfileMerchant, profile);
+      }
 
       this.sendEmail(user);
 
