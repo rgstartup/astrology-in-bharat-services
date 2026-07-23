@@ -23,6 +23,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@ishubhamx/panchangam-js": "^3.0.0",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -44,6 +45,7 @@
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.2",
+    "lunarphase-js": "^2.0.3",
     "ms": "^2.1.3",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.6",

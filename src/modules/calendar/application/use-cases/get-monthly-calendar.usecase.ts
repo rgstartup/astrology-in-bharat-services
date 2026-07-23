@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
-import { ProkeralaService } from '../../../../external/prokerala/prokerala.service';
+import { PanchangamService } from '../services/panchangam.service';
 
 @Injectable()
 export class GetMonthlyCalendarUseCase {
@@ -11,7 +11,7 @@ export class GetMonthlyCalendarUseCase {
   constructor(
     @InjectRepository(CalendarCache)
     private readonly cacheRepository: Repository<CalendarCache>,
-    private readonly prokeralaService: ProkeralaService,
+    private readonly panchangamService: PanchangamService,
   ) {}
 
   async execute(
@@ -21,8 +21,8 @@ export class GetMonthlyCalendarUseCase {
     lon: string,
     lang: string = 'en',
   ) {
-    const type = 'monthly';
-    const cacheKey = `${year}-${month}-${lang}-v3`;
+    const type = 'monthly-local';
+    const cacheKey = `${year}-${month}-${lang}-v1`;
 
     const cached = await this.cacheRepository.findOne({
       where: { type, cacheKey },
@@ -32,33 +32,31 @@ export class GetMonthlyCalendarUseCase {
       return cached.response;
     }
 
-    this.logger.log(`Fetching fresh monthly calendar for ${cacheKey}`);
+    this.logger.log(`Calculating fresh monthly calendar for ${cacheKey} locally`);
 
-    // Inline: fetch yearly festivals (was previously in GetYearlyFestivalsUseCase)
+    // Fetch yearly festivals from local service
     let festivalsRaw: any = {};
     try {
-      const festivalCacheKey = `${year}-${lang}`;
-      const festivalCacheType = 'festivals';
+      const festivalCacheKey = `${year}-${lang}-v1`;
+      const festivalCacheType = 'festivals-local';
       const cachedFestivals = await this.cacheRepository.findOne({
         where: { type: festivalCacheType, cacheKey: festivalCacheKey },
       });
 
       if (cachedFestivals) {
-        this.logger.log(`Serving cached yearly festivals for ${festivalCacheKey}`);
         festivalsRaw = cachedFestivals.response;
       } else {
-        this.logger.log(`Fetching fresh yearly festivals for ${festivalCacheKey}`);
-        const festivalResponse = await this.prokeralaService.getFestivals(year, lang);
+        const festivalResponse = this.panchangamService.getYearlyFestivals(year);
+        festivalsRaw = { data: festivalResponse };
         const newFestivalCache = this.cacheRepository.create({
           type: festivalCacheType,
           cacheKey: festivalCacheKey,
-          response: festivalResponse,
+          response: festivalsRaw,
         });
         await this.cacheRepository.save(newFestivalCache);
-        festivalsRaw = festivalResponse;
       }
     } catch (e) {
-      this.logger.error('Failed to fetch yearly festivals', e);
+      this.logger.error('Failed to calculate yearly festivals', e);
     }
 
     const festivalsList = (festivalsRaw?.data || []) as any[];
@@ -79,6 +77,9 @@ export class GetMonthlyCalendarUseCase {
         .filter((f) => f.date && f.date.startsWith(dateStr))
         .map((f) => f.name);
 
+      // We can also calculate Ekadashi, Amavasya, Purnima here if we need, 
+      // but the festival list from panchangam-js usually includes them!
+      
       monthlyData.push({
         date: dateStr,
         dayName,

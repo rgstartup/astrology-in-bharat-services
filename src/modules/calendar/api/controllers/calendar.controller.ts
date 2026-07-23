@@ -43,4 +43,13 @@ export class CalendarController {
   ) {
     return this.calendarFacade.getYearlyFestivals(parseInt(year), lang);
   }
+
+  @Public()
+  @Get('festival-details')
+  async getFestivalDetails(
+    @Query('name') name: string,
+    @Query('lang') lang: string = 'en',
+  ) {
+    return this.calendarFacade.getFestivalDetails(name, lang);
+  }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GetDailyPanchangUseCase } from './use-cases/get-daily-panchang.usecase';
 import { GetMonthlyCalendarUseCase } from './use-cases/get-monthly-calendar.usecase';
 import { GetYearlyFestivalsUseCase } from './use-cases/get-yearly-festivals.usecase';
+import { GetFestivalDetailsUseCase } from './use-cases/get-festival-details.usecase';
 
 @Injectable()
 export class CalendarFacade {
@@ -9,6 +10,7 @@ export class CalendarFacade {
     private readonly getDailyPanchangUseCase: GetDailyPanchangUseCase,
     private readonly getMonthlyCalendarUseCase: GetMonthlyCalendarUseCase,
     private readonly getYearlyFestivalsUseCase: GetYearlyFestivalsUseCase,
+    private readonly getFestivalDetailsUseCase: GetFestivalDetailsUseCase,
   ) {}
 
   async getDailyPanchang(
@@ -32,5 +34,9 @@ export class CalendarFacade {
 
   async getYearlyFestivals(year: number, lang: string = 'en') {
     return this.getYearlyFestivalsUseCase.execute(year, lang);
+  }
+
+  async getFestivalDetails(name: string, lang: string = 'en') {
+    return this.getFestivalDetailsUseCase.execute(name, lang);
   }
 }

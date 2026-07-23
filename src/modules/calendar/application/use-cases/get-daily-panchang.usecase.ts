@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
-import { ProkeralaService } from '../../../../external/prokerala/prokerala.service';
+import { PanchangamService } from '../services/panchangam.service';
 
 @Injectable()
 export class GetDailyPanchangUseCase {
@@ -11,98 +11,91 @@ export class GetDailyPanchangUseCase {
   constructor(
     @InjectRepository(CalendarCache)
     private readonly cacheRepository: Repository<CalendarCache>,
-    private readonly prokeralaService: ProkeralaService,
+    private readonly panchangamService: PanchangamService,
   ) {}
 
-  private formatTime(isoString: string): string {
-    if (!isoString) return '';
-    const match = isoString.match(/T(\d{2}):(\d{2})/);
-    if (match) {
-      let hours = parseInt(match[1], 10);
-      const minutes = match[2];
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const hoursStr = hours < 10 ? '0' + hours : hours.toString();
-      return `${hoursStr}:${minutes} ${ampm}`;
-    }
-    return isoString;
+  private formatTime(isoString: string | Date | undefined): string {
+    if (!isoString) return 'N/A';
+    const dateObj = typeof isoString === 'string' ? new Date(isoString) : isoString;
+    if (isNaN(dateObj.getTime())) return 'N/A';
+
+    // Convert UTC to IST (+5:30)
+    const utcMs = dateObj.getTime();
+    const istDate = new Date(utcMs + (5.5 * 60 * 60 * 1000));
+    
+    let hours = istDate.getUTCHours();
+    const minutes = istDate.getUTCMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const hoursStr = hours < 10 ? '0' + hours : hours.toString();
+    const minsStr = minutes < 10 ? '0' + minutes : minutes.toString();
+    return `${hoursStr}:${minsStr} ${ampm}`;
   }
 
-  private mapPanchangToFrontendSchema(rawResponse: Record<string, unknown>, dateStr: string) {
-    const data = (rawResponse?.data || rawResponse || {}) as Record<string, unknown>;
-    const panchang = (data.panchang || rawResponse?.panchang || data || {}) as Record<string, unknown>;
+  private mapPanchangToFrontendSchema(serviceData: any, dateStr: string) {
+    const { panchangam, moonPhase } = serviceData;
 
-    // Simple hash function for pseudo-random deterministic values based on date
+    // We can keep the deterministic mockup for dailyHoroscope
     const hash = dateStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    
-    // Dynamic Mock Values
-    const mockIllumination = (hash * 13) % 100;
-    const phases = ['New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous', 'Full Moon', 'Waning Gibbous', 'Third Quarter', 'Waning Crescent'];
-    const mockPhase = phases[hash % 8];
-    const mockDayLengthHour = 10 + (hash % 4);
-    const mockDayLengthMin = (hash * 7) % 60;
-    const mockNextFullMoon = `2026-${String((hash % 12) + 1).padStart(2, '0')}-${String((hash % 28) + 1).padStart(2, '0')}`;
-
-    const generateMuhurat = (offset: number) => {
-      const h1 = (hash + offset) % 12 || 12;
-      const m1 = (hash * offset) % 60;
-      const h2 = h1 + 1;
-      return {
-        start: `${String(h1).padStart(2, '0')}:${String(m1).padStart(2, '0')} ${h1 >= 6 && h1 < 12 ? 'AM' : 'PM'}`,
-        end: `${String(h2).padStart(2, '0')}:${String(m1).padStart(2, '0')} ${h2 >= 6 && h2 < 12 ? 'AM' : 'PM'}`,
-      };
-    };
-
     const colors = ['Red', 'Green', 'Yellow', 'White', 'Orange', 'Blue', 'Pink', 'Black', 'Purple', 'Brown', 'Cyan', 'Sea Green'];
     
-    const extractItem = (arr: Array<{ name?: string; start: string; end: string }>) => {
-      if (!arr || !Array.isArray(arr) || !arr.length) return null;
-      const item = arr[0];
-      return { name: item.name || '', start: this.formatTime(item.start), end: this.formatTime(item.end) };
+    // We'll calculate a mock day length if the true one isn't available easily
+    let dayLengthStr = '12h 0m 0s';
+    if (panchangam.sunrise && panchangam.sunset) {
+      const sunriseTime = new Date(panchangam.sunrise).getTime();
+      const sunsetTime = new Date(panchangam.sunset).getTime();
+      const diffMs = sunsetTime - sunriseTime;
+      const h = Math.floor(diffMs / 3600000);
+      const m = Math.floor((diffMs % 3600000) / 60000);
+      const s = Math.floor((diffMs % 60000) / 1000);
+      dayLengthStr = `${h}h ${m}m ${s}s`;
+    }
+
+    // Map Exact timings from Panchangam-js
+    const safeTimeRange = (obj: { start?: Date | string, end?: Date | string, startTime?: Date | string, endTime?: Date | string } | undefined) => {
+      if (!obj) return { start: 'N/A', end: 'N/A' };
+      return { start: this.formatTime(obj.start || obj.startTime), end: this.formatTime(obj.end || obj.endTime) };
     };
-
-    const getMuhurat = (periods: Array<{ name?: string; period?: Array<{ start: string; end: string }> }>, searchName: string) => {
-      if (!periods || !Array.isArray(periods)) return null;
-      const period = periods.find(p => p.name && p.name.toLowerCase().includes(searchName.toLowerCase()));
-      if (period && period.period && Array.isArray(period.period) && period.period.length > 0) {
-        return { start: this.formatTime(period.period[0].start), end: this.formatTime(period.period[0].end) };
-      }
-      return null;
-    };
-
-    type PeriodType = Array<{ name?: string; period?: Array<{ start: string; end: string }> }>;
-    type ItemType = Array<{ name?: string; start: string; end: string }>;
-
-    const auspicious = (panchang.auspicious_period || []) as PeriodType;
-    const inauspicious = (panchang.inauspicious_period || []) as PeriodType;
 
     return {
-      tithi: extractItem(panchang.tithi as ItemType) || { name: 'N/A', start: 'N/A', end: 'N/A' },
-      nakshatra: extractItem(panchang.nakshatra as ItemType) || { name: 'N/A', start: 'N/A', end: 'N/A' },
-      karana: extractItem(panchang.karana as ItemType) || { name: 'N/A', start: 'N/A', end: 'N/A' },
-      yoga: extractItem(panchang.yoga as ItemType) || { name: 'N/A', start: 'N/A', end: 'N/A' },
+      tithi: { 
+        name: panchangam.tithis?.[0]?.name || 'N/A', 
+        start: this.formatTime(panchangam.tithis?.[0]?.startTime), 
+        end: this.formatTime(panchangam.tithis?.[0]?.endTime) 
+      },
+      nakshatra: { 
+        name: panchangam.nakshatras?.[0]?.name || 'N/A', 
+        start: this.formatTime(panchangam.nakshatras?.[0]?.startTime), 
+        end: this.formatTime(panchangam.nakshatras?.[0]?.endTime) 
+      },
+      karana: { 
+        name: panchangam.karanas?.[0]?.name || 'N/A', 
+        start: this.formatTime(panchangam.karanas?.[0]?.startTime),
+        end: this.formatTime(panchangam.karanas?.[0]?.endTime) 
+      },
+      yoga: { 
+        name: panchangam.yogas?.[0]?.name || 'N/A', 
+        start: this.formatTime(panchangam.yogas?.[0]?.startTime), 
+        end: this.formatTime(panchangam.yogas?.[0]?.endTime) 
+      },
       shubhMuhurat: {
-        abhijit: getMuhurat(auspicious, 'abhijit') || generateMuhurat(1),
-        brahma: getMuhurat(auspicious, 'brahma') || generateMuhurat(2),
-        marriage: generateMuhurat(3),
-        grihaPravesh: generateMuhurat(4),
-        vehiclePurchase: generateMuhurat(5),
+        abhijit: safeTimeRange(panchangam.abhijitMuhurta),
+        brahma: safeTimeRange(panchangam.brahmaMuhurta),
+        marriage: safeTimeRange(panchangam.durMuhurta?.[0]), // Mocking marriage/griha with durMuhurta/govardhan for structure
+        grihaPravesh: safeTimeRange(panchangam.govardhanMuhurta),
+        vehiclePurchase: safeTimeRange(panchangam.amritKalam?.[0]),
       },
       ashubhMuhurat: {
-        rahuKalam: getMuhurat(inauspicious, 'rahu') || { start: 'N/A', end: 'N/A' },
-        yamaganda: getMuhurat(inauspicious, 'yamaganda') || { start: 'N/A', end: 'N/A' },
+        rahuKalam: safeTimeRange(panchangam.rahuKalamStart ? { start: panchangam.rahuKalamStart, end: panchangam.rahuKalamEnd } : undefined),
+        yamaganda: safeTimeRange(panchangam.yamagandaKalam),
       },
-      sunrise: this.formatTime(data.sunrise as string) || this.formatTime(panchang.sunrise as string) || '05:28 AM',
-      sunset: this.formatTime(data.sunset as string) || this.formatTime(panchang.sunset as string) || '07:12 PM',
-      moonrise: this.formatTime(data.moonrise as string) || this.formatTime(panchang.moonrise as string) || '09:15 AM',
-      moonset: this.formatTime(data.moonset as string) || this.formatTime(panchang.moonset as string) || '11:48 PM',
-      dayLength: `${mockDayLengthHour}h ${mockDayLengthMin}m 10s`,
-      moonPhase: {
-        current: mockPhase,
-        illumination: mockIllumination,
-        nextFullMoon: mockNextFullMoon
-      },
+      sunrise: this.formatTime(panchangam.sunrise) || '05:28 AM',
+      sunset: this.formatTime(panchangam.sunset) || '07:12 PM',
+      moonrise: this.formatTime(panchangam.moonrise) || '09:15 AM',
+      moonset: this.formatTime(panchangam.moonset) || '11:48 PM',
+      dayLength: dayLengthStr,
+      moonPhase: moonPhase,
       dailyHoroscope: [
         { sign: 'Aries', color: colors[(hash + 1) % colors.length], number: (hash % 9) + 1 },
         { sign: 'Taurus', color: colors[(hash + 2) % colors.length], number: ((hash + 1) % 9) + 1 },
@@ -121,8 +114,8 @@ export class GetDailyPanchangUseCase {
   }
 
   async execute(date: string, lat: string, lon: string, lang: string = 'en') {
-    const type = 'daily';
-    const cacheKey = `${date}-${lat}-${lon}-${lang}-v5`; // Increment version to bypass old caches
+    const type = 'daily-local';
+    const cacheKey = `${date}-${lat}-${lon}-${lang}-v3`;
 
     const cached = await this.cacheRepository.findOne({
       where: { type, cacheKey },
@@ -132,29 +125,14 @@ export class GetDailyPanchangUseCase {
       return cached.response;
     }
 
-    this.logger.log(`Fetching fresh daily panchang for ${cacheKey}`);
-    const datetime = `${date}T00:00:00+05:30`;
-    const rawResponse = await this.prokeralaService.getPanchangDaily({
-      datetime,
-      lat,
-      lon,
-      lang,
-    });
+    this.logger.log(`Calculating fresh daily panchang for ${cacheKey} locally`);
+    
+    // Defaulting to Delhi coords if unparseable
+    const latitude = parseFloat(lat) || 28.6139;
+    const longitude = parseFloat(lon) || 77.2090;
 
-    console.log(
-      '[DEBUG] Raw Prokerala Response Keys:',
-      Object.keys(rawResponse || {}),
-    );
-    if (rawResponse?.data)
-      console.log(
-        '[DEBUG] Raw Response Data Keys:',
-        Object.keys(rawResponse.data),
-      );
-
+    const rawResponse = this.panchangamService.getDailyPanchang(date, latitude, longitude);
     const response = this.mapPanchangToFrontendSchema(rawResponse, date);
-
-    console.log('[DEBUG] Mapped Response Tithi:', response.tithi);
-    console.log('[DEBUG] Mapped Response Sunrise:', response.sunrise);
 
     const newCache = this.cacheRepository.create({
       type,
