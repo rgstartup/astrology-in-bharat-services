@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderItem } from '../../infrastructure/entities/order-item.entity';
 import { Order } from '../../infrastructure/entities/order.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 
 @Injectable()
 export class MerchantOrderQueriesUseCase {
@@ -11,6 +12,8 @@ export class MerchantOrderQueriesUseCase {
     private readonly orderItemRepo: Repository<OrderItem>,
     @InjectRepository(Order)
     private readonly orderRepo: Repository<Order>,
+    @InjectRepository(SystemSetting)
+    private readonly settingRepo: Repository<SystemSetting>,
   ) {}
 
   async getMerchantTotalOrders(merchantId: string): Promise<number> {
@@ -134,9 +137,6 @@ export class MerchantOrderQueriesUseCase {
     orderId: string,
     otp: string,
     merchantId: string,
-    walletFacade: {
-      getAdminCommissionFromSetting: (setting: string) => Promise<number>;
-    },
   ): Promise<{ netPayout: number }> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId as unknown as string },
@@ -165,11 +165,15 @@ export class MerchantOrderQueriesUseCase {
     });
 
     // Payout calculation
-    const platformFeeRate = await walletFacade.getAdminCommissionFromSetting(
-      'COMMISION_FROM_PUJA_SHOP',
-    );
-    const gstRate =
-      await walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+    const platformSetting = await this.settingRepo.findOne({
+      where: { key: 'COMMISION_FROM_PUJA_SHOP' },
+    });
+    const gstSetting = await this.settingRepo.findOne({
+      where: { key: 'GST_PERCENTAGE' },
+    });
+
+    const platformFeeRate = platformSetting ? parseFloat(platformSetting.value) : 10;
+    const gstRate = gstSetting ? parseFloat(gstSetting.value) : 18;
 
     const estimatedFee = grossTotal * (platformFeeRate / 100);
     const estimatedGst = estimatedFee * (gstRate / 100);

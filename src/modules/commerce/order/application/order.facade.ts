@@ -57,8 +57,8 @@ export class OrderFacade {
     );
   }
 
-  async setRazorpayOrderId(orderId: string, razorpayOrderId: string) {
-    return this.setOrderRazorpayIdUseCase.execute(orderId, razorpayOrderId);
+  async setRazorpayOrderId(orderId: string, razorpayOrderId: string, queryRunner?: import('typeorm').QueryRunner) {
+    return this.setOrderRazorpayIdUseCase.execute(orderId, razorpayOrderId, queryRunner);
   }
 
   async getUserOrders(
@@ -154,13 +154,11 @@ export class OrderFacade {
     orderId: string,
     otp: string,
     merchantId: string,
-    walletFacade: WalletFacade,
   ) {
     return this.merchantOrderQueriesUseCase.verifyOrderOtp(
       orderId,
       otp,
       merchantId,
-      walletFacade,
     );
   }
 

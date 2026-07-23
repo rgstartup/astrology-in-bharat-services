@@ -8,7 +8,7 @@ import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UsedTokensService } from '../../infrastructure/services/used-tokens.service';
 import { EmailVerificationPolicy } from '../../domain/policies/email-verification.policy';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { AuthTokenService } from '../services/auth-token.service';
 
 @Injectable()
 export class VerifyEmailUseCase {
@@ -17,7 +17,7 @@ export class VerifyEmailUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly usedTokenService: UsedTokensService,
     private readonly tokenCrypto: TokenCryptoService,
-    private readonly issueTokens: IssueAuthTokensUseCase,
+    private readonly authTokenService: AuthTokenService,
   ) {}
 
   async execute(token: string) {
@@ -50,7 +50,7 @@ export class VerifyEmailUseCase {
       ]);
     });
 
-    const tokens = await this.issueTokens.execute(user);
+    const tokens = await this.authTokenService.issueAuthTokens(user);
 
     return {
       message: 'Email verified successfully',

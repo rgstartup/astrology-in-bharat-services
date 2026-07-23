@@ -2,12 +2,11 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileMerchant } from '../../infrastructure/entities/profile-merchant.entity';
 import { UpdateMerchantProfileDto } from '../../api/dto/update-merchant-profile.dto';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { MerchantGateway } from '../../api/gateways/merchant.gateway';
 import { EncryptionService } from '@/common/services/encryption.service';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
@@ -22,10 +21,10 @@ export class UpdateMerchantProfileUseCase {
     @InjectRepository(ProfileMerchant)
     private readonly merchantRepository: Repository<ProfileMerchant>,
     private readonly cloudinary: CloudinaryService,
-    private readonly usersFacade: UsersFacade,
     private readonly merchantGateway: MerchantGateway,
     private readonly encryptionService: EncryptionService,
     private readonly notificationFacade: NotificationFacade,
+    private readonly dataSource: DataSource,
   ) {}
 
   async execute(
@@ -47,29 +46,28 @@ export class UpdateMerchantProfileUseCase {
     this.logger.log(
       `[DEBUG] DTO Data Received: ${JSON.stringify(dto, null, 2)}`,
     );
-    this.logger.log(
-      `[DEBUG] Bank Details in DTO: bankName=${dto.bankName}, acc=${dto.accountNumber}, ifsc=${dto.ifsc}`,
-    );
-    this.logger.log(
-      `[DEBUG] Files keys: ${Object.keys(files || {}).join(',')}`,
-    );
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
       const whereClause = user.profile
         ? { id: user.profile, user: { id: userId } }
         : { user: { id: userId } };
-      let profile = await this.merchantRepository.findOne({
+      let profile = await queryRunner.manager.findOne(ProfileMerchant, {
         where: whereClause,
         relations: ['user'],
       });
 
       if (!profile) {
-        profile = this.merchantRepository.create({
+        profile = queryRunner.manager.create(ProfileMerchant, {
           user: { id: userId } as User,
         });
-        // Save immediately to ensure entity exists
-        profile = await this.merchantRepository.save(profile);
+        profile = await queryRunner.manager.save(ProfileMerchant, profile);
       }
+
+      let newAvatar: string | undefined = undefined;
 
       // Handle Image upload
       if (files?.image?.[0]) {
@@ -79,10 +77,7 @@ export class UpdateMerchantProfileUseCase {
           )) as Record<string, unknown>;
           if (uploadResult && 'secure_url' in uploadResult) {
             profile.image = uploadResult.secure_url as string;
-            // Also update user avatar as fallback
-            await this.usersFacade.update(userId, {
-              avatar: uploadResult.secure_url as string,
-            });
+            newAvatar = uploadResult.secure_url as string;
           }
         } catch (error: unknown) {
           this.logger.error(
@@ -109,14 +104,12 @@ export class UpdateMerchantProfileUseCase {
         }
       }
 
+      let newName: string | undefined = undefined;
+
       // Update basic details
       if (dto.name || dto.shopName) {
-        const newName = dto.name || dto.shopName;
+        newName = (dto.name || dto.shopName) as string;
         profile.shopName = newName ?? null;
-        // Also update the user entity name for consistency across the platform
-        await this.usersFacade.update(userId, {
-          name: newName,
-        });
       }
       if (dto.managerName) profile.managerName = dto.managerName;
       if (dto.phone) profile.phone = dto.phone;
@@ -277,18 +270,33 @@ export class UpdateMerchantProfileUseCase {
           JSON.stringify(dto.bank_accounts) !==
             JSON.stringify(profile.bank_accounts));
 
-      await this.merchantRepository.save(profile);
+      await queryRunner.manager.save(ProfileMerchant, profile);
+
+      // Update User name / avatar inside the same transaction
+      const userUpdates: Record<string, unknown> = {};
+      if (newName) userUpdates.name = newName;
+      if (newAvatar) userUpdates.avatar = newAvatar;
+
+      if (Object.keys(userUpdates).length > 0) {
+        await queryRunner.manager.update(User, userId, userUpdates);
+      }
+
+      await queryRunner.commitTransaction();
 
       // Trigger security notification if bank details changed
       if (bankDetailsChanged) {
-        await this.notificationFacade.create(
-          profile.id,
-          RoleEnum.MERCHANT,
-          NotificationType.GENERAL,
-          'Security Alert: Bank Details Updated',
-          'Your bank account information has been updated. If you did not make this change, please contact support immediately for security.',
-          { type: 'security_alert', timestamp: new Date() },
-        );
+        try {
+          await this.notificationFacade.create(
+            profile.id,
+            RoleEnum.MERCHANT,
+            NotificationType.GENERAL,
+            'Security Alert: Bank Details Updated',
+            'Your bank account information has been updated. If you did not make this change, please contact support immediately for security.',
+            { type: 'security_alert', timestamp: new Date() },
+          );
+        } catch (err) {
+          this.logger.error('Failed to send security notification', err);
+        }
       }
 
       if (statusChanged && this.merchantGateway) {
@@ -306,6 +314,9 @@ export class UpdateMerchantProfileUseCase {
 
       return new BooleanMessage(true, 'Profile updated successfully');
     } catch (error: unknown) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
       this.logger.error(
         'CRITICAL: UpdateMerchantProfileUseCase failed',
         (error as Error).stack,
@@ -314,6 +325,8 @@ export class UpdateMerchantProfileUseCase {
         false,
         'Internal server error during profile update',
       );
+    } finally {
+      await queryRunner.release();
     }
   }
 }

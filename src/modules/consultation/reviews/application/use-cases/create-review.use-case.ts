@@ -1,20 +1,17 @@
 import {
   Injectable,
-  Inject,
-  forwardRef,
   BadRequestException,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
-import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { Order, OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { CreateReviewDto } from '../../api/dto/create-review.dto';
 
 @Injectable()
@@ -26,12 +23,6 @@ export class CreateReviewUseCase {
     private readonly chatSessionRepository: Repository<ChatSession>,
     @InjectRepository(CallSession)
     private readonly callSessionRepository: Repository<CallSession>,
-    @Inject(forwardRef(() => ExpertProfileFacade))
-    private readonly expertProfileFacade: ExpertProfileFacade,
-    @Inject(forwardRef(() => MerchantProfileFacade))
-    private readonly merchantProfileFacade: MerchantProfileFacade,
-    @Inject(forwardRef(() => OrderFacade))
-    private readonly orderFacade: OrderFacade,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -47,48 +38,65 @@ export class CreateReviewUseCase {
       review_type,
     } = dto;
 
-    if (review_type === 'platform') {
-      return this.handlePlatformReview(clientId, rating, comment, tags);
-    }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!expert_id && !merchantId) {
-      throw new BadRequestException(
-        'Either expert_id or merchantId must be provided for expert/shop reviews',
-      );
-    }
+    try {
+      let resultReview: Review;
 
-    if (expert_id) {
-      return this.handleExpertReview(
-        clientId,
-        expert_id,
-        sessionId ?? undefined,
-        rating,
-        comment,
-        tags,
-      );
-    } else if (merchantId) {
-      return this.handleMerchantReview(
-        clientId,
-        merchantId,
-        orderId ?? undefined,
-        rating,
-        comment,
-        tags,
-      );
-    } else {
-      throw new BadRequestException(
-        'Either expert_id or merchantId must be provided',
-      );
+      if (review_type === 'platform') {
+        resultReview = await this.handlePlatformReview(queryRunner.manager, clientId, rating, comment, tags);
+      } else if (!expert_id && !merchantId) {
+        throw new BadRequestException(
+          'Either expert_id or merchantId must be provided for expert/shop reviews',
+        );
+      } else if (expert_id) {
+        resultReview = await this.handleExpertReview(
+          queryRunner.manager,
+          clientId,
+          expert_id,
+          sessionId ?? undefined,
+          rating,
+          comment,
+          tags,
+        );
+      } else if (merchantId) {
+        resultReview = await this.handleMerchantReview(
+          queryRunner.manager,
+          clientId,
+          merchantId,
+          orderId ?? undefined,
+          rating,
+          comment,
+          tags,
+        );
+      } else {
+        throw new BadRequestException(
+          'Either expert_id or merchantId must be provided',
+        );
+      }
+
+      await queryRunner.commitTransaction();
+      return resultReview;
+    } catch (err) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
   }
 
   private async handlePlatformReview(
+    manager: EntityManager,
     clientId: string,
     rating: number,
     comment?: string,
     tags?: string[],
   ) {
-    const review = this.reviewRepository.create({
+    const review = manager.create(Review, {
       client_id: clientId,
       rating,
       comment,
@@ -97,7 +105,7 @@ export class CreateReviewUseCase {
       status: 'pending',
     });
 
-    const savedReview = await this.reviewRepository.save(review);
+    const savedReview = await manager.save(Review, review);
 
     // Clean response for platform reviews
     const {
@@ -118,6 +126,7 @@ export class CreateReviewUseCase {
   }
 
   private async handleExpertReview(
+    manager: EntityManager,
     clientId: string,
     expert_id: string,
     sessionId: string | undefined,
@@ -125,38 +134,34 @@ export class CreateReviewUseCase {
     comment?: string,
     tags?: string[],
   ) {
-    const expert =
-      (await this.expertProfileFacade.getExpertById(expert_id)) ||
-      (await this.expertProfileFacade.getExpertByUserId(expert_id));
+    const expert = await manager.findOne(ProfileExpert, {
+      where: [{ id: expert_id }, { user: { id: expert_id } }],
+    });
     if (!expert) throw new NotFoundException('Expert not found');
 
-    // Ensure we use the actual primary ID for the rest of the logic
     const actualExpertId = expert.id;
 
     let chatSessionId: string | undefined = undefined;
     let callSessionId: string | undefined = undefined;
 
     if (sessionId) {
-      // Check chat session first
-      const chatSession = await this.chatSessionRepository.findOne({
+      const chatSession = await manager.findOne(ChatSession, {
         where: { id: sessionId as unknown as string },
       });
       if (chatSession) {
         chatSessionId = sessionId;
-        // Check for duplicate review
-        const existingReview = await this.reviewRepository.findOne({
+        const existingReview = await manager.findOne(Review, {
           where: { session_id: sessionId as unknown as string },
         });
         if (existingReview)
           throw new BadRequestException('Session already reviewed');
       } else {
-        // Try call session
-        const callSession = await this.callSessionRepository.findOne({
+        const callSession = await manager.findOne(CallSession, {
           where: { id: sessionId as unknown as string },
         });
         if (callSession) {
           callSessionId = sessionId;
-          const existingReview = await this.reviewRepository.findOne({
+          const existingReview = await manager.findOne(Review, {
             where: { call_session_id: sessionId as unknown as string },
           });
           if (existingReview)
@@ -165,16 +170,7 @@ export class CreateReviewUseCase {
       }
     }
 
-    console.log('[CreateReview] Payload:', {
-      clientId,
-      expert_id,
-      sessionId,
-      rating,
-      comment,
-      tags,
-    });
-
-    const review = this.reviewRepository.create({
+    const review = manager.create(Review, {
       client_id: clientId as unknown as string,
       expert: { id: actualExpertId } as unknown as Record<string, unknown>,
       session_id: chatSessionId ?? null,
@@ -186,12 +182,9 @@ export class CreateReviewUseCase {
       status: 'approved',
     });
 
-    console.log('[CreateReview] Review Object created:', review);
-
     try {
-      const savedReview = await this.reviewRepository.save(review);
-      console.log('[CreateReview] Review Saved:', savedReview.id);
-      await this.updateExpertRating(actualExpertId as string);
+      const savedReview = await manager.save(Review, review);
+      await this.updateExpertRating(manager, actualExpertId as string);
       return savedReview;
     } catch (error) {
       console.error('[CreateReview] Error saving review:', error);
@@ -200,6 +193,7 @@ export class CreateReviewUseCase {
   }
 
   private async handleMerchantReview(
+    manager: EntityManager,
     clientId: string,
     merchantId: string,
     orderId: string | undefined,
@@ -207,16 +201,18 @@ export class CreateReviewUseCase {
     comment?: string,
     tags?: string[],
   ) {
-    const merchant =
-      (await this.merchantProfileFacade.getProfileById(merchantId)) ||
-      (await this.merchantProfileFacade.getProfileByUserId(merchantId));
+    const merchant = await manager.findOne(ProfileMerchant, {
+      where: [{ id: merchantId }, { user: { id: merchantId } }],
+    });
     if (!merchant) throw new NotFoundException('Merchant not found');
 
     const actualMerchantId = merchant.id;
 
     if (orderId) {
-      // Use clientId (profile ID) to look up the order since orders are keyed to client_id
-      const order = await this.orderFacade.getOrderById(orderId, clientId);
+      const order = await manager.findOne(Order, {
+        where: { id: orderId, client_id: clientId },
+        relations: ['items', 'items.product'],
+      });
 
       if (!order) throw new NotFoundException('Order not found');
       if (order.status !== OrderStatus.DELIVERED) {
@@ -225,7 +221,6 @@ export class CreateReviewUseCase {
         );
       }
 
-      // Verify order contains products from this merchant
       const hasMerchantProduct = order.items.some(
         (item: { product?: { merchant_id?: string } }) =>
           item.product?.merchant_id === merchant.user_id ||
@@ -237,8 +232,7 @@ export class CreateReviewUseCase {
         );
       }
 
-      // Prevent duplicate review for same order and merchant
-      const existingReview = await this.reviewRepository.findOne({
+      const existingReview = await manager.findOne(Review, {
         where: {
           order_id: orderId as unknown as string,
           merchant_id: actualMerchantId,
@@ -250,7 +244,7 @@ export class CreateReviewUseCase {
         );
     }
 
-    const review = this.reviewRepository.create({
+    const review = manager.create(Review, {
       client_id: clientId as unknown as string,
       merchant_id: actualMerchantId,
       order_id: orderId ?? null,
@@ -261,14 +255,14 @@ export class CreateReviewUseCase {
       status: 'approved',
     });
 
-    const savedReview = await this.reviewRepository.save(review);
-    await this.updateMerchantRating(actualMerchantId);
+    const savedReview = await manager.save(Review, review);
+    await this.updateMerchantRating(manager, actualMerchantId);
     return savedReview;
   }
 
-  private async updateExpertRating(expert_id: string) {
-    const result = (await this.reviewRepository
-      .createQueryBuilder('review')
+  private async updateExpertRating(manager: EntityManager, expert_id: string) {
+    const result = (await manager
+      .createQueryBuilder(Review, 'review')
       .select('AVG(review.rating)', 'average')
       .addSelect('COUNT(review.id)', 'count')
       .where('review.expert_id = :expert_id', { expert_id })
@@ -283,17 +277,17 @@ export class CreateReviewUseCase {
       : 0;
     const count = result.count ? parseInt(result.count, 10) : 0;
 
-    await this.dataSource
+    await manager
       .createQueryBuilder()
-      .update('expert.profile')
+      .update(ProfileExpert)
       .set({ rating: average, total_reviews: count })
       .where('id = :expert_id', { expert_id })
       .execute();
   }
 
-  private async updateMerchantRating(merchantId: string) {
-    const result = (await this.reviewRepository
-      .createQueryBuilder('review')
+  private async updateMerchantRating(manager: EntityManager, merchantId: string) {
+    const result = (await manager
+      .createQueryBuilder(Review, 'review')
       .select('AVG(review.rating)', 'average')
       .addSelect('COUNT(review.id)', 'count')
       .where('review.merchant_id = :merchantId', { merchantId })
@@ -308,9 +302,9 @@ export class CreateReviewUseCase {
       : 0;
     const count = result.count ? parseInt(result.count, 10) : 0;
 
-    await this.dataSource
+    await manager
       .createQueryBuilder()
-      .update('merchant.profile')
+      .update(ProfileMerchant)
       .set({ rating: average, reviewCount: count })
       .where('id = :merchantId', { merchantId })
       .execute();

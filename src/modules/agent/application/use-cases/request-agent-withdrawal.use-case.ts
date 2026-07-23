@@ -1,5 +1,7 @@
 import { Injectable, BadRequestException, Inject, forwardRef } from '@nestjs/common';
-import { GetAgentProfileUseCase } from './get-agent-profile.use-case';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { RequestAgentWithdrawalDto } from '../../api/dto/request-agent-withdrawal.dto';
 import { IUser } from '@/common/types/access-token.payload';
@@ -7,7 +9,8 @@ import { IUser } from '@/common/types/access-token.payload';
 @Injectable()
 export class RequestAgentWithdrawalUseCase {
   constructor(
-    private readonly getAgentProfileUseCase: GetAgentProfileUseCase,
+    @InjectRepository(ProfileAgent)
+    private readonly profileAgentRepo: Repository<ProfileAgent>,
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
   ) {}
@@ -19,7 +22,10 @@ export class RequestAgentWithdrawalUseCase {
     ipUa: { ip: string; ua: string },
   ) {
     const { amount, bank_account_id } = dto;
-    const profile = await this.getAgentProfileUseCase.execute(user);
+    const where = user.profile
+      ? { id: user.profile, user_id: user.id }
+      : { user_id: user.id };
+    const profile = await this.profileAgentRepo.findOne({ where });
     if (!profile) {
       throw new BadRequestException('Agent profile not found');
     }

@@ -1,5 +1,4 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
+import { Injectable, Logger } from '@nestjs/common';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 
@@ -9,8 +8,6 @@ export class VerifyOrderOtpUseCase {
 
   constructor(
     private readonly orderFacade: OrderFacade,
-    @Inject(forwardRef(() => WalletFacade))
-    private readonly walletFacade: WalletFacade,
   ) {}
 
   async execute(merchantUserId: string, orderId: string, otp: string) {
@@ -18,7 +15,6 @@ export class VerifyOrderOtpUseCase {
       orderId,
       otp,
       merchantUserId,
-      this.walletFacade,
     );
 
     // 5. Update Status via Central Facade (Handles all commissions and settlements)

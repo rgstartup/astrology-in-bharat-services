@@ -4,7 +4,6 @@ import { MerchantRegisterDto } from '../../api/dto/merchant-register.dto';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -19,7 +18,6 @@ export class MerchantRegisterUserUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly eventEmitter: EventEmitter2,
     @Inject(IHasherToken) private readonly hasher: IHasher,
-    private readonly issueTokens: IssueAuthTokensUseCase,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
   ) {}

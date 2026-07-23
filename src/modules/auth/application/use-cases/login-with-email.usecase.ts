@@ -2,12 +2,12 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from '../../api/dto';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthPolicy } from '../../domain/policies/auth.policy';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { AuthTokenService } from '../services/auth-token.service';
 @Injectable()
 export class LoginWithEmailUseCase {
   constructor(
     private readonly usersFacade: UsersFacade,
-    private readonly issueTokens: IssueAuthTokensUseCase,
+    private readonly authTokenService: AuthTokenService,
     private readonly authPolicy: AuthPolicy,
   ) {}
 
@@ -27,7 +27,7 @@ export class LoginWithEmailUseCase {
 
     this.authPolicy.ensureHasRequiredRole(user, dto.requiredRole);
 
-    const tokens = await this.issueTokens.execute(
+    const tokens = await this.authTokenService.issueAuthTokens(
       user,
       dto.requiredRole,
       ip,

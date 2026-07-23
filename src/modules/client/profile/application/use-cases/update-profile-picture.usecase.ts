@@ -4,10 +4,9 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '../../domain/events/profile-events';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -21,7 +20,7 @@ export class UpdateProfilePictureUseCase {
     private readonly cloudinaryService: CloudinaryService,
     @InjectRepository(ProfileClient)
     private readonly profileRepo: Repository<ProfileClient>,
-    private readonly usersFacade: UsersFacade,
+    private readonly dataSource: DataSource,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -33,40 +32,55 @@ export class UpdateProfilePictureUseCase {
       };
       const pictureUrl = result.secure_url;
 
-      // 2. Find or create profile
-      const whereClause = user.profile
-        ? { id: user.profile, user: { id: user.id } }
-        : { user: { id: user.id } };
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-      let profile = await this.profileRepo.findOne({ where: whereClause });
+      try {
+        // 2. Find or create profile
+        const whereClause = user.profile
+          ? { id: user.profile, user: { id: user.id } }
+          : { user: { id: user.id } };
 
-      if (!profile) {
-        profile = this.profileRepo.create({
-          user: { id: user.id } as unknown as User,
-          gender: 'other',
-        });
-        await this.profileRepo.save(profile);
-        profile = await this.profileRepo.findOne({ where: whereClause });
+        let profile = await queryRunner.manager.findOne(ProfileClient, { where: whereClause });
+
+        if (!profile) {
+          profile = queryRunner.manager.create(ProfileClient, {
+            user: { id: user.id } as unknown as User,
+            gender: 'other',
+          });
+          await queryRunner.manager.save(ProfileClient, profile);
+          profile = await queryRunner.manager.findOne(ProfileClient, { where: whereClause });
+        }
+
+        // 3. Update profile_picture on ProfileClient
+        profile!.profile_picture = pictureUrl;
+        await queryRunner.manager.save(ProfileClient, profile!);
+
+        // 4. Sync avatar on User table
+        await queryRunner.manager.update(User, { id: user.id }, { avatar: pictureUrl });
+
+        await queryRunner.commitTransaction();
+
+        // 5. Emit event
+        this.eventEmitter.emit(
+          'client.profile.updated',
+          new ProfileUpdatedEvent(
+            user.id,
+            profile!.id,
+            { profile_picture: pictureUrl },
+          ),
+        );
+
+        return { success: true };
+      } catch (err) {
+        if (queryRunner.isTransactionActive) {
+          await queryRunner.rollbackTransaction();
+        }
+        throw err;
+      } finally {
+        await queryRunner.release();
       }
-
-      // 3. Update profile_picture on ProfileClient
-      profile!.profile_picture = pictureUrl;
-      await this.profileRepo.save(profile!);
-
-      // 4. Sync avatar on User table
-      await this.usersFacade.update(user.id, { avatar: pictureUrl });
-
-      // 5. Emit event
-      this.eventEmitter.emit(
-        'client.profile.updated',
-        new ProfileUpdatedEvent(
-          user.id,
-          profile!.id,
-          { profile_picture: pictureUrl },
-        ),
-      );
-
-      return { success: true };
     } catch (error: unknown) {
       const err = error as Error;
       this.logger.error(

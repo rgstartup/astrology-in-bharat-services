@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import {
   IPaymentGateway,
   PAYMENT_GATEWAY,
@@ -27,7 +27,8 @@ export class CreatePaymentOrderUseCase {
     private readonly paymentGateway: IPaymentGateway,
     private readonly orderFacade: OrderFacade,
     private readonly configService: ConfigService,
-  ) {}
+    private readonly dataSource: DataSource,
+  ) { }
 
   async execute(user: IUser, dto: CreateOrderDto) {
     const userId = user.id;
@@ -57,24 +58,40 @@ export class CreatePaymentOrderUseCase {
         notes: options.notes,
       });
 
-      const paymentOrder = this.paymentOrderRepo.create({
-        client_id: user.profile || null,
-        razorpay_order_id: order.providerOrderId,
-        amount,
-        notes: options.notes,
-        status: PaymentStatus.PENDING,
-      });
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-      await this.paymentOrderRepo.save(paymentOrder);
+      try {
+        const paymentOrder = queryRunner.manager.create(PaymentOrder, {
+          client_id: user.profile || null,
+          razorpay_order_id: order.providerOrderId,
+          amount,
+          notes: options.notes,
+          status: PaymentStatus.PENDING,
+        });
 
-      // If it's a product order, link the Razorpay Order ID to the internal order
-      const notesRecord = (notes || {}) as Record<string, unknown>;
-      const internalOrderId = notesRecord.orderId || notesRecord.order_id;
-      if (type === 'product' && internalOrderId) {
-        await this.orderFacade.setRazorpayOrderId(
-          internalOrderId as string,
-          order.providerOrderId,
-        );
+        await queryRunner.manager.save(PaymentOrder, paymentOrder);
+
+        // If it's a product order, link the Razorpay Order ID to the internal order
+        const notesRecord = (notes || {}) as Record<string, unknown>;
+        const internalOrderId = notesRecord.orderId || notesRecord.order_id;
+        if (type === 'product' && internalOrderId) {
+          await this.orderFacade.setRazorpayOrderId(
+            internalOrderId as string,
+            order.providerOrderId,
+            queryRunner,
+          );
+        }
+
+        await queryRunner.commitTransaction();
+      } catch (dbErr) {
+        if (queryRunner.isTransactionActive) {
+          await queryRunner.rollbackTransaction();
+        }
+        throw dbErr;
+      } finally {
+        await queryRunner.release();
       }
 
       return {

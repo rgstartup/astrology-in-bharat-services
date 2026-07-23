@@ -35,7 +35,7 @@ export class EndCallUseCase {
     private readonly ledgerQueueService: LedgerQueueService,
     private readonly dataSource: DataSource,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(
     dto: EndCallDto,
@@ -361,15 +361,15 @@ export class EndCallUseCase {
         if (expert) {
           const startTime = savedSession.start_time
             ? savedSession.start_time.toLocaleTimeString('en-IN', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
+              hour: '2-digit',
+              minute: '2-digit',
+            })
             : 'N/A';
           const endTime = savedSession.end_time
             ? savedSession.end_time.toLocaleTimeString('en-IN', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
+              hour: '2-digit',
+              minute: '2-digit',
+            })
             : 'N/A';
           const expertName =
             (expertUser?.name as string | null) ||
@@ -942,6 +942,6 @@ export class EndCallUseCase {
       });
     }
 
-    return saved;
+    return saved();
   }
 }

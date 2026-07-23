@@ -2,6 +2,10 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './infrastructure/entities/order.entity';
 import { OrderItem } from './infrastructure/entities/order-item.entity';
+import { QueueModule } from '@/core/queue/queue.module';
+//import by me 
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+
 import {
   OrderController,
   OrderSingularController,
@@ -31,11 +35,16 @@ import { AdminModule } from '@/modules/admin/admin.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
-import { QueueModule } from '@/core/queue/queue.module';
+import { OrderService } from './application/services/order.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, Product]),
+    TypeOrmModule.forFeature([
+      Order,
+      OrderItem,
+      Product,
+      SystemSetting,
+    ]),
     forwardRef(() => ClientProfileModule),
     forwardRef(() => PujaAppointmentModule),
     forwardRef(() => CartModule),
@@ -51,6 +60,7 @@ import { QueueModule } from '@/core/queue/queue.module';
   ],
   controllers: [OrderController, OrderSingularController],
   providers: [
+    OrderService,
     OrderFacade,
     CreateOrderFromCartUseCase,
     MarkOrderAsPaidUseCase,
@@ -67,4 +77,4 @@ import { QueueModule } from '@/core/queue/queue.module';
   ],
   exports: [OrderFacade, GetOrderEarningsUseCase],
 })
-export class OrderModule {}
+export class OrderModule { }

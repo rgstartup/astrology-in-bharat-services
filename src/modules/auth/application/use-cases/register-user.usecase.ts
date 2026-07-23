@@ -1,10 +1,10 @@
-﻿import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RegisterDto } from '../../api/dto';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { AuthTokenService } from '../services/auth-token.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -21,7 +21,7 @@ export class RegisterUserUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly eventEmitter: EventEmitter2,
     @Inject(IHasherToken) private readonly hasher: IHasher,
-    private readonly issueTokens: IssueAuthTokensUseCase,
+    private readonly authTokenService: AuthTokenService,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
     private readonly walletFacade: WalletFacade,
@@ -36,7 +36,7 @@ export class RegisterUserUseCase {
         queryRunner,
       );
 
-      // ðŸ” domain rule (Atomic check)
+      // ðŸ”  domain rule (Atomic check)
       RegistrationPolicy.ensureEmailIsUnique(existingUser);
 
       const hashedPassword = await this.hasher.hash(dto.password);
@@ -66,7 +66,7 @@ export class RegisterUserUseCase {
         );
       }
 
-      const tokens = await this.issueTokens.execute(
+      const tokens = await this.authTokenService.issueAuthTokens(
         user,
         dto.roles[0],
         ip,

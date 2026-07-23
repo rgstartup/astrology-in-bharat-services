@@ -6,7 +6,7 @@ import {
 import { Profile } from 'passport-google-oauth20';
 import { DatabaseService } from '@/core/database/database.service';
 import { OAuthService } from '../../infrastructure/services/oauth.service';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { AuthTokenService } from '../services/auth-token.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 
@@ -17,7 +17,7 @@ export class LoginWithGoogleUseCase {
   constructor(
     private readonly db: DatabaseService,
     private readonly oauthService: OAuthService,
-    private readonly issueTokens: IssueAuthTokensUseCase,
+    private readonly authTokenService: AuthTokenService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
     private readonly usersFacade: UsersFacade,
   ) {}
@@ -68,7 +68,7 @@ export class LoginWithGoogleUseCase {
 
       await this.profileCreationResolver.ensureProfile(user, qr);
 
-      const tokens = await this.issueTokens.execute(
+      const tokens = await this.authTokenService.issueAuthTokens(
         user,
         roleToAdd,
         input.ip,

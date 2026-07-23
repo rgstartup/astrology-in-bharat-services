@@ -13,6 +13,7 @@ import { NotificationModule } from '@/modules/notification/notification.module';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { TodosModule } from '@/modules/expert/todos/todos.module';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { QueueModule } from '@/core/queue/queue.module';
 
 import { PujaAppointmentFacade } from './application/puja-appointment.facade';
 
@@ -23,6 +24,7 @@ import { PujaAppointmentFacade } from './application/puja-appointment.facade';
     NotificationModule,
     forwardRef(() => WalletModule),
     TodosModule,
+    QueueModule,
   ],
   controllers: [PujaAppointmentController],
   providers: [

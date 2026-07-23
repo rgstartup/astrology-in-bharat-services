@@ -7,7 +7,7 @@ import {
   CouponStatus,
 } from '../../infrastructure/entities/coupon.entity';
 import { UserCoupon } from '../../infrastructure/entities/user-coupon.entity';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class BulkAssignCouponUseCase {
@@ -17,7 +17,6 @@ export class BulkAssignCouponUseCase {
     @InjectRepository(Coupon)
     private readonly couponRepo: Repository<Coupon>,
     private readonly databaseService: DatabaseService,
-    private readonly clientProfileFacade: ClientProfileFacade,
   ) {}
 
   async execute(couponCode: string, userIds: string[]) {
@@ -39,10 +38,9 @@ export class BulkAssignCouponUseCase {
 
     await this.databaseService.transaction(async (queryRunner) => {
       for (const userId of userIds) {
-        const profileClient = await this.clientProfileFacade.getProfile({
-          id: userId,
-          email: '',
-          roles: [],
+        const profileClient = await queryRunner.manager.findOne(ProfileClient, {
+          where: { user: { id: userId } },
+          select: ['id'],
         });
         if (!profileClient) continue;
 

@@ -7,7 +7,7 @@ import {
 import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { AuthTokenService } from '../services/auth-token.service';
 import { CompleteRegisterDto } from '../../api/dto/email-register.dto';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
@@ -23,7 +23,7 @@ export class CompleteEmailRegistrationUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
     @Inject(IHasherToken) private readonly hasher: IHasher,
-    private readonly issueTokens: IssueAuthTokensUseCase,
+    private readonly authTokenService: AuthTokenService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
   ) {}
 
@@ -234,7 +234,7 @@ export class CompleteEmailRegistrationUseCase {
       }
 
       // 5. Issue Tokens
-      const tokens = await this.issueTokens.execute(
+      const tokens = await this.authTokenService.issueAuthTokens(
         updatedUser!,
         updatedUser!.roles[0],
         ip,

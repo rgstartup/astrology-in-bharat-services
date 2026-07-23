@@ -75,10 +75,12 @@ export class NotificationController {
 
   @Patch(':id/read')
   async markAsRead(
+    @CurrentUser() user: IUser,
     @CurrentProfile() profileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const _result = await this.notificationFacade.markAsRead(id, profileId);
+    const profileType = deriveProfileType(user.roles);
+    const _result = await this.notificationFacade.markAsRead(id, profileId, profileType);
     return { success: true };
   }
 

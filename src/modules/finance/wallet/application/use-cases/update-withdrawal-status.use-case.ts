@@ -2,8 +2,6 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,16 +17,16 @@ import {
 } from '../../infrastructure/entities/transaction.entity';
 import { RazorpayPayoutService } from '../../infrastructure/gateways/razorpay-payout.service';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
-import { AgentFacade } from '@/modules/agent/application/agent.facade';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AdminAuditLog } from '@/modules/admin/infrastructure/entities/admin-audit-log.entity';
 import {
   NotificationType,
   ProfileType,
 } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class UpdateWithdrawalStatusUseCase {
@@ -38,13 +36,6 @@ export class UpdateWithdrawalStatusUseCase {
     private readonly dataSource: DataSource,
     private readonly razorpayPayoutService: RazorpayPayoutService,
     private readonly notificationFacade: NotificationFacade,
-    @Inject(forwardRef(() => ExpertProfileFacade))
-    private readonly expertFacade: ExpertProfileFacade,
-    @Inject(forwardRef(() => MerchantProfileFacade))
-    private readonly merchantFacade: MerchantProfileFacade,
-    @Inject(forwardRef(() => AgentFacade))
-    private readonly agentFacade: AgentFacade,
-    private readonly usersFacade: UsersFacade,
   ) {}
 
   async execute(
@@ -62,13 +53,6 @@ export class UpdateWithdrawalStatusUseCase {
     }
 
     const oldStatus = withdrawal.status;
-
-    // Only allow status updates if not in a final state
-    // const isCurrentlyFinal = withdrawal.status === WithdrawalStatus.SUCCESS ||
-    //     withdrawal.status === WithdrawalStatus.COMPLETED ||
-    //     withdrawal.status === WithdrawalStatus.REJECTED ||
-    //     withdrawal.status === WithdrawalStatus.REVERSED ||
-    //     withdrawal.status === WithdrawalStatus.CANCELLED;
 
     const isCurrentlyFinal = [
       WithdrawalStatus.SUCCESS,
@@ -107,7 +91,7 @@ export class UpdateWithdrawalStatusUseCase {
 
       // --- AUTO PAYOUT INTEGRATION ---
       if (status === WithdrawalStatus.APPROVED) {
-        // Try to find either Expert or Agent profile using Facades (read outside transaction)
+        // Try to find either Expert or Agent profile (read inside transaction)
         type ProfileInfo = {
           id: string;
           user_id: string;
@@ -120,19 +104,17 @@ export class UpdateWithdrawalStatusUseCase {
         let user: UserInfo | null = null;
 
         if (withdrawal.expert_id) {
-          profile = (await this.expertFacade.getExpertById(
-            withdrawal.expert_id,
-          )) as unknown as ProfileInfo;
+          profile = (await queryRunner.manager.findOne(ProfileExpert, {
+            where: { id: withdrawal.expert_id },
+          })) as unknown as ProfileInfo;
         } else if (withdrawal.agent_profile_id) {
-          profile = (await this.dataSource
-            .getRepository('ProfileAgent')
-            .findOne({
-              where: { id: withdrawal.agent_profile_id },
-            })) as unknown as ProfileInfo; // Safe read fallback
+          profile = (await queryRunner.manager.findOne(ProfileAgent, {
+            where: { id: withdrawal.agent_profile_id },
+          })) as unknown as ProfileInfo;
         } else if (withdrawal.merchant_id) {
-          profile = (await this.merchantFacade.getProfileById(
-            withdrawal.merchant_id,
-          )) as unknown as ProfileInfo;
+          profile = (await queryRunner.manager.findOne(ProfileMerchant, {
+            where: { id: withdrawal.merchant_id },
+          })) as unknown as ProfileInfo;
         }
 
         if (!profile)
@@ -140,9 +122,9 @@ export class UpdateWithdrawalStatusUseCase {
             'User profile (Expert, Agent or Merchant) not found',
           );
 
-        user = (await this.usersFacade.findById(
-          profile.user_id,
-        )) as unknown as UserInfo;
+        user = (await queryRunner.manager.findOne(User, {
+          where: { id: profile.user_id },
+        })) as unknown as UserInfo;
 
         // 1. Get or Create Razorpay Contact
         if (!profile.razorpay_contact_id) {
@@ -156,22 +138,22 @@ export class UpdateWithdrawalStatusUseCase {
 
           // Save to the correct table via queryRunner
           if (withdrawal.expert_id) {
-            await this.expertFacade.updateProfileWithQueryRunner(
-              profile.id,
+            await queryRunner.manager.update(
+              ProfileExpert,
+              { id: profile.id },
               { razorpay_contact_id: newContactId },
-              queryRunner,
             );
           } else if (withdrawal.merchant_id) {
-            await this.merchantFacade.updateProfileWithQueryRunner(
-              profile.id,
+            await queryRunner.manager.update(
+              ProfileMerchant,
+              { id: profile.id },
               { razorpay_contact_id: newContactId },
-              queryRunner,
             );
           } else if (withdrawal.agent_profile_id) {
-            await this.agentFacade.updateProfileWithQueryRunner(
-              profile.id,
+            await queryRunner.manager.update(
+              'ProfileAgent',
+              { id: profile.id },
               { razorpay_contact_id: newContactId },
-              queryRunner,
             );
           }
 
@@ -188,12 +170,9 @@ export class UpdateWithdrawalStatusUseCase {
         };
         let bankAccount: BankAccountInfo | null = null;
         if (withdrawal.bank_account_id) {
-          // Safe read outside transaction, since bank account is largely immutable for the payout details
-          bankAccount = (await this.dataSource
-            .getRepository('BankAccount')
-            .findOne({
-              where: { id: withdrawal.bank_account_id },
-            })) as unknown as BankAccountInfo;
+          bankAccount = (await queryRunner.manager.findOne('BankAccount', {
+            where: { id: withdrawal.bank_account_id },
+          })) as unknown as BankAccountInfo;
         }
 
         // Sanitize and Validate bank details (prefer snapshot from withdrawal record)
@@ -228,7 +207,7 @@ export class UpdateWithdrawalStatusUseCase {
         let tempFundAccountId = '';
 
         if (!bankAccount || !bankAccount.razorpay_fund_account_id) {
-          // Create fund account on the fly if not already saved in a BankAccount record
+          // Create fund account on the fly
           const fundAccountId =
             await this.razorpayPayoutService.getOrCreateFundAccount(
               profile.razorpay_contact_id,
@@ -248,7 +227,6 @@ export class UpdateWithdrawalStatusUseCase {
             );
           }
 
-          // Temporary variable for the initiation step
           tempFundAccountId = fundAccountId;
         } else {
           tempFundAccountId = bankAccount.razorpay_fund_account_id;
@@ -338,15 +316,13 @@ export class UpdateWithdrawalStatusUseCase {
             reference_id: `REFUND-WD-${withdrawal.id}`,
             balance_before,
             balance_after,
-            // Note: If you want to show the admin remark, we can prepend it to the reference_id
-            // or just rely on the withdrawal record which we'll fetch in the mapper.
           });
 
           await queryRunner.manager.save(Transaction, transaction);
 
           // Generate a nice Transaction No for the refund
           transaction.transaction_no = generateTransactionNo(
-            'MERCHANT',
+            withdrawal.expert_id ? 'EXPERT' : withdrawal.merchant_id ? 'MERCHANT' : 'AGENT',
             TransactionPurpose.REFUND,
             transaction.id,
           );

@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
-import { UpdateOrderStatusUseCase } from './update-order-status.use-case';
+import { OrderService } from '../services/order.service';
 import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class CancelUserOrderUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-    private updateOrderStatusUseCase: UpdateOrderStatusUseCase,
+    private orderService: OrderService,
   ) {}
 
   async execute(
@@ -48,8 +48,8 @@ export class CancelUserOrderUseCase {
       throw new ForbiddenException(`This order cannot be cancelled as all items have already been shipped, delivered, or cancelled.`);
     }
 
-    // Proceed to cancel using the main update status use case
-    return this.updateOrderStatusUseCase.execute(
+    // Proceed to cancel using the order service
+    return this.orderService.updateOrderStatus(
       orderId,
       OrderStatus.CANCELLED,
       cancellationReason,

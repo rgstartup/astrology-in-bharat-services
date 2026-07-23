@@ -66,6 +66,8 @@ import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entit
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
+import { AuthTokenService } from './application/services/auth-token.service';
+
 const useCases = [
   RegisterUserUseCase,
   AgentRegisterUserUseCase,
@@ -172,6 +174,7 @@ const handlers = [
     AuthPolicy,
     TokenCryptoService,
     SessionRepository,
+    AuthTokenService,
   ],
   controllers: [AuthController, MerchantAuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],

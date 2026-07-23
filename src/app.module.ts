@@ -17,7 +17,6 @@ import { MatchmakingModule } from '@/modules/matchmaking/matchmaking.module';
 import { QuotesModule } from '@/modules/quotes/quotes.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { SupportModule } from '@/modules/support/support.module';
-import { LiveDarshanModule } from '@/modules/live-darshan/live-darshan.module';
 import { AgentModule } from '@/modules/agent/agent.module';
 import { AstrologyModule } from '@/modules/astrology/astrology.module';
 import { CalendarModule } from '@/modules/calendar/calendar.module';
@@ -56,7 +55,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     QuotesModule,
     AdminModule,
     SupportModule,
-    LiveDarshanModule,
     AgentModule,
     AstrologyModule,
     PlacesModule,

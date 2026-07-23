@@ -51,8 +51,8 @@ export class NotificationFacade {
     );
   }
 
-  async markAsRead(id: string, _profileId: string) {
-    return this.markAsReadUseCase.execute(id, _profileId);
+  async markAsRead(id: string, profileId?: string, profileType?: ProfileType) {
+    return this.markAsReadUseCase.execute(id, profileId, profileType);
   }
 
   async getUnreadCount(profileId: string, profileType: ProfileType) {

@@ -2,10 +2,8 @@ import {
   Injectable,
   BadRequestException,
   ConflictException,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import * as crypto from 'crypto';
 import {
   Withdrawal,
@@ -24,26 +22,16 @@ import {
   ProfileType,
 } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { AdminFacade } from '@/modules/admin/application/admin.facade';
-import { UsersFacade } from '@/modules/users/application/users.facade';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
-import { AgentFacade } from '@/modules/agent/application/agent.facade';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 
 @Injectable()
 export class RequestWithdrawalUseCase {
   constructor(
     private readonly dataSource: DataSource,
     private readonly notificationFacade: NotificationFacade,
-    @Inject(forwardRef(() => AdminFacade))
-    private readonly adminFacade: AdminFacade,
-    private readonly usersFacade: UsersFacade,
-    @Inject(forwardRef(() => ExpertProfileFacade))
-    private readonly expertFacade: ExpertProfileFacade,
-    @Inject(forwardRef(() => MerchantProfileFacade))
-    private readonly merchantFacade: MerchantProfileFacade,
-    @Inject(forwardRef(() => AgentFacade))
-    private readonly agentFacade: AgentFacade,
   ) {}
 
   async execute(
@@ -81,14 +69,16 @@ export class RequestWithdrawalUseCase {
     if (isNaN(amount) || amount <= 0)
       throw new BadRequestException('Please enter a valid withdrawal amount');
 
-    // Fetch Security Settings using AdminFacade
+    // Fetch Security Settings
     const keys = [
       'MIN_WITHDRAWAL',
       'DAILY_WITHDRAWAL_LIMIT',
       'MAX_SINGLE_WITHDRAWAL',
       'MONTHLY_WITHDRAWAL_COUNT',
     ];
-    const dbSettings = await this.adminFacade.getSystemSettings(keys);
+    const dbSettings = await this.dataSource.getRepository(SystemSetting).find({
+      where: { key: In(keys) },
+    });
 
     const getSetting = (key: string, defaultValue: number) => {
       const s = dbSettings.find((x) => x.key === key);
@@ -113,8 +103,6 @@ export class RequestWithdrawalUseCase {
     // 2.1 KYC / Verification Check
     const walletOwnerId = profileId;
     let ownerIdField = '';
-    let rolePrefix: 'CLIENT' | 'EXPERT' | 'MERCHANT' | 'AGENT' | 'ADMIN' =
-      'CLIENT';
     const profileType: ProfileType =
       walletKey === 'expert_id'
         ? RoleEnum.EXPERT
@@ -125,7 +113,9 @@ export class RequestWithdrawalUseCase {
             : RoleEnum.CLIENT;
 
     if (walletKey === 'expert_id') {
-      const profile_expert = await this.expertFacade.getExpertById(profileId);
+      const profile_expert = await this.dataSource.getRepository(ProfileExpert).findOne({
+        where: { id: profileId },
+      });
       if (!profile_expert)
         throw new BadRequestException('Expert profile not found');
       if (profile_expert.kyc_status !== 'approved') {
@@ -134,14 +124,14 @@ export class RequestWithdrawalUseCase {
         );
       }
       ownerIdField = 'w.expert_id';
-      rolePrefix = 'EXPERT';
     } else if (walletKey === 'merchant_id') {
-      const profile_merchant =
-        await this.merchantFacade.getProfileById(profileId);
+      const profile_merchant = await this.dataSource.getRepository(ProfileMerchant).findOne({
+        where: { id: profileId },
+      });
       if (!profile_merchant)
         throw new BadRequestException('Merchant profile not found');
       if (
-        profile_merchant.status !== ('active' as unknown) &&
+        profile_merchant.status !== 'active' &&
         !profile_merchant.isVerified
       ) {
         throw new BadRequestException(
@@ -149,11 +139,7 @@ export class RequestWithdrawalUseCase {
         );
       }
       ownerIdField = 'w.merchant_id';
-      rolePrefix = 'MERCHANT';
     } else if (walletKey === 'agent_id') {
-      const { ProfileAgent } = await import(
-        '@/modules/agent/infrastructure/entities/profile-agent.entity'
-      );
       const agent_profile = await this.dataSource
         .getRepository(ProfileAgent)
         .findOne({ where: { id: profileId } });
@@ -165,7 +151,6 @@ export class RequestWithdrawalUseCase {
         );
       }
       ownerIdField = 'w.agent_profile_id';
-      rolePrefix = 'AGENT';
     } else {
       throw new BadRequestException(
         'Clients cannot request withdrawals directly.',
@@ -243,7 +228,9 @@ export class RequestWithdrawalUseCase {
       // C. Capture Snapshot of Bank Details
       let merchantSnapshot: Record<string, unknown> = {};
       if (bank_account_id) {
-        const merchant = await this.merchantFacade.getProfileById(profileId);
+        const merchant = await queryRunner.manager.findOne(ProfileMerchant, {
+          where: { id: profileId },
+        });
 
         if (
           merchant &&
@@ -265,17 +252,16 @@ export class RequestWithdrawalUseCase {
         }
 
         if (!merchantSnapshot.merchant_bank_name && bank_account_id) {
-          const expertProfile =
-            await this.expertFacade.getExpertById(profileId);
+          const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
+            where: { id: profileId },
+          });
           if (expertProfile) {
-            const bankAccount = (await this.dataSource
-              .getRepository('BankAccount')
-              .findOne({
-                where: {
-                  id: bank_account_id as string,
-                  expert_id: expertProfile.id,
-                },
-              })) as Record<string, unknown>;
+            const bankAccount = (await queryRunner.manager.findOne('BankAccount', {
+              where: {
+                id: bank_account_id as string,
+                expert_id: expertProfile.id,
+              },
+            })) as Record<string, unknown>;
             if (bankAccount) {
               merchantSnapshot = {
                 merchant_bank_name: bankAccount.bank_name,
@@ -291,7 +277,9 @@ export class RequestWithdrawalUseCase {
           throw new BadRequestException('Invalid bank account selected');
       } else {
         // Fallback to legacy profiles
-        const merchant = await this.merchantFacade.getProfileById(profileId);
+        const merchant = await queryRunner.manager.findOne(ProfileMerchant, {
+          where: { id: profileId },
+        });
 
         if (merchant && merchant.bankName) {
           merchantSnapshot = {
@@ -301,12 +289,9 @@ export class RequestWithdrawalUseCase {
             merchant_account_holder: merchant.accountHolder || 'N/A',
           };
         } else {
-          const { ProfileAgent } = await import(
-            '@/modules/agent/infrastructure/entities/profile-agent.entity'
-          );
-          const agent = await this.dataSource
-            .getRepository(ProfileAgent)
-            .findOne({ where: { id: profileId } });
+          const agent = await queryRunner.manager.findOne(ProfileAgent, {
+            where: { id: profileId },
+          });
           if (agent && agent.bank_name) {
             merchantSnapshot = {
               merchant_bank_name: agent.bank_name,
@@ -340,7 +325,6 @@ export class RequestWithdrawalUseCase {
 
       // F. Create Withdrawal Record
       const HIGH_VALUE_THRESHOLD = 5000;
-
       let dbBankAccountId: string | null = null;
       if (bank_account_id) {
         dbBankAccountId = bank_account_id as string;
@@ -348,28 +332,29 @@ export class RequestWithdrawalUseCase {
 
       const withdrawalData: Record<string, unknown> = {
         amount,
-        bank_account_id: dbBankAccountId,
         status: WithdrawalStatus.PENDING,
-        ip_address: securityMetadata?.ip,
-        user_agent: securityMetadata?.ua,
-        is_high_value: amount >= HIGH_VALUE_THRESHOLD,
+        bank_account_id: dbBankAccountId,
         ...merchantSnapshot,
+        security_ip: securityMetadata?.ip || null,
+        security_user_agent: securityMetadata?.ua || null,
+        is_high_value: amount >= HIGH_VALUE_THRESHOLD,
       };
 
-      if (wallet.expert_id) withdrawalData.expert_id = wallet.expert_id;
-      else if (wallet.merchant_id)
-        withdrawalData.merchant_id = wallet.merchant_id;
-      else if (wallet.agent_id)
-        withdrawalData.agent_profile_id = wallet.agent_id;
+      if (walletKey === 'expert_id') withdrawalData.expert_id = walletOwnerId;
+      else if (walletKey === 'merchant_id')
+        withdrawalData.merchant_id = walletOwnerId;
+      else if (walletKey === 'agent_id')
+        withdrawalData.agent_profile_id = walletOwnerId;
 
-      const withdrawal = queryRunner.manager.create(Withdrawal, withdrawalData);
-      await queryRunner.manager.save(withdrawal);
+      const newWithdrawal = queryRunner.manager.create(Withdrawal, withdrawalData);
+      const withdrawal = await queryRunner.manager.save(newWithdrawal);
 
       // G. Generate Custom IDs (transaction_no and withdrawal_no)
       try {
         const { generateTransactionNo } = await import(
           '@/common/utils/transaction-no.util'
         );
+        const rolePrefix = walletKey === 'expert_id' ? 'EXPERT' : walletKey === 'merchant_id' ? 'MERCHANT' : 'AGENT';
 
         // Update Transaction No
         transaction.transaction_no = generateTransactionNo(

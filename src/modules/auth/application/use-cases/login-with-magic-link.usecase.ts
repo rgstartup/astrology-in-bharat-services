@@ -8,7 +8,7 @@ import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UsedTokensService } from '../../infrastructure/services/used-tokens.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { LoginWithMagicLinkPolicy } from '../../domain/policies/login-with-magic-link.policy';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { AuthTokenService } from '../services/auth-token.service';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class LoginWithMagicLinkUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly usedTokenService: UsedTokensService,
     private readonly tokenCrypto: TokenCryptoService,
-    private readonly issueAuthTokens: IssueAuthTokensUseCase,
+    private readonly authTokenService: AuthTokenService,
   ) {}
 
   async execute(token: string, role: RoleEnum, ip?: string, ua?: string) {
@@ -53,7 +53,7 @@ export class LoginWithMagicLinkUseCase {
       ]);
     });
 
-    const tokens = await this.issueAuthTokens.execute(user, role, ip, ua);
+    const tokens = await this.authTokenService.issueAuthTokens(user, role, ip, ua);
 
     return { user: updatedUser, tokens };
   }
