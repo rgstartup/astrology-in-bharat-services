@@ -15,7 +15,7 @@ export class SearchPlacesUseCase {
     private readonly placeRepository: Repository<Place>,
     private readonly serperService: SerperService,
     private readonly placesMapper: PlacesMapper,
-  ) {}
+  ) { }
 
   async execute(query: string, location: string = 'India') {
     const cached = await this.placeRepository.findOne({

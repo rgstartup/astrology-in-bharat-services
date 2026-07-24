@@ -45,32 +45,32 @@ export class AddExpertToWishlistUseCase {
       throw new ExpertAlreadyInWishlistError();
     }
 
-    const wishlist = this.wishlistRepository.create({
-      client_id: profileId,
-      expert_id: expert.id,
-    });
-
-    const _savedWishlist = await this.wishlistRepository.save(wishlist);
-
-    // Update total_likes for the expert using QueryRunner
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+    
     try {
+      const wishlist = queryRunner.manager.create(Wishlist, {
+        client_id: profileId,
+        expert_id: expert.id,
+      });
+      await queryRunner.manager.save(Wishlist, wishlist);
+
       const currentLikes = Number(expert.total_likes) || 0;
       await queryRunner.manager.update(
         ProfileExpert,
         { id: expert.id },
         { total_likes: currentLikes + 1 },
       );
+      
       await queryRunner.commitTransaction();
+      return new BooleanMessage();
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      console.error('Failed to update total likes:', err);
+      console.error('Failed to add expert to wishlist and update likes:', err);
+      throw err;
     } finally {
       await queryRunner.release();
     }
-
-    return new BooleanMessage();
   }
 }

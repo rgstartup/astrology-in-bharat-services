@@ -26,25 +26,38 @@ export class TogglePujaWishlistUseCase {
       where: { client_id: profileId, puja: { id: pujaId } },
     });
 
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     let liked = false;
     let currentTotalLikes = puja.total_likes || 0;
 
-    if (existing) {
-      await this.wishlistRepository.remove(existing);
-      await this.dataSource.manager.decrement(ExpertPuja, { id: pujaId }, 'total_likes', 1);
-      currentTotalLikes = Math.max(0, currentTotalLikes - 1);
-      liked = false;
-    } else {
-      const wishlist = this.wishlistRepository.create({
-        client_id: profileId,
-        puja,
-      });
-      await this.wishlistRepository.save(wishlist);
-      await this.dataSource.manager.increment(ExpertPuja, { id: pujaId }, 'total_likes', 1);
-      currentTotalLikes = currentTotalLikes + 1;
-      liked = true;
-    }
+    try {
+      if (existing) {
+        await queryRunner.manager.remove(Wishlist, existing);
+        await queryRunner.manager.decrement(ExpertPuja, { id: pujaId }, 'total_likes', 1);
+        currentTotalLikes = Math.max(0, currentTotalLikes - 1);
+        liked = false;
+      } else {
+        const wishlist = queryRunner.manager.create(Wishlist, {
+          client_id: profileId,
+          puja,
+        });
+        await queryRunner.manager.save(Wishlist, wishlist);
+        await queryRunner.manager.increment(ExpertPuja, { id: pujaId }, 'total_likes', 1);
+        currentTotalLikes = currentTotalLikes + 1;
+        liked = true;
+      }
 
-    return { liked, total_likes: currentTotalLikes };
+      await queryRunner.commitTransaction();
+      return { liked, total_likes: currentTotalLikes };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      console.error('Failed to toggle puja wishlist:', err);
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

@@ -28,36 +28,49 @@ export class AddToCartUseCase {
       throw new NotFoundException('Product not found');
     }
 
-    let cart = await this.cartRepository.findOne({
-      where: { client_id: profileId },
-      relations: ['items'],
-    });
+    const queryRunner = this.cartRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!cart) {
-      cart = this.cartRepository.create({ client_id: profileId });
-      await this.cartRepository.save(cart);
-    }
-
-    let cartItem = await this.cartItemRepository.findOne({
-      where: { cart: { id: cart.id }, product: { id: productId } },
-    });
-
-    if (cartItem) {
-      cartItem.quantity += quantity;
-      await this.cartItemRepository.save(cartItem);
-    } else {
-      cartItem = this.cartItemRepository.create({
-        cart,
-        product,
-        quantity,
+    try {
+      let cart = await queryRunner.manager.findOne(Cart, {
+        where: { client_id: profileId },
+        relations: ['items'],
       });
-      await this.cartItemRepository.save(cartItem);
-    }
 
-    // Return the updated cart
-    return this.cartRepository.findOne({
-      where: { id: cart.id },
-      relations: ['items', 'items.product', 'client', 'client.user'],
-    });
+      if (!cart) {
+        cart = queryRunner.manager.create(Cart, { client_id: profileId });
+        await queryRunner.manager.save(Cart, cart);
+      }
+
+      let cartItem = await queryRunner.manager.findOne(CartItem, {
+        where: { cart: { id: cart.id }, product: { id: productId } },
+      });
+
+      if (cartItem) {
+        cartItem.quantity += quantity;
+        await queryRunner.manager.save(CartItem, cartItem);
+      } else {
+        cartItem = queryRunner.manager.create(CartItem, {
+          cart,
+          product,
+          quantity,
+        });
+        await queryRunner.manager.save(CartItem, cartItem);
+      }
+
+      await queryRunner.commitTransaction();
+
+      // Return the updated cart
+      return this.cartRepository.findOne({
+        where: { id: cart.id },
+        relations: ['items', 'items.product', 'client', 'client.user'],
+      });
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

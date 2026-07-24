@@ -28,15 +28,6 @@ export class RemoveExpertFromWishlistUseCase {
       throw new UserNotFoundError();
     }
 
-    const result = await this.wishlistRepository.delete({
-      client_id: profileId,
-      expert_id: expert_id,
-    });
-
-    if (result.affected === 0) {
-      throw new ExpertNotInWishlistError();
-    }
-
     let profileExpert =
       await this.expertProfileFacade.getExpertByUserId(expert_id);
     if (!profileExpert) {
@@ -45,28 +36,40 @@ export class RemoveExpertFromWishlistUseCase {
       )) as unknown as ProfileExpert;
     }
 
-    if (profileExpert) {
-      const currentLikes = profileExpert.total_likes || 0;
-      if (currentLikes > 0) {
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-        try {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const result = await queryRunner.manager.delete(Wishlist, {
+        client_id: profileId,
+        expert_id: expert_id,
+      });
+
+      if (result.affected === 0) {
+        throw new ExpertNotInWishlistError();
+      }
+
+      if (profileExpert) {
+        const currentLikes = profileExpert.total_likes || 0;
+        if (currentLikes > 0) {
           await queryRunner.manager.update(
             ProfileExpert,
             { id: profileExpert.id },
             { total_likes: currentLikes - 1 },
           );
-          await queryRunner.commitTransaction();
-        } catch (err) {
-          await queryRunner.rollbackTransaction();
-          console.error('Failed to decrement total likes:', err);
-        } finally {
-          await queryRunner.release();
         }
       }
-    }
 
-    return new BooleanMessage();
+      await queryRunner.commitTransaction();
+      return new BooleanMessage();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      if (!(err instanceof ExpertNotInWishlistError)) {
+        console.error('Failed to remove expert from wishlist and decrement likes:', err);
+      }
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

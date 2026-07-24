@@ -5,13 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, QueryRunner } from 'typeorm';
 import { ExpertPuja } from '../../../infrastructure/entities/expert-puja.entity';
 import { ProfileExpert } from '../../../infrastructure/entities/profile-expert.entity';
 import { IUser } from '@/common/types/access-token.payload';
 import { ExpertPujaDto } from '../../../api/dto/expert-puja.dto';
-import { GetProfileUseCase } from '../get-profile.usecase';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import { ExpertGateway } from '../../../api/gateways/expert.gateway';
 import sharp from 'sharp';
 
 // Required image specs
@@ -29,8 +29,8 @@ export class UpsertPujaUseCase {
     private readonly pujaRepo: Repository<ExpertPuja>,
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-    private readonly getProfileUseCase: GetProfileUseCase,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly expertGateway: ExpertGateway,
   ) {}
 
   private async validateImageDimensions(base64: string): Promise<void> {
@@ -116,6 +116,79 @@ export class UpsertPujaUseCase {
 
     await this.pujaRepo.save(puja);
 
-    return this.getProfileUseCase.execute(user);
+    return this.getProfileData(user);
+  }
+
+  private async getProfileData(user: IUser, queryRunner?: QueryRunner) {
+    const repo = queryRunner
+      ? queryRunner.manager.getRepository(ProfileExpert)
+      : this.profileRepo;
+    const where = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
+    const profile = await repo.findOne({
+      where,
+      relations: ['user', 'addresses', 'pujas'],
+    });
+
+    if (!profile) {
+      return {
+        id: null,
+        user: {
+          id: user.id,
+          email: user.email,
+          roles: user.roles,
+        }
+      } as any;
+    }
+
+    const plain: Record<string, unknown> = { ...profile };
+
+    try {
+      if (Array.isArray(plain.pujas)) {
+        plain.pujas = (plain.pujas as unknown[]).map(
+          (p: Record<string, unknown>) => {
+            const { expert: _expert, ...rest } = p;
+            return rest;
+          },
+        );
+      }
+
+      if (Array.isArray(plain.addresses)) {
+        plain.addresses = (plain.addresses as unknown[]).map(
+          (a: Record<string, unknown>) => {
+            const { profile_expert: _pe, profile_client: _pc, ...rest } = a;
+            return rest;
+          },
+        );
+      }
+
+      plain.languages = profile.languages
+        ? profile.languages
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+
+      plain.userId = profile.user?.id;
+      plain.isAvailable = profile.is_available;
+
+      if (profile.user?.id && this.expertGateway) {
+        plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
+      } else {
+        plain.is_online = false;
+      }
+
+      plain.total_likes = (profile as any).total_likes || 0;
+      plain.custom_services = profile.custom_services || [];
+    } catch (err) {
+      this.logger.error(
+        `Error processing profile for user ${user.id}: ${(err as Error).message}`,
+        (err as Error).stack,
+      );
+      throw err;
+    }
+
+    return plain;
   }
 }
