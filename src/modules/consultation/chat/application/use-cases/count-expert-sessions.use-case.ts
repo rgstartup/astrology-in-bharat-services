@@ -57,4 +57,26 @@ export class CountExpertSessionsUseCase {
       count: parseInt(stats.count ?? '0', 10) || 0,
     };
   }
+
+  async getAllExpertsRevenueAndCount(): Promise<Record<string, { total: number; count: number }>> {
+    const stats = await this.chatSessionRepo
+      .createQueryBuilder('chat')
+      .select('chat.expert_id', 'expert_id')
+      .addSelect('SUM(chat.total_cost)', 'total')
+      .addSelect('COUNT(chat.id)', 'count')
+      .where('chat.status = :status', { status: 'completed' })
+      .groupBy('chat.expert_id')
+      .getRawMany();
+
+    const result: Record<string, { total: number; count: number }> = {};
+    for (const row of stats) {
+      if (row.expert_id) {
+        result[row.expert_id] = {
+          total: parseFloat(row.total || '0'),
+          count: parseInt(row.count || '0', 10),
+        };
+      }
+    }
+    return result;
+  }
 }

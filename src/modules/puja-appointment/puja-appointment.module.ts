@@ -8,6 +8,7 @@ import { GetExpertPujaAppointmentsUseCase } from './application/use-cases/get-ex
 import { UpdatePujaAppointmentStatusUseCase } from './application/use-cases/update-puja-appointment-status.use-case';
 import { GetPujaEarningsUseCase } from './application/use-cases/get-puja-earnings.use-case';
 import { GetExpertPujasByDateUseCase } from './application/use-cases/get-expert-pujas-by-date.use-case';
+import { ResolveAppointmentDetailsUseCase } from './application/use-cases/resolve-appointment-details.use-case';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
@@ -34,6 +35,7 @@ import { PujaAppointmentFacade } from './application/puja-appointment.facade';
     UpdatePujaAppointmentStatusUseCase,
     GetPujaEarningsUseCase,
     GetExpertPujasByDateUseCase,
+    ResolveAppointmentDetailsUseCase,
     PujaAppointmentFacade,
   ],
   exports: [
@@ -42,6 +44,7 @@ import { PujaAppointmentFacade } from './application/puja-appointment.facade';
     GetExpertPujaAppointmentsUseCase,
     GetPujaEarningsUseCase,
     GetExpertPujasByDateUseCase,
+    ResolveAppointmentDetailsUseCase,
   ],
 })
 export class PujaAppointmentModule {}

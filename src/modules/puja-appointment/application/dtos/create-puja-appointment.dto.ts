@@ -7,6 +7,9 @@ import {
   IsUUID,
 } from 'class-validator';
 import { PujaMode } from '../../infrastructure/entities/puja-appointment.entity';
+import { AddressDto } from '@/common/address/address.dto';
+import { Type } from 'class-transformer';
+import { ValidateNested } from 'class-validator';
 
 export class CreatePujaAppointmentDto {
   @IsUUID()
@@ -32,4 +35,9 @@ export class CreatePujaAppointmentDto {
   @IsOptional()
   @IsString()
   user_message?: string;
+
+  @IsOptional()
+  @Type(() => AddressDto)
+  @ValidateNested()
+  address?: AddressDto;
 }

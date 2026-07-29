@@ -97,6 +97,10 @@ export class OrderFacade {
     return this.findAllOrdersUseCase.execute();
   }
 
+  async getSuccessfulOrdersCount() {
+    return this.findAllOrdersUseCase.getSuccessfulOrdersCount();
+  }
+
   async getOrderEarnings(dateLimit: Date) {
     return this.getOrderEarningsUseCase.execute(dateLimit);
   }

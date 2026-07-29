@@ -129,22 +129,21 @@ export class UpdateMerchantProfileUseCase {
         if (!isNaN(lng)) profile.longitude = lng;
       }
 
-      // Convert strings to booleans for multipart form data
-      const isOnline =
-        dto.isOnline === true || dto.isOnline === 'true' || dto.isOnline === 1;
-
-      if (dto.isOnline !== undefined && isOnline) {
-        if (profile.user?.is_blocked) {
-          throw new ForbiddenException('Your account has been blocked by the administrator. You cannot perform this action.');
+      if (dto.isOnline !== undefined) {
+        if (dto.isOnline) {
+          if (profile.user?.is_blocked) {
+            throw new ForbiddenException('Your account has been blocked by the administrator. You cannot perform this action.');
+          }
+          if (profile.status !== 'active') {
+            throw new ForbiddenException('Your account is inactive. You cannot go online.');
+          }
         }
-        if (profile.status !== 'active') {
-          throw new ForbiddenException('Your account is inactive. You cannot go online.');
-        }
+        profile.isOnline = dto.isOnline;
       }
 
       const statusChanged =
-        dto.isOnline !== undefined && !!profile.isOnline !== !!isOnline;
-      if (dto.isOnline !== undefined) profile.isOnline = !!isOnline;
+        dto.isOnline !== undefined && !!profile.isOnline !== !!dto.isOnline;
+      if (dto.isOnline !== undefined) profile.isOnline = !!dto.isOnline;
 
       if (dto.description !== undefined) profile.description = dto.description;
       if (dto.establishedSince !== undefined) profile.established = dto.establishedSince;
@@ -167,8 +166,7 @@ export class UpdateMerchantProfileUseCase {
         profile.pan = this.encryptionService.encrypt(dto.pan) || null;
       }
       if (dto.isGstExempt !== undefined) {
-        profile.isGstExempt =
-          dto.isGstExempt === true || dto.isGstExempt === 'true';
+        profile.isGstExempt = dto.isGstExempt === true;
       }
       if (dto.bankName) profile.bankName = dto.bankName;
       if (dto.accountHolder) profile.accountHolder = dto.accountHolder;

@@ -441,7 +441,7 @@ export class CreateOrderFromCartUseCase {
       const order = queryRunner.manager.create(Order, {
         client_id: profileId,
         total_amount: totalAmount,
-        shipping_address: shipping_address as Record<string, unknown> | undefined,
+        shipping_address: shipping_address as unknown as Record<string, unknown> | undefined,
         // Wallet=PAID, Split=PENDING (waiting for Razorpay), others=PENDING
         status: isWalletPayment ? OrderStatus.PAID : OrderStatus.PENDING,
         payment_method: dto.payment_method || 'razorpay',

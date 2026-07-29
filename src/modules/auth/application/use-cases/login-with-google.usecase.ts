@@ -60,7 +60,7 @@ export class LoginWithGoogleUseCase {
           provider_id: input.providerId,
           email: input.email,
           name: input.name,
-          profile: input.profile,
+          profile: input.profile as unknown as Record<string, unknown>,
           roles: [roleToAdd],
         },
         qr,

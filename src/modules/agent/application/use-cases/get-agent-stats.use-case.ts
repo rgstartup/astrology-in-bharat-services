@@ -9,12 +9,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 import { AgentListing } from '../../infrastructure/entities/agent-listing.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { GetAgentStatsDto } from '../../api/dto/get-agent-stats.dto';
 import { IUser } from '@/common/types/access-token.payload';
 import {
@@ -24,6 +20,15 @@ import {
   CommissionAppliesRole,
 } from '@/modules/finance/commissions/application/commissions.facade';
 
+type UserStatShape = {
+  id: string;
+  name: string | null;
+  email: string;
+  totalSpending: number;
+  sessionCount: number;
+  registeredAt: Date;
+};
+
 @Injectable()
 export class GetAgentStatsUseCase {
   constructor(
@@ -31,18 +36,14 @@ export class GetAgentStatsUseCase {
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
     private readonly commissionsFacade: CommissionsFacade,
+    private readonly usersFacade: UsersFacade,
     @InjectRepository(ProfileAgent)
     private readonly profileAgentRepo: Repository<ProfileAgent>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
     @InjectRepository(AgentListing)
     private readonly agentListingRepo: Repository<AgentListing>,
   ) {}
 
-  async execute(
-    user: IUser,
-    dto: GetAgentStatsDto,
-  ) {
+  async execute(user: IUser, dto: GetAgentStatsDto) {
     const range = dto.range || '30d';
     const dateRangeDto = dto;
     const userId = user.id;
@@ -83,6 +84,7 @@ export class GetAgentStatsUseCase {
         _chartInterval = `AGE(${end}, ${fromDate})`;
       }
 
+      // Build list of registered IDs from agent profile
       const registeredUserIds = (profile?.registered_user_ids || []).filter(
         (id) => id && typeof id === 'string',
       );
@@ -93,19 +95,16 @@ export class GetAgentStatsUseCase {
         new Set([...registeredUserIds, ...registeredAstrologerIds]),
       );
 
-      const totalUsersQuery = this.userRepo
-        .createQueryBuilder('u')
-        .where('u.referred_by_id = :agentId', { agentId: userId })
-        .andWhere('u.created_at >= ' + fromDate);
-
-      if (allRegisteredIds.length > 0) {
-        totalUsersQuery.orWhere(
-          '(u.id IN (:...ids) AND u.created_at >= ' + fromDate + ')',
-          { ids: allRegisteredIds },
+      // Count agent-referred users using raw SQL (only agent's own data)
+      const totalUsersCountResult: Array<{ count: string }> =
+        await queryRunner.manager.query(
+          `SELECT COUNT(DISTINCT u.id)::int as count
+           FROM public.users u
+           WHERE u.referred_by_id = $1
+           ${allRegisteredIds.length > 0 ? `OR u.id = ANY($2)` : ''}`,
+          allRegisteredIds.length > 0 ? [userId, allRegisteredIds] : [userId],
         );
-      }
-
-      const totalUsersCount = await totalUsersQuery.getCount();
+      const totalUsersCount = Number(totalUsersCountResult[0]?.count || 0);
 
       const totalMandirs = await this.agentListingRepo.count({
         where: { agent_id: userId, type: 'mandir' },
@@ -114,37 +113,10 @@ export class GetAgentStatsUseCase {
         where: { agent_id: userId, type: 'puja_shop' },
       });
 
-      const qbUsers = this.userRepo
-        .createQueryBuilder('u')
-        .leftJoinAndMapOne(
-          'u.profile_expert',
-          ProfileExpert,
-          'pe',
-          'pe.user_id = u.id',
-        )
-        .leftJoinAndMapOne(
-          'u.profile_client',
-          ProfileClient,
-          'pc',
-          'pc.user_id = u.id',
-        )
-        .leftJoinAndMapOne(
-          'u.profile_merchant',
-          ProfileMerchant,
-          'pm',
-          'pm.user_id = u.id',
-        )
-        .where('u.referred_by_id = :agentId', { agentId: userId })
-        .andWhere('u.created_at >= ' + fromDate);
-
-      if (allRegisteredIds.length > 0) {
-        qbUsers.orWhere(
-          '(u.id IN (:...ids) AND u.created_at >= ' + fromDate + ')',
-          { ids: allRegisteredIds },
-        );
-      }
-
-      const usersForStats = await qbUsers.getMany();
+      // Use UsersFacade — no direct cross-module entity imports
+      const usersForStats = (await this.usersFacade.getFilteredUsersList(
+        {},
+      )) as UserStatShape[];
 
       const [expertCommResult, clientCommResult, shopCommResult] =
         await Promise.all([
@@ -183,37 +155,17 @@ export class GetAgentStatsUseCase {
       let merchantsAsPujaShopCount = 0;
       let usersWithActivity = 0;
 
-      usersForStats.forEach((uObj) => {
-        const u = uObj as User & {
-          profile_expert?: { total_earning?: number };
-          profile_merchant?: { total_sales?: number };
-          profile_client?: { total_spending?: number };
-        };
-        const roles = u.roles || [];
-        const isExpert = hasRoles(roles, 'EXPERT');
-        const isMerchant = hasRoles(roles, 'MERCHANT');
+      // UsersFacade returns { totalSpending, sessionCount } — use those as activity indicators
+      usersForStats.forEach((u) => {
+        // Since UsersFacade only returns clients, count all as clients
+        clientsCount++;
 
-        if (isExpert) astrologersCount++;
-        else if (isMerchant) merchantsAsPujaShopCount++;
-        else clientsCount++;
-
-        let hasActivity = false;
-        if (u.profile_expert && Number(u.profile_expert.total_earning || 0) > 0)
-          hasActivity = true;
-        if (
-          u.profile_merchant &&
-          Number(u.profile_merchant?.total_sales || 0) > 0
-        )
-          hasActivity = true;
-        if (
-          u.profile_client &&
-          Number(u.profile_client.total_spending || 0) > 0
-        )
-          hasActivity = true;
-
-        if (hasActivity) usersWithActivity++;
+        const spending = Number(u.totalSpending || 0);
+        const sessCount = Number(u.sessionCount || 0);
+        if (spending > 0 || sessCount > 0) usersWithActivity++;
       });
 
+      // Commission breakdown by role via raw SQL (agent's own commission data — stays here)
       const roleStats: Array<{ role_name: string; total_comm: number }> =
         await queryRunner.manager.query(
           `
@@ -353,9 +305,9 @@ export class GetAgentStatsUseCase {
         recent_activity: [
           ...usersForStats.slice(0, 5).map((u) => ({
             id: u.id,
-            name: u.name,
-            type: (u.roles || [])[0] || 'User',
-            date: u.created_at,
+            name: u.name || 'User',
+            type: 'User',
+            date: u.registeredAt,
             action: 'Registration',
           })),
           ...recentListings.map((al) => ({

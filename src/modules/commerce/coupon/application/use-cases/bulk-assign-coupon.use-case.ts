@@ -37,26 +37,39 @@ export class BulkAssignCouponUseCase {
     let assignedCount = 0;
 
     await this.databaseService.transaction(async (queryRunner) => {
-      for (const userId of userIds) {
-        const profileClient = await queryRunner.manager.findOne(ProfileClient, {
-          where: { user: { id: userId } },
-          select: ['id'],
-        });
-        if (!profileClient) continue;
+      // 1. Fetch ProfileClient IDs for the provided user IDs (Only those that exist)
+      const profileClients = await queryRunner.manager
+        .createQueryBuilder(ProfileClient, 'profileClient')
+        .select('profileClient.id', 'id')
+        .where('profileClient.user_id IN (:...userIds)', { userIds })
+        .getRawMany();
 
-        const existing = await queryRunner.manager.findOne(UserCoupon, {
-          where: { client_id: profileClient.id, coupon_id: coupon.id },
-        });
+      if (profileClients.length === 0) return;
 
-        if (!existing) {
-          const userCoupon = queryRunner.manager.create(UserCoupon, {
-            client_id: profileClient.id,
-            coupon_id: coupon.id,
-            is_used: false,
-          });
-          await queryRunner.manager.save(UserCoupon, userCoupon);
-          assignedCount++;
-        }
+      const profileClientIds = profileClients.map((pc) => pc.id);
+
+      // 2. Perform a Bulk Insert using QueryBuilder and ignore conflicts
+      // PostgreSQL handles ON CONFLICT DO NOTHING natively when using orIgnore()
+      const valuesToInsert = profileClientIds.map((clientId) => ({
+        client_id: clientId,
+        coupon_id: coupon.id,
+        is_used: false,
+      }));
+
+      const insertResult = await queryRunner.manager
+        .createQueryBuilder()
+        .insert()
+        .into(UserCoupon)
+        .values(valuesToInsert)
+        .orIgnore() // Skips already assigned coupons
+        .execute();
+
+      assignedCount = insertResult.identifiers ? insertResult.identifiers.length : 0;
+      // Note: orIgnore might return empty identifiers depending on TypeORM version/driver. 
+      // If we need strict count, we can do a count before/after, or just assume success on bulk insert.
+      // We will fallback to counting raw inserted rows if supported.
+      if (insertResult.raw && Array.isArray(insertResult.raw)) {
+         assignedCount = insertResult.raw.length;
       }
     });
 
@@ -64,7 +77,6 @@ export class BulkAssignCouponUseCase {
       success: true,
       totalMatched: userIds.length,
       assignedCount: assignedCount,
-      alreadyAssigned: userIds.length - assignedCount,
     };
   }
 }

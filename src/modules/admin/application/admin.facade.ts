@@ -6,7 +6,7 @@ import {
   GetFilteredUsersUseCase,
   FilterCriteria,
 } from './use-cases/get-filtered-users.use-case';
-import { AssignCouponBulkUseCase } from './use-cases/assign-coupon-bulk.use-case';
+
 import { CreateAgentUseCase } from './use-cases/create-agent.use-case';
 import { GetAgentsUseCase } from './use-cases/get-agents.use-case';
 import { GetAgentStatsUseCase } from './use-cases/get-agent-stats.use-case';
@@ -62,7 +62,7 @@ export class AdminFacade {
     private readonly getUserGrowthStatsUseCase: GetAdminUserGrowthStatsUseCase,
     private readonly getExpertDetailUseCase: GetExpertDetailUseCase,
     private readonly getFilteredUsersUseCase: GetFilteredUsersUseCase,
-    private readonly assignCouponBulkUseCase: AssignCouponBulkUseCase,
+
     private readonly createAgentUseCase: CreateAgentUseCase,
     private readonly getAgentsUseCase: GetAgentsUseCase,
     private readonly getAgentStatsUseCase: GetAgentStatsUseCase,
@@ -156,9 +156,6 @@ export class AdminFacade {
     return this.getFilteredUsersUseCase.executeList(filters);
   }
 
-  async assignCouponBulk(dto: AssignCouponBulkDto) {
-    return this.assignCouponBulkUseCase.execute(dto);
-  }
 
   async createAgent(dto: CreateAgentDto, files?: Record<string, unknown>) {
     return this.createAgentUseCase.execute(dto, files);

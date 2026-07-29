@@ -45,7 +45,7 @@ export class ConsultationHistoryDto {
   agent_commission: number;
   expert_earning: number;
   expert: ConsultationExpertDto;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export class UnifiedHistoryResponseDto {

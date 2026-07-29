@@ -5,7 +5,7 @@ import { GetAdminDashboardStatsUseCase } from './application/use-cases/get-admin
 import { GetAdminUserGrowthStatsUseCase } from './application/use-cases/get-admin-user-growth-stats.use-case';
 import { GetExpertDetailUseCase } from './application/use-cases/get-expert-detail.use-case';
 import { GetFilteredUsersUseCase } from './application/use-cases/get-filtered-users.use-case';
-import { AssignCouponBulkUseCase } from './application/use-cases/assign-coupon-bulk.use-case';
+
 import { CreateAgentUseCase } from './application/use-cases/create-agent.use-case';
 import { GetAgentsUseCase } from './application/use-cases/get-agents.use-case';
 import { GetAgentStatsUseCase } from './application/use-cases/get-agent-stats.use-case';
@@ -86,23 +86,8 @@ import { ToggleUserBlockUseCase } from './application/use-cases/toggle-user-bloc
   imports: [
     TypeOrmModule.forFeature([
       AdminAuditLog,
-      ChatSession,
-      Order,
-      OrderItem,
-      Product,
-      Coupon,
-      UserCoupon,
-      ProfileAgent,
       User,
-      AgentListing,
-      Transaction,
-      CallSession,
-      PujaAppointment,
       SystemSetting,
-      ProfileMerchant,
-      ProfileExpert,
-      ProfileClient,
-      Dispute,
     ]),
 
     UsersModule,
@@ -114,8 +99,8 @@ import { ToggleUserBlockUseCase } from './application/use-cases/toggle-user-bloc
     forwardRef(() => MerchantModule),
     CouponModule,
     SupportModule,
-    PujaAppointmentModule,
-    OrderModule,
+    forwardRef(() => PujaAppointmentModule),
+    forwardRef(() => OrderModule),
     forwardRef(() => AgentModule),
   ],
   controllers: [
@@ -131,7 +116,7 @@ import { ToggleUserBlockUseCase } from './application/use-cases/toggle-user-bloc
     GetAdminUserGrowthStatsUseCase,
     GetExpertDetailUseCase,
     GetFilteredUsersUseCase,
-    AssignCouponBulkUseCase,
+
     CreateAgentUseCase,
     GetAgentsUseCase,
     GetAgentStatsUseCase,

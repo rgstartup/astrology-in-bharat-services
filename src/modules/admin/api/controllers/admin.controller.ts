@@ -13,6 +13,7 @@ import {
   Delete,
   ParseEnumPipe,
   ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AdminFacade } from '../../application/admin.facade';
@@ -293,7 +294,33 @@ export class AdminController {
   @RequirePermissions(AdminPermission.COUPONS_OFFERS)
   @Post('coupons/assign-bulk')
   async assignCouponBulk(@Body() dto: AssignCouponBulkDto) {
-    return this.adminFacade.assignCouponBulk(dto);
+    const { couponCode, filters } = dto;
+    const limit = 1000; // Process in chunks to prevent OOM
+    let page = 1;
+    let totalAssigned = 0;
+
+    while (true) {
+      const userIds = await this.usersFacade.getFilteredUsersIds({
+        ...filters,
+        page,
+        limit,
+      });
+
+      if (!userIds || userIds.length === 0) break;
+
+      await this.couponFacade.bulkAssign(couponCode, userIds);
+      totalAssigned += userIds.length;
+
+      if (userIds.length < limit) break;
+      page++;
+    }
+
+    if (totalAssigned === 0) {
+      throw new BadRequestException(
+        'No users found matching the selected filters',
+      );
+    }
+    return { success: true, assignedCount: totalAssigned };
   }
   @RequirePermissions(AdminPermission.SHOP_MANAGEMENT)
   @Get('merchants')

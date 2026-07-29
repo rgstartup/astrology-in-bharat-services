@@ -105,4 +105,20 @@ export class UserRepository extends BaseService<User> {
       .select(['user.id', 'user.name', 'profile.id'])
       .getMany();
   }
+
+  async getUsersCountByRole(role: RoleEnum, queryRunner?: QueryRunner): Promise<number> {
+    return this.getRepo(queryRunner)
+      .createQueryBuilder('user')
+      .where(':role = ANY(user.roles)', { role })
+      .getCount();
+  }
+
+  async getVerifiedExpertsCount(queryRunner?: QueryRunner): Promise<number> {
+    return this.getRepo(queryRunner)
+      .createQueryBuilder('user')
+      .innerJoin(ProfileExpert, 'expert', 'expert.user_id = user.id')
+      .where(':role = ANY(user.roles)', { role: RoleEnum.EXPERT })
+      .andWhere('expert.kyc_status = :status', { status: 'approved' })
+      .getCount();
+  }
 }

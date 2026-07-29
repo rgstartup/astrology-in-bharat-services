@@ -194,4 +194,15 @@ export class GetFilteredUsersUseCase {
 
     return enhancedUsers;
   }
+
+  async executeIds(filters: FilterCriteria): Promise<string[]> {
+    const query = this.buildBaseQuery(filters);
+    this.applyComplexFilters(query, filters);
+    
+    // Select only IDs for maximum performance (no enhancement queries)
+    query.select('user.id');
+    const users = await query.getMany();
+    
+    return users.map(u => u.id);
+  }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Order } from '../../infrastructure/entities/order.entity';
+import { Repository, In } from 'typeorm';
+import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { OrderItem } from '../../infrastructure/entities/order-item.entity';
 
 @Injectable()
@@ -28,5 +28,19 @@ export class FindAllOrdersUseCase {
       total: 0,
       count: 0,
     };
+  }
+
+  async getSuccessfulOrdersCount(): Promise<number> {
+    return this.orderRepo.count({
+      where: {
+        status: In([
+          OrderStatus.DELIVERED,
+          OrderStatus.PAID,
+          OrderStatus.SHIPPED,
+          OrderStatus.PROCESSING,
+          OrderStatus.PACKED,
+        ]),
+      },
+    });
   }
 }

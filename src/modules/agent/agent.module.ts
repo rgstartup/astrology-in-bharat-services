@@ -2,16 +2,13 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileAgent } from './infrastructure/entities/profile-agent.entity';
 import { AgentListing } from './infrastructure/entities/agent-listing.entity';
+import { User } from '../users/infrastructure/entities/user.entity';
 import { AgentController } from './api/controllers/agent.controller';
 import { DatabaseModule } from '@/core/database/database.module';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
-import { CallSession } from '../consultation/call/infrastructure/entities/call-session.entity';
-import { ChatSession } from '../consultation/chat/infrastructure/entities/chat-session.entity';
-import { PujaAppointment } from '../puja-appointment/infrastructure/entities/puja-appointment.entity';
-import { Order } from '../commerce/order/infrastructure/entities/order.entity';
+import { ConsultationModule } from '../consultation/consultation.module';
+import { PujaAppointmentModule } from '../puja-appointment/puja-appointment.module';
 import { NotificationModule } from '../notification/notification.module';
-import { User } from '../users/infrastructure/entities/user.entity';
-import { SystemSetting } from '../admin/infrastructure/entities/system-setting.entity';
 import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 
 import { AgentFacade } from './application/agent.facade';
@@ -39,12 +36,7 @@ import { AdminModule } from '../admin/admin.module';
     TypeOrmModule.forFeature([
       ProfileAgent,
       AgentListing,
-      CallSession,
-      ChatSession,
-      PujaAppointment,
-      Order,
       User,
-      SystemSetting,
     ]),
     DatabaseModule,
     forwardRef(() => WalletModule),
@@ -54,6 +46,8 @@ import { AdminModule } from '../admin/admin.module';
     forwardRef(() => AdminModule),
     forwardRef(() => ExpertProfileModule),
     forwardRef(() => MerchantProfileModule),
+    forwardRef(() => ConsultationModule),
+    forwardRef(() => PujaAppointmentModule),
   ],
   controllers: [AgentController],
   providers: [

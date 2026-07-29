@@ -9,8 +9,10 @@ import {
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { Coupon } from './coupon.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { Unique } from 'typeorm';
 
 @Entity({ schema: 'commerce', name: 'user_coupons' })
+@Unique(['client_id', 'coupon_id'])
 export class UserCoupon {
   @UuidPrimaryKeyColumn()
   id!: string;

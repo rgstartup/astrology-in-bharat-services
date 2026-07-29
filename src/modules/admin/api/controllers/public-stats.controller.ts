@@ -1,16 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import {
-  Order,
-  OrderStatus,
-} from '@/modules/commerce/order/infrastructure/entities/order.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { Public } from '@/common/decorators/public.decorator';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { UsersFacade } from '@/modules/users/application/users.facade';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 
 @Controller({
   path: 'public/stats',
@@ -18,16 +11,9 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 })
 export class PublicStatsController {
   constructor(
-    @InjectRepository(ProfileMerchant)
-    private readonly merchantRepo: Repository<ProfileMerchant>,
-    @InjectRepository(Order)
-    private readonly orderRepo: Repository<Order>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-    @InjectRepository(ProfileExpert)
-    private readonly expertRepo: Repository<ProfileExpert>,
-    @InjectRepository(ChatSession)
-    private readonly chatSessionRepo: Repository<ChatSession>,
+    private readonly usersFacade: UsersFacade,
+    private readonly orderFacade: OrderFacade,
+    private readonly chatFacade: ChatFacade,
   ) {}
 
   @Public()
@@ -35,18 +21,8 @@ export class PublicStatsController {
   async getMerchantHubStats() {
     try {
       const [totalMerchants, totalOrders] = await Promise.all([
-        this.merchantRepo.count(),
-        this.orderRepo.count({
-          where: {
-            status: In([
-              OrderStatus.DELIVERED,
-              OrderStatus.PAID,
-              OrderStatus.SHIPPED,
-              OrderStatus.PROCESSING,
-              OrderStatus.PACKED,
-            ]),
-          },
-        }),
+        this.usersFacade.getUsersCountByRole(RoleEnum.MERCHANT),
+        this.orderFacade.getSuccessfulOrdersCount(),
       ]);
 
       return {
@@ -79,15 +55,8 @@ export class PublicStatsController {
   async getExpertHubStats() {
     try {
       const [total_experts, totalServices] = await Promise.all([
-        this.userRepo
-          .createQueryBuilder('user')
-          .where(':role = Any(user.roles)', { role: RoleEnum.EXPERT })
-          .getCount(),
-        this.chatSessionRepo.count({
-          where: {
-            status: In([ChatSessionStatus.COMPLETED, ChatSessionStatus.ACTIVE]),
-          },
-        }),
+        this.usersFacade.getUsersCountByRole(RoleEnum.EXPERT),
+        this.chatFacade.getTotalSessionsCount(),
       ]);
 
       return {
@@ -121,36 +90,16 @@ export class PublicStatsController {
     try {
       const [totalUsers, verifiedAstrologers, totalConsultations, totalProductsSold] = await Promise.all([
         // Total registered clients
-        this.userRepo
-          .createQueryBuilder('user')
-          .where(':role = ANY(user.roles)', { role: RoleEnum.CLIENT })
-          .getCount(),
+        this.usersFacade.getUsersCountByRole(RoleEnum.CLIENT),
 
         // Verified (KYC approved) astrologers
-        this.expertRepo
-          .createQueryBuilder('expert')
-          .where('expert.kyc_status = :status', { status: 'approved' })
-          .getCount(),
+        this.usersFacade.getVerifiedExpertsCount(),
 
         // Total completed consultations
-        this.chatSessionRepo.count({
-          where: {
-            status: In([ChatSessionStatus.COMPLETED, ChatSessionStatus.ACTIVE]),
-          },
-        }),
+        this.chatFacade.getTotalSessionsCount(),
 
         // Total products sold
-        this.orderRepo.count({
-          where: {
-            status: In([
-              OrderStatus.DELIVERED,
-              OrderStatus.PAID,
-              OrderStatus.SHIPPED,
-              OrderStatus.PROCESSING,
-              OrderStatus.PACKED,
-            ]),
-          },
-        }),
+        this.orderFacade.getSuccessfulOrdersCount(),
       ]);
 
       return {

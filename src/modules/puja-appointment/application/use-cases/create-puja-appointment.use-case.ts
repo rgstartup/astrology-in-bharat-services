@@ -2,6 +2,7 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
@@ -75,6 +76,10 @@ export class CreatePujaAppointmentUseCase {
       );
     }
 
+    if ((dto.mode === PujaMode.HOME_VISIT_WITH || dto.mode === PujaMode.HOME_VISIT_WITHOUT) && !dto.address) {
+      throw new BadRequestException('Address is required for Home Visit Puja bookings');
+    }
+
     const appointment = this.pujaAppointmentRepository.create({
       client_id: clientProfile.id,
       expert_id: puja.expert_id,
@@ -86,6 +91,7 @@ export class CreatePujaAppointmentUseCase {
       price: authoritativePrice, // Forced authoritative price
       user_message: dto.user_message,
       status: PujaAppointmentStatus.PENDING,
+      address: dto.address as unknown as Record<string, unknown> | undefined,
     });
 
     const saved = await this.pujaAppointmentRepository.save(appointment);

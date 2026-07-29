@@ -2,10 +2,10 @@
 // Ye use-case user ko block ya unblock karta hai aur AdminAuditLog mein record karta hai
 // taaki hamesha pata rahe ki kis admin ne kya action liya.
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AdminAuditLog } from '../../infrastructure/entities/admin-audit-log.entity';
 
 export interface ToggleUserBlockInput {
@@ -18,8 +18,8 @@ export interface ToggleUserBlockInput {
 @Injectable()
 export class ToggleUserBlockUseCase {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    @Inject(forwardRef(() => UsersFacade))
+    private readonly usersFacade: UsersFacade,
 
     @InjectRepository(AdminAuditLog)
     private readonly auditLogRepo: Repository<AdminAuditLog>,
@@ -29,15 +29,13 @@ export class ToggleUserBlockUseCase {
     const { targetUserId, isBlocked, adminId, adminName } = input;
 
     // User exist karta hai ya nahi check karo
-    const user = await this.userRepo.findOne({ where: { id: targetUserId } });
+    const user = await this.usersFacade.findById(targetUserId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
     // User ka is_blocked status update karo
-    // Agar block kar rahe hain: blocked_by_id, blocked_by_name, blocked_at bhi save karo
-    // Agar unblock kar rahe hain: in fields ko null kar do
-    await this.userRepo.update(targetUserId, {
+    await this.usersFacade.update(targetUserId, {
       is_blocked: isBlocked,
       blocked_by_id: isBlocked ? adminId : null,
       blocked_by_name: isBlocked ? adminName : null,

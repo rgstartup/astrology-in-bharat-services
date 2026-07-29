@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 import { AgentListing } from '../../infrastructure/entities/agent-listing.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
@@ -23,8 +22,6 @@ export class GetAgentListingsUseCase {
     private readonly userRepo: Repository<User>,
     @InjectRepository(AgentListing)
     private readonly agentListingRepo: Repository<AgentListing>,
-    @InjectRepository(SystemSetting)
-    private readonly systemSettingRepo: Repository<SystemSetting>,
   ) {}
 
   async execute(
@@ -119,15 +116,7 @@ export class GetAgentListingsUseCase {
         const [users, total] = await qb.getManyAndCount();
         userTotal = total;
 
-        const _settings = await this.systemSettingRepo.find({
-          where: {
-            key: In([
-              'COMMISSION_FROM_CLIENT',
-              'COMMISSION_FROM_ASTROLOGER',
-              'COMMISSION_FROM_PUJA_SHOP',
-            ]),
-          },
-        });
+        // Commission settings fetched via raw SQL in actualStats below
 
         const actualStats: Array<{
           expert_id: string;

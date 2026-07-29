@@ -3,10 +3,9 @@ import { Type } from 'class-transformer';
 import { IsOptional, IsNumber, IsString, ValidateNested } from 'class-validator';
 
 export class CreateOrderDto {
-  @IsOptional()
   @Type(() => AddressDto)
   @ValidateNested()
-  shipping_address?: AddressDto;
+  shipping_address!: AddressDto;
 
   @IsOptional()
   @IsString()

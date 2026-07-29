@@ -53,17 +53,17 @@ export class UpdateBankAccountDto {
 
   // Allow metadata fields from frontend to pass validation
   @IsOptional()
-  id?: any;
+  id?: string;
 
   @IsOptional()
-  expert_id?: any;
+  expert_id?: string;
 
   @IsOptional()
-  created_at?: any;
+  created_at?: Date | string;
 
   @IsOptional()
-  updated_at?: any;
+  updated_at?: Date | string;
 
   @IsOptional()
-  razorpay_fund_account_id?: any;
+  razorpay_fund_account_id?: string;
 }

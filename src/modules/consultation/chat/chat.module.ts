@@ -27,6 +27,7 @@ import { UpdateSessionMetadataUseCase } from './application/use-cases/update-ses
 import { GetChatEarningsUseCase } from './application/use-cases/get-chat-earnings.use-case';
 import { GetExpertSessionsByDateUseCase } from './application/use-cases/get-expert-sessions-by-date.use-case';
 import { CheckChatEligibilityUseCase } from './application/use-cases/check-chat-eligibility.use-case';
+import { ResolveSessionDetailsUseCase } from './application/use-cases/resolve-session-details.use-case';
 
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
@@ -67,6 +68,7 @@ import { QueueModule } from '@/core/queue/queue.module';
     GetChatEarningsUseCase,
     GetExpertSessionsByDateUseCase,
     CheckChatEligibilityUseCase,
+    ResolveSessionDetailsUseCase,
   ],
   controllers: [ChatController, ConsultationController],
   exports: [

@@ -1,4 +1,4 @@
-﻿import {
+import {
   Entity,
   Column,
   ManyToOne,
@@ -57,6 +57,9 @@ export class PujaAppointment {
 
   @Column({ type: 'time', nullable: true, name: 'scheduled_time' })
   scheduled_time!: string | null;
+
+  @Column({ type: 'json', nullable: true, name: 'address' })
+  address!: Record<string, unknown> | null;
 
   @Column({ type: 'boolean', default: false, name: 'ask_expert_for_date' })
   ask_expert_for_date!: boolean;

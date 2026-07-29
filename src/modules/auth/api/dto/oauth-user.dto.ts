@@ -23,7 +23,7 @@ export class OAuthUserDto {
   name?: string;
 
   @IsOptional()
-  profile?: any; // optional raw provider profile
+  profile?: Record<string, unknown>; // optional raw provider profile
 
   @IsOptional()
   @IsArray()
