@@ -59,7 +59,9 @@ export class GenerateAndSaveKundliReportUseCase {
     );
 
     if (!result) {
-      throw new InternalServerErrorException('Failed to generate Kundli Matching report.');
+      throw new InternalServerErrorException(
+        'Failed to generate Kundli Matching report.',
+      );
     }
 
     // 2. Save to database

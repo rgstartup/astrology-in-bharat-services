@@ -38,31 +38,31 @@ export class AstrologyFacade {
     private readonly deleteKundliReportUseCase: DeleteKundliReportUseCase,
   ) {}
 
-  async getGunaMilan(dto: GetGunaMilanDto) {
+  async getGunaMilan(dto: GetGunaMilanDto): Promise<unknown> {
     return this.getGunaMilanUseCase.execute(dto);
   }
 
-  async getDailyHoroscope(dto: GetDailyHoroscopeDto) {
+  async getDailyHoroscope(dto: GetDailyHoroscopeDto): Promise<unknown> {
     return this.getDailyHoroscopeUseCase.execute(dto);
   }
 
-  async getMangalDosha(dto: GetMangalDoshaDto) {
+  async getMangalDosha(dto: GetMangalDoshaDto): Promise<unknown> {
     return this.getMangalDoshaUseCase.execute(dto);
   }
 
-  async getBirthDetails(dto: GetBirthDetailsDto) {
+  async getBirthDetails(dto: GetBirthDetailsDto): Promise<unknown> {
     return this.getBirthDetailsUseCase.execute(dto);
   }
 
-  async getPanchang(dto: GetPanchangDto) {
+  async getPanchang(dto: GetPanchangDto): Promise<unknown> {
     return this.getPanchangUseCase.execute(dto);
   }
 
-  async getPlanetaryPositions(dto: GetPlanetaryPositionsDto) {
+  async getPlanetaryPositions(dto: GetPlanetaryPositionsDto): Promise<unknown> {
     return this.getPlanetaryPositionsUseCase.execute(dto);
   }
 
-  async getKundliMatching(dto: GetKundliMatchingDto) {
+  async getKundliMatching(dto: GetKundliMatchingDto): Promise<unknown> {
     return this.getKundliMatchingUseCase.execute(dto);
   }
 
@@ -73,15 +73,18 @@ export class AstrologyFacade {
   async generateAndSaveKundliReport(
     clientId: string,
     dto: GenerateKundliReportDto,
-  ) {
+  ): Promise<unknown> {
     return this.generateAndSaveKundliReportUseCase.execute(clientId, dto);
   }
 
-  async getMyKundliReports(clientId: string) {
+  async getMyKundliReports(clientId: string): Promise<unknown> {
     return this.getMyKundliReportsUseCase.execute(clientId);
   }
 
-  async deleteKundliReport(clientId: string, reportId: string) {
+  async deleteKundliReport(
+    clientId: string,
+    reportId: string,
+  ): Promise<unknown> {
     return this.deleteKundliReportUseCase.execute(clientId, reportId);
   }
 }

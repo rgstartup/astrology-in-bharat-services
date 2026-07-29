@@ -6,8 +6,13 @@ import { GetPlanetaryPositionsDto } from '../../api/dto/get-planetary-positions.
 export class GetPlanetaryPositionsUseCase {
   constructor(private readonly prokeralaService: ProkeralaService) {}
 
-  async execute(dto: GetPlanetaryPositionsDto) {
+  async execute(dto: GetPlanetaryPositionsDto): Promise<unknown> {
     const { datetime, lat, lon, lang } = dto;
-    return this.prokeralaService.getPlanetaryPositions({ datetime, lat, lon, lang });
+    return this.prokeralaService.getPlanetaryPositions({
+      datetime,
+      lat,
+      lon,
+      lang,
+    });
   }
 }

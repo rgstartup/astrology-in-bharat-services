@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ProkeralaService, ProkeralaPersonParam } from '@/external/prokerala/prokerala.service';
+import {
+  ProkeralaService,
+  ProkeralaPersonParam,
+} from '@/external/prokerala/prokerala.service';
 import { GetGunaMilanDto } from '../../api/dto/get-guna-milan.dto';
 
 @Injectable()

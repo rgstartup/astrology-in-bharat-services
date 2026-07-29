@@ -1,4 +1,10 @@
-import { Entity, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
