@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import * as fs from 'fs';
 
 @Catch()
 export class UnknownExceptionFilter implements ExceptionFilter {
@@ -16,6 +17,9 @@ export class UnknownExceptionFilter implements ExceptionFilter {
 
     // 🔴 Log aggressively (replace with Winston/Sentry/etc)
     console.error('Unhandled exception:', exception);
+    try {
+      fs.appendFileSync('unhandled-errors.log', new Date().toISOString() + '\n' + String(exception) + '\n' + ((exception as Error)?.stack || '') + '\n\n');
+    } catch (e) {}
 
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,

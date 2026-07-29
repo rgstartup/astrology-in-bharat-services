@@ -148,13 +148,14 @@ export class UpdatePujaAppointmentStatusUseCase {
               : 'CLIENT';
 
       savedTx.transaction_no = generateTransactionNo(
-        roleForTx,
+        roleForTx as any,
         purpose,
         savedTx.id,
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[DEBIT_TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(`[TX] Failed to generate transaction no: ${(err as Error).message}`);
+      throw err;
     }
 
     const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
@@ -242,13 +243,14 @@ export class UpdatePujaAppointmentStatusUseCase {
               : 'CLIENT';
 
       savedTx.transaction_no = generateTransactionNo(
-        roleForTx,
+        roleForTx as any,
         purpose,
         savedTx.id,
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[CREDIT_TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(`[TX] Failed to generate transaction no: ${(err as Error).message}`);
+      throw err;
     }
 
     const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
@@ -389,37 +391,36 @@ export class UpdatePujaAppointmentStatusUseCase {
 
           // Fetch Expert's full user profile for referral check
           const expertUser = await qr.manager.findOne(User, {
-            where: { id: appointment.expert.user_id as unknown as string },
+            where: { id: (appointment.expert?.user_id as unknown as string) || '' },
           });
 
           // Resolve commissions via rules engine locally
-          const [platformFeeResolved, gstResolved, buyerAgentResolved] =
-            await Promise.all([
-              this.resolveCommissionLocal(
-                qr.manager,
-                'puja',
-                'platform_fee',
-                appointment.expert.id,
-                'expert',
-                totalAmount,
-              ),
-              this.resolveCommissionLocal(
-                qr.manager,
-                'puja',
-                'gst',
-                null,
-                'all',
-                totalAmount,
-              ),
-              this.resolveCommissionLocal(
-                qr.manager,
-                'puja',
-                'buyer_agent',
-                appointment.client?.id ?? null,
-                'client',
-                totalAmount,
-              ),
-            ]);
+          const platformFeeResolved = await this.resolveCommissionLocal(
+            qr.manager,
+            'puja',
+            'platform_fee',
+            appointment.expert.id,
+            'expert',
+            totalAmount,
+          );
+          
+          const gstResolved = await this.resolveCommissionLocal(
+            qr.manager,
+            'puja',
+            'gst',
+            null,
+            'all',
+            totalAmount,
+          );
+          
+          const buyerAgentResolved = await this.resolveCommissionLocal(
+            qr.manager,
+            'puja',
+            'buyer_agent',
+            appointment.client?.id ?? null,
+            'client',
+            totalAmount,
+          );
 
           const platformFee = platformFeeResolved.amount;
           const gst_rate = gstResolved.amount;

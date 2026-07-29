@@ -46,7 +46,7 @@ export class OrderFacade {
     shippingAddress: Record<string, unknown>,
   ) {
     return this.createOrderFromCartUseCase.execute(profileId, userId, {
-      shipping_address: shippingAddress,
+      shipping_address: shippingAddress as any,
     });
   }
 

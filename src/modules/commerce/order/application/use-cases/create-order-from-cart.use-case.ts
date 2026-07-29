@@ -40,13 +40,7 @@ export class CreateOrderFromCartUseCase {
   ) {}
 
   async execute(profileId: string, userId: string, dto: CreateOrderDto) {
-    const shipping_address = dto.shipping_address as
-      | Record<string, unknown>
-      | undefined;
-
-    if (!shipping_address) {
-      throw new BadRequestException('Shipping address is required');
-    }
+    const shipping_address = dto.shipping_address;
 
     let platformSetting = await this.dataSource.getRepository(SystemSetting).findOne({ where: { key: 'PLATFORM_FEE' } });
     if (!platformSetting) {
@@ -447,7 +441,7 @@ export class CreateOrderFromCartUseCase {
       const order = queryRunner.manager.create(Order, {
         client_id: profileId,
         total_amount: totalAmount,
-        shipping_address: shipping_address,
+        shipping_address: shipping_address as Record<string, unknown> | undefined,
         // Wallet=PAID, Split=PENDING (waiting for Razorpay), others=PENDING
         status: isWalletPayment ? OrderStatus.PAID : OrderStatus.PENDING,
         payment_method: dto.payment_method || 'razorpay',

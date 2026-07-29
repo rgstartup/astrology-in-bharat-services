@@ -77,6 +77,7 @@ export class GetMerchantDetailsUseCase {
       description: merchant.description || '',
       isTrusted: merchant.isTrusted || false,
       gallery: merchant.gallery || [],
+      video: merchant.video || '',
       features: merchant.features || [],
       popularProducts: popularProducts,
       isLiked: isLiked,

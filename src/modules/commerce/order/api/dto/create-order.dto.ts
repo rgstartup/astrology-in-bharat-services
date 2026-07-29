@@ -1,9 +1,12 @@
-import { IsObject, IsOptional, IsNumber, IsString } from 'class-validator';
+import { AddressDto } from '@/common/address/address.dto';
+import { Type } from 'class-transformer';
+import { IsOptional, IsNumber, IsString, ValidateNested } from 'class-validator';
 
 export class CreateOrderDto {
   @IsOptional()
-  @IsObject()
-  shipping_address?: any;
+  @Type(() => AddressDto)
+  @ValidateNested()
+  shipping_address?: AddressDto;
 
   @IsOptional()
   @IsString()
