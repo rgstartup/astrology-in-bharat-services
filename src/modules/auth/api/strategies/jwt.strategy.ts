@@ -7,13 +7,16 @@ import {
   IAccessTokenPayload,
   IUser,
 } from '@/common/types/access-token.payload';
-import { UsersFacade } from '@/modules/users/application/users.facade';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     config: ConfigService,
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {
     const authConfig = config.get<AuthConfig>('auth');
 
@@ -35,8 +38,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(payload: IAccessTokenPayload): Promise<IUser> {
     // Perform a live DB check to ensure the user hasn't been deleted or blocked
-    const user = await this.usersFacade.findById(payload.sub);
-    
+    const user = await this.userRepository.findOne({
+      where: { id: payload.sub },
+      select: ['id', 'roles', 'admin_permissions', 'email'],
+    });
+
     if (!user) {
       throw new UnauthorizedException('User account has been deleted or disabled');
     }

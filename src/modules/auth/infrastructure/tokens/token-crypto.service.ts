@@ -4,6 +4,7 @@ import { randomBytes } from 'crypto';
 import { AuthConfig } from '@/config/auth.config';
 import { ConfigService } from '@nestjs/config';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
+import { StringValue } from 'ms';
 
 @Injectable()
 export class TokenCryptoService {
@@ -20,7 +21,7 @@ export class TokenCryptoService {
 
   async createAccessToken<T extends object>(payload: T) {
     return this.jwtService.signAsync(payload, {
-      expiresIn: this.config.jwtExpiresIn as any,
+      expiresIn: this.config.jwtExpiresIn as StringValue,
     });
   }
 

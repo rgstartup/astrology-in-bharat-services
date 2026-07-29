@@ -1,103 +1,154 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { UsersFacade } from '@/modules/users/application/users.facade';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
+import {
+  Transaction,
+  TransactionType,
+  TransactionPurpose,
+} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
 @Injectable()
 export class GetAdminDashboardStatsUseCase {
   constructor(
-    @Inject(forwardRef(() => UsersFacade))
-    private readonly usersFacade: UsersFacade,
-    @Inject(forwardRef(() => WalletFacade))
-    private readonly walletFacade: WalletFacade,
-    @Inject(forwardRef(() => ChatFacade))
-    private readonly chatFacade: ChatFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(ChatSession)
+    private readonly chatSessionRepository: Repository<ChatSession>,
+    @InjectRepository(Transaction)
+    private readonly transactionRepository: Repository<Transaction>,
   ) {}
 
   async execute() {
-    const expertStats = await this.usersFacade.getExpertStats();
-    const clientStats = await this.usersFacade.getClientStats();
-    const chatSessionsCount = await this.chatFacade.getTotalSessionsCount();
-    const total_earnings = await this.walletFacade.getGlobalEarnings();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // Fetch recent activities
-    const [latestUsers, latestExperts, latestAgents] = await Promise.all([
-      this.usersFacade.findAllByRole('client', undefined, 1, 5),
-      this.usersFacade.findAllByRole('expert', undefined, 1, 5),
-      this.usersFacade.findAllByRole('agent', undefined, 1, 5),
-    ]);
+    // Single query: all user/expert/client stats + latest 5 of each role
+    const [expertStats, clientStats, chatSessionsCount, earningsResult, latestUsers] =
+      await Promise.all([
+        // Expert stats
+        this.userRepository
+          .createQueryBuilder('user')
+          .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
+          .select([
+            'COUNT(*) AS total_experts',
+            'COUNT(*) FILTER (WHERE profile.kyc_status = :approved) AS active_experts',
+            'COUNT(*) FILTER (WHERE profile.kyc_status = :pending) AS pending_experts',
+            'COUNT(*) FILTER (WHERE profile.kyc_status = :rejected) AS rejected_experts',
+            'COUNT(*) FILTER (WHERE "user".is_blocked = true) AS blocked_experts',
+            'COUNT(*) FILTER (WHERE "user".created_at >= :today) AS recent_experts',
+          ])
+          .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
+          .setParameters({
+            approved: 'approved',
+            pending: 'pending',
+            rejected: 'rejected',
+            today,
+          })
+          .getRawOne<{
+            total_experts: string;
+            active_experts: string;
+            pending_experts: string;
+            rejected_experts: string;
+            blocked_experts: string;
+            recent_experts: string;
+          }>(),
 
-    const activities = [
-      ...latestUsers.items.map(
-        (
-          u: import('@/modules/users/infrastructure/entities/user.entity').User,
-        ) => ({
-          id: `client-${u.id}`,
-          name: u.name || u.email,
-          action: 'joined as a client',
-          createdAt: u.created_at,
-          avatar: (u.name || 'C').charAt(0).toUpperCase(),
-          color: 'bg-blue-500',
-        }),
-      ),
-      ...latestExperts.items.map(
-        (
-          u: import('@/modules/users/infrastructure/entities/user.entity').User,
-        ) => ({
-          id: `expert-${u.id}`,
-          name: u.name || u.email,
-          action: 'joined as an expert',
-          createdAt: u.created_at,
-          avatar: (u.name || 'E').charAt(0).toUpperCase(),
-          color: 'bg-purple-500',
-        }),
-      ),
-      ...latestAgents.items.map(
-        (
-          u: import('@/modules/users/infrastructure/entities/user.entity').User,
-        ) => ({
-          id: `agent-${u.id}`,
-          name: u.name || u.email,
-          action: 'joined as an agent',
-          createdAt: u.created_at,
-          avatar: (u.name || 'A').charAt(0).toUpperCase(),
-          color: 'bg-green-500',
-        }),
-      ),
-    ]
-      .sort(
-        (a: { createdAt: Date }, b: { createdAt: Date }) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
-      .slice(0, 10)
-      .map(
-        (activity: {
-          id: string;
-          name: string;
-          action: string;
-          createdAt: Date;
-          avatar: string;
-          color: string;
-        }) => ({
-          ...activity,
-          time: this.formatTime(activity.createdAt),
-        }),
-      );
+        // Client stats
+        this.userRepository
+          .createQueryBuilder('user')
+          .leftJoin(ProfileClient, 'profile', 'profile.user_id = user.id')
+          .select([
+            'COUNT(*) AS total_clients',
+            'COUNT(*) FILTER (WHERE user.created_at >= :today) AS recent_clients',
+            'COUNT(*) FILTER (WHERE profile.is_blocked = true) AS blocked_clients',
+          ])
+          .where(':role = ANY(user.roles)', { role: RoleEnum.CLIENT })
+          .setParameter('today', today)
+          .getRawOne<{
+            total_clients: string;
+            recent_clients: string;
+            blocked_clients: string;
+          }>(),
 
-    const admin_earnings = await this.walletFacade.getAdminCommission();
+        // Total chat sessions count
+        this.chatSessionRepository.count(),
+
+        // Global earnings + admin commission in one query
+        this.transactionRepository
+          .createQueryBuilder('t')
+          .select([
+            `SUM(t.amount) FILTER (WHERE t.purpose = :rechargePurpose AND t.type = :creditType) AS total_earnings`,
+            `SUM(t.amount) FILTER (WHERE t.type = :debitType AND t.purpose IN (:...commissionPurposes)) AS commission_base`,
+          ])
+          .setParameters({
+            rechargePurpose: TransactionPurpose.RECHARGE,
+            creditType: TransactionType.CREDIT,
+            debitType: TransactionType.DEBIT,
+            commissionPurposes: [
+              TransactionPurpose.CONSULTATION,
+              TransactionPurpose.PRODUCT_PURCHASE,
+              TransactionPurpose.PUJA_CONFIRMATION,
+            ],
+          })
+          .getRawOne<{ total_earnings: string; commission_base: string }>(),
+
+        // Latest 15 users across all roles (client, expert, agent) — sorted in DB
+        this.userRepository
+          .createQueryBuilder('user')
+          .select(['user.id', 'user.name', 'user.email', 'user.roles', 'user.created_at'])
+          .where('user.roles && ARRAY[:...roles]::varchar[]', {
+            roles: [RoleEnum.CLIENT, RoleEnum.EXPERT, RoleEnum.AGENT],
+          })
+          .orderBy('user.created_at', 'DESC')
+          .take(15)
+          .getMany(),
+      ]);
+
+    const totalEarnings = Number(earningsResult?.total_earnings) || 0;
+    const adminEarnings = (Number(earningsResult?.commission_base) || 0) * 0.03;
+
+    // Map latest users to activities (single pass, no extra queries)
+    const activities = latestUsers
+      .map((u) => {
+        const isExpert = u.roles?.includes(RoleEnum.EXPERT);
+        const isAgent = u.roles?.includes(RoleEnum.AGENT);
+        const role = isAgent ? 'agent' : isExpert ? 'expert' : 'client';
+        const colorMap = {
+          agent: 'bg-green-500',
+          expert: 'bg-purple-500',
+          client: 'bg-blue-500',
+        };
+        return {
+          id: `${role}-${u.id}`,
+          name: u.name || u.email,
+          action: `joined as a ${role}`,
+          createdAt: u.created_at,
+          avatar: (u.name || role.charAt(0)).charAt(0).toUpperCase(),
+          color: colorMap[role],
+          time: this.formatTime(u.created_at),
+        };
+      })
+      .slice(0, 10);
 
     return {
       totalChatSessions: chatSessionsCount,
-      totalExperts: expertStats.totalExperts,
-      totalUsers: clientStats.totalUsers,
-      totalEarnings: total_earnings,
-      adminEarnings: admin_earnings,
-      trends: expertStats.trends,
-      activities: activities,
+      totalExperts: Number(expertStats?.total_experts) || 0,
+      totalUsers: Number(clientStats?.total_clients) || 0,
+      totalEarnings,
+      adminEarnings,
+      trends: {
+        recent: Number(expertStats?.recent_experts) || 0,
+      },
+      activities,
     };
   }
 
-  private formatTime(date: Date) {
+  private formatTime(date: Date): string {
     const now = new Date();
     const diff = now.getTime() - new Date(date).getTime();
     const minutes = Math.floor(diff / 60000);

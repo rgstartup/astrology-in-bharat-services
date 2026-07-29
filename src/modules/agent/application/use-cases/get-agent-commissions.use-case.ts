@@ -1,26 +1,17 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
-import { CallFacade } from '@/modules/consultation/call/application/call.facade';
-import { PujaAppointmentFacade } from '@/modules/puja-appointment/application/puja-appointment.facade';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
+import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
 @Injectable()
 export class GetAgentCommissionsUseCase {
   constructor(
-    @Inject(forwardRef(() => WalletFacade))
-    private readonly walletFacade: WalletFacade,
-    @Inject(forwardRef(() => ChatFacade))
-    private readonly chatFacade: ChatFacade,
-    @Inject(forwardRef(() => CallFacade))
-    private readonly callFacade: CallFacade,
-    @Inject(forwardRef(() => PujaAppointmentFacade))
-    private readonly pujaFacade: PujaAppointmentFacade,
     @InjectRepository(ProfileAgent)
     private readonly profileAgentRepo: Repository<ProfileAgent>,
+    @InjectRepository(Transaction)
+    private readonly transactionRepo: Repository<Transaction>,
   ) {}
 
   async execute(userId: string, pagination: PaginationDto) {
@@ -33,55 +24,87 @@ export class GetAgentCommissionsUseCase {
     const profileId = agentProfile.id;
 
     const offset = pagination.skip;
-    const result = await this.walletFacade.getTransactions(
-      profileId,
-      'agent_id',
-      String(pagination.limit),
-      String(offset),
-      'all',
-      'agent_commission',
-    );
+    
+    // We join the transactions table with wallets to get transactions for this agent
+    const query = this.transactionRepo.createQueryBuilder('t')
+      .innerJoin('finance.wallets', 'w', 'w.id = t.wallet_id')
+      .where('w.agent_id = :agentId', { agentId: profileId })
+      .andWhere('t.purpose = :purpose', { purpose: 'agent_commission' })
+      .orderBy('t.created_at', 'DESC');
 
+    const [transactions, total] = await query
+      .skip(offset)
+      .take(pagination.limit)
+      .getManyAndCount();
+
+    if (transactions.length === 0) {
+      return {
+        data: [],
+        total,
+        page: pagination.page,
+        limit: pagination.limit,
+      };
+    }
+
+    // Now we extract IDs for different reference types to resolve names
     const callIds: string[] = [];
     const chatIds: string[] = [];
     const pujaIds: string[] = [];
 
-    result.data.forEach((t) => {
+    transactions.forEach((t) => {
       const refId = t.reference_id || '';
       if (refId.startsWith('call_')) callIds.push(refId.replace('call_', ''));
       else if (refId.startsWith('chat_')) chatIds.push(refId.replace('chat_', ''));
       else if (refId.startsWith('puja_')) pujaIds.push(refId.replace('puja_', ''));
     });
 
-    const [callDetails, chatDetails, pujaDetails] = await Promise.all([
-      callIds.length > 0 ? this.callFacade.resolveSessionDetails(callIds) : {},
-      chatIds.length > 0 ? this.chatFacade.resolveSessionDetails(chatIds) : {},
-      pujaIds.length > 0 ? this.pujaFacade.resolveAppointmentDetails(pujaIds) : {},
-    ]);
+    // Instead of importing Facades with forwardRef, we use raw SQL to fetch names quickly
+    const resolvedNames: Record<string, { expertName: string, type: string }> = {};
 
-    const resolvedData = result.data.map((t) => {
+    if (callIds.length > 0) {
+      const calls = await this.transactionRepo.manager.query(
+        `SELECT c.id, u.name as expert_name, c.type 
+         FROM consultations.call_sessions c
+         LEFT JOIN expert.profile pe ON pe.id = c.expert_id
+         LEFT JOIN public.users u ON u.id = pe.user_id
+         WHERE c.id = ANY($1)`,
+         [callIds]
+      );
+      calls.forEach((c: any) => resolvedNames[`call_${c.id}`] = { expertName: c.expert_name, type: c.type });
+    }
+
+    if (chatIds.length > 0) {
+      const chats = await this.transactionRepo.manager.query(
+        `SELECT c.id, u.name as expert_name, c.type 
+         FROM consultations.chat_sessions c
+         LEFT JOIN expert.profile pe ON pe.id = c.expert_id
+         LEFT JOIN public.users u ON u.id = pe.user_id
+         WHERE c.id = ANY($1)`,
+         [chatIds]
+      );
+      chats.forEach((c: any) => resolvedNames[`chat_${c.id}`] = { expertName: c.expert_name, type: c.type });
+    }
+
+    if (pujaIds.length > 0) {
+      const pujas = await this.transactionRepo.manager.query(
+        `SELECT p.id, u.name as expert_name, p.puja_type as type 
+         FROM puja.appointments p
+         LEFT JOIN expert.profile pe ON pe.id = p.astrologer_id
+         LEFT JOIN public.users u ON u.id = pe.user_id
+         WHERE p.id = ANY($1)`,
+         [pujaIds]
+      );
+      pujas.forEach((p: any) => resolvedNames[`puja_${p.id}`] = { expertName: p.expert_name, type: p.type });
+    }
+
+    const resolvedData = transactions.map((t) => {
       let listing = 'Unknown';
       let type: string = t.purpose || 'commission';
       const refId = t.reference_id || '';
 
-      if (refId.startsWith('call_')) {
-        const id = refId.replace('call_', '');
-        if (callDetails[id]) {
-          listing = callDetails[id].expertName;
-          type = callDetails[id].type;
-        }
-      } else if (refId.startsWith('chat_')) {
-        const id = refId.replace('chat_', '');
-        if (chatDetails[id]) {
-          listing = chatDetails[id].expertName;
-          type = chatDetails[id].type;
-        }
-      } else if (refId.startsWith('puja_')) {
-        const id = refId.replace('puja_', '');
-        if (pujaDetails[id]) {
-          listing = pujaDetails[id].expertName;
-          type = pujaDetails[id].type;
-        }
+      if (resolvedNames[refId]) {
+        listing = resolvedNames[refId].expertName;
+        type = resolvedNames[refId].type;
       } else if (refId.startsWith('order_')) {
         type = 'puja_shop';
       }
@@ -99,7 +122,7 @@ export class GetAgentCommissionsUseCase {
 
     return {
       data: resolvedData,
-      total: result.meta.totalCount,
+      total,
       page: pagination.page,
       limit: pagination.limit,
     };

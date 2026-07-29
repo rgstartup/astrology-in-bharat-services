@@ -4,6 +4,46 @@ import { Repository } from 'typeorm';
 import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
 import { PanchangamService } from '../services/panchangam.service';
 
+interface TimeRange {
+  start?: Date | string;
+  end?: Date | string;
+  startTime?: Date | string;
+  endTime?: Date | string;
+}
+
+interface PanchangItem {
+  name?: string;
+  startTime?: Date | string;
+  endTime?: Date | string;
+}
+
+interface PanchangData {
+  panchangam: {
+    tithis?: PanchangItem[];
+    nakshatras?: PanchangItem[];
+    karanas?: PanchangItem[];
+    yogas?: PanchangItem[];
+    sunrise?: Date | string | null;
+    sunset?: Date | string | null;
+    moonrise?: Date | string | null;
+    moonset?: Date | string | null;
+    abhijitMuhurta?: TimeRange | null;
+    brahmaMuhurta?: TimeRange | null;
+    durMuhurta?: TimeRange[] | null;
+    govardhanMuhurta?: TimeRange | null;
+    amritKalam?: TimeRange[] | null;
+    rahuKalamStart?: Date | string | null;
+    rahuKalamEnd?: Date | string | null;
+    yamagandaKalam?: TimeRange | null;
+    festivals?: Array<{ name: string; description?: string; category?: string; type?: string }>;
+  };
+  moonPhase: {
+    current: string;
+    illumination: number;
+    nextFullMoon: string;
+  };
+}
+
 @Injectable()
 export class GetDailyPanchangUseCase {
   private readonly logger = new Logger(GetDailyPanchangUseCase.name);
@@ -14,7 +54,7 @@ export class GetDailyPanchangUseCase {
     private readonly panchangamService: PanchangamService,
   ) {}
 
-  private formatTime(isoString: string | Date | undefined): string {
+  private formatTime(isoString: string | Date | null | undefined): string {
     if (!isoString) return 'N/A';
     const dateObj = typeof isoString === 'string' ? new Date(isoString) : isoString;
     if (isNaN(dateObj.getTime())) return 'N/A';
@@ -33,7 +73,7 @@ export class GetDailyPanchangUseCase {
     return `${hoursStr}:${minsStr} ${ampm}`;
   }
 
-  private mapPanchangToFrontendSchema(serviceData: any, dateStr: string) {
+  private mapPanchangToFrontendSchema(serviceData: PanchangData, dateStr: string) {
     const { panchangam, moonPhase } = serviceData;
 
     // We can keep the deterministic mockup for dailyHoroscope
@@ -53,7 +93,7 @@ export class GetDailyPanchangUseCase {
     }
 
     // Map Exact timings from Panchangam-js
-    const safeTimeRange = (obj: { start?: Date | string, end?: Date | string, startTime?: Date | string, endTime?: Date | string } | undefined) => {
+    const safeTimeRange = (obj: { start?: Date | string | null, end?: Date | string | null, startTime?: Date | string | null, endTime?: Date | string | null } | null | undefined) => {
       if (!obj) return { start: 'N/A', end: 'N/A' };
       return { start: this.formatTime(obj.start || obj.startTime), end: this.formatTime(obj.end || obj.endTime) };
     };

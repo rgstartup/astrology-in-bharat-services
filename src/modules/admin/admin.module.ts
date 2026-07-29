@@ -88,6 +88,10 @@ import { ToggleUserBlockUseCase } from './application/use-cases/toggle-user-bloc
       AdminAuditLog,
       User,
       SystemSetting,
+      ChatSession,
+      Transaction,
+      ProfileExpert,
+      ProfileClient,
     ]),
 
     UsersModule,

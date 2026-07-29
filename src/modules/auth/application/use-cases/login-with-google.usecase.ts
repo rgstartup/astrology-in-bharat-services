@@ -7,8 +7,10 @@ import { Profile } from 'passport-google-oauth20';
 import { DatabaseService } from '@/core/database/database.service';
 import { OAuthService } from '../../infrastructure/services/oauth.service';
 import { AuthTokenService } from '../services/auth-token.service';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class LoginWithGoogleUseCase {
@@ -19,7 +21,8 @@ export class LoginWithGoogleUseCase {
     private readonly oauthService: OAuthService,
     private readonly authTokenService: AuthTokenService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async execute(input: {
@@ -35,7 +38,9 @@ export class LoginWithGoogleUseCase {
 
     return this.db.transaction(async (qr) => {
       // 1. Check if user exists first to handle role restrictions
-      const existingUser = await this.usersFacade.findByEmail(input.email, qr);
+      const existingUser = await qr.manager.findOne(User, {
+        where: { email: input.email },
+      });
       this.logger.log(
         `Google Login attempt for ${input.email}. Requested role: ${roleToAdd}. Existing user: ${!!existingUser}`,
       );

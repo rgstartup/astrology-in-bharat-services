@@ -1,20 +1,24 @@
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ResetPasswordEvent } from '../../domain/events/reset-password.event';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ForgotPasswordUseCase {
   constructor(
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(email: string) {
-    const existingUser = await this.usersFacade.findByEmail(email);
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
 
     if (!existingUser) {
       throw new BadRequestException("User not found or doesn't exist");

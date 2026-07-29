@@ -3,6 +3,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
 
+interface WikipediaResponse {
+  success: boolean;
+  data: {
+    type?: string;
+    extract?: string;
+    title?: string;
+    thumbnail?: { source?: string };
+    originalimage?: { source?: string };
+  } | null;
+}
+
 @Injectable()
 export class GetFestivalDetailsUseCase {
   private readonly logger = new Logger(GetFestivalDetailsUseCase.name);
@@ -32,7 +43,7 @@ export class GetFestivalDetailsUseCase {
       const searchTerm = name.split('(')[0].trim().replace(/\s+/g, '_');
       
       const res = await fetch(`https://${wikiLang}.wikipedia.org/api/rest_v1/page/summary/${searchTerm}`);
-      let responseData: any = { success: false, data: null };
+      let responseData: WikipediaResponse = { success: false, data: null };
 
       if (res.ok) {
         const data = await res.json();
@@ -70,10 +81,11 @@ export class GetFestivalDetailsUseCase {
           },
           ['type', 'cacheKey']
         );
-      } catch (dbError: any) {
+      } catch (dbError: unknown) {
+        const err = dbError as { code?: string; message?: string };
         // Ignore duplicate key errors if two requests hit at exact same time
-        if (dbError.code !== '23505') {
-          this.logger.warn(`Failed to cache Wikipedia details: ${dbError.message}`);
+        if (err.code !== '23505') {
+          this.logger.warn(`Failed to cache Wikipedia details: ${err.message}`);
         }
       }
 

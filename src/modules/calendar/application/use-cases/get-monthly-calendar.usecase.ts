@@ -4,6 +4,24 @@ import { Repository } from 'typeorm';
 import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
 import { PanchangamService } from '../services/panchangam.service';
 
+interface FestivalItem {
+  name: string;
+  date: string;
+  description?: string;
+  category?: string;
+  type?: string;
+}
+
+interface FestivalsRaw {
+  data?: FestivalItem[];
+}
+
+interface MonthlyCalendarDay {
+  date: string;
+  dayName: string;
+  festivals: string[];
+}
+
 @Injectable()
 export class GetMonthlyCalendarUseCase {
   private readonly logger = new Logger(GetMonthlyCalendarUseCase.name);
@@ -35,7 +53,7 @@ export class GetMonthlyCalendarUseCase {
     this.logger.log(`Calculating fresh monthly calendar for ${cacheKey} locally`);
 
     // Fetch yearly festivals from local service
-    let festivalsRaw: any = {};
+    let festivalsRaw: FestivalsRaw = {};
     try {
       const festivalCacheKey = `${year}-${lang}-v1`;
       const festivalCacheType = 'festivals-local';
@@ -44,7 +62,7 @@ export class GetMonthlyCalendarUseCase {
       });
 
       if (cachedFestivals) {
-        festivalsRaw = cachedFestivals.response;
+        festivalsRaw = cachedFestivals.response as FestivalsRaw;
       } else {
         const festivalResponse = this.panchangamService.getYearlyFestivals(year);
         festivalsRaw = { data: festivalResponse };
@@ -59,17 +77,17 @@ export class GetMonthlyCalendarUseCase {
       this.logger.error('Failed to calculate yearly festivals', e);
     }
 
-    const festivalsList = (festivalsRaw?.data || []) as any[];
+    const festivalsList: FestivalItem[] = festivalsRaw?.data || [];
 
     const lastDay = new Date(year, month, 0).getDate();
-    const monthlyData: any[] = [];
-    const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const monthlyData: MonthlyCalendarDay[] = [];
+    const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     for (let day = 1; day <= lastDay; day++) {
       const paddedDay = day.toString().padStart(2, '0');
       const paddedMonth = month.toString().padStart(2, '0');
       const dateStr = `${year}-${paddedMonth}-${paddedDay}`;
-      
+
       const dateObj = new Date(year, month - 1, day);
       const dayName = WEEKDAYS[dateObj.getDay()];
 
@@ -77,9 +95,6 @@ export class GetMonthlyCalendarUseCase {
         .filter((f) => f.date && f.date.startsWith(dateStr))
         .map((f) => f.name);
 
-      // We can also calculate Ekadashi, Amavasya, Purnima here if we need, 
-      // but the festival list from panchangam-js usually includes them!
-      
       monthlyData.push({
         date: dateStr,
         dayName,

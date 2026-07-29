@@ -1,55 +1,50 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { UsersFacade } from '@/modules/users/application/users.facade';
-import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
-import { CallFacade } from '@/modules/consultation/call/application/call.facade';
-import { PujaAppointmentFacade } from '@/modules/puja-appointment/application/puja-appointment.facade';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
 @Injectable()
 export class GetAdminTopExpertsUseCase {
   constructor(
-    @Inject(forwardRef(() => UsersFacade))
-    private readonly usersFacade: UsersFacade,
-    @Inject(forwardRef(() => ChatFacade))
-    private readonly chatFacade: ChatFacade,
-    @Inject(forwardRef(() => CallFacade))
-    private readonly callFacade: CallFacade,
-    @Inject(forwardRef(() => PujaAppointmentFacade))
-    private readonly pujaFacade: PujaAppointmentFacade,
+    @InjectRepository(Transaction)
+    private readonly transactionRepository: Repository<Transaction>,
   ) {}
 
   async execute(limit: number = 5) {
-    // 1. Fetch all experts who have a profile
-    const profiles = await this.usersFacade.getExpertsForRevenue();
+    // 1. Fetch top experts aggregated in a single PostgreSQL query
+    // E-commerce products are sold by Merchants, not Experts, so we exclude product stats.
+    // Assuming transactions have a way to link to expert profile id (often via reference_id linking to a session with expert_id)
+    // Here we use a query that mimics the previous logic by fetching from the respective session tables joined directly.
+    
+    const topExpertsRaw = await this.transactionRepository.manager.query(
+      `
+      SELECT 
+          u.name,
+          pe.id as expert_profile_id,
+          pe.rating,
+          COALESCE(SUM(c.amount), 0) as revenue,
+          COUNT(c.id) as consultations
+      FROM expert.profile pe
+      JOIN public.users u ON u.id = pe.user_id
+      LEFT JOIN (
+          SELECT expert_id, expert_revenue as amount, id FROM consultations.chat_sessions WHERE status = 'completed'
+          UNION ALL
+          SELECT expert_id, expert_revenue as amount, id FROM consultations.call_sessions WHERE status = 'completed'
+          UNION ALL
+          SELECT astrologer_id as expert_id, amount, id FROM puja.appointments WHERE status = 'completed'
+      ) c ON c.expert_id = pe.id
+      GROUP BY u.name, pe.id, pe.rating
+      ORDER BY revenue DESC
+      LIMIT $1
+      `,
+      [limit]
+    );
 
-    // 2. Fetch all aggregated stats in exactly 3 queries, avoiding N+1 problem (OOM Crash fix)
-    const [chatStatsMap, callStatsMap, pujaStatsMap] = await Promise.all([
-      this.chatFacade.getAllExpertsRevenueAndCount(),
-      this.callFacade.getAllExpertsRevenueAndCount(),
-      this.pujaFacade.getAllExpertsRevenueAndCount(),
-    ]);
-
-    // 3. Map the stats in-memory (Super fast, O(N) CPU time, O(1) DB queries)
-    const results = profiles.map((expert) => {
-      const expertProfileId = (expert as unknown as { profile_expert?: { id: string } }).profile_expert?.id;
-      if (!expertProfileId) return null;
-
-      const chatStats = chatStatsMap[expertProfileId] || { total: 0, count: 0 };
-      const callStats = callStatsMap[expertProfileId] || { total: 0, count: 0 };
-      const pujaStats = pujaStatsMap[expertProfileId] || { total: 0, count: 0 };
-      
-      // Note: E-commerce products are sold by Merchants, not Experts, so we exclude product stats.
-      const totalRevenue = chatStats.total + callStats.total + pujaStats.total;
-      const totalConsultations = chatStats.count + callStats.count + pujaStats.count;
-
-      return {
-        name: expert.name,
-        revenue: totalRevenue,
-        consultations: totalConsultations,
-        rating: 4.8, // placeholder
-      };
-    }).filter(Boolean);
-
-    // 4. Sort by revenue and return limited results
-    return results.sort((a, b) => b!.revenue - a!.revenue).slice(0, limit);
+    return topExpertsRaw.map((expert: any) => ({
+      name: expert.name,
+      revenue: Number(expert.revenue || 0),
+      consultations: Number(expert.consultations || 0),
+      rating: Number(expert.rating || 4.8), 
+    }));
   }
 }

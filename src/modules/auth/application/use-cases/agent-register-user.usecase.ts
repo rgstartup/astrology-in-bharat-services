@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import * as crypto from 'crypto';
@@ -13,10 +12,12 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { ConfigService } from '@nestjs/config';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AgentRegisterUserUseCase {
@@ -24,18 +25,20 @@ export class AgentRegisterUserUseCase {
 
   constructor(
     private readonly db: DatabaseService,
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(SystemSetting)
+    private readonly systemSettingRepository: Repository<SystemSetting>,
     @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
     private readonly mailer: NodeMailerService,
     private readonly eventEmitter: EventEmitter2,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly configService: ConfigService,
-    private readonly walletFacade: WalletFacade,
   ) {}
 
   async execute(dto: AgentRegisterUserDto, agentId: string) {
-    const existingUser = await this.usersFacade.findByEmail(dto.email);
+    const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
 
     // Ensure email is unique (throws if not)
     RegistrationPolicy.ensureEmailIsUnique(existingUser);
@@ -49,16 +52,15 @@ export class AgentRegisterUserUseCase {
       await this.db.transaction(async (queryRunner) => {
         const hashedPassword = await this.hasher.hash(generatedPassword);
 
-        createdUser = await this.usersFacade.create(
-          {
-            name: dto.name,
-            email: dto.email,
-            roles: dto.roles,
-            password: hashedPassword,
-            referred_by_id: agentId,
-          },
-          queryRunner,
-        );
+        const user = queryRunner.manager.create(User, {
+          name: dto.name,
+          email: dto.email,
+          roles: dto.roles,
+          password: hashedPassword,
+          referred_by_id: agentId,
+        });
+
+        createdUser = await queryRunner.manager.save(User, user);
 
         await this.profileCreationResolver.ensureProfile(
           createdUser,
@@ -68,10 +70,10 @@ export class AgentRegisterUserUseCase {
         // Update phone number in the specific profile if provided
         // Handle Expert-specific logic (Lock Commission Rate)
         if (hasRoles(dto.roles, 'EXPERT')) {
-          const agentCommissionRate =
-            await this.walletFacade.getAdminCommissionFromSetting(
-              'COMMISION_FROM_ASTROLOGER',
-            );
+          const setting = await queryRunner.manager.findOne(SystemSetting, {
+            where: { key: 'COMMISION_FROM_ASTROLOGER' }
+          });
+          const agentCommissionRate = setting?.value ? parseFloat(setting.value) : 0;
           
           await queryRunner.manager.update(
             ProfileExpert,
@@ -82,13 +84,10 @@ export class AgentRegisterUserUseCase {
             },
           );
         } else if (hasRoles(dto.roles, 'MERCHANT')) {
-          const agentCommissionRate =
-            (await this.walletFacade.getAdminCommissionFromSetting(
-              'COMMISSION_FROM_PUJA_SHOP',
-            )) ||
-            (await this.walletFacade.getAdminCommissionFromSetting(
-              'COMMISION_FROM_PUJA_SHOP',
-            ));
+          const setting = await queryRunner.manager.findOne(SystemSetting, {
+            where: { key: 'COMMISSION_FROM_PUJA_SHOP' }
+          });
+          const agentCommissionRate = setting?.value ? parseFloat(setting.value) : 0;
           
           const merchantUpdates = {
             agent_commission_rate: agentCommissionRate,

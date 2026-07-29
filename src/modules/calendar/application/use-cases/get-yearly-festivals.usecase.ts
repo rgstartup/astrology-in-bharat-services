@@ -41,9 +41,10 @@ export class GetYearlyFestivalsUseCase {
         },
         ['type', 'cacheKey']
       );
-    } catch (e: any) {
-      if (e.code !== '23505') {
-        this.logger.warn(`Failed to cache yearly festivals: ${e.message}`);
+    } catch (e: unknown) {
+      const err = e as { code?: string; message?: string };
+      if (err.code !== '23505') {
+        this.logger.warn(`Failed to cache yearly festivals: ${err.message}`);
       }
     }
 

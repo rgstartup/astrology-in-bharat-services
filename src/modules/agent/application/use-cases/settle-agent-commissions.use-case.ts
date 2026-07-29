@@ -1,15 +1,12 @@
 import {
   Injectable,
   BadRequestException,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import {
@@ -23,8 +20,6 @@ import {
 export class SettleAgentCommissionsUseCase {
   constructor(
     private readonly databaseService: DatabaseService,
-    @Inject(forwardRef(() => WalletFacade))
-    private readonly walletFacade: WalletFacade,
     private readonly commissionsFacade: CommissionsFacade,
     @InjectRepository(ProfileAgent)
     private readonly profileAgentRepo: Repository<ProfileAgent>,
@@ -106,19 +101,45 @@ export class SettleAgentCommissionsUseCase {
         }
       }
 
-      const currentBalance = await this.walletFacade.getBalance(
-        profile.id,
-        'agent_id',
+      // Instead of WalletFacade, fetch balances natively via raw query
+      const walletRes = await queryRunner.manager.query(
+        `SELECT id, balance FROM finance.wallets WHERE agent_id = $1`,
+        [profile.id]
       );
-      const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(
-        profile.id,
-        'agent_id',
-      );
+      
+      let walletId: string | null = null;
+      let currentBalance = 0;
 
+      if (walletRes.length === 0) {
+        // Create wallet if doesn't exist
+        const newWallet = await queryRunner.manager.query(
+          `INSERT INTO finance.wallets (agent_id, balance) VALUES ($1, 0) RETURNING id`,
+          [profile.id]
+        );
+        walletId = newWallet[0].id;
+      } else {
+        walletId = walletRes[0].id;
+        currentBalance = Number(walletRes[0].balance);
+      }
+
+      const withdrawalStatsQuery = await queryRunner.manager.query(
+        `
+        SELECT 
+            SUM(amount) FILTER(WHERE status = 'pending')::float as pending_amount,
+            SUM(amount) FILTER(WHERE status = 'processing')::float as processing_amount,
+            SUM(amount) FILTER(WHERE status = 'completed')::float as total_withdrawn
+        FROM finance.withdrawals 
+        WHERE profile_id = $1 AND profile_type = 'agent_id'
+        `,
+        [profile.id]
+      );
+      
+      const wStats = withdrawalStatsQuery[0] || {};
       const totalAlreadyPaidOut =
-        (Number(currentBalance) || 0) +
-        (Number(withdrawalStats.total_withdrawn) || 0) +
-        (Number(withdrawalStats.pending_withdrawals) || 0);
+        currentBalance +
+        (Number(wStats.total_withdrawn) || 0) +
+        (Number(wStats.pending_amount) || 0) + 
+        (Number(wStats.processing_amount) || 0);
 
       const amountToSettle = parseFloat(
         (totalAgentCommissionCalculated - totalAlreadyPaidOut).toFixed(2),
@@ -132,17 +153,20 @@ export class SettleAgentCommissionsUseCase {
         };
       }
 
-      const { TransactionPurpose } = await import(
+      const { TransactionPurpose, TransactionType } = await import(
         '@/modules/finance/wallet/infrastructure/entities/transaction.entity'
       );
 
-      await this.walletFacade.credit(
-        profile.id,
-        'agent_id',
-        amountToSettle,
-        TransactionPurpose.AGENT_COMMISSION,
-        'manual_settlement',
-        queryRunner,
+      // Insert credit transaction
+      await queryRunner.manager.query(
+        `INSERT INTO finance.transactions (wallet_id, amount, type, purpose, reference_id) VALUES ($1, $2, $3, $4, $5)`,
+        [walletId, amountToSettle, TransactionType.CREDIT, TransactionPurpose.AGENT_COMMISSION, 'manual_settlement']
+      );
+
+      // Update wallet balance
+      await queryRunner.manager.query(
+        `UPDATE finance.wallets SET balance = balance + $1, updated_at = NOW() WHERE id = $2`,
+        [amountToSettle, walletId]
       );
 
       profile.total_earnings =

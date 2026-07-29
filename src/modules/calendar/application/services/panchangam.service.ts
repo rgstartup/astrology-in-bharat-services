@@ -2,6 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { getPanchangam, Observer } from '@ishubhamx/panchangam-js';
 import { Moon } from 'lunarphase-js';
 
+interface FestivalEntry {
+  name: string;
+  date: string;
+  description: string;
+  category: string;
+  type: string;
+}
+
 @Injectable()
 export class PanchangamService {
   private readonly logger = new Logger(PanchangamService.name);
@@ -46,7 +54,7 @@ export class PanchangamService {
 
   getYearlyFestivals(year: number, lat: number = 28.6139, lon: number = 77.2090, tz: number = 5.5) {
     try {
-      const festivals: any[] = [];
+      const festivals: FestivalEntry[] = [];
       const obs = new Observer(lat, lon, tz);
 
       // Loop through all days of the year (this is fast locally)

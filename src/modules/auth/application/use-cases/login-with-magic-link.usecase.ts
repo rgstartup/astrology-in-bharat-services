@@ -4,18 +4,21 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UsedTokensService } from '../../infrastructure/services/used-tokens.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { LoginWithMagicLinkPolicy } from '../../domain/policies/login-with-magic-link.policy';
 import { AuthTokenService } from '../services/auth-token.service';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class LoginWithMagicLinkUseCase {
   constructor(
     private readonly db: DatabaseService,
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly usedTokenService: UsedTokensService,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly authTokenService: AuthTokenService,
@@ -24,7 +27,9 @@ export class LoginWithMagicLinkUseCase {
   async execute(token: string, role: RoleEnum, ip?: string, ua?: string) {
     const payload = await this.verifyTokenOrFail(token);
 
-    const user = await this.usersFacade.findByEmail(payload.email);
+    const user = await this.userRepository.findOne({
+      where: { email: payload.email },
+    });
 
     if (!user) {
       throw new UnauthorizedException("User not found or doesn't exist");
@@ -38,11 +43,7 @@ export class LoginWithMagicLinkUseCase {
       return Promise.all([
         user.isVerified()
           ? Promise.resolve(user)
-          : this.usersFacade.update(
-              user.id,
-              { email_verified_at: new Date() },
-              qr,
-            ),
+          : qr.manager.save(User, { ...user, email_verified_at: new Date() }),
 
         this.usedTokenService.markTokenAsUsed(
           token,

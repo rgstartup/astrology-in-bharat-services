@@ -4,18 +4,21 @@ import { MerchantRegisterDto } from '../../api/dto/merchant-register.dto';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 @Injectable()
 export class MerchantRegisterUserUseCase {
   constructor(
     private readonly db: DatabaseService,
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly eventEmitter: EventEmitter2,
     @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly tokenCrypto: TokenCryptoService,
@@ -23,9 +26,11 @@ export class MerchantRegisterUserUseCase {
   ) {}
 
   async execute(dto: MerchantRegisterDto, _ip?: string, _userAgent?: string) {
-    const existingUser = await this.usersFacade.findByEmail(dto.email);
+    const existingUser = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
 
-    // ðŸ” domain rule
+    // 🔐 domain rule
     RegistrationPolicy.ensureEmailIsUnique(existingUser);
 
     const response = await this.db.transaction(async (queryRunner) => {
@@ -33,16 +38,15 @@ export class MerchantRegisterUserUseCase {
 
       const roles = dto.roles || [RoleEnum.MERCHANT];
 
-      const user = await this.usersFacade.create(
-        {
-          name: dto.shopName,
-          email: dto.email,
-          roles: roles,
-          password: hashedPassword,
-          email_verified_at: undefined,
-        },
-        queryRunner,
-      );
+      const newUser = queryRunner.manager.create(User, {
+        name: dto.shopName,
+        email: dto.email,
+        roles: roles,
+        password: hashedPassword,
+        email_verified_at: undefined,
+      });
+
+      const user = await queryRunner.manager.save(User, newUser);
 
       await this.profileCreationResolver.ensureProfile(user, queryRunner);
 
@@ -65,11 +69,8 @@ export class MerchantRegisterUserUseCase {
 
       this.sendEmail(user);
 
-      // Instead of issuing tokens immediately (they need KYC or verification usually),
-      // we just return user object but specs say 201 Created and return specific string.
-      // Wait, spec for registration: Expected response with NO token, just merchantId, email, status.
       return {
-        merchant_id: user.id, // Using user.id since profile.uid is not readily available without another query, or we can just return user.id which maps 1:1
+        merchant_id: user.id,
         email: user.email,
         status: 'PENDING',
       };
@@ -84,7 +85,7 @@ export class MerchantRegisterUserUseCase {
       email: user.email,
     });
 
-    // ðŸ“¢ domain event
+    // 📢 domain event
     this.eventEmitter.emit(
       'auth.user.registered',
       new UserRegisteredEvent(

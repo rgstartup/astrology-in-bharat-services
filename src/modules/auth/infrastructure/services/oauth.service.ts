@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { OAuthAccount } from '../entities/oauth-accounts.entity';
 import { OAuthUserDto } from '@/modules/auth/api/dto';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { BaseService } from '@/common/services/transaction.service';
 
@@ -12,7 +11,8 @@ export class OAuthService extends BaseService<OAuthAccount> {
   constructor(
     @InjectRepository(OAuthAccount)
     private readonly oauthRepo: Repository<OAuthAccount>,
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {
     super(oauthRepo);
   }
@@ -29,13 +29,10 @@ export class OAuthService extends BaseService<OAuthAccount> {
     queryRunner?: QueryRunner,
   ) {
     const repo = this.getRepo(queryRunner);
-
     const account = repo.create(data);
-
     return repo.save(account);
   }
 
-  // oauth.service.ts
   async findOrCreateUserFromOAuth(
     dto: OAuthUserDto,
     queryRunner?: QueryRunner,
@@ -44,28 +41,28 @@ export class OAuthService extends BaseService<OAuthAccount> {
 
     if (oauth?.user) return oauth.user;
 
+    const userRepo = queryRunner
+      ? queryRunner.manager.getRepository(User)
+      : this.userRepository;
+
     let user = dto.email
-      ? await this.usersFacade.findByEmail(dto.email, queryRunner)
+      ? await userRepo.findOne({ where: { email: dto.email } })
       : null;
 
-    user ??= await this.usersFacade.create(
-      {
+    if (!user) {
+      const newUser = userRepo.create({
         email: dto.email,
         name: dto.name,
         avatar: (
           dto.profile as { photos?: Array<{ value?: string }> } | undefined
         )?.photos?.[0]?.value,
         roles: dto.roles,
-      },
-      queryRunner,
-    );
+      });
+      user = await userRepo.save(newUser);
+    }
 
     user.markEmailAsVerified();
-    await this.usersFacade.update(
-      user.id,
-      { email_verified_at: user.email_verified_at },
-      queryRunner,
-    );
+    await userRepo.save({ ...user, email_verified_at: user.email_verified_at });
 
     await this.linkAccount({ ...dto, user }, queryRunner);
     return user;

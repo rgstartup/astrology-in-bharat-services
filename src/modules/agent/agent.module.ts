@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileAgent } from './infrastructure/entities/profile-agent.entity';
 import { AgentListing } from './infrastructure/entities/agent-listing.entity';
 import { User } from '../users/infrastructure/entities/user.entity';
+import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { AgentController } from './api/controllers/agent.controller';
 import { DatabaseModule } from '@/core/database/database.module';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
@@ -37,6 +38,7 @@ import { AdminModule } from '../admin/admin.module';
       ProfileAgent,
       AgentListing,
       User,
+      Transaction,
     ]),
     DatabaseModule,
     forwardRef(() => WalletModule),

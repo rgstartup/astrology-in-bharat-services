@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './api/controllers/auth.controller';
 import { MerchantAuthController } from './api/controllers/merchant-auth.controller';
-import { UsersModule } from '@/modules/users/users.module';
+
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
@@ -9,11 +9,11 @@ import { Session } from './infrastructure/entities/session.entity';
 import { OAuthAccount } from './infrastructure/entities/oauth-accounts.entity';
 import { JwtStrategy } from './api/strategies/jwt.strategy';
 import { DatabaseModule } from '@/core/database/database.module';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
-import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { QueueModule } from '@/core/queue/queue.module';
-import { AgentModule } from '@/modules/agent/agent.module';
 
 import { UsedTokens } from './infrastructure/entities/used-tokens.entity';
 import { AuthFacade } from './application/auth.facade';
@@ -97,7 +97,6 @@ const handlers = [
 
 @Module({
   imports: [
-    UsersModule,
     TypeOrmModule.forFeature([
       Session,
       OAuthAccount,
@@ -106,14 +105,14 @@ const handlers = [
       ProfileClient,
       ProfileExpert,
       ProfileMerchant,
+      User,
+      SystemSetting,
     ]),
     DatabaseModule,
     ExternalModule,
     ClientProfileModule,
     ExpertProfileModule,
     MerchantProfileModule,
-    AgentModule,
-    WalletModule,
     QueueModule,
   ],
   providers: [

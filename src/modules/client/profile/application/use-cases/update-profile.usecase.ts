@@ -74,9 +74,10 @@ export class UpdateProfileUseCase {
       }
 
       // Update the user's master avatar if profile_picture is provided
-      if ((scalarFields as any).profile_picture !== undefined) {
-        this.logger.log(`Updating avatar in users table for user ${user.id}: ${(scalarFields as any).profile_picture}`);
-        await queryRunner.manager.update(User, { id: user.id }, { avatar: (scalarFields as any).profile_picture });
+      const fields = scalarFields as Record<string, unknown>;
+      if (fields.profile_picture !== undefined) {
+        this.logger.log(`Updating avatar in users table for user ${user.id}: ${fields.profile_picture}`);
+        await queryRunner.manager.update(User, { id: user.id }, { avatar: fields.profile_picture as string });
       } else {
         this.logger.log(`No profile_picture provided in update payload for user ${user.id}. Payload: ${JSON.stringify(scalarFields)}`);
       }
