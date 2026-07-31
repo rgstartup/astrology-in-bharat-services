@@ -1,9 +1,5 @@
 // src/modules/admin/application/use-cases/create-sub-admin.use-case.ts
-import {
-  Injectable,
-  ConflictException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, ConflictException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -38,9 +34,7 @@ export class CreateSubAdminUseCase {
     });
 
     if (existing) {
-      throw new ConflictException(
-        'Is email se pehle se ek user register hai',
-      );
+      throw new ConflictException('Is email se pehle se ek user register hai');
     }
 
     // Password hash karo — kabhi plain text save nahi karna!
@@ -73,7 +67,7 @@ export class CreateSubAdminUseCase {
     );
 
     // Password return mat karo
-    const { password: _pw, ...result } = saved as any;
-    return result;
+    const { password: _pw, ...result } = saved;
+    return result as Omit<User, 'password'>;
   }
 }

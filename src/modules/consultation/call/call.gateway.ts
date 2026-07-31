@@ -21,7 +21,7 @@ import { CallSessionStatus } from './infrastructure/entities/call-session.entity
 })
 export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   private logger: Logger = new Logger('CallGateway');
   private expertSockets = new Map<string, string>(); // expert_id -> socketId
@@ -38,22 +38,33 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   handleConnection(client: Socket) {
-    this.logger.log(`[CallGateway] ✅ Client connected: ${client.id} | Total registered experts: ${this.expertSockets.size}`);
+    this.logger.log(
+      `[CallGateway] ✅ Client connected: ${client.id} | Total registered experts: ${this.expertSockets.size}`,
+    );
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`[CallGateway] ❌ Client disconnected: ${client.id}`);
-    
+
     // Auto-disconnect logic (Grace period 30s)
     const sessionId = this.socketToSession.get(client.id);
     if (sessionId) {
-      this.logger.log(`[CallGateway] Socket ${client.id} belonged to active session ${sessionId}. Starting 30s auto-end timer.`);
+      this.logger.log(
+        `[CallGateway] Socket ${client.id} belonged to active session ${sessionId}. Starting 30s auto-end timer.`,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       const timeout = setTimeout(async () => {
         try {
           const session = await this.callFacade.getSession(sessionId);
           if (session && session.status === CallSessionStatus.ACTIVE) {
-            this.logger.warn(`[CallGateway] ⏱️ 30s grace period expired for session ${sessionId}. Auto-ending call.`);
-            await this.callFacade.end({ sessionId, endedBy: 'system', reason: 'socket_disconnected' });
+            this.logger.warn(
+              `[CallGateway] ⏱️ 30s grace period expired for session ${sessionId}. Auto-ending call.`,
+            );
+            await this.callFacade.end({
+              sessionId,
+              endedBy: 'system',
+              reason: 'socket_disconnected',
+            });
             this.stopSessionTimer(sessionId);
             this.server.to(`call_room_${sessionId}`).emit('call_ended', {
               reason: 'socket_disconnected',
@@ -61,7 +72,10 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             });
           }
         } catch (e) {
-          this.logger.error(`[CallGateway] Failed to auto-end session ${sessionId}`, e);
+          this.logger.error(
+            `[CallGateway] Failed to auto-end session ${sessionId}`,
+            e,
+          );
         }
         this.disconnectTimeouts.delete(sessionId);
       }, 30000); // 30 seconds
@@ -78,7 +92,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         break;
       }
     }
-    this.logger.log(`[CallGateway] Remaining registered experts: ${this.expertSockets.size}`);
+    this.logger.log(
+      `[CallGateway] Remaining registered experts: ${this.expertSockets.size}`,
+    );
   }
 
   @SubscribeMessage('register_expert')
@@ -86,14 +102,18 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { expert_id: string },
   ) {
-    this.logger.log(`[CallGateway] 📝 register_expert received: expert_id=${payload.expert_id}, socketId=${client.id}`);
+    this.logger.log(
+      `[CallGateway] 📝 register_expert received: expert_id=${payload.expert_id}, socketId=${client.id}`,
+    );
     this.expertSockets.set(payload.expert_id, client.id);
     await client.join(`expert_${payload.expert_id}`);
     this.logger.log(
       `[CallGateway] ✅ Expert ${payload.expert_id} REGISTERED for calls. Socket ID: ${client.id} | Total experts: ${this.expertSockets.size}`,
     );
     // Log all registered experts
-    this.logger.log(`[CallGateway] Registered experts map: ${JSON.stringify(Object.fromEntries(this.expertSockets))}`);
+    this.logger.log(
+      `[CallGateway] Registered experts map: ${JSON.stringify(Object.fromEntries(this.expertSockets))}`,
+    );
     return { status: 'registered' };
   }
 
@@ -101,16 +121,26 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const roomName = `expert_${expert_id}`;
     const isExpertRegistered = this.expertSockets.has(expert_id);
     const expertSocketId = this.expertSockets.get(expert_id);
-    this.logger.log(`[CallGateway] 📞 notifyExpertNewCall called for expert_id=${expert_id}`);
-    this.logger.log(`[CallGateway] Is expert registered in socket map? ${isExpertRegistered} | socketId: ${expertSocketId || 'NOT FOUND'}`);
-    this.logger.log(`[CallGateway] All registered experts: ${JSON.stringify(Object.fromEntries(this.expertSockets))}`);
-    this.logger.log(`[CallGateway] Emitting 'new_call_request' to room: ${roomName}`);
+    this.logger.log(
+      `[CallGateway] 📞 notifyExpertNewCall called for expert_id=${expert_id}`,
+    );
+    this.logger.log(
+      `[CallGateway] Is expert registered in socket map? ${isExpertRegistered} | socketId: ${expertSocketId || 'NOT FOUND'}`,
+    );
+    this.logger.log(
+      `[CallGateway] All registered experts: ${JSON.stringify(Object.fromEntries(this.expertSockets))}`,
+    );
+    this.logger.log(
+      `[CallGateway] Emitting 'new_call_request' to room: ${roomName}`,
+    );
     this.server.to(roomName).emit('new_call_request', callData);
     this.logger.log(
       `[CallGateway] ✅ Emitted new_call_request to ${roomName} for sessionId: ${(callData as { session: { id: string } }).session.id}`,
     );
     if (!isExpertRegistered) {
-      this.logger.error(`[CallGateway] ⚠️  WARNING: Expert ${expert_id} is NOT registered in expertSockets map! Popup will NOT appear!`);
+      this.logger.error(
+        `[CallGateway] ⚠️  WARNING: Expert ${expert_id} is NOT registered in expertSockets map! Popup will NOT appear!`,
+      );
     }
   }
 
@@ -138,10 +168,12 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Track for auto-disconnect
     this.socketToSession.set(client.id, payload.sessionId);
-    
+
     // Clear any existing disconnect timeout if they reconnected in time
     if (this.disconnectTimeouts.has(payload.sessionId)) {
-      this.logger.log(`[CallGateway] 🔄 User reconnected to session ${payload.sessionId}. Cleared auto-end timer.`);
+      this.logger.log(
+        `[CallGateway] 🔄 User reconnected to session ${payload.sessionId}. Cleared auto-end timer.`,
+      );
       clearTimeout(this.disconnectTimeouts.get(payload.sessionId));
       this.disconnectTimeouts.delete(payload.sessionId);
     }
@@ -181,8 +213,14 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // Hard Limit: End any call over 60 minutes
       if (durationMins >= 60) {
-        this.logger.warn(`[CallGateway] Session ${sessionId} reached 1 hour max limit. Force ending.`);
-        await this.callFacade.end({ sessionId, endedBy: 'system', reason: 'max_duration_reached' });
+        this.logger.warn(
+          `[CallGateway] Session ${sessionId} reached 1 hour max limit. Force ending.`,
+        );
+        await this.callFacade.end({
+          sessionId,
+          endedBy: 'system',
+          reason: 'max_duration_reached',
+        });
         this.server.to(`call_room_${sessionId}`).emit('call_ended', {
           reason: 'max_duration_reached',
           message: 'Maximum call duration of 1 hour reached.',
@@ -219,24 +257,24 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         setTimeout(async () => {
           const s = await this.callFacade.getSession(sessionId);
           if (s?.status === CallSessionStatus.ACTIVE && s.is_free) {
-            await this.callFacade.end({ sessionId, endedBy: 'system', reason: 'free_limit_ended_no_confirmation' });
+            await this.callFacade.end({
+              sessionId,
+              endedBy: 'system',
+              reason: 'free_limit_ended_no_confirmation',
+            });
             this.server.to(`call_room_${sessionId}`).emit('call_ended', {
               reason: 'free_limit_ended_no_confirmation',
               message: 'Your free consultation has ended.',
             });
             this.stopSessionTimer(sessionId);
-            
+
             // ✅ Broadcast expert is now FREE again
             if (s.expert_id) {
               this.server.emit('expert_busy_changed', {
                 expert_id: s.expert_id,
                 is_busy: false,
               });
-              this.notifyExpertStatusUpdate(
-                s.expert_id,
-                'call_ended',
-                s,
-              );
+              this.notifyExpertStatusUpdate(s.expert_id, 'call_ended', s);
             }
           }
         }, 30000);
@@ -293,7 +331,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const session = await this.callFacade.end(payload.sessionId);
       this.stopSessionTimer(payload.sessionId);
-      this.server.to(`call_room_${payload.sessionId}`).emit('call_ended', session);
+      this.server
+        .to(`call_room_${payload.sessionId}`)
+        .emit('call_ended', session);
       return { status: 'ended' };
     } catch (error: unknown) {
       this.logger.error(

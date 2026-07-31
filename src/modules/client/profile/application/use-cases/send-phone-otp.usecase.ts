@@ -8,7 +8,7 @@ import { SendPhoneOtpDto } from '../../infrastructure/dto/profile-phone-otp.dto'
 
 @Injectable()
 export class SendPhoneOtpUseCase {
-  private twilioClient: twilio.Twilio;
+  private twilioClient!: twilio.Twilio;
 
   constructor(
     @InjectRepository(ProfileClient)

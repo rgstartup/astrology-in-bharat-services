@@ -42,7 +42,9 @@ export class UpdateProfilePictureUseCase {
           ? { id: user.profile, user: { id: user.id } }
           : { user: { id: user.id } };
 
-        let profile = await queryRunner.manager.findOne(ProfileClient, { where: whereClause });
+        let profile = await queryRunner.manager.findOne(ProfileClient, {
+          where: whereClause,
+        });
 
         if (!profile) {
           profile = queryRunner.manager.create(ProfileClient, {
@@ -50,7 +52,9 @@ export class UpdateProfilePictureUseCase {
             gender: 'other',
           });
           await queryRunner.manager.save(ProfileClient, profile);
-          profile = await queryRunner.manager.findOne(ProfileClient, { where: whereClause });
+          profile = await queryRunner.manager.findOne(ProfileClient, {
+            where: whereClause,
+          });
         }
 
         // 3. Update profile_picture on ProfileClient
@@ -58,18 +62,20 @@ export class UpdateProfilePictureUseCase {
         await queryRunner.manager.save(ProfileClient, profile!);
 
         // 4. Sync avatar on User table
-        await queryRunner.manager.update(User, { id: user.id }, { avatar: pictureUrl });
+        await queryRunner.manager.update(
+          User,
+          { id: user.id },
+          { avatar: pictureUrl },
+        );
 
         await queryRunner.commitTransaction();
 
         // 5. Emit event
         this.eventEmitter.emit(
           'client.profile.updated',
-          new ProfileUpdatedEvent(
-            user.id,
-            profile!.id,
-            { profile_picture: pictureUrl },
-          ),
+          new ProfileUpdatedEvent(user.id, profile!.id, {
+            profile_picture: pictureUrl,
+          }),
         );
 
         return { success: true };
@@ -86,7 +92,9 @@ export class UpdateProfilePictureUseCase {
       this.logger.error(
         `Failed to update profile picture for user ${user.id}: ${err.message}`,
       );
-      throw new InternalServerErrorException('Failed to upload profile picture');
+      throw new InternalServerErrorException(
+        'Failed to upload profile picture',
+      );
     }
   }
 }

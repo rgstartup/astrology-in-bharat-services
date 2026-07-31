@@ -11,12 +11,12 @@ export class GetAgentTotalCommissionUseCase {
   ) {}
 
   async execute(agentId: string): Promise<number> {
-    const result = await this.callSessionRepo
+    const result = (await this.callSessionRepo
       .createQueryBuilder('call')
       .select('SUM(call.agent_commission)', 'total')
       .where('call.agent_id = :agentId', { agentId })
-      .getRawOne();
-      
+      .getRawOne()) as { total: string | number | null } | undefined;
+
     return Number(result?.total || 0);
   }
 }

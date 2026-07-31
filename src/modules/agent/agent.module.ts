@@ -34,12 +34,7 @@ import { AdminModule } from '../admin/admin.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      ProfileAgent,
-      AgentListing,
-      User,
-      Transaction,
-    ]),
+    TypeOrmModule.forFeature([ProfileAgent, AgentListing, User, Transaction]),
     DatabaseModule,
     forwardRef(() => WalletModule),
     CommissionsModule,

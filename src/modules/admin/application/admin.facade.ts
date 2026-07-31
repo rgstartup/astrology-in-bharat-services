@@ -23,9 +23,7 @@ import { CreateAgentDto } from '../api/dto/create-agent.dto';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { SupportFacade } from '@/modules/support/application/support.facade';
-import { WithdrawalStatus } from '@/modules/finance/wallet/infrastructure/entities/withdrawal.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
 import { GetSystemSettingsUseCase } from './use-cases/get-system-settings.use-case';
 
 // New DTO imports
@@ -36,7 +34,6 @@ import { TerminateSessionDto } from '../api/dto/terminate-session.dto';
 import { GetWithdrawalsDto } from '../api/dto/get-withdrawals.dto';
 import { UpdateWithdrawalStatusDto } from '../api/dto/update-withdrawal-status.dto';
 import { UpdateExpertStatusDto } from '../api/dto/update-expert-status.dto';
-import { AssignCouponBulkDto } from '../api/dto/assign-coupon-bulk.dto';
 import { GetAdminMerchantsDto } from '../api/dto/get-merchants.dto';
 import { GetAgentsDto } from '../api/dto/get-agents.dto';
 import { GetAdminListingsDto } from '../api/dto/get-listings.dto';
@@ -53,7 +50,10 @@ import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-sta
 import { UpdateExpertStatusUseCase } from './use-cases/update-expert-status.use-case';
 import { GetAdminDisputesUseCase } from './use-cases/get-admin-disputes.use-case';
 import { UpdateDisputeStatusUseCase } from './use-cases/update-dispute-status.use-case';
-import { ToggleUserBlockUseCase, ToggleUserBlockInput } from './use-cases/toggle-user-block.use-case';
+import {
+  ToggleUserBlockUseCase,
+  ToggleUserBlockInput,
+} from './use-cases/toggle-user-block.use-case';
 
 @Injectable()
 export class AdminFacade {
@@ -155,7 +155,6 @@ export class AdminFacade {
   async getFilteredUsersList(filters: FilterCriteria) {
     return this.getFilteredUsersUseCase.executeList(filters);
   }
-
 
   async createAgent(dto: CreateAgentDto, files?: Record<string, unknown>) {
     return this.createAgentUseCase.execute(dto, files);

@@ -21,7 +21,10 @@ export class LoginWithEmailUseCase {
       select: ['id', 'email', 'password', 'name', 'roles', 'email_verified_at'],
     });
 
-    const isValidPassword = await this.authPolicy.verifyPassword(user, dto.password);
+    const isValidPassword = await this.authPolicy.verifyPassword(
+      user,
+      dto.password,
+    );
 
     if (!user || !user.password || !isValidPassword) {
       throw new UnauthorizedException('Invalid email or password');

@@ -15,10 +15,7 @@ export class GetExpertReviewsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) {}
 
-  async execute(
-    expert_id: string,
-    dto: GetReviewsDto,
-  ) {
+  async execute(expert_id: string, dto: GetReviewsDto) {
     const { page = 1, limit = 20 } = dto;
     const expert =
       (await this.expertProfileFacade.getExpertById(expert_id)) ||

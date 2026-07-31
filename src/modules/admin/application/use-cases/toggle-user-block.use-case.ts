@@ -2,17 +2,22 @@
 // Ye use-case user ko block ya unblock karta hai aur AdminAuditLog mein record karta hai
 // taaki hamesha pata rahe ki kis admin ne kya action liya.
 
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AdminAuditLog } from '../../infrastructure/entities/admin-audit-log.entity';
 
 export interface ToggleUserBlockInput {
-  targetUserId: string;  // Jis user ko block/unblock karna hai
-  isBlocked: boolean;    // true = block, false = unblock
-  adminId: string;       // Action perform karne wala admin/sub-admin ki ID
-  adminName: string;     // Admin ka naam (frontend par dikhane ke liye)
+  targetUserId: string; // Jis user ko block/unblock karna hai
+  isBlocked: boolean; // true = block, false = unblock
+  adminId: string; // Action perform karne wala admin/sub-admin ki ID
+  adminName: string; // Admin ka naam (frontend par dikhane ke liye)
 }
 
 @Injectable()

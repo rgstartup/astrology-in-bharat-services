@@ -88,7 +88,12 @@ export class PublicStatsController {
   @Get('platform-stats')
   async getPlatformStats() {
     try {
-      const [totalUsers, verifiedAstrologers, totalConsultations, totalProductsSold] = await Promise.all([
+      const [
+        totalUsers,
+        verifiedAstrologers,
+        totalConsultations,
+        totalProductsSold,
+      ] = await Promise.all([
         // Total registered clients
         this.usersFacade.getUsersCountByRole(RoleEnum.CLIENT),
 
@@ -112,7 +117,10 @@ export class PublicStatsController {
         },
       };
     } catch (error) {
-      console.error('[PublicStatsController] Error fetching platform stats:', error);
+      console.error(
+        '[PublicStatsController] Error fetching platform stats:',
+        error,
+      );
       return {
         success: false,
         message: 'Failed to fetch platform stats',

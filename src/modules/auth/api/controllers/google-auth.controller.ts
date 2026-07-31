@@ -164,7 +164,8 @@ export class GoogleAuthController {
     }
 
     // Get the frontend base origin from frontendUrl (which is correctly resolved based on app or role)
-    let dynamicFrontendOrigin = this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    let dynamicFrontendOrigin =
+      this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000';
     if (frontendUrl) {
       try {
         const parsedUrl = new URL(frontendUrl);
@@ -178,7 +179,9 @@ export class GoogleAuthController {
     // This works on both HTTP (localhost) and HTTPS (production)
     const setTokensUrl = `${dynamicFrontendOrigin}/api/auth/set-tokens?accessToken=${authData.accessToken as string}&refreshToken=${authData.refreshToken as string}&redirect=${encodeURIComponent(finalPage)}`;
 
-    this.logger.log(`[GoogleCallback] Redirecting to set-tokens: ${setTokensUrl.replace(/accessToken=[^&]+/, 'accessToken=REDACTED').replace(/refreshToken=[^&]+/, 'refreshToken=REDACTED')}`);
+    this.logger.log(
+      `[GoogleCallback] Redirecting to set-tokens: ${setTokensUrl.replace(/accessToken=[^&]+/, 'accessToken=REDACTED').replace(/refreshToken=[^&]+/, 'refreshToken=REDACTED')}`,
+    );
 
     return res.redirect(setTokensUrl);
   }

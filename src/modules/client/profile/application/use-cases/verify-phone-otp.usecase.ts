@@ -8,7 +8,7 @@ import { VerifyPhoneOtpDto } from '../../infrastructure/dto/profile-phone-otp.dt
 
 @Injectable()
 export class VerifyPhoneOtpUseCase {
-  private twilioClient: twilio.Twilio;
+  private twilioClient!: twilio.Twilio;
 
   constructor(
     @InjectRepository(ProfileClient)

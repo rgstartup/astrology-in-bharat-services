@@ -38,7 +38,9 @@ export class AgentRegisterUserUseCase {
   ) {}
 
   async execute(dto: AgentRegisterUserDto, agentId: string) {
-    const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
+    const existingUser = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
 
     // Ensure email is unique (throws if not)
     RegistrationPolicy.ensureEmailIsUnique(existingUser);
@@ -71,10 +73,12 @@ export class AgentRegisterUserUseCase {
         // Handle Expert-specific logic (Lock Commission Rate)
         if (hasRoles(dto.roles, 'EXPERT')) {
           const setting = await queryRunner.manager.findOne(SystemSetting, {
-            where: { key: 'COMMISION_FROM_ASTROLOGER' }
+            where: { key: 'COMMISION_FROM_ASTROLOGER' },
           });
-          const agentCommissionRate = setting?.value ? parseFloat(setting.value) : 0;
-          
+          const agentCommissionRate = setting?.value
+            ? parseFloat(setting.value)
+            : 0;
+
           await queryRunner.manager.update(
             ProfileExpert,
             { user: { id: createdUser.id as unknown as string } },
@@ -85,19 +89,27 @@ export class AgentRegisterUserUseCase {
           );
         } else if (hasRoles(dto.roles, 'MERCHANT')) {
           const setting = await queryRunner.manager.findOne(SystemSetting, {
-            where: { key: 'COMMISSION_FROM_PUJA_SHOP' }
+            where: { key: 'COMMISSION_FROM_PUJA_SHOP' },
           });
-          const agentCommissionRate = setting?.value ? parseFloat(setting.value) : 0;
-          
+          const agentCommissionRate = setting?.value
+            ? parseFloat(setting.value)
+            : 0;
+
           const merchantUpdates = {
             agent_commission_rate: agentCommissionRate,
             shopName: dto.name,
             ...(dto.phone ? { phone: dto.phone } : {}),
           };
 
-          let merchantProfile = await queryRunner.manager.findOne(ProfileMerchant, {
-            where: { user_id: createdUser.id as unknown as ProfileMerchant['user_id'] },
-          });
+          let merchantProfile = await queryRunner.manager.findOne(
+            ProfileMerchant,
+            {
+              where: {
+                user_id:
+                  createdUser.id as unknown as ProfileMerchant['user_id'],
+              },
+            },
+          );
 
           if (merchantProfile) {
             Object.assign(merchantProfile, merchantUpdates);

@@ -42,7 +42,10 @@ export class UpdateSubAdminUseCase {
     }
 
     // SUPER_ADMIN ko update nahi kar sakte — IDOR protection
-    if (target.roles.includes(RoleEnum.SUPER_ADMIN) || target.roles.includes(RoleEnum.ADMIN)) {
+    if (
+      target.roles.includes(RoleEnum.SUPER_ADMIN) ||
+      target.roles.includes(RoleEnum.ADMIN)
+    ) {
       throw new ForbiddenException(
         'Super Admin ya Admin ko is tarah modify nahi kar sakte',
       );

@@ -28,7 +28,8 @@ export class AddToCartUseCase {
       throw new NotFoundException('Product not found');
     }
 
-    const queryRunner = this.cartRepository.manager.connection.createQueryRunner();
+    const queryRunner =
+      this.cartRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 

@@ -1,24 +1,53 @@
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { Injectable, Inject, forwardRef, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  forwardRef,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { CallSession, CallSessionStatus, CallType } from '../../infrastructure/entities/call-session.entity';
+import { Repository, DataSource, EntityManager } from 'typeorm';
+import {
+  CallSession,
+  CallSessionStatus,
+  CallType,
+} from '../../infrastructure/entities/call-session.entity';
 import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallEndedEvent } from '../../domain/events/call.events';
-import { TransactionPurpose, Transaction, TransactionType } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import {
+  TransactionPurpose,
+  Transaction,
+  TransactionType,
+} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
 import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
-import { CommissionRule, CommissionType, CommissionEventType, CommissionAppliesRole, CommissionRateType } from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
-import { CommissionSplit, SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
+import {
+  CommissionRule,
+  CommissionType,
+  CommissionEventType,
+  CommissionAppliesRole,
+  CommissionRateType,
+} from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
+import {
+  CommissionSplit,
+  SplitReferenceType,
+} from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 import { CommissionTier } from '@/modules/finance/commissions/infrastructure/entities/commission-tier.entity';
+
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
-import { GeneralLedgerEntryType, GeneralLedgerEventType, GeneralLedgerPartyType } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+import {
+  GeneralLedgerEntryType,
+  GeneralLedgerEventType,
+  GeneralLedgerPartyType,
+} from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { Notification, NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import {
+  Notification,
+  NotificationType,
+} from '@/modules/notification/infrastructure/entities/notification.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 import { EndCallDto } from '../../api/dto/end-call.dto';
@@ -35,11 +64,9 @@ export class EndCallUseCase {
     private readonly ledgerQueueService: LedgerQueueService,
     private readonly dataSource: DataSource,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
-  async execute(
-    dto: EndCallDto,
-  ) {
+  async execute(dto: EndCallDto) {
     const { sessionId, endedBy: terminatedBy, reason } = dto;
     console.log(
       `[EndCallUseCase] sessionId: ${sessionId}, terminatedBy: ${terminatedBy}, reason: ${reason}`,
@@ -69,7 +96,11 @@ export class EndCallUseCase {
           agent_commission: session.agent_commission || 0,
         };
         await queryRunner.rollbackTransaction();
-        return { ...session, split: existingSplit, terminatedBy: session.terminated_by };
+        return {
+          ...session,
+          split: existingSplit,
+          terminatedBy: session.terminated_by,
+        };
       }
 
       session.status = CallSessionStatus.COMPLETED;
@@ -337,13 +368,17 @@ export class EndCallUseCase {
       });
 
       // Also notify expert dashboard
-      this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', {
-        sessionId,
-        session: session,
-        split,
-        terminatedBy,
-        terminatedReason: reason,
-      });
+      this.callGateway.notifyExpertStatusUpdate(
+        session.expert_id,
+        'call_ended',
+        {
+          sessionId,
+          session: session,
+          split,
+          terminatedBy,
+          terminatedReason: reason,
+        },
+      );
 
       this.eventEmitter.emit(
         'call.ended',
@@ -361,15 +396,15 @@ export class EndCallUseCase {
         if (expert) {
           const startTime = savedSession.start_time
             ? savedSession.start_time.toLocaleTimeString('en-IN', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })
+                hour: '2-digit',
+                minute: '2-digit',
+              })
             : 'N/A';
           const endTime = savedSession.end_time
             ? savedSession.end_time.toLocaleTimeString('en-IN', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })
+                hour: '2-digit',
+                minute: '2-digit',
+              })
             : 'N/A';
           const expertName =
             (expertUser?.name as string | null) ||
@@ -404,12 +439,17 @@ export class EndCallUseCase {
 
       let remainingBalance = 0;
       try {
-        const clientWallet = await this.dataSource.getRepository(Wallet).findOne({
-          where: { client_id: savedSession.client_id },
-        });
+        const clientWallet = await this.dataSource
+          .getRepository(Wallet)
+          .findOne({
+            where: { client_id: savedSession.client_id },
+          });
         remainingBalance = clientWallet ? Number(clientWallet.balance) : 0;
       } catch (err) {
-        console.error(`Failed to fetch remaining balance for ${sessionId}:`, err);
+        console.error(
+          `Failed to fetch remaining balance for ${sessionId}:`,
+          err,
+        );
       }
 
       return {
@@ -418,7 +458,6 @@ export class EndCallUseCase {
         split,
         terminatedBy: savedSession.terminated_by,
       };
-
     } catch (err) {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction();
@@ -429,14 +468,21 @@ export class EndCallUseCase {
     }
   }
 
-  private async getAdminCommissionFromSetting(manager: any, key: string): Promise<number> {
+  private async getAdminCommissionFromSetting(
+    manager: EntityManager,
+    key: string,
+  ): Promise<number> {
     try {
-      let setting = await manager.findOne(SystemSetting, { where: { key } });
+      let setting: SystemSetting | null = await manager.findOne(SystemSetting, {
+        where: { key },
+      });
       if (!setting) {
         const altKey = key.includes('COMMISSION')
           ? key.replace('COMMISSION', 'COMMISION')
           : key.replace('COMMISION', 'COMMISSION');
-        setting = await manager.findOne(SystemSetting, { where: { key: altKey } });
+        setting = await manager.findOne(SystemSetting, {
+          where: { key: altKey },
+        });
       }
       if (setting && setting.value) {
         return parseFloat(setting.value);
@@ -448,7 +494,7 @@ export class EndCallUseCase {
   }
 
   private async resolveCommission(
-    manager: any,
+    manager: EntityManager,
     eventType: CommissionEventType,
     commissionType: CommissionType,
     profileId: string | null,
@@ -468,20 +514,20 @@ export class EndCallUseCase {
     });
 
     const activeRules = rules.filter(
-      (r: any) =>
+      (r) =>
         r.effective_from <= now &&
         (r.effective_until === null || r.effective_until >= now),
     );
 
-    const rule: any =
+    const rule =
       (profileId
-        ? activeRules.find((r: any) => r.applies_to_id === profileId)
+        ? activeRules.find((r) => r.applies_to_id === profileId)
         : undefined) ??
       activeRules.find(
-        (r: any) => r.applies_to_role === role && r.applies_to_id === null,
+        (r) => r.applies_to_role === role && r.applies_to_id === null,
       ) ??
       activeRules.find(
-        (r: any) =>
+        (r) =>
           r.applies_to_role === CommissionAppliesRole.ALL &&
           r.applies_to_id === null,
       );
@@ -497,7 +543,7 @@ export class EndCallUseCase {
     }
 
     const matchedTier = (rule.tiers ?? []).find(
-      (t: any) =>
+      (t: CommissionTier) =>
         grossAmount >= Number(t.from_amount) &&
         (t.to_amount === null || grossAmount <= Number(t.to_amount)),
     );
@@ -521,7 +567,7 @@ export class EndCallUseCase {
   }
 
   private async fromLegacySetting(
-    manager: any,
+    manager: EntityManager,
     eventType: CommissionEventType,
     commissionType: CommissionType,
     grossAmount: number,
@@ -600,7 +646,9 @@ export class EndCallUseCase {
 
     const keys = LEGACY_SETTING_MAP[eventType]?.[commissionType] ?? [];
     for (const key of keys) {
-      const setting = await manager.findOne(SystemSetting, { where: { key } });
+      const setting = await manager.findOne(SystemSetting, {
+        where: { key },
+      });
       if (setting?.value) {
         const rate = parseFloat(setting.value);
         if (commissionType === CommissionType.GST) {
@@ -615,7 +663,7 @@ export class EndCallUseCase {
   }
 
   private async credit(
-    manager: any,
+    manager: EntityManager,
     profileId: string,
     walletKey: string,
     amount: number,
@@ -675,17 +723,24 @@ export class EndCallUseCase {
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[CREDIT_TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(
+        `[CREDIT_TX] Failed to generate transaction no: ${(err as Error).message}`,
+      );
     }
 
-    const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+    const purposeToLedgerEventType: Record<
+      TransactionPurpose,
+      GeneralLedgerEventType
+    > = {
       [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
       [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
       [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
       [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
-      [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+      [TransactionPurpose.PRODUCT_PURCHASE]:
+        GeneralLedgerEventType.PRODUCT_ORDER,
       [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-      [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+      [TransactionPurpose.AGENT_COMMISSION]:
+        GeneralLedgerEventType.AGENT_COMMISSION,
     };
 
     const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
@@ -699,7 +754,8 @@ export class EndCallUseCase {
       event_id: referenceId ?? null,
       event_type: purposeToLedgerEventType[purpose],
       entry_type: GeneralLedgerEntryType.CREDIT,
-      party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+      party_type:
+        walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
       party_id: profileId,
       amount,
     });
@@ -720,13 +776,16 @@ export class EndCallUseCase {
             .createQueryBuilder()
             .update(ProfileExpert)
             .set({
-              total_earning: () => `COALESCE(total_earning, 0) + ${Number(amount)}`,
+              total_earning: () =>
+                `COALESCE(total_earning, 0) + ${Number(amount)}`,
             })
             .where('id = :id', { id: expertProfile.id })
             .execute();
         }
       } catch (e) {
-        console.error(`[CREDIT_TX] Earning tracking failed: ${(e as Error).message}`);
+        console.error(
+          `[CREDIT_TX] Earning tracking failed: ${(e as Error).message}`,
+        );
       }
     }
 
@@ -734,7 +793,7 @@ export class EndCallUseCase {
   }
 
   private async debit(
-    manager: any,
+    manager: EntityManager,
     profileId: string,
     walletKey: string,
     amount: number,
@@ -801,17 +860,24 @@ export class EndCallUseCase {
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[DEBIT_TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(
+        `[DEBIT_TX] Failed to generate transaction no: ${(err as Error).message}`,
+      );
     }
 
-    const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+    const purposeToLedgerEventType: Record<
+      TransactionPurpose,
+      GeneralLedgerEventType
+    > = {
       [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
       [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
       [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
       [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
-      [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+      [TransactionPurpose.PRODUCT_PURCHASE]:
+        GeneralLedgerEventType.PRODUCT_ORDER,
       [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-      [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+      [TransactionPurpose.AGENT_COMMISSION]:
+        GeneralLedgerEventType.AGENT_COMMISSION,
     };
 
     const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
@@ -825,7 +891,8 @@ export class EndCallUseCase {
       event_id: referenceId ?? null,
       event_type: purposeToLedgerEventType[purpose],
       entry_type: GeneralLedgerEntryType.DEBIT,
-      party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+      party_type:
+        walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
       party_id: profileId,
       amount,
     });
@@ -834,7 +901,7 @@ export class EndCallUseCase {
   }
 
   private async deductFromReserved(
-    manager: any,
+    manager: EntityManager,
     profileId: string,
     walletKey: string,
     amount: number,
@@ -867,7 +934,7 @@ export class EndCallUseCase {
   }
 
   private async releaseReserved(
-    manager: any,
+    manager: EntityManager,
     profileId: string,
     walletKey: string,
     amount: number,
@@ -902,8 +969,22 @@ export class EndCallUseCase {
   }
 
   private async createCommissionSplit(
-    manager: any,
-    input: any,
+    manager: EntityManager,
+    input: {
+      referenceId: string;
+      referenceType: SplitReferenceType;
+      grossAmount: number;
+      platformFee: number;
+      gst: number;
+      sellerAgentCommission: number;
+      buyerAgentCommission: number;
+      providerNet: number;
+      clientProfileId: string | null;
+      providerProfileId: string | null;
+      sellerAgentProfileId: string | null;
+      buyerAgentProfileId: string | null;
+      commissionRuleId: string | null;
+    },
   ): Promise<CommissionSplit> {
     const split = new CommissionSplit();
     split.reference_id = input.referenceId;
@@ -923,7 +1004,10 @@ export class EndCallUseCase {
 
     const saved = await manager.save(CommissionSplit, split);
 
-    const splitRefTypeToLedgerEventType: Record<SplitReferenceType, GeneralLedgerEventType> = {
+    const splitRefTypeToLedgerEventType: Record<
+      SplitReferenceType,
+      GeneralLedgerEventType
+    > = {
       [SplitReferenceType.CHAT]: GeneralLedgerEventType.CONSULTATION,
       [SplitReferenceType.CALL]: GeneralLedgerEventType.CONSULTATION,
       [SplitReferenceType.PUJA]: GeneralLedgerEventType.PUJA,
@@ -942,6 +1026,6 @@ export class EndCallUseCase {
       });
     }
 
-    return saved();
+    return saved;
   }
 }

@@ -27,4 +27,3 @@ export class UpdateSystemSettingUseCase {
     return new BooleanMessage();
   }
 }
-

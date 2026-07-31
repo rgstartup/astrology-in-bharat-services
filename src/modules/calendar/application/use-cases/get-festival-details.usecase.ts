@@ -5,13 +5,21 @@ import { CalendarCache } from '../../infrastructure/entities/calendar-cache.enti
 
 interface WikipediaResponse {
   success: boolean;
-  data: {
-    type?: string;
-    extract?: string;
-    title?: string;
-    thumbnail?: { source?: string };
-    originalimage?: { source?: string };
-  } | null;
+  data: WikipediaApiResponse | null;
+}
+
+interface WikipediaApiResponse {
+  type?: string;
+  extract?: string;
+  title?: string;
+  thumbnail?: { source?: string };
+  originalimage?: { source?: string };
+}
+
+interface WikipediaFullApiResponse {
+  query?: {
+    pages?: Record<string, { extract?: string }>;
+  };
 }
 
 @Injectable()
@@ -30,30 +38,36 @@ export class GetFestivalDetailsUseCase {
     const cached = await this.cacheRepository.findOne({
       where: { type, cacheKey },
     });
-    
+
     if (cached) {
       this.logger.log(`Serving cached festival details for ${cacheKey}`);
       return cached.response;
     }
 
-    this.logger.log(`Fetching fresh festival details from Wikipedia for ${cacheKey}`);
-    
+    this.logger.log(
+      `Fetching fresh festival details from Wikipedia for ${cacheKey}`,
+    );
+
     try {
       const wikiLang = lang === 'hi' ? 'hi' : 'en';
       const searchTerm = name.split('(')[0].trim().replace(/\s+/g, '_');
-      
-      const res = await fetch(`https://${wikiLang}.wikipedia.org/api/rest_v1/page/summary/${searchTerm}`);
+
+      const res = await fetch(
+        `https://${wikiLang}.wikipedia.org/api/rest_v1/page/summary/${searchTerm}`,
+      );
       let responseData: WikipediaResponse = { success: false, data: null };
 
       if (res.ok) {
-        const data = await res.json();
+        const data = (await res.json()) as WikipediaApiResponse;
         if (data.type !== 'disambiguation' && data.extract) {
-          
           // Fetch FULL text to satisfy user request for more content
           try {
-            const fullRes = await fetch(`https://${wikiLang}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=false&explaintext=true&titles=${searchTerm}&redirects=1&format=json`);
+            const fullRes = await fetch(
+              `https://${wikiLang}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=false&explaintext=true&titles=${searchTerm}&redirects=1&format=json`,
+            );
             if (fullRes.ok) {
-              const fullData = await fullRes.json();
+              const fullData =
+                (await fullRes.json()) as WikipediaFullApiResponse;
               const pages = fullData.query?.pages;
               if (pages) {
                 const pageId = Object.keys(pages)[0];
@@ -63,8 +77,10 @@ export class GetFestivalDetailsUseCase {
                 }
               }
             }
-          } catch (fullError) {
-            this.logger.warn(`Failed to fetch full extract for ${name}, falling back to summary.`);
+          } catch (_fullError) {
+            this.logger.warn(
+              `Failed to fetch full extract for ${name}, falling back to summary.`,
+            );
           }
 
           responseData = { success: true, data };
@@ -79,7 +95,7 @@ export class GetFestivalDetailsUseCase {
             cacheKey,
             response: responseData,
           },
-          ['type', 'cacheKey']
+          ['type', 'cacheKey'],
         );
       } catch (dbError: unknown) {
         const err = dbError as { code?: string; message?: string };

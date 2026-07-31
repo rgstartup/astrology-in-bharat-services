@@ -49,7 +49,10 @@ export class CallFacade {
     type: CallType = CallType.AUDIO,
   ) {
     if (typeof dtoOrExpertId === 'string') {
-      return this.initiateCallUseCase.execute(clientId, { expert_id: dtoOrExpertId, type });
+      return this.initiateCallUseCase.execute(clientId, {
+        expert_id: dtoOrExpertId,
+        type,
+      });
     }
     return this.initiateCallUseCase.execute(clientId, dtoOrExpertId);
   }
@@ -64,7 +67,11 @@ export class CallFacade {
     reason?: string,
   ) {
     if (typeof dtoOrSessionId === 'string') {
-      return this.endCallUseCase.execute({ sessionId: dtoOrSessionId, endedBy: terminatedBy, reason });
+      return this.endCallUseCase.execute({
+        sessionId: dtoOrSessionId,
+        endedBy: terminatedBy,
+        reason,
+      });
     }
     return this.endCallUseCase.execute(dtoOrSessionId);
   }

@@ -3,6 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
+interface TopExpertRawRow {
+  name: string;
+  expert_profile_id: string;
+  rating: string;
+  revenue: string;
+  consultations: string;
+}
+
 @Injectable()
 export class GetAdminTopExpertsUseCase {
   constructor(
@@ -15,9 +23,10 @@ export class GetAdminTopExpertsUseCase {
     // E-commerce products are sold by Merchants, not Experts, so we exclude product stats.
     // Assuming transactions have a way to link to expert profile id (often via reference_id linking to a session with expert_id)
     // Here we use a query that mimics the previous logic by fetching from the respective session tables joined directly.
-    
-    const topExpertsRaw = await this.transactionRepository.manager.query(
-      `
+
+    const topExpertsRaw: TopExpertRawRow[] =
+      await this.transactionRepository.manager.query(
+        `
       SELECT 
           u.name,
           pe.id as expert_profile_id,
@@ -37,14 +46,14 @@ export class GetAdminTopExpertsUseCase {
       ORDER BY revenue DESC
       LIMIT $1
       `,
-      [limit]
-    );
+        [limit],
+      );
 
-    return topExpertsRaw.map((expert: any) => ({
+    return topExpertsRaw.map((expert) => ({
       name: expert.name,
       revenue: Number(expert.revenue || 0),
       consultations: Number(expert.consultations || 0),
-      rating: Number(expert.rating || 4.8), 
+      rating: Number(expert.rating || 4.8),
     }));
   }
 }

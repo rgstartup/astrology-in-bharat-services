@@ -3,7 +3,7 @@ import { OrderStatus } from '../../infrastructure/entities/order.entity';
 
 export class UpdateOrderStatusDto {
   @IsEnum(OrderStatus)
-  status: OrderStatus;
+  status!: OrderStatus;
 
   @IsOptional()
   @IsString()

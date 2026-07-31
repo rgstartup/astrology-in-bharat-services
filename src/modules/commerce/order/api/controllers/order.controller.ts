@@ -102,7 +102,12 @@ export class OrderController {
     @CurrentProfile() profileId: string,
     @CurrentUser() user: IUser,
   ) {
-    await this.orderFacade.cancelUserOrder(id, profileId, cancellationReason || 'Cancelled by user', user);
+    await this.orderFacade.cancelUserOrder(
+      id,
+      profileId,
+      cancellationReason || 'Cancelled by user',
+      user,
+    );
     return { success: true };
   }
 
@@ -182,7 +187,12 @@ export class OrderSingularController {
     @CurrentProfile() profileId: string,
     @CurrentUser() user: IUser,
   ) {
-    await this.orderFacade.cancelUserOrder(id, profileId, cancellationReason || 'Cancelled by user', user);
+    await this.orderFacade.cancelUserOrder(
+      id,
+      profileId,
+      cancellationReason || 'Cancelled by user',
+      user,
+    );
     return { success: true };
   }
 

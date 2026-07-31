@@ -13,7 +13,11 @@ import {
 } from '../../infrastructure/entities/chat-session.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import {
+  Transaction,
+  TransactionType,
+  TransactionPurpose,
+} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 
 @Injectable()
@@ -60,9 +64,12 @@ export class InitiateChatUseCase {
 
         // Different expert → block completely
         throw new BadRequestException({
-          message: existingSession.status === ChatSessionStatus.ACTIVE
-            ? 'You already have an ongoing chat session with another astrologer. Please end it before starting a new one.'
-            : 'You already have a pending chat request with another astrologer. Please wait for it to expire or cancel it first.',
+          message:
+            existingSession.status === ChatSessionStatus.ACTIVE
+              ? 'You already have an ongoing chat session with another astrologer. ' +
+                'Please end it before starting a new one.'
+              : 'You already have a pending chat request with another astrologer. ' +
+                'Please wait for it to expire or cancel it first.',
           existingSessionId: existingSession.id,
           existingExpertId: existingSession.expert_id,
           existingStatus: existingSession.status,
@@ -119,7 +126,8 @@ export class InitiateChatUseCase {
         const wallet = await queryRunner.manager.findOne(Wallet, {
           where: { client_id: clientId },
         });
-        const hasBalance = wallet && Number(wallet.balance) >= minBalanceRequired;
+        const hasBalance =
+          wallet && Number(wallet.balance) >= minBalanceRequired;
         if (!hasBalance) {
           throw new BadRequestException(
             `You don't have enough money to talk 5 minutes to expert. Please add some more money in your wallet.`,
@@ -166,7 +174,6 @@ export class InitiateChatUseCase {
 
       await queryRunner.commitTransaction();
       return sessionWithUser || savedSession;
-
     } catch (err) {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction();
@@ -239,7 +246,9 @@ export class InitiateChatUseCase {
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[RESERVE_TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(
+        `[RESERVE_TX] Failed to generate transaction no: ${(err as Error).message}`,
+      );
     }
   }
 }

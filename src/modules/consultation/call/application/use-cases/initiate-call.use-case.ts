@@ -15,14 +15,17 @@ import {
 } from '../../infrastructure/entities/call-session.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import {
+  Transaction,
+  TransactionType,
+  TransactionPurpose,
+} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 import { TwilioService } from '../../infrastructure/services/twilio.service';
 import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallInitiatedEvent } from '../../domain/events/call.events';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 import { InitiateCallDto } from '../../api/dto/initiate-call.dto';
 
@@ -42,10 +45,7 @@ export class InitiateCallUseCase {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(
-    clientId: string,
-    dto: InitiateCallDto,
-  ) {
+  async execute(clientId: string, dto: InitiateCallDto) {
     const { expert_id, type = CallType.AUDIO } = dto;
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -73,9 +73,10 @@ export class InitiateCallUseCase {
         }
 
         throw new BadRequestException({
-          message: existingSession.status === CallSessionStatus.ACTIVE
-            ? `You already have an ongoing ${existingSession.type} call with another astrologer.`
-            : `You already have a pending ${existingSession.type} call request with another astrologer. Please wait for them to accept or cancel it.`,
+          message:
+            existingSession.status === CallSessionStatus.ACTIVE
+              ? `You already have an ongoing ${existingSession.type} call with another astrologer.`
+              : `You already have a pending ${existingSession.type} call request with another astrologer. Please wait for them to accept or cancel it.`,
           existingSessionId: existingSession.id,
           existingExpertId: existingSession.expert_id,
           existingStatus: existingSession.status,
@@ -88,7 +89,7 @@ export class InitiateCallUseCase {
         throw new InternalServerErrorException('Expert not found');
       }
 
-      CallPolicy.ensureSessionExists(expert as any);
+      CallPolicy.ensureExpertExists(expert as any);
       CallPolicy.ensureExpertAvailable(Boolean(expert.is_available));
 
       // ✅ Check if expert is already busy in an active or pending call/video session
@@ -100,7 +101,8 @@ export class InitiateCallUseCase {
       });
 
       if (expertBusyCall) {
-        const busyType = expertBusyCall.type === CallType.VIDEO ? 'video call' : 'audio call';
+        const busyType =
+          expertBusyCall.type === CallType.VIDEO ? 'video call' : 'audio call';
         throw new InternalServerErrorException(
           expertBusyCall.status === CallSessionStatus.ACTIVE
             ? `This astrologer is currently busy in a ${busyType}. Please try again after some time.`
@@ -132,7 +134,8 @@ export class InitiateCallUseCase {
         const wallet = await queryRunner.manager.findOne(Wallet, {
           where: { client_id: clientId },
         });
-        const hasBalance = wallet && Number(wallet.balance) >= minBalanceRequired;
+        const hasBalance =
+          wallet && Number(wallet.balance) >= minBalanceRequired;
         CallPolicy.ensureSufficientBalance(
           Boolean(hasBalance),
           minMins,
@@ -179,10 +182,13 @@ export class InitiateCallUseCase {
         throw new InternalServerErrorException('Failed to generate call token');
       }
 
-      const sessionWithDetails = await queryRunner.manager.findOne(CallSession, {
-        where: { id: savedSession.id },
-        relations: ['client', 'client.user'],
-      });
+      const sessionWithDetails = await queryRunner.manager.findOne(
+        CallSession,
+        {
+          where: { id: savedSession.id },
+          relations: ['client', 'client.user'],
+        },
+      );
 
       if (sessionWithDetails) {
         (sessionWithDetails as unknown as { expert: typeof expert }).expert =
@@ -198,14 +204,15 @@ export class InitiateCallUseCase {
       await queryRunner.commitTransaction();
 
       this.callGateway.notifyExpertNewCall(expert_id, result);
-      this.logger.log(`Expert notified of new call sessionId=${savedSession.id}`);
+      this.logger.log(
+        `Expert notified of new call sessionId=${savedSession.id}`,
+      );
       this.eventEmitter.emit(
         'call.initiated',
         new CallInitiatedEvent(savedSession.id, clientId, expert_id, type),
       );
 
       return result;
-
     } catch (err) {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction();
@@ -278,7 +285,9 @@ export class InitiateCallUseCase {
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[RESERVE_TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(
+        `[RESERVE_TX] Failed to generate transaction no: ${(err as Error).message}`,
+      );
     }
   }
 }

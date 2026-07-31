@@ -28,7 +28,10 @@ export class GetProfileUseCase {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async execute(user: IUser, queryRunner?: QueryRunner): Promise<ClientProfileReturn | null> {
+  async execute(
+    user: IUser,
+    queryRunner?: QueryRunner,
+  ): Promise<ClientProfileReturn | null> {
     const profileRepo = queryRunner
       ? queryRunner.manager.getRepository(ProfileClient)
       : this.repo;
@@ -83,8 +86,10 @@ export class GetProfileUseCase {
     // Priority: 1. Client profile's local avatar, 2. User's global avatar (master)
     const resolvedProfilePicture =
       profile.profile_picture || profile.user?.avatar || null;
-      
-    console.log(`[GetProfileUseCase] User ${user.id} - DB user.avatar: ${profile.user?.avatar}, profile_picture: ${profile.profile_picture} -> resolved: ${resolvedProfilePicture}`);
+
+    console.log(
+      `[GetProfileUseCase] User ${user.id} - DB user.avatar: ${profile.user?.avatar}, profile_picture: ${profile.profile_picture} -> resolved: ${resolvedProfilePicture}`,
+    );
 
     return {
       ...(profile as unknown as Record<string, unknown>),

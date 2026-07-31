@@ -38,7 +38,7 @@ export class BulkAssignCouponUseCase {
 
     await this.databaseService.transaction(async (queryRunner) => {
       // 1. Fetch ProfileClient IDs for the provided user IDs (Only those that exist)
-      const profileClients = await queryRunner.manager
+      const profileClients: { id: string }[] = await queryRunner.manager
         .createQueryBuilder(ProfileClient, 'profileClient')
         .select('profileClient.id', 'id')
         .where('profileClient.user_id IN (:...userIds)', { userIds })
@@ -64,12 +64,14 @@ export class BulkAssignCouponUseCase {
         .orIgnore() // Skips already assigned coupons
         .execute();
 
-      assignedCount = insertResult.identifiers ? insertResult.identifiers.length : 0;
-      // Note: orIgnore might return empty identifiers depending on TypeORM version/driver. 
+      assignedCount = insertResult.identifiers
+        ? insertResult.identifiers.length
+        : 0;
+      // Note: orIgnore might return empty identifiers depending on TypeORM version/driver.
       // If we need strict count, we can do a count before/after, or just assume success on bulk insert.
       // We will fallback to counting raw inserted rows if supported.
       if (insertResult.raw && Array.isArray(insertResult.raw)) {
-         assignedCount = insertResult.raw.length;
+        assignedCount = insertResult.raw.length;
       }
     });
 

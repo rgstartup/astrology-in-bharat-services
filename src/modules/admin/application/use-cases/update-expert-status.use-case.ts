@@ -4,9 +4,7 @@ import { UpdateExpertStatusDto } from '../../api/dto/update-expert-status.dto';
 
 @Injectable()
 export class UpdateExpertStatusUseCase {
-  constructor(
-    private readonly profileFacade: ExpertProfileFacade,
-  ) {}
+  constructor(private readonly profileFacade: ExpertProfileFacade) {}
 
   async execute(id: string, dto: UpdateExpertStatusDto) {
     const { status, reason } = dto;

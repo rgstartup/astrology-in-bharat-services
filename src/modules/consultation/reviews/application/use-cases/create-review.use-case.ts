@@ -7,7 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
-import { Order, OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import {
+  Order,
+  OrderStatus,
+} from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
@@ -46,7 +49,13 @@ export class CreateReviewUseCase {
       let resultReview: Review;
 
       if (review_type === 'platform') {
-        resultReview = await this.handlePlatformReview(queryRunner.manager, clientId, rating, comment, tags);
+        resultReview = await this.handlePlatformReview(
+          queryRunner.manager,
+          clientId,
+          rating,
+          comment,
+          tags,
+        );
       } else if (!expert_id && !merchantId) {
         throw new BadRequestException(
           'Either expert_id or merchantId must be provided for expert/shop reviews',
@@ -285,7 +294,10 @@ export class CreateReviewUseCase {
       .execute();
   }
 
-  private async updateMerchantRating(manager: EntityManager, merchantId: string) {
+  private async updateMerchantRating(
+    manager: EntityManager,
+    merchantId: string,
+  ) {
     const result = (await manager
       .createQueryBuilder(Review, 'review')
       .select('AVG(review.rating)', 'average')

@@ -27,7 +27,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: import('express').Request) => {
-          const token = req?.cookies?.accessToken ?? null;
+          const cookies = req?.cookies as Record<string, string> | undefined;
+          const token = cookies?.accessToken ?? null;
           return token;
         },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -44,7 +45,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User account has been deleted or disabled');
+      throw new UnauthorizedException(
+        'User account has been deleted or disabled',
+      );
     }
 
     return {

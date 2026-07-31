@@ -28,86 +28,97 @@ export class GetAdminDashboardStatsUseCase {
     today.setHours(0, 0, 0, 0);
 
     // Single query: all user/expert/client stats + latest 5 of each role
-    const [expertStats, clientStats, chatSessionsCount, earningsResult, latestUsers] =
-      await Promise.all([
-        // Expert stats
-        this.userRepository
-          .createQueryBuilder('user')
-          .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
-          .select([
-            'COUNT(*) AS total_experts',
-            'COUNT(*) FILTER (WHERE profile.kyc_status = :approved) AS active_experts',
-            'COUNT(*) FILTER (WHERE profile.kyc_status = :pending) AS pending_experts',
-            'COUNT(*) FILTER (WHERE profile.kyc_status = :rejected) AS rejected_experts',
-            'COUNT(*) FILTER (WHERE "user".is_blocked = true) AS blocked_experts',
-            'COUNT(*) FILTER (WHERE "user".created_at >= :today) AS recent_experts',
-          ])
-          .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
-          .setParameters({
-            approved: 'approved',
-            pending: 'pending',
-            rejected: 'rejected',
-            today,
-          })
-          .getRawOne<{
-            total_experts: string;
-            active_experts: string;
-            pending_experts: string;
-            rejected_experts: string;
-            blocked_experts: string;
-            recent_experts: string;
-          }>(),
+    const [
+      expertStats,
+      clientStats,
+      chatSessionsCount,
+      earningsResult,
+      latestUsers,
+    ] = await Promise.all([
+      // Expert stats
+      this.userRepository
+        .createQueryBuilder('user')
+        .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
+        .select([
+          'COUNT(*) AS total_experts',
+          'COUNT(*) FILTER (WHERE profile.kyc_status = :approved) AS active_experts',
+          'COUNT(*) FILTER (WHERE profile.kyc_status = :pending) AS pending_experts',
+          'COUNT(*) FILTER (WHERE profile.kyc_status = :rejected) AS rejected_experts',
+          'COUNT(*) FILTER (WHERE "user".is_blocked = true) AS blocked_experts',
+          'COUNT(*) FILTER (WHERE "user".created_at >= :today) AS recent_experts',
+        ])
+        .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
+        .setParameters({
+          approved: 'approved',
+          pending: 'pending',
+          rejected: 'rejected',
+          today,
+        })
+        .getRawOne<{
+          total_experts: string;
+          active_experts: string;
+          pending_experts: string;
+          rejected_experts: string;
+          blocked_experts: string;
+          recent_experts: string;
+        }>(),
 
-        // Client stats
-        this.userRepository
-          .createQueryBuilder('user')
-          .leftJoin(ProfileClient, 'profile', 'profile.user_id = user.id')
-          .select([
-            'COUNT(*) AS total_clients',
-            'COUNT(*) FILTER (WHERE user.created_at >= :today) AS recent_clients',
-            'COUNT(*) FILTER (WHERE profile.is_blocked = true) AS blocked_clients',
-          ])
-          .where(':role = ANY(user.roles)', { role: RoleEnum.CLIENT })
-          .setParameter('today', today)
-          .getRawOne<{
-            total_clients: string;
-            recent_clients: string;
-            blocked_clients: string;
-          }>(),
+      // Client stats
+      this.userRepository
+        .createQueryBuilder('user')
+        .leftJoin(ProfileClient, 'profile', 'profile.user_id = user.id')
+        .select([
+          'COUNT(*) AS total_clients',
+          'COUNT(*) FILTER (WHERE user.created_at >= :today) AS recent_clients',
+          'COUNT(*) FILTER (WHERE profile.is_blocked = true) AS blocked_clients',
+        ])
+        .where(':role = ANY(user.roles)', { role: RoleEnum.CLIENT })
+        .setParameter('today', today)
+        .getRawOne<{
+          total_clients: string;
+          recent_clients: string;
+          blocked_clients: string;
+        }>(),
 
-        // Total chat sessions count
-        this.chatSessionRepository.count(),
+      // Total chat sessions count
+      this.chatSessionRepository.count(),
 
-        // Global earnings + admin commission in one query
-        this.transactionRepository
-          .createQueryBuilder('t')
-          .select([
-            `SUM(t.amount) FILTER (WHERE t.purpose = :rechargePurpose AND t.type = :creditType) AS total_earnings`,
-            `SUM(t.amount) FILTER (WHERE t.type = :debitType AND t.purpose IN (:...commissionPurposes)) AS commission_base`,
-          ])
-          .setParameters({
-            rechargePurpose: TransactionPurpose.RECHARGE,
-            creditType: TransactionType.CREDIT,
-            debitType: TransactionType.DEBIT,
-            commissionPurposes: [
-              TransactionPurpose.CONSULTATION,
-              TransactionPurpose.PRODUCT_PURCHASE,
-              TransactionPurpose.PUJA_CONFIRMATION,
-            ],
-          })
-          .getRawOne<{ total_earnings: string; commission_base: string }>(),
+      // Global earnings + admin commission in one query
+      this.transactionRepository
+        .createQueryBuilder('t')
+        .select([
+          `SUM(t.amount) FILTER (WHERE t.purpose = :rechargePurpose AND t.type = :creditType) AS total_earnings`,
+          `SUM(t.amount) FILTER (WHERE t.type = :debitType AND t.purpose IN (:...commissionPurposes)) AS commission_base`,
+        ])
+        .setParameters({
+          rechargePurpose: TransactionPurpose.RECHARGE,
+          creditType: TransactionType.CREDIT,
+          debitType: TransactionType.DEBIT,
+          commissionPurposes: [
+            TransactionPurpose.CONSULTATION,
+            TransactionPurpose.PRODUCT_PURCHASE,
+            TransactionPurpose.PUJA_CONFIRMATION,
+          ],
+        })
+        .getRawOne<{ total_earnings: string; commission_base: string }>(),
 
-        // Latest 15 users across all roles (client, expert, agent) — sorted in DB
-        this.userRepository
-          .createQueryBuilder('user')
-          .select(['user.id', 'user.name', 'user.email', 'user.roles', 'user.created_at'])
-          .where('user.roles && ARRAY[:...roles]::varchar[]', {
-            roles: [RoleEnum.CLIENT, RoleEnum.EXPERT, RoleEnum.AGENT],
-          })
-          .orderBy('user.created_at', 'DESC')
-          .take(15)
-          .getMany(),
-      ]);
+      // Latest 15 users across all roles (client, expert, agent) — sorted in DB
+      this.userRepository
+        .createQueryBuilder('user')
+        .select([
+          'user.id',
+          'user.name',
+          'user.email',
+          'user.roles',
+          'user.created_at',
+        ])
+        .where('user.roles && ARRAY[:...roles]::varchar[]', {
+          roles: [RoleEnum.CLIENT, RoleEnum.EXPERT, RoleEnum.AGENT],
+        })
+        .orderBy('user.created_at', 'DESC')
+        .take(15)
+        .getMany(),
+    ]);
 
     const totalEarnings = Number(earningsResult?.total_earnings) || 0;
     const adminEarnings = (Number(earningsResult?.commission_base) || 0) * 0.03;

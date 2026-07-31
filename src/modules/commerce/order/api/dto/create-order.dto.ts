@@ -1,6 +1,11 @@
 import { AddressDto } from '@/common/address/address.dto';
 import { Type } from 'class-transformer';
-import { IsOptional, IsNumber, IsString, ValidateNested } from 'class-validator';
+import {
+  IsOptional,
+  IsNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 export class CreateOrderDto {
   @Type(() => AddressDto)

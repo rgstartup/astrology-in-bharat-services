@@ -3,19 +3,19 @@ import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
 export class CreateBankAccountDto {
   @IsString()
   @IsNotEmpty()
-  account_holder_name: string;
+  account_holder_name!: string;
 
   @IsString()
   @IsNotEmpty()
-  bank_name: string;
+  bank_name!: string;
 
   @IsString()
   @IsNotEmpty()
-  account_number: string;
+  account_number!: string;
 
   @IsString()
   @IsNotEmpty()
-  ifsc_code: string;
+  ifsc_code!: string;
 
   @IsString()
   @IsOptional()

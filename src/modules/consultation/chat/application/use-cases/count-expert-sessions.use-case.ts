@@ -58,7 +58,9 @@ export class CountExpertSessionsUseCase {
     };
   }
 
-  async getAllExpertsRevenueAndCount(): Promise<Record<string, { total: number; count: number }>> {
+  async getAllExpertsRevenueAndCount(): Promise<
+    Record<string, { total: number; count: number }>
+  > {
     const stats = await this.chatSessionRepo
       .createQueryBuilder('chat')
       .select('chat.expert_id', 'expert_id')
@@ -66,7 +68,7 @@ export class CountExpertSessionsUseCase {
       .addSelect('COUNT(chat.id)', 'count')
       .where('chat.status = :status', { status: 'completed' })
       .groupBy('chat.expert_id')
-      .getRawMany();
+      .getRawMany<{ expert_id: string; total: string; count: string }>();
 
     const result: Record<string, { total: number; count: number }> = {};
     for (const row of stats) {

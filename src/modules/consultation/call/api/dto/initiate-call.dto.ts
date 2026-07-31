@@ -3,7 +3,7 @@ import { CallType } from '../../infrastructure/entities/call-session.entity';
 
 export class InitiateCallDto {
   @IsString()
-  expert_id: string;
+  expert_id!: string;
 
   @IsOptional()
   @IsEnum(CallType)

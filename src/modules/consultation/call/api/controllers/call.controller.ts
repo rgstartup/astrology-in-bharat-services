@@ -39,10 +39,7 @@ export class CallController {
     console.log(
       `[CallController] Initiate call: clientId=${clientId}, expert_id=${dto.expert_id}, type=${dto.type || CallType.AUDIO}`,
     );
-    return this.callFacade.initiate(
-      clientId,
-      dto,
-    );
+    return this.callFacade.initiate(clientId, dto);
   }
 
   @Post('accept')
@@ -57,9 +54,7 @@ export class CallController {
   }
 
   @Post('end')
-  async end(
-    @Body() dto: EndCallDto,
-  ) {
+  async end(@Body() dto: EndCallDto) {
     console.log(
       `[CallController] End call: sessionId=${dto.sessionId}, endedBy=${dto.endedBy}`,
     );
@@ -133,6 +128,10 @@ export class CallController {
     @CurrentProfile() profileId: string,
     @Query() dto: GetCallSessionsDto,
   ) {
-    return this.callFacade.getExpertSessions(profileId, CallSessionFilter.ALL, dto);
+    return this.callFacade.getExpertSessions(
+      profileId,
+      CallSessionFilter.ALL,
+      dto,
+    );
   }
 }

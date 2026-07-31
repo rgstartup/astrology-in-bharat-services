@@ -22,7 +22,9 @@ export class CheckChatEligibilityUseCase {
   async execute(clientId: string, expertId: string) {
     // Get expert details
     const expert = await this.expertProfileFacade.getExpertById(expertId);
-    const chatPrice = expert ? Number(expert.chat_price) || Number(expert.price) || 0 : 0;
+    const chatPrice = expert
+      ? Number(expert.chat_price) || Number(expert.price) || 0
+      : 0;
     const minMins = 5;
     const minBalanceRequired = chatPrice * minMins;
 

@@ -35,7 +35,12 @@ interface PanchangData {
     rahuKalamStart?: Date | string | null;
     rahuKalamEnd?: Date | string | null;
     yamagandaKalam?: TimeRange | null;
-    festivals?: Array<{ name: string; description?: string; category?: string; type?: string }>;
+    festivals?: Array<{
+      name: string;
+      description?: string;
+      category?: string;
+      type?: string;
+    }>;
   };
   moonPhase: {
     current: string;
@@ -56,13 +61,14 @@ export class GetDailyPanchangUseCase {
 
   private formatTime(isoString: string | Date | null | undefined): string {
     if (!isoString) return 'N/A';
-    const dateObj = typeof isoString === 'string' ? new Date(isoString) : isoString;
+    const dateObj =
+      typeof isoString === 'string' ? new Date(isoString) : isoString;
     if (isNaN(dateObj.getTime())) return 'N/A';
 
     // Convert UTC to IST (+5:30)
     const utcMs = dateObj.getTime();
-    const istDate = new Date(utcMs + (5.5 * 60 * 60 * 1000));
-    
+    const istDate = new Date(utcMs + 5.5 * 60 * 60 * 1000);
+
     let hours = istDate.getUTCHours();
     const minutes = istDate.getUTCMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -73,13 +79,31 @@ export class GetDailyPanchangUseCase {
     return `${hoursStr}:${minsStr} ${ampm}`;
   }
 
-  private mapPanchangToFrontendSchema(serviceData: PanchangData, dateStr: string) {
+  private mapPanchangToFrontendSchema(
+    serviceData: PanchangData,
+    dateStr: string,
+  ) {
     const { panchangam, moonPhase } = serviceData;
 
     // We can keep the deterministic mockup for dailyHoroscope
-    const hash = dateStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const colors = ['Red', 'Green', 'Yellow', 'White', 'Orange', 'Blue', 'Pink', 'Black', 'Purple', 'Brown', 'Cyan', 'Sea Green'];
-    
+    const hash = dateStr
+      .split('')
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const colors = [
+      'Red',
+      'Green',
+      'Yellow',
+      'White',
+      'Orange',
+      'Blue',
+      'Pink',
+      'Black',
+      'Purple',
+      'Brown',
+      'Cyan',
+      'Sea Green',
+    ];
+
     // We'll calculate a mock day length if the true one isn't available easily
     let dayLengthStr = '12h 0m 0s';
     if (panchangam.sunrise && panchangam.sunset) {
@@ -93,31 +117,44 @@ export class GetDailyPanchangUseCase {
     }
 
     // Map Exact timings from Panchangam-js
-    const safeTimeRange = (obj: { start?: Date | string | null, end?: Date | string | null, startTime?: Date | string | null, endTime?: Date | string | null } | null | undefined) => {
+    const safeTimeRange = (
+      obj:
+        | {
+            start?: Date | string | null;
+            end?: Date | string | null;
+            startTime?: Date | string | null;
+            endTime?: Date | string | null;
+          }
+        | null
+        | undefined,
+    ) => {
       if (!obj) return { start: 'N/A', end: 'N/A' };
-      return { start: this.formatTime(obj.start || obj.startTime), end: this.formatTime(obj.end || obj.endTime) };
+      return {
+        start: this.formatTime(obj.start || obj.startTime),
+        end: this.formatTime(obj.end || obj.endTime),
+      };
     };
 
     return {
-      tithi: { 
-        name: panchangam.tithis?.[0]?.name || 'N/A', 
-        start: this.formatTime(panchangam.tithis?.[0]?.startTime), 
-        end: this.formatTime(panchangam.tithis?.[0]?.endTime) 
+      tithi: {
+        name: panchangam.tithis?.[0]?.name || 'N/A',
+        start: this.formatTime(panchangam.tithis?.[0]?.startTime),
+        end: this.formatTime(panchangam.tithis?.[0]?.endTime),
       },
-      nakshatra: { 
-        name: panchangam.nakshatras?.[0]?.name || 'N/A', 
-        start: this.formatTime(panchangam.nakshatras?.[0]?.startTime), 
-        end: this.formatTime(panchangam.nakshatras?.[0]?.endTime) 
+      nakshatra: {
+        name: panchangam.nakshatras?.[0]?.name || 'N/A',
+        start: this.formatTime(panchangam.nakshatras?.[0]?.startTime),
+        end: this.formatTime(panchangam.nakshatras?.[0]?.endTime),
       },
-      karana: { 
-        name: panchangam.karanas?.[0]?.name || 'N/A', 
+      karana: {
+        name: panchangam.karanas?.[0]?.name || 'N/A',
         start: this.formatTime(panchangam.karanas?.[0]?.startTime),
-        end: this.formatTime(panchangam.karanas?.[0]?.endTime) 
+        end: this.formatTime(panchangam.karanas?.[0]?.endTime),
       },
-      yoga: { 
-        name: panchangam.yogas?.[0]?.name || 'N/A', 
-        start: this.formatTime(panchangam.yogas?.[0]?.startTime), 
-        end: this.formatTime(panchangam.yogas?.[0]?.endTime) 
+      yoga: {
+        name: panchangam.yogas?.[0]?.name || 'N/A',
+        start: this.formatTime(panchangam.yogas?.[0]?.startTime),
+        end: this.formatTime(panchangam.yogas?.[0]?.endTime),
       },
       shubhMuhurat: {
         abhijit: safeTimeRange(panchangam.abhijitMuhurta),
@@ -127,7 +164,11 @@ export class GetDailyPanchangUseCase {
         vehiclePurchase: safeTimeRange(panchangam.amritKalam?.[0]),
       },
       ashubhMuhurat: {
-        rahuKalam: safeTimeRange(panchangam.rahuKalamStart ? { start: panchangam.rahuKalamStart, end: panchangam.rahuKalamEnd } : undefined),
+        rahuKalam: safeTimeRange(
+          panchangam.rahuKalamStart
+            ? { start: panchangam.rahuKalamStart, end: panchangam.rahuKalamEnd }
+            : undefined,
+        ),
         yamaganda: safeTimeRange(panchangam.yamagandaKalam),
       },
       sunrise: this.formatTime(panchangam.sunrise) || '05:28 AM',
@@ -137,18 +178,66 @@ export class GetDailyPanchangUseCase {
       dayLength: dayLengthStr,
       moonPhase: moonPhase,
       dailyHoroscope: [
-        { sign: 'Aries', color: colors[(hash + 1) % colors.length], number: (hash % 9) + 1 },
-        { sign: 'Taurus', color: colors[(hash + 2) % colors.length], number: ((hash + 1) % 9) + 1 },
-        { sign: 'Gemini', color: colors[(hash + 3) % colors.length], number: ((hash + 2) % 9) + 1 },
-        { sign: 'Cancer', color: colors[(hash + 4) % colors.length], number: ((hash + 3) % 9) + 1 },
-        { sign: 'Leo', color: colors[(hash + 5) % colors.length], number: ((hash + 4) % 9) + 1 },
-        { sign: 'Virgo', color: colors[(hash + 6) % colors.length], number: ((hash + 5) % 9) + 1 },
-        { sign: 'Libra', color: colors[(hash + 7) % colors.length], number: ((hash + 6) % 9) + 1 },
-        { sign: 'Scorpio', color: colors[(hash + 8) % colors.length], number: ((hash + 7) % 9) + 1 },
-        { sign: 'Sagittarius', color: colors[(hash + 9) % colors.length], number: ((hash + 8) % 9) + 1 },
-        { sign: 'Capricorn', color: colors[(hash + 10) % colors.length], number: ((hash + 9) % 9) + 1 },
-        { sign: 'Aquarius', color: colors[(hash + 11) % colors.length], number: ((hash + 10) % 9) + 1 },
-        { sign: 'Pisces', color: colors[(hash + 12) % colors.length], number: ((hash + 11) % 9) + 1 },
+        {
+          sign: 'Aries',
+          color: colors[(hash + 1) % colors.length],
+          number: (hash % 9) + 1,
+        },
+        {
+          sign: 'Taurus',
+          color: colors[(hash + 2) % colors.length],
+          number: ((hash + 1) % 9) + 1,
+        },
+        {
+          sign: 'Gemini',
+          color: colors[(hash + 3) % colors.length],
+          number: ((hash + 2) % 9) + 1,
+        },
+        {
+          sign: 'Cancer',
+          color: colors[(hash + 4) % colors.length],
+          number: ((hash + 3) % 9) + 1,
+        },
+        {
+          sign: 'Leo',
+          color: colors[(hash + 5) % colors.length],
+          number: ((hash + 4) % 9) + 1,
+        },
+        {
+          sign: 'Virgo',
+          color: colors[(hash + 6) % colors.length],
+          number: ((hash + 5) % 9) + 1,
+        },
+        {
+          sign: 'Libra',
+          color: colors[(hash + 7) % colors.length],
+          number: ((hash + 6) % 9) + 1,
+        },
+        {
+          sign: 'Scorpio',
+          color: colors[(hash + 8) % colors.length],
+          number: ((hash + 7) % 9) + 1,
+        },
+        {
+          sign: 'Sagittarius',
+          color: colors[(hash + 9) % colors.length],
+          number: ((hash + 8) % 9) + 1,
+        },
+        {
+          sign: 'Capricorn',
+          color: colors[(hash + 10) % colors.length],
+          number: ((hash + 9) % 9) + 1,
+        },
+        {
+          sign: 'Aquarius',
+          color: colors[(hash + 11) % colors.length],
+          number: ((hash + 10) % 9) + 1,
+        },
+        {
+          sign: 'Pisces',
+          color: colors[(hash + 12) % colors.length],
+          number: ((hash + 11) % 9) + 1,
+        },
       ],
     };
   }
@@ -166,12 +255,16 @@ export class GetDailyPanchangUseCase {
     }
 
     this.logger.log(`Calculating fresh daily panchang for ${cacheKey} locally`);
-    
+
     // Defaulting to Delhi coords if unparseable
     const latitude = parseFloat(lat) || 28.6139;
-    const longitude = parseFloat(lon) || 77.2090;
+    const longitude = parseFloat(lon) || 77.209;
 
-    const rawResponse = this.panchangamService.getDailyPanchang(date, latitude, longitude);
+    const rawResponse = this.panchangamService.getDailyPanchang(
+      date,
+      latitude,
+      longitude,
+    );
     const response = this.mapPanchangToFrontendSchema(rawResponse, date);
 
     const newCache = this.cacheRepository.create({

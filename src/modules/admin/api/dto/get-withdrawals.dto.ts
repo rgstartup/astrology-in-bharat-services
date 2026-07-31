@@ -11,4 +11,4 @@ export class GetWithdrawalsDto extends PaginationDto {
   @IsOptional()
   @IsEnum(RoleEnum)
   override role?: RoleEnum;
-}
+}

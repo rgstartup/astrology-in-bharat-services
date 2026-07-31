@@ -24,10 +24,7 @@ export class GetAgentListingsUseCase {
     private readonly agentListingRepo: Repository<AgentListing>,
   ) {}
 
-  async execute(
-    user: IUser,
-    dto: GetAgentListingsDto,
-  ) {
+  async execute(user: IUser, dto: GetAgentListingsDto) {
     const { type, search } = dto;
     const pagination = dto;
     const userId = user.id;

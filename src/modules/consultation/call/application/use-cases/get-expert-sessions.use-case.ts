@@ -110,7 +110,9 @@ export class GetExpertCallSessionsUseCase {
     };
   }
 
-  async getAllExpertsRevenueAndCount(): Promise<Record<string, { total: number; count: number }>> {
+  async getAllExpertsRevenueAndCount(): Promise<
+    Record<string, { total: number; count: number }>
+  > {
     const stats = await this.sessionRepo
       .createQueryBuilder('call')
       .select('call.expert_id', 'expert_id')
@@ -118,7 +120,7 @@ export class GetExpertCallSessionsUseCase {
       .addSelect('COUNT(call.id)', 'count')
       .where('call.status = :status', { status: 'completed' })
       .groupBy('call.expert_id')
-      .getRawMany();
+      .getRawMany<{ expert_id: string; total: string; count: string }>();
 
     const result: Record<string, { total: number; count: number }> = {};
     for (const row of stats) {

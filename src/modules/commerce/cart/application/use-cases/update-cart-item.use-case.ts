@@ -15,10 +15,7 @@ export class UpdateCartItemUseCase {
     private cartItemRepository: Repository<CartItem>,
   ) {}
 
-  async execute(
-    profileId: string,
-    updateCartItemDto: UpdateCartItemDto,
-  ) {
+  async execute(profileId: string, updateCartItemDto: UpdateCartItemDto) {
     const { productId, quantity } = updateCartItemDto;
 
     const cart = await this.cartRepository.findOne({

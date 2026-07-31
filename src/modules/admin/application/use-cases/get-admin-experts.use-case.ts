@@ -11,6 +11,12 @@ export class GetAdminExpertsUseCase {
 
   async execute(dto: GetExpertsDto) {
     const { search, status, page, limit } = dto;
-    return this.usersFacade.findAllByRole('expert', search, page, limit, status);
+    return this.usersFacade.findAllByRole(
+      'expert',
+      search,
+      page,
+      limit,
+      status,
+    );
   }
 }

@@ -54,7 +54,12 @@ export class LoginWithMagicLinkUseCase {
       ]);
     });
 
-    const tokens = await this.authTokenService.issueAuthTokens(user, role, ip, ua);
+    const tokens = await this.authTokenService.issueAuthTokens(
+      user,
+      role,
+      ip,
+      ua,
+    );
 
     return { user: updatedUser, tokens };
   }

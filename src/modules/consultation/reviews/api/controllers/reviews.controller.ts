@@ -73,9 +73,7 @@ export class ReviewsController {
   @Get('admin/all')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  async adminGetAllReviews(
-    @Query() dto: GetAdminReviewsDto,
-  ) {
+  async adminGetAllReviews(@Query() dto: GetAdminReviewsDto) {
     return this.reviewsFacade.getAdminReviews(dto);
   }
 

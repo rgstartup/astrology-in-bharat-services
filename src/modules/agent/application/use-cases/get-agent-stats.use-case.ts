@@ -13,6 +13,24 @@ import {
   CommissionAppliesRole,
 } from '@/modules/finance/commissions/application/commissions.facade';
 
+interface UserStatsRawRow {
+  count: string | number;
+  active_users: string | number;
+}
+
+interface LatestUserRawRow {
+  id: string;
+  name: string | null;
+  created_at: string | Date;
+}
+
+interface WithdrawalStatsRawRow {
+  pending_amount: number;
+  processing_amount: number;
+  approved_amount: number;
+  total_withdrawn: number;
+}
+
 @Injectable()
 export class GetAgentStatsUseCase {
   constructor(
@@ -70,7 +88,7 @@ export class GetAgentStatsUseCase {
       let usersWithActivity = 0;
       let clientsCount = 0;
 
-      const userStatsQuery = await queryRunner.manager.query(
+      const userStatsQuery: UserStatsRawRow[] = await queryRunner.manager.query(
         `
         SELECT 
           COUNT(DISTINCT u.id)::int as count,
@@ -88,7 +106,7 @@ export class GetAgentStatsUseCase {
       usersWithActivity = Number(userStatsQuery[0]?.active_users || 0);
 
       // Fetch latest 5 registered users
-      const latestUsers = await queryRunner.manager.query(
+      const latestUsers: LatestUserRawRow[] = await queryRunner.manager.query(
         `
         SELECT u.id, u.name, u.created_at
         FROM public.users u
@@ -154,11 +172,13 @@ export class GetAgentStatsUseCase {
           [userId],
         );
 
-      const expertEarnings = roleStats.find((r) => r.role_name === 'expert')?.total_comm || 0;
-      
+      const expertEarnings =
+        roleStats.find((r) => r.role_name === 'expert')?.total_comm || 0;
+
       // Fetch withdrawals directly using raw query instead of WalletFacade
-      const withdrawalStatsQuery = await queryRunner.manager.query(
-        `
+      const withdrawalStatsQuery: WithdrawalStatsRawRow[] =
+        await queryRunner.manager.query(
+          `
         SELECT 
             SUM(amount) FILTER(WHERE status = 'pending')::float as pending_amount,
             SUM(amount) FILTER(WHERE status = 'processing')::float as processing_amount,
@@ -167,9 +187,15 @@ export class GetAgentStatsUseCase {
         FROM finance.withdrawals 
         WHERE profile_id = $1 AND profile_type = 'agent_id'
         `,
-        [profile.id]
-      );
-      const withdrawalStats = withdrawalStatsQuery[0] || { pending_amount: 0, processing_amount: 0, approved_amount: 0, total_withdrawn: 0 };
+          [profile.id],
+        );
+      const withdrawalStats: WithdrawalStatsRawRow =
+        withdrawalStatsQuery[0] || {
+          pending_amount: 0,
+          processing_amount: 0,
+          approved_amount: 0,
+          total_withdrawn: 0,
+        };
 
       const revenueGrowthRaw: Array<{
         name: string;
@@ -246,7 +272,9 @@ export class GetAgentStatsUseCase {
         puja_shops_count: totalPujaShops,
         pending_payout: Number(withdrawalStats.pending_amount || 0),
         total_withdrawn: Number(withdrawalStats.total_withdrawn || 0),
-        processing_withdrawals: Number(withdrawalStats.processing_amount || 0) + Number(withdrawalStats.approved_amount || 0),
+        processing_withdrawals:
+          Number(withdrawalStats.processing_amount || 0) +
+          Number(withdrawalStats.approved_amount || 0),
 
         total_earned: Number(totalEarnedRange[0]?.total || 0),
         commission_earned: Number(totalEarnedRange[0]?.total || 0),
@@ -275,7 +303,7 @@ export class GetAgentStatsUseCase {
           mandir: shopCommResult.amount,
         },
         recent_activity: [
-          ...latestUsers.map((u: any) => ({
+          ...latestUsers.map((u) => ({
             id: u.id,
             name: u.name || 'User',
             type: 'User',

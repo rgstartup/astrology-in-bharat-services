@@ -5,6 +5,12 @@ import { PaginationDto } from '@/common/dto/pagination.dto';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
+interface ResolvedNameRawRow {
+  id: string;
+  expert_name: string;
+  type: string;
+}
+
 @Injectable()
 export class GetAgentCommissionsUseCase {
   constructor(
@@ -24,9 +30,10 @@ export class GetAgentCommissionsUseCase {
     const profileId = agentProfile.id;
 
     const offset = pagination.skip;
-    
+
     // We join the transactions table with wallets to get transactions for this agent
-    const query = this.transactionRepo.createQueryBuilder('t')
+    const query = this.transactionRepo
+      .createQueryBuilder('t')
       .innerJoin('finance.wallets', 'w', 'w.id = t.wallet_id')
       .where('w.agent_id = :agentId', { agentId: profileId })
       .andWhere('t.purpose = :purpose', { purpose: 'agent_commission' })
@@ -54,47 +61,71 @@ export class GetAgentCommissionsUseCase {
     transactions.forEach((t) => {
       const refId = t.reference_id || '';
       if (refId.startsWith('call_')) callIds.push(refId.replace('call_', ''));
-      else if (refId.startsWith('chat_')) chatIds.push(refId.replace('chat_', ''));
-      else if (refId.startsWith('puja_')) pujaIds.push(refId.replace('puja_', ''));
+      else if (refId.startsWith('chat_'))
+        chatIds.push(refId.replace('chat_', ''));
+      else if (refId.startsWith('puja_'))
+        pujaIds.push(refId.replace('puja_', ''));
     });
 
     // Instead of importing Facades with forwardRef, we use raw SQL to fetch names quickly
-    const resolvedNames: Record<string, { expertName: string, type: string }> = {};
+    const resolvedNames: Record<string, { expertName: string; type: string }> =
+      {};
 
     if (callIds.length > 0) {
-      const calls = await this.transactionRepo.manager.query(
-        `SELECT c.id, u.name as expert_name, c.type 
+      const calls: ResolvedNameRawRow[] =
+        await this.transactionRepo.manager.query(
+          `SELECT c.id, u.name as expert_name, c.type 
          FROM consultations.call_sessions c
          LEFT JOIN expert.profile pe ON pe.id = c.expert_id
          LEFT JOIN public.users u ON u.id = pe.user_id
          WHERE c.id = ANY($1)`,
-         [callIds]
+          [callIds],
+        );
+      calls.forEach(
+        (c) =>
+          (resolvedNames[`call_${c.id}`] = {
+            expertName: c.expert_name,
+            type: c.type,
+          }),
       );
-      calls.forEach((c: any) => resolvedNames[`call_${c.id}`] = { expertName: c.expert_name, type: c.type });
     }
 
     if (chatIds.length > 0) {
-      const chats = await this.transactionRepo.manager.query(
-        `SELECT c.id, u.name as expert_name, c.type 
+      const chats: ResolvedNameRawRow[] =
+        await this.transactionRepo.manager.query(
+          `SELECT c.id, u.name as expert_name, c.type 
          FROM consultations.chat_sessions c
          LEFT JOIN expert.profile pe ON pe.id = c.expert_id
          LEFT JOIN public.users u ON u.id = pe.user_id
          WHERE c.id = ANY($1)`,
-         [chatIds]
+          [chatIds],
+        );
+      chats.forEach(
+        (c) =>
+          (resolvedNames[`chat_${c.id}`] = {
+            expertName: c.expert_name,
+            type: c.type,
+          }),
       );
-      chats.forEach((c: any) => resolvedNames[`chat_${c.id}`] = { expertName: c.expert_name, type: c.type });
     }
 
     if (pujaIds.length > 0) {
-      const pujas = await this.transactionRepo.manager.query(
-        `SELECT p.id, u.name as expert_name, p.puja_type as type 
+      const pujas: ResolvedNameRawRow[] =
+        await this.transactionRepo.manager.query(
+          `SELECT p.id, u.name as expert_name, p.puja_type as type 
          FROM puja.appointments p
          LEFT JOIN expert.profile pe ON pe.id = p.astrologer_id
          LEFT JOIN public.users u ON u.id = pe.user_id
          WHERE p.id = ANY($1)`,
-         [pujaIds]
+          [pujaIds],
+        );
+      pujas.forEach(
+        (p) =>
+          (resolvedNames[`puja_${p.id}`] = {
+            expertName: p.expert_name,
+            type: p.type,
+          }),
       );
-      pujas.forEach((p: any) => resolvedNames[`puja_${p.id}`] = { expertName: p.expert_name, type: p.type });
     }
 
     const resolvedData = transactions.map((t) => {
@@ -114,7 +145,8 @@ export class GetAgentCommissionsUseCase {
         listing,
         type,
         date: t.created_at,
-        status: (t as { status?: string }).status === 'completed'
+        status:
+          (t as { status?: string }).status === 'completed'
             ? 'paid'
             : (t as { status?: string }).status || 'paid',
       };

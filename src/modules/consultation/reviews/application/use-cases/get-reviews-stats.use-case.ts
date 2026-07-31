@@ -48,11 +48,12 @@ export class GetReviewsStatsUseCase {
         const count = parseInt(row.count, 10);
         counts[ratingKey] = count;
         calculatedTotalReviews += count;
-        sumRatings += (parseInt(ratingKey, 10) * count);
+        sumRatings += parseInt(ratingKey, 10) * count;
       }
     });
 
-    const averageRating = calculatedTotalReviews > 0 ? sumRatings / calculatedTotalReviews : 0;
+    const averageRating =
+      calculatedTotalReviews > 0 ? sumRatings / calculatedTotalReviews : 0;
 
     return {
       rating: Number(averageRating.toFixed(1)),

@@ -15,8 +15,8 @@ export class GetAgentTotalCommissionUseCase {
       .createQueryBuilder('chat')
       .select('SUM(chat.agent_commission)', 'total')
       .where('chat.agent_id = :agentId', { agentId })
-      .getRawOne();
-      
+      .getRawOne<{ total: string | number | null }>();
+
     return Number(result?.total || 0);
   }
 }

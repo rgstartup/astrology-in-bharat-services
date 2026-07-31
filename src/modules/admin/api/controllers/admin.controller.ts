@@ -11,7 +11,6 @@ import {
   UseInterceptors,
   UploadedFiles,
   Delete,
-  ParseEnumPipe,
   ParseIntPipe,
   BadRequestException,
 } from '@nestjs/common';
@@ -26,9 +25,7 @@ import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermi
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { IUser } from '@/common/types/access-token.payload';
-import { WithdrawalStatus } from '@/modules/finance/wallet/infrastructure/entities/withdrawal.entity';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
@@ -37,7 +34,6 @@ import {
   RolePipe,
 } from '@/modules/users/infrastructure/enums/Role.enum';
 import { MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { GetReviewsDTO } from '../dto/get-reviews.dto';
 import { CreateAgentDto } from '../dto/create-agent.dto';
@@ -128,6 +124,7 @@ export class AdminController {
   @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
   @Get('analytics/top-experts')
   async getTopExperts(@Query('limit', ParseIntPipe) limit: number = 5) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.adminFacade.getTopExperts(limit);
   }
   @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)

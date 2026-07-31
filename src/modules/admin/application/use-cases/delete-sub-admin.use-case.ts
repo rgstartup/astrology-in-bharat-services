@@ -19,7 +19,10 @@ export class DeleteSubAdminUseCase {
     private readonly auditLogRepo: Repository<AdminAuditLog>,
   ) {}
 
-  async execute(targetId: string, deletedByAdminId: string): Promise<{ success: boolean }> {
+  async execute(
+    targetId: string,
+    deletedByAdminId: string,
+  ): Promise<{ success: boolean }> {
     const target = await this.userRepo.findOne({
       where: { id: targetId },
     });

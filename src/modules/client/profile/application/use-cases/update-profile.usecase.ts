@@ -69,28 +69,42 @@ export class UpdateProfileUseCase {
 
       // Update the user's name in the User table if full_name is provided
       if (full_name !== undefined) {
-        this.logger.log(`Updating full_name in users table for user ${user.id}: ${full_name}`);
-        await queryRunner.manager.update(User, { id: user.id }, { name: full_name });
+        this.logger.log(
+          `Updating full_name in users table for user ${user.id}: ${full_name}`,
+        );
+        await queryRunner.manager.update(
+          User,
+          { id: user.id },
+          { name: full_name },
+        );
       }
 
       // Update the user's master avatar if profile_picture is provided
       const fields = scalarFields as Record<string, unknown>;
       if (fields.profile_picture !== undefined) {
-        this.logger.log(`Updating avatar in users table for user ${user.id}: ${fields.profile_picture}`);
-        await queryRunner.manager.update(User, { id: user.id }, { avatar: fields.profile_picture as string });
+        this.logger.log(
+          `Updating avatar in users table for user ${user.id}: ${fields.profile_picture}`,
+        );
+        await queryRunner.manager.update(
+          User,
+          { id: user.id },
+          { avatar: fields.profile_picture as string },
+        );
       } else {
-        this.logger.log(`No profile_picture provided in update payload for user ${user.id}. Payload: ${JSON.stringify(scalarFields)}`);
+        this.logger.log(
+          `No profile_picture provided in update payload for user ${user.id}. Payload: ${JSON.stringify(scalarFields)}`,
+        );
       }
 
       // Apply scalar fields to the profile
-      Object.assign(profile!, scalarFields);
+      Object.assign(profile, scalarFields);
 
       // Handle addresses separately (cascade update)
       if (addresses !== undefined && Array.isArray(addresses)) {
-        if (profile!.addresses && profile!.addresses.length > 0) {
-          await queryRunner.manager.remove(Address, profile!.addresses);
+        if (profile.addresses && profile.addresses.length > 0) {
+          await queryRunner.manager.remove(Address, profile.addresses);
         }
-        profile!.addresses = addresses.map((addr) => {
+        profile.addresses = addresses.map((addr) => {
           const addrData: Partial<Address> = {
             line1:
               [addr.line1, addr.line2].filter(Boolean).join(', ') ||
@@ -110,7 +124,10 @@ export class UpdateProfileUseCase {
         });
       }
 
-      const updatedProfile = await queryRunner.manager.save(ProfileClient, profile!);
+      const updatedProfile = await queryRunner.manager.save(
+        ProfileClient,
+        profile,
+      );
 
       await queryRunner.commitTransaction();
 

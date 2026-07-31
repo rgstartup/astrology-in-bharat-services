@@ -188,8 +188,6 @@ export class AuthController {
     res: Response,
     tokens: { accessToken: string; refreshToken: string },
   ) {
-    const isProduction = process.env.NODE_ENV === 'production';
-
     const cookieOptions: CookieOptions = {
       httpOnly: true,
       secure: true, // Must be true for sameSite: 'none'

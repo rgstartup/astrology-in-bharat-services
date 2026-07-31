@@ -50,7 +50,9 @@ export class GetMonthlyCalendarUseCase {
       return cached.response;
     }
 
-    this.logger.log(`Calculating fresh monthly calendar for ${cacheKey} locally`);
+    this.logger.log(
+      `Calculating fresh monthly calendar for ${cacheKey} locally`,
+    );
 
     // Fetch yearly festivals from local service
     let festivalsRaw: FestivalsRaw = {};
@@ -64,7 +66,8 @@ export class GetMonthlyCalendarUseCase {
       if (cachedFestivals) {
         festivalsRaw = cachedFestivals.response as FestivalsRaw;
       } else {
-        const festivalResponse = this.panchangamService.getYearlyFestivals(year);
+        const festivalResponse =
+          this.panchangamService.getYearlyFestivals(year);
         festivalsRaw = { data: festivalResponse };
         const newFestivalCache = this.cacheRepository.create({
           type: festivalCacheType,
@@ -81,7 +84,15 @@ export class GetMonthlyCalendarUseCase {
 
     const lastDay = new Date(year, month, 0).getDate();
     const monthlyData: MonthlyCalendarDay[] = [];
-    const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const WEEKDAYS = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
 
     for (let day = 1; day <= lastDay; day++) {
       const paddedDay = day.toString().padStart(2, '0');

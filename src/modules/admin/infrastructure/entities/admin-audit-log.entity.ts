@@ -1,4 +1,4 @@
-﻿import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { Entity, Column, CreateDateColumn } from 'typeorm';
 
 @Entity({ schema: 'admin', name: 'admin_audit_logs' })
@@ -19,7 +19,7 @@ export class AdminAuditLog {
   resource_id!: string | null;
 
   @Column({ type: 'json', nullable: true })
-  details: Record<string, unknown> | null;
+  details!: Record<string, unknown> | null;
 
   @Column({
     name: 'ip_address',

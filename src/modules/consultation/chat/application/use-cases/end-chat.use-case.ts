@@ -1,20 +1,40 @@
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { Injectable, Inject, forwardRef, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
-import { TransactionPurpose, Transaction, TransactionType } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { Repository, DataSource, EntityManager } from 'typeorm';
+import {
+  ChatSession,
+  ChatSessionStatus,
+} from '../../infrastructure/entities/chat-session.entity';
+import {
+  TransactionPurpose,
+  Transaction,
+  TransactionType,
+} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
 import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
-import { CommissionRule, CommissionType, CommissionEventType, CommissionAppliesRole, CommissionRateType } from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
-import { CommissionSplit, SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
-import { CommissionTier } from '@/modules/finance/commissions/infrastructure/entities/commission-tier.entity';
+import {
+  CommissionRule,
+  CommissionType,
+  CommissionEventType,
+  CommissionAppliesRole,
+  CommissionRateType,
+} from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
+import {
+  CommissionSplit,
+  SplitReferenceType,
+} from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
-import { GeneralLedgerEntryType, GeneralLedgerEventType, GeneralLedgerPartyType } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+import {
+  GeneralLedgerEntryType,
+  GeneralLedgerEventType,
+  GeneralLedgerPartyType,
+} from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
-import { Notification, NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import {
+  Notification,
+  NotificationType,
+} from '@/modules/notification/infrastructure/entities/notification.entity';
 
 @Injectable()
 export class EndChatUseCase {
@@ -55,7 +75,9 @@ export class EndChatUseCase {
           actualDurationMins - (session.free_minutes || 0),
         );
         // Limit to two decimal places for accurate sub-minute billing
-        total_cost = Number((billableMins * session.price_per_minute).toFixed(2));
+        total_cost = Number(
+          (billableMins * session.price_per_minute).toFixed(2),
+        );
       }
 
       const expert = session.expert;
@@ -287,7 +309,10 @@ export class EndChatUseCase {
           }
         }
       } catch (error) {
-        console.error(`Failed to settle wallet for session ${sessionId}:`, error);
+        console.error(
+          `Failed to settle wallet for session ${sessionId}:`,
+          error,
+        );
       }
 
       await queryRunner.commitTransaction();
@@ -295,9 +320,11 @@ export class EndChatUseCase {
       // Return updated session with user's remaining balance for the summary popup
       let remainingBalance = 0;
       try {
-        const clientWallet = await this.dataSource.getRepository(Wallet).findOne({
-          where: { client_id: session.client_id },
-        });
+        const clientWallet = await this.dataSource
+          .getRepository(Wallet)
+          .findOne({
+            where: { client_id: session.client_id },
+          });
         remainingBalance = clientWallet ? Number(clientWallet.balance) : 0;
       } catch (err) {
         console.error(`Failed to get client wallet balance:`, err);
@@ -323,19 +350,21 @@ export class EndChatUseCase {
             ? (
                 (session.end_time.getTime() - session.start_time.getTime()) /
                 60000
-            ).toFixed(1)
+              ).toFixed(1)
             : '0';
 
           const title = 'Consultation Summary';
           const message = `From ${startTime} to ${endTime} you consulted ${expertName} via Chat, total duration: ${duration} mins, total cost: ₹${session.total_cost}`;
 
-          const notification = this.dataSource.getRepository(Notification).create({
-            client_id: session.client_id,
-            type: NotificationType.GENERAL,
-            title,
-            message,
-            metadata: { sessionId, type: 'CHAT_SUMMARY' },
-          });
+          const notification = this.dataSource
+            .getRepository(Notification)
+            .create({
+              client_id: session.client_id,
+              type: NotificationType.GENERAL,
+              title,
+              message,
+              metadata: { sessionId, type: 'CHAT_SUMMARY' },
+            });
           await this.dataSource.getRepository(Notification).save(notification);
         }
       } catch (error) {
@@ -366,14 +395,19 @@ export class EndChatUseCase {
     }
   }
 
-  private async getAdminCommissionFromSetting(manager: any, key: string): Promise<number> {
+  private async getAdminCommissionFromSetting(
+    manager: EntityManager,
+    key: string,
+  ): Promise<number> {
     try {
       let setting = await manager.findOne(SystemSetting, { where: { key } });
       if (!setting) {
         const altKey = key.includes('COMMISSION')
           ? key.replace('COMMISSION', 'COMMISION')
           : key.replace('COMMISION', 'COMMISSION');
-        setting = await manager.findOne(SystemSetting, { where: { key: altKey } });
+        setting = await manager.findOne(SystemSetting, {
+          where: { key: altKey },
+        });
       }
       if (setting && setting.value) {
         return parseFloat(setting.value);
@@ -385,7 +419,7 @@ export class EndChatUseCase {
   }
 
   private async resolveCommission(
-    manager: any,
+    manager: EntityManager,
     eventType: CommissionEventType,
     commissionType: CommissionType,
     profileId: string | null,
@@ -405,20 +439,20 @@ export class EndChatUseCase {
     });
 
     const activeRules = rules.filter(
-      (r: any) =>
+      (r) =>
         r.effective_from <= now &&
         (r.effective_until === null || r.effective_until >= now),
     );
 
-    const rule: any =
+    const rule =
       (profileId
-        ? activeRules.find((r: any) => r.applies_to_id === profileId)
+        ? activeRules.find((r) => r.applies_to_id === profileId)
         : undefined) ??
       activeRules.find(
-        (r: any) => r.applies_to_role === role && r.applies_to_id === null,
+        (r) => r.applies_to_role === role && r.applies_to_id === null,
       ) ??
       activeRules.find(
-        (r: any) =>
+        (r) =>
           r.applies_to_role === CommissionAppliesRole.ALL &&
           r.applies_to_id === null,
       );
@@ -434,7 +468,7 @@ export class EndChatUseCase {
     }
 
     const matchedTier = (rule.tiers ?? []).find(
-      (t: any) =>
+      (t) =>
         grossAmount >= Number(t.from_amount) &&
         (t.to_amount === null || grossAmount <= Number(t.to_amount)),
     );
@@ -458,7 +492,7 @@ export class EndChatUseCase {
   }
 
   private async fromLegacySetting(
-    manager: any,
+    manager: EntityManager,
     eventType: CommissionEventType,
     commissionType: CommissionType,
     grossAmount: number,
@@ -552,7 +586,7 @@ export class EndChatUseCase {
   }
 
   private async credit(
-    manager: any,
+    manager: EntityManager,
     profileId: string,
     walletKey: string,
     amount: number,
@@ -612,17 +646,24 @@ export class EndChatUseCase {
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[CREDIT_TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(
+        `[CREDIT_TX] Failed to generate transaction no: ${(err as Error).message}`,
+      );
     }
 
-    const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+    const purposeToLedgerEventType: Record<
+      TransactionPurpose,
+      GeneralLedgerEventType
+    > = {
       [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
       [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
       [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
       [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
-      [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+      [TransactionPurpose.PRODUCT_PURCHASE]:
+        GeneralLedgerEventType.PRODUCT_ORDER,
       [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-      [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+      [TransactionPurpose.AGENT_COMMISSION]:
+        GeneralLedgerEventType.AGENT_COMMISSION,
     };
 
     const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
@@ -636,7 +677,8 @@ export class EndChatUseCase {
       event_id: referenceId ?? null,
       event_type: purposeToLedgerEventType[purpose],
       entry_type: GeneralLedgerEntryType.CREDIT,
-      party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+      party_type:
+        walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
       party_id: profileId,
       amount,
     });
@@ -657,13 +699,16 @@ export class EndChatUseCase {
             .createQueryBuilder()
             .update(ProfileExpert)
             .set({
-              total_earning: () => `COALESCE(total_earning, 0) + ${Number(amount)}`,
+              total_earning: () =>
+                `COALESCE(total_earning, 0) + ${Number(amount)}`,
             })
             .where('id = :id', { id: expertProfile.id })
             .execute();
         }
       } catch (e) {
-        console.error(`[CREDIT_TX] Earning tracking failed: ${(e as Error).message}`);
+        console.error(
+          `[CREDIT_TX] Earning tracking failed: ${(e as Error).message}`,
+        );
       }
     }
 
@@ -671,7 +716,7 @@ export class EndChatUseCase {
   }
 
   private async debit(
-    manager: any,
+    manager: EntityManager,
     profileId: string,
     walletKey: string,
     amount: number,
@@ -738,17 +783,24 @@ export class EndChatUseCase {
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[DEBIT_TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(
+        `[DEBIT_TX] Failed to generate transaction no: ${(err as Error).message}`,
+      );
     }
 
-    const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+    const purposeToLedgerEventType: Record<
+      TransactionPurpose,
+      GeneralLedgerEventType
+    > = {
       [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
       [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
       [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
       [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
-      [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+      [TransactionPurpose.PRODUCT_PURCHASE]:
+        GeneralLedgerEventType.PRODUCT_ORDER,
       [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-      [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+      [TransactionPurpose.AGENT_COMMISSION]:
+        GeneralLedgerEventType.AGENT_COMMISSION,
     };
 
     const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
@@ -762,7 +814,8 @@ export class EndChatUseCase {
       event_id: referenceId ?? null,
       event_type: purposeToLedgerEventType[purpose],
       entry_type: GeneralLedgerEntryType.DEBIT,
-      party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+      party_type:
+        walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
       party_id: profileId,
       amount,
     });
@@ -771,7 +824,7 @@ export class EndChatUseCase {
   }
 
   private async deductFromReserved(
-    manager: any,
+    manager: EntityManager,
     profileId: string,
     walletKey: string,
     amount: number,
@@ -804,7 +857,7 @@ export class EndChatUseCase {
   }
 
   private async releaseReserved(
-    manager: any,
+    manager: EntityManager,
     profileId: string,
     walletKey: string,
     amount: number,
@@ -839,8 +892,22 @@ export class EndChatUseCase {
   }
 
   private async createCommissionSplit(
-    manager: any,
-    input: any,
+    manager: EntityManager,
+    input: {
+      referenceId: string;
+      referenceType: SplitReferenceType;
+      grossAmount: number;
+      platformFee: number;
+      gst: number;
+      sellerAgentCommission: number;
+      buyerAgentCommission: number;
+      providerNet: number;
+      clientProfileId: string | null;
+      providerProfileId: string | null;
+      sellerAgentProfileId: string | null;
+      buyerAgentProfileId: string | null;
+      commissionRuleId: string | null;
+    },
   ): Promise<CommissionSplit> {
     const split = new CommissionSplit();
     split.reference_id = input.referenceId;
@@ -860,7 +927,10 @@ export class EndChatUseCase {
 
     const saved = await manager.save(CommissionSplit, split);
 
-    const splitRefTypeToLedgerEventType: Record<SplitReferenceType, GeneralLedgerEventType> = {
+    const splitRefTypeToLedgerEventType: Record<
+      SplitReferenceType,
+      GeneralLedgerEventType
+    > = {
       [SplitReferenceType.CHAT]: GeneralLedgerEventType.CONSULTATION,
       [SplitReferenceType.CALL]: GeneralLedgerEventType.CONSULTATION,
       [SplitReferenceType.PUJA]: GeneralLedgerEventType.PUJA,

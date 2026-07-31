@@ -36,17 +36,11 @@ export class ReviewsFacade {
     return this.createReviewUseCase.execute(clientId, dto);
   }
 
-  async getExpertReviews(
-    expert_id: string,
-    dto: GetReviewsDto,
-  ) {
+  async getExpertReviews(expert_id: string, dto: GetReviewsDto) {
     return this.getExpertReviewsUseCase.execute(expert_id, dto);
   }
 
-  async getMerchantReviews(
-    merchantId: string,
-    dto: GetReviewsDto,
-  ) {
+  async getMerchantReviews(merchantId: string, dto: GetReviewsDto) {
     return this.getMerchantReviewsUseCase.execute(merchantId, dto);
   }
 
@@ -58,9 +52,7 @@ export class ReviewsFacade {
     return this.getMerchantReviewsStatsUseCase.execute(merchantId);
   }
 
-  async getAdminReviews(
-    dto: GetAdminReviewsDto,
-  ) {
+  async getAdminReviews(dto: GetAdminReviewsDto) {
     return this.getAdminReviewsUseCase.execute(dto);
   }
 

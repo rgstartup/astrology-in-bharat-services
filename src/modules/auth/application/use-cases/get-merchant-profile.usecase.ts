@@ -22,7 +22,9 @@ export class GetMerchantProfileUseCase {
   async execute(userId: string) {
     const [user, merchantProfile] = await Promise.all([
       this.userRepository.findOne({ where: { id: userId } }),
-      this.profileMerchantRepository.findOne({ where: { user: { id: userId } } }),
+      this.profileMerchantRepository.findOne({
+        where: { user: { id: userId } },
+      }),
     ]);
 
     if (!user) {

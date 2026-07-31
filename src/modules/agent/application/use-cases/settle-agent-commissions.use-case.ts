@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -15,6 +12,21 @@ import {
   CommissionType,
   CommissionAppliesRole,
 } from '@/modules/finance/commissions/application/commissions.facade';
+
+interface WalletRawRow {
+  id: string;
+  balance: number | string;
+}
+
+interface NewWalletRawRow {
+  id: string;
+}
+
+interface WithdrawalStatsRawRow {
+  pending_amount: number | string;
+  processing_amount: number | string;
+  total_withdrawn: number | string;
+}
 
 @Injectable()
 export class SettleAgentCommissionsUseCase {
@@ -102,19 +114,19 @@ export class SettleAgentCommissionsUseCase {
       }
 
       // Instead of WalletFacade, fetch balances natively via raw query
-      const walletRes = await queryRunner.manager.query(
+      const walletRes: WalletRawRow[] = await queryRunner.manager.query(
         `SELECT id, balance FROM finance.wallets WHERE agent_id = $1`,
-        [profile.id]
+        [profile.id],
       );
-      
+
       let walletId: string | null = null;
       let currentBalance = 0;
 
       if (walletRes.length === 0) {
         // Create wallet if doesn't exist
-        const newWallet = await queryRunner.manager.query(
+        const newWallet: NewWalletRawRow[] = await queryRunner.manager.query(
           `INSERT INTO finance.wallets (agent_id, balance) VALUES ($1, 0) RETURNING id`,
-          [profile.id]
+          [profile.id],
         );
         walletId = newWallet[0].id;
       } else {
@@ -122,8 +134,9 @@ export class SettleAgentCommissionsUseCase {
         currentBalance = Number(walletRes[0].balance);
       }
 
-      const withdrawalStatsQuery = await queryRunner.manager.query(
-        `
+      const withdrawalStatsQuery: WithdrawalStatsRawRow[] =
+        await queryRunner.manager.query(
+          `
         SELECT 
             SUM(amount) FILTER(WHERE status = 'pending')::float as pending_amount,
             SUM(amount) FILTER(WHERE status = 'processing')::float as processing_amount,
@@ -131,14 +144,18 @@ export class SettleAgentCommissionsUseCase {
         FROM finance.withdrawals 
         WHERE profile_id = $1 AND profile_type = 'agent_id'
         `,
-        [profile.id]
-      );
-      
-      const wStats = withdrawalStatsQuery[0] || {};
+          [profile.id],
+        );
+
+      const wStats: WithdrawalStatsRawRow = withdrawalStatsQuery[0] || {
+        pending_amount: 0,
+        processing_amount: 0,
+        total_withdrawn: 0,
+      };
       const totalAlreadyPaidOut =
         currentBalance +
         (Number(wStats.total_withdrawn) || 0) +
-        (Number(wStats.pending_amount) || 0) + 
+        (Number(wStats.pending_amount) || 0) +
         (Number(wStats.processing_amount) || 0);
 
       const amountToSettle = parseFloat(
@@ -160,13 +177,19 @@ export class SettleAgentCommissionsUseCase {
       // Insert credit transaction
       await queryRunner.manager.query(
         `INSERT INTO finance.transactions (wallet_id, amount, type, purpose, reference_id) VALUES ($1, $2, $3, $4, $5)`,
-        [walletId, amountToSettle, TransactionType.CREDIT, TransactionPurpose.AGENT_COMMISSION, 'manual_settlement']
+        [
+          walletId,
+          amountToSettle,
+          TransactionType.CREDIT,
+          TransactionPurpose.AGENT_COMMISSION,
+          'manual_settlement',
+        ],
       );
 
       // Update wallet balance
       await queryRunner.manager.query(
         `UPDATE finance.wallets SET balance = balance + $1, updated_at = NOW() WHERE id = $2`,
-        [amountToSettle, walletId]
+        [amountToSettle, walletId],
       );
 
       profile.total_earnings =

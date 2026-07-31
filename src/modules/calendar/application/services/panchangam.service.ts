@@ -18,9 +18,9 @@ export class PanchangamService {
     try {
       const dateObj = new Date(`${date}T00:00:00+05:30`);
       const obs = new Observer(lat, lon, tz);
-      
+
       const p = getPanchangam(dateObj, obs);
-      
+
       // Calculate moon phase manually using lunarphase-js
       const phaseEnum = Moon.lunarPhase(dateObj);
       const phaseStr = String(phaseEnum);
@@ -44,7 +44,7 @@ export class PanchangamService {
           current: phaseStr,
           illumination: illumination,
           nextFullMoon: nextFullMoonStr,
-        }
+        },
       };
     } catch (e) {
       this.logger.error('Error calculating panchangam', e);
@@ -52,7 +52,12 @@ export class PanchangamService {
     }
   }
 
-  getYearlyFestivals(year: number, lat: number = 28.6139, lon: number = 77.2090, tz: number = 5.5) {
+  getYearlyFestivals(
+    year: number,
+    lat: number = 28.6139,
+    lon: number = 77.209,
+    tz: number = 5.5,
+  ) {
     try {
       const festivals: FestivalEntry[] = [];
       const obs = new Observer(lat, lon, tz);
@@ -60,18 +65,22 @@ export class PanchangamService {
       // Loop through all days of the year (this is fast locally)
       const startDate = new Date(year, 0, 1);
       const endDate = new Date(year, 11, 31);
-      
-      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+
+      for (
+        let d = new Date(startDate);
+        d <= endDate;
+        d.setDate(d.getDate() + 1)
+      ) {
         const p = getPanchangam(d, obs);
         if (p.festivals && p.festivals.length > 0) {
           const dateStr = d.toISOString().split('T')[0];
-          p.festivals.forEach(fest => {
+          p.festivals.forEach((fest) => {
             festivals.push({
               name: fest.name,
               date: dateStr,
               description: fest.description || '',
               category: fest.category || 'general',
-              type: fest.type || 'single'
+              type: fest.type || 'single',
             });
           });
         }

@@ -12,15 +12,17 @@ export class JwtRefreshStrategy extends PassportStrategy(
   async validate(req: Request) {
     const cookies = req.cookies as Record<string, string> | undefined;
     const authHeader = req.headers?.authorization;
-    
+
     console.log('[JwtRefreshStrategy] Incoming request headers:', req.headers);
     console.log('[JwtRefreshStrategy] Incoming request cookies:', cookies);
 
     const refreshToken =
-      cookies?.refreshToken ||
-      authHeader?.replace('Bearer ', '');
+      cookies?.refreshToken || authHeader?.replace('Bearer ', '');
 
-    console.log('[JwtRefreshStrategy] Extracted refreshToken:', refreshToken ? 'Found' : 'Missing');
+    console.log(
+      '[JwtRefreshStrategy] Extracted refreshToken:',
+      refreshToken ? 'Found' : 'Missing',
+    );
 
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token missing');

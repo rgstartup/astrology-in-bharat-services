@@ -10,7 +10,6 @@ import { ConvertToPaidUseCase } from './use-cases/convert-to-paid.use-case';
 import {
   FindExpertSessionsUseCase,
   ExpertSessionFilter,
-  FindExpertSessionsOptions,
 } from './use-cases/find-expert-sessions.use-case';
 import { FindClientSessionsUseCase } from './use-cases/find-client-sessions.use-case';
 import { FindActiveClientSessionUseCase } from './use-cases/find-active-client-session.use-case';

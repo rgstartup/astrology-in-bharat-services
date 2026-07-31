@@ -35,8 +35,12 @@ export class CreateProfileUseCase extends BaseService<ProfileClient> {
     const profile = repo.create();
     Object.assign(profile, dto);
     profile.user = { id: userId } as unknown as User;
-    
-    const suffix = crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
+
+    const suffix = crypto
+      .randomBytes(4)
+      .toString('hex')
+      .toUpperCase()
+      .slice(0, 6);
     profile.uid = `AIB-USR-${suffix}`;
 
     const savedProfile = await repo.save(profile);

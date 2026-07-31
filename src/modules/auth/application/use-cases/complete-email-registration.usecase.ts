@@ -38,7 +38,7 @@ export class CompleteEmailRegistrationUseCase {
         userId: string;
         email: string;
       }>(dto.token);
-    } catch (e) {
+    } catch (_e) {
       throw new BadRequestException('Invalid or expired token');
     }
 
@@ -46,7 +46,9 @@ export class CompleteEmailRegistrationUseCase {
       throw new BadRequestException('Token does not match the provided email');
     }
 
-    const user = await this.userRepository.findOne({ where: { email: dto.email } });
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
@@ -75,7 +77,10 @@ export class CompleteEmailRegistrationUseCase {
       });
 
       // 3. Ensure profile is created
-      await this.profileCreationResolver.ensureProfile(updatedUser!, queryRunner);
+      await this.profileCreationResolver.ensureProfile(
+        updatedUser!,
+        queryRunner,
+      );
 
       // 4. Update appropriate profile with extra details
       if (updatedUser!.roles.includes(RoleEnum.EXPERT)) {
@@ -152,9 +157,11 @@ export class CompleteEmailRegistrationUseCase {
         }
 
         if (dto.address && merchantProfile) {
-          merchantProfile.address = dto.address.line1 || merchantProfile.address;
+          merchantProfile.address =
+            dto.address.line1 || merchantProfile.address;
           merchantProfile.city = dto.address.city || merchantProfile.city;
-          merchantProfile.pincode = dto.address.zipCode || merchantProfile.pincode;
+          merchantProfile.pincode =
+            dto.address.zipCode || merchantProfile.pincode;
           await queryRunner.manager.save(ProfileMerchant, merchantProfile);
         }
       } else {
@@ -184,7 +191,10 @@ export class CompleteEmailRegistrationUseCase {
             user_id: user.id,
             email: user.email,
           });
-          clientProfile = await queryRunner.manager.save(ProfileClient, clientProfile);
+          clientProfile = await queryRunner.manager.save(
+            ProfileClient,
+            clientProfile,
+          );
         }
 
         Object.assign(clientProfile, profileUpdates);

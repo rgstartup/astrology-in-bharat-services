@@ -56,7 +56,9 @@ export class RegisterUserUseCase {
         const setting = await queryRunner.manager.findOne(SystemSetting, {
           where: { key: 'COMMISION_FROM_ASTROLOGER' },
         });
-        const agentCommissionRate = setting?.value ? parseFloat(setting.value) : 0;
+        const agentCommissionRate = setting?.value
+          ? parseFloat(setting.value)
+          : 0;
 
         await queryRunner.manager.update(
           ProfileExpert,

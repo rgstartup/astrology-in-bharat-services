@@ -10,19 +10,39 @@ import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { Notification, NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import {
+  Notification,
+  NotificationType,
+} from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
-import { TransactionPurpose, Transaction, TransactionType } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import {
+  TransactionPurpose,
+  Transaction,
+  TransactionType,
+} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
 import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
-import { CommissionRule, CommissionType, CommissionEventType, CommissionAppliesRole, CommissionRateType } from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
-import { CommissionSplit, SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
+import {
+  CommissionRule,
+  CommissionType,
+  CommissionEventType,
+  CommissionAppliesRole,
+  CommissionRateType,
+} from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
+import {
+  CommissionSplit,
+  SplitReferenceType,
+} from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
-import { GeneralLedgerEntryType, GeneralLedgerEventType, GeneralLedgerPartyType } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+import {
+  GeneralLedgerEntryType,
+  GeneralLedgerEventType,
+  GeneralLedgerPartyType,
+} from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 import { IUser } from '@/common/types/access-token.payload';
 
@@ -73,8 +93,8 @@ export class OrderService {
 
     const allInvalid = targetItems.every(
       (item) =>
-        item.status === OrderStatus.DELIVERED ||
-        item.status === OrderStatus.CANCELLED,
+        (item.status as OrderStatus) === OrderStatus.DELIVERED ||
+        (item.status as OrderStatus) === OrderStatus.CANCELLED,
     );
     if (allInvalid) {
       throw new ForbiddenException(
@@ -185,11 +205,14 @@ export class OrderService {
 
           if (refundAmount > 0) {
             const isFullCancellation = orderInsideTx.items.every(
-              (item) => item.status === OrderStatus.CANCELLED,
+              (item) => (item.status as OrderStatus) === OrderStatus.CANCELLED,
             );
 
             if (isFullCancellation) {
-              const platformFee = await this.getAdminCommissionFromSetting(queryRunner.manager, 'PLATFORM_FEE');
+              const platformFee = await this.getAdminCommissionFromSetting(
+                queryRunner.manager,
+                'PLATFORM_FEE',
+              );
               const shippingCharge = Number(orderInsideTx.shipping_charge) || 0;
               refundAmount += platformFee + shippingCharge;
             }
@@ -263,8 +286,9 @@ export class OrderService {
                   where: { id: merchantId },
                 });
 
-                const { ProfileMerchant } =
-                  await import('../../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
+                const { ProfileMerchant } = await import(
+                  '../../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+                );
                 const merchantProfile = await qr.manager.findOne(
                   ProfileMerchant,
                   {
@@ -308,15 +332,14 @@ export class OrderService {
 
                 if (merchantUser?.referred_by_id && merchantProfile) {
                   agent_id = merchantUser.referred_by_id;
-                  const sellerAgentResolved =
-                    await this.resolveCommission(
-                      qr.manager,
-                      CommissionEventType.PRODUCT_ORDER,
-                      CommissionType.SELLER_AGENT,
-                      merchantProfile.id,
-                      CommissionAppliesRole.MERCHANT,
-                      itemTotal,
-                    );
+                  const sellerAgentResolved = await this.resolveCommission(
+                    qr.manager,
+                    CommissionEventType.PRODUCT_ORDER,
+                    CommissionType.SELLER_AGENT,
+                    merchantProfile.id,
+                    CommissionAppliesRole.MERCHANT,
+                    itemTotal,
+                  );
                   agent_commission = sellerAgentResolved.amount;
                 }
 
@@ -359,8 +382,9 @@ export class OrderService {
                 }
 
                 if (agent_commission > 0 && agent_id) {
-                  const { ProfileAgent } =
-                    await import('../../../../agent/infrastructure/entities/profile-agent.entity');
+                  const { ProfileAgent } = await import(
+                    '../../../../agent/infrastructure/entities/profile-agent.entity'
+                  );
                   const agentProfile = await qr.manager.findOne(ProfileAgent, {
                     where: { user_id: agent_id },
                     select: ['id'],
@@ -378,8 +402,9 @@ export class OrderService {
                 }
 
                 if (buyer_agent_commission > 0 && buyer_agent_id) {
-                  const { ProfileAgent } =
-                    await import('../../../../agent/infrastructure/entities/profile-agent.entity');
+                  const { ProfileAgent } = await import(
+                    '../../../../agent/infrastructure/entities/profile-agent.entity'
+                  );
                   const agentProfile = await qr.manager.findOne(ProfileAgent, {
                     where: { user_id: buyer_agent_id },
                     select: ['id'],
@@ -397,24 +422,21 @@ export class OrderService {
                 }
 
                 try {
-                  await this.createCommissionSplit(
-                    qr.manager,
-                    {
-                      referenceId: `order_item_${item.id}`,
-                      referenceType: SplitReferenceType.ORDER,
-                      grossAmount: itemTotal,
-                      platformFee,
-                      gst,
-                      sellerAgentCommission: agent_commission,
-                      buyerAgentCommission: buyer_agent_commission,
-                      providerNet: merchantNet,
-                      clientProfileId: orderWithItems.client_id,
-                      providerProfileId: merchantProfile?.id ?? null,
-                      sellerAgentProfileId: agent_id ?? null,
-                      buyerAgentProfileId: buyer_agent_id ?? null,
-                      commissionRuleId: platformFeeResolved.ruleId,
-                    },
-                  );
+                  await this.createCommissionSplit(qr.manager, {
+                    referenceId: `order_item_${item.id}`,
+                    referenceType: SplitReferenceType.ORDER,
+                    grossAmount: itemTotal,
+                    platformFee,
+                    gst,
+                    sellerAgentCommission: agent_commission,
+                    buyerAgentCommission: buyer_agent_commission,
+                    providerNet: merchantNet,
+                    clientProfileId: orderWithItems.client_id,
+                    providerProfileId: merchantProfile?.id ?? null,
+                    sellerAgentProfileId: agent_id ?? null,
+                    buyerAgentProfileId: buyer_agent_id ?? null,
+                    commissionRuleId: platformFeeResolved.ruleId,
+                  });
                 } catch (err) {
                   console.error(
                     `[OrderSettlement] Failed to write ledger entry for item ${item.id}:`,
@@ -522,14 +544,19 @@ export class OrderService {
     return new BooleanMessage();
   }
 
-  private async getAdminCommissionFromSetting(manager: any, key: string): Promise<number> {
+  private async getAdminCommissionFromSetting(
+    manager: any,
+    key: string,
+  ): Promise<number> {
     try {
       let setting = await manager.findOne(SystemSetting, { where: { key } });
       if (!setting) {
         const altKey = key.includes('COMMISSION')
           ? key.replace('COMMISSION', 'COMMISION')
           : key.replace('COMMISION', 'COMMISSION');
-        setting = await manager.findOne(SystemSetting, { where: { key: altKey } });
+        setting = await manager.findOne(SystemSetting, {
+          where: { key: altKey },
+        });
       }
       if (setting && setting.value) {
         return parseFloat(setting.value);
@@ -768,17 +795,24 @@ export class OrderService {
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[CREDIT_TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(
+        `[CREDIT_TX] Failed to generate transaction no: ${(err as Error).message}`,
+      );
     }
 
-    const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+    const purposeToLedgerEventType: Record<
+      TransactionPurpose,
+      GeneralLedgerEventType
+    > = {
       [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
       [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
       [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
       [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
-      [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+      [TransactionPurpose.PRODUCT_PURCHASE]:
+        GeneralLedgerEventType.PRODUCT_ORDER,
       [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-      [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+      [TransactionPurpose.AGENT_COMMISSION]:
+        GeneralLedgerEventType.AGENT_COMMISSION,
     };
 
     const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
@@ -792,7 +826,8 @@ export class OrderService {
       event_id: referenceId ?? null,
       event_type: purposeToLedgerEventType[purpose],
       entry_type: GeneralLedgerEntryType.CREDIT,
-      party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+      party_type:
+        walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
       party_id: profileId,
       amount,
     });
@@ -813,13 +848,16 @@ export class OrderService {
             .createQueryBuilder()
             .update(ProfileExpert)
             .set({
-              total_earning: () => `COALESCE(total_earning, 0) + ${Number(amount)}`,
+              total_earning: () =>
+                `COALESCE(total_earning, 0) + ${Number(amount)}`,
             })
             .where('id = :id', { id: expertProfile.id })
             .execute();
         }
       } catch (e) {
-        console.error(`[CREDIT_TX] Earning tracking failed: ${(e as Error).message}`);
+        console.error(
+          `[CREDIT_TX] Earning tracking failed: ${(e as Error).message}`,
+        );
       }
     }
 
@@ -848,7 +886,10 @@ export class OrderService {
 
     const saved = await manager.save(CommissionSplit, split);
 
-    const splitRefTypeToLedgerEventType: Record<SplitReferenceType, GeneralLedgerEventType> = {
+    const splitRefTypeToLedgerEventType: Record<
+      SplitReferenceType,
+      GeneralLedgerEventType
+    > = {
       [SplitReferenceType.CHAT]: GeneralLedgerEventType.CONSULTATION,
       [SplitReferenceType.CALL]: GeneralLedgerEventType.CONSULTATION,
       [SplitReferenceType.PUJA]: GeneralLedgerEventType.PUJA,

@@ -124,7 +124,7 @@ export class ChatSession {
   gst!: number;
 
   @Column({ type: 'jsonb', nullable: true, name: 'metadata' })
-  metadata: Record<string, unknown>;
+  metadata!: Record<string, unknown>;
 
   @Column({ type: 'int', default: 0, name: 'max_duration_seconds' })
   max_duration_seconds!: number;

@@ -26,9 +26,11 @@ export class GetYearlyFestivalsUseCase {
       return cached.response;
     }
 
-    this.logger.log(`Calculating fresh yearly festivals for ${cacheKey} locally`);
+    this.logger.log(
+      `Calculating fresh yearly festivals for ${cacheKey} locally`,
+    );
     const festivals = this.panchangamService.getYearlyFestivals(year);
-    
+
     // We format it like Prokerala response so frontend doesn't break if expecting `.data`
     const response = { data: festivals };
 
@@ -39,7 +41,7 @@ export class GetYearlyFestivalsUseCase {
           cacheKey,
           response,
         },
-        ['type', 'cacheKey']
+        ['type', 'cacheKey'],
       );
     } catch (e: unknown) {
       const err = e as { code?: string; message?: string };
