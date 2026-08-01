@@ -6,14 +6,6 @@ import {
   TransactionPurpose,
 } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
-interface EarningsRawResult {
-  chat_total: string | null;
-  call_total: string | null;
-  video_total: string | null;
-  product_total: string | null;
-  puja_total: string | null;
-}
-
 @Injectable()
 export class GetAdminEarningsBreakdownUseCase {
   constructor(
@@ -25,6 +17,21 @@ export class GetAdminEarningsBreakdownUseCase {
     const dateLimit = new Date();
     dateLimit.setDate(dateLimit.getDate() - days);
     dateLimit.setHours(0, 0, 0, 0);
+
+    const result = await this.transactionRepository
+      .createQueryBuilder('t')
+      .select([
+        `SUM(t.amount) FILTER (WHERE t.purpose = :chatPurpose) AS chat_total`,
+        `SUM(t.amount) FILTER (WHERE t.purpose = :callPurpose) AS call_total`, // Audio call
+        `SUM(t.amount) FILTER (WHERE t.purpose = :videoPurpose) AS video_total`,
+        `SUM(t.amount) FILTER (WHERE t.purpose = :productPurpose) AS product_total`,
+        `SUM(t.amount) FILTER (WHERE t.purpose = :pujaPurpose) AS puja_total`,
+      ])
+      .where('t.created_at >= :dateLimit', { dateLimit })
+      .setParameters({
+        chatPurpose: TransactionPurpose.CONSULTATION, // For now, assuming consultation covers chat. Need to distinguish chat/call/video based on reference_id if needed, but since it's a breakdown we will use LIKE queries on reference_id if purpose is generic
+      })
+      .getRawOne();
 
     // Let's refine the query since we need to distinguish chat, call, video, product, puja.
     // In our system:

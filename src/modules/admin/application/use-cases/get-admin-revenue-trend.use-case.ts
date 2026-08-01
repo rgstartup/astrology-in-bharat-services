@@ -6,12 +6,6 @@ import {
   TransactionType,
 } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 
-interface RevenueTrendRawRow {
-  name: string;
-  value: string;
-  full_date: string;
-}
-
 @Injectable()
 export class GetAdminRevenueTrendUseCase {
   constructor(
