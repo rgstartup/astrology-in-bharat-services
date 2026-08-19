@@ -16,14 +16,19 @@ export class GetWalletUseCase {
     });
 
     if (!wallet) {
-      wallet = this.walletRepository.create({
-        [walletKey]: profileId,
-        balance: 0,
-        reserved_balance: 0,
-      });
+      wallet = this.createWallet(profileId, walletKey);
       await this.walletRepository.save(wallet);
     }
 
+    return wallet;
+  }
+
+  private createWallet(profileId: string, walletKey: WalletKey): Wallet {
+    const wallet = this.walletRepository.create({
+      [walletKey]: profileId,
+      balance: 0,
+      reserved_balance: 0,
+    });
     return wallet;
   }
 }

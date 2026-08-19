@@ -28,10 +28,6 @@ export class WalletController {
     @CurrentProfile() clientProfileId: string,
     @Query() dto: GetTransactionsDto,
   ) {
-    return this.walletFacade.getTransactions(
-      clientProfileId,
-      'client_id',
-      dto,
-    );
+    return this.walletFacade.getTransactions(clientProfileId, 'client_id', dto);
   }
 }

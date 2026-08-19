@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { GetBalanceUseCase } from './get-balance.use-case';
-import { WalletKey } from '../../infrastructure/entities/wallet.entity';
+import { Wallet, WalletKey } from '../../infrastructure/entities/wallet.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ValidateBalanceUseCase {
-  constructor(private readonly getBalanceUseCase: GetBalanceUseCase) {}
+  constructor(private readonly walletRepo: Repository<Wallet>) {}
 
   async execute(
     profileId: string,
