@@ -1,6 +1,13 @@
 packages:
   - '.'
 
+allowBuilds:
+  '@nestjs/core': true
+  '@scarf/scarf': true
+  '@swc/core': true
+  argon2: true
+  msgpackr-extract: true
+
 ignoredBuiltDependencies:
   - '@scarf/scarf'
 
