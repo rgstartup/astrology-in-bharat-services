@@ -24,9 +24,8 @@ export class GetAdminTopExpertsUseCase {
     // Assuming transactions have a way to link to expert profile id (often via reference_id linking to a session with expert_id)
     // Here we use a query that mimics the previous logic by fetching from the respective session tables joined directly.
 
-    const topExpertsRaw: TopExpertRawRow[] =
-      await this.transactionRepository.manager.query(
-        `
+    const topExpertsRaw = await this.transactionRepository.manager.query(
+      `
       SELECT 
           u.name,
           pe.id as expert_profile_id,
@@ -46,8 +45,8 @@ export class GetAdminTopExpertsUseCase {
       ORDER BY revenue DESC
       LIMIT $1
       `,
-        [limit],
-      );
+      [limit],
+    );
 
     return topExpertsRaw.map((expert) => ({
       name: expert.name,
