@@ -43,6 +43,7 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
 import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 import { GeneralLedgerEntry } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 import { QueueModule } from '@/core/queue/queue.module';
+import WalletRepository from './infrastructure/repositories/wallet.repository';
 
 @Module({
   imports: [
@@ -91,8 +92,9 @@ import { QueueModule } from '@/core/queue/queue.module';
     ReconcileWalletUseCase,
     StuckWithdrawalJob,
     RazorpayPayoutService,
+    WalletRepository,
   ],
   controllers: [WalletController, PayoutWebhookController],
   exports: [WalletFacade],
 })
-export class WalletModule { }
+export class WalletModule {}

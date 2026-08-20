@@ -133,7 +133,7 @@ export class ProfileMerchant {
   @Column({ name: 'aadhar_back', type: 'text', nullable: true })
   aadharBack!: string | null;
 
-  @Column({ name: 'is_verified', type: 'text', default: false })
+  @Column({ name: 'is_verified', type: 'boolean', default: false })
   isVerified!: boolean | null;
 
   @Column({
