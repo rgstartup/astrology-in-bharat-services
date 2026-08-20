@@ -18,7 +18,7 @@ export class GetAdminRevenueTrendUseCase {
     dateLimit.setDate(dateLimit.getDate() - days);
     dateLimit.setHours(0, 0, 0, 0);
 
-    const rawData: RevenueTrendRawRow[] = await this.transactionRepository
+    const rawData = await this.transactionRepository
       .createQueryBuilder('t')
       .select([
         `TO_CHAR(t.created_at, 'Dy') as name`, // Using short day names (Mon, Tue, etc.) for trend graph

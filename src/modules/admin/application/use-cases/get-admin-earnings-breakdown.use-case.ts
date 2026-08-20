@@ -42,7 +42,7 @@ export class GetAdminEarningsBreakdownUseCase {
     // Puja = reference_id LIKE 'puja_%' OR purpose = PUJA_CONFIRMATION
 
     // Better query using reference_id and purpose:
-    const preciseResult = (await this.transactionRepository
+    const preciseResult = await this.transactionRepository
       .createQueryBuilder('t')
       .select([
         `SUM(t.amount) FILTER (WHERE t.reference_id LIKE 'chat_%') AS chat_total`,
@@ -56,7 +56,7 @@ export class GetAdminEarningsBreakdownUseCase {
         productPurpose: TransactionPurpose.PRODUCT_PURCHASE,
         pujaPurpose: TransactionPurpose.PUJA_CONFIRMATION,
       })
-      .getRawOne()) as EarningsRawResult | null;
+      .getRawOne();
 
     return [
       {
