@@ -25,7 +25,6 @@ import { DatabaseService } from './database.service';
           database: dbConfig.database,
           autoLoadEntities: true, // automatically load entities registered in modules
           synchronize: process.env.NODE_ENV !== 'production', // set to false in production
-          logging: true, // optional
           poolSize: dbConfig.max_connections,
         };
       },

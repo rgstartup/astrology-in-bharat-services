@@ -29,7 +29,7 @@ import { UserRegisteredHandler } from './application/event-handlers/user-registe
 import { LoginWithGoogleUseCase } from './application/use-cases/login-with-google.usecase';
 import { OAuthService } from './infrastructure/services/oauth.service';
 import { GoogleStrategy } from './api/strategies/google.strategy';
-import { GoogleAuthGuard } from './api/guards/google-auth.guard';
+import { GoogleAuthGuard } from './api/guards/google-auth-v2.guard';
 import { GoogleAuthController } from './api/controllers/google-auth.controller';
 import { LogoutUserUseCase } from './application/use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.usecase';
@@ -178,4 +178,4 @@ const handlers = [
   controllers: [AuthController, MerchantAuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

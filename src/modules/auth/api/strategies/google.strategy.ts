@@ -6,7 +6,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
 import { LoginWithGoogleUseCase } from '../../application/use-cases/login-with-google.usecase';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { GoogleLoginQueryDto } from '../dto/login.dto';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -43,30 +43,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ) {
     const email = profile.emails?.[0]?.value;
     if (req._strategy_validated) {
-      this.logger.log(
-        `GoogleStrategy.validate already called for ${email}, skipping.`,
-      );
       return done(null, req.user);
     }
     req._strategy_validated = true;
 
-    this.logger.log(`GoogleStrategy.validate called for ${email}`);
     const providerId = profile.id;
 
     if (!email) {
       return done(new Error('Google account did not provide an email'));
     }
 
-    const rawState = req?.query?.state as string | undefined;
-    let state: { redirect_uri?: string; redirectUrl?: string; role?: string } =
-      {};
-    if (rawState) {
-      try {
-        state = JSON.parse(decodeURIComponent(rawState)) as typeof state;
-      } catch {
-        state = {};
-      }
-    }
+    const rawState = req?.query?.state;
+    const state = this.parseOAuthState(rawState);
 
     const { user, tokens } = await this.loginWithGoogle.execute({
       providerId,
@@ -75,20 +63,27 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       profile,
       ip: req?.ip,
       userAgent: req.get('user-agent'),
-      role: state?.role as RoleEnum | undefined,
+      role: state?.role,
     });
 
     const authResult = {
       user,
       ...tokens,
-      redirectUri: state?.redirect_uri || state?.redirectUrl,
+      redirect_uri: state?.redirect_uri,
     };
 
-    this.logger.log(
-      `Google auth validated for ${email}. Tokens present: ${!!authResult.accessToken}`,
-    );
-
-    // 3️⃣ Return user, tokens, and redirectUri to AuthController via Passport
     return done(null, authResult);
+  }
+
+  private parseOAuthState(rawState: unknown): GoogleLoginQueryDto | undefined {
+    if (typeof rawState !== 'string') {
+      return undefined;
+    }
+
+    try {
+      return JSON.parse(rawState) as GoogleLoginQueryDto;
+    } catch {
+      return undefined;
+    }
   }
 }

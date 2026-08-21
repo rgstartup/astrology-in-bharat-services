@@ -41,18 +41,11 @@ export class LoginWithGoogleUseCase {
       const existingUser = await qr.manager.findOne(User, {
         where: { email: input.email },
       });
-      this.logger.log(
-        `Google Login attempt for ${input.email}. Requested role: ${roleToAdd}. Existing user: ${!!existingUser}`,
-      );
 
       if (existingUser && roleToAdd === RoleEnum.EXPERT) {
         const roles = existingUser.roles || [];
-        this.logger.log(`Existing user roles: ${roles.join(', ')}`);
 
         if (!hasRoles(roles, 'EXPERT')) {
-          this.logger.warn(
-            `User ${input.email} is not an expert. Blocking login.`,
-          );
           throw new ForbiddenException(
             'Forbidden access. You do not have the required permissions.',
           );
@@ -65,7 +58,7 @@ export class LoginWithGoogleUseCase {
           provider_id: input.providerId,
           email: input.email,
           name: input.name,
-          profile: input.profile as unknown as Record<string, unknown>,
+          profile: input.profile,
           roles: [roleToAdd],
         },
         qr,
