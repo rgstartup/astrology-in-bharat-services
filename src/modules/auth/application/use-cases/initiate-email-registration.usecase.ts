@@ -16,7 +16,7 @@ export class InitiateEmailRegistrationUseCase {
     private readonly userRepository: Repository<User>,
     private readonly eventEmitter: EventEmitter2,
     private readonly tokenCrypto: TokenCryptoService,
-  ) {}
+  ) { }
 
   async execute(email: string, role: RoleEnum) {
     let user = await this.userRepository.findOne({ where: { email } });
@@ -30,7 +30,7 @@ export class InitiateEmailRegistrationUseCase {
       user = await this.db.transaction(async (queryRunner) => {
         const newUser = queryRunner.manager.create(User, {
           email,
-          roles: [role],
+          role,
           password: undefined,
           name: undefined,
           email_verified_at: undefined,
@@ -50,7 +50,7 @@ export class InitiateEmailRegistrationUseCase {
         user.id,
         user.email,
         'User',
-        user.roles,
+        user.role,
         verification_token,
       ),
     );

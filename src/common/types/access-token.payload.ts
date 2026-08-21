@@ -4,7 +4,7 @@ import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermi
 export interface IAccessTokenPayload {
   sub: string; // user ID
   email: string;
-  roles: RoleEnum[];
+  role: RoleEnum;
   profile?: string;
   // Sub-admin ke allowed pages. Super admin ke liye null (full access).
   admin_permissions?: AdminPermission[] | null;

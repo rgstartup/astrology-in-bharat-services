@@ -23,7 +23,7 @@ export class MerchantRegisterUserUseCase {
     @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
-  ) {}
+  ) { }
 
   async execute(dto: MerchantRegisterDto, _ip?: string, _userAgent?: string) {
     const existingUser = await this.userRepository.findOne({
@@ -92,7 +92,7 @@ export class MerchantRegisterUserUseCase {
         user.id,
         user.email,
         user.name || 'user',
-        user.roles,
+        user.role,
         verification_token,
       ),
     );

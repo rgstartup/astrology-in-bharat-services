@@ -45,7 +45,7 @@ export class CreateSubAdminUseCase {
       name: input.name,
       email: input.email,
       password: hashedPassword,
-      roles: [RoleEnum.SUB_ADMIN],
+      role: RoleEnum.SUB_ADMIN,
       admin_permissions: input.permissions,
       email_verified_at: new Date(), // Admin ne banaya hai — verify consider karo
     });

@@ -7,7 +7,7 @@ import { UserRepository } from '../../infrastructure/repositories/user.repositor
 
 @Injectable()
 export class CreateUserUseCase {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) { }
 
   async execute(dto: CreateUserDto, queryRunner?: QueryRunner): Promise<User> {
     const user = new User();
@@ -17,13 +17,8 @@ export class CreateUserUseCase {
     user.name = dto.name ?? null;
     user.avatar = dto.avatar ?? null;
     user.referred_by_id = dto.referred_by_id ?? null;
-
-    if (dto.roles?.length) {
-      user.roles = dto.roles;
-    }
-
-    // Generate branded unique ID
-    // uid is removed
+    user.platform = dto.platform ?? null;
+    user.role = dto.role;
 
     return this.userRepository.create(user, queryRunner);
   }

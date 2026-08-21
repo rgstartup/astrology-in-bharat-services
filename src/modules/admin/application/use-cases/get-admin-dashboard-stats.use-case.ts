@@ -109,10 +109,10 @@ export class GetAdminDashboardStatsUseCase {
           'user.id',
           'user.name',
           'user.email',
-          'user.roles',
+          'user.role',
           'user.created_at',
         ])
-        .where('user.roles && ARRAY[:...roles]::varchar[]', {
+        .where('user.role && ARRAY[:...roles]::varchar[]', {
           roles: [RoleEnum.CLIENT, RoleEnum.EXPERT, RoleEnum.AGENT],
         })
         .orderBy('user.created_at', 'DESC')
@@ -126,8 +126,8 @@ export class GetAdminDashboardStatsUseCase {
     // Map latest users to activities (single pass, no extra queries)
     const activities = latestUsers
       .map((u) => {
-        const isExpert = u.roles?.includes(RoleEnum.EXPERT);
-        const isAgent = u.roles?.includes(RoleEnum.AGENT);
+        const isExpert = u.role === RoleEnum.EXPERT;
+        const isAgent = u.role === RoleEnum.AGENT;
         const role = isAgent ? 'agent' : isExpert ? 'expert' : 'client';
         const colorMap = {
           agent: 'bg-green-500',

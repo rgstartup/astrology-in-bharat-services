@@ -7,6 +7,7 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { OAuthAccount } from '@/modules/auth/infrastructure/entities/oauth-accounts.entity';
 import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
@@ -14,13 +15,15 @@ import { RoleEnum } from '../enums/Role.enum';
 import { AdminPermission } from '../enums/AdminPermission.enum';
 import { Exclude } from 'class-transformer';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { PlatformEnum } from '../enums/Platform.enum';
 
 @Entity({ schema: 'public', name: 'users' })
+@Unique('USER_PLATFORM_UNIQ', ['email', 'platform'])
 export class User {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({ type: 'character varying', length: 255, unique: true })
+  @Column({ type: 'character varying', length: 255 })
   email!: string;
 
   @Column({ type: 'text', select: false, nullable: true })
@@ -52,8 +55,15 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   blocked_at!: Date | null;
 
-  @Column({ type: 'enum', enum: RoleEnum, array: true, default: '{client}' })
-  roles!: RoleEnum[];
+  @Column({ type: 'enum', enum: RoleEnum, default: RoleEnum.CLIENT })
+  role!: RoleEnum;
+
+  @Column({
+    type: 'enum',
+    enum: PlatformEnum,
+    default: PlatformEnum.CLIENT,
+  })
+  platform!: PlatformEnum;
 
   // Sub-admin ke liye: kaunse pages access kar sakta hai
   // Super admin ke liye: null (full access)

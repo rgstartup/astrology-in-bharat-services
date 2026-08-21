@@ -8,26 +8,28 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class ExpertAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy
-{
+  implements AuthProfileCreationStrategy {
   readonly role = RoleEnum.EXPERT;
 
-  constructor(private readonly expertProfileFacade: ExpertProfileFacade) {}
+  constructor(private readonly expertProfileFacade: ExpertProfileFacade) { }
 
   async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
     const profile = await this.expertProfileFacade.getExpertByUserId(
       user.id,
       queryRunner,
     );
-    if (!profile) {
-      await this.expertProfileFacade.createProfile(
-        user,
-        {
-          full_name: user.name || '',
-          profile_picture: user.avatar,
-        } as unknown as CreateProfileExpertDto,
-        queryRunner,
-      );
+
+    if (profile) {
+      return;
     }
+
+    await this.expertProfileFacade.createProfile(
+      user,
+      {
+        full_name: user.name || '',
+        profile_picture: user.avatar,
+      } as unknown as CreateProfileExpertDto,
+      queryRunner,
+    );
   }
 }

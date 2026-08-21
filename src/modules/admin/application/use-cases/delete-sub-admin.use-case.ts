@@ -32,16 +32,13 @@ export class DeleteSubAdminUseCase {
     }
 
     // Super admin aur Admin ko delete karne se rokna — bahut important!
-    if (
-      target.roles.includes(RoleEnum.SUPER_ADMIN) ||
-      target.roles.includes(RoleEnum.ADMIN)
-    ) {
+    if ([RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN].includes(target.role)) {
       throw new ForbiddenException(
         'Super Admin ya Admin ko delete nahi kar sakte',
       );
     }
 
-    if (!target.roles.includes(RoleEnum.SUB_ADMIN)) {
+    if (target.role !== RoleEnum.SUB_ADMIN) {
       throw new ForbiddenException('Ye user ek sub-admin nahi hai');
     }
 

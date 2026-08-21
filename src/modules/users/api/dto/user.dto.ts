@@ -3,11 +3,13 @@
 import {
   IsDateString,
   IsEmail,
+  IsEnum,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
 import { RoleEnum } from '../../infrastructure/enums/Role.enum';
+import { PlatformEnum } from '../../infrastructure/enums/Platform.enum';
 
 class UserDto {
   @IsEmail()
@@ -27,8 +29,12 @@ class UserDto {
   email_verified_at?: Date;
 
   @IsOptional()
-  @IsString({ each: true })
-  roles?: RoleEnum[];
+  @IsEnum(RoleEnum)
+  role: RoleEnum = RoleEnum.CLIENT;
+
+  @IsOptional()
+  @IsEnum(PlatformEnum)
+  platform: PlatformEnum;
 
   @IsString()
   @IsOptional()
@@ -39,4 +45,4 @@ class UserDto {
   referred_by_id?: string | null;
 }
 
-export class CreateUserDto extends UserDto {}
+export class CreateUserDto extends UserDto { }

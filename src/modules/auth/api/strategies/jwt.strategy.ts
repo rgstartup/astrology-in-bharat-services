@@ -41,7 +41,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     // Perform a live DB check to ensure the user hasn't been deleted or blocked
     const user = await this.userRepository.findOne({
       where: { id: payload.sub },
-      select: ['id', 'roles', 'admin_permissions', 'email'],
+      select: ['id', 'role', 'admin_permissions', 'email'],
     });
 
     if (!user) {
@@ -53,7 +53,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     return {
       id: payload.sub,
       ...payload,
-      roles: user.roles,
+      role: user.role,
       admin_permissions: user.admin_permissions,
     };
   }

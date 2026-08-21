@@ -56,8 +56,9 @@ export class OAuthService extends BaseService<OAuthAccount> {
         avatar: (
           dto.profile as { photos?: Array<{ value?: string }> } | undefined
         )?.photos?.[0]?.value,
-        roles: dto.roles,
+        role: dto.role,
       });
+
       user = await userRepo.save(newUser);
     }
 

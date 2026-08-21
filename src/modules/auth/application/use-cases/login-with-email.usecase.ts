@@ -13,12 +13,12 @@ export class LoginWithEmailUseCase {
     private readonly userRepository: Repository<User>,
     private readonly authTokenService: AuthTokenService,
     private readonly authPolicy: AuthPolicy,
-  ) {}
+  ) { }
 
   async execute(dto: LoginDto, ip?: string, userAgent?: string) {
     const user = await this.userRepository.findOne({
       where: { email: dto.email },
-      select: ['id', 'email', 'password', 'name', 'roles', 'email_verified_at'],
+      select: ['id', 'email', 'password', 'name', 'role', 'email_verified_at'],
     });
 
     const isValidPassword = await this.authPolicy.verifyPassword(

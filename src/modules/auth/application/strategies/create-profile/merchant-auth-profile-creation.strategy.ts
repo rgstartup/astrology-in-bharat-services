@@ -10,8 +10,7 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class MerchantAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy
-{
+  implements AuthProfileCreationStrategy {
   private readonly logger = new Logger(
     MerchantAuthProfileCreationStrategy.name,
   );
@@ -29,17 +28,15 @@ export class MerchantAuthProfileCreationStrategy
       where: { user_id: user.id },
     });
 
-    if (!existingProfile) {
-      this.logger.log(`Creating Merchant profile for user: ${user.id}`);
+    if (!existingProfile) return;
 
-      const newProfile = manager.create(ProfileMerchant, {
-        user_id: user.id,
-        shopName: user.name, // Will be populated with Google Name if Google Auth is used
-        avatar: user.avatar,
-        image: user.avatar,
-        status: MerchantStatus.PENDING_VERIFICATION,
-      });
-      await manager.save(ProfileMerchant, newProfile);
-    }
+    const newProfile = manager.create(ProfileMerchant, {
+      user_id: user.id,
+      shopName: user.name, // Will be populated with Google Name if Google Auth is used
+      avatar: user.avatar,
+      image: user.avatar,
+      status: MerchantStatus.PENDING_VERIFICATION,
+    });
+    await manager.save(ProfileMerchant, newProfile);
   }
 }

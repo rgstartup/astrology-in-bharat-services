@@ -26,7 +26,7 @@ export class RegisterUserUseCase {
     private readonly authTokenService: AuthTokenService,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
-  ) {}
+  ) { }
 
   async execute(dto: RegisterDto, ip?: string, userAgent?: string) {
     const response = await this.db.transaction(async (queryRunner) => {
@@ -97,7 +97,7 @@ export class RegisterUserUseCase {
         user.id,
         user.email,
         user.name || 'user',
-        user.roles,
+        user.role,
         verification_token,
       ),
     );

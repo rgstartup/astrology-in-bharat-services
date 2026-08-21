@@ -16,17 +16,17 @@ export class AuthProfileCreationResolver {
   constructor(
     @Inject(AUTH_PROFILE_CREATION_STRATEGIES)
     private readonly strategies: AuthProfileCreationStrategy[],
-  ) {}
+  ) { }
 
   async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
-    const userRoles = user.roles || [];
-    const strategy = this.resolve(userRoles);
+    const userRole = user.role;
+    const strategy = this.resolve(userRole);
     await strategy.ensureProfile(user, queryRunner);
   }
 
-  private resolve(userRoles: RoleEnum[]): AuthProfileCreationStrategy {
+  private resolve(userRole: RoleEnum): AuthProfileCreationStrategy {
     const matched = this.strategies.find((strategy) =>
-      userRoles.includes(strategy.role),
+      userRole === strategy.role,
     );
 
     if (matched) {

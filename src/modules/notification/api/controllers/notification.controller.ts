@@ -19,10 +19,10 @@ import { IUser } from '@/common/types/access-token.payload';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { GetNotificationsDto } from '../dto/get-notifications.dto';
 
-function deriveProfileType(roles: RoleEnum[]): ProfileType {
-  if (roles.includes(RoleEnum.EXPERT)) return RoleEnum.EXPERT;
-  if (roles.includes(RoleEnum.MERCHANT)) return RoleEnum.MERCHANT;
-  if (roles.includes(RoleEnum.AGENT)) return RoleEnum.AGENT;
+function deriveProfileType(role: RoleEnum): ProfileType {
+  if (role === RoleEnum.EXPERT) return RoleEnum.EXPERT;
+  if (role === RoleEnum.MERCHANT) return RoleEnum.MERCHANT;
+  if (role === RoleEnum.AGENT) return RoleEnum.AGENT;
   return RoleEnum.CLIENT;
 }
 
@@ -32,7 +32,7 @@ function deriveProfileType(roles: RoleEnum[]): ProfileType {
 })
 @UseGuards(JwtAuthGuard)
 export class NotificationController {
-  constructor(private readonly notificationFacade: NotificationFacade) {}
+  constructor(private readonly notificationFacade: NotificationFacade) { }
 
   @Get()
   async getNotifications(
@@ -40,7 +40,7 @@ export class NotificationController {
     @CurrentProfile() profileId: string,
     @Query() dto: GetNotificationsDto,
   ) {
-    const profileType = deriveProfileType(user.roles);
+    const profileType = deriveProfileType(user.role);
     const { data, totalCount } =
       await this.notificationFacade.getUserNotifications(
         profileId,
@@ -65,7 +65,7 @@ export class NotificationController {
     if (!user.profile) {
       return { count: 0 };
     }
-    const profileType = deriveProfileType(user.roles);
+    const profileType = deriveProfileType(user.role);
     const count = await this.notificationFacade.getUnreadCount(
       user.profile,
       profileType,
@@ -79,7 +79,7 @@ export class NotificationController {
     @CurrentProfile() profileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const profileType = deriveProfileType(user.roles);
+    const profileType = deriveProfileType(user.role);
     const _result = await this.notificationFacade.markAsRead(id, profileId, profileType);
     return { success: true };
   }
@@ -89,7 +89,7 @@ export class NotificationController {
     @CurrentUser() user: IUser,
     @CurrentProfile() profileId: string,
   ) {
-    const profileType = deriveProfileType(user.roles);
+    const profileType = deriveProfileType(user.role);
     const _result = await this.notificationFacade.clearAll(
       profileId,
       profileType,

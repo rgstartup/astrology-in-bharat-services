@@ -55,7 +55,7 @@ export class OrderService {
     private emailService: NodeMailerService,
     private ledgerQueueService: LedgerQueueService,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   async updateOrderStatus(
     id: string,
@@ -132,7 +132,7 @@ export class OrderService {
       }
 
       const updatedBy: string = user?.profile || merchantId || 'system';
-      const role = user?.roles?.[0] || (merchantId ? 'merchant' : 'system');
+      const role = user?.role || (merchantId ? 'merchant' : 'system');
 
       const newHistoryEntry = {
         status: status,
@@ -186,8 +186,8 @@ export class OrderService {
         if (orderInsideTx) {
           const txTargetItems = merchantId
             ? orderInsideTx.items.filter(
-                (item) => item.product?.merchant_id === merchantId,
-              )
+              (item) => item.product?.merchant_id === merchantId,
+            )
             : orderInsideTx.items;
 
           for (const item of txTargetItems) {
@@ -273,8 +273,8 @@ export class OrderService {
           if (orderWithItems) {
             const txTargetItems = merchantId
               ? orderWithItems.items.filter(
-                  (item) => item.product?.merchant_id === merchantId,
-                )
+                (item) => item.product?.merchant_id === merchantId,
+              )
               : orderWithItems.items;
 
             for (const item of txTargetItems) {

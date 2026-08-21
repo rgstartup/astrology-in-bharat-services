@@ -45,7 +45,7 @@ export class CreateAgentUseCase {
         email: dto.email,
         password: hashedPassword,
         name: dto.name,
-        roles: [RoleEnum.AGENT],
+        roles: RoleEnum.AGENT,
         email_verified_at: new Date(), // Admin created users are verified
       });
 

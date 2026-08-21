@@ -20,7 +20,7 @@ export class ConsultationController {
     private readonly getUnifiedHistoryUseCase: GetUnifiedHistoryUseCase,
     private readonly callFacade: CallFacade,
     private readonly chatFacade: ChatFacade,
-  ) {}
+  ) { }
 
   @Get('history')
   @Header('Cache-Control', 'no-store')
@@ -32,7 +32,7 @@ export class ConsultationController {
     const limitNum = dto.limit ? dto.limit : 20;
     const offsetNum = dto.offset ? dto.offset : 0;
 
-    const isExpert = user.roles.includes(RoleEnum.EXPERT);
+    const isExpert = user.role === RoleEnum.EXPERT;
 
     const { data, totalCount } = await this.getUnifiedHistoryUseCase.execute(
       profileId,

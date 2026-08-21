@@ -31,7 +31,7 @@ export class GetExpertDetailUseCase {
     private readonly clientProfileFacade: ClientProfileFacade,
     @InjectRepository(ProfileExpert)
     private readonly profileExpertRepo: Repository<ProfileExpert>,
-  ) {}
+  ) { }
 
   async execute(id: string) {
     const user = await this.usersFacade.findById(id);
@@ -48,7 +48,7 @@ export class GetExpertDetailUseCase {
     const clientProfile = await this.clientProfileFacade.getProfile({
       id: user.id,
       email: user.email || '',
-      roles: [],
+      role: user.role,
     });
     const expertProfileId =
       profile?.id || '00000000-0000-0000-0000-000000000000';

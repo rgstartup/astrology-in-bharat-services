@@ -10,7 +10,7 @@ export class VerifyEmailHandler {
   constructor(
     private readonly nodeMailerService: NodeMailerService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   @OnEvent('auth.email.verify', { async: true })
   async handle(event: VerifyEmailEvent) {
@@ -23,10 +23,9 @@ export class VerifyEmailHandler {
   }
 
   private buildTemplate(event: VerifyEmailEvent) {
-    const roles = event.roles || [];
-    const isExpert = roles.some((role) => role.toLowerCase() === 'expert');
+    const isExpert = event.role === 'expert';
 
-    this.logger.debug(`User roles: ${roles.join(', ')}. isExpert: ${isExpert}`);
+    this.logger.debug(`User role: ${event.role}. isExpert: ${isExpert}`);
 
     const configKey = isExpert
       ? 'email.expertFrontendUrl'

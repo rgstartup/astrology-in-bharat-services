@@ -40,7 +40,7 @@ export class TokenService extends BaseService<Session> {
     queryRunner?: QueryRunner,
   ) {
     const accessToken = await this.jwtService.signAsync(
-      { userId: user.id, roles: user.roles },
+      { userId: user.id, role: user.role },
       { expiresIn: this.jwtConfig?.jwtExpiresIn as StringValue },
     );
 

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner, FindOptionsWhere } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
+import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IUser } from '@/common/types/access-token.payload';
 
 export interface ClientProfileReturn {
@@ -13,7 +13,7 @@ export interface ClientProfileReturn {
     id: string;
     name: string | null;
     email: string;
-    roles: string[];
+    role: RoleEnum;
     avatar: string | null;
   } | null;
   [key: string]: unknown;
@@ -26,7 +26,7 @@ export class GetProfileUseCase {
     private readonly repo: Repository<ProfileClient>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async execute(
     user: IUser,
@@ -59,11 +59,9 @@ export class GetProfileUseCase {
         return null; // Should not happen, but satisfies TS
       }
 
-      const roles = existingUser.roles || [];
-      const hasClientRole = hasRoles(roles, 'CLIENT');
-      const hasExpertRole = hasRoles(roles, 'EXPERT');
+      const hasExpertRole = hasRoles(existingUser.role, 'EXPERT');
 
-      if (hasExpertRole && !hasClientRole) {
+      if (hasExpertRole) {
         throw new ForbiddenException(
           'Aap ek Expert hain. Kripya Expert Dashboard se login karein.',
         );
@@ -77,7 +75,7 @@ export class GetProfileUseCase {
           id: existingUser.id,
           name: existingUser.name,
           email: existingUser.email,
-          roles: existingUser.roles,
+          role: existingUser.role,
           avatar: existingUser.avatar,
         },
       };

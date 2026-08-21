@@ -21,7 +21,7 @@ export class VerifyEmailUseCase {
     private readonly usedTokenService: UsedTokensService,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly authTokenService: AuthTokenService,
-  ) {}
+  ) { }
 
   async execute(token: string) {
     const payload = await this.verifyTokenOrFail(token);
@@ -63,7 +63,7 @@ export class VerifyEmailUseCase {
         id: user.id,
         email: user.email,
         name: user.name,
-        roles: user.roles || [],
+        role: user.role,
       },
       ...tokens,
     };

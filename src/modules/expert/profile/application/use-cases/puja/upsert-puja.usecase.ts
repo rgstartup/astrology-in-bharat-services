@@ -31,7 +31,7 @@ export class UpsertPujaUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly expertGateway: ExpertGateway,
-  ) {}
+  ) { }
 
   private async validateImageDimensions(base64: string): Promise<void> {
     // Remove data URI prefix if present (e.g., "data:image/jpeg;base64,")
@@ -137,9 +137,9 @@ export class UpsertPujaUseCase {
         user: {
           id: user.id,
           email: user.email,
-          roles: user.roles,
+          role: user.role,
         }
-      } as any;
+      };
     }
 
     const plain: Record<string, unknown> = { ...profile };
@@ -165,9 +165,9 @@ export class UpsertPujaUseCase {
 
       plain.languages = profile.languages
         ? profile.languages
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [];
 
       plain.userId = profile.user?.id;

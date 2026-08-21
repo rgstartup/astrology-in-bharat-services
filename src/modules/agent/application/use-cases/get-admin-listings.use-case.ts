@@ -89,12 +89,12 @@ export class GetAdminListingsUseCase {
           let expertProfile: Record<string, unknown> | null = null;
           let merchantProfile: Record<string, unknown> | null = null;
 
-          if ((uObj.roles as string[])?.includes('expert')) {
+          if ((uObj.role as string) === 'expert') {
             expertProfile = (await this.expertFacade.getExpertByUserId(
               uObj.id,
             )) as Record<string, unknown> | null;
           }
-          if ((uObj.roles as string[])?.includes('merchant')) {
+          if ((uObj.role as string) === 'merchant') {
             merchantProfile = (await this.merchantFacade.getProfileByUserId(
               uObj.id,
             )) as Record<string, unknown> | null;
@@ -103,7 +103,7 @@ export class GetAdminListingsUseCase {
           return {
             id: uObj.id,
             name: uObj.name || undefined,
-            roles: uObj.roles,
+            role: uObj.role,
             referred_by: uObj.referred_by as unknown as {
               uid?: string;
               name?: string;

@@ -17,7 +17,7 @@ export class GetMerchantProfileUseCase {
     @InjectRepository(ProfileMerchant)
     private readonly profileMerchantRepository: Repository<ProfileMerchant>,
     private readonly db: DatabaseService,
-  ) {}
+  ) { }
 
   async execute(userId: string) {
     const [user, merchantProfile] = await Promise.all([
@@ -31,7 +31,7 @@ export class GetMerchantProfileUseCase {
       throw new NotFoundException('User not found');
     }
 
-    const isMerchant = hasRoles(user.roles, 'MERCHANT');
+    const isMerchant = hasRoles(user.role, 'MERCHANT');
     if (!isMerchant) {
       throw new NotFoundException('Merchant profile not found for this user');
     }

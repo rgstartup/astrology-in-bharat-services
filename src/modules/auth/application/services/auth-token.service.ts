@@ -13,7 +13,7 @@ export class AuthTokenService {
     private readonly tokenCrypto: TokenCryptoService,
     private readonly sessionRepo: SessionRepository,
     private readonly findProfileResolver: FindProfileResolver,
-  ) {}
+  ) { }
 
   async issueAuthTokens(
     user: User,
@@ -27,7 +27,7 @@ export class AuthTokenService {
     const accessToken =
       await this.tokenCrypto.createAccessToken<IAccessTokenPayload>({
         sub: user.id,
-        roles: user.roles,
+        role: user.role,
         email: user.email,
         profile: profileId ?? undefined,
         admin_permissions: user.admin_permissions ?? null,

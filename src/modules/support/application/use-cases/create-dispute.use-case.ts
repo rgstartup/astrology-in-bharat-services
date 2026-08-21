@@ -14,10 +14,10 @@ export class CreateDisputeUseCase {
   constructor(
     @InjectRepository(Dispute)
     private readonly disputeRepo: Repository<Dispute>,
-  ) {}
+  ) { }
 
   async execute(user: IUser, dto: CreateDisputeDto) {
-    const isExpert = user.roles.includes(RoleEnum.EXPERT);
+    const isExpert = [RoleEnum.EXPERT].includes(user.role);
 
     const dispute = this.disputeRepo.create({
       client_id: !isExpert ? user.profile || null : null,

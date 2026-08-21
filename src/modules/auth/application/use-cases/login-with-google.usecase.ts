@@ -23,7 +23,7 @@ export class LoginWithGoogleUseCase {
     private readonly profileCreationResolver: AuthProfileCreationResolver,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async execute(input: {
     providerId: string;
@@ -43,9 +43,9 @@ export class LoginWithGoogleUseCase {
       });
 
       if (existingUser && roleToAdd === RoleEnum.EXPERT) {
-        const roles = existingUser.roles || [];
+        const role = existingUser.role;
 
-        if (!hasRoles(roles, 'EXPERT')) {
+        if (!hasRoles(role, 'EXPERT')) {
           throw new ForbiddenException(
             'Forbidden access. You do not have the required permissions.',
           );
@@ -58,8 +58,8 @@ export class LoginWithGoogleUseCase {
           provider_id: input.providerId,
           email: input.email,
           name: input.name,
+          role: roleToAdd,
           profile: input.profile,
-          roles: [roleToAdd],
         },
         qr,
       );

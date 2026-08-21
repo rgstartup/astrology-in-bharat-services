@@ -24,7 +24,7 @@ export class CreateProfileUseCase {
     private readonly addressRepo: Repository<Address>,
     private readonly expertGateway: ExpertGateway,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(
     user: IUser,
@@ -142,9 +142,9 @@ export class CreateProfileUseCase {
         user: {
           id: user.id,
           email: user.email,
-          roles: user.roles,
+          role: user.role,
         }
-      } as any;
+      };
     }
 
     const plain: Record<string, unknown> = { ...profile };
@@ -170,9 +170,9 @@ export class CreateProfileUseCase {
 
       plain.languages = profile.languages
         ? profile.languages
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [];
 
       plain.userId = profile.user?.id;

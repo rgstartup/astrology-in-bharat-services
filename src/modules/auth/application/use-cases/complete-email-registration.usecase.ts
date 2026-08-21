@@ -28,7 +28,7 @@ export class CompleteEmailRegistrationUseCase {
     @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly authTokenService: AuthTokenService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
-  ) {}
+  ) { }
 
   async execute(dto: CompleteRegisterDto, ip?: string, userAgent?: string) {
     // 1. Verify Token
@@ -83,7 +83,7 @@ export class CompleteEmailRegistrationUseCase {
       );
 
       // 4. Update appropriate profile with extra details
-      if (updatedUser!.roles.includes(RoleEnum.EXPERT)) {
+      if ([RoleEnum.EXPERT].includes(updatedUser!.role)) {
         const profileUpdates: Partial<ProfileExpert> = {
           name: dto.name,
           phone_number: dto.phone,
@@ -121,7 +121,7 @@ export class CompleteEmailRegistrationUseCase {
           }
         }
       } else if (
-        updatedUser!.roles.includes(RoleEnum.MERCHANT as unknown as RoleEnum)
+        [RoleEnum.MERCHANT].includes(updatedUser!.role)
       ) {
         const { ProfileMerchant } = await import(
           '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
@@ -216,7 +216,7 @@ export class CompleteEmailRegistrationUseCase {
       // 5. Issue Tokens
       const tokens = await this.authTokenService.issueAuthTokens(
         updatedUser!,
-        updatedUser!.roles[0],
+        updatedUser!.role,
         ip,
         userAgent,
         queryRunner,

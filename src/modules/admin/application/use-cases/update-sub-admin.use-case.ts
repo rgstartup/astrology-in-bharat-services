@@ -30,7 +30,7 @@ export class UpdateSubAdminUseCase {
     private readonly auditLogRepo: Repository<AdminAuditLog>,
     @Inject(IHasherToken)
     private readonly hasher: IHasher,
-  ) {}
+  ) { }
 
   async execute(input: UpdateSubAdminInput): Promise<Partial<User>> {
     const target = await this.userRepo.findOne({
@@ -42,17 +42,14 @@ export class UpdateSubAdminUseCase {
     }
 
     // SUPER_ADMIN ko update nahi kar sakte — IDOR protection
-    if (
-      target.roles.includes(RoleEnum.SUPER_ADMIN) ||
-      target.roles.includes(RoleEnum.ADMIN)
-    ) {
+    if ([RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN].includes(target.role)) {
       throw new ForbiddenException(
         'Super Admin ya Admin ko is tarah modify nahi kar sakte',
       );
     }
 
     // Sirf SUB_ADMIN ko update karo
-    if (!target.roles.includes(RoleEnum.SUB_ADMIN)) {
+    if (target.role !== RoleEnum.SUB_ADMIN) {
       throw new ForbiddenException('Ye user ek sub-admin nahi hai');
     }
 

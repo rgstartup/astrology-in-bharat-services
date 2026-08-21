@@ -9,7 +9,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AuthPolicy {
-  constructor(@Inject(IHasherToken) private readonly passwordHasher: IHasher) {}
+  constructor(@Inject(IHasherToken) private readonly passwordHasher: IHasher) { }
 
   ensureEmailVerified(user: User) {
     if (!user.email_verified_at) {
@@ -20,18 +20,17 @@ export class AuthPolicy {
   }
 
   ensureHasRequiredRole(user: User, role: RoleEnum) {
-    // Agar login portal "ADMIN" role maang raha hai, to teeno admin types allow karo
     if (role === RoleEnum.ADMIN) {
-      const hasAnyAdminRole = user.roles.some((r) =>
-        [RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN, RoleEnum.SUB_ADMIN].includes(r),
-      );
+      const hasAnyAdminRole =
+        [RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN, RoleEnum.SUB_ADMIN].includes(role)
+
       if (!hasAnyAdminRole) {
         throw new RequiredRoleMissingError();
       }
       return true;
     }
 
-    if (!user.roles.includes(role)) {
+    if (user.role !== role) {
       throw new RequiredRoleMissingError();
     }
 

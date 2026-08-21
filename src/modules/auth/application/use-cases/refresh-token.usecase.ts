@@ -14,7 +14,7 @@ export class RefreshTokenUseCase {
     @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly sessionRepo: SessionRepository,
     private readonly authTokenService: AuthTokenService,
-  ) {}
+  ) { }
 
   async execute(refreshToken: string) {
     const [sessionId, refreshTokenRaw] = refreshToken.split('.');
@@ -49,7 +49,7 @@ export class RefreshTokenUseCase {
       await this.sessionRepo.revoke(session.user.id, session.id, queryRunner);
       return this.authTokenService.issueAuthTokens(
         session.user,
-        session.user.roles?.[0],
+        session.user.role,
         undefined,
         undefined,
         queryRunner,

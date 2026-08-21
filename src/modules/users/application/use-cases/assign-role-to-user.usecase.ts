@@ -6,7 +6,7 @@ import { RoleEnum } from '../../infrastructure/enums/Role.enum';
 
 @Injectable()
 export class AssignRoleToUserUseCase {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) { }
 
   async execute(
     userId: string,
@@ -16,9 +16,7 @@ export class AssignRoleToUserUseCase {
     const user = await this.userRepository.findById(userId, true, queryRunner);
     if (!user) throw new NotFoundException('User not found');
 
-    if (!user.roles.includes(roleName)) {
-      user.roles = [...(user.roles || []), roleName];
-    }
+    user.role = roleName;
 
     return this.userRepository.create(user, queryRunner);
   }
