@@ -61,7 +61,7 @@ export class ProfileClientDto {
 
   @IsOptional()
   @IsString()
-  profile_picture?: string;
+  avatar?: string;
 
   @IsOptional()
   @IsArray()
@@ -71,7 +71,7 @@ export class ProfileClientDto {
 }
 
 // Create profile
-export class CreateProfileClientDto extends ProfileClientDto {}
+export class CreateProfileClientDto extends ProfileClientDto { }
 
 // Update profile
-export class UpdateProfileClientDto extends PartialType(ProfileClientDto) {}
+export class UpdateProfileClientDto extends PartialType(ProfileClientDto) { }

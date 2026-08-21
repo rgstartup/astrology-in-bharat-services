@@ -1,4 +1,4 @@
-﻿import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Transform } from 'class-transformer';
 import {
   IsEmail,
@@ -21,16 +21,13 @@ export class LoginDto {
 }
 
 export class GoogleLoginQueryDto {
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.toUpperCase() : value,
-  )
   @IsEnum(RoleEnum, {
     message: 'Please provide a valid role',
   })
   role!: RoleEnum;
 
   @IsUrl({
-    require_tld: true,
+    require_tld: false,
   })
   redirect_uri!: string;
 

@@ -3,21 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner, FindOptionsWhere } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IUser } from '@/common/types/access-token.payload';
+import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
 
-export interface ClientProfileReturn {
-  id: string | null;
-  profile_picture?: string | null;
-  user?: {
-    id: string;
-    name: string | null;
-    email: string;
-    role: RoleEnum;
-    avatar: string | null;
-  } | null;
-  [key: string]: unknown;
-}
+// export interface ClientProfileReturn {
+//   id: string | null;
+//   profile_picture?: string | null;
+//   user?: {
+//     id: string;
+//     name: string | null;
+//     email: string;
+//     role: RoleEnum;
+//     avatar: string | null;
+//   } | null;
+//   [key: string]: unknown;
+// }
 
 @Injectable()
 export class GetProfileUseCase {
@@ -31,7 +31,7 @@ export class GetProfileUseCase {
   async execute(
     user: IUser,
     queryRunner?: QueryRunner,
-  ): Promise<ClientProfileReturn | null> {
+  ): Promise<ProfileClient | null> {
     const profileRepo = queryRunner
       ? queryRunner.manager.getRepository(ProfileClient)
       : this.repo;
@@ -41,58 +41,59 @@ export class GetProfileUseCase {
       : this.userRepository;
 
     const where: FindOptionsWhere<ProfileClient> = user.profile
-      ? { id: user.profile, user: { id: user.id } }
-      : { user: { id: user.id } };
+      ? { id: user.profile, user: { id: user.id, platform: PlatformEnum.CLIENT } }
+      : { user: { id: user.id, platform: PlatformEnum.CLIENT } };
 
-    const profile = await profileRepo.findOne({
+    return profileRepo.findOne({
       where,
       relations: ['user'],
     });
 
-    if (!profile) {
-      // Check if user exists and what their role is
-      const existingUser = await userRepo.findOne({
-        where: { id: user.id },
-      });
 
-      if (!existingUser) {
-        return null; // Should not happen, but satisfies TS
-      }
 
-      const hasExpertRole = hasRoles(existingUser.role, 'EXPERT');
+    // if (!profile) {
+    //   // Check if user exists and what their role is
+    //   const existingUser = await userRepo.findOne({
+    //     where: { id: user.id },
+    //   });
 
-      if (hasExpertRole) {
-        throw new ForbiddenException(
-          'Aap ek Expert hain. Kripya Expert Dashboard se login karein.',
-        );
-      }
+    //   if (!existingUser) {
+    //     return null; // Should not happen, but satisfies TS
+    //   }
 
-      // If it's a client but no profile, return null or a basic structure
-      // Return the base user so frontend knows they are logged in but need onboarding
-      return {
-        id: null, // No profile ID yet
-        user: {
-          id: existingUser.id,
-          name: existingUser.name,
-          email: existingUser.email,
-          role: existingUser.role,
-          avatar: existingUser.avatar,
-        },
-      };
-    }
+    // const hasExpertRole = hasRoles(existingUser.role, 'EXPERT');
 
-    // Priority: 1. Client profile's local avatar, 2. User's global avatar (master)
-    const resolvedProfilePicture =
-      profile.profile_picture || profile.user?.avatar || null;
+    // if (hasExpertRole) {
+    //   throw new ForbiddenException(
+    //     'Aap ek Expert hain. Kripya Expert Dashboard se login karein.',
+    //   );
+    // }
 
-    console.log(
-      `[GetProfileUseCase] User ${user.id} - DB user.avatar: ${profile.user?.avatar}, profile_picture: ${profile.profile_picture} -> resolved: ${resolvedProfilePicture}`,
-    );
-
-    return {
-      ...(profile as unknown as Record<string, unknown>),
-      id: profile.id,
-      profile_picture: resolvedProfilePicture, // Always the final, resolved picture
-    };
+    // If it's a client but no profile, return null or a basic structure
+    // Return the base user so frontend knows they are logged in but need onboarding
+    // return {
+    //   id: null, // No profile ID yet
+    //   user: {
+    //     id: existingUser.id,
+    //     name: existingUser.name,
+    //     email: existingUser.email,
+    //     role: existingUser.role,
+    //     avatar: existingUser.avatar,
+    //   },
+    // };
   }
+
+  // // Priority: 1. Client profile's local avatar, 2. User's global avatar (master)
+  // const resolvedProfilePicture =
+  //   profile.profile_picture || profile.user?.avatar || null;
+
+  // console.log(
+  //   `[GetProfileUseCase] User ${user.id} - DB user.avatar: ${profile.user?.avatar}, profile_picture: ${profile.profile_picture} -> resolved: ${resolvedProfilePicture}`,
+  // );
+
+  // return {
+  //   ...(profile as unknown as Record<string, unknown>),
+  //   id: profile.id,
+  //   profile_picture: resolvedProfilePicture, // Always the final, resolved picture
+  // };
 }

@@ -21,6 +21,7 @@ export class AuthProfileCreationResolver {
   async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
     const userRole = user.role;
     const strategy = this.resolve(userRole);
+    console.log({ strategy });
     await strategy.ensureProfile(user, queryRunner);
   }
 

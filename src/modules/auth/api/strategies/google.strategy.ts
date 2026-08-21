@@ -7,6 +7,15 @@ import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
 import { LoginWithGoogleUseCase } from '../../application/use-cases/login-with-google.usecase';
 import { GoogleLoginQueryDto } from '../dto/login.dto';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+
+interface RequestUser {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+  redirect_uri: string;
+}
+
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -41,6 +50,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
     done: VerifyCallback,
   ) {
+
     const email = profile.emails?.[0]?.value;
     if (req._strategy_validated) {
       return done(null, req.user);
@@ -66,13 +76,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       role: state?.role,
     });
 
-    const authResult = {
-      user,
-      ...tokens,
-      redirect_uri: state?.redirect_uri,
-    };
+    const userWithTokens = { ...user, ...tokens, redirect_uri: state?.redirect_uri };
 
-    return done(null, authResult);
+
+    return done(null, userWithTokens);
   }
 
   private parseOAuthState(rawState: unknown): GoogleLoginQueryDto | undefined {
@@ -81,8 +88,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     }
 
     try {
-      return JSON.parse(rawState) as GoogleLoginQueryDto;
-    } catch {
+      return JSON.parse(decodeURIComponent(rawState)) as GoogleLoginQueryDto;
+    } catch (err) {
       return undefined;
     }
   }

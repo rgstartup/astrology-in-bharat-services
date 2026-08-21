@@ -1,10 +1,17 @@
+import 'dotenv/config';
 import { Controller, Get, Logger, Req, Res, UseGuards } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Request, Response } from 'express';
 import { GoogleAuthGuard } from '../guards/google-auth-v2.guard';
-import 'dotenv/config';
-import { GoogleLoginQueryDto } from '../dto/login.dto';
 import { GoogleLoginQueryGuard } from '../guards/google-login-query.guard';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+
+
+interface UserWithTokens {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+  redirect_uri: string;
+}
 
 @Controller({
   path: 'auth/google',
@@ -12,7 +19,6 @@ import { GoogleLoginQueryGuard } from '../guards/google-login-query.guard';
 })
 export class GoogleAuthController {
   private readonly logger = new Logger(GoogleAuthController.name);
-  constructor(private readonly config: ConfigService) {}
 
   // private resolveFrontendUrl(
   //   req: Request,
@@ -70,10 +76,13 @@ export class GoogleAuthController {
     //   );
     //   return;
     // }
-    const authData = req.user as Record<string, unknown>;
-    const rawState = req?.query?.state;
 
-    const state = this.parseOAuthState(rawState);
+
+    // console.log(req);
+    const authData = req.user as UserWithTokens;
+    // const rawState = req?.query?.state;
+
+    // const state = this.parseOAuthState(rawState);
 
     // let state: { redirect_uri?: string; role?: string } = {};
 
@@ -86,7 +95,7 @@ export class GoogleAuthController {
     // }
 
     if (!authData || !authData.accessToken) {
-      const errorBase = state?.redirect_uri;
+      const errorBase = authData?.redirect_uri;
       return res.redirect(`${errorBase}?error=google_auth_failed`);
     }
 
@@ -183,20 +192,7 @@ export class GoogleAuthController {
     //   `[GoogleCallback] Redirecting to set-tokens: ${setTokensUrl.replace(/accessToken=[^&]+/, 'accessToken=REDACTED').replace(/refreshToken=[^&]+/, 'refreshToken=REDACTED')}`,
     // );
 
-    console.log(state?.redirect_uri);
-    return res.redirect(`${state?.redirect_uri}/client/profile`);
-  }
-
-  private parseOAuthState(rawState: unknown): GoogleLoginQueryDto | undefined {
-    if (typeof rawState !== 'string') {
-      return undefined;
-    }
-
-    try {
-      return JSON.parse(rawState) as GoogleLoginQueryDto;
-    } catch {
-      return undefined;
-    }
+    return res.redirect(authData?.redirect_uri!);
   }
 
   private setCookies(

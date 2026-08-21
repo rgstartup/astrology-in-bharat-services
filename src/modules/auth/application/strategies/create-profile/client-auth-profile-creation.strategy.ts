@@ -18,15 +18,15 @@ export class ClientAuthProfileCreationStrategy
       { id: user.id, email: user.email || '', role: user.role },
       queryRunner,
     );
+
     if (profile) return;
 
     await this.clientProfileFacade.createProfile(
       user.id,
       {
         full_name: user.name || '',
-        avatar: user.avatar,
-        profile_picture: user.avatar,
-      } as unknown as CreateProfileClientDto,
+        avatar: user.avatar || undefined,
+      },
       queryRunner,
     );
   }

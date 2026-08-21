@@ -3,19 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import { CreateProfileClientDto } from '../../infrastructure/dto/profile-client.dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ProfileCreatedEvent } from '../../domain/events/profile-events';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import * as crypto from 'crypto';
+import crypto from 'node:crypto';
 import { BaseService } from '@/common/services/transaction.service';
 
 @Injectable()
 export class CreateProfileUseCase extends BaseService<ProfileClient> {
   constructor(
     @InjectRepository(ProfileClient)
-    private readonly profileRepo: Repository<ProfileClient>,
-    private readonly eventEmitter: EventEmitter2,
-  ) {
+    private readonly profileRepo: Repository<ProfileClient>) {
     super(profileRepo);
   }
 
@@ -34,7 +30,7 @@ export class CreateProfileUseCase extends BaseService<ProfileClient> {
 
     const profile = repo.create();
     Object.assign(profile, dto);
-    profile.user = { id: userId } as unknown as User;
+    profile.user = { id: userId } as User;
 
     const suffix = crypto
       .randomBytes(4)
@@ -44,15 +40,6 @@ export class CreateProfileUseCase extends BaseService<ProfileClient> {
     profile.uid = `AIB-USR-${suffix}`;
 
     const savedProfile = await repo.save(profile);
-
-    this.eventEmitter.emit(
-      'client.profile.created',
-      new ProfileCreatedEvent(
-        userId,
-        savedProfile.id,
-        dto as unknown as Record<string, unknown>,
-      ),
-    );
 
     return savedProfile;
   }

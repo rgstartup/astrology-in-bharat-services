@@ -10,28 +10,28 @@ import {
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 
-@Catch()
+@Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message: string | Record<string, unknown> = 'Internal server error';
-    let stack: string | undefined;
+    const status = exception.getStatus();
+    const res = exception.getResponse();
+    const stack = exception.stack;
 
-    if (exception instanceof HttpException) {
-      status = exception.getStatus();
-      message = exception.getResponse() as string | Record<string, unknown>;
-      stack = exception.stack;
-    }
-
-    if (status === HttpStatus.PAYLOAD_TOO_LARGE || status === HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (
+      status === HttpStatus.PAYLOAD_TOO_LARGE ||
+      status === HttpStatus.INTERNAL_SERVER_ERROR
+    ) {
       try {
-        fs.appendFileSync('http-errors.log', `${new Date().toISOString()} | ${status} | ${request.url}\n${stack}\nFull Exception: ${JSON.stringify(exception, Object.getOwnPropertyNames(exception || {}))}\n\n`);
+        fs.appendFileSync(
+          'http-errors.log',
+          `${new Date().toISOString()} | ${status} | ${request.url}\n${stack}\nFull Exception: ${JSON.stringify(exception, Object.getOwnPropertyNames(exception || {}))}\n\n`,
+        );
       } catch (e) {
         this.logger.error('Failed to write to log file', e);
       }
@@ -41,12 +41,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
       return;
     }
 
+    const errorBody =
+      typeof res === 'object' && res !== null
+        ? (res as Record<string, unknown>)
+        : { message: res };
+
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      message: typeof message === 'string' ? message : message?.message,
+      ...errorBody,
       ...(process.env.NODE_ENV === 'development' && { stack }),
     });
   }
 }
+
