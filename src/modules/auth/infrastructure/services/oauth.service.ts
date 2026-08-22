@@ -53,9 +53,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
       const newUser = userRepo.create({
         email: dto.email,
         name: dto.name,
-        avatar: (
-          dto.profile as { photos?: Array<{ value?: string }> } | undefined
-        )?.photos?.[0]?.value,
+        avatar: dto.oauthProfile?.photos?.[0]?.value,
         role: dto.role,
       });
 

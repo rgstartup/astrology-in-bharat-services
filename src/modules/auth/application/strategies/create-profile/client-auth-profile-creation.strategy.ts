@@ -1,33 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProfileClientDto } from '@/modules/client/profile/infrastructure/dto/profile-client.dto';
 import { QueryRunner } from 'typeorm';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class ClientAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy {
+  implements AuthProfileCreationStrategy<ProfileClient> {
   readonly role = RoleEnum.CLIENT;
 
-  constructor(private readonly clientProfileFacade: ClientProfileFacade) { }
+  async ensureProfile(user: User, queryRunner: QueryRunner): Promise<ProfileClient> {
 
-  async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
-    const profile = await this.clientProfileFacade.getProfile(
-      { id: user.id, email: user.email || '', role: user.role },
-      queryRunner,
-    );
+    const clientProfileRepo = queryRunner.manager.getRepository(ProfileClient);
 
-    if (profile) return;
+    const existingProfile = await clientProfileRepo.findOne({ where: { user_id: user.id } });
+    if (existingProfile) return existingProfile;
 
-    await this.clientProfileFacade.createProfile(
-      user.id,
-      {
-        full_name: user.name || '',
-        avatar: user.avatar || undefined,
-      },
-      queryRunner,
-    );
+    const profile = clientProfileRepo.create({
+      user_id: user.id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+    });
+
+    return clientProfileRepo.save(profile);
   }
 }

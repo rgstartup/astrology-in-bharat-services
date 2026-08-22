@@ -78,9 +78,6 @@ export class ProfileClient {
   place_of_birth!: string | null;
 
   @Column({ type: 'text', nullable: true })
-  profile_picture!: string | null;
-
-  @Column({ type: 'text', nullable: true })
   marital_status!: string | null;
 
   @Column({ type: 'text', nullable: true })

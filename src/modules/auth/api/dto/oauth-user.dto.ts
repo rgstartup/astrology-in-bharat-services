@@ -24,7 +24,7 @@ export class OAuthUserDto {
   name?: string;
 
   @IsOptional()
-  profile?: Profile // optional raw provider profile
+  oauthProfile?: Profile // optional raw provider profile
 
   @IsOptional()
   @IsEnum(RoleEnum)

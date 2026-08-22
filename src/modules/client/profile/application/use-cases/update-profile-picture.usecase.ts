@@ -11,6 +11,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '../../domain/events/profile-events';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { IUser } from '@/common/types/access-token.payload';
+import { UploadApiResponse } from 'cloudinary';
 
 @Injectable()
 export class UpdateProfilePictureUseCase {
@@ -22,15 +23,17 @@ export class UpdateProfilePictureUseCase {
     private readonly profileRepo: Repository<ProfileClient>,
     private readonly dataSource: DataSource,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(user: IUser, file: Express.Multer.File) {
     try {
       // 1. Upload image to Cloudinary
-      const result = (await this.cloudinaryService.uploadImage(file)) as {
-        secure_url: string;
-      };
-      const pictureUrl = result.secure_url;
+      const result = await this.cloudinaryService.uploadImage(file)
+      let pictureUrl: string | null = null;
+
+      if (result.secure_url) {
+        pictureUrl = result.secure_url;
+      }
 
       const queryRunner = this.dataSource.createQueryRunner();
       await queryRunner.connect();
@@ -58,7 +61,7 @@ export class UpdateProfilePictureUseCase {
         }
 
         // 3. Update profile_picture on ProfileClient
-        profile!.profile_picture = pictureUrl;
+        profile!.avatar = pictureUrl || profile!.avatar;
         await queryRunner.manager.save(ProfileClient, profile!);
 
         // 4. Sync avatar on User table
