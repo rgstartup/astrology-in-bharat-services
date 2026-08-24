@@ -8,18 +8,19 @@ import {
   IsUrl,
 } from 'class-validator';
 
-export class LoginDto {
+export class ClientLoginDto {
   @IsEmail()
   email!: string;
 
   @IsString()
   password!: string;
-
-  @IsEnum(RoleEnum)
-  requiredRole!: RoleEnum;
 }
 
 export class GoogleLoginQueryDto {
+  @IsEnum(RoleEnum, {
+    message: 'Please provide a valid role',
+  })
+  role!: RoleEnum;
 
   @IsUrl({
     require_tld: false,
@@ -30,8 +31,4 @@ export class GoogleLoginQueryDto {
   @IsString()
   @IsNotEmpty()
   referral_code?: string;
-
-  @IsEnum(RoleEnum)
-  @IsOptional()
-  role: RoleEnum = RoleEnum.CLIENT;
 }

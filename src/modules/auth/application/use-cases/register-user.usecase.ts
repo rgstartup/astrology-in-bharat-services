@@ -97,7 +97,7 @@ export class RegisterUserUseCase {
         user.id,
         user.email,
         user.name || 'user',
-        user.role,
+        user?.role,
         verification_token,
       ),
     );

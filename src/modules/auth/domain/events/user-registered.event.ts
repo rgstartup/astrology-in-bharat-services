@@ -9,3 +9,13 @@ export class UserRegisteredEvent {
     public readonly verification_token: string,
   ) { }
 }
+
+export class ClientRegisteredEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly email: string,
+    public readonly name: string,
+    public readonly verification_token: string,
+  ) { }
+}
+

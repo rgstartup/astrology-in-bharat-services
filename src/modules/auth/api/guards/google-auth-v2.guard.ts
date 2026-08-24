@@ -23,20 +23,20 @@ export class GoogleAuthGuard extends AuthGuard('google') {
     const request = context.switchToHttp().getRequest<GoogleAuthRequest>();
 
     if (!request.googleLoginQuery) {
-      // Callback.
-      // Google already returned state.
+      // Callback
+      // Google already returned state
       return {};
     }
 
-    const { role, redirect_uri, referral_code } = request.googleLoginQuery;
+    const { redirect_uri, referral_code, role } = request.googleLoginQuery;
 
     return {
       scope: ['email', 'profile'],
       state: encodeURIComponent(
         JSON.stringify({
-          role,
           redirect_uri,
           referral_code,
+          role
         }),
       ),
     };

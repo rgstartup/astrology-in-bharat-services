@@ -12,6 +12,7 @@ import {
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { UserStatusEnum } from '@/common/enums/user-status.enum';
 
 @Entity({ schema: 'client', name: 'profile' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -40,6 +41,9 @@ export class ProfileClient {
 
   @Column({ type: 'text', nullable: true })
   avatar!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  profile_picture!: string | null;
 
   @Column({ type: 'text', nullable: true })
   username!: string | null;
@@ -101,6 +105,9 @@ export class ProfileClient {
     transformer: new ColumnNumericTransformer(),
   })
   total_spending!: number;
+
+  @Column({ type: 'enum', enum: UserStatusEnum, default: UserStatusEnum.ACTIVE })
+  status!: UserStatusEnum;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

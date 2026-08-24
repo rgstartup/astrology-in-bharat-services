@@ -30,6 +30,8 @@ import { LoginWithGoogleUseCase } from './application/use-cases/login-with-googl
 import { OAuthService } from './infrastructure/services/oauth.service';
 import { GoogleStrategy } from './api/strategies/google.strategy';
 import { GoogleAuthGuard } from './api/guards/google-auth-v2.guard';
+import { ClientGoogleStrategy } from './api/strategies/client-google.strategy';
+import { ClientGoogleAuthGuard } from './api/guards/client-google-auth.guard';
 import { GoogleAuthController } from './api/controllers/google-auth.controller';
 import { LogoutUserUseCase } from './application/use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.usecase';
@@ -67,6 +69,20 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 import { AuthTokenService } from './application/services/auth-token.service';
+import { ClientAuthFacade } from './application/use-cases/client/client-auth.facade';
+import { InitiateClientEmailRegistrationUseCase } from './application/use-cases/client/initiate-client-email-registration.usecase';
+import { CompleteClientEmailRegistrationUseCase } from './application/use-cases/client/complete-client-email-registration.usecase';
+import { ClientRegisteredHandler } from './application/event-handlers/client-registered.handler';
+import { ClientAuthController } from './api/controllers/client-auth.controller';
+import { ClientLoginWithEmailUseCase } from './application/use-cases/client/client-login-with-email.usecase';
+import { ClientLoginWithGoogleUseCase } from './application/use-cases/client/client-login-with-google.usecase';
+
+const clientUseCases = [
+  InitiateClientEmailRegistrationUseCase,
+  CompleteClientEmailRegistrationUseCase,
+  ClientLoginWithEmailUseCase,
+  ClientLoginWithGoogleUseCase
+]
 
 const useCases = [
   RegisterUserUseCase,
@@ -87,6 +103,10 @@ const useCases = [
   InitiateEmailRegistrationUseCase,
   CompleteEmailRegistrationUseCase,
 ];
+
+const clientHandlers = [
+  ClientRegisteredHandler
+]
 
 const handlers = [
   UserRegisteredHandler,
@@ -122,6 +142,8 @@ const handlers = [
     JwtRefreshStrategy,
     GoogleStrategy,
     GoogleAuthGuard,
+    ClientGoogleStrategy,
+    ClientGoogleAuthGuard,
     ClientAuthProfileCreationStrategy,
     ExpertAuthProfileCreationStrategy,
     AgentAuthProfileCreationStrategy,
@@ -164,6 +186,9 @@ const handlers = [
     },
 
     AuthFacade,
+    ClientAuthFacade,
+    ...clientUseCases,
+    ...clientHandlers,
     ...useCases,
     ...handlers,
     {
@@ -175,7 +200,7 @@ const handlers = [
     SessionRepository,
     AuthTokenService,
   ],
-  controllers: [AuthController, MerchantAuthController, GoogleAuthController],
+  controllers: [AuthController, ClientAuthController, MerchantAuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],
 })
-export class AuthModule {}
+export class AuthModule { }
