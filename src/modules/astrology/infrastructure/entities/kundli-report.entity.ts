@@ -6,7 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 
 @Entity({ schema: 'astrology', name: 'kundli_reports' })
 export class KundliReport {
@@ -16,9 +16,9 @@ export class KundliReport {
   @Column({ name: 'client_id', type: 'uuid' })
   client_id!: string;
 
-  @ManyToOne(() => ProfileClient, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient;
+  client!: ClientAccount;
 
   @Column({ type: 'json' })
   boy_details!: Record<string, any>;

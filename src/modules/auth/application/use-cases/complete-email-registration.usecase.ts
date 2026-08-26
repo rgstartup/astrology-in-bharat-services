@@ -9,7 +9,7 @@ import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.ser
 import { AuthTokenService } from '../services/auth-token.service';
 import { CompleteRegisterDto } from '../../api/dto/email-register.dto';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { Address } from '@/common/address/address.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
@@ -165,49 +165,49 @@ export class CompleteEmailRegistrationUseCase {
           await queryRunner.manager.save(ProfileMerchant, merchantProfile);
         }
       } else {
-        const profileUpdates: Partial<ProfileClient> = {
+        const accountUpdates: Partial<ClientAccount> = {
           name: dto.name,
           phone: dto.phone,
-          gender: dto.gender as 'male' | 'female' | 'other',
+          gender: (dto.gender as 'male' | 'female' | 'other') || 'other',
           marital_status: dto.maritalStatus,
           occupation: dto.occupation,
           about_me: dto.aboutMe,
         };
 
         if (dto.birthDetails) {
-          profileUpdates.date_of_birth = dto.birthDetails.dateOfBirth
+          accountUpdates.date_of_birth = dto.birthDetails.dateOfBirth
             ? new Date(dto.birthDetails.dateOfBirth)
             : null;
-          profileUpdates.time_of_birth = dto.birthDetails.timeOfBirth;
-          profileUpdates.place_of_birth = dto.birthDetails.birthPlace;
+          accountUpdates.time_of_birth = dto.birthDetails.timeOfBirth;
+          accountUpdates.place_of_birth = dto.birthDetails.birthPlace;
         }
 
-        let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
-          where: { user_id: user.id },
+        let clientAccount = await queryRunner.manager.findOne(ClientAccount, {
+          where: { user: { id: user.id } },
         });
 
-        if (!clientProfile) {
-          clientProfile = queryRunner.manager.create(ProfileClient, {
-            user_id: user.id,
+        if (!clientAccount) {
+          clientAccount = queryRunner.manager.create(ClientAccount, {
+            user: { id: user.id } as User,
             email: user.email,
           });
-          clientProfile = await queryRunner.manager.save(
-            ProfileClient,
-            clientProfile,
+          clientAccount = await queryRunner.manager.save(
+            ClientAccount,
+            clientAccount,
           );
         }
 
-        Object.assign(clientProfile, profileUpdates);
-        await queryRunner.manager.save(ProfileClient, clientProfile);
+        Object.assign(clientAccount, accountUpdates);
+        await queryRunner.manager.save(ClientAccount, clientAccount);
 
         if (dto.address) {
-          const profile = await queryRunner.manager.findOne(ProfileClient, {
-            where: { user_id: user.id },
+          const account = await queryRunner.manager.findOne(ClientAccount, {
+            where: { user: { id: user.id } },
           });
-          if (profile) {
+          if (account) {
             const newAddress = new Address();
             Object.assign(newAddress, dto.address);
-            newAddress.profile_client = profile;
+            newAddress.client_account = account;
             await queryRunner.manager.save(Address, newAddress);
           }
         }

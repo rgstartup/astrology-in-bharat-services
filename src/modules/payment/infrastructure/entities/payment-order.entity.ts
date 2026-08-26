@@ -7,7 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum PaymentStatus {
@@ -33,9 +33,9 @@ export class PaymentOrder {
   @Column({ type: 'uuid', name: 'client_id', nullable: true })
   client_id!: string | null;
 
-  @ManyToOne(() => ProfileClient, { onDelete: 'SET NULL' })
+  @ManyToOne(() => ClientAccount, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient;
+  client!: ClientAccount;
 
   @Column({
     name: 'razorpay_order_id',

@@ -7,7 +7,7 @@ import {
   CouponStatus,
 } from '../../infrastructure/entities/coupon.entity';
 import { UserCoupon } from '../../infrastructure/entities/user-coupon.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 
 @Injectable()
 export class BulkAssignCouponUseCase {
@@ -37,20 +37,20 @@ export class BulkAssignCouponUseCase {
     let assignedCount = 0;
 
     await this.databaseService.transaction(async (queryRunner) => {
-      // 1. Fetch ProfileClient IDs for the provided user IDs (Only those that exist)
-      const profileClients: { id: string }[] = await queryRunner.manager
-        .createQueryBuilder(ProfileClient, 'profileClient')
-        .select('profileClient.id', 'id')
-        .where('profileClient.user_id IN (:...userIds)', { userIds })
+      // 1. Fetch ClientAccount IDs for the provided user IDs (Only those that exist)
+      const clientAccounts: { id: string }[] = await queryRunner.manager
+        .createQueryBuilder(ClientAccount, 'clientAccount')
+        .select('clientAccount.id', 'id')
+        .where('clientAccount.user_id IN (:...userIds)', { userIds })
         .getRawMany();
 
-      if (profileClients.length === 0) return;
+      if (clientAccounts.length === 0) return;
 
-      const profileClientIds = profileClients.map((pc) => pc.id);
+      const clientAccountIds = clientAccounts.map((pc) => pc.id);
 
       // 2. Perform a Bulk Insert using QueryBuilder and ignore conflicts
       // PostgreSQL handles ON CONFLICT DO NOTHING natively when using orIgnore()
-      const valuesToInsert = profileClientIds.map((clientId) => ({
+      const valuesToInsert = clientAccountIds.map((clientId) => ({
         client_id: clientId,
         coupon_id: coupon.id,
         is_used: false,

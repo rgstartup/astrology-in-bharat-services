@@ -8,7 +8,7 @@ import { AgentRegisterUserDto } from '../../api/dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { ConfigService } from '@nestjs/config';
@@ -124,19 +124,19 @@ export class AgentRegisterUserUseCase {
           }
         } else if (dto.phone) {
           const clientUpdates = { phone: dto.phone };
-          let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
+          let clientAccount = await queryRunner.manager.findOne(ClientAccount, {
             where: { user: { id: createdUser.id } },
           });
 
-          if (clientProfile) {
-            Object.assign(clientProfile, clientUpdates);
-            await queryRunner.manager.save(ProfileClient, clientProfile);
+          if (clientAccount) {
+            Object.assign(clientAccount, clientUpdates);
+            await queryRunner.manager.save(ClientAccount, clientAccount);
           } else {
-            clientProfile = queryRunner.manager.create(ProfileClient, {
+            clientAccount = queryRunner.manager.create(ClientAccount, {
               user: { id: createdUser.id } as unknown as User,
               ...clientUpdates,
             });
-            await queryRunner.manager.save(ProfileClient, clientProfile);
+            await queryRunner.manager.save(ClientAccount, clientAccount);
           }
         }
 

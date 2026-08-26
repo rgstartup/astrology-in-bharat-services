@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
@@ -20,9 +20,9 @@ export class Wallet {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @OneToOne(() => ProfileClient, { nullable: true })
+  @OneToOne(() => ClientAccount, { nullable: true })
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient | null;
+  client!: ClientAccount | null;
 
   @Column({ name: 'client_id', type: 'uuid', nullable: true })
   client_id!: string | null;

@@ -6,7 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { Coupon } from './coupon.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { Unique } from 'typeorm';
@@ -17,9 +17,9 @@ export class UserCoupon {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @ManyToOne(() => ProfileClient)
+  @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient;
+  client!: ClientAccount;
 
   @Column({ name: 'client_id', type: 'uuid' })
   client_id!: string;

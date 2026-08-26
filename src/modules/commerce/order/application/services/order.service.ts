@@ -8,7 +8,7 @@ import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import {
   Notification,
@@ -150,26 +150,26 @@ export class OrderService {
 
       if (status === OrderStatus.PAID) {
         try {
-          const clientProfile = await queryRunner.manager.findOne(
-            ProfileClient,
+          const clientAccount = await queryRunner.manager.findOne(
+            ClientAccount,
             {
               where: { id: order.client_id },
               select: ['id'],
             },
           );
-          if (clientProfile) {
+          if (clientAccount) {
             const targetItemsTotal = targetItems.reduce(
               (sum, item) => sum + Number(item.price) * item.quantity,
               0,
             );
             await queryRunner.manager
               .createQueryBuilder()
-              .update(ProfileClient)
+              .update(ClientAccount)
               .set({
                 total_spending: () =>
                   `COALESCE(total_spending, 0) + ${targetItemsTotal}`,
               })
-              .where('id = :id', { id: clientProfile.id })
+              .where('id = :id', { id: clientAccount.id })
               .execute();
           }
         } catch (e) {

@@ -1,4 +1,4 @@
-﻿import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductLikeController } from './api/controllers/product-like.controller';
 import { ExpertLikeController } from './api/controllers/expert-like.controller';
@@ -22,14 +22,14 @@ import { AddMerchantToWishlistUseCase } from './application/use-cases/add-mercha
 import { RemoveMerchantFromWishlistUseCase } from './application/use-cases/remove-merchant-from-wishlist.use-case';
 import { GetMerchantWishlistUseCase } from './application/use-cases/get-merchant-wishlist.use-case';
 import { MerchantLikeController } from './api/controllers/merchant-like.controller';
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { AccountModule } from '@/modules/client/account/account.module';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Wishlist, Product, User]),
-    ClientProfileModule,
+    AccountModule,
     MerchantProfileModule,
     ExpertProfileModule,
     UsersModule,

@@ -6,7 +6,7 @@ import {
   TransactionType,
   TransactionPurpose,
 } from '../../infrastructure/entities/transaction.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 
 @Injectable()
 export class DeductFromReservedUseCase {
@@ -44,6 +44,7 @@ export class DeductFromReservedUseCase {
 
       const transaction = qr.manager.create(Transaction, {
         wallet_id: wallet.id,
+        wallet_key: walletKey,
         amount,
         balance_before: balanceBefore,
         balance_after: balanceBefore,
@@ -58,7 +59,7 @@ export class DeductFromReservedUseCase {
         try {
           await qr.manager
             .createQueryBuilder()
-            .update(ProfileClient)
+            .update(ClientAccount)
             .set({
               total_spending: () =>
                 `COALESCE(total_spending, 0) + ${Number(amount)}`,

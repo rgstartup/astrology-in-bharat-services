@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum PujaAppointmentStatus {
@@ -31,9 +31,9 @@ export class PujaAppointment {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @ManyToOne(() => ProfileClient)
+  @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient;
+  client!: ClientAccount;
 
   @Column({ type: 'uuid', name: 'client_id' })
   client_id!: string;

@@ -6,7 +6,7 @@ import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity
 import { AgentListing } from '../../infrastructure/entities/agent-listing.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { GetAgentListingsDto } from '../../api/dto/get-agent-listings.dto';
@@ -73,7 +73,7 @@ export class GetAgentListingsUseCase {
           )
           .leftJoinAndMapOne(
             'u.profile_client',
-            ProfileClient,
+            ClientAccount,
             'pc',
             'pc.user_id = u.id',
           )

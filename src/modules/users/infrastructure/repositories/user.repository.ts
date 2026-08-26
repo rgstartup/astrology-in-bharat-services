@@ -5,7 +5,7 @@ import { BaseService } from '@/common/services/transaction.service';
 import { User } from '../entities/user.entity';
 import { RoleEnum } from '../enums/Role.enum';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 
 @Injectable()
 export class UserRepository extends BaseService<User> {
@@ -60,7 +60,7 @@ export class UserRepository extends BaseService<User> {
     if (all) {
       query.leftJoinAndSelect('user.oauth_accounts', 'oauth_accounts')
            .leftJoinAndSelect('user.sessions', 'sessions')
-           .leftJoinAndMapOne('user.profile_client', ProfileClient, 'profile_client', 'profile_client.user_id = user.id')
+           .leftJoinAndMapOne('user.profile_client', ClientAccount, 'profile_client', 'profile_client.user_id = user.id')
            .leftJoinAndMapOne('user.profile_expert', ProfileExpert, 'profile_expert', 'profile_expert.user_id = user.id');
     }
 

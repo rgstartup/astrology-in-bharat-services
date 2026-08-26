@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import {
   Transaction,
@@ -66,7 +66,7 @@ export class GetAdminDashboardStatsUseCase {
       // Client stats
       this.userRepository
         .createQueryBuilder('user')
-        .leftJoin(ProfileClient, 'profile', 'profile.user_id = user.id')
+        .leftJoin(ClientAccount, 'profile', 'profile.user_id = user.id')
         .select([
           'COUNT(*) AS total_clients',
           'COUNT(*) FILTER (WHERE user.created_at >= :today) AS recent_clients',

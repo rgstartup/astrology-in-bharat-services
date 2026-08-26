@@ -14,12 +14,12 @@ import { MarkCouponAsUsedUseCase } from './application/use-cases/mark-coupon-as-
 import { BulkAssignCouponUseCase } from './application/use-cases/bulk-assign-coupon.use-case';
 import { CouponController } from './api/controllers/coupon.controller';
 
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { AccountModule } from '@/modules/client/account/account.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Coupon, UserCoupon]),
-    ClientProfileModule,
+    AccountModule,
   ],
 
   controllers: [CouponController],

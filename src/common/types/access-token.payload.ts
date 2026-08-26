@@ -14,9 +14,7 @@ export interface IUser extends Omit<IAccessTokenPayload, 'sub'> {
   id: string;
 }
 
-
 export interface IAccessTokenPayloadClient {
   sub: string;
   email: string;
-  profile?: string;
 }

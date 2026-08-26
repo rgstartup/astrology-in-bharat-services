@@ -165,10 +165,10 @@ export class InitiateChatUseCase {
       });
 
       if (sessionWithUser && sessionWithUser.client) {
-        const profileClient = sessionWithUser.client;
-        if (profileClient && profileClient.profile_picture) {
+        const clientAccount = sessionWithUser.client;
+        if (clientAccount && clientAccount.avatar) {
           (sessionWithUser as unknown as { user_image: string }).user_image =
-            profileClient.profile_picture;
+            clientAccount.avatar;
         }
       }
 

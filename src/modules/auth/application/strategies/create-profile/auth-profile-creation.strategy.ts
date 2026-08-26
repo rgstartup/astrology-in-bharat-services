@@ -1,6 +1,6 @@
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
@@ -8,7 +8,7 @@ import { QueryRunner } from 'typeorm';
 
 // 1. Role to Profile Mapping
 export interface RoleProfileMap {
-  [RoleEnum.CLIENT]: ProfileClient;
+  [RoleEnum.CLIENT]: ClientAccount;
   [RoleEnum.EXPERT]: ProfileExpert;
   [RoleEnum.MERCHANT]: ProfileMerchant;
   [RoleEnum.AGENT]: ProfileAgent;

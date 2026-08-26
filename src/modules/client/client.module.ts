@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ProfileModule } from './profile/profile.module';
+import { AccountModule } from './account/account.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [ProfileModule],
+  imports: [AccountModule, AuthModule],
+  exports: [AccountModule, AuthModule],
 })
 export class ClientModule {}

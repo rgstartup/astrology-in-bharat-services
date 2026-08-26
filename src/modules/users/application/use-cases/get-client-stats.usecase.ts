@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 
 @Injectable()
 export class GetClientStatsUseCase {
@@ -18,7 +18,7 @@ export class GetClientStatsUseCase {
 
  const result = await this.userRepository
   .createQueryBuilder('user')
-  .leftJoin(ProfileClient, 'profile', 'profile.user_id = user.id')
+  .leftJoin(ClientAccount, 'profile', 'profile.user_id = user.id')
   .select([
     `COUNT(*) AS total_clients`,
     `COUNT(*) FILTER (WHERE user.created_at >= :today) AS recent_clients`,

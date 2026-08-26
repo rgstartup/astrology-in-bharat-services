@@ -9,7 +9,7 @@ import { AgentModule } from '@/modules/agent/agent.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { AccountModule } from '@/modules/client/account/account.module';
 import { MerchantModule } from '@/modules/merchant/merchant.module';
 import { WalletController } from './api/controllers/wallet.controller';
 import { PayoutWebhookController } from './api/controllers/payout-webhook.controller';
@@ -60,7 +60,7 @@ import WalletRepository from './infrastructure/repositories/wallet.repository';
     UsersModule,
     forwardRef(() => AdminModule),
     forwardRef(() => ExpertProfileModule),
-    forwardRef(() => ClientProfileModule),
+    forwardRef(() => AccountModule),
     forwardRef(() => MerchantModule),
     forwardRef(() => AgentModule),
     CommissionsModule,

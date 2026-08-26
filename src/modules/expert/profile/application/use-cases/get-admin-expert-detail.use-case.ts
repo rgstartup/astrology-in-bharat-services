@@ -13,7 +13,7 @@ import { Repository } from 'typeorm';
 import { CallSessionStatus } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { AccountFacade } from '@/modules/client/account/account.facade';
 import { CallFacade } from '@/modules/consultation/call/application/call.facade';
 
 @Injectable()
@@ -27,8 +27,8 @@ export class GetExpertDetailUseCase {
     private readonly chatFacade: ChatFacade,
     @Inject(forwardRef(() => CallFacade))
     private readonly callFacade: CallFacade,
-    @Inject(forwardRef(() => ClientProfileFacade))
-    private readonly clientProfileFacade: ClientProfileFacade,
+    @Inject(forwardRef(() => AccountFacade))
+    private readonly accountFacade: AccountFacade,
     @InjectRepository(ProfileExpert)
     private readonly profileExpertRepo: Repository<ProfileExpert>,
   ) { }
@@ -45,10 +45,8 @@ export class GetExpertDetailUseCase {
       relations: ['addresses'],
     });
 
-    const clientProfile = await this.clientProfileFacade.getProfile({
+    const clientAccount = await this.accountFacade.getAccount({
       id: user.id,
-      email: user.email || '',
-      role: user.role,
     });
     const expertProfileId =
       profile?.id || '00000000-0000-0000-0000-000000000000';
@@ -80,7 +78,7 @@ export class GetExpertDetailUseCase {
       date_of_birth: profile?.date_of_birth
         ? new Date(profile.date_of_birth).toISOString()
         : null,
-      phone_number: profile?.phone_number || (clientProfile as any)?.phone || '',
+      phone_number: profile?.phone_number || clientAccount?.phone || '',
       languages: profile?.languages ? profile.languages.split(',').map((l: string) => l.trim()) : [],
       bio: profile?.bio || '',
       about: profile?.about || '',

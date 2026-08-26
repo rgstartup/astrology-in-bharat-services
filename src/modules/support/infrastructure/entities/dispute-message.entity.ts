@@ -6,7 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Dispute } from './dispute.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 @Entity({ schema: 'support', name: 'support_dispute_messages' })
@@ -21,9 +21,9 @@ export class DisputeMessage {
   @Column({ name: 'dispute_id', type: 'uuid' })
   dispute_id!: string;
 
-  @ManyToOne(() => ProfileClient, { nullable: true })
+  @ManyToOne(() => ClientAccount, { nullable: true })
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient | null;
+  client!: ClientAccount | null;
 
   @Column({ name: 'client_id', type: 'uuid', nullable: true })
   client_id!: string | null;

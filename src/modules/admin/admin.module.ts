@@ -32,7 +32,7 @@ import { User } from '../users/infrastructure/entities/user.entity';
 import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { SupportModule } from '../support/support.module';
 import { ProfileExpert } from '../expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { MerchantModule } from '../merchant/merchant.module';
 import { AgentModule } from '../agent/agent.module';
 
@@ -80,7 +80,7 @@ import { ToggleUserBlockUseCase } from './application/use-cases/toggle-user-bloc
       ChatSession,
       Transaction,
       ProfileExpert,
-      ProfileClient,
+      ClientAccount,
     ]),
 
     UsersModule,

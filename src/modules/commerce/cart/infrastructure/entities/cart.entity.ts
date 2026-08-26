@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
   Column,
 } from 'typeorm';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { CartItem } from './cart-item.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
@@ -16,9 +16,9 @@ export class Cart {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @OneToOne(() => ProfileClient, { onDelete: 'CASCADE' })
+  @OneToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient;
+  client!: ClientAccount;
 
   @Column({ name: 'client_id', type: 'uuid', unique: true, nullable: true })
   client_id!: string;

@@ -448,7 +448,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
           const buyerUser = await qr.manager.findOne(User, {
             where: {
-              id: (appointment.client?.user_id as unknown as string) || '',
+              id: appointment.client?.user?.id || '',
             },
             select: ['id', 'referred_by_id'],
           });

@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 export enum CallSessionStatus {
@@ -31,9 +31,9 @@ export class CallSession {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @ManyToOne(() => ProfileClient)
+  @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient;
+  client!: ClientAccount;
 
   @Column({ type: 'uuid', name: 'client_id' })
   client_id!: string;

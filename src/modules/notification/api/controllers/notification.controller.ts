@@ -32,7 +32,7 @@ function deriveProfileType(role: RoleEnum): ProfileType {
 })
 @UseGuards(JwtAuthGuard)
 export class NotificationController {
-  constructor(private readonly notificationFacade: NotificationFacade) { }
+  constructor(private readonly notificationFacade: NotificationFacade) {}
 
   @Get()
   async getNotifications(
@@ -59,9 +59,7 @@ export class NotificationController {
   }
 
   @Get('unread-count')
-  async getUnreadCount(
-    @CurrentUser() user: IUser,
-  ) {
+  async getUnreadCount(@CurrentUser() user: IUser) {
     if (!user.profile) {
       return { count: 0 };
     }
@@ -80,7 +78,11 @@ export class NotificationController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const profileType = deriveProfileType(user.role);
-    const _result = await this.notificationFacade.markAsRead(id, profileId, profileType);
+    const _result = await this.notificationFacade.markAsRead(
+      id,
+      profileId,
+      profileType,
+    );
     return { success: true };
   }
 

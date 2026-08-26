@@ -5,7 +5,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { forwardRef } from '@nestjs/common';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { UsersModule } from '@/modules/users/users.module';
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { AccountModule } from '@/modules/client/account/account.module';
 
 import { ProfileExpert } from './infrastructure/entities/profile-expert.entity';
 import { Address } from '@/common/address/address.entity';
@@ -45,7 +45,7 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     forwardRef(() => ConsultationModule),
     forwardRef(() => WalletModule),
     forwardRef(() => UsersModule),
-    forwardRef(() => ClientProfileModule),
+    forwardRef(() => AccountModule),
   ],
   controllers: [ProfileController],
   providers: [

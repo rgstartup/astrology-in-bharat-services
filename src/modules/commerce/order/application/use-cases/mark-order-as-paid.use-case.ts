@@ -3,7 +3,7 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { Coupon, CouponStatus } from '@/modules/commerce/coupon/infrastructure/entities/coupon.entity';
 import { UserCoupon } from '@/modules/commerce/coupon/infrastructure/entities/user-coupon.entity';
@@ -85,14 +85,15 @@ export class MarkOrderAsPaidUseCase {
 
       // 2. Track Client Spending & Send Notification
       try {
-        const clientProfile = await qr.manager.findOne(ProfileClient, {
+        const clientAccount = await qr.manager.findOne(ClientAccount, {
           where: { id: order.client_id },
-          select: ['id', 'user_id'],
+          select: ['id'],
+          relations: ['user'],
         });
-        if (!clientProfile) {
-          // If the profile does not exist, we shouldn't attempt to track it since it's an FK dependency
+        if (!clientAccount) {
+          // If the account does not exist, we shouldn't attempt to track it since it's an FK dependency
           console.error(
-            '[MARK_AS_PAID_TRACKING] Client profile not found for ID:',
+            '[MARK_AS_PAID_TRACKING] Client account not found for ID:',
             order.client_id,
           );
           return;
@@ -100,19 +101,19 @@ export class MarkOrderAsPaidUseCase {
 
         await qr.manager
           .createQueryBuilder()
-          .update(ProfileClient)
+          .update(ClientAccount)
           .set({
             total_spending: () =>
               `COALESCE(total_spending, 0) + ${Number(order.total_amount)}`,
           })
-          .where('id = :id', { id: clientProfile.id })
+          .where('id = :id', { id: clientAccount.id })
           .execute();
 
         // Send Order Placed Notification
-        if (clientProfile.id) {
+        if (clientAccount.id) {
           try {
             const notif = qr.manager.create(Notification, {
-              client_id: clientProfile.id,
+              client_id: clientAccount.id,
               type: NotificationType.ORDER_PLACED,
               title: 'Order Placed Successfully',
               message: `Your order AIB-ORD-${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,

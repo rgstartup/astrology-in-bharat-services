@@ -3,7 +3,6 @@ import { AuthController } from './api/controllers/auth.controller';
 import { MerchantAuthController } from './api/controllers/merchant-auth.controller';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { Session } from './infrastructure/entities/session.entity';
 import { OAuthAccount } from './infrastructure/entities/oauth-accounts.entity';
@@ -30,8 +29,6 @@ import { LoginWithGoogleUseCase } from './application/use-cases/login-with-googl
 import { OAuthService } from './infrastructure/services/oauth.service';
 import { GoogleStrategy } from './api/strategies/google.strategy';
 import { GoogleAuthGuard } from './api/guards/google-auth-v2.guard';
-import { ClientGoogleStrategy } from './api/strategies/client-google.strategy';
-import { ClientGoogleAuthGuard } from './api/guards/client-google-auth.guard';
 import { GoogleAuthController } from './api/controllers/google-auth.controller';
 import { LogoutUserUseCase } from './application/use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.usecase';
@@ -65,24 +62,9 @@ import { MerchantFindProfileStrategy } from './application/strategies/find-profi
 import { FindProfileResolver } from './application/strategies/find-profile/find-profile.resolver';
 import { FIND_PROFILE_STRATEGIES } from './application/strategies/find-profile/find-profile.strategy';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { AuthTokenService } from './application/services/auth-token.service';
-import { ClientAuthFacade } from './application/use-cases/client/client-auth.facade';
-import { InitiateClientEmailRegistrationUseCase } from './application/use-cases/client/initiate-client-email-registration.usecase';
-import { CompleteClientEmailRegistrationUseCase } from './application/use-cases/client/complete-client-email-registration.usecase';
-import { ClientRegisteredHandler } from './application/event-handlers/client-registered.handler';
-import { ClientAuthController } from './api/controllers/client-auth.controller';
-import { ClientLoginWithEmailUseCase } from './application/use-cases/client/client-login-with-email.usecase';
-import { ClientLoginWithGoogleUseCase } from './application/use-cases/client/client-login-with-google.usecase';
-
-const clientUseCases = [
-  InitiateClientEmailRegistrationUseCase,
-  CompleteClientEmailRegistrationUseCase,
-  ClientLoginWithEmailUseCase,
-  ClientLoginWithGoogleUseCase
-]
 
 const useCases = [
   RegisterUserUseCase,
@@ -104,10 +86,6 @@ const useCases = [
   CompleteEmailRegistrationUseCase,
 ];
 
-const clientHandlers = [
-  ClientRegisteredHandler
-]
-
 const handlers = [
   UserRegisteredHandler,
   ResetPasswordEventHandler,
@@ -122,7 +100,7 @@ const handlers = [
       OAuthAccount,
       UsedTokens,
       ProfileAgent,
-      ProfileClient,
+      ClientAccount,
       ProfileExpert,
       ProfileMerchant,
       User,
@@ -130,7 +108,6 @@ const handlers = [
     ]),
     DatabaseModule,
     ExternalModule,
-    ClientProfileModule,
     ExpertProfileModule,
     MerchantProfileModule,
     QueueModule,
@@ -142,8 +119,6 @@ const handlers = [
     JwtRefreshStrategy,
     GoogleStrategy,
     GoogleAuthGuard,
-    ClientGoogleStrategy,
-    ClientGoogleAuthGuard,
     ClientAuthProfileCreationStrategy,
     ExpertAuthProfileCreationStrategy,
     AgentAuthProfileCreationStrategy,
@@ -186,9 +161,6 @@ const handlers = [
     },
 
     AuthFacade,
-    ClientAuthFacade,
-    ...clientUseCases,
-    ...clientHandlers,
     ...useCases,
     ...handlers,
     {
@@ -200,7 +172,10 @@ const handlers = [
     SessionRepository,
     AuthTokenService,
   ],
-  controllers: [AuthController, ClientAuthController, MerchantAuthController, GoogleAuthController],
-  // exports: [TokenService, OAuthService],
+  controllers: [
+    AuthController,
+    MerchantAuthController,
+    GoogleAuthController,
+  ],
 })
-export class AuthModule { }
+export class AuthModule {}

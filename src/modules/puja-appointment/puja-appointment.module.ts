@@ -13,14 +13,14 @@ import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/p
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { TodosModule } from '@/modules/expert/todos/todos.module';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { QueueModule } from '@/core/queue/queue.module';
 
 import { PujaAppointmentFacade } from './application/puja-appointment.facade';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PujaAppointment, ProfileClient]),
+    TypeOrmModule.forFeature([PujaAppointment, ClientAccount]),
     forwardRef(() => ExpertProfileModule),
     NotificationModule,
     forwardRef(() => WalletModule),

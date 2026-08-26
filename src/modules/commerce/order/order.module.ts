@@ -33,7 +33,7 @@ import { ProductModule } from '@/modules/commerce/product/product.module';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { AccountModule } from '@/modules/client/account/account.module';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
 import { OrderService } from './application/services/order.service';
 
@@ -45,7 +45,7 @@ import { OrderService } from './application/services/order.service';
       Product,
       SystemSetting,
     ]),
-    forwardRef(() => ClientProfileModule),
+    forwardRef(() => AccountModule),
     forwardRef(() => PujaAppointmentModule),
     forwardRef(() => CartModule),
     forwardRef(() => ProductModule),

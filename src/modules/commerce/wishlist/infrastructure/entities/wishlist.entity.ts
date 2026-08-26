@@ -6,7 +6,7 @@ import {
   Unique,
   Column,
 } from 'typeorm';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
@@ -22,9 +22,9 @@ export class Wishlist {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @ManyToOne(() => ProfileClient, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient;
+  client!: ClientAccount;
 
   @Column({ name: 'client_id', type: 'uuid' })
   client_id!: string;

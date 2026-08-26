@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import {
   CommissionsFacade,
   CommissionEventType,
@@ -67,7 +67,7 @@ export class SettleAgentCommissionsUseCase {
         )
         .leftJoinAndMapOne(
           'u.profile_client',
-          ProfileClient,
+          ClientAccount,
           'pc',
           'pc.user_id = u.id',
         )
