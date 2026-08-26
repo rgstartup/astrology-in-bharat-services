@@ -21,7 +21,7 @@ import { TokenCryptoService } from './services/token-crypto.service';
 import { ClientRegisteredHandler } from './services/client-registered.handler';
 import { ClientJwtStrategy } from './strategies/jwt.strategy';
 import { ClientGoogleStrategy } from './strategies/google-auth.strategy';
-import { JwtAuthGuard } from './guards/auth.guard';
+import { ClientJwtAuthGuard } from './guards/auth.guard';
 import { ClientGoogleAuthGuard } from './guards/google-auth.guard';
 
 const useCases = [
@@ -48,7 +48,7 @@ const useCases = [
     ClientRegisteredHandler,
     ClientJwtStrategy,
     ClientGoogleStrategy,
-    JwtAuthGuard,
+    ClientJwtAuthGuard,
     ClientGoogleAuthGuard,
     {
       provide: IHasherToken,
@@ -57,9 +57,9 @@ const useCases = [
   ],
   exports: [
     ClientAuthFacade,
-    JwtAuthGuard,
+    ClientJwtAuthGuard,
     ClientGoogleAuthGuard,
     TypeOrmModule,
   ],
 })
-export class AuthModule {}
+export class AuthModule { }

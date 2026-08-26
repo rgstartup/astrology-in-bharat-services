@@ -9,7 +9,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard } from '@/modules/client/auth/guards/auth.guard';
+import { ClientJwtAuthGuard } from '@/modules/client/auth/guards/auth.guard';
 import { CurrentClient } from '@/common/decorators/current-client.decorator';
 import { AccountFacade } from '../account.facade';
 import {
@@ -20,7 +20,7 @@ import { SendPhoneOtpDto, VerifyPhoneOtpDto } from '../dto/phone-otp.dto';
 import { ClientAccount } from '../entities/account.entity';
 
 @Controller('client/account')
-@UseGuards(JwtAuthGuard)
+@UseGuards(ClientJwtAuthGuard)
 export class AccountController {
   constructor(private readonly accountFacade: AccountFacade) { }
 
