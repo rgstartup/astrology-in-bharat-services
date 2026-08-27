@@ -5,7 +5,7 @@ import {
   ProfileMerchant,
   MerchantStatus,
 } from '../../infrastructure/entities/profile-merchant.entity';
-import { Wishlist } from '@/modules/commerce/wishlist/infrastructure/entities/wishlist.entity';
+import { Wishlist } from '@/modules/client/commerce/wishlist/infrastructure/entities/wishlist.entity';
 
 import { GetPublicMerchantsDto } from '../../api/dto/get-public-merchants.dto';
 
@@ -18,10 +18,7 @@ export class GetAllMerchantsUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(
-    dto: GetPublicMerchantsDto,
-    currentUserId?: string,
-  ) {
+  async execute(dto: GetPublicMerchantsDto, currentUserId?: string) {
     const { search, city, page = 1, limit = 10 } = dto;
     const skip = (page - 1) * limit;
 

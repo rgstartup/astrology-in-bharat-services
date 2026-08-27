@@ -1,6 +1,6 @@
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Injectable } from '@nestjs/common';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
@@ -16,7 +16,10 @@ export class SendOrderOtpUseCase {
   ) {}
 
   async execute(merchantId: string, orderId: string) {
-    const { order, merchantItems } = await this.orderFacade.sendOrderOtp(orderId, merchantId);
+    const { order, merchantItems } = await this.orderFacade.sendOrderOtp(
+      orderId,
+      merchantId,
+    );
 
     const otp = merchantItems[0]?.delivery_otp || order.delivery_otp;
     const title = 'Delivery Verification';

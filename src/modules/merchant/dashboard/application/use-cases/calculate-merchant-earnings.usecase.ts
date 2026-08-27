@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import {
   CommissionsFacade,

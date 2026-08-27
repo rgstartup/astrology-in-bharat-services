@@ -11,7 +11,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 
 import { ConsultationModule } from '@/modules/consultation/consultation.module';
-import { OrderModule } from '@/modules/commerce/order/order.module';
+import { OrderModule } from '@/modules/client/commerce/order/order.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 
 @Module({

@@ -24,7 +24,7 @@ export class AccountFacade {
     private readonly uploadDocumentUseCase: UploadDocumentUseCase,
     private readonly sendPhoneOtpUseCase: SendPhoneOtpUseCase,
     private readonly verifyPhoneOtpUseCase: VerifyPhoneOtpUseCase,
-  ) { }
+  ) {}
 
   async getAccount(
     client: ClientAccount | { id: string },

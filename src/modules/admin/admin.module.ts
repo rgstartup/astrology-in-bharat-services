@@ -25,7 +25,7 @@ import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { ProfileModule } from '@/modules/expert/profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminAuditLog } from './infrastructure/entities/admin-audit-log.entity';
-import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
+import { CouponModule } from '@/modules/client/commerce/coupon/coupon.module';
 import { ChatSession } from '../consultation/chat/infrastructure/entities/chat-session.entity';
 import { ExternalModule } from '@/external/external.module';
 import { User } from '../users/infrastructure/entities/user.entity';
@@ -45,7 +45,7 @@ import { UpdateSystemSettingUseCase } from './application/use-cases/update-syste
 import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 import { ConsultationModule } from '../consultation/consultation.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
-import { OrderModule } from '@/modules/commerce/order/order.module';
+import { OrderModule } from '@/modules/client/commerce/order/order.module';
 
 import { PublicSettingsController } from './api/controllers/public-settings.controller';
 import { IHasherToken } from '@/common/contracts/hasher.contract';

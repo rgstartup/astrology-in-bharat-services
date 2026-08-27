@@ -10,7 +10,7 @@ import { Review } from '../../infrastructure/entities/review.entity';
 import {
   Order,
   OrderStatus,
-} from '@/modules/commerce/order/infrastructure/entities/order.entity';
+} from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';

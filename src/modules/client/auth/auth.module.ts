@@ -17,18 +17,22 @@ import { InitiateClientEmailRegistrationUseCase } from './use-cases/initiate-cli
 import { CompleteClientEmailRegistrationUseCase } from './use-cases/complete-client-email-registration.usecase';
 import { ClientLoginWithEmailUseCase } from './use-cases/client-login-with-email.usecase';
 import { ClientLoginWithGoogleUseCase } from './use-cases/client-login-with-google.usecase';
+import { ClientRefreshTokenUseCase } from './use-cases/client-refresh-token.usecase';
 import { TokenCryptoService } from './services/token-crypto.service';
 import { ClientRegisteredHandler } from './services/client-registered.handler';
 import { ClientJwtStrategy } from './strategies/jwt.strategy';
 import { ClientGoogleStrategy } from './strategies/google-auth.strategy';
+import { ClientJwtRefreshStrategy } from './strategies/refresh-jwt.strategy';
 import { ClientJwtAuthGuard } from './guards/auth.guard';
 import { ClientGoogleAuthGuard } from './guards/google-auth.guard';
+import { ClientJwtRefreshAuthGuard } from './guards/refresh-auth.guard';
 
 const useCases = [
   InitiateClientEmailRegistrationUseCase,
   CompleteClientEmailRegistrationUseCase,
   ClientLoginWithEmailUseCase,
   ClientLoginWithGoogleUseCase,
+  ClientRefreshTokenUseCase,
 ];
 
 @Module({
@@ -48,8 +52,10 @@ const useCases = [
     ClientRegisteredHandler,
     ClientJwtStrategy,
     ClientGoogleStrategy,
+    ClientJwtRefreshStrategy,
     ClientJwtAuthGuard,
     ClientGoogleAuthGuard,
+    ClientJwtRefreshAuthGuard,
     {
       provide: IHasherToken,
       useClass: Argon2PasswordHasher,
@@ -59,6 +65,7 @@ const useCases = [
     ClientAuthFacade,
     ClientJwtAuthGuard,
     ClientGoogleAuthGuard,
+    ClientJwtRefreshAuthGuard,
     TypeOrmModule,
   ],
 })

@@ -25,7 +25,6 @@ import { LocationsModule } from '@/modules/locations/locations.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { MerchantModule } from './modules/merchant/merchant.module';
 import { ConsultationModule } from './modules/consultation/consultation.module';
-import { CommerceModule } from './modules/commerce/commerce.module';
 import { EmailWorkerModule } from './workers/email/email-worker.module';
 import { APP_GUARD } from '@nestjs/core';
 import { BlockStatusGuard } from '@/common/guards/block-status.guard';
@@ -63,7 +62,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     PujaAppointmentModule,
     MerchantModule,
     ConsultationModule,
-    CommerceModule,
     EmailWorkerModule,
   ],
   providers: [

@@ -23,7 +23,7 @@ import { AdminPermissionGuard } from '@/common/guards/admin-permission.guard';
 import { RequirePermissions } from '@/common/decorators/permissions.decorator';
 import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermission.enum';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
-import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
+import { CouponFacade } from '@/modules/client/commerce/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { IUser } from '@/common/types/access-token.payload';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';

@@ -31,7 +31,7 @@ import { ResolveSessionDetailsUseCase } from './application/use-cases/resolve-se
 
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
-import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
+import { CouponModule } from '@/modules/client/commerce/coupon/coupon.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { QueueModule } from '@/core/queue/queue.module';
 

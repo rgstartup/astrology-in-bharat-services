@@ -15,8 +15,8 @@ import { MerchantProductsController } from './api/controllers/merchant-products.
 import { MerchantFinanceController } from './api/controllers/merchant-finance.controller';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
-import { OrderModule } from '@/modules/commerce/order/order.module';
-import { ProductModule } from '@/modules/commerce/product/product.module';
+import { OrderModule } from '@/modules/client/commerce/order/order.module';
+import { ProductModule } from '@/modules/client/commerce/product/product.module';
 import { ConsultationModule } from '@/modules/consultation/consultation.module';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileModule } from '../profile/profile.module';

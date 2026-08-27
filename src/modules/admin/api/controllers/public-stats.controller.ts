@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { Public } from '@/common/decorators/public.decorator';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 
 @Controller({

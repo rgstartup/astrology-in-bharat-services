@@ -9,7 +9,7 @@ import {
 import {
   Order,
   OrderStatus,
-} from '@/modules/commerce/order/infrastructure/entities/order.entity';
+} from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 export interface FilterCriteria {
@@ -198,11 +198,11 @@ export class GetFilteredUsersUseCase {
   async executeIds(filters: FilterCriteria): Promise<string[]> {
     const query = this.buildBaseQuery(filters);
     this.applyComplexFilters(query, filters);
-    
+
     // Select only IDs for maximum performance (no enhancement queries)
     query.select('user.id');
     const users = await query.getMany();
-    
-    return users.map(u => u.id);
+
+    return users.map((u) => u.id);
   }
 }

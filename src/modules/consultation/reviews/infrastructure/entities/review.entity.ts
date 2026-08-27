@@ -10,7 +10,7 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
-import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { Order } from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'consultations', name: 'reviews' })

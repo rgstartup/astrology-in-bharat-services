@@ -11,7 +11,7 @@ import {
 } from '../../infrastructure/entities/payment-order.entity';
 import { VerifyPaymentDto } from '../../api/dto/verify-payment.dto';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
 import { PaymentPolicy } from '../../domain/policies/payment.policy';
 import { DomainError } from '@/common/types/domain.error';
 import { PaymentVerificationFailedError } from '../../domain/errors/payment.errors';

@@ -18,9 +18,13 @@ export class GetAccountUseCase {
       ? queryRunner.manager.getRepository(ClientAccount)
       : this.accountRepo;
 
-    return repo.findOne({
-      where: [{ id: client.id }, { user: { id: client.id } }],
-      relations: ['user', 'addresses'],
+    const data = await repo.findOne({
+      where: { id: client.id },
+      // relations: ['addresses'],
     });
+
+    console.log(data);
+
+    return data;
   }
 }

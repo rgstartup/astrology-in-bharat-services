@@ -30,10 +30,9 @@ export class ClientJwtStrategy extends PassportStrategy(
       where: {
         id: payload.sub,
       },
-      relations: ['user'],
     });
 
-    if (!client || client.is_blocked || client.user?.is_blocked) {
+    if (!client || client.is_blocked) {
       throw new UnauthorizedException();
     }
 

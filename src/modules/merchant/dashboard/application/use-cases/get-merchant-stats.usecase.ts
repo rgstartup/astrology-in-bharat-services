@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
-import { ProductFacade } from '@/modules/commerce/product/application/product.facade';
+import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
+import { ProductFacade } from '@/modules/client/commerce/product/application/product.facade';
 import { CalculateMerchantEarningsUseCase } from './calculate-merchant-earnings.usecase';
 
 @Injectable()

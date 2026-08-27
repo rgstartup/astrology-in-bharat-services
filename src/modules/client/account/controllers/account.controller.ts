@@ -26,7 +26,7 @@ export class AccountController {
 
   @Get()
   async getAccount(@CurrentClient() client: ClientAccount) {
-    return this.accountFacade.getAccount(client);
+    return client;
   }
 
   @Post()

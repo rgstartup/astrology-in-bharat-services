@@ -16,6 +16,7 @@ import { ClientAuthFacade } from '../auth.facade';
 import { ClientLoginDto } from '../dto/client-login.dto';
 import { ClientGoogleAuthGuard } from '../guards/google-auth.guard';
 import { ClientGoogleAuthResult } from '../strategies/google-auth.strategy';
+import { ClientJwtRefreshAuthGuard } from '../guards/refresh-auth.guard';
 
 @Controller({
   path: 'auth/client',
@@ -80,6 +81,27 @@ export class ClientAuthController {
     this.setCookies(res, authData.tokens);
 
     return res.redirect(authData.redirect_uri!);
+  }
+
+  @Post('refresh')
+  @Get('refresh')
+  @UseGuards(ClientJwtRefreshAuthGuard)
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = (req as unknown as Record<string, unknown>)[
+      'refreshToken'
+    ] as string;
+
+    const tokens = await this.clientAuthFacade.refreshToken(
+      refreshToken,
+      req.ip,
+      req.get('user-agent'),
+    );
+
+    this.setCookies(res, tokens);
+    return tokens;
   }
 
   private setCookies(

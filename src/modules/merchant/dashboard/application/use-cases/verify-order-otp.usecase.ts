@@ -1,14 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
-import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
+import { OrderStatus } from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
 
 @Injectable()
 export class VerifyOrderOtpUseCase {
   private readonly logger = new Logger(VerifyOrderOtpUseCase.name);
 
-  constructor(
-    private readonly orderFacade: OrderFacade,
-  ) {}
+  constructor(private readonly orderFacade: OrderFacade) {}
 
   async execute(merchantUserId: string, orderId: string, otp: string) {
     const { netPayout } = await this.orderFacade.verifyOrderOtp(

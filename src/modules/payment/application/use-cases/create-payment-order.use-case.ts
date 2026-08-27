@@ -10,7 +10,7 @@ import {
   PaymentStatus,
 } from '../../infrastructure/entities/payment-order.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
 import { ConfigService } from '@nestjs/config';
 import { DomainError } from '@/common/types/domain.error';
 import { PaymentOrderCreationFailedError } from '../../domain/errors/payment.errors';
@@ -28,7 +28,7 @@ export class CreatePaymentOrderUseCase {
     private readonly orderFacade: OrderFacade,
     private readonly configService: ConfigService,
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
   async execute(user: IUser, dto: CreateOrderDto) {
     const userId = user.id;
