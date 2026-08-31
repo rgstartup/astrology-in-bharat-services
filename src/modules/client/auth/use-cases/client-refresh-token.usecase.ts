@@ -34,6 +34,15 @@ export class ClientRefreshTokenUseCase {
     }
 
     const foundSession = await this.sessionRepo.findOne({
+      select: {
+        id: true,
+        revoked: true,
+        secret_hash: true,
+        expires_at: true,
+        user: {
+          id: true,
+        },
+      },
       where: {
         id: sessionId,
         type: 'refresh_token',
@@ -73,16 +82,8 @@ export class ClientRefreshTokenUseCase {
     ) {
       throw new ForbiddenException('Your account has been suspended');
     }
-
-    return this.db.transaction(async (queryRunner) => {
-      // 1. Revoke previous session
-      await queryRunner.manager.update(
-        Session,
-        { id: foundSession.id },
-        { revoked: true },
-      );
-
-      // 2. Generate new tokens
+    const start = performance.now();
+    const result = await this.db.transaction(async (queryRunner) => {
       const [accessToken, newRefreshToken] = await Promise.all([
         this.tokenCrypto.createAccessToken<IAccessTokenPayloadClient>({
           sub: clientAccount.id,
@@ -91,23 +92,25 @@ export class ClientRefreshTokenUseCase {
         this.tokenCrypto.createRefreshToken(),
       ]);
 
-      // 3. Create new session (7-day expiration)
       const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
-      const newSession = queryRunner.manager.create(Session, {
-        user: foundSession.user,
-        ip_address: ip,
-        user_agent: userAgent,
-        type: 'refresh_token',
-        secret_hash: newRefreshToken.hash,
-        expires_at: new Date(Date.now() + SEVEN_DAYS_IN_MS),
-      });
 
-      await queryRunner.manager.save(Session, newSession);
+      await queryRunner.manager.update(
+        Session,
+        { id: foundSession.id },
+        {
+          secret_hash: newRefreshToken.hash,
+          expires_at: new Date(Date.now() + SEVEN_DAYS_IN_MS),
+          ip_address: ip,
+          user_agent: userAgent,
+        },
+      );
 
       return {
         accessToken,
-        refreshToken: `${newSession.id}.${newRefreshToken.raw}`,
+        refreshToken: `${foundSession.id}.${newRefreshToken.raw}`,
       };
     });
+    console.log('hash verify:', performance.now() - start, 'ms');
+    return result;
   }
 }

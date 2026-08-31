@@ -69,4 +69,4 @@ const useCases = [
     TypeOrmModule,
   ],
 })
-export class AuthModule { }
+export class AuthModule {}

@@ -23,7 +23,7 @@ import { ClientJwtRefreshAuthGuard } from '../guards/refresh-auth.guard';
   version: '1',
 })
 export class ClientAuthController {
-  constructor(private readonly clientAuthFacade: ClientAuthFacade) { }
+  constructor(private readonly clientAuthFacade: ClientAuthFacade) {}
 
   @Post('email/register/initiate')
   async initiateEmailRegistration(@Body() dto: InitiateClientRegisterDto) {

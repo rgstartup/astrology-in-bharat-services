@@ -8,7 +8,7 @@ export class ClientJwtRefreshStrategy extends PassportStrategy(
   Strategy,
   'client-jwt-refresh',
 ) {
-  async validate(req: Request) {
+  validate(req: Request) {
     const cookies = req.cookies as Record<string, string> | undefined;
     const authHeader = req.headers?.authorization;
     const bodyToken = (req.body as Record<string, string> | undefined)

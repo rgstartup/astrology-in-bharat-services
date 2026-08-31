@@ -7,6 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { NotificationType } from '../../infrastructure/entities/notification.entity';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -34,17 +35,32 @@ export class NotificationGateway {
 
   emitToProfile(profileId: string, event: string, data: unknown) {
     if (!this.server) {
-      this.logger.warn(`Cannot emit event ${event} because WebSocketServer is not initialized.`);
+      this.logger.warn(
+        `Cannot emit event ${event} because WebSocketServer is not initialized.`,
+      );
       return;
     }
     this.server.to(`profile_${profileId}`).emit(event, data);
     this.logger.log(`Emitted ${event} to profile ${profileId}`);
   }
 
+  emitToClient<T extends object>(id: string, event: NotificationType, data: T) {
+    if (!this.server) {
+      this.logger.warn(
+        `Cannot emit event ${event} because WebSocketServer is not initialized.`,
+      );
+      return;
+    }
+    this.server.to(`profile_${id}`).emit(event, data);
+    this.logger.log(`Emitted ${event} to client ${id}`);
+  }
+
   // Method to emit to all admins
   emitToAdmins(event: string, data: unknown) {
     if (!this.server) {
-      this.logger.warn(`Cannot emit event ${event} to admins because WebSocketServer is not initialized.`);
+      this.logger.warn(
+        `Cannot emit event ${event} to admins because WebSocketServer is not initialized.`,
+      );
       return;
     }
     this.server.to('admin_room').emit(event, data);
