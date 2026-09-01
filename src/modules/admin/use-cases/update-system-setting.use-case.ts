@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SystemSetting } from '../../infrastructure/entities/system-setting.entity';
-import { UpdateSystemSettingDto } from '../../api/dto/update-system-setting.dto';
+import { SystemSetting } from '../entities/system-setting.entity';
+import { UpdateSystemSettingDto } from '../dto/update-system-setting.dto';
 
 @Injectable()
 export class UpdateSystemSettingUseCase {

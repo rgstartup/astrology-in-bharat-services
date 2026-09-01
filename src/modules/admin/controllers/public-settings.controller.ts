@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { GetSupportSettingsUseCase } from '../../application/use-cases/get-support-settings.usecase';
-import { GetSystemSettingsUseCase } from '../../application/use-cases/get-system-settings.use-case';
+import { GetSupportSettingsUseCase } from '../use-cases/get-support-settings.usecase';
+import { GetSystemSettingsUseCase } from '../use-cases/get-system-settings.use-case';
 import { Public } from '@/common/decorators/public.decorator';
 
 @Controller({

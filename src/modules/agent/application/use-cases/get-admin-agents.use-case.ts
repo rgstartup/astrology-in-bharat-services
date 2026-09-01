@@ -1,5 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { AdminFacade } from '@/modules/admin/application/admin.facade';
+import { AdminFacade } from '@/modules/admin/admin.facade';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AgentFacade } from '../agent.facade';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
@@ -12,7 +12,7 @@ export class GetAdminAgentsUseCase {
     private readonly adminFacade: AdminFacade,
     @Inject(forwardRef(() => AgentFacade))
     private readonly agentFacade: AgentFacade,
-  ) { }
+  ) {}
 
   async execute(params: {
     page?: number;

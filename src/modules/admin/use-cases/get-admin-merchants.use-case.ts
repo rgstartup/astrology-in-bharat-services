@@ -1,6 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
-import { GetAdminMerchantsDto } from '../../api/dto/get-merchants.dto';
+import { GetAdminMerchantsDto } from '../dto/get-merchants.dto';
 
 @Injectable()
 export class GetAdminMerchantsUseCase {

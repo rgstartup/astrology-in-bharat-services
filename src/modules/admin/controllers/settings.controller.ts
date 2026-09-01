@@ -7,10 +7,10 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import { GetSupportSettingsUseCase } from '../../application/use-cases/get-support-settings.usecase';
-import { GetSystemSettingsUseCase } from '../../application/use-cases/get-system-settings.use-case';
-import { UpdateSystemSettingUseCase } from '../../application/use-cases/update-system-setting.use-case';
-import { UpdateSupportSettingsUseCase } from '../../application/use-cases/update-support-settings.use-case';
+import { GetSupportSettingsUseCase } from '../use-cases/get-support-settings.usecase';
+import { GetSystemSettingsUseCase } from '../use-cases/get-system-settings.use-case';
+import { UpdateSystemSettingUseCase } from '../use-cases/update-system-setting.use-case';
+import { UpdateSupportSettingsUseCase } from '../use-cases/update-support-settings.use-case';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';

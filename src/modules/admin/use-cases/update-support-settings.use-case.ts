@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SystemSetting } from '../../infrastructure/entities/system-setting.entity';
-import { UpdateSupportSettingsDto } from '../../api/dto/update-support-settings.dto';
+import { SystemSetting } from '../entities/system-setting.entity';
+import { UpdateSupportSettingsDto } from '../dto/update-support-settings.dto';
 
 @Injectable()
 export class UpdateSupportSettingsUseCase {

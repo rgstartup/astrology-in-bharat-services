@@ -9,7 +9,7 @@ import {
   CommissionType,
 } from '../../infrastructure/entities/commission-rule.entity';
 import { CommissionTier } from '../../infrastructure/entities/commission-tier.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 
 export interface ResolvedCommission {
   amount: number;

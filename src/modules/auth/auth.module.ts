@@ -9,7 +9,7 @@ import { OAuthAccount } from './infrastructure/entities/oauth-accounts.entity';
 import { JwtStrategy } from './api/strategies/jwt.strategy';
 import { DatabaseModule } from '@/core/database/database.module';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
 import { QueueModule } from '@/core/queue/queue.module';
@@ -172,10 +172,6 @@ const handlers = [
     SessionRepository,
     AuthTokenService,
   ],
-  controllers: [
-    AuthController,
-    MerchantAuthController,
-    GoogleAuthController,
-  ],
+  controllers: [AuthController, MerchantAuthController, GoogleAuthController],
 })
 export class AuthModule {}

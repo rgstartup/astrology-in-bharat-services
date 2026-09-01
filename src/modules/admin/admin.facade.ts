@@ -19,7 +19,7 @@ import { UpdateMerchantStatusAdminUseCase } from './use-cases/update-merchant-st
 import { UpdateListingStatusAdminUseCase } from './use-cases/update-listing-status-admin.use-case';
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
-import { CreateAgentDto } from '../api/dto/create-agent.dto';
+import { CreateAgentDto } from './dto/create-agent.dto';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { SupportFacade } from '@/modules/support/application/support.facade';
@@ -27,18 +27,18 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { GetSystemSettingsUseCase } from './use-cases/get-system-settings.use-case';
 
 // New DTO imports
-import { GetClientsDto } from '../api/dto/get-clients.dto';
-import { GetExpertsDto } from '../api/dto/get-experts.dto';
-import { GetLiveSessionsDto } from '../api/dto/get-live-sessions.dto';
-import { TerminateSessionDto } from '../api/dto/terminate-session.dto';
-import { GetWithdrawalsDto } from '../api/dto/get-withdrawals.dto';
-import { UpdateWithdrawalStatusDto } from '../api/dto/update-withdrawal-status.dto';
-import { UpdateExpertStatusDto } from '../api/dto/update-expert-status.dto';
-import { GetAdminMerchantsDto } from '../api/dto/get-merchants.dto';
-import { GetAgentsDto } from '../api/dto/get-agents.dto';
-import { GetAdminListingsDto } from '../api/dto/get-listings.dto';
-import { GetDisputesDto } from '../api/dto/get-disputes.dto';
-import { UpdateDisputeStatusDto } from '../api/dto/update-dispute-status.dto';
+import { GetClientsDto } from './dto/get-clients.dto';
+import { GetExpertsDto } from './dto/get-experts.dto';
+import { GetLiveSessionsDto } from './dto/get-live-sessions.dto';
+import { TerminateSessionDto } from './dto/terminate-session.dto';
+import { GetWithdrawalsDto } from './dto/get-withdrawals.dto';
+import { UpdateWithdrawalStatusDto } from './dto/update-withdrawal-status.dto';
+import { UpdateExpertStatusDto } from './dto/update-expert-status.dto';
+import { GetAdminMerchantsDto } from './dto/get-merchants.dto';
+import { GetAgentsDto } from './dto/get-agents.dto';
+import { GetAdminListingsDto } from './dto/get-listings.dto';
+import { GetDisputesDto } from './dto/get-disputes.dto';
+import { UpdateDisputeStatusDto } from './dto/update-dispute-status.dto';
 
 // New Use Case imports
 import { GetAdminClientsUseCase } from './use-cases/get-admin-clients.use-case';
@@ -184,7 +184,7 @@ export class AdminFacade {
     return this.getEarningsBreakdownUseCase.execute(days);
   }
 
-  async getTopExperts(limit: number = 5) {
+  async getTopExperts(limit: number) {
     return this.getTopExpertsUseCase.execute(limit);
   }
 

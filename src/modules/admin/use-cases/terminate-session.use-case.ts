@@ -1,6 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
-import { TerminateSessionDto } from '../../api/dto/terminate-session.dto';
+import { TerminateSessionDto } from '../dto/terminate-session.dto';
 
 @Injectable()
 export class TerminateSessionUseCase {

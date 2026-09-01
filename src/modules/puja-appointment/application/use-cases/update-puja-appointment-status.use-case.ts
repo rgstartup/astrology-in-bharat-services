@@ -15,12 +15,23 @@ import { UpdatePujaAppointmentStatusDto } from '../dtos/update-puja-appointment-
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
-import { CommissionSplit, SplitReferenceType } from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
+import {
+  Transaction,
+  TransactionType,
+  TransactionPurpose,
+} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
+import {
+  CommissionSplit,
+  SplitReferenceType,
+} from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
-import { GeneralLedgerEntryType, GeneralLedgerEventType, GeneralLedgerPartyType } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+import {
+  GeneralLedgerEntryType,
+  GeneralLedgerEventType,
+  GeneralLedgerPartyType,
+} from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 import { Todo } from '@/modules/expert/todos/infrastructure/entities/todo.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
@@ -56,8 +67,14 @@ export class UpdatePujaAppointmentStatusUseCase {
       puja: {
         platform_fee: ['commission.puja.platform', 'commission.puja.rate'],
         gst: ['commission.puja.gst', 'tax.gst.rate'],
-        seller_agent: ['commission.puja.agent.seller', 'commission.agent.seller.rate'],
-        buyer_agent: ['commission.puja.agent.buyer', 'commission.agent.buyer.rate'],
+        seller_agent: [
+          'commission.puja.agent.seller',
+          'commission.agent.seller.rate',
+        ],
+        buyer_agent: [
+          'commission.puja.agent.buyer',
+          'commission.agent.buyer.rate',
+        ],
       },
     };
 
@@ -81,7 +98,8 @@ export class UpdatePujaAppointmentStatusUseCase {
       }
     }
     const defaultRate = DEFAULT_RATES[commissionType] ?? 5;
-    if (commissionType === 'gst') return { amount: defaultRate, rate: defaultRate, ruleId: null };
+    if (commissionType === 'gst')
+      return { amount: defaultRate, rate: defaultRate, ruleId: null };
     const amt = Number((grossAmount * (defaultRate / 100)).toFixed(2));
     return { amount: amt, rate: defaultRate, ruleId: null };
   }
@@ -154,18 +172,25 @@ export class UpdatePujaAppointmentStatusUseCase {
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(
+        `[TX] Failed to generate transaction no: ${(err as Error).message}`,
+      );
       throw err;
     }
 
-    const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+    const purposeToLedgerEventType: Record<
+      TransactionPurpose,
+      GeneralLedgerEventType
+    > = {
       [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
       [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
       [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
       [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
-      [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+      [TransactionPurpose.PRODUCT_PURCHASE]:
+        GeneralLedgerEventType.PRODUCT_ORDER,
       [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-      [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+      [TransactionPurpose.AGENT_COMMISSION]:
+        GeneralLedgerEventType.AGENT_COMMISSION,
     };
 
     const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
@@ -179,7 +204,8 @@ export class UpdatePujaAppointmentStatusUseCase {
       event_id: referenceId ?? null,
       event_type: purposeToLedgerEventType[purpose],
       entry_type: GeneralLedgerEntryType.DEBIT,
-      party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+      party_type:
+        walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
       party_id: profileId,
       amount,
     });
@@ -249,18 +275,25 @@ export class UpdatePujaAppointmentStatusUseCase {
       );
       await manager.save(Transaction, savedTx);
     } catch (err) {
-      console.error(`[TX] Failed to generate transaction no: ${(err as Error).message}`);
+      console.error(
+        `[TX] Failed to generate transaction no: ${(err as Error).message}`,
+      );
       throw err;
     }
 
-    const purposeToLedgerEventType: Record<TransactionPurpose, GeneralLedgerEventType> = {
+    const purposeToLedgerEventType: Record<
+      TransactionPurpose,
+      GeneralLedgerEventType
+    > = {
       [TransactionPurpose.RECHARGE]: GeneralLedgerEventType.RECHARGE,
       [TransactionPurpose.CONSULTATION]: GeneralLedgerEventType.CONSULTATION,
       [TransactionPurpose.REFUND]: GeneralLedgerEventType.REFUND,
       [TransactionPurpose.WITHDRAWAL]: GeneralLedgerEventType.WITHDRAWAL,
-      [TransactionPurpose.PRODUCT_PURCHASE]: GeneralLedgerEventType.PRODUCT_ORDER,
+      [TransactionPurpose.PRODUCT_PURCHASE]:
+        GeneralLedgerEventType.PRODUCT_ORDER,
       [TransactionPurpose.PUJA_CONFIRMATION]: GeneralLedgerEventType.PUJA,
-      [TransactionPurpose.AGENT_COMMISSION]: GeneralLedgerEventType.AGENT_COMMISSION,
+      [TransactionPurpose.AGENT_COMMISSION]:
+        GeneralLedgerEventType.AGENT_COMMISSION,
     };
 
     const walletKeyToPartyType: Record<string, GeneralLedgerPartyType> = {
@@ -274,7 +307,8 @@ export class UpdatePujaAppointmentStatusUseCase {
       event_id: referenceId ?? null,
       event_type: purposeToLedgerEventType[purpose],
       entry_type: GeneralLedgerEntryType.CREDIT,
-      party_type: walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
+      party_type:
+        walletKeyToPartyType[walletKey] ?? GeneralLedgerPartyType.CLIENT,
       party_id: profileId,
       amount,
     });
@@ -296,13 +330,16 @@ export class UpdatePujaAppointmentStatusUseCase {
             .createQueryBuilder()
             .update(ProfileExpert)
             .set({
-              total_earning: () => `COALESCE(total_earning, 0) + ${Number(amount)}`,
+              total_earning: () =>
+                `COALESCE(total_earning, 0) + ${Number(amount)}`,
             })
             .where('id = :id', { id: expertProfile.id })
             .execute();
         }
       } catch (e) {
-        console.error(`[CREDIT_TX] Earning tracking failed: ${(e as Error).message}`);
+        console.error(
+          `[CREDIT_TX] Earning tracking failed: ${(e as Error).message}`,
+        );
       }
     }
 
@@ -391,7 +428,9 @@ export class UpdatePujaAppointmentStatusUseCase {
 
           // Fetch Expert's full user profile for referral check
           const expertUser = await qr.manager.findOne(User, {
-            where: { id: (appointment.expert?.user_id as unknown as string) || '' },
+            where: {
+              id: (appointment.expert?.user_id as unknown as string) || '',
+            },
           });
 
           // Resolve commissions via rules engine locally
@@ -403,7 +442,7 @@ export class UpdatePujaAppointmentStatusUseCase {
             'expert',
             totalAmount,
           );
-          
+
           const gstResolved = await this.resolveCommissionLocal(
             qr.manager,
             'puja',
@@ -412,7 +451,7 @@ export class UpdatePujaAppointmentStatusUseCase {
             'all',
             totalAmount,
           );
-          
+
           const buyerAgentResolved = await this.resolveCommissionLocal(
             qr.manager,
             'puja',
@@ -531,24 +570,21 @@ export class UpdatePujaAppointmentStatusUseCase {
 
           // Write financial ledger entry
           try {
-            await this.createCommissionSplit(
-              qr.manager,
-              {
-                referenceId: `puja_appt_${appointment.id}`,
-                referenceType: SplitReferenceType.PUJA,
-                grossAmount: totalAmount,
-                platformFee,
-                gst,
-                sellerAgentCommission: agent_commission,
-                buyerAgentCommission: buyer_agent_commission,
-                providerNet: expertNetShare,
-                clientProfileId: appointment.client?.id ?? null,
-                providerProfileId: appointment.expert?.id ?? null,
-                sellerAgentProfileId: agent_id ?? null,
-                buyerAgentProfileId: buyer_agent_id ?? null,
-                commissionRuleId: platformFeeResolved.ruleId,
-              },
-            );
+            await this.createCommissionSplit(qr.manager, {
+              referenceId: `puja_appt_${appointment.id}`,
+              referenceType: SplitReferenceType.PUJA,
+              grossAmount: totalAmount,
+              platformFee,
+              gst,
+              sellerAgentCommission: agent_commission,
+              buyerAgentCommission: buyer_agent_commission,
+              providerNet: expertNetShare,
+              clientProfileId: appointment.client?.id ?? null,
+              providerProfileId: appointment.expert?.id ?? null,
+              sellerAgentProfileId: agent_id ?? null,
+              buyerAgentProfileId: buyer_agent_id ?? null,
+              commissionRuleId: platformFeeResolved.ruleId,
+            });
           } catch (err) {
             console.error('Failed to write puja ledger entry:', err);
           }

@@ -1,6 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { SupportFacade } from '@/modules/support/application/support.facade';
-import { UpdateDisputeStatusDto } from '../../api/dto/update-dispute-status.dto';
+import { UpdateDisputeStatusDto } from '../dto/update-dispute-status.dto';
 
 @Injectable()
 export class UpdateDisputeStatusUseCase {

@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { CreateAgentDto } from '../../api/dto/create-agent.dto';
+import { CreateAgentDto } from '../dto/create-agent.dto';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 

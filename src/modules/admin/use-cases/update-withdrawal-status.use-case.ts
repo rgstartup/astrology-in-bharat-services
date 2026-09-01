@@ -1,6 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { UpdateWithdrawalStatusDto } from '../../api/dto/update-withdrawal-status.dto';
+import { UpdateWithdrawalStatusDto } from '../dto/update-withdrawal-status.dto';
 
 @Injectable()
 export class UpdateWithdrawalStatusUseCase {

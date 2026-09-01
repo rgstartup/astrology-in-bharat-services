@@ -26,7 +26,7 @@ import {
   TransactionType,
 } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 
 @Injectable()

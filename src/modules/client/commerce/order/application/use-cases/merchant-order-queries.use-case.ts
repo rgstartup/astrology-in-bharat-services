@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderItem } from '../../infrastructure/entities/order-item.entity';
 import { Order } from '../../infrastructure/entities/order.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 
 @Injectable()
 export class MerchantOrderQueriesUseCase {
@@ -60,7 +64,9 @@ export class MerchantOrderQueriesUseCase {
       qb.andWhere('oi.created_at <= :endDate', { endDate });
     }
 
-    const monthlyEarningsQuery = (await qb.getRawOne()) as { sum?: string | number };
+    const monthlyEarningsQuery = (await qb.getRawOne()) as {
+      sum?: string | number;
+    };
     return Number(monthlyEarningsQuery?.sum) || 0;
   }
 
@@ -113,15 +119,15 @@ export class MerchantOrderQueriesUseCase {
       (item) => item.product.merchant_id === merchantId,
     );
     if (merchantItems.length === 0) {
-      throw new NotFoundException('No products from your shop found in this order');
+      throw new NotFoundException(
+        'No products from your shop found in this order',
+      );
     }
 
     // Generate OTP if not exists on items
-    let currentOtp = merchantItems.find(i => i.delivery_otp)?.delivery_otp;
+    let currentOtp = merchantItems.find((i) => i.delivery_otp)?.delivery_otp;
     if (!currentOtp) {
-      currentOtp = Math.floor(
-        100000 + Math.random() * 900000,
-      ).toString();
+      currentOtp = Math.floor(100000 + Math.random() * 900000).toString();
       for (const item of merchantItems) {
         item.delivery_otp = currentOtp;
         await this.orderItemRepo.save(item);
@@ -151,10 +157,12 @@ export class MerchantOrderQueriesUseCase {
       (item) => item.product.merchant_id === merchantId,
     );
     if (merchantItems.length === 0) {
-      throw new NotFoundException('No products from your shop found in this order');
+      throw new NotFoundException(
+        'No products from your shop found in this order',
+      );
     }
 
-    const validOtp = merchantItems.some(item => item.delivery_otp === otp);
+    const validOtp = merchantItems.some((item) => item.delivery_otp === otp);
     if (!validOtp) {
       throw new BadRequestException('Invalid delivery OTP');
     }
@@ -172,7 +180,9 @@ export class MerchantOrderQueriesUseCase {
       where: { key: 'GST_PERCENTAGE' },
     });
 
-    const platformFeeRate = platformSetting ? parseFloat(platformSetting.value) : 10;
+    const platformFeeRate = platformSetting
+      ? parseFloat(platformSetting.value)
+      : 10;
     const gstRate = gstSetting ? parseFloat(gstSetting.value) : 18;
 
     const estimatedFee = grossTotal * (platformFeeRate / 100);
@@ -244,11 +254,26 @@ export class MerchantOrderQueriesUseCase {
       .innerJoin('oi.product', 'p')
       .where('p.merchant_id = :merchantId', { merchantId })
       .select('COUNT(oi.id)', 'total')
-      .addSelect(`SUM(CASE WHEN oi.status IN ('pending', 'paid', 'processing', 'packed') THEN 1 ELSE 0 END)`, 'pending')
-      .addSelect(`SUM(CASE WHEN oi.status = 'shipped' THEN 1 ELSE 0 END)`, 'shipped')
-      .addSelect(`SUM(CASE WHEN oi.status = 'delivered' THEN 1 ELSE 0 END)`, 'delivered')
-      .addSelect(`SUM(CASE WHEN oi.status = 'cancelled' THEN 1 ELSE 0 END)`, 'cancelled')
-      .addSelect(`SUM(CASE WHEN oi.status = 'delivered' THEN oi.price * oi.quantity ELSE 0 END)`, 'revenue')
+      .addSelect(
+        `SUM(CASE WHEN oi.status IN ('pending', 'paid', 'processing', 'packed') THEN 1 ELSE 0 END)`,
+        'pending',
+      )
+      .addSelect(
+        `SUM(CASE WHEN oi.status = 'shipped' THEN 1 ELSE 0 END)`,
+        'shipped',
+      )
+      .addSelect(
+        `SUM(CASE WHEN oi.status = 'delivered' THEN 1 ELSE 0 END)`,
+        'delivered',
+      )
+      .addSelect(
+        `SUM(CASE WHEN oi.status = 'cancelled' THEN 1 ELSE 0 END)`,
+        'cancelled',
+      )
+      .addSelect(
+        `SUM(CASE WHEN oi.status = 'delivered' THEN oi.price * oi.quantity ELSE 0 END)`,
+        'revenue',
+      )
       .getRawOne()) as Record<string, string | number>;
 
     const stats = {

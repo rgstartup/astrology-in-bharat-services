@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { UpdateExpertStatusDto } from '../../api/dto/update-expert-status.dto';
+import { UpdateExpertStatusDto } from '../dto/update-expert-status.dto';
 
 @Injectable()
 export class UpdateExpertStatusUseCase {

@@ -11,7 +11,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermission.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
-import { AdminAuditLog } from '../../infrastructure/entities/admin-audit-log.entity';
+import { AdminAuditLog } from '../entities/admin-audit-log.entity';
 
 export interface UpdateSubAdminInput {
   targetId: string;
@@ -30,7 +30,7 @@ export class UpdateSubAdminUseCase {
     private readonly auditLogRepo: Repository<AdminAuditLog>,
     @Inject(IHasherToken)
     private readonly hasher: IHasher,
-  ) { }
+  ) {}
 
   async execute(input: UpdateSubAdminInput): Promise<Partial<User>> {
     const target = await this.userRepo.findOne({

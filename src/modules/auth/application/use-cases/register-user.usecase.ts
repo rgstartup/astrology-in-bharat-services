@@ -9,7 +9,7 @@ import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -26,7 +26,7 @@ export class RegisterUserUseCase {
     private readonly authTokenService: AuthTokenService,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
-  ) { }
+  ) {}
 
   async execute(dto: RegisterDto, ip?: string, userAgent?: string) {
     const response = await this.db.transaction(async (queryRunner) => {

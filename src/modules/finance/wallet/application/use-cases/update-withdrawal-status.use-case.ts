@@ -17,7 +17,7 @@ import {
 } from '../../infrastructure/entities/transaction.entity';
 import { RazorpayPayoutService } from '../../infrastructure/gateways/razorpay-payout.service';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { AdminAuditLog } from '@/modules/admin/infrastructure/entities/admin-audit-log.entity';
+import { AdminAuditLog } from '@/modules/admin/entities/admin-audit-log.entity';
 import {
   NotificationType,
   ProfileType,
@@ -322,7 +322,11 @@ export class UpdateWithdrawalStatusUseCase {
 
           // Generate a nice Transaction No for the refund
           transaction.transaction_no = generateTransactionNo(
-            withdrawal.expert_id ? 'EXPERT' : withdrawal.merchant_id ? 'MERCHANT' : 'AGENT',
+            withdrawal.expert_id
+              ? 'EXPERT'
+              : withdrawal.merchant_id
+                ? 'MERCHANT'
+                : 'AGENT',
             TransactionPurpose.REFUND,
             transaction.id,
           );

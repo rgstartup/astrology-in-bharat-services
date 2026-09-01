@@ -4,7 +4,7 @@ import { Order } from './infrastructure/entities/order.entity';
 import { OrderItem } from './infrastructure/entities/order-item.entity';
 import { QueueModule } from '@/core/queue/queue.module';
 //import by me
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 
 import {
   OrderController,

@@ -15,7 +15,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { AdminFacade } from '../../application/admin.facade';
+import { AdminFacade } from '../admin.facade';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';

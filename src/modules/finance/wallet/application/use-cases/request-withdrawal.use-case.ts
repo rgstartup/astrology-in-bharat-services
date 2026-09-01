@@ -22,7 +22,7 @@ import {
   ProfileType,
 } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
@@ -113,9 +113,11 @@ export class RequestWithdrawalUseCase {
             : RoleEnum.CLIENT;
 
     if (walletKey === 'expert_id') {
-      const profile_expert = await this.dataSource.getRepository(ProfileExpert).findOne({
-        where: { id: profileId },
-      });
+      const profile_expert = await this.dataSource
+        .getRepository(ProfileExpert)
+        .findOne({
+          where: { id: profileId },
+        });
       if (!profile_expert)
         throw new BadRequestException('Expert profile not found');
       if (profile_expert.kyc_status !== 'approved') {
@@ -125,9 +127,11 @@ export class RequestWithdrawalUseCase {
       }
       ownerIdField = 'w.expert_id';
     } else if (walletKey === 'merchant_id') {
-      const profile_merchant = await this.dataSource.getRepository(ProfileMerchant).findOne({
-        where: { id: profileId },
-      });
+      const profile_merchant = await this.dataSource
+        .getRepository(ProfileMerchant)
+        .findOne({
+          where: { id: profileId },
+        });
       if (!profile_merchant)
         throw new BadRequestException('Merchant profile not found');
       if (
@@ -252,16 +256,22 @@ export class RequestWithdrawalUseCase {
         }
 
         if (!merchantSnapshot.merchant_bank_name && bank_account_id) {
-          const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
-            where: { id: profileId },
-          });
+          const expertProfile = await queryRunner.manager.findOne(
+            ProfileExpert,
+            {
+              where: { id: profileId },
+            },
+          );
           if (expertProfile) {
-            const bankAccount = (await queryRunner.manager.findOne('BankAccount', {
-              where: {
-                id: bank_account_id as string,
-                expert_id: expertProfile.id,
+            const bankAccount = (await queryRunner.manager.findOne(
+              'BankAccount',
+              {
+                where: {
+                  id: bank_account_id as string,
+                  expert_id: expertProfile.id,
+                },
               },
-            })) as Record<string, unknown>;
+            )) as Record<string, unknown>;
             if (bankAccount) {
               merchantSnapshot = {
                 merchant_bank_name: bankAccount.bank_name,
@@ -346,7 +356,10 @@ export class RequestWithdrawalUseCase {
       else if (walletKey === 'agent_id')
         withdrawalData.agent_profile_id = walletOwnerId;
 
-      const newWithdrawal = queryRunner.manager.create(Withdrawal, withdrawalData);
+      const newWithdrawal = queryRunner.manager.create(
+        Withdrawal,
+        withdrawalData,
+      );
       const withdrawal = await queryRunner.manager.save(newWithdrawal);
 
       // G. Generate Custom IDs (transaction_no and withdrawal_no)
@@ -354,7 +367,12 @@ export class RequestWithdrawalUseCase {
         const { generateTransactionNo } = await import(
           '@/common/utils/transaction-no.util'
         );
-        const rolePrefix = walletKey === 'expert_id' ? 'EXPERT' : walletKey === 'merchant_id' ? 'MERCHANT' : 'AGENT';
+        const rolePrefix =
+          walletKey === 'expert_id'
+            ? 'EXPERT'
+            : walletKey === 'merchant_id'
+              ? 'MERCHANT'
+              : 'AGENT';
 
         // Update Transaction No
         transaction.transaction_no = generateTransactionNo(

@@ -1,6 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { SupportFacade } from '@/modules/support/application/support.facade';
-import { GetDisputesDto } from '../../api/dto/get-disputes.dto';
+import { GetDisputesDto } from '../dto/get-disputes.dto';
 
 @Injectable()
 export class GetAdminDisputesUseCase {

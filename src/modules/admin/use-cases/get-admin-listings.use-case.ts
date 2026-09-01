@@ -1,21 +1,21 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { AgentFacade } from '@/modules/agent/application/agent.facade';
-import { GetAgentsDto } from '../../api/dto/get-agents.dto';
+import { GetAdminListingsDto } from '../dto/get-listings.dto';
 
 @Injectable()
-export class GetAgentsUseCase {
+export class GetAdminListingsUseCase {
   constructor(
     @Inject(forwardRef(() => AgentFacade))
     private readonly agentFacade: AgentFacade,
   ) {}
 
-  async execute(dto: GetAgentsDto) {
-    const { page, limit, search, status } = dto;
-    return this.agentFacade.getAdminAgents({
+  async execute(dto?: GetAdminListingsDto) {
+    const { type, search, page, limit } = dto || {};
+    return this.agentFacade.getAdminListings({
+      type,
+      search,
       page,
       limit,
-      search,
-      status,
     });
   }
 }

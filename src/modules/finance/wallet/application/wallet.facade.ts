@@ -34,7 +34,7 @@ import {
   CommissionEventType,
   CommissionType,
 } from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';

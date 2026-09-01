@@ -20,10 +20,10 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { IUser } from '@/common/types/access-token.payload';
 import { CreateSubAdminDto } from '../dto/create-sub-admin.dto';
 import { UpdateSubAdminDto } from '../dto/update-sub-admin.dto';
-import { CreateSubAdminUseCase } from '../../application/use-cases/create-sub-admin.use-case';
-import { GetSubAdminsUseCase } from '../../application/use-cases/get-sub-admins.use-case';
-import { UpdateSubAdminUseCase } from '../../application/use-cases/update-sub-admin.use-case';
-import { DeleteSubAdminUseCase } from '../../application/use-cases/delete-sub-admin.use-case';
+import { CreateSubAdminUseCase } from '../use-cases/create-sub-admin.use-case';
+import { GetSubAdminsUseCase } from '../use-cases/get-sub-admins.use-case';
+import { UpdateSubAdminUseCase } from '../use-cases/update-sub-admin.use-case';
+import { DeleteSubAdminUseCase } from '../use-cases/delete-sub-admin.use-case';
 
 @Controller({ path: 'admin/sub-admins', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)

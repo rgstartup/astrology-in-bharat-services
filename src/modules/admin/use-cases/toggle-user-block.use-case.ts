@@ -11,7 +11,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { AdminAuditLog } from '../../infrastructure/entities/admin-audit-log.entity';
+import { AdminAuditLog } from '../entities/admin-audit-log.entity';
 
 export interface ToggleUserBlockInput {
   targetUserId: string; // Jis user ko block/unblock karna hai

@@ -4,7 +4,7 @@ import { Wallet } from './infrastructure/entities/wallet.entity';
 import { Transaction } from './infrastructure/entities/transaction.entity';
 import { Withdrawal } from './infrastructure/entities/withdrawal.entity';
 import { Idempotency } from './infrastructure/entities/idempotency.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { AgentModule } from '@/modules/agent/agent.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { AdminModule } from '@/modules/admin/admin.module';

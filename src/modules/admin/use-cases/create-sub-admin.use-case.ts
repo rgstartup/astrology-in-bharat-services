@@ -6,7 +6,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermission.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
-import { AdminAuditLog } from '../../infrastructure/entities/admin-audit-log.entity';
+import { AdminAuditLog } from '../entities/admin-audit-log.entity';
 
 export interface CreateSubAdminInput {
   name: string;
