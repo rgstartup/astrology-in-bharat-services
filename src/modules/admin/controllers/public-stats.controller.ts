@@ -4,6 +4,7 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
+import { AdminFacade } from '../admin.facade';
 
 @Controller({
   path: 'public/stats',
@@ -14,6 +15,7 @@ export class PublicStatsController {
     private readonly usersFacade: UsersFacade,
     private readonly orderFacade: OrderFacade,
     private readonly chatFacade: ChatFacade,
+    private readonly adminFacade: AdminFacade,
   ) {}
 
   @Public()
@@ -87,50 +89,13 @@ export class PublicStatsController {
   @Public()
   @Get('platform-stats')
   async getPlatformStats() {
-    try {
-      const [
-        totalUsers,
-        verifiedAstrologers,
-        totalConsultations,
-        totalProductsSold,
-      ] = await Promise.all([
-        // Total registered clients
-        this.usersFacade.getUsersCountByRole(RoleEnum.CLIENT),
+    const result = await this.adminFacade.getPlatformStats();
 
-        // Verified (KYC approved) astrologers
-        this.usersFacade.getVerifiedExpertsCount(),
-
-        // Total completed consultations
-        this.chatFacade.getTotalSessionsCount(),
-
-        // Total products sold
-        this.orderFacade.getSuccessfulOrdersCount(),
-      ]);
-
-      return {
-        success: true,
-        data: {
-          totalUsers,
-          verifiedAstrologers,
-          totalConsultations,
-          totalProductsSold,
-        },
-      };
-    } catch (error) {
-      console.error(
-        '[PublicStatsController] Error fetching platform stats:',
-        error,
-      );
-      return {
-        success: false,
-        message: 'Failed to fetch platform stats',
-        data: {
-          totalUsers: 0,
-          verifiedAstrologers: 0,
-          totalConsultations: 0,
-          totalProductsSold: 0,
-        },
-      };
-    }
+    return {
+      success: true,
+      data: {
+        ...result,
+      },
+    };
   }
 }

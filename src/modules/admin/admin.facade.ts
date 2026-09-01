@@ -54,6 +54,7 @@ import {
   ToggleUserBlockUseCase,
   ToggleUserBlockInput,
 } from './use-cases/toggle-user-block.use-case';
+import { GetPlatformStatsUseCase } from './use-cases/get-platform-stats.use-case';
 
 @Injectable()
 export class AdminFacade {
@@ -75,11 +76,11 @@ export class AdminFacade {
     private readonly updateMerchantStatusAdminUseCase: UpdateMerchantStatusAdminUseCase,
     private readonly getMerchantSalesOverviewUseCase: GetAdminMerchantSalesOverviewUseCase,
     private readonly getMerchantSalesDetailsUseCase: GetAdminMerchantSalesDetailsUseCase,
-    @Inject(forwardRef(() => ChatFacade))
-    private readonly chatFacade: ChatFacade,
+    // @Inject(forwardRef(() => ChatFacade))
+    // private readonly chatFacade: ChatFacade,
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
-    @Inject(forwardRef(() => SupportFacade))
+    // @Inject(forwardRef(() => SupportFacade))
     private readonly supportFacade: SupportFacade,
     private readonly getSystemSettingsUseCase: GetSystemSettingsUseCase,
 
@@ -94,6 +95,7 @@ export class AdminFacade {
     private readonly getAdminDisputesUseCase: GetAdminDisputesUseCase,
     private readonly updateDisputeStatusUseCase: UpdateDisputeStatusUseCase,
     private readonly toggleUserBlockUseCase: ToggleUserBlockUseCase,
+    private readonly getPlatformStatsUseCase: GetPlatformStatsUseCase,
   ) {}
 
   async getDashboardStats() {
@@ -238,5 +240,9 @@ export class AdminFacade {
 
   async getSystemSettings(keys?: string[]) {
     return this.getSystemSettingsUseCase.execute(keys);
+  }
+
+  async getPlatformStats() {
+    return this.getPlatformStatsUseCase.execute();
   }
 }

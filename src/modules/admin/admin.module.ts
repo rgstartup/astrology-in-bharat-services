@@ -70,6 +70,7 @@ import { UpdateSubAdminUseCase } from './use-cases/update-sub-admin.use-case';
 import { DeleteSubAdminUseCase } from './use-cases/delete-sub-admin.use-case';
 import { SubAdminController } from './controllers/sub-admin.controller';
 import { ToggleUserBlockUseCase } from './use-cases/toggle-user-block.use-case';
+import { GetPlatformStatsUseCase } from './use-cases/get-platform-stats.use-case';
 
 @Module({
   imports: [
@@ -109,6 +110,7 @@ import { ToggleUserBlockUseCase } from './use-cases/toggle-user-block.use-case';
     GetAdminUserGrowthStatsUseCase,
     GetExpertDetailUseCase,
     GetFilteredUsersUseCase,
+    GetPlatformStatsUseCase,
 
     CreateAgentUseCase,
     GetAgentsUseCase,

@@ -16,9 +16,8 @@ import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 
 // New DTO imports
-import { UpdateSystemSettingDto } from '../../api/dto/update-system-setting.dto';
-import { UpdateSupportSettingsDto } from '../../api/dto/update-support-settings.dto';
-
+import { UpdateSystemSettingDto } from '../dto/update-system-setting.dto';
+import { UpdateSupportSettingsDto } from '../dto/update-support-settings.dto';
 @Controller('admin/settings')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
