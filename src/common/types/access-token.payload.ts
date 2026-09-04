@@ -18,3 +18,8 @@ export interface IAccessTokenPayloadClient {
   sub: string;
   email: string;
 }
+
+export interface IAccessTokenPayloadExpert {
+  sub: string;
+  email: string;
+}

@@ -71,7 +71,9 @@ export class UpdateKycStatusUseCase {
       profile.rejection_reason = reason || null;
 
       if (status === 'approved') {
-        await queryRunner.manager.update(User, user!.id, { email_verified_at: new Date() });
+        await queryRunner.manager.update(User, user!.id, {
+          email_verified_at: new Date(),
+        });
       }
 
       await queryRunner.manager.save(ProfileExpert, profile);

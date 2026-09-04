@@ -224,10 +224,12 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @OnEvent('user.blocked')
   async handleUserBlocked(payload: { userId: string }) {
-    console.log(`[ExpertGateway] Received user.blocked event for userId: ${payload.userId}`);
+    console.log(
+      `[ExpertGateway] Received user.blocked event for userId: ${payload.userId}`,
+    );
     const { userId } = payload;
     this.logger.warn(`[Socket] Force disconnecting blocked user ${userId}`);
-    
+
     // Disconnect socket if connected
     const socketIds = this.expertSockets.get(userId);
     if (socketIds && socketIds.size > 0) {
@@ -241,14 +243,19 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
             status: 'offline',
             timestamp: new Date().toISOString(),
           });
-          
-          client.emit('error', { message: 'Your account has been blocked by the administrator. You cannot perform this action.' });
-          
+
+          client.emit('error', {
+            message:
+              'Your account has been blocked by the administrator. You cannot perform this action.',
+          });
+
           // Delay disconnect to ensure packets are flushed
           setTimeout(() => {
             try {
               client.disconnect(true);
-            } catch (e) {}
+            } catch {
+              // The socket may already be disconnected.
+            }
           }, 1000);
         }
       }
@@ -259,11 +266,16 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       await this.profileRepo.update(
         { user: { id: userId } },
-        { is_available: false }
+        { is_available: false },
       );
-      this.logger.log(`[Socket] Blocked user ${userId} forced offline in database`);
+      this.logger.log(
+        `[Socket] Blocked user ${userId} forced offline in database`,
+      );
     } catch (error) {
-      this.logger.error(`[Socket] Failed to force offline blocked user ${userId}:`, error);
+      this.logger.error(
+        `[Socket] Failed to force offline blocked user ${userId}:`,
+        error,
+      );
     }
   }
 }

@@ -4,21 +4,18 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  OneToMany,
   OneToOne,
   UpdateDateColumn,
 } from 'typeorm';
-
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { Address } from '@/common/address/address.entity';
-import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
-import { ExpertPuja } from './expert-puja.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
 
-@Entity({ schema: 'expert', name: 'profile' })
+@Entity({ schema: 'expert', name: 'account' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 @Check(`"experience_in_years" >= 0`)
-export class ProfileExpert {
+export class ExpertAccount {
   @UuidPrimaryKeyColumn()
   id!: string;
 
@@ -32,7 +29,7 @@ export class ProfileExpert {
   @Column({ type: 'text', unique: true, nullable: true })
   uid!: string | null;
 
-  @Column({ type: 'bool', default: false })
+  @Column({ type: 'boolean', default: false })
   is_blocked!: boolean;
 
   @Column({ type: 'character varying', length: 255, nullable: true })
@@ -44,23 +41,17 @@ export class ProfileExpert {
   @Column({ type: 'text', nullable: true })
   avatar!: string | null;
 
-  @Column({
-    type: 'text',
-    nullable: true,
-  })
+  @Column({ type: 'text', nullable: true })
+  phone!: string | null;
+
+  @Column({ type: 'text', nullable: true, default: 'other' })
   gender!: 'male' | 'female' | 'other';
 
-  @Column({
-    type: 'timestamptz',
-    nullable: true,
-  })
+  @Column({ type: 'timestamptz', nullable: true })
   date_of_birth!: Date | null;
 
-  @Column({
-    type: 'text',
-    nullable: true,
-  })
-  specialization!: string;
+  @Column({ type: 'text', nullable: true })
+  specialization!: string | null;
 
   @Column({ type: 'text', nullable: true })
   bio!: string | null;
@@ -68,39 +59,34 @@ export class ProfileExpert {
   @Column({ type: 'text', nullable: true })
   about!: string | null;
 
-  @Column({
-    type: 'int',
-    default: 0,
-  })
+  @Column({ type: 'text', nullable: true })
+  languages!: string | null;
+
+  @Column({ type: 'int', default: 0 })
   experience_in_years!: number;
 
-  @Column({
-    type: 'int',
-    default: 0,
-  })
+  @Column({ type: 'int', default: 0 })
   total_likes!: number;
 
-  @Column({
-    type: 'int',
-    default: 0,
-    name: 'total_reviews',
-  })
+  @Column({ type: 'int', default: 0, name: 'total_reviews' })
   total_reviews!: number;
 
   @Column({ type: 'float', default: 0 })
   rating!: number;
 
-  @Column({ default: 'pending', name: 'kyc_status' })
-  kyc_status!: string;
+  @Column({
+    type: 'enum',
+    enum: ExpertKycStatus,
+    default: ExpertKycStatus.PENDING,
+    name: 'kyc_status',
+  })
+  kyc_status!: ExpertKycStatus;
 
   @Column({ type: 'text', nullable: true, name: 'rejection_reason' })
   rejection_reason?: string | null;
 
   @Column({ type: 'int', default: 0, name: 'consultation_count' })
   consultation_count!: number;
-
-  @Column({ type: 'text', nullable: true })
-  languages!: string | null;
 
   @Column({ type: 'text', nullable: true, name: 'phone_number' })
   phone_number!: string | null;
@@ -150,22 +136,8 @@ export class ProfileExpert {
   @Column({ type: 'boolean', default: false })
   is_available!: boolean;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  created_at!: Date;
-
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updated_at!: Date;
-
-  @OneToMany(() => ExpertPuja, (puja) => puja.expert, {
-    cascade: true,
-  })
-  pujas!: ExpertPuja[];
-
-  @OneToMany(() => Address, (address) => address.profile_expert, {
-    cascade: true,
-    eager: true,
-  })
-  addresses!: Address[];
+  @Column({ type: 'text', nullable: true })
+  about_me!: string | null;
 
   @Column({
     type: 'decimal',
@@ -182,4 +154,10 @@ export class ProfileExpert {
 
   @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
   agent_commission_rate!: number | null;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  created_at!: Date;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updated_at!: Date;
 }

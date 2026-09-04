@@ -106,20 +106,28 @@ export class UpdateProfileUseCase {
           unknown
         >[];
       }
-      if (dto.bank_details !== undefined) profile!.bank_details = dto.bank_details;
+      if (dto.bank_details !== undefined)
+        profile!.bank_details = dto.bank_details;
 
       if (dto.documents !== undefined) {
-        if (profile!.kyc_status === 'approved' || profile!.kyc_status === 'active') {
+        if (
+          profile!.kyc_status === 'approved' ||
+          profile!.kyc_status === 'active'
+        ) {
           throw new ForbiddenException(
             'Your account is verified. You cannot modify your verified documents. Please contact Admin.',
           );
         }
-        profile!.documents = dto.documents as unknown as Record<string, unknown>[];
+        profile!.documents = dto.documents as unknown as Record<
+          string,
+          unknown
+        >[];
       }
       if (dto.gallery !== undefined) profile!.gallery = dto.gallery;
       if (dto.videos !== undefined) profile!.videos = dto.videos;
       if (dto.video !== undefined) profile!.video = dto.video;
-      if (dto.certificates !== undefined) profile!.certificates = dto.certificates;
+      if (dto.certificates !== undefined)
+        profile!.certificates = dto.certificates;
 
       if (dto.detailed_experience !== undefined)
         profile!.detailed_experience =
@@ -159,30 +167,46 @@ export class UpdateProfileUseCase {
       }
 
       if (dto.avatar !== undefined) {
-        await queryRunner.manager.update(User, { id: user.id }, { avatar: dto.avatar });
+        await queryRunner.manager.update(
+          User,
+          { id: user.id },
+          { avatar: dto.avatar },
+        );
       }
 
       if ((dto as unknown as { name?: string }).name !== undefined) {
         const newName = (dto as unknown as { name?: string }).name as string;
-        const currentUser = await queryRunner.manager.findOne(User, { where: { id: user.id } });
-        
-        const currentNameStr = currentUser?.name?.trim() || "";
-        const newNameStr = newName?.trim() || "";
+        const currentUser = await queryRunner.manager.findOne(User, {
+          where: { id: user.id },
+        });
 
-        if (currentNameStr !== newNameStr && currentNameStr !== "") {
-          if (profile!.kyc_status === 'approved' || profile!.kyc_status === 'active') {
+        const currentNameStr = currentUser?.name?.trim() || '';
+        const newNameStr = newName?.trim() || '';
+
+        if (currentNameStr !== newNameStr && currentNameStr !== '') {
+          if (
+            profile!.kyc_status === 'approved' ||
+            profile!.kyc_status === 'active'
+          ) {
             throw new ForbiddenException(
               'Your account is verified. You cannot change your name. Please contact Admin.',
             );
           }
         }
-        
-        await queryRunner.manager.update(User, { id: user.id }, {
-          name: newNameStr || null,
-        });
+
+        await queryRunner.manager.update(
+          User,
+          { id: user.id },
+          {
+            name: newNameStr || null,
+          },
+        );
       }
 
-      const savedProfile = await queryRunner.manager.save(ProfileExpert, profile!);
+      const savedProfile = await queryRunner.manager.save(
+        ProfileExpert,
+        profile!,
+      );
 
       await queryRunner.commitTransaction();
 

@@ -31,7 +31,7 @@ export class GetExpertDetailUseCase {
     private readonly accountFacade: AccountFacade,
     @InjectRepository(ProfileExpert)
     private readonly profileExpertRepo: Repository<ProfileExpert>,
-  ) { }
+  ) {}
 
   async execute(id: string) {
     const user = await this.usersFacade.findById(id);
@@ -79,7 +79,9 @@ export class GetExpertDetailUseCase {
         ? new Date(profile.date_of_birth).toISOString()
         : null,
       phone_number: profile?.phone_number || clientAccount?.phone || '',
-      languages: profile?.languages ? profile.languages.split(',').map((l: string) => l.trim()) : [],
+      languages: profile?.languages
+        ? profile.languages.split(',').map((l: string) => l.trim())
+        : [],
       bio: profile?.bio || '',
       about: profile?.about || '',
       experience_in_years: profile?.experience_in_years || 0,
