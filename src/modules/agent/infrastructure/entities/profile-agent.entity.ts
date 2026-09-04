@@ -54,6 +54,9 @@ export class ProfileAgent {
   city!: string | null;
 
   @Column({ type: 'character varying', length: 100, nullable: true })
+  district!: string | null;
+
+  @Column({ type: 'character varying', length: 100, nullable: true })
   state!: string | null;
 
   @Column({ type: 'character varying', length: 100, nullable: true })

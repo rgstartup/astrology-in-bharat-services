@@ -1,5 +1,5 @@
 import { SessionRepository } from '../../infrastructure/repositories/session.repository';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { AuthTokenService } from '../services/auth-token.service';
 import { InvalidRefreshTokenError } from '../../domain/errors/invalid-token.error';
 import { Inject, Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
@@ -13,8 +13,8 @@ export class RefreshTokenUseCase {
     private readonly db: DatabaseService,
     @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly sessionRepo: SessionRepository,
-    private readonly issueAuthTokens: IssueAuthTokensUseCase,
-  ) {}
+    private readonly authTokenService: AuthTokenService,
+  ) { }
 
   async execute(refreshToken: string) {
     const [sessionId, refreshTokenRaw] = refreshToken.split('.');
@@ -47,9 +47,9 @@ export class RefreshTokenUseCase {
   revokeAndCreateNewAuthTokens(session: Session) {
     return this.db.transaction(async (queryRunner) => {
       await this.sessionRepo.revoke(session.user.id, session.id, queryRunner);
-      return this.issueAuthTokens.execute(
+      return this.authTokenService.issueAuthTokens(
         session.user,
-        session.user.roles?.[0],
+        session.user.role,
         undefined,
         undefined,
         queryRunner,

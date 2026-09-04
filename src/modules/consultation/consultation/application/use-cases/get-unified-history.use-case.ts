@@ -16,7 +16,7 @@ import {
   ConsultationType,
   ConsultationStatus,
 } from '../../api/dto/consultation-history.dto';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 
 import { GetUnifiedHistoryDto } from '../../api/dto/get-unified-history.dto';
 
@@ -159,7 +159,7 @@ export class GetUnifiedHistoryUseCase {
     session: ChatSession,
     review?: { rating: number; comment?: string },
     duration: number = 0,
-    clientProfile?: ProfileClient,
+    clientProfile?: ClientAccount,
   ): ConsultationHistoryDto {
     const total_cost = Number(session.total_cost || 0);
     const displayId = `AIB-CHAT-${session.id.split('-').pop()?.substring(6).toUpperCase()}`;
@@ -189,7 +189,6 @@ export class GetUnifiedHistoryUseCase {
         session.expert?.bio ||
         '/images/dummy-astrologer.jpg',
       user_image:
-        clientProfile?.profile_picture ||
         clientProfile?.avatar ||
         session.client?.user?.avatar ||
         '/images/dummy-user.jpg',
@@ -217,7 +216,7 @@ export class GetUnifiedHistoryUseCase {
     session: CallSession,
     review?: { rating: number; comment?: string },
     duration: number = 0,
-    clientProfile?: ProfileClient,
+    clientProfile?: ClientAccount,
   ): ConsultationHistoryDto {
     const final_price = Number(session.final_price || 0);
     const typeLabel = session.type === CallType.VIDEO ? 'VID' : 'CALL';
@@ -251,7 +250,6 @@ export class GetUnifiedHistoryUseCase {
         session.expert?.bio ||
         '/images/dummy-expert.jpg',
       user_image:
-        clientProfile?.profile_picture ||
         clientProfile?.avatar ||
         (session.client?.user as unknown as { avatar?: string })?.avatar ||
         '/images/dummy-user.jpg',

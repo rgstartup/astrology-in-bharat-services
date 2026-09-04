@@ -39,9 +39,21 @@ export class RolesGuard implements CanActivate {
 
     const userRoles = user.roles || [];
 
-    const isUserAdmin = hasRoles(userRoles, 'ADMIN');
+    // SUPER_ADMIN ko full bypass
+    const isSuperAdmin = hasRoles(userRoles, 'SUPER_ADMIN');
 
-    const canPass = isUserAdmin || hasRoles(userRoles, ...requiredRoles);
+    // Agar route 'ADMIN' maangta hai, to 'ADMIN' aur 'SUB_ADMIN' dono pass ho sakte hain
+    // Lekin unki specific permission AdminPermissionGuard check karega
+    const requiresAdmin = requiredRoles.includes('ADMIN' as Role);
+    const isUserAdmin = hasRoles(userRoles, 'ADMIN');
+    const isSubAdminActingAsAdmin =
+      requiresAdmin && hasRoles(userRoles, 'SUB_ADMIN');
+
+    const canPass =
+      isSuperAdmin ||
+      isUserAdmin ||
+      isSubAdminActingAsAdmin ||
+      hasRoles(userRoles, ...requiredRoles);
 
     console.log('[RolesGuard] Decision:', {
       userId: user.id,

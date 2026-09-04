@@ -6,26 +6,29 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { UsersFacade } from '@/modules/users/application/users.facade';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { AuthTokenService } from '../services/auth-token.service';
 import { CompleteRegisterDto } from '../../api/dto/email-register.dto';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { Address } from '@/common/address/address.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class CompleteEmailRegistrationUseCase {
   constructor(
     private readonly db: DatabaseService,
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly tokenCrypto: TokenCryptoService,
     @Inject(IHasherToken) private readonly hasher: IHasher,
-    private readonly issueTokens: IssueAuthTokensUseCase,
+    private readonly authTokenService: AuthTokenService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
-  ) {}
+  ) { }
 
   async execute(dto: CompleteRegisterDto, ip?: string, userAgent?: string) {
     // 1. Verify Token
@@ -35,7 +38,7 @@ export class CompleteEmailRegistrationUseCase {
         userId: string;
         email: string;
       }>(dto.token);
-    } catch {
+    } catch (_e) {
       throw new BadRequestException('Invalid or expired token');
     }
 
@@ -43,7 +46,9 @@ export class CompleteEmailRegistrationUseCase {
       throw new BadRequestException('Token does not match the provided email');
     }
 
-    const user = await this.usersFacade.findByEmail(dto.email);
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
@@ -57,7 +62,7 @@ export class CompleteEmailRegistrationUseCase {
     const response = await this.db.transaction(async (queryRunner) => {
       // 2. Update User (Name, Password, Phone, email_verified_at)
       await queryRunner.manager.update(
-        'users',
+        User,
         { id: user.id },
         {
           name: dto.name,
@@ -66,11 +71,10 @@ export class CompleteEmailRegistrationUseCase {
         },
       );
 
-      // Refresh user object
-      const updatedUser = await this.usersFacade.findByEmail(
-        user.email,
-        queryRunner,
-      );
+      // Refresh user object within transaction
+      const updatedUser = await queryRunner.manager.findOne(User, {
+        where: { email: user.email },
+      });
 
       // 3. Ensure profile is created
       await this.profileCreationResolver.ensureProfile(
@@ -79,7 +83,7 @@ export class CompleteEmailRegistrationUseCase {
       );
 
       // 4. Update appropriate profile with extra details
-      if (updatedUser!.roles.includes(RoleEnum.EXPERT)) {
+      if ([RoleEnum.EXPERT].includes(updatedUser!.role)) {
         const profileUpdates: Partial<ProfileExpert> = {
           name: dto.name,
           phone_number: dto.phone,
@@ -96,9 +100,12 @@ export class CompleteEmailRegistrationUseCase {
             : null;
         }
 
+        // Cast needed: TypeORM's QueryDeepPartialEntity cannot handle complex nested
+        // JSON column types like `custom_services: Record<string, unknown>[]`
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await queryRunner.manager.update(
           ProfileExpert,
-          { user: { id: user.id } },
+          { user_id: user.id },
           profileUpdates as any,
         );
 
@@ -114,7 +121,7 @@ export class CompleteEmailRegistrationUseCase {
           }
         }
       } else if (
-        updatedUser!.roles.includes(RoleEnum.MERCHANT as unknown as RoleEnum)
+        [RoleEnum.MERCHANT].includes(updatedUser!.role)
       ) {
         const { ProfileMerchant } = await import(
           '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
@@ -149,57 +156,67 @@ export class CompleteEmailRegistrationUseCase {
           );
         }
 
-        if (dto.address) {
-          if (merchantProfile) {
-            merchantProfile.address =
-              dto.address.line1 || merchantProfile.address;
-            merchantProfile.city = dto.address.city || merchantProfile.city;
-            merchantProfile.pincode =
-              dto.address.zipCode || merchantProfile.pincode;
-            await queryRunner.manager.save(ProfileMerchant, merchantProfile);
-          }
+        if (dto.address && merchantProfile) {
+          merchantProfile.address =
+            dto.address.line1 || merchantProfile.address;
+          merchantProfile.city = dto.address.city || merchantProfile.city;
+          merchantProfile.pincode =
+            dto.address.zipCode || merchantProfile.pincode;
+          await queryRunner.manager.save(ProfileMerchant, merchantProfile);
         }
       } else {
-        const profileUpdates: Partial<ProfileClient> = {
+        const accountUpdates: Partial<ClientAccount> = {
           name: dto.name,
           phone: dto.phone,
-          gender: dto.gender as 'male' | 'female' | 'other',
+          gender: (dto.gender as 'male' | 'female' | 'other') || 'other',
           marital_status: dto.maritalStatus,
           occupation: dto.occupation,
           about_me: dto.aboutMe,
         };
 
         if (dto.birthDetails) {
-          profileUpdates.date_of_birth = dto.birthDetails.dateOfBirth
+          accountUpdates.date_of_birth = dto.birthDetails.dateOfBirth
             ? new Date(dto.birthDetails.dateOfBirth)
             : null;
-          profileUpdates.time_of_birth = dto.birthDetails.timeOfBirth;
-          profileUpdates.place_of_birth = dto.birthDetails.birthPlace;
+          accountUpdates.time_of_birth = dto.birthDetails.timeOfBirth;
+          accountUpdates.place_of_birth = dto.birthDetails.birthPlace;
         }
 
-        await queryRunner.manager.update(
-          ProfileClient,
-          { user: { id: user.id } },
-          profileUpdates as any,
-        );
+        let clientAccount = await queryRunner.manager.findOne(ClientAccount, {
+          where: { user: { id: user.id } },
+        });
+
+        if (!clientAccount) {
+          clientAccount = queryRunner.manager.create(ClientAccount, {
+            user: { id: user.id } as User,
+            email: user.email,
+          });
+          clientAccount = await queryRunner.manager.save(
+            ClientAccount,
+            clientAccount,
+          );
+        }
+
+        Object.assign(clientAccount, accountUpdates);
+        await queryRunner.manager.save(ClientAccount, clientAccount);
 
         if (dto.address) {
-          const profile = await queryRunner.manager.findOne(ProfileClient, {
+          const account = await queryRunner.manager.findOne(ClientAccount, {
             where: { user: { id: user.id } },
           });
-          if (profile) {
+          if (account) {
             const newAddress = new Address();
             Object.assign(newAddress, dto.address);
-            newAddress.profile_client = profile;
+            newAddress.client_account = account;
             await queryRunner.manager.save(Address, newAddress);
           }
         }
       }
 
       // 5. Issue Tokens
-      const tokens = await this.issueTokens.execute(
+      const tokens = await this.authTokenService.issueAuthTokens(
         updatedUser!,
-        updatedUser!.roles[0],
+        updatedUser!.role,
         ip,
         userAgent,
         queryRunner,

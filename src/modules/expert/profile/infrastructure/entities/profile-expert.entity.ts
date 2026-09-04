@@ -18,7 +18,6 @@ import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator'
 @Entity({ schema: 'expert', name: 'profile' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 @Check(`"experience_in_years" >= 0`)
-@Check(`"kyc_status" IN ('pending', 'approved', 'rejected')`)
 export class ProfileExpert {
   @UuidPrimaryKeyColumn()
   id!: string;
@@ -65,6 +64,9 @@ export class ProfileExpert {
 
   @Column({ type: 'text', nullable: true })
   bio!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  about!: string | null;
 
   @Column({
     type: 'int',

@@ -109,4 +109,28 @@ export class GetExpertCallSessionsUseCase {
       count: parseInt(stats.count ?? '0', 10) || 0,
     };
   }
+
+  async getAllExpertsRevenueAndCount(): Promise<
+    Record<string, { total: number; count: number }>
+  > {
+    const stats = await this.sessionRepo
+      .createQueryBuilder('call')
+      .select('call.expert_id', 'expert_id')
+      .addSelect('SUM(call.final_price)', 'total')
+      .addSelect('COUNT(call.id)', 'count')
+      .where('call.status = :status', { status: 'completed' })
+      .groupBy('call.expert_id')
+      .getRawMany<{ expert_id: string; total: string; count: string }>();
+
+    const result: Record<string, { total: number; count: number }> = {};
+    for (const row of stats) {
+      if (row.expert_id) {
+        result[row.expert_id] = {
+          total: parseFloat(row.total || '0'),
+          count: parseInt(row.count || '0', 10),
+        };
+      }
+    }
+    return result;
+  }
 }

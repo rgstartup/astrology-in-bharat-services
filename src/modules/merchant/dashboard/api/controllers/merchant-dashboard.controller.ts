@@ -25,8 +25,8 @@ import { GetMerchantPerformanceUseCase } from '../../application/use-cases/get-m
 import { GetMerchantAnalyticsUseCase } from '../../application/use-cases/get-merchant-analytics.usecase';
 import { SendOrderOtpUseCase } from '../../application/use-cases/send-order-otp.usecase';
 import { VerifyOrderOtpUseCase } from '../../application/use-cases/verify-order-otp.usecase';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
-import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
+import { OrderStatus } from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
 import { GetMerchantOrdersDto } from '../dto/get-merchant-orders.dto';
 import { UpdateMerchantOrderStatusDto } from '../dto/update-merchant-order-status.dto';
 

@@ -1,4 +1,6 @@
-import { IsOptional, IsString } from 'class-validator';
+import { AddressDto } from '@/common/address/address.dto';
+import { Type } from 'class-transformer';
+import { IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class VerifyPaymentDto {
   @IsString()
@@ -12,10 +14,12 @@ export class VerifyPaymentDto {
   razorpay_signature?: string;
 
   @IsOptional()
-  shipping_address?: any;
+  @Type(() => AddressDto)
+  @ValidateNested()
+  shipping_address?: AddressDto;
 
   @IsOptional()
-  notes?: any;
+  notes?: Record<string, unknown>;
 
   @IsOptional()
   type?: string;

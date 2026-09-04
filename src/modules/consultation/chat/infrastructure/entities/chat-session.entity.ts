@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 export enum ChatSessionStatus {
@@ -26,9 +26,9 @@ export class ChatSession {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @ManyToOne(() => ProfileClient)
+  @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient;
+  client!: ClientAccount;
 
   @Column({ type: 'uuid', name: 'client_id' })
   client_id!: string;
@@ -124,7 +124,7 @@ export class ChatSession {
   gst!: number;
 
   @Column({ type: 'jsonb', nullable: true, name: 'metadata' })
-  metadata: Record<string, unknown>;
+  metadata!: Record<string, unknown>;
 
   @Column({ type: 'int', default: 0, name: 'max_duration_seconds' })
   max_duration_seconds!: number;

@@ -7,19 +7,23 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { OAuthAccount } from '@/modules/auth/infrastructure/entities/oauth-accounts.entity';
 import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
 import { RoleEnum } from '../enums/Role.enum';
+import { AdminPermission } from '../enums/AdminPermission.enum';
 import { Exclude } from 'class-transformer';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { PlatformEnum } from '../enums/Platform.enum';
 
 @Entity({ schema: 'public', name: 'users' })
+@Unique('USER_PLATFORM_UNIQ', ['email', 'platform'])
 export class User {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({ type: 'character varying', length: 255, unique: true })
+  @Column({ type: 'character varying', length: 255 })
   email!: string;
 
   @Column({ type: 'text', select: false, nullable: true })
@@ -35,14 +39,45 @@ export class User {
   @Column({ type: 'character varying', length: 255, nullable: true })
   name!: string | null;
 
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  full_name!: string | null;
+
   @Column({ type: 'text', nullable: true })
   avatar!: string | null;
 
   @Column({ type: 'boolean', default: false })
   is_blocked!: boolean;
 
-  @Column({ type: 'enum', enum: RoleEnum, array: true, default: '{client}' })
-  roles!: RoleEnum[];
+  // Track kisne block kiya
+  @Column({ type: 'uuid', nullable: true })
+  blocked_by_id!: string | null;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  blocked_by_name!: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  blocked_at!: Date | null;
+
+  @Column({ type: 'enum', enum: RoleEnum, default: RoleEnum.CLIENT })
+  role!: RoleEnum;
+
+  @Column({
+    type: 'enum',
+    enum: PlatformEnum,
+    default: PlatformEnum.CLIENT,
+  })
+  platform!: PlatformEnum;
+
+  // Sub-admin ke liye: kaunse pages access kar sakta hai
+  // Super admin ke liye: null (full access)
+  @Column({
+    type: 'enum',
+    enum: AdminPermission,
+    array: true,
+    nullable: true,
+    default: null,
+  })
+  admin_permissions!: AdminPermission[] | null;
 
   @OneToMany(() => OAuthAccount, (oa) => oa.user)
   oauth_accounts!: OAuthAccount[];

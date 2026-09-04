@@ -4,7 +4,7 @@ import { LoveCalculatorDto } from '../../api/dto/matchmaking.dto';
 
 @Injectable()
 export class CalculateLovePercentageUseCase {
-  constructor(private readonly loveCalculatorService: LoveCalculatorService) {}
+  constructor(private readonly loveCalculatorService: LoveCalculatorService) { }
 
   execute(dto: LoveCalculatorDto) {
     const { yourName, partnerName, yourGender, partnerGender } = dto;

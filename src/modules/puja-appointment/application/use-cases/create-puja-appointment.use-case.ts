@@ -2,6 +2,7 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
@@ -14,7 +15,7 @@ import {
 } from '../../infrastructure/entities/puja-appointment.entity';
 import { CreatePujaAppointmentDto } from '../dtos/create-puja-appointment.dto';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { ExpertGateway } from '@/modules/expert/profile/api/gateways/expert.gateway';
@@ -25,8 +26,8 @@ export class CreatePujaAppointmentUseCase {
   constructor(
     @InjectRepository(PujaAppointment)
     private pujaAppointmentRepository: Repository<PujaAppointment>,
-    @InjectRepository(ProfileClient)
-    private readonly clientProfileRepo: Repository<ProfileClient>,
+    @InjectRepository(ClientAccount)
+    private readonly clientAccountRepo: Repository<ClientAccount>,
     @Inject(forwardRef(() => ExpertProfileFacade))
     private readonly expertProfileFacade: ExpertProfileFacade,
     private readonly notificationFacade: NotificationFacade,
@@ -44,18 +45,15 @@ export class CreatePujaAppointmentUseCase {
       throw new NotFoundException('Puja not found');
     }
 
-    const clientProfileId = user.profile;
-    if (!clientProfileId) {
-      throw new NotFoundException('Client profile not found');
-    }
+    const clientAccountId = user.profile || user.id;
 
-    const clientProfile = await this.clientProfileRepo.findOne({
-      where: { id: clientProfileId },
+    const clientAccount = await this.clientAccountRepo.findOne({
+      where: [{ id: clientAccountId }, { user: { id: clientAccountId } }],
       relations: ['user'],
     });
 
-    if (!clientProfile) {
-      throw new NotFoundException('Client profile not found');
+    if (!clientAccount) {
+      throw new NotFoundException('Client account not found');
     }
 
     // --- SECURITY FIX: IGNORE DTO.PRICE (PRICE TAMPERING PROTECTION) ---
@@ -75,8 +73,12 @@ export class CreatePujaAppointmentUseCase {
       );
     }
 
+    if ((dto.mode === PujaMode.HOME_VISIT_WITH || dto.mode === PujaMode.HOME_VISIT_WITHOUT) && !dto.address) {
+      throw new BadRequestException('Address is required for Home Visit Puja bookings');
+    }
+
     const appointment = this.pujaAppointmentRepository.create({
-      client_id: clientProfile.id,
+      client_id: clientAccount.id,
       expert_id: puja.expert_id,
       puja_id: dto.puja_id,
       scheduled_date: dto.scheduled_date,
@@ -86,6 +88,7 @@ export class CreatePujaAppointmentUseCase {
       price: authoritativePrice, // Forced authoritative price
       user_message: dto.user_message,
       status: PujaAppointmentStatus.PENDING,
+      address: dto.address as unknown as Record<string, unknown> | undefined,
     });
 
     const saved = await this.pujaAppointmentRepository.save(appointment);
@@ -109,7 +112,7 @@ export class CreatePujaAppointmentUseCase {
           expertProfile.user_id as unknown as string,
           {
             ...saved,
-            user: clientProfile.user,
+            user: clientAccount.user,
             puja: puja,
           },
         );

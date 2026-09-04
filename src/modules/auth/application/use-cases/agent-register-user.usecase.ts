@@ -1,22 +1,23 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import * as crypto from 'crypto';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { AgentRegisterUserDto } from '../../api/dto';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { UpdateProfileWithQueryRunnerUseCase as UpdateMerchantProfileWithQueryRunnerUseCase } from '@/modules/merchant/profile/application/use-cases/update-profile-with-query-runner.usecase';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
-import { AgentFacade } from '@/modules/agent/application/agent.facade';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
+import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { ConfigService } from '@nestjs/config';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AgentRegisterUserUseCase {
@@ -24,22 +25,22 @@ export class AgentRegisterUserUseCase {
 
   constructor(
     private readonly db: DatabaseService,
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(SystemSetting)
+    private readonly systemSettingRepository: Repository<SystemSetting>,
     @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
     private readonly mailer: NodeMailerService,
     private readonly eventEmitter: EventEmitter2,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly configService: ConfigService,
-    private readonly walletFacade: WalletFacade,
-    private readonly expertProfileFacade: ExpertProfileFacade,
-    private readonly updateMerchantProfileWithQueryRunnerUseCase: UpdateMerchantProfileWithQueryRunnerUseCase,
-    private readonly clientProfileFacade: ClientProfileFacade,
-    private readonly agentFacade: AgentFacade,
   ) {}
 
   async execute(dto: AgentRegisterUserDto, agentId: string) {
-    const existingUser = await this.usersFacade.findByEmail(dto.email);
+    const existingUser = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
 
     // Ensure email is unique (throws if not)
     RegistrationPolicy.ensureEmailIsUnique(existingUser);
@@ -53,16 +54,15 @@ export class AgentRegisterUserUseCase {
       await this.db.transaction(async (queryRunner) => {
         const hashedPassword = await this.hasher.hash(generatedPassword);
 
-        createdUser = await this.usersFacade.create(
-          {
-            name: dto.name,
-            email: dto.email,
-            roles: dto.roles,
-            password: hashedPassword,
-            referred_by_id: agentId,
-          },
-          queryRunner,
-        );
+        const user = queryRunner.manager.create(User, {
+          name: dto.name,
+          email: dto.email,
+          roles: dto.roles,
+          password: hashedPassword,
+          referred_by_id: agentId,
+        });
+
+        createdUser = await queryRunner.manager.save(User, user);
 
         await this.profileCreationResolver.ensureProfile(
           createdUser,
@@ -72,49 +72,102 @@ export class AgentRegisterUserUseCase {
         // Update phone number in the specific profile if provided
         // Handle Expert-specific logic (Lock Commission Rate)
         if (hasRoles(dto.roles, 'EXPERT')) {
-          const agentCommissionRate =
-            await this.walletFacade.getAdminCommissionFromSetting(
-              'COMMISION_FROM_ASTROLOGER',
-            );
-          await this.expertProfileFacade.updateProfileWithQueryRunner(
-            createdUser.id,
+          const setting = await queryRunner.manager.findOne(SystemSetting, {
+            where: { key: 'COMMISION_FROM_ASTROLOGER' },
+          });
+          const agentCommissionRate = setting?.value
+            ? parseFloat(setting.value)
+            : 0;
+
+          await queryRunner.manager.update(
+            ProfileExpert,
+            { user: { id: createdUser.id as unknown as string } },
             {
               agent_commission_rate: agentCommissionRate,
               ...(dto.phone ? { phone_number: dto.phone } : {}),
             },
-            queryRunner,
           );
         } else if (hasRoles(dto.roles, 'MERCHANT')) {
-          const agentCommissionRate =
-            (await this.walletFacade.getAdminCommissionFromSetting(
-              'COMMISSION_FROM_PUJA_SHOP',
-            )) ||
-            (await this.walletFacade.getAdminCommissionFromSetting(
-              'COMMISION_FROM_PUJA_SHOP',
-            ));
-          await this.updateMerchantProfileWithQueryRunnerUseCase.execute(
-            createdUser.id,
+          const setting = await queryRunner.manager.findOne(SystemSetting, {
+            where: { key: 'COMMISSION_FROM_PUJA_SHOP' },
+          });
+          const agentCommissionRate = setting?.value
+            ? parseFloat(setting.value)
+            : 0;
+
+          const merchantUpdates = {
+            agent_commission_rate: agentCommissionRate,
+            shopName: dto.name,
+            ...(dto.phone ? { phone: dto.phone } : {}),
+          };
+
+          let merchantProfile = await queryRunner.manager.findOne(
+            ProfileMerchant,
             {
-              agent_commission_rate: agentCommissionRate,
-              shopName: dto.name,
-              ...(dto.phone ? { phone: dto.phone } : {}),
+              where: {
+                user_id:
+                  createdUser.id as unknown as ProfileMerchant['user_id'],
+              },
             },
-            queryRunner,
           );
+
+          if (merchantProfile) {
+            Object.assign(merchantProfile, merchantUpdates);
+            await queryRunner.manager.save(ProfileMerchant, merchantProfile);
+          } else {
+            merchantProfile = queryRunner.manager.create(ProfileMerchant, {
+              user: { id: createdUser.id },
+              user_id: createdUser.id,
+              ...merchantUpdates,
+            });
+            await queryRunner.manager.save(ProfileMerchant, merchantProfile);
+          }
         } else if (dto.phone) {
-          await this.clientProfileFacade.updateProfileWithQueryRunner(
-            createdUser.id,
-            { phone: dto.phone },
-            queryRunner,
-          );
+          const clientUpdates = { phone: dto.phone };
+          let clientAccount = await queryRunner.manager.findOne(ClientAccount, {
+            where: { user: { id: createdUser.id } },
+          });
+
+          if (clientAccount) {
+            Object.assign(clientAccount, clientUpdates);
+            await queryRunner.manager.save(ClientAccount, clientAccount);
+          } else {
+            clientAccount = queryRunner.manager.create(ClientAccount, {
+              user: { id: createdUser.id } as unknown as User,
+              ...clientUpdates,
+            });
+            await queryRunner.manager.save(ClientAccount, clientAccount);
+          }
         }
 
-        await this.agentFacade.incrementRegistrationsWithQueryRunner(
-          agentId,
-          createdUser.id,
-          hasRoles(dto.roles, 'EXPERT'),
-          queryRunner,
-        );
+        const isExpertProfile = hasRoles(dto.roles, 'EXPERT');
+        const agentProfile = await queryRunner.manager.findOne(ProfileAgent, {
+          where: { user_id: agentId },
+        });
+
+        if (agentProfile) {
+          const arrayField = isExpertProfile
+            ? 'registered_astrologer_ids'
+            : 'registered_user_ids';
+
+          if (!agentProfile[arrayField]) {
+            agentProfile[arrayField] = [];
+          }
+
+          agentProfile[arrayField].push(createdUser.id);
+          await queryRunner.manager.save(ProfileAgent, agentProfile);
+
+          await queryRunner.manager.increment(
+            ProfileAgent,
+            { user_id: agentId },
+            'total_registrations',
+            1,
+          );
+        } else {
+          this.logger.warn(
+            `Agent profile not found for agent ID: ${agentId}. Skipping registration count increment.`,
+          );
+        }
 
         return createdUser;
       });

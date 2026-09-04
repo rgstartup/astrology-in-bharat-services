@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommissionRule } from './infrastructure/entities/commission-rule.entity';
 import { CommissionTier } from './infrastructure/entities/commission-tier.entity';
 import { CommissionSplit } from './infrastructure/entities/commission-split.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { GeneralLedgerEntry } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 import { ResolveCommissionUseCase } from './application/use-cases/resolve-commission.use-case';
 import { CreateCommissionSplitUseCase } from './application/use-cases/create-commission-split.use-case';
@@ -44,4 +44,4 @@ import { QueueModule } from '@/core/queue/queue.module';
     CreateCommissionSplitUseCase,
   ],
 })
-export class CommissionsModule { }
+export class CommissionsModule {}

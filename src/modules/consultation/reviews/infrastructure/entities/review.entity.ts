@@ -5,12 +5,12 @@ import {
   CreateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
-import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { Order } from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'consultations', name: 'reviews' })
@@ -21,9 +21,9 @@ export class Review {
   @Column({ type: 'uuid', name: 'client_id' })
   client_id!: string;
 
-  @ManyToOne(() => ProfileClient)
+  @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient;
+  client!: ClientAccount;
 
   @Column({ type: 'uuid', name: 'order_id', nullable: true })
   order_id!: string | null;

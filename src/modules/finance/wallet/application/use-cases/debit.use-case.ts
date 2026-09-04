@@ -7,7 +7,7 @@ import {
   TransactionPurpose,
 } from '../../infrastructure/entities/transaction.entity';
 import { InsufficientBalanceError } from '../../domain/errors/insufficient-balance.error';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 import {
   GeneralLedgerEntryType,
@@ -160,7 +160,7 @@ export class DebitUseCase {
         try {
           await qr.manager
             .createQueryBuilder()
-            .update(ProfileClient)
+            .update(ClientAccount)
             .set({
               total_spending: () =>
                 `COALESCE(total_spending, 0) + ${Number(amount)}`,

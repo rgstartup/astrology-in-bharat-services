@@ -13,7 +13,7 @@ export class LocationsController {
     @InjectRepository(DistrictEntity)
     private readonly districtRepository: Repository<DistrictEntity>,
     private readonly seedLocationsUseCase: SeedLocationsUseCase,
-  ) {}
+  ) { }
 
   @Get('states')
   async getStates() {

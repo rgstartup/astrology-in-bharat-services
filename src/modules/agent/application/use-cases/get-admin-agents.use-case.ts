@@ -1,7 +1,8 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { AdminFacade } from '@/modules/admin/application/admin.facade';
+import { AdminFacade } from '@/modules/admin/admin.facade';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AgentFacade } from '../agent.facade';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class GetAdminAgentsUseCase {
@@ -54,6 +55,7 @@ export class GetAdminAgentsUseCase {
           avatar: string;
           is_blocked: boolean;
           created_at: Date;
+          role: RoleEnum;
         };
         let totalAgentCommission = 0;
 
@@ -61,7 +63,7 @@ export class GetAdminAgentsUseCase {
         const profile = await this.agentFacade.getProfile({
           id: u.id,
           email: u.email || '',
-          roles: [],
+          role: u.role,
         });
 
         if (profile) {

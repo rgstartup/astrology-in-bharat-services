@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../infrastructure/entities/user.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 import { Address } from '@/common/address/address.entity';
@@ -25,7 +25,7 @@ export class FindUsersByRoleUseCase {
       .createQueryBuilder('user')
       .leftJoinAndMapOne(
         'user.profile_client',
-        ProfileClient,
+        ClientAccount,
         'profile_client',
         'profile_client.user_id = user.id',
       )
@@ -39,7 +39,7 @@ export class FindUsersByRoleUseCase {
         'user.addresses',
         Address,
         'addresses',
-        'addresses.profile_expert_id = profile_expert.id OR addresses.profile_client_id = profile_client.id',
+        'addresses.profile_expert_id = profile_expert.id OR addresses.client_account_id = profile_client.id',
       )
       .where(':roleName = ANY(user.roles)', { roleName: role });
 

@@ -10,7 +10,6 @@ import { ConvertToPaidUseCase } from './use-cases/convert-to-paid.use-case';
 import {
   FindExpertSessionsUseCase,
   ExpertSessionFilter,
-  FindExpertSessionsOptions,
 } from './use-cases/find-expert-sessions.use-case';
 import { FindClientSessionsUseCase } from './use-cases/find-client-sessions.use-case';
 import { FindActiveClientSessionUseCase } from './use-cases/find-active-client-session.use-case';
@@ -23,6 +22,8 @@ import { RejectChatUseCase } from './use-cases/reject-chat.use-case';
 import { UpdateSessionMetadataUseCase } from './use-cases/update-session-metadata.use-case';
 import { GetChatEarningsUseCase } from './use-cases/get-chat-earnings.use-case';
 import { GetExpertSessionsByDateUseCase } from './use-cases/get-expert-sessions-by-date.use-case';
+import { CheckChatEligibilityUseCase } from './use-cases/check-chat-eligibility.use-case';
+import { ResolveSessionDetailsUseCase } from './use-cases/resolve-session-details.use-case';
 import { GetExpertChatSessionsDto } from '../api/dto/get-expert-chat-sessions.dto';
 import { MessageType } from '../infrastructure/entities/chat-message.entity';
 import { ChatSessionStatus } from '../infrastructure/entities/chat-session.entity';
@@ -50,7 +51,13 @@ export class ChatFacade {
     private readonly updateSessionMetadataUseCase: UpdateSessionMetadataUseCase,
     private readonly getChatEarningsUseCase: GetChatEarningsUseCase,
     private readonly getExpertSessionsByDateUseCase: GetExpertSessionsByDateUseCase,
+    private readonly checkChatEligibilityUseCase: CheckChatEligibilityUseCase,
+    private readonly resolveSessionDetailsUseCase: ResolveSessionDetailsUseCase,
   ) {}
+
+  async checkEligibility(clientId: string, expertId: string) {
+    return this.checkChatEligibilityUseCase.execute(clientId, expertId);
+  }
 
   async initiateChat(
     userId: string,
@@ -175,6 +182,10 @@ export class ChatFacade {
     return this.countExpertSessionsUseCase.getRevenueAndCount(expertProfileId);
   }
 
+  async getAllExpertsRevenueAndCount() {
+    return this.countExpertSessionsUseCase.getAllExpertsRevenueAndCount();
+  }
+
   async getEarnings(dateLimit: Date) {
     return this.getChatEarningsUseCase.execute(dateLimit);
   }
@@ -189,5 +200,9 @@ export class ChatFacade {
       startDate,
       endDate,
     );
+  }
+
+  async resolveSessionDetails(sessionIds: string[]) {
+    return this.resolveSessionDetailsUseCase.execute(sessionIds);
   }
 }

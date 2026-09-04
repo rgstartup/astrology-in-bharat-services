@@ -1,21 +1,25 @@
-﻿import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { VerifyEmailEvent } from '../../domain/events/verify-email.event';
 import { EmailVerificationPolicy } from '../../domain/policies/email-verification.policy';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ResendVerificationEmailUseCase {
   constructor(
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(email: string) {
-    const existingUser = await this.usersFacade.findByEmail(email);
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
 
     if (!existingUser) {
       throw new BadRequestException("User not found or doesn't exist");
@@ -36,12 +40,9 @@ export class ResendVerificationEmailUseCase {
       email: user.email,
     });
 
-    // Extract role names from user.roles if populated, otherwise use empty array
-    const roleNames = user.roles || [];
-
     this.eventEmitter.emit(
       'auth.email.verify',
-      new VerifyEmailEvent(user.email, verification_token, roleNames),
+      new VerifyEmailEvent(user.email, verification_token, user.role),
     );
   }
 }

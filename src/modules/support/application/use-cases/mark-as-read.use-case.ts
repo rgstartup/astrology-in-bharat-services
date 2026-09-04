@@ -1,22 +1,30 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GetDisputeByIdUseCase } from './get-dispute-by-id.use-case';
+import { Dispute } from '../../infrastructure/entities/dispute.entity';
 import { DisputeMessage } from '../../infrastructure/entities/dispute-message.entity';
 
 @Injectable()
 export class MarkMessagesAsReadUseCase {
   constructor(
-    private readonly getDisputeByIdUseCase: GetDisputeByIdUseCase,
+    @InjectRepository(Dispute)
+    private readonly disputeRepo: Repository<Dispute>,
     @InjectRepository(DisputeMessage)
     private readonly messageRepo: Repository<DisputeMessage>,
   ) {}
 
   async execute(profileId: string, disputeId: string) {
-    const _dispute = await this.getDisputeByIdUseCase.execute(
-      profileId,
-      disputeId,
-    );
+    const query = this.disputeRepo.createQueryBuilder('dispute')
+      .where('dispute.id = :disputeId', { disputeId })
+      .andWhere(
+        '(dispute.client_id = :profileId OR dispute.expert_id = :profileId)',
+        { profileId },
+      );
+
+    const dispute = await query.getOne();
+    if (!dispute) {
+      throw new NotFoundException(`Dispute with ID ${disputeId} not found`);
+    }
 
     // Mark all unread messages from admin as read by user
     await this.messageRepo.update(

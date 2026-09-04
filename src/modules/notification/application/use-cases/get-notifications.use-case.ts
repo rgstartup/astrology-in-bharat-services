@@ -51,6 +51,8 @@ export class GetNotificationsUseCase {
         return { merchant_id: profileId };
       case RoleEnum.AGENT:
         return { agent_id: profileId };
+      default:
+        return {};
     }
   }
 }

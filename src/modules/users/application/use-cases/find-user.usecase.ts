@@ -1,6 +1,7 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { User } from '../../infrastructure/entities/user.entity';
+import { RoleEnum } from '../../infrastructure/enums/Role.enum';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
 
 @Injectable()
@@ -32,5 +33,13 @@ export class FindUserUseCase {
 
   async getExpertsForRevenue(queryRunner?: QueryRunner): Promise<User[]> {
     return this.userRepository.getExpertsForRevenue(queryRunner);
+  }
+
+  async getUsersCountByRole(role: RoleEnum, queryRunner?: QueryRunner): Promise<number> {
+    return this.userRepository.getUsersCountByRole(role, queryRunner);
+  }
+
+  async getVerifiedExpertsCount(queryRunner?: QueryRunner): Promise<number> {
+    return this.userRepository.getVerifiedExpertsCount(queryRunner);
   }
 }

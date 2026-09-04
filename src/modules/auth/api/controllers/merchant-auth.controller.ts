@@ -18,7 +18,7 @@ import { MerchantLoginDto } from '../dto/merchant-login.dto';
 import { AuthFacade } from '../../application/auth.facade';
 import { JwtAuthGuard } from '../guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { DataSource } from 'typeorm';
 
 @Controller({
@@ -30,7 +30,7 @@ export class MerchantAuthController {
   constructor(
     private readonly authFacade: AuthFacade,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -73,9 +73,7 @@ export class MerchantAuthController {
         req.get('user-agent'),
       );
 
-      // Verify the user is actually a merchant
-      const roles = user.roles || [];
-      if (!hasRoles(roles, 'MERCHANT')) {
+      if (user.role !== RoleEnum.MERCHANT) {
         throw new ForbiddenException('Only merchant accounts can login here.');
       }
 
@@ -98,7 +96,7 @@ export class MerchantAuthController {
           merchantId: user.id.toString(),
           shopName: merchantProfile?.shopName || user.name,
           email: user.email,
-          roles: user.roles,
+          role: user.role,
         },
       };
     } catch (error: unknown) {
@@ -177,8 +175,6 @@ export class MerchantAuthController {
     res: Response,
     tokens: { accessToken: string; refreshToken: string },
   ) {
-    const isProduction = process.env.NODE_ENV === 'production';
-
     const cookieOptions: CookieOptions = {
       httpOnly: true,
       secure: true, // Must be true for sameSite: 'none'

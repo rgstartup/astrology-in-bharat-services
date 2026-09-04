@@ -24,13 +24,10 @@ export class UserRegisteredHandler {
   }
 
   private buildTemplate(event: UserRegisteredEvent) {
-    const roles = event.roles || [];
-    const isExpert = hasRoles(roles, 'EXPERT');
-    const isMerchant = hasRoles(roles, 'MERCHANT');
+    const role = event.role;
+    const isExpert = hasRoles(role, 'EXPERT');
+    const isMerchant = hasRoles(role, 'MERCHANT');
 
-    this.logger.debug(
-      `User roles: ${roles.join(', ')}. isExpert: ${isExpert}, isMerchant: ${isMerchant}`,
-    );
 
     const configKey = isExpert
       ? 'email.expertFrontendUrl'

@@ -4,14 +4,17 @@ import { GunaMilanRequestDto } from '../../api/dto/matchmaking.dto';
 
 @Injectable()
 export class CalculateKundliMatchingUseCase {
-  constructor(private readonly prokeralaService: ProkeralaService) {}
+  constructor(private readonly prokeralaService: ProkeralaService) { }
 
   async execute(dto: GunaMilanRequestDto) {
     const { girl, boy } = dto;
-    const result = await this.prokeralaService.getGunaMilan(girl, boy);
+    const result = (await this.prokeralaService.getGunaMilan(
+      girl,
+      boy,
+    )) as Record<string, unknown>;
     return {
       success: true,
-      data: result.data,
+      data: result?.data ?? result,
     };
   }
 }

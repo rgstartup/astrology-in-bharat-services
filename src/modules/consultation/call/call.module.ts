@@ -5,6 +5,7 @@ import { TwilioService } from './infrastructure/services/twilio.service';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
+import { QueueModule } from '@/core/queue/queue.module';
 import { InitiateCallUseCase } from './application/use-cases/initiate-call.use-case';
 import { AcceptCallUseCase } from './application/use-cases/accept-call.use-case';
 import { EndCallUseCase } from './application/use-cases/end-call.use-case';
@@ -16,6 +17,7 @@ import { GetCallEarningsUseCase } from './application/use-cases/get-call-earning
 import { CountExpertCallSessionsUseCase } from './application/use-cases/count-expert-sessions.use-case';
 import { GetExpertCallsByDateUseCase } from './application/use-cases/get-expert-calls-by-date.use-case';
 import { ConvertToPaidUseCase } from './application/use-cases/convert-to-paid.use-case';
+import { ResolveSessionDetailsUseCase } from './application/use-cases/resolve-session-details.use-case';
 
 import { CallController } from './api/controllers/call.controller';
 import { TwimlController } from './api/controllers/twiml.controller';
@@ -28,6 +30,7 @@ import { CallFacade } from './application/call.facade';
     forwardRef(() => WalletModule),
     NotificationModule,
     forwardRef(() => ExpertProfileModule),
+    QueueModule,
   ],
   controllers: [CallController, TwimlController],
   providers: [
@@ -44,6 +47,7 @@ import { CallFacade } from './application/call.facade';
     CountExpertCallSessionsUseCase,
     GetExpertCallsByDateUseCase,
     ConvertToPaidUseCase,
+    ResolveSessionDetailsUseCase,
     CallGateway,
   ],
   exports: [

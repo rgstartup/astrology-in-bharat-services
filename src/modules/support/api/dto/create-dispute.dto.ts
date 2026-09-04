@@ -36,6 +36,6 @@ export class CreateDisputeDto {
   description: string;
 
   @IsOptional()
-  @IsObject()
-  itemDetails?: any;
+  @IsOptional()
+  itemDetails?: Record<string, unknown>;
 }

@@ -26,6 +26,7 @@ export class GetAgentProfileUseCase {
       ...profile,
       name: profile.user?.name,
       email: profile.user?.email,
+      avatar: profile.user?.avatar ?? null,
     };
   }
 }

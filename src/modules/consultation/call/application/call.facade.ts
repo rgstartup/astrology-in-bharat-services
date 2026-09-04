@@ -13,6 +13,7 @@ import { CountExpertCallSessionsUseCase } from './use-cases/count-expert-session
 import { GetExpertCallsByDateUseCase } from './use-cases/get-expert-calls-by-date.use-case';
 import { GetCallEarningsUseCase } from './use-cases/get-call-earnings.use-case';
 import { ConvertToPaidUseCase } from './use-cases/convert-to-paid.use-case';
+import { ResolveSessionDetailsUseCase } from './use-cases/resolve-session-details.use-case';
 import {
   CallType,
   CallSessionStatus,
@@ -39,6 +40,7 @@ export class CallFacade {
     private readonly getExpertCallsByDateUseCase: GetExpertCallsByDateUseCase,
     private readonly getCallEarningsUseCase: GetCallEarningsUseCase,
     private readonly convertToPaidUseCase: ConvertToPaidUseCase,
+    private readonly resolveSessionDetailsUseCase: ResolveSessionDetailsUseCase,
   ) {}
 
   async initiate(
@@ -47,7 +49,10 @@ export class CallFacade {
     type: CallType = CallType.AUDIO,
   ) {
     if (typeof dtoOrExpertId === 'string') {
-      return this.initiateCallUseCase.execute(clientId, { expert_id: dtoOrExpertId, type });
+      return this.initiateCallUseCase.execute(clientId, {
+        expert_id: dtoOrExpertId,
+        type,
+      });
     }
     return this.initiateCallUseCase.execute(clientId, dtoOrExpertId);
   }
@@ -62,7 +67,11 @@ export class CallFacade {
     reason?: string,
   ) {
     if (typeof dtoOrSessionId === 'string') {
-      return this.endCallUseCase.execute({ sessionId: dtoOrSessionId, endedBy: terminatedBy, reason });
+      return this.endCallUseCase.execute({
+        sessionId: dtoOrSessionId,
+        endedBy: terminatedBy,
+        reason,
+      });
     }
     return this.endCallUseCase.execute(dtoOrSessionId);
   }
@@ -83,6 +92,10 @@ export class CallFacade {
     );
   }
 
+  async resolveSessionDetails(sessionIds: string[]) {
+    return this.resolveSessionDetailsUseCase.execute(sessionIds);
+  }
+
   async getSession(sessionId: string) {
     return this.getCallSessionUseCase.execute(sessionId);
   }
@@ -99,6 +112,10 @@ export class CallFacade {
     return this.getExpertCallSessionsUseCase.getRevenueAndCount(
       expertProfileId,
     );
+  }
+
+  async getAllExpertsRevenueAndCount() {
+    return this.getExpertCallSessionsUseCase.getAllExpertsRevenueAndCount();
   }
 
   async getExpertSessionCount(

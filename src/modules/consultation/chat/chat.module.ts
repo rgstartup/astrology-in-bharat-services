@@ -26,11 +26,14 @@ import { RejectChatUseCase } from './application/use-cases/reject-chat.use-case'
 import { UpdateSessionMetadataUseCase } from './application/use-cases/update-session-metadata.use-case';
 import { GetChatEarningsUseCase } from './application/use-cases/get-chat-earnings.use-case';
 import { GetExpertSessionsByDateUseCase } from './application/use-cases/get-expert-sessions-by-date.use-case';
+import { CheckChatEligibilityUseCase } from './application/use-cases/check-chat-eligibility.use-case';
+import { ResolveSessionDetailsUseCase } from './application/use-cases/resolve-session-details.use-case';
 
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
-import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
+import { CouponModule } from '@/modules/client/commerce/coupon/coupon.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
+import { QueueModule } from '@/core/queue/queue.module';
 
 @Module({
   imports: [
@@ -39,6 +42,7 @@ import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/p
     NotificationModule,
     forwardRef(() => CouponModule),
     forwardRef(() => ExpertProfileModule),
+    QueueModule,
   ],
   providers: [
     ChatGateway,
@@ -63,6 +67,8 @@ import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/p
     UpdateSessionMetadataUseCase,
     GetChatEarningsUseCase,
     GetExpertSessionsByDateUseCase,
+    CheckChatEligibilityUseCase,
+    ResolveSessionDetailsUseCase,
   ],
   controllers: [ChatController, ConsultationController],
   exports: [

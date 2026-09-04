@@ -12,7 +12,7 @@ import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
+import { CouponFacade } from '@/modules/client/commerce/coupon/application/coupon.facade';
 import { ConsultationBookDto } from '../dto/consultation-book.dto';
 
 @Controller({

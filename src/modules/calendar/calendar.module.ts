@@ -5,6 +5,8 @@ import { CalendarFacade } from './application/calendar.facade';
 import { GetDailyPanchangUseCase } from './application/use-cases/get-daily-panchang.usecase';
 import { GetMonthlyCalendarUseCase } from './application/use-cases/get-monthly-calendar.usecase';
 import { GetYearlyFestivalsUseCase } from './application/use-cases/get-yearly-festivals.usecase';
+import { GetFestivalDetailsUseCase } from './application/use-cases/get-festival-details.usecase';
+import { PanchangamService } from './application/services/panchangam.service';
 import { CalendarCache } from './infrastructure/entities/calendar-cache.entity';
 import { ProkeralaModule } from '@/external/prokerala/prokerala.module';
 
@@ -16,6 +18,8 @@ import { ProkeralaModule } from '@/external/prokerala/prokerala.module';
     GetDailyPanchangUseCase,
     GetMonthlyCalendarUseCase,
     GetYearlyFestivalsUseCase,
+    GetFestivalDetailsUseCase,
+    PanchangamService,
   ],
   exports: [CalendarFacade],
 })

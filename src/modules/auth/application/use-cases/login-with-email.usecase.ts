@@ -1,18 +1,25 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from '../../api/dto';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthPolicy } from '../../domain/policies/auth.policy';
-import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { AuthTokenService } from '../services/auth-token.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+
 @Injectable()
 export class LoginWithEmailUseCase {
   constructor(
-    private readonly usersFacade: UsersFacade,
-    private readonly issueTokens: IssueAuthTokensUseCase,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly authTokenService: AuthTokenService,
     private readonly authPolicy: AuthPolicy,
-  ) {}
+  ) { }
 
   async execute(dto: LoginDto, ip?: string, userAgent?: string) {
-    const user = await this.usersFacade.findByEmailWithPassword(dto.email);
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+      select: ['id', 'email', 'password', 'name', 'role', 'email_verified_at'],
+    });
 
     const isValidPassword = await this.authPolicy.verifyPassword(
       user,
@@ -24,10 +31,9 @@ export class LoginWithEmailUseCase {
     }
 
     this.authPolicy.ensureEmailVerified(user);
-
     this.authPolicy.ensureHasRequiredRole(user, dto.requiredRole);
 
-    const tokens = await this.issueTokens.execute(
+    const tokens = await this.authTokenService.issueAuthTokens(
       user,
       dto.requiredRole,
       ip,

@@ -1,34 +1,37 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common';
-import { UsersFacade } from '@/modules/users/application/users.facade';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import {
   hasRoles,
   RoleEnum,
 } from '@/modules/users/infrastructure/enums/Role.enum';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class GetMerchantProfileUseCase {
   constructor(
-    private readonly usersFacade: UsersFacade,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(ProfileMerchant)
+    private readonly profileMerchantRepository: Repository<ProfileMerchant>,
     private readonly db: DatabaseService,
-  ) {}
+  ) { }
 
   async execute(userId: string) {
-    const user = await this.usersFacade.findById(userId);
+    const [user, merchantProfile] = await Promise.all([
+      this.userRepository.findOne({ where: { id: userId } }),
+      this.profileMerchantRepository.findOne({
+        where: { user: { id: userId } },
+      }),
+    ]);
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const { ProfileMerchant } = await import(
-      '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
-    );
-    const merchantProfile = await this.db.transaction(async (qr) => {
-      return qr.manager.findOne(ProfileMerchant, {
-        where: { user: { id: userId } },
-      });
-    });
-
-    const isMerchant = hasRoles(user.roles, 'MERCHANT');
+    const isMerchant = hasRoles(user.role, 'MERCHANT');
     if (!isMerchant) {
       throw new NotFoundException('Merchant profile not found for this user');
     }

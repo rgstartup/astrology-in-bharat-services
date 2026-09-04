@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -7,10 +7,17 @@ import {
   IAccessTokenPayload,
   IUser,
 } from '@/common/types/access-token.payload';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(config: ConfigService) {
+  constructor(
+    config: ConfigService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {
     const authConfig = config.get<AuthConfig>('auth');
 
     if (!authConfig) {
@@ -20,11 +27,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: import('express').Request) => {
-          console.log('[JwtStrategy] Incoming request to:', req.url);
-          console.log('[JwtStrategy] Incoming request headers:', req.headers);
-          console.log('[JwtStrategy] Incoming request cookies:', req.cookies);
-          const token = req?.cookies?.accessToken ?? null;
-          console.log('[JwtStrategy] Extracted accessToken from cookies:', token ? 'Found' : 'Missing');
+          const cookies = req?.cookies as Record<string, string> | undefined;
+          const token = cookies?.accessToken ?? null;
           return token;
         },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -33,13 +37,24 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async validate(payload: IAccessTokenPayload): Promise<IUser> {
-    // We return a simplified user object based on the JWT payload.
-    // This avoids a database hit on every protected request.
+    // Perform a live DB check to ensure the user hasn't been deleted or blocked
+    const user = await this.userRepository.findOne({
+      where: { id: payload.sub },
+      select: ['id', 'role', 'admin_permissions', 'email'],
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'User account has been deleted or disabled',
+      );
+    }
+
     return {
       id: payload.sub,
       ...payload,
+      role: user.role,
+      admin_permissions: user.admin_permissions,
     };
   }
 }

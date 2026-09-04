@@ -1,34 +1,38 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProfileClientDto } from '@/modules/client/profile/infrastructure/dto/profile-client.dto';
 import { QueryRunner } from 'typeorm';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
+import crypto from 'node:crypto';
 
 @Injectable()
 export class ClientAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy
-{
+  implements AuthProfileCreationStrategy<ClientAccount> {
   readonly role = RoleEnum.CLIENT;
 
-  constructor(private readonly clientProfileFacade: ClientProfileFacade) {}
+  async ensureProfile(user: User, queryRunner: QueryRunner): Promise<ClientAccount> {
+    const clientAccountRepo = queryRunner.manager.getRepository(ClientAccount);
 
-  async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
-    const profile = await this.clientProfileFacade.getProfile(
-      { id: user.id, email: user.email || '', roles: [] },
-      queryRunner,
-    );
-    if (!profile) {
-      await this.clientProfileFacade.createProfile(
-        user.id,
-        {
-          full_name: user.name || '',
-          avatar: user.avatar,
-          profile_picture: user.avatar,
-        } as unknown as CreateProfileClientDto,
-        queryRunner,
-      );
-    }
+    const existingAccount = await clientAccountRepo.findOne({
+      where: { user: { id: user.id } },
+    });
+    if (existingAccount) return existingAccount;
+
+    const suffix = crypto
+      .randomBytes(4)
+      .toString('hex')
+      .toUpperCase()
+      .slice(0, 6);
+
+    const account = clientAccountRepo.create({
+      user,
+      uid: `AIB-USR-${suffix}`,
+      name: user.full_name || user.name,
+      email: user.email,
+      avatar: user.avatar,
+    });
+
+    return clientAccountRepo.save(account);
   }
 }

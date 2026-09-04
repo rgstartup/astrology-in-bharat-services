@@ -48,7 +48,7 @@ export class GoogleAuthGuard extends AuthGuard('google') {
     user: any,
     info: any,
     context: ExecutionContext,
-    status?: any,
+    _status?: unknown,
   ): TUser {
     const request = context.switchToHttp().getRequest<{
       _auth_guard_handled?: boolean;
@@ -66,7 +66,7 @@ export class GoogleAuthGuard extends AuthGuard('google') {
       this.logger.log(
         `Google Auth handleRequest already handled for ${request.url}, skipping second call. User present in request: ${!!request.user}`,
       );
-      return user || request.user;
+      return (user || request.user) as TUser;
     }
     request._auth_guard_handled = true;
 
@@ -78,14 +78,14 @@ export class GoogleAuthGuard extends AuthGuard('google') {
     }
 
     if (user) {
-      request.user = user;
+      request.user = user as Record<string, unknown>;
     }
 
     if (response.headersSent) {
       this.logger.log(
         `Headers already sent for ${request.url}, skipping custom redirect logic.`,
       );
-      return user;
+      return user as TUser;
     }
 
     if (err || !user) {
@@ -133,13 +133,14 @@ export class GoogleAuthGuard extends AuthGuard('google') {
         redirectBase = `${parsed.origin}/sign-in`;
       }
 
-      const errorMessage = err?.message || 'Google authentication failed';
+      const errorMessage =
+        (err as Error)?.message || 'Google authentication failed';
 
       response.redirect(
         `${redirectBase}${redirectBase.includes('?') ? '&' : '?'}error=${encodeURIComponent(errorMessage)}`,
       );
       throw new UnauthorizedException(errorMessage);
     }
-    return user;
+    return user as TUser;
   }
 }

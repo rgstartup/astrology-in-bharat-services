@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { Profile } from 'passport-google-oauth20';
 
 export class OAuthUserDto {
   @IsString()
@@ -23,12 +24,11 @@ export class OAuthUserDto {
   name?: string;
 
   @IsOptional()
-  profile?: any; // optional raw provider profile
+  oauthProfile?: Profile // optional raw provider profile
 
   @IsOptional()
-  @IsArray()
-  @IsEnum(RoleEnum, { each: true })
-  roles: RoleEnum[] = [RoleEnum.CLIENT]; // default to client role
+  @IsEnum(RoleEnum)
+  role: RoleEnum; // default to client role
 
   constructor(partial: Partial<OAuthUserDto>) {
     Object.assign(this, partial);

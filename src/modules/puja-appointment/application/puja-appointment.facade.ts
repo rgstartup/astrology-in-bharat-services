@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GetUserPujaAppointmentsUseCase } from './use-cases/get-user-puja-appointments.use-case';
 import { GetPujaEarningsUseCase } from './use-cases/get-puja-earnings.use-case';
 import { GetExpertPujaAppointmentsUseCase } from './use-cases/get-expert-puja-appointments.use-case';
+import { ResolveAppointmentDetailsUseCase } from './use-cases/resolve-appointment-details.use-case';
 
 @Injectable()
 export class PujaAppointmentFacade {
@@ -9,6 +10,7 @@ export class PujaAppointmentFacade {
     private readonly getUserPujaAppointmentsUseCase: GetUserPujaAppointmentsUseCase,
     private readonly getPujaEarningsUseCase: GetPujaEarningsUseCase,
     private readonly getExpertPujaAppointmentsUseCase: GetExpertPujaAppointmentsUseCase,
+    private readonly resolveAppointmentDetailsUseCase: ResolveAppointmentDetailsUseCase,
   ) {}
 
   getUserAppointments(clientProfileId: string) {
@@ -23,5 +25,13 @@ export class PujaAppointmentFacade {
     return this.getExpertPujaAppointmentsUseCase.getRevenueAndCount(
       expertProfileId,
     );
+  }
+
+  getAllExpertsRevenueAndCount() {
+    return this.getExpertPujaAppointmentsUseCase.getAllExpertsRevenueAndCount();
+  }
+
+  async resolveAppointmentDetails(appointmentIds: string[]) {
+    return this.resolveAppointmentDetailsUseCase.execute(appointmentIds);
   }
 }

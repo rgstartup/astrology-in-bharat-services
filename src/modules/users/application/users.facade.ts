@@ -100,6 +100,14 @@ export class UsersFacade {
     return this.findUserUseCase.getExpertsForRevenue(queryRunner);
   }
 
+  getUsersCountByRole(role: RoleEnum, queryRunner?: QueryRunner) {
+    return this.findUserUseCase.getUsersCountByRole(role, queryRunner);
+  }
+
+  getVerifiedExpertsCount(queryRunner?: QueryRunner) {
+    return this.findUserUseCase.getVerifiedExpertsCount(queryRunner);
+  }
+
   findReferredUsers(roles: string[], search?: string) {
     return this.findReferredUsersUseCase.execute(roles, search);
   }
@@ -110,5 +118,9 @@ export class UsersFacade {
 
   async getFilteredUsersList(filters: FilterCriteria) {
     return this.getFilteredUsersUseCase.executeList(filters);
+  }
+
+  async getFilteredUsersIds(filters: FilterCriteria) {
+    return this.getFilteredUsersUseCase.executeIds(filters);
   }
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentOrder } from './infrastructure/entities/payment-order.entity';
 import { PaymentController } from './api/controllers/payment.controller';
@@ -9,14 +9,14 @@ import { VerifyPaymentUseCase } from './application/use-cases/verify-payment.use
 import { HandleWebhookUseCase } from './application/use-cases/handle-webhook.use-case';
 import { PaymentGatewayModule } from '@/external/payment/payment-gateway.module';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
-import { OrderModule } from '@/modules/commerce/order/order.module';
+import { OrderModule } from '@/modules/client/commerce/order/order.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PaymentOrder]),
     PaymentGatewayModule,
     WalletModule,
-    OrderModule,
+    forwardRef(() => OrderModule),
   ],
   controllers: [PaymentController, WebhookController],
   providers: [

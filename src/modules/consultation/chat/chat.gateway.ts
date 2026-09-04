@@ -55,12 +55,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Auto-disconnect logic for sessions (Grace period 30s)
     const sessionId = this.socketToSession.get(client.id);
     if (sessionId) {
-      this.logger.log(`[ChatGateway] Socket ${client.id} belonged to active session ${sessionId}. Starting 30s auto-end timer.`);
+      this.logger.log(
+        `[ChatGateway] Socket ${client.id} belonged to active session ${sessionId}. Starting 30s auto-end timer.`,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       const timeout = setTimeout(async () => {
         try {
           const session = await this.chatFacade.getSession(sessionId);
           if (session && session.status === ChatSessionStatus.ACTIVE) {
-            this.logger.warn(`[ChatGateway] ⏱️ 30s grace period expired for chat session ${sessionId}. Auto-ending chat.`);
+            this.logger.warn(
+              `[ChatGateway] ⏱️ 30s grace period expired for chat session ${sessionId}. Auto-ending chat.`,
+            );
             const summary = await this.chatFacade.endChat(sessionId);
             this.server.to(`room_${sessionId}`).emit('session_ended', {
               ...summary,
@@ -73,7 +78,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             }
           }
         } catch (e) {
-          this.logger.error(`[ChatGateway] Failed to auto-end session ${sessionId}`, e);
+          this.logger.error(
+            `[ChatGateway] Failed to auto-end session ${sessionId}`,
+            e,
+          );
         }
         this.sessionDisconnectTimeouts.delete(sessionId);
       }, 30000); // 30 seconds
@@ -86,24 +94,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (socketId === client.id) {
         this.expertSockets.delete(expert_id);
         this.logger.log(`Expert ${expert_id} unregistered due to disconnect`);
-        
+
         // Start a 15-second timer to end their active chats if they don't reconnect
         const timer = setTimeout(async () => {
-          this.logger.log(`Expert ${expert_id} did not reconnect in 15s. Ending their active chats.`);
+          this.logger.log(
+            `Expert ${expert_id} did not reconnect in 15s. Ending their active chats.`,
+          );
           try {
             const activeSessions = await this.sessionRepo.find({
-              where: { expert_id, status: ChatSessionStatus.ACTIVE }
+              where: { expert_id, status: ChatSessionStatus.ACTIVE },
             });
             for (const session of activeSessions) {
               await this.chatFacade.endChat(session.id);
-              this.logger.log(`Ended active session ${session.id} due to expert disconnect timeout.`);
+              this.logger.log(
+                `Ended active session ${session.id} due to expert disconnect timeout.`,
+              );
             }
           } catch (error) {
-            this.logger.error(`Error ending active chats for expert ${expert_id}:`, error);
+            this.logger.error(
+              `Error ending active chats for expert ${expert_id}:`,
+              error,
+            );
           }
           this.disconnectTimers.delete(expert_id);
         }, 15000);
-        
+
         this.disconnectTimers.set(expert_id, timer);
         break;
       }
@@ -124,7 +139,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (this.disconnectTimers.has(payload.expert_id)) {
       clearTimeout(this.disconnectTimers.get(payload.expert_id)!);
       this.disconnectTimers.delete(payload.expert_id);
-      this.logger.log(`Expert ${payload.expert_id} reconnected. Cancelled disconnect timer.`);
+      this.logger.log(
+        `Expert ${payload.expert_id} reconnected. Cancelled disconnect timer.`,
+      );
     }
 
     return { status: 'registered' };
@@ -135,17 +152,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { expert_id: string },
   ) {
-    this.logger.log(`Received force_end_active_chats for expert ${payload.expert_id}`);
+    this.logger.log(
+      `Received force_end_active_chats for expert ${payload.expert_id}`,
+    );
     try {
       const activeSessions = await this.sessionRepo.find({
-        where: { expert_id: payload.expert_id, status: ChatSessionStatus.ACTIVE }
+        where: {
+          expert_id: payload.expert_id,
+          status: ChatSessionStatus.ACTIVE,
+        },
       });
       for (const session of activeSessions) {
         await this.chatFacade.endChat(session.id);
-        this.logger.log(`Ended active session ${session.id} due to explicit offline toggle.`);
+        this.logger.log(
+          `Ended active session ${session.id} due to explicit offline toggle.`,
+        );
       }
     } catch (error) {
-      this.logger.error(`Error ending active chats for expert ${payload.expert_id} on force end:`, error);
+      this.logger.error(
+        `Error ending active chats for expert ${payload.expert_id} on force end:`,
+        error,
+      );
     }
   }
 
@@ -213,7 +240,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Clear any existing session disconnect timeout if they reconnected in time
     if (this.sessionDisconnectTimeouts.has(payload.sessionId)) {
-      this.logger.log(`[ChatGateway] 🔄 User reconnected to chat session ${payload.sessionId}. Cleared auto-end timer.`);
+      this.logger.log(
+        `[ChatGateway] 🔄 User reconnected to chat session ${payload.sessionId}. Cleared auto-end timer.`,
+      );
       clearTimeout(this.sessionDisconnectTimeouts.get(payload.sessionId));
       this.sessionDisconnectTimeouts.delete(payload.sessionId);
     }
@@ -329,7 +358,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // Hard Limit: End any chat over 60 minutes
       if (durationMins >= 60) {
-        this.logger.warn(`[ChatGateway] Session ${sessionId} reached 1 hour max limit. Force ending.`);
+        this.logger.warn(
+          `[ChatGateway] Session ${sessionId} reached 1 hour max limit. Force ending.`,
+        );
         const summary = await this.chatFacade.endChat(sessionId);
         this.server.to(`room_${sessionId}`).emit('session_ended', {
           ...summary,
@@ -373,7 +404,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           const s = await this.chatFacade.getSession(sessionId);
-          // If still active AND still free, it means they didn't confirm continuation. 
+          // If still active AND still free, it means they didn't confirm continuation.
           // End unconditionally regardless of balance to enforce business logic on backend.
           if (s?.status === ChatSessionStatus.ACTIVE && s.is_free) {
             const summary = await this.chatFacade.endChat(sessionId);
@@ -381,13 +412,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
               ...summary,
               reason: 'free_limit_ended_no_confirmation',
             });
-            
+
             // Clean up timers
             if (this.sessionTimers.has(sessionId)) {
               clearInterval(this.sessionTimers.get(sessionId));
               this.sessionTimers.delete(sessionId);
             }
-            
+
             // ✅ Broadcast expert is now FREE again
             if (s.expert_id) {
               this.server.emit('expert_busy_changed', {
@@ -479,11 +510,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       attachmentType?: string;
     },
   ) {
-    console.log(`[ChatGateway] Received send_message from ${payload.senderType} (${payload.senderId}) for room_${payload.sessionId}. Payload:`, payload);
+    console.log(
+      `[ChatGateway] Received send_message from ${payload.senderType} (${payload.senderId}) for room_${payload.sessionId}. Payload:`,
+      payload,
+    );
     // Validation: Only allow messages if session is active
     const session = await this.chatFacade.getSession(payload.sessionId);
     if (!session || session.status !== ChatSessionStatus.ACTIVE) {
-      console.log(`[ChatGateway] Chat is not active for session ${payload.sessionId}. Status: ${session?.status}`);
+      console.log(
+        `[ChatGateway] Chat is not active for session ${payload.sessionId}. Status: ${session?.status}`,
+      );
       return { status: 'error', message: 'Chat is not active' };
     }
 
@@ -497,16 +533,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         payload.attachmentUrl,
         payload.attachmentType,
       );
-      
-      console.log(`[ChatGateway] Message saved successfully. Emitting new_message to room_${payload.sessionId}...`, savedMsg);
+
+      console.log(
+        `[ChatGateway] Message saved successfully. Emitting new_message to room_${payload.sessionId}...`,
+        savedMsg,
+      );
 
       // Use client to ensure we are emitting in the correct namespace
       // client.to(room) emits to everyone in the room EXCEPT the sender
       client.to(`room_${payload.sessionId}`).emit('new_message', savedMsg);
       // client.emit sends to the sender themselves
       client.emit('new_message', savedMsg);
-      
-      console.log(`[ChatGateway] Broadcast complete for message ${savedMsg.id}`);
+
+      console.log(
+        `[ChatGateway] Broadcast complete for message ${savedMsg.id}`,
+      );
       return savedMsg;
     } catch (error) {
       console.error(`[ChatGateway] Error saving message:`, error);

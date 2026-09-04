@@ -1,0 +1,30 @@
+import {
+  Entity,
+  OneToOne,
+  OneToMany,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
+import { CartItem } from './cart-item.entity';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+
+@Entity({ schema: 'commerce', name: 'carts' })
+export class Cart {
+  @UuidPrimaryKeyColumn()
+  id!: string;
+
+  @OneToOne(() => ClientAccount, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'client_id' })
+  client!: ClientAccount;
+
+  @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { cascade: true })
+  items!: CartItem[];
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updated_at!: Date;
+}

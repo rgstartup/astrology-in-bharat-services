@@ -55,10 +55,7 @@ export class AgentController {
   }
 
   @Get('dashboard/stats')
-  async getStats(
-    @CurrentUser() user: IUser,
-    @Query() query: GetAgentStatsDto,
-  ) {
+  async getStats(@CurrentUser() user: IUser, @Query() query: GetAgentStatsDto) {
     return this.agentFacade.getStats(user, query);
   }
 
@@ -116,12 +113,10 @@ export class AgentController {
     if (body.amount < 500) {
       throw new BadRequestException('Minimum withdrawal amount is ₹500');
     }
-    return this.agentFacade.requestWithdrawal(
-      user,
-      body,
-      idempotencyKey,
-      { ip, ua },
-    );
+    return this.agentFacade.requestWithdrawal(user, body, idempotencyKey, {
+      ip,
+      ua,
+    });
   }
 
   @Post('wallet/settle')

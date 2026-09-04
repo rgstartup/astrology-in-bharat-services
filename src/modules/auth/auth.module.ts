@@ -1,19 +1,18 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './api/controllers/auth.controller';
 import { MerchantAuthController } from './api/controllers/merchant-auth.controller';
-import { UsersModule } from '@/modules/users/users.module';
+
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { Session } from './infrastructure/entities/session.entity';
 import { OAuthAccount } from './infrastructure/entities/oauth-accounts.entity';
 import { JwtStrategy } from './api/strategies/jwt.strategy';
 import { DatabaseModule } from '@/core/database/database.module';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
-import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { QueueModule } from '@/core/queue/queue.module';
-import { AgentModule } from '@/modules/agent/agent.module';
 
 import { UsedTokens } from './infrastructure/entities/used-tokens.entity';
 import { AuthFacade } from './application/auth.facade';
@@ -29,7 +28,7 @@ import { UserRegisteredHandler } from './application/event-handlers/user-registe
 import { LoginWithGoogleUseCase } from './application/use-cases/login-with-google.usecase';
 import { OAuthService } from './infrastructure/services/oauth.service';
 import { GoogleStrategy } from './api/strategies/google.strategy';
-import { GoogleAuthGuard } from './api/guards/google-auth.guard';
+import { GoogleAuthGuard } from './api/guards/google-auth-v2.guard';
 import { GoogleAuthController } from './api/controllers/google-auth.controller';
 import { LogoutUserUseCase } from './application/use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.usecase';
@@ -63,8 +62,9 @@ import { MerchantFindProfileStrategy } from './application/strategies/find-profi
 import { FindProfileResolver } from './application/strategies/find-profile/find-profile.resolver';
 import { FIND_PROFILE_STRATEGIES } from './application/strategies/find-profile/find-profile.strategy';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
+import { AuthTokenService } from './application/services/auth-token.service';
 
 const useCases = [
   RegisterUserUseCase,
@@ -95,23 +95,21 @@ const handlers = [
 
 @Module({
   imports: [
-    UsersModule,
     TypeOrmModule.forFeature([
       Session,
       OAuthAccount,
       UsedTokens,
       ProfileAgent,
-      ProfileClient,
+      ClientAccount,
       ProfileExpert,
       ProfileMerchant,
+      User,
+      SystemSetting,
     ]),
     DatabaseModule,
     ExternalModule,
-    ClientProfileModule,
     ExpertProfileModule,
     MerchantProfileModule,
-    AgentModule,
-    WalletModule,
     QueueModule,
   ],
   providers: [
@@ -172,8 +170,8 @@ const handlers = [
     AuthPolicy,
     TokenCryptoService,
     SessionRepository,
+    AuthTokenService,
   ],
   controllers: [AuthController, MerchantAuthController, GoogleAuthController],
-  // exports: [TokenService, OAuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

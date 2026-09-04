@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Query, Body, UseGuards, Delete, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Body,
+  UseGuards,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { AstrologyFacade } from '../application/astrology.facade';
@@ -14,37 +23,45 @@ import { GetLuckyStatsDto } from './dto/get-lucky-stats.dto';
 import { GetKundliMatchingDto } from './dto/get-kundli-matching.dto';
 import { GenerateKundliReportDto } from './dto/generate-kundli-report.dto';
 
+interface AuthenticatedUser {
+  profile: string;
+}
+
 @Controller('astrology')
 export class AstrologyController {
   constructor(private readonly astrologyFacade: AstrologyFacade) {}
 
   @Get('guna-milan')
-  async getGunaMilan(@Query() query: GetGunaMilanDto) {
+  async getGunaMilan(@Query() query: GetGunaMilanDto): Promise<unknown> {
     return this.astrologyFacade.getGunaMilan(query);
   }
 
   @Get('horoscope-daily')
-  async getDailyHoroscope(@Query() query: GetDailyHoroscopeDto) {
+  async getDailyHoroscope(
+    @Query() query: GetDailyHoroscopeDto,
+  ): Promise<unknown> {
     return this.astrologyFacade.getDailyHoroscope(query);
   }
 
   @Get('mangal-dosha')
-  async getMangalDosha(@Query() query: GetMangalDoshaDto) {
+  async getMangalDosha(@Query() query: GetMangalDoshaDto): Promise<unknown> {
     return this.astrologyFacade.getMangalDosha(query);
   }
 
   @Get('birth-details')
-  async getBirthDetails(@Query() query: GetBirthDetailsDto) {
+  async getBirthDetails(@Query() query: GetBirthDetailsDto): Promise<unknown> {
     return this.astrologyFacade.getBirthDetails(query);
   }
 
   @Get('panchang')
-  async getPanchang(@Query() query: GetPanchangDto) {
+  async getPanchang(@Query() query: GetPanchangDto): Promise<unknown> {
     return this.astrologyFacade.getPanchang(query);
   }
 
   @Get('planetary-positions')
-  async getPlanetaryPositions(@Query() query: GetPlanetaryPositionsDto) {
+  async getPlanetaryPositions(
+    @Query() query: GetPlanetaryPositionsDto,
+  ): Promise<unknown> {
     return this.astrologyFacade.getPlanetaryPositions(query);
   }
 
@@ -57,31 +74,35 @@ export class AstrologyController {
   }
 
   @Get('kundli-matching')
-  async getKundliMatching(@Query() query: GetKundliMatchingDto) {
+  async getKundliMatching(
+    @Query() query: GetKundliMatchingDto,
+  ): Promise<unknown> {
     return this.astrologyFacade.getKundliMatching(query);
   }
 
   @Post('kundli-reports')
   @UseGuards(JwtAuthGuard)
   async generateAndSaveKundliReport(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() body: GenerateKundliReportDto,
-  ) {
-    return this.astrologyFacade.generateAndSaveKundliReport(
-      user.profile,
-      body,
-    );
+  ): Promise<unknown> {
+    return this.astrologyFacade.generateAndSaveKundliReport(user.profile, body);
   }
 
   @Get('my-kundli-reports')
   @UseGuards(JwtAuthGuard)
-  async getMyKundliReports(@CurrentUser() user: any) {
+  async getMyKundliReports(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<unknown> {
     return this.astrologyFacade.getMyKundliReports(user.profile);
   }
 
   @Delete('kundli-reports/:id')
   @UseGuards(JwtAuthGuard)
-  async deleteKundliReport(@CurrentUser() user: any, @Param('id') id: string) {
+  async deleteKundliReport(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ): Promise<unknown> {
     return this.astrologyFacade.deleteKundliReport(user.profile, id);
   }
 }

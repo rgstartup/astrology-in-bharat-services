@@ -48,6 +48,7 @@ export class GetExpertByIdUseCase {
     plain.rating = expert.rating !== undefined ? Math.round(expert.rating) : 5;
     plain.ratings = plain.rating; // align both rating and ratings
     plain.bio = expert.bio || '';
+    plain.about = expert.about || '';
     plain.detailed_experience = expert.detailed_experience || [];
     plain.gallery = expert.gallery || [];
     plain.videos = expert.videos || [];

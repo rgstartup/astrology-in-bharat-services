@@ -1,15 +1,20 @@
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { UsedTokensService } from '../../infrastructure/services/used-tokens.service';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { TokenAlreadyUsedError } from '../../domain/errors/token-already-used.error';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
+import { DatabaseService } from '@/core/database/database.service';
+import { QueryRunner } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ResetPasswordUseCase {
   constructor(
-    private readonly usersFacade: UsersFacade,
+    private readonly db: DatabaseService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly usedTokenService: UsedTokensService,
     @Inject(IHasherToken) private readonly hasher: IHasher,
@@ -18,7 +23,9 @@ export class ResetPasswordUseCase {
   async execute(token: string, password: string) {
     const payload = await this.verifyTokenOrFail(token);
 
-    const existingUser = await this.usersFacade.findByEmail(payload.email);
+    const existingUser = await this.userRepository.findOne({
+      where: { email: payload.email },
+    });
 
     if (!existingUser) {
       throw new BadRequestException("User not found or doesn't exist");
@@ -31,13 +38,15 @@ export class ResetPasswordUseCase {
 
     if (isTokenUsedAlready) throw new TokenAlreadyUsedError();
 
-    await this.updatePassword(password, existingUser);
-
-    await this.usedTokenService.markTokenAsUsed(
-      token,
-      existingUser.id,
-      'password reset',
-    );
+    await this.db.transaction(async (qr) => {
+      await this.updatePassword(password, existingUser, qr);
+      await this.usedTokenService.markTokenAsUsed(
+        token,
+        existingUser.id,
+        'password reset',
+        qr,
+      );
+    });
 
     return {
       message: 'Password updated successfully!',
@@ -53,11 +62,8 @@ export class ResetPasswordUseCase {
     }
   }
 
-  private async updatePassword(password: string, user: User) {
+  private async updatePassword(password: string, user: User, qr: QueryRunner) {
     const hashed = await this.hasher.hash(password);
-
-    await this.usersFacade.update(user.id, {
-      password: hashed,
-    });
+    await qr.manager.update(User, { id: user.id }, { password: hashed });
   }
 }

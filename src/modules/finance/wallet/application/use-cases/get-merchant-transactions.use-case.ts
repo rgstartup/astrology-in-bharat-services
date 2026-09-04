@@ -108,10 +108,22 @@ export class GetMerchantTransactionsUseCase {
           }
         }
 
+        const formatShortId = (text: string | null | undefined) => {
+          if (!text) return '';
+          if (text.includes('AIB-')) {
+            return text.replace(/(AIB-[A-Z-]+)([a-f0-9]{8})[a-f0-9-]{28}/i, '$1$2...');
+          }
+          if (text.includes('order_item_')) {
+            return text.replace(/(order_item_)([a-f0-9]{8})[a-f0-9-]{28}/i, '$1$2...');
+          }
+          return text.length > 30 ? `${text.substring(0, 15)}...${text.slice(-4)}` : text;
+        };
+
         const amountSign = typeLabel === 'Credit' ? '+' : '-';
 
         return {
           id: txn.transaction_no || `TXN${txn.id}`,
+          short_id: formatShortId(txn.transaction_no || `TXN${txn.id}`),
           orderId,
           date: txn.created_at.toISOString(),
           amount: Number(txn.amount),
@@ -122,7 +134,7 @@ export class GetMerchantTransactionsUseCase {
           icon,
           info,
           status,
-          remark: remark || txn.reference_id,
+          remark: formatShortId(remark || txn.reference_id),
         };
       }),
     );

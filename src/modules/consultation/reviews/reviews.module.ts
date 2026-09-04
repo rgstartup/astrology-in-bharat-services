@@ -23,7 +23,7 @@ import { GetExpertReviewsByDateUseCase } from './application/use-cases/get-exper
 
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
-import { OrderModule } from '@/modules/commerce/order/order.module';
+import { OrderModule } from '@/modules/client/commerce/order/order.module';
 
 @Module({
   imports: [

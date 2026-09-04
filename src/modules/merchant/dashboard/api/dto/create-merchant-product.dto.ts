@@ -65,4 +65,13 @@ export class CreateMerchantProductDto {
   @IsString({ each: true })
   @IsOptional()
   gallery?: string[];
+
+  @IsOptional()
+  is_shipping_chargeable?: boolean;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  shipping_charge?: number;
 }

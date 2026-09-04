@@ -5,7 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
@@ -34,9 +34,9 @@ export class Notification {
   @Column({ name: 'client_id', type: 'uuid', nullable: true })
   client_id!: string | null;
 
-  @ManyToOne(() => ProfileClient, { nullable: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => ClientAccount, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
-  client!: ProfileClient | null;
+  client!: ClientAccount | null;
 
   @Column({ name: 'expert_id', type: 'uuid', nullable: true })
   expert_id!: string | null;
@@ -77,7 +77,7 @@ export class Notification {
   is_read!: boolean;
 
   @Column({ type: 'json', nullable: true })
-  metadata: Record<string, unknown>; // orderId, etc.
+  metadata?: Record<string, unknown>; // orderId, etc.
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;

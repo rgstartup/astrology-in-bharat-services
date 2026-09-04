@@ -6,7 +6,7 @@ import { GetPanchangDto } from '../../api/dto/get-panchang.dto';
 export class GetPanchangUseCase {
   constructor(private readonly prokeralaService: ProkeralaService) {}
 
-  async execute(dto: GetPanchangDto) {
+  async execute(dto: GetPanchangDto): Promise<unknown> {
     const { datetime, lat, lon, lang } = dto;
     return this.prokeralaService.getPanchang({ datetime, lat, lon, lang });
   }

@@ -2,7 +2,25 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
-import { GetYearlyFestivalsUseCase } from './get-yearly-festivals.usecase';
+import { PanchangamService } from '../services/panchangam.service';
+
+interface FestivalItem {
+  name: string;
+  date: string;
+  description?: string;
+  category?: string;
+  type?: string;
+}
+
+interface FestivalsRaw {
+  data?: FestivalItem[];
+}
+
+interface MonthlyCalendarDay {
+  date: string;
+  dayName: string;
+  festivals: string[];
+}
 
 @Injectable()
 export class GetMonthlyCalendarUseCase {
@@ -11,7 +29,7 @@ export class GetMonthlyCalendarUseCase {
   constructor(
     @InjectRepository(CalendarCache)
     private readonly cacheRepository: Repository<CalendarCache>,
-    private readonly getYearlyFestivalsUseCase: GetYearlyFestivalsUseCase,
+    private readonly panchangamService: PanchangamService,
   ) {}
 
   async execute(
@@ -21,8 +39,8 @@ export class GetMonthlyCalendarUseCase {
     lon: string,
     lang: string = 'en',
   ) {
-    const type = 'monthly';
-    const cacheKey = `${year}-${month}-${lang}-v3`;
+    const type = 'monthly-local';
+    const cacheKey = `${year}-${month}-${lang}-v1`;
 
     const cached = await this.cacheRepository.findOne({
       where: { type, cacheKey },
@@ -32,26 +50,55 @@ export class GetMonthlyCalendarUseCase {
       return cached.response;
     }
 
-    this.logger.log(`Fetching fresh monthly calendar for ${cacheKey}`);
+    this.logger.log(
+      `Calculating fresh monthly calendar for ${cacheKey} locally`,
+    );
 
-    let festivalsRaw: any = {};
+    // Fetch yearly festivals from local service
+    let festivalsRaw: FestivalsRaw = {};
     try {
-      festivalsRaw = await this.getYearlyFestivalsUseCase.execute(year, lang);
+      const festivalCacheKey = `${year}-${lang}-v1`;
+      const festivalCacheType = 'festivals-local';
+      const cachedFestivals = await this.cacheRepository.findOne({
+        where: { type: festivalCacheType, cacheKey: festivalCacheKey },
+      });
+
+      if (cachedFestivals) {
+        festivalsRaw = cachedFestivals.response as FestivalsRaw;
+      } else {
+        const festivalResponse =
+          this.panchangamService.getYearlyFestivals(year);
+        festivalsRaw = { data: festivalResponse };
+        const newFestivalCache = this.cacheRepository.create({
+          type: festivalCacheType,
+          cacheKey: festivalCacheKey,
+          response: festivalsRaw,
+        });
+        await this.cacheRepository.save(newFestivalCache);
+      }
     } catch (e) {
-      this.logger.error('Failed to fetch yearly festivals', e);
+      this.logger.error('Failed to calculate yearly festivals', e);
     }
 
-    const festivalsList = (festivalsRaw?.data || []) as any[];
+    const festivalsList: FestivalItem[] = festivalsRaw?.data || [];
 
     const lastDay = new Date(year, month, 0).getDate();
-    const monthlyData: any[] = [];
-    const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const monthlyData: MonthlyCalendarDay[] = [];
+    const WEEKDAYS = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
 
     for (let day = 1; day <= lastDay; day++) {
       const paddedDay = day.toString().padStart(2, '0');
       const paddedMonth = month.toString().padStart(2, '0');
       const dateStr = `${year}-${paddedMonth}-${paddedDay}`;
-      
+
       const dateObj = new Date(year, month - 1, day);
       const dayName = WEEKDAYS[dateObj.getDay()];
 

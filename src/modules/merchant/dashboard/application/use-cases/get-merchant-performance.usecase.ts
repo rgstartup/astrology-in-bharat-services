@@ -2,7 +2,7 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
@@ -23,7 +23,11 @@ export class GetMerchantPerformanceUseCase {
       await this.reviewsFacade.getMerchantReviewsStats(merchantId);
 
     const distribution = statsResult?.distribution || {
-      '1': 0, '2': 0, '3': 0, '4': 0, '5': 0,
+      '1': 0,
+      '2': 0,
+      '3': 0,
+      '4': 0,
+      '5': 0,
     };
 
     // 2. Sales Chart Data (Last 7 Days)
@@ -35,16 +39,32 @@ export class GetMerchantPerformanceUseCase {
     const now = new Date();
     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+    const endOfLastMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+    );
 
     const [currentMonthEarnings, lastMonthEarnings] = await Promise.all([
-      this.orderFacade.getMerchantGrossMonthlyEarnings(merchantId, startOfCurrentMonth).catch(() => 0),
-      this.orderFacade.getMerchantGrossMonthlyEarnings(merchantId, startOfLastMonth, endOfLastMonth).catch(() => 0),
+      this.orderFacade
+        .getMerchantGrossMonthlyEarnings(merchantId, startOfCurrentMonth)
+        .catch(() => 0),
+      this.orderFacade
+        .getMerchantGrossMonthlyEarnings(
+          merchantId,
+          startOfLastMonth,
+          endOfLastMonth,
+        )
+        .catch(() => 0),
     ]);
 
     let growthRate = '+0.0%';
     if (lastMonthEarnings > 0) {
-      const pct = ((currentMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100;
+      const pct =
+        ((currentMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100;
       growthRate = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
     } else if (currentMonthEarnings > 0) {
       growthRate = '+100.0%'; // First month with earnings

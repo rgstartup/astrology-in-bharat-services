@@ -13,7 +13,7 @@ export class GetProfileUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly expertGateway: ExpertGateway,
-  ) {}
+  ) { }
 
   async execute(user: IUser, queryRunner?: QueryRunner) {
     const repo = queryRunner
@@ -34,9 +34,9 @@ export class GetProfileUseCase {
         user: {
           id: user.id,
           email: user.email,
-          roles: user.roles,
+          role: user.role,
         }
-      } as any;
+      };
     }
 
     this.logger.log(
@@ -69,9 +69,9 @@ export class GetProfileUseCase {
 
       plain.languages = profile.languages
         ? profile.languages
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [];
 
       plain.userId = profile.user?.id;

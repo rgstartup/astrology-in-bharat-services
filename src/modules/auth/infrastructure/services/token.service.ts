@@ -1,4 +1,4 @@
-import ms from 'ms';
+import ms, { StringValue } from 'ms';
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'node:crypto';
@@ -40,8 +40,8 @@ export class TokenService extends BaseService<Session> {
     queryRunner?: QueryRunner,
   ) {
     const accessToken = await this.jwtService.signAsync(
-      { userId: user.id, roles: user.roles },
-      { expiresIn: this.jwtConfig?.jwtExpiresIn as any },
+      { userId: user.id, role: user.role },
+      { expiresIn: this.jwtConfig?.jwtExpiresIn as StringValue },
     );
 
     const refreshTokenRaw = randomBytes(64).toString('hex');

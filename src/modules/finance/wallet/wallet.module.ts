@@ -4,12 +4,12 @@ import { Wallet } from './infrastructure/entities/wallet.entity';
 import { Transaction } from './infrastructure/entities/transaction.entity';
 import { Withdrawal } from './infrastructure/entities/withdrawal.entity';
 import { Idempotency } from './infrastructure/entities/idempotency.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { AgentModule } from '@/modules/agent/agent.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
-import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { AccountModule } from '@/modules/client/account/account.module';
 import { MerchantModule } from '@/modules/merchant/merchant.module';
 import { WalletController } from './api/controllers/wallet.controller';
 import { PayoutWebhookController } from './api/controllers/payout-webhook.controller';
@@ -43,6 +43,7 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
 import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
 import { GeneralLedgerEntry } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 import { QueueModule } from '@/core/queue/queue.module';
+import WalletRepository from './infrastructure/repositories/wallet.repository';
 
 @Module({
   imports: [
@@ -59,7 +60,7 @@ import { QueueModule } from '@/core/queue/queue.module';
     UsersModule,
     forwardRef(() => AdminModule),
     forwardRef(() => ExpertProfileModule),
-    forwardRef(() => ClientProfileModule),
+    forwardRef(() => AccountModule),
     forwardRef(() => MerchantModule),
     forwardRef(() => AgentModule),
     CommissionsModule,
@@ -91,8 +92,9 @@ import { QueueModule } from '@/core/queue/queue.module';
     ReconcileWalletUseCase,
     StuckWithdrawalJob,
     RazorpayPayoutService,
+    WalletRepository,
   ],
   controllers: [WalletController, PayoutWebhookController],
   exports: [WalletFacade],
 })
-export class WalletModule { }
+export class WalletModule {}

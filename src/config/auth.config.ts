@@ -8,6 +8,7 @@ export interface AuthConfig {
   googleClientId: string;
   googleClientSecret: string;
   googleCallbackUrl: string;
+  clientGoogleCallbackUrl: string;
 }
 
 export default registerAs(
@@ -21,5 +22,6 @@ export default registerAs(
     googleCallbackUrl:
       process.env.GOOGLE_CALLBACK_URL ||
       'http://localhost:4000/api/v1/auth/google/callback',
+    clientGoogleCallbackUrl: process.env.CLIENT_GOOGLE_CALLBACK_URL || 'http://localhost:6543/api/v1/auth/client/google/callback',
   }),
 );

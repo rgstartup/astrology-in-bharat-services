@@ -34,7 +34,7 @@ import {
   CommissionEventType,
   CommissionType,
 } from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
-import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
@@ -94,7 +94,7 @@ export class WalletFacade {
     walletKey: WalletKey,
     amount: number,
     referenceId?: string,
-    externalQueryRunner?: import('typeorm').QueryRunner,
+    externalQueryRunner?: QueryRunner,
   ) {
     return this.topUpUseCase.execute(
       profileId,
@@ -111,7 +111,7 @@ export class WalletFacade {
     amount: number,
     purpose: TransactionPurpose,
     referenceId?: string,
-    externalQueryRunner?: import('typeorm').QueryRunner,
+    externalQueryRunner?: QueryRunner,
   ) {
     return this.creditUseCase.execute(
       profileId,
@@ -129,7 +129,7 @@ export class WalletFacade {
     amount: number,
     purpose: TransactionPurpose,
     referenceId?: string,
-    externalQueryRunner?: import('typeorm').QueryRunner,
+    externalQueryRunner?: QueryRunner,
     allowNegative: boolean = false,
   ) {
     return this.debitUseCase.execute(
@@ -148,7 +148,7 @@ export class WalletFacade {
     walletKey: WalletKey,
     amount: number,
     referenceId: string,
-    externalQueryRunner?: import('typeorm').QueryRunner,
+    externalQueryRunner?: QueryRunner,
   ) {
     return this.reserveBalanceUseCase.execute(
       profileId,
@@ -164,7 +164,7 @@ export class WalletFacade {
     walletKey: WalletKey,
     amount: number,
     referenceId: string,
-    externalQueryRunner?: import('typeorm').QueryRunner,
+    externalQueryRunner?: QueryRunner,
   ) {
     return this.deductFromReservedUseCase.execute(
       profileId,
@@ -180,7 +180,7 @@ export class WalletFacade {
     walletKey: WalletKey,
     amount: number,
     referenceId: string,
-    externalQueryRunner?: import('typeorm').QueryRunner,
+    externalQueryRunner?: QueryRunner,
   ) {
     return this.releaseReservedUseCase.execute(
       profileId,
@@ -200,7 +200,11 @@ export class WalletFacade {
     purpose?: string,
   ) {
     if (dtoOrLimit && typeof dtoOrLimit === 'object') {
-      return this.getTransactionsUseCase.execute(profileId, walletKey, dtoOrLimit);
+      return this.getTransactionsUseCase.execute(
+        profileId,
+        walletKey,
+        dtoOrLimit,
+      );
     }
     const limitNum = dtoOrLimit ? parseInt(dtoOrLimit, 10) : undefined;
     const offsetNum = offset ? parseInt(offset, 10) : undefined;

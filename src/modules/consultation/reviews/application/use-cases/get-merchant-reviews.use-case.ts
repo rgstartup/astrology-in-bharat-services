@@ -12,10 +12,7 @@ export class GetMerchantReviewsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) {}
 
-  async execute(
-    merchantId: string,
-    dto: GetReviewsDto,
-  ) {
+  async execute(merchantId: string, dto: GetReviewsDto) {
     const { page = 1, limit = 10 } = dto;
     const skip = (page - 1) * limit;
 

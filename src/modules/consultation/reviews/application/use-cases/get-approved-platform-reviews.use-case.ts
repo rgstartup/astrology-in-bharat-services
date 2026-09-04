@@ -22,7 +22,6 @@ export class GetApprovedPlatformReviewsUseCase {
 
     const mappedReviews = reviews.map((r) => {
       const rawAvatar =
-        r.client?.profile_picture ||
         r.client?.avatar ||
         r.client?.user?.avatar ||
         null;

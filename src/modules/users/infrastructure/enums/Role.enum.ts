@@ -6,6 +6,8 @@ export enum RoleEnum {
   MERCHANT = 'merchant',
   AGENT = 'agent',
   ADMIN = 'admin',
+  SUPER_ADMIN = 'super_admin',
+  SUB_ADMIN = 'sub_admin',
 }
 
 export type Role = keyof typeof RoleEnum;

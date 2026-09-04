@@ -39,6 +39,6 @@ export class SendReviewResponseUseCase {
       { reviewId: review.id },
     );
 
-    return new BooleanMessage(true, 'Review sent successfully')
+    return new BooleanMessage(true, 'Review sent successfully');
   }
 }

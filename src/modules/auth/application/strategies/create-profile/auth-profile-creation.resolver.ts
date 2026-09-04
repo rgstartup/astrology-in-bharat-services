@@ -8,6 +8,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import {
   AUTH_PROFILE_CREATION_STRATEGIES,
   AuthProfileCreationStrategy,
+  RoleProfileMap,
 } from './auth-profile-creation.strategy';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
@@ -16,17 +17,20 @@ export class AuthProfileCreationResolver {
   constructor(
     @Inject(AUTH_PROFILE_CREATION_STRATEGIES)
     private readonly strategies: AuthProfileCreationStrategy[],
-  ) {}
+  ) { }
 
-  async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
-    const userRoles = user.roles || [];
-    const strategy = this.resolve(userRoles);
-    await strategy.ensureProfile(user, queryRunner);
+  async ensureProfile<R extends RoleEnum = RoleEnum>(
+    user: User & { role?: R },
+    queryRunner?: QueryRunner,
+  ): Promise<RoleProfileMap[R]> {
+    const userRole = user.role || RoleEnum.CLIENT;
+    const strategy = this.resolve(userRole);
+    return strategy.ensureProfile(user, queryRunner) as Promise<RoleProfileMap[R]>;
   }
 
-  private resolve(userRoles: RoleEnum[]): AuthProfileCreationStrategy {
+  private resolve(userRole: RoleEnum): AuthProfileCreationStrategy {
     const matched = this.strategies.find((strategy) =>
-      userRoles.includes(strategy.role),
+      userRole === strategy.role,
     );
 
     if (matched) {

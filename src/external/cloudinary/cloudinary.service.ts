@@ -12,8 +12,13 @@ export class CloudinaryService {
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
       const resourceType = file.mimetype.startsWith('video') ? 'video' : 'auto';
+      const uploadOptions: Record<string, any> = { resource_type: resourceType };
+      if (resourceType === 'video') {
+        uploadOptions.chunk_size = 6000000; // 6MB chunk size for large videos
+      }
+      
       const uploadStream = this.cloudinary.uploader.upload_stream(
-        { resource_type: resourceType },
+        uploadOptions,
         (error, result) => {
           if (error)
             return reject(

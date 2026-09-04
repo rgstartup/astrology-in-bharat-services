@@ -5,7 +5,17 @@ export class UserRegisteredEvent {
     public readonly userId: string,
     public readonly email: string,
     public readonly name: string,
-    public readonly roles: RoleEnum[] = [],
+    public readonly role: RoleEnum,
     public readonly verification_token: string,
-  ) {}
+  ) { }
 }
+
+export class ClientRegisteredEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly email: string,
+    public readonly name: string,
+    public readonly verification_token: string,
+  ) { }
+}
+

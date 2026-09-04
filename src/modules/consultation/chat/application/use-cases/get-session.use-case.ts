@@ -17,8 +17,8 @@ export class GetSessionUseCase {
     });
 
     if (session && session.client) {
-      if (session.client.profile_picture && session.client.user) {
-        session.client.user.avatar = session.client.profile_picture;
+      if (session.client.avatar && session.client.user) {
+        session.client.user.avatar = session.client.avatar;
       }
     }
 

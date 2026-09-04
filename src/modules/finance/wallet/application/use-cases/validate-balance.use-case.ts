@@ -1,17 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { GetBalanceUseCase } from './get-balance.use-case';
 import { WalletKey } from '../../infrastructure/entities/wallet.entity';
+import WalletRepository from '../../infrastructure/repositories/wallet.repository';
 
 @Injectable()
 export class ValidateBalanceUseCase {
-  constructor(private readonly getBalanceUseCase: GetBalanceUseCase) {}
+  constructor(private readonly walletRepo: WalletRepository) {}
 
   async execute(
     profileId: string,
     walletKey: WalletKey,
     minAmount: number,
   ): Promise<boolean> {
-    const balance = await this.getBalanceUseCase.execute(profileId, walletKey);
+    const wallet = await this.walletRepo.getOrCreateWallet(
+      profileId,
+      walletKey,
+    );
+
+    const balance = Number(wallet.balance);
     return balance >= minAmount;
   }
 }

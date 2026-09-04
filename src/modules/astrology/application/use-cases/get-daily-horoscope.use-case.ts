@@ -6,7 +6,7 @@ import { GetDailyHoroscopeDto } from '../../api/dto/get-daily-horoscope.dto';
 export class GetDailyHoroscopeUseCase {
   constructor(private readonly prokeralaService: ProkeralaService) {}
 
-  async execute(dto: GetDailyHoroscopeDto) {
+  async execute(dto: GetDailyHoroscopeDto): Promise<unknown> {
     const { sign, lang } = dto;
     return this.prokeralaService.getDailyHoroscope(sign, lang);
   }

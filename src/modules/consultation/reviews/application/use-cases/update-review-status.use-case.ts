@@ -21,19 +21,19 @@ export class UpdateReviewStatusUseCase {
 
     const result = await this.reviewRepository.update(id, { status });
 
-    if(!result.affected){
-        throw new NotFoundException(`Review with id ${id} not found`);
+    if (!result.affected) {
+      throw new NotFoundException(`Review with id ${id} not found`);
     }
 
     if (review.expert_id) {
-      await this.updateExpertRating(review.expert_id as string);
+      await this.updateExpertRating(review.expert_id);
     }
     if (review.merchant_id) {
-      await this.updateMerchantRating(review.merchant_id as string);
+      await this.updateMerchantRating(review.merchant_id);
     }
 
     return new BooleanMessage(true, 'Review Updated Successfully');
-  } 
+  }
 
   private async updateExpertRating(expert_id: string) {
     const result = await this.reviewRepository

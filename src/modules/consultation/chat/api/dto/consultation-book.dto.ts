@@ -3,11 +3,11 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 export class ConsultationBookDto {
   @IsNotEmpty()
   @IsString()
-  expert_id: string;
+  expert_id!: string;
 
   @IsNotEmpty()
   @IsNumber()
-  amount: number;
+  amount!: number;
 
   @IsOptional()
   @IsString()

@@ -1,4 +1,4 @@
-import { IsString, IsOptional, Matches, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, Matches, IsNotEmpty, IsBoolean } from 'class-validator';
 
 export class UpdateMerchantProfileDto {
   @IsString({ message: 'Store name must be a string' })
@@ -33,7 +33,8 @@ export class UpdateMerchantProfileDto {
   pincode?: string;
 
   @IsOptional()
-  isOnline?: any;
+  @IsBoolean()
+  isOnline?: boolean;
 
   @IsOptional()
   @IsString()
@@ -61,7 +62,8 @@ export class UpdateMerchantProfileDto {
   pan?: string;
 
   @IsOptional()
-  isGstExempt?: any;
+  @IsBoolean()
+  isGstExempt?: boolean;
 
   @IsOptional()
   @IsString()
@@ -93,4 +95,8 @@ export class UpdateMerchantProfileDto {
 
   @IsOptional()
   gallery?: string | string[];
+
+  @IsOptional()
+  @IsString()
+  establishedSince?: string;
 }
