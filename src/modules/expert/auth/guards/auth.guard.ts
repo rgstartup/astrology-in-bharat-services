@@ -1,12 +1,19 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IAccessTokenPayloadExpert } from '@/common/types/access-token.payload';
+import { Observable } from 'rxjs';
+import { IExpert } from '@/common/types/access-token.payload';
+import { IS_PUBLIC } from '@/common/decorators/public.decorator';
 
 @Injectable()
 export class ExpertJwtAuthGuard extends AuthGuard('expert-jwt') {
-  handleRequest<TUser = IAccessTokenPayloadExpert>(
+  constructor(private readonly reflector: Reflector) {
+    super();
+  }
+
+  handleRequest<TUser = IExpert>(
     err: unknown,
-    user: IAccessTokenPayloadExpert | undefined,
+    user: IExpert | undefined,
     info: unknown,
     context: ExecutionContext,
     status?: unknown,
@@ -18,7 +25,14 @@ export class ExpertJwtAuthGuard extends AuthGuard('expert-jwt') {
     return user as TUser;
   }
 
-  canActivate(context: ExecutionContext) {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) return true;
     return super.canActivate(context);
   }
 }

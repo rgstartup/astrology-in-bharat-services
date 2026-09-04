@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IUser } from '@/common/types/access-token.payload';
+import { IExpert } from '@/common/types/access-token.payload';
 import { ExpertAccount } from '../entities/account.entity';
 
 @Injectable()
@@ -11,10 +11,9 @@ export class GetExpertAccountUseCase {
     private readonly accounts: Repository<ExpertAccount>,
   ) {}
 
-  execute(user: IUser) {
+  execute(expert: IExpert) {
     return this.accounts.findOne({
-      where: { user_id: user.id },
-      relations: { user: true },
+      where: { id: expert.sub },
     });
   }
 }

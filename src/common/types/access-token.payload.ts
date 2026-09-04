@@ -23,3 +23,8 @@ export interface IAccessTokenPayloadExpert {
   sub: string;
   email: string;
 }
+
+export interface IExpert {
+  sub: string;
+  email: string;
+}

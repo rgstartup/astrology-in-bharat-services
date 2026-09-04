@@ -93,10 +93,11 @@ export class CompleteExpertEmailRegistrationUseCase {
   ) {
     const repository = qr.manager.getRepository(ExpertAccount);
     const account =
-      (await repository.findOne({ where: { user_id: user.id } })) ??
-      repository.create({ user, user_id: user.id, email: user.email });
+      (await repository.findOne({ where: { user: { id: user.id } } })) ??
+      repository.create({ user, email: user.email });
     account.name = dto.name;
     account.email = user.email;
+    account.avatar = user.avatar;
     account.phone = dto.phone ?? account.phone;
     account.gender = dto.gender ?? account.gender;
     account.specialization = dto.specialization ?? account.specialization;

@@ -6,10 +6,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
-import { BankAccount } from '@/modules/expert/bank-accounts/infrastructure/entities/bank-account.entity';
+import { BankAccount } from '@/modules/expert/bank-accounts/entities/bank-account.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum WithdrawalStatus {
@@ -32,9 +32,9 @@ export class Withdrawal {
   @Column({ name: 'withdrawal_no', type: 'text', nullable: true, unique: true })
   withdrawal_no!: string | null;
 
-  @ManyToOne(() => ProfileExpert, { nullable: true })
+  @ManyToOne(() => ExpertAccount, { nullable: true })
   @JoinColumn({ name: 'expert_id' })
-  expert!: ProfileExpert | null;
+  expert!: ExpertAccount | null;
 
   @Column({ type: 'uuid', name: 'expert_id', nullable: true })
   expert_id!: string | null;

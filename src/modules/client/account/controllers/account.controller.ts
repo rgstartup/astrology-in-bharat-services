@@ -22,10 +22,10 @@ import { ClientAccount } from '../entities/account.entity';
 @Controller('client/account')
 @UseGuards(ClientJwtAuthGuard)
 export class AccountController {
-  constructor(private readonly accountFacade: AccountFacade) { }
+  constructor(private readonly accountFacade: AccountFacade) {}
 
   @Get()
-  async getAccount(@CurrentClient() client: ClientAccount) {
+  getAccount(@CurrentClient() client: ClientAccount) {
     return client;
   }
 
@@ -34,7 +34,7 @@ export class AccountController {
     @CurrentClient() client: ClientAccount,
     @Body() dto: CreateClientAccountDto,
   ) {
-    return this.accountFacade.createAccount(client.id, dto);
+    return this.accountFacade.createAccount(client.user.id, dto);
   }
 
   @Patch()

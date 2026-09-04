@@ -6,8 +6,7 @@ import { Strategy } from 'passport-jwt';
 import { Repository } from 'typeorm';
 import { createJwtStrategyOptions } from '@/modules/auth/api/strategies/abstract/jwt.options';
 import { ExpertAccount } from '../../account/entities/account.entity';
-import { IUser } from '@/common/types/access-token.payload';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IExpert } from '@/common/types/access-token.payload';
 
 export interface ExpertJwtPayload {
   sub: string;
@@ -27,7 +26,7 @@ export class ExpertJwtStrategy extends PassportStrategy(
     super(createJwtStrategyOptions(config));
   }
 
-  async validate(payload: ExpertJwtPayload): Promise<IUser> {
+  async validate(payload: ExpertJwtPayload): Promise<IExpert> {
     const expert = await this.expertRepository.findOne({
       where: { id: payload.sub },
       relations: { user: true },
@@ -36,9 +35,8 @@ export class ExpertJwtStrategy extends PassportStrategy(
       throw new UnauthorizedException();
     }
     return {
-      id: expert.user.id,
-      email: expert.user.email,
-      role: RoleEnum.EXPERT,
+      sub: expert.id,
+      email: expert.email ?? expert.user.email,
     };
   }
 }

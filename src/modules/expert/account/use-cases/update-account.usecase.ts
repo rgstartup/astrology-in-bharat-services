@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IUser } from '@/common/types/access-token.payload';
+import { IExpert } from '@/common/types/access-token.payload';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ExpertAccount } from '../entities/account.entity';
 import { UpdateExpertAccountDto } from '../dto/account.dto';
@@ -13,9 +13,9 @@ export class UpdateExpertAccountUseCase {
     private readonly accounts: Repository<ExpertAccount>,
   ) {}
 
-  async execute(user: IUser, dto: UpdateExpertAccountDto) {
+  async execute(expert: IExpert, dto: UpdateExpertAccountDto) {
     const account = await this.accounts.findOneOrFail({
-      where: { user_id: user.id },
+      where: { id: expert.sub },
       relations: { user: true },
     });
     const { full_name, ...fields } = dto;
@@ -25,7 +25,10 @@ export class UpdateExpertAccountUseCase {
       account.user.full_name = full_name;
       account.user.name = full_name;
     }
-    if (dto.avatar !== undefined) account.user.avatar = dto.avatar;
+    if (dto.avatar !== undefined) {
+      account.avatar = dto.avatar;
+      account.user.avatar = dto.avatar;
+    }
     await this.accounts.manager.save(User, account.user);
     return this.accounts.save(account);
   }

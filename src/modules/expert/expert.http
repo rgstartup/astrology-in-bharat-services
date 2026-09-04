@@ -1,0 +1,293 @@
+@baseUrl = http://localhost:6543/api/v1
+@email = expert@yopmail.com
+@password = ChangeMe123!
+@verificationToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwMWEwNmJiZi05OGE5LTdmOGUtYTVjZS01MTVhNDljYzY0YTciLCJlbWFpbCI6ImV4cGVydEB5b3BtYWlsLmNvbSIsInBsYXRmb3JtIjoiZXhwZXJ0IiwiaWF0IjoxNzg4NTE0MzY4LCJleHAiOjE3ODg1MTc5Njh9.PUKIYDZ8RwEmlFfWoE0PBvkWqNuWIYa1b01P4V5x7kE
+@expertAccessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMWEwNmJjNy01MmIzLTc0NzQtODMyZC02ZGFkMWVmNWVmODEiLCJlbWFpbCI6ImV4cGVydEB5b3BtYWlsLmNvbSIsImlhdCI6MTc4ODUxNzEyNCwiZXhwIjoxNzg4NTE4MDI0fQ.s2NRL8kiTL-am1BcH5BbXlnMth8yqwFwKk3u6-7h6sg
+@expertRefreshToken = 01a06bca-4328-71dd-acdd-d4336f22029f.d1d0e5ea86e040e8eec8813e985f46e8eacf775d463a9b83bdc4c64949d7442d17233cf198a3b4bb7bdac02d07afaeb10a23d76e4a8438054f8dd55b729e7ef6
+@expertAccountId = paste-expert-account-uuid
+@pujaId = paste-account-puja-uuid
+@bankAccountId = paste-bank-account-uuid
+@todoId = paste-todo-uuid
+@filePath = /absolute/path/to/file.jpg
+
+# After registration or login, paste the returned tokens into the variables above.
+
+### Initiate expert registration
+POST {{baseUrl}}/auth/expert/email/register/initiate
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### Complete expert registration
+# @name completeExpertRegistration
+POST {{baseUrl}}/auth/expert/email/register/complete
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "token": "{{verificationToken}}",
+  "password": "{{password}}",
+  "name": "Test Expert",
+  "phone": "+919999999999",
+  "gender": "other",
+  "specialization": "Vedic Astrology",
+  "languages": "Hindi,English",
+  "experience_in_years": 5,
+  "aboutMe": "REST Client test expert"
+}
+
+### Expert login
+# @name expertLogin
+POST {{baseUrl}}/auth/expert/email/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Refresh expert tokens
+POST {{baseUrl}}/auth/expert/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{expertRefreshToken}}"
+}
+
+### Get current expert account
+GET {{baseUrl}}/expert/account
+Authorization: Bearer {{expertAccessToken}}
+
+### Update full expert account
+PATCH {{baseUrl}}/expert/account
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Expert",
+  "gender": "other",
+  "specialization": "Vedic Astrology",
+  "experience_in_years": 6,
+  "languages": ["Hindi", "English"],
+  "bio": "Astrologer and spiritual consultant",
+  "about": "Providing consultations online",
+  "phone_number": "+919999999999"
+}
+
+### Update personal information
+PATCH {{baseUrl}}/expert/account/personal-info
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Expert",
+  "gender": "other",
+  "date_of_birth": "1990-01-01",
+  "phone_number": "+919999999999",
+  "bio": "Vedic astrologer"
+}
+
+### Update pricing
+PATCH {{baseUrl}}/expert/account/pricing
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "price": 500,
+  "chat_price": 15,
+  "call_price": 25,
+  "video_call_price": 35,
+  "report_price": 750,
+  "horoscope_price": 300
+}
+
+### Update bank details
+PATCH {{baseUrl}}/expert/account/bank-details
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "bank_details": "Test Bank ••••1234"
+}
+
+### Update portfolio
+PATCH {{baseUrl}}/expert/account/portfolio
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "gallery": ["https://example.com/gallery-1.jpg"],
+  "videos": ["https://example.com/video-1.mp4"],
+  "video": "https://example.com/introduction.mp4"
+}
+
+### Update certificates
+PATCH {{baseUrl}}/expert/account/certificates
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "certificates": ["https://example.com/certificate.pdf"]
+}
+
+### Update documents
+PATCH {{baseUrl}}/expert/account/documents
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "documents": []
+}
+
+### Update experience
+PATCH {{baseUrl}}/expert/account/experience
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "experience_in_years": 7,
+  "detailed_experience": []
+}
+
+### Set availability (requires approved KYC)
+PATCH {{baseUrl}}/expert/account/status
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "is_available": true
+}
+
+### List approved expert accounts
+GET {{baseUrl}}/expert/account/list?limit=20&offset=0&sort=rating
+
+### Get top-rated expert accounts
+GET {{baseUrl}}/expert/account/top-rated?limit=3
+
+### Get expert account details
+GET {{baseUrl}}/expert/account/details/{{expertAccountId}}
+
+### Create account puja
+POST {{baseUrl}}/expert/account/puja
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "name": "Satyanarayan Puja",
+  "is_online": true,
+  "is_home_visit": true,
+  "min_duration_hours": 1,
+  "max_duration_hours": 2,
+  "online_cost": 1500,
+  "home_visit_with_samagri_cost": 5000,
+  "home_visit_without_samagri_cost": 3500,
+  "description": "Traditional Satyanarayan puja",
+  "districts": ["New Delhi"],
+  "samagri_list": [{ "name": "Flowers", "quantity": "1 set" }]
+}
+
+### Update account puja
+POST {{baseUrl}}/expert/account/puja?id={{pujaId}}
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Satyanarayan Puja",
+  "min_duration_hours": 1,
+  "max_duration_hours": 3,
+  "online_cost": 1800
+}
+
+### Delete account puja
+DELETE {{baseUrl}}/expert/account/puja/{{pujaId}}
+Authorization: Bearer {{expertAccessToken}}
+
+### List all account pujas
+GET {{baseUrl}}/expert/account/pujas/all
+
+### Get account puja details
+GET {{baseUrl}}/expert/account/puja/info/{{pujaId}}
+
+### Upload account file
+POST {{baseUrl}}/expert/account/upload-file
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: multipart/form-data; boundary=ExpertBoundary
+
+--ExpertBoundary
+Content-Disposition: form-data; name="file"; filename="test-file.jpg"
+Content-Type: image/jpeg
+
+< {{filePath}}
+--ExpertBoundary--
+
+### Dashboard statistics
+GET {{baseUrl}}/expert-dashboard/stats?type=today
+Authorization: Bearer {{expertAccessToken}}
+
+### Earnings statistics
+GET {{baseUrl}}/expert/earnings/stats
+Authorization: Bearer {{expertAccessToken}}
+
+### Wallet balance
+GET {{baseUrl}}/expert/wallet/balance
+Authorization: Bearer {{expertAccessToken}}
+
+### Wallet transactions
+GET {{baseUrl}}/expert/wallet/transactions?limit=20&page=1
+Authorization: Bearer {{expertAccessToken}}
+
+### Request withdrawal
+POST {{baseUrl}}/expert/wallet/withdraw
+Authorization: Bearer {{expertAccessToken}}
+X-Idempotency-Key: rest-client-withdrawal-001
+Content-Type: application/json
+
+{
+  "amount": 1000,
+  "bank_account_id": "{{bankAccountId}}"
+}
+
+### Create bank account
+POST {{baseUrl}}/expert/bank-accounts
+Authorization: Bearer {{expertAccessToken}}
+Content-Type: application/json
+
+{
+  "account_holder_name": "Test Expert",
+  "bank_name": "Test Bank",
+  "account_number": "1234567890",
+  "ifsc_code": "TEST0001234",
+  "upi_id": "expert@exampleupi",
+  "is_primary": true
+}
+
+### List bank accounts
+GET {{baseUrl}}/expert/bank-accounts
+Authorization: Bearer {{expertAccessToken}}
+
+### Todos still use the legacy shared profile guard.
+@legacyAccessToken = paste-legacy-expert-access-token
+
+### Create todo
+POST {{baseUrl}}/expert/todos
+Authorization: Bearer {{legacyAccessToken}}
+Content-Type: application/json
+
+{
+  "text": "Complete REST API testing"
+}
+
+### Update todo
+PATCH {{baseUrl}}/expert/todos/{{todoId}}
+Authorization: Bearer {{legacyAccessToken}}
+Content-Type: application/json
+
+{
+  "completed": true
+}
+
+### Delete todo
+DELETE {{baseUrl}}/expert/todos/{{todoId}}
+Authorization: Bearer {{legacyAccessToken}}

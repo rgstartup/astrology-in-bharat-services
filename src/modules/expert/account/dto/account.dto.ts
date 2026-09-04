@@ -1,7 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { CreateProfileExpertDto } from '../../profile/api/dto/profile-expert.dto';
+import { IsOptional, IsString } from 'class-validator';
 
-export class ExpertAccountDto {
+export class ExpertAccountDto extends CreateProfileExpertDto {
   @IsOptional()
   @IsString()
   full_name?: string;
@@ -15,25 +16,10 @@ export class ExpertAccountDto {
   phone?: string;
 
   @IsOptional()
-  @IsIn(['male', 'female', 'other'])
-  gender?: 'male' | 'female' | 'other';
-
-  @IsOptional()
-  @IsString()
-  specialization?: string;
-
-  @IsOptional()
-  @IsString()
-  languages?: string;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  experience_in_years?: number;
-
-  @IsOptional()
   @IsString()
   about_me?: string;
 }
+
+export class CreateExpertAccountDto extends ExpertAccountDto {}
 
 export class UpdateExpertAccountDto extends PartialType(ExpertAccountDto) {}

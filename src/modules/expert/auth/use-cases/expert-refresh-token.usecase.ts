@@ -39,7 +39,7 @@ export class ExpertRefreshTokenUseCase {
       throw new UnauthorizedException('Invalid refresh token');
     }
     const expert = await this.experts.findOne({
-      where: { user_id: session.user.id },
+      where: { user: { id: session.user.id } },
       relations: { user: true },
     });
     if (!expert || expert.is_blocked || expert.user.is_blocked) {
@@ -49,7 +49,7 @@ export class ExpertRefreshTokenUseCase {
       const [accessToken, next] = await Promise.all([
         this.tokenCrypto.createAccessToken({
           sub: expert.id,
-          email: expert.user.email,
+          email: expert.email,
         }),
         this.tokenCrypto.createRefreshToken(),
       ]);

@@ -31,6 +31,7 @@ export class ExpertLoginWithEmailUseCase {
       .innerJoinAndSelect('expert.user', 'user')
       .where('user.email = :email', { email: dto.email })
       .getOne();
+
     const fallback = await this.hasher.hash('fallbackInvalidPassword');
     const valid = await this.hasher.verify(
       expert?.user.password ?? fallback,
@@ -57,7 +58,7 @@ export class ExpertLoginWithEmailUseCase {
     const [accessToken, refresh] = await Promise.all([
       this.tokenCrypto.createAccessToken({
         sub: expert.id,
-        email: user.email,
+        email: expert.email,
       }),
       this.tokenCrypto.createRefreshToken(),
     ]);

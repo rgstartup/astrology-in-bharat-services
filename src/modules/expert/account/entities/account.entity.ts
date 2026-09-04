@@ -23,9 +23,6 @@ export class ExpertAccount {
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @Column({ name: 'user_id' })
-  user_id!: string;
-
   @Column({ type: 'text', unique: true, nullable: true })
   uid!: string | null;
 
