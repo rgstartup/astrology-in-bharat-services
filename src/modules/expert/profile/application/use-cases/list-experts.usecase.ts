@@ -17,7 +17,7 @@ export class ListExpertsUseCase {
 
   async execute(query: QueryExpertDto) {
     const limit = query.limit || 20;
-    const offset = query.offset || 0;
+    const offset = query.page - 1 * query.limit || 0;
     const sort = query.sort || 'newest';
 
     // Determine relevant price column based on service filter

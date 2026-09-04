@@ -14,13 +14,13 @@ export class QueryExpertDto {
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  limit?: number = 30;
+  limit: number = 10;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(0)
-  offset?: number = 0;
+  @Min(1)
+  page: number = 1;
 
   // Search by expert name
   @IsOptional()

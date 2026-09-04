@@ -91,11 +91,11 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT!);
 
-  // Set timeout after the server is initialized
-  const server = app.getHttpServer();
-  if (server && typeof server.setTimeout === 'function') {
-    server.setTimeout(300000); // 5 minutes timeout for large file uploads
-  }
+  // // Set timeout after the server is initialized
+  // const server = app.getHttpServer();
+  // if (server && typeof server.setTimeout === 'function') {
+  //   server.setTimeout(300000); // 5 minutes timeout for large file uploads
+  // }
 }
 bootstrap()
   .then(() => console.log(`app started running on port ${process.env.PORT}`))

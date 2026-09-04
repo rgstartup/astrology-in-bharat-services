@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './api/controllers/auth.controller';
 import { MerchantAuthController } from './api/controllers/merchant-auth.controller';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -29,7 +28,6 @@ import { LoginWithGoogleUseCase } from './application/use-cases/login-with-googl
 import { OAuthService } from './infrastructure/services/oauth.service';
 import { GoogleStrategy } from './api/strategies/google.strategy';
 import { GoogleAuthGuard } from './api/guards/google-auth-v2.guard';
-import { GoogleAuthController } from './api/controllers/google-auth.controller';
 import { LogoutUserUseCase } from './application/use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.usecase';
 import { UsedTokensService } from './infrastructure/services/used-tokens.service';
@@ -172,6 +170,6 @@ const handlers = [
     SessionRepository,
     AuthTokenService,
   ],
-  controllers: [AuthController, MerchantAuthController, GoogleAuthController],
+  controllers: [MerchantAuthController],
 })
 export class AuthModule {}
