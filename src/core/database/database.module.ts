@@ -18,14 +18,17 @@ import { DatabaseService } from './database.service';
         return {
           type: 'postgres',
           url: dbConfig.url,
-          host: dbConfig.host,
-          port: dbConfig.port,
-          username: dbConfig.username,
-          password: dbConfig.password,
-          database: dbConfig.database,
+          // host: dbConfig.host,
+          // port: dbConfig.port,
+          // username: dbConfig.username,
+          // password: dbConfig.password,
+          // database: dbConfig.database,
           autoLoadEntities: true, // automatically load entities registered in modules
-          synchronize: process.env.NODE_ENV !== 'production', // set to false in production
+          // synchronize: process.env.NODE_ENV !== 'production', // set to false in production
+          synchronize: true, // set to false in production
           poolSize: dbConfig.max_connections,
+          retryAttempts: 2, // number of retry attempts for database connection
+          retryDelay: 3000, // delay between retry attempts in milliseconds
         };
       },
     }),
