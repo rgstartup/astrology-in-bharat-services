@@ -4,7 +4,7 @@ import { ProductLikeController } from './api/controllers/product-like.controller
 import { ExpertLikeController } from './api/controllers/expert-like.controller';
 import { PujaLikeController } from './api/controllers/puja-like.controller';
 import { Wishlist } from './infrastructure/entities/wishlist.entity';
-import { Product } from '@/modules/client/commerce/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/client/commerce/product/entities/product.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { UsersModule } from '../../../users/users.module';
 import { ExpertModule } from '../../../expert/expert.module';

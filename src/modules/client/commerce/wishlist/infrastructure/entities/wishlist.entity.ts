@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { Product } from '@/modules/client/commerce/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/client/commerce/product/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';

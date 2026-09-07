@@ -10,15 +10,15 @@ import { Transform, Type } from 'class-transformer';
 
 export class CreateProductDto {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsString()
-  description: string;
+  description!: string;
 
   @IsNumber()
   @Min(0)
   @Type(() => Number)
-  price: number;
+  price!: number;
 
   @IsNumber()
   @Min(0)

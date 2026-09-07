@@ -12,7 +12,7 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ProductFacade } from '../../application/product.facade';
+import { ProductFacade } from '../product.facade';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { GetProductsDto } from '../dto/get-products.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
@@ -34,9 +34,7 @@ export class ProductController {
   ) {}
 
   @Get()
-  findAll(
-    @Query() dto: GetProductsDto,
-  ) {
+  findAll(@Query() dto: GetProductsDto) {
     return this.productFacade.findAll(dto);
   }
 

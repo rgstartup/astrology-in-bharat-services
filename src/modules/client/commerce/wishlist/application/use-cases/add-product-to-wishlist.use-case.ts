@@ -3,7 +3,7 @@ import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { Product } from '@/modules/client/commerce/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/client/commerce/product/entities/product.entity';
 import {
   ProductAlreadyInWishlistError,
   ProductNotFoundError,

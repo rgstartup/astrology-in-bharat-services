@@ -5,9 +5,13 @@ import { FindProductUseCase } from './use-cases/find-product.use-case';
 import { UpdateProductUseCase } from './use-cases/update-product.use-case';
 import { RemoveProductUseCase } from './use-cases/remove-product.use-case';
 import { MerchantProductsUseCase } from './use-cases/merchant-products.usecase';
-import { CreateProductDto } from '../api/dto/create-product.dto';
-import { UpdateProductDto } from '../api/dto/update-product.dto';
-import { GetProductsDto } from '../api/dto/get-products.dto';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { GetProductsDto } from './dto/get-products.dto';
+import {
+  CreateMerchantProductDto,
+  MerchantProductStatus,
+} from '@/modules/merchant/dashboard/api/dto/create-merchant-product.dto';
 
 @Injectable()
 export class ProductFacade {
@@ -24,7 +28,7 @@ export class ProductFacade {
     return this.createProductUseCase.execute(dto);
   }
 
-  findAll(dto: GetProductsDto = {}) {
+  findAll(dto: GetProductsDto) {
     return this.findAllProductsUseCase.execute(dto);
   }
 
@@ -45,19 +49,14 @@ export class ProductFacade {
     return this.merchantProductsUseCase.findAll(merchantId, opts);
   }
 
-  createMerchantProduct(
-    merchantId: string,
-    dto: import('@/modules/merchant/dashboard/api/dto/create-merchant-product.dto').CreateMerchantProductDto,
-  ) {
+  createMerchantProduct(merchantId: string, dto: CreateMerchantProductDto) {
     return this.merchantProductsUseCase.create(merchantId, dto);
   }
 
   updateMerchantProduct(
     merchantId: string,
     productId: string,
-    dto: Partial<
-      import('@/modules/merchant/dashboard/api/dto/create-merchant-product.dto').CreateMerchantProductDto
-    >,
+    dto: Partial<CreateMerchantProductDto>,
   ) {
     return this.merchantProductsUseCase.update(merchantId, productId, dto);
   }
@@ -69,7 +68,7 @@ export class ProductFacade {
   bulkUpdateMerchantProductStatus(
     merchantId: string,
     ids: string[],
-    status: import('@/modules/merchant/dashboard/api/dto/create-merchant-product.dto').MerchantProductStatus,
+    status: MerchantProductStatus,
   ) {
     return this.merchantProductsUseCase.bulkUpdateStatus(
       merchantId,

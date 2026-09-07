@@ -21,7 +21,7 @@ import { Public } from '@/common/decorators/public.decorator';
 import { ExpertJwtAuthGuard } from '../../auth/guards/auth.guard';
 import { ExpertAccountFacade } from '../account.facade';
 import { UpdateExpertAccountDto } from '../dto/account.dto';
-import { QueryExpertDto } from '../../profile/api/dto/query-expert.dto';
+import { QueryExpertDto } from '../dto/query-expert.dto';
 import { ExpertPujaDto } from '../../profile/api/dto/expert-puja.dto';
 
 @Controller({ path: 'expert/account', version: '1' })
@@ -130,7 +130,7 @@ export class ExpertAccountController {
     return this.accountFacade.getTopRated(Number(limit));
   }
 
-  @Get('details/:id')
+  @Get(':id')
   @Public()
   getById(@Param('id', ParseUUIDPipe) id: string) {
     return this.accountFacade.getById(id);

@@ -4,7 +4,7 @@ import { QueryRunner, Repository } from 'typeorm';
 import { Cart } from '../entities/cart.entity';
 import { CartItem } from '../entities/cart-item.entity';
 import { AddToCartDto } from '../dto/create-cart.dto';
-import { Product } from '../../product/infrastructure/entities/product.entity';
+import { Product } from '../../product/entities/product.entity';
 import { DatabaseService } from '@/core/database/database.service';
 
 @Injectable()

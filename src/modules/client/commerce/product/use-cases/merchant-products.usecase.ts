@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { Product } from '../../infrastructure/entities/product.entity';
+import { Product } from '../entities/product.entity';
 import {
   CreateMerchantProductDto,
   MerchantProductStatus,
@@ -66,9 +66,12 @@ export class MerchantProductsUseCase {
       .take(limit);
 
     if (search) {
-      qb.andWhere('(LOWER(p.name) LIKE :search OR CAST(p.id AS text) LIKE :search OR LOWER(p.sku) LIKE :search)', {
-        search: `%${search.toLowerCase()}%`,
-      });
+      qb.andWhere(
+        '(LOWER(p.name) LIKE :search OR CAST(p.id AS text) LIKE :search OR LOWER(p.sku) LIKE :search)',
+        {
+          search: `%${search.toLowerCase()}%`,
+        },
+      );
     }
 
     if (status) {
@@ -141,8 +144,10 @@ export class MerchantProductsUseCase {
     if (dto.status !== undefined) {
       updates.is_active = dto.status === MerchantProductStatus.ACTIVE;
     }
-    if (dto.is_shipping_chargeable !== undefined) updates.is_shipping_chargeable = dto.is_shipping_chargeable;
-    if (dto.shipping_charge !== undefined) updates.shipping_charge = dto.shipping_charge;
+    if (dto.is_shipping_chargeable !== undefined)
+      updates.is_shipping_chargeable = dto.is_shipping_chargeable;
+    if (dto.shipping_charge !== undefined)
+      updates.shipping_charge = dto.shipping_charge;
 
     await this.productRepo.update(productId, updates);
     const updated = await this.productRepo.findOneBy({

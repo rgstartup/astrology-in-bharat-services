@@ -18,7 +18,7 @@ import {
   CouponType,
 } from '@/modules/client/commerce/coupon/infrastructure/entities/coupon.entity';
 import { UserCoupon } from '@/modules/client/commerce/coupon/infrastructure/entities/user-coupon.entity';
-import { Product } from '@/modules/client/commerce/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/client/commerce/product/entities/product.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import {
   TransactionPurpose,

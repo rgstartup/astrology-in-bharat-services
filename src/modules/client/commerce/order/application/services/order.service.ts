@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { Product } from '@/modules/client/commerce/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/client/commerce/product/entities/product.entity';
 import {
   Notification,
   NotificationType,

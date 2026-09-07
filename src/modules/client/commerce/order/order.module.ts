@@ -26,7 +26,7 @@ import { GetAdminMerchantSalesDetailsUseCase } from './application/use-cases/get
 import { CartModule } from '@/modules/client/commerce/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
-import { Product } from '@/modules/client/commerce/product/infrastructure/entities/product.entity';
+import { Product } from '@/modules/client/commerce/product/entities/product.entity';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { CouponModule } from '@/modules/client/commerce/coupon/coupon.module';
 import { ProductModule } from '@/modules/client/commerce/product/product.module';

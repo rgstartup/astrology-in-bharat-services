@@ -12,14 +12,12 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
-  DefaultValuePipe,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { ProductFacade } from '@/modules/client/commerce/product/application/product.facade';
+import { ProductFacade } from '@/modules/client/commerce/product/product.facade';
 import { CreateMerchantProductDto } from '../dto/create-merchant-product.dto';
 import { BulkUpdateStatusDto } from '../dto/bulk-update-status.dto';
 import { GetMerchantProductsDto } from '../dto/get-merchant-products.dto';

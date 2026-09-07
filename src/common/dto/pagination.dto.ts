@@ -33,6 +33,8 @@ export class PaginationDto {
   offset?: number;
 
   get skip(): number {
-    return this.offset !== undefined ? this.offset : (this.page - 1) * this.limit;
+    return this.offset !== undefined
+      ? this.offset
+      : (this.page - 1) * this.limit;
   }
 }

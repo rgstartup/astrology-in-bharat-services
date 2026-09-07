@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Product } from '../../infrastructure/entities/product.entity';
-import { ProductNotFoundError } from '../../domain/errors/product.errors';
+import { Product } from '../entities/product.entity';
+import { ProductNotFoundError } from '../errors/product.errors';
 
 @Injectable()
 export class FindProductUseCase {
