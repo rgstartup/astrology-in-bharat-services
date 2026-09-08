@@ -14,6 +14,7 @@ import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profi
 import { QueueModule } from '@/core/queue/queue.module';
 
 import { UsedTokens } from './infrastructure/entities/used-tokens.entity';
+import { Otp } from './infrastructure/entities/otp.entity';
 import { AuthFacade } from './application/auth.facade';
 import { LoginWithEmailUseCase } from './application/use-cases/login-with-email.usecase';
 import { RegisterUserUseCase } from './application/use-cases/register-user.usecase';
@@ -103,6 +104,7 @@ const handlers = [
       ProfileMerchant,
       User,
       SystemSetting,
+      Otp,
     ]),
     DatabaseModule,
     ExternalModule,

@@ -19,7 +19,7 @@ import { ClientGoogleAuthResult } from '../strategies/google-auth.strategy';
 import { ClientJwtRefreshAuthGuard } from '../guards/refresh-auth.guard';
 
 @Controller({
-  path: 'auth/client',
+  path: ['client/auth'],
   version: '1',
 })
 export class ClientAuthController {
@@ -46,7 +46,7 @@ export class ClientAuthController {
     return tokens;
   }
 
-  @Post('email/login')
+  @Post(['login', 'email/login'])
   async login(
     @Body() dto: ClientLoginDto,
     @Req() req: Request,

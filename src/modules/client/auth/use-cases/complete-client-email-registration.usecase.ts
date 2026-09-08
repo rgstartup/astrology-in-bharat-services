@@ -2,27 +2,28 @@ import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
-  Inject,
   ConflictException,
 } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../services/token-crypto.service';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 import { QueryRunner } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { CompleteClientRegisterDto } from '../dto/client-register.dto';
 import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
 import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
 import { IAccessTokenPayloadClient } from '@/common/types/access-token.payload';
-import { Address, AddressTag } from '@/common/address/address.entity';
+import {
+  Otp,
+  OtpPurposeEnum,
+} from '@/modules/auth/infrastructure/entities/otp.entity';
+import { createHash } from 'crypto';
 
 @Injectable()
 export class CompleteClientEmailRegistrationUseCase {
   constructor(
     private readonly db: DatabaseService,
     private readonly tokenCrypto: TokenCryptoService,
-    @Inject(IHasherToken) private readonly hasher: IHasher,
   ) {}
 
   async execute(
@@ -30,19 +31,23 @@ export class CompleteClientEmailRegistrationUseCase {
     ip?: string,
     userAgent?: string,
   ) {
-    // 1. Verify Token
-    await this.ensureTokenVerified(dto.token, dto.email);
-
     return this.db.transaction(async (queryRunner) => {
+      // 1. Verify and consume OTP
+      await this.verifyAndConsumeOtp(queryRunner, dto.email, dto.otp);
+
+      // 2. Ensure user exists and is not already verified
       const user = await this.ensureUserIsNotAlreadyRegistered(
         queryRunner,
         dto.email,
       );
 
-      const updatedUser = await this.updateUser(queryRunner, user, dto);
+      // 3. Mark email verified
+      const updatedUser = await this.markEmailVerified(queryRunner, user);
 
-      const account = await this.createAccount(queryRunner, updatedUser, dto);
+      // 4. Create / setup client account
+      const account = await this.createAccount(queryRunner, updatedUser);
 
+      // 5. Generate tokens and session
       const tokens = await this.getTokens(account);
 
       const session = await this.createSession(
@@ -60,21 +65,49 @@ export class CompleteClientEmailRegistrationUseCase {
     });
   }
 
-  private async ensureTokenVerified(token: string, email: string) {
-    let payload: { userId: string; email: string } | undefined;
+  private async verifyAndConsumeOtp(
+    qr: QueryRunner,
+    email: string,
+    inputOtp: string,
+  ) {
+    const otpRepo = qr.manager.getRepository(Otp);
 
-    try {
-      payload = await this.tokenCrypto.verifyJwt<{
-        userId: string;
-        email: string;
-      }>(token);
-    } catch (_e) {
-      throw new BadRequestException('Invalid or expired token');
+    const otpEntry = await otpRepo.findOne({
+      where: {
+        email,
+        purpose: OtpPurposeEnum.REGISTRATION,
+      },
+      order: { created_at: 'DESC' },
+    });
+
+    if (!otpEntry) {
+      throw new BadRequestException('Invalid or expired OTP');
     }
 
-    if (payload?.email !== email) {
-      throw new BadRequestException('Token does not match the provided email');
+    if (new Date() > otpEntry.expires_at) {
+      await otpRepo.delete({ id: otpEntry.id });
+      throw new BadRequestException(
+        'OTP has expired. Please request a new OTP.',
+      );
     }
+
+    if (otpEntry.attempts >= 5) {
+      await otpRepo.delete({ id: otpEntry.id });
+      throw new BadRequestException(
+        'Maximum verification attempts exceeded. Please request a new OTP.',
+      );
+    }
+
+    const hashedInputOtp = createHash('sha256').update(inputOtp).digest('hex');
+
+    if (hashedInputOtp !== otpEntry.otp) {
+      otpEntry.attempts += 1;
+      await otpRepo.save(otpEntry);
+      throw new BadRequestException('Invalid OTP');
+    }
+
+    // On successful verification, delete the OTP entry from auth.otp table
+    await otpRepo.delete({ id: otpEntry.id });
   }
 
   private async ensureUserIsNotAlreadyRegistered(
@@ -85,6 +118,7 @@ export class CompleteClientEmailRegistrationUseCase {
       email,
       platform: PlatformEnum.CLIENT,
     });
+
     if (!existingUser) {
       throw new UnauthorizedException('User not found');
     }
@@ -96,102 +130,48 @@ export class CompleteClientEmailRegistrationUseCase {
     return existingUser;
   }
 
-  private async updateUser(
-    qr: QueryRunner,
-    user: User,
-    dto: CompleteClientRegisterDto,
-  ) {
+  private async markEmailVerified(qr: QueryRunner, user: User) {
     const userRepo = qr.manager.getRepository(User);
-
-    const hashedPassword = await this.hasher.hash(dto.password);
-
-    const updatedUser = new User();
-    Object.assign(updatedUser, user);
-    updatedUser.full_name = dto.full_name;
-    updatedUser.name = dto.full_name;
-    updatedUser.password = hashedPassword;
-    updatedUser.email_verified_at = new Date();
+    user.email_verified_at = new Date();
 
     await userRepo.update(
       { id: user.id },
-      {
-        full_name: updatedUser.full_name,
-        name: updatedUser.name,
-        password: updatedUser.password,
-        email_verified_at: updatedUser.email_verified_at,
-      },
+      { email_verified_at: user.email_verified_at },
     );
 
-    return updatedUser;
+    return user;
   }
 
-  private async createAccount(
-    queryRunner: QueryRunner,
-    user: User,
-    dto: CompleteClientRegisterDto,
-  ) {
+  private async createAccount(queryRunner: QueryRunner, user: User) {
     const clientAccountRepo = queryRunner.manager.getRepository(ClientAccount);
 
-    let existingAccount = await clientAccountRepo.findOne({
+    const existingAccount = await clientAccountRepo.findOne({
       where: { user: { id: user.id } },
     });
 
-    if (existingAccount) {
-      existingAccount.name = user.full_name;
-      existingAccount.email = user.email;
-      existingAccount.phone = dto.phone || existingAccount.phone;
-      existingAccount.gender = dto.gender || existingAccount.gender;
-      existingAccount.marital_status =
-        dto.maritalStatus || existingAccount.marital_status;
-      existingAccount.occupation =
-        dto.occupation || existingAccount.occupation;
-      existingAccount.about_me = dto.aboutMe || existingAccount.about_me;
-      if (dto.birthDetails?.dateOfBirth) {
-        existingAccount.date_of_birth = new Date(dto.birthDetails.dateOfBirth);
-      }
-      existingAccount.time_of_birth =
-        dto.birthDetails?.timeOfBirth || existingAccount.time_of_birth;
-      existingAccount.place_of_birth =
-        dto.birthDetails?.birthPlace || existingAccount.place_of_birth;
+    const firstName = user.first_name;
+    const lastName = user.last_name;
+    const fullName =
+      [firstName, lastName].filter(Boolean).join(' ') ||
+      user.full_name ||
+      user.name;
 
+    if (existingAccount) {
+      existingAccount.email = user.email;
+      existingAccount.first_name = firstName;
+      existingAccount.last_name = lastName;
+      existingAccount.name = fullName;
       return clientAccountRepo.save(existingAccount);
     }
 
     const newAccount = clientAccountRepo.create({
       user,
-      name: user.full_name,
       email: user.email,
-      avatar: user.avatar,
-      phone: dto.phone,
-      gender: dto.gender ?? 'other',
-      marital_status: dto.maritalStatus,
-      occupation: dto.occupation,
-      about_me: dto.aboutMe,
-      date_of_birth: dto.birthDetails?.dateOfBirth
-        ? new Date(dto.birthDetails.dateOfBirth)
-        : null,
-      time_of_birth: dto.birthDetails?.timeOfBirth,
-      place_of_birth: dto.birthDetails?.birthPlace,
+      first_name: firstName,
+      last_name: lastName,
+      name: fullName,
+      gender: 'other',
     });
-
-    if (dto.address) {
-      const address = queryRunner.manager.create(Address, {
-        line1:
-          [dto.address.line1, dto.address.line2].filter(Boolean).join(', ') ||
-          dto.address.house_no ||
-          '',
-        house_no: dto.address.house_no,
-        city: dto.address.city,
-        district: dto.address.district,
-        state: dto.address.state,
-        country: dto.address.country,
-        zip_code: dto.address.zip_code || dto.address.pincode || '',
-        pincode: dto.address.pincode,
-        is_primary: dto.address.is_primary ?? true,
-        tag: dto.address.tag || AddressTag.HOME,
-      });
-      newAccount.addresses = [address];
-    }
 
     return clientAccountRepo.save(newAccount);
   }

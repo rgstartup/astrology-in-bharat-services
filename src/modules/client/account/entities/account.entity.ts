@@ -33,6 +33,12 @@ export class ClientAccount {
   is_blocked!: boolean;
 
   @Column({ type: 'character varying', length: 255, nullable: true })
+  first_name!: string | null;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  last_name!: string | null;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
   name!: string | null;
 
   @Column({ type: 'character varying', length: 255 })

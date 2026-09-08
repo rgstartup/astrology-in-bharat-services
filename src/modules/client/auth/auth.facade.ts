@@ -22,7 +22,7 @@ export class ClientAuthFacade {
   ) {}
 
   async initiateEmailRegistration(dto: InitiateClientRegisterDto) {
-    return this.initiateClientEmailRegistrationUseCase.execute(dto.email);
+    return this.initiateClientEmailRegistrationUseCase.execute(dto);
   }
 
   async completeEmailRegistration(

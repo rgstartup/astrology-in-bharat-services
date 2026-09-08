@@ -1,57 +1,48 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { EmailQueueService } from '@/core/queue/services/email-queue.service';
-import { ConfigService } from '@nestjs/config';
 
 export interface ClientRegisteredEventPayload {
   userId: string;
   email: string;
   name?: string;
   role: string;
-  verification_token: string;
+  otp: string;
 }
 
 @Injectable()
 export class ClientRegisteredHandler {
   private readonly logger = new Logger(ClientRegisteredHandler.name);
 
-  constructor(
-    private readonly emailQueueService: EmailQueueService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly emailQueueService: EmailQueueService) {}
 
   @OnEvent('auth.client.registered', { async: true })
   async handle(event: ClientRegisteredEventPayload) {
-    this.logger.debug('Email sending to the client');
+    this.logger.debug('Email sending OTP to the client');
     await this.emailQueueService.queueEmail({
       to: event.email,
-      subject: 'Verify your email',
+      subject: 'Verify your email - Astrology in Bharat',
       html: this.buildTemplate(event),
     });
   }
 
   private buildTemplate(event: ClientRegisteredEventPayload) {
-    const frontendUrl = this.configService.get<string>('email.frontendUrl');
-
-    this.logger.debug(`Using frontendUrl: ${frontendUrl}`);
-
-    const verifyLink = `${frontendUrl}/verify-email?verification_token=${event.verification_token}`;
-
     console.log('\n======================================================');
-    console.log('✅ NEW CLIENT REGISTERED! VERIFICATION LINK FOR TESTING:');
-    console.log(verifyLink);
+    console.log('✅ NEW CLIENT REGISTRATION OTP GENERATED:');
+    console.log(`Email: ${event.email} | OTP: ${event.otp}`);
     console.log('======================================================\n');
 
     return `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
         <h2 style="color: #333;">Welcome to Astrology in Bharat!</h2>
         <p>Hi ${event.name ?? 'there'},</p>
-        <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
+        <p>Thank you for registering. Please use the following 6-digit OTP to complete your registration:</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${verifyLink}" style="background-color: #ff9800; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email Address</a>
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #ff9800; background-color: #fff3e0; padding: 12px 24px; border-radius: 8px; border: 1px dashed #ff9800; display: inline-block;">
+            ${event.otp}
+          </span>
         </div>
-        <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
-        <p style="word-break: break-all; color: #666; font-size: 13px;">${verifyLink}</p>
+        <p style="color: #666; font-size: 14px;">This OTP is valid for <strong>10 minutes</strong>. Do not share this code with anyone.</p>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
         <p style="font-size: 12px; color: #999;">If you didn't create an account, you can safely ignore this email.</p>
       </div>

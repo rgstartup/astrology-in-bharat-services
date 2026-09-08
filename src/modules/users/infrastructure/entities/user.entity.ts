@@ -37,6 +37,12 @@ export class User {
   email_verified_at!: Date | null;
 
   @Column({ type: 'character varying', length: 255, nullable: true })
+  first_name!: string | null;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  last_name!: string | null;
+
+  @Column({ type: 'character varying', length: 255, nullable: true })
   name!: string | null;
 
   @Column({ type: 'character varying', length: 255, nullable: true })

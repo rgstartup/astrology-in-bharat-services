@@ -5,6 +5,7 @@ import { ClientAccount } from '../account/entities/account.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { OAuthAccount } from '@/modules/auth/infrastructure/entities/oauth-accounts.entity';
 import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
+import { Otp } from '@/modules/auth/infrastructure/entities/otp.entity';
 import { DatabaseModule } from '@/core/database/database.module';
 import { ExternalModule } from '@/external/external.module';
 import { QueueModule } from '@/core/queue/queue.module';
@@ -37,7 +38,7 @@ const useCases = [
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ClientAccount, User, OAuthAccount, Session]),
+    TypeOrmModule.forFeature([ClientAccount, User, OAuthAccount, Session, Otp]),
     PassportModule,
     DatabaseModule,
     ExternalModule,
