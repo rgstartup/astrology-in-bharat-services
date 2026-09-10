@@ -1,7 +1,14 @@
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
-import { Column, CreateDateColumn, Entity, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  UpdateDateColumn,
+} from 'typeorm';
+import { ConsultationTopicPreference } from './consultation_topic_preference.entity';
 
-@Entity({ schema: 'consultation', name: 'consultation_topic' })
+@Entity({ schema: 'consultations', name: 'consultation_topic' })
 export class ConsultationTopic {
   @UuidPrimaryKeyColumn()
   id: string;
@@ -34,9 +41,15 @@ export class ConsultationTopic {
   })
   sort_order: number;
 
-  @CreateDateColumn()
+  @OneToMany(
+    () => ConsultationTopicPreference,
+    (preference) => preference.topic,
+  )
+  preferences!: ConsultationTopicPreference[];
+
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 }

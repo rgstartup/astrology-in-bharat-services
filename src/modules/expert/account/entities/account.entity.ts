@@ -4,6 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,6 +12,7 @@ import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator'
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
+import { ConsultationTopicPreference } from '@/modules/consultation/consultation/entities/consultation_topic_preference.entity';
 
 @Entity({ schema: 'expert', name: 'account' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -151,6 +153,12 @@ export class ExpertAccount {
 
   @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
   agent_commission_rate!: number | null;
+
+  @OneToMany(
+    () => ConsultationTopicPreference,
+    (preference) => preference.expert,
+  )
+  consultation_topic_preferences!: ConsultationTopicPreference[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

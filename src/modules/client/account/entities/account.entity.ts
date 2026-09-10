@@ -13,6 +13,7 @@ import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { UserStatusEnum } from '@/common/enums/user-status.enum';
+import { ConsultationTopicPreference } from '@/modules/consultation/consultation/entities/consultation_topic_preference.entity';
 
 export type GENDER = 'male' | 'female' | 'other';
 
@@ -97,6 +98,12 @@ export class ClientAccount {
     eager: true,
   })
   addresses!: Address[];
+
+  @OneToMany(
+    () => ConsultationTopicPreference,
+    (preference) => preference.client,
+  )
+  consultation_topic_preferences!: ConsultationTopicPreference[];
 
   @Column({
     type: 'decimal',

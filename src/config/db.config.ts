@@ -1,5 +1,6 @@
 import { registerAs } from '@nestjs/config';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { SeederOptions } from 'typeorm-extension';
 
 export interface DatabaseConfig {
   url?: string;
@@ -34,8 +35,9 @@ export const dataSource = new DataSource({
   database: process.env.DB_NAME,
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+  seeds: [__dirname + '/../seeder/seeders/**/*{.ts,.js}'],
   synchronize: process.env.NODE_ENV !== 'production', // set to false in production
   poolSize: process.env.DB_MAX_CONNECTIONS
     ? parseInt(process.env.DB_MAX_CONNECTIONS, 10)
     : 100,
-});
+} as DataSourceOptions & SeederOptions);
