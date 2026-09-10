@@ -1,61 +1,31 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { UploadApiResponse, UploadApiErrorResponse, v2 } from 'cloudinary';
-import * as streamifier from 'streamifier';
-import { CLOUDINARY } from './cloudinary.provider';
+import { Injectable } from '@nestjs/common';
+import { UploadApiResponse } from 'cloudinary';
+import { ImageUploadService } from './image-upload.service';
+import { VideoUploadService } from './video-upload.service';
+import { Base64UploadService } from './base64-upload.service';
 
+/**
+ * @deprecated Use ImageUploadService, VideoUploadService, or Base64UploadService directly.
+ */
 @Injectable()
 export class CloudinaryService {
-  constructor(@Inject(CLOUDINARY) private readonly cloudinary: typeof v2) {}
+  constructor(
+    private readonly imageUploadService: ImageUploadService,
+    private readonly videoUploadService: VideoUploadService,
+    private readonly base64UploadService: Base64UploadService,
+  ) {}
 
-  async uploadImage(
-    file: Express.Multer.File,
-  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
-    return new Promise((resolve, reject) => {
-      const resourceType = file.mimetype.startsWith('video') ? 'video' : 'auto';
-      const uploadOptions: Record<string, any> = { resource_type: resourceType };
-      if (resourceType === 'video') {
-        uploadOptions.chunk_size = 6000000; // 6MB chunk size for large videos
-      }
-      
-      const uploadStream = this.cloudinary.uploader.upload_stream(
-        uploadOptions,
-        (error, result) => {
-          if (error)
-            return reject(
-              new Error(
-                (error as { message?: string })?.message ||
-                  'Unknown Cloudinary Error',
-              ),
-            );
-          if (!result) return reject(new Error('Cloudinary upload failed'));
-          resolve(result);
-        },
-      );
-
-      streamifier.createReadStream(file.buffer).pipe(uploadStream);
-    });
+  async uploadImage(file: Express.Multer.File): Promise<UploadApiResponse> {
+    if (file?.mimetype?.startsWith('video')) {
+      return this.videoUploadService.uploadVideo(file);
+    }
+    return this.imageUploadService.uploadImage(file);
   }
 
   async uploadBase64(
     base64String: string,
     folder?: string,
-  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
-    return new Promise((resolve, reject) => {
-      void this.cloudinary.uploader.upload(
-        base64String,
-        { folder, resource_type: 'auto' },
-        (error, result) => {
-          if (error)
-            return reject(
-              new Error(
-                (error as { message?: string })?.message ||
-                  'Unknown Cloudinary Error',
-              ),
-            );
-          if (!result) return reject(new Error('Cloudinary upload failed'));
-          resolve(result);
-        },
-      );
-    });
+  ): Promise<UploadApiResponse> {
+    return this.base64UploadService.uploadBase64(base64String, folder);
   }
 }

@@ -7,14 +7,14 @@ import {
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 
-import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
+import { ChatFacade } from '@/modules/consultation/chat/chat.facade';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSessionStatus } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
-import { ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
+import { CallSessionStatus } from '@/modules/consultation/call/entities/call-session.entity';
+import { ChatSessionStatus } from '@/modules/consultation/chat/entities/chat-session.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { AccountFacade } from '@/modules/client/account/account.facade';
-import { CallFacade } from '@/modules/consultation/call/application/call.facade';
+import { CallFacade } from '@/modules/consultation/call/call.facade';
 
 @Injectable()
 export class GetExpertDetailUseCase {

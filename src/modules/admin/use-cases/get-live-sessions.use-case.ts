@@ -1,5 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
+import { ChatFacade } from '@/modules/consultation/chat/chat.facade';
 import { GetLiveSessionsDto } from '../dto/get-live-sessions.dto';
 
 @Injectable()

@@ -9,9 +9,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
-import { CallFacade } from './application/call.facade';
+import { CallFacade } from './call.facade';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { CallSessionStatus } from './infrastructure/entities/call-session.entity';
+import { CallSessionStatus } from './entities/call-session.entity';
 
 @WebSocketGateway({
   cors: {

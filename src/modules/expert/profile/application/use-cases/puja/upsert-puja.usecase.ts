@@ -10,7 +10,7 @@ import { ExpertPuja } from '../../../infrastructure/entities/expert-puja.entity'
 import { ProfileExpert } from '../../../infrastructure/entities/profile-expert.entity';
 import { IUser } from '@/common/types/access-token.payload';
 import { ExpertPujaDto } from '../../../api/dto/expert-puja.dto';
-import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import { Base64UploadService } from '@/external/cloudinary';
 import { ExpertGateway } from '../../../api/gateways/expert.gateway';
 import sharp from 'sharp';
 
@@ -29,9 +29,9 @@ export class UpsertPujaUseCase {
     private readonly pujaRepo: Repository<ExpertPuja>,
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly base64UploadService: Base64UploadService,
     private readonly expertGateway: ExpertGateway,
-  ) { }
+  ) {}
 
   private async validateImageDimensions(base64: string): Promise<void> {
     // Remove data URI prefix if present (e.g., "data:image/jpeg;base64,")
@@ -90,7 +90,7 @@ export class UpsertPujaUseCase {
       await this.validateImageDimensions(dto.puja_image);
 
       try {
-        const uploadResult = (await this.cloudinaryService.uploadBase64(
+        const uploadResult = (await this.base64UploadService.uploadBase64(
           dto.puja_image,
           'pujas',
         )) as Record<string, unknown>;

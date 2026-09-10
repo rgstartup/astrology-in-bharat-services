@@ -11,12 +11,9 @@ import { Server, Socket } from 'socket.io';
 import { Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatFacade } from './application/chat.facade';
-import { MessageType } from './infrastructure/entities/chat-message.entity';
-import {
-  ChatSessionStatus,
-  ChatSession,
-} from './infrastructure/entities/chat-session.entity';
+import { ChatFacade } from './chat.facade';
+import { MessageType } from './entities/chat-message.entity';
+import { ChatSessionStatus, ChatSession } from './entities/chat-session.entity';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 
 @WebSocketGateway({

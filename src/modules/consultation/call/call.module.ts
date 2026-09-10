@@ -1,28 +1,28 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CallSession } from './infrastructure/entities/call-session.entity';
-import { TwilioService } from './infrastructure/services/twilio.service';
+import { CallSession } from './entities/call-session.entity';
+import { TwilioService } from './services/twilio.service';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { QueueModule } from '@/core/queue/queue.module';
-import { InitiateCallUseCase } from './application/use-cases/initiate-call.use-case';
-import { AcceptCallUseCase } from './application/use-cases/accept-call.use-case';
-import { EndCallUseCase } from './application/use-cases/end-call.use-case';
-import { GetExpertCallSessionsUseCase } from './application/use-cases/get-expert-sessions.use-case';
-import { GetCallSessionUseCase } from './application/use-cases/get-call-session.use-case';
-import { GetCallTokenUseCase } from './application/use-cases/get-call-token.use-case';
-import { RejectCallUseCase } from './application/use-cases/reject-call.use-case';
-import { GetCallEarningsUseCase } from './application/use-cases/get-call-earnings.use-case';
-import { CountExpertCallSessionsUseCase } from './application/use-cases/count-expert-sessions.use-case';
-import { GetExpertCallsByDateUseCase } from './application/use-cases/get-expert-calls-by-date.use-case';
-import { ConvertToPaidUseCase } from './application/use-cases/convert-to-paid.use-case';
-import { ResolveSessionDetailsUseCase } from './application/use-cases/resolve-session-details.use-case';
+import { InitiateCallUseCase } from './use-cases/initiate-call.use-case';
+import { AcceptCallUseCase } from './use-cases/accept-call.use-case';
+import { EndCallUseCase } from './use-cases/end-call.use-case';
+import { GetExpertCallSessionsUseCase } from './use-cases/get-expert-sessions.use-case';
+import { GetCallSessionUseCase } from './use-cases/get-call-session.use-case';
+import { GetCallTokenUseCase } from './use-cases/get-call-token.use-case';
+import { RejectCallUseCase } from './use-cases/reject-call.use-case';
+import { GetCallEarningsUseCase } from './use-cases/get-call-earnings.use-case';
+import { CountExpertCallSessionsUseCase } from './use-cases/count-expert-sessions.use-case';
+import { GetExpertCallsByDateUseCase } from './use-cases/get-expert-calls-by-date.use-case';
+import { ConvertToPaidUseCase } from './use-cases/convert-to-paid.use-case';
+import { ResolveSessionDetailsUseCase } from './use-cases/resolve-session-details.use-case';
 
-import { CallController } from './api/controllers/call.controller';
-import { TwimlController } from './api/controllers/twiml.controller';
+import { CallController } from './controllers/call.controller';
+import { TwimlController } from './controllers/twiml.controller';
 import { CallGateway } from './call.gateway';
-import { CallFacade } from './application/call.facade';
+import { CallFacade } from './call.facade';
 
 @Module({
   imports: [

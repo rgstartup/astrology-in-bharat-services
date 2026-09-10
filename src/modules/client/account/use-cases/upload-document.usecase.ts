@@ -4,13 +4,13 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import { ImageUploadService } from '@/external/cloudinary';
 
 @Injectable()
 export class UploadDocumentUseCase {
   private readonly logger = new Logger(UploadDocumentUseCase.name);
 
-  constructor(private readonly cloudinaryService: CloudinaryService) {}
+  constructor(private readonly imageUploadService: ImageUploadService) {}
 
   async execute(userId: string, file: Express.Multer.File) {
     this.logger.log(`Received upload request from user: ${userId}`);
@@ -21,9 +21,13 @@ export class UploadDocumentUseCase {
     }
 
     try {
-      const result = (await this.cloudinaryService.uploadImage(file)) as {
-        secure_url: string;
-      };
+      const result = await this.imageUploadService.uploadImage(file);
+
+      if (!result.secure_url) {
+        throw new InternalServerErrorException(
+          'Document upload did not return a valid secure URL',
+        );
+      }
 
       return {
         message: 'File uploaded successfully',

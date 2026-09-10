@@ -48,11 +48,8 @@ export class AccountFacade {
     return this.updateAccountUseCase.execute(client, dto);
   }
 
-  async updateAccountPicture(
-    client: ClientAccount | { id: string },
-    file: Express.Multer.File,
-  ) {
-    return this.updateAccountPictureUseCase.execute(client, file);
+  async updateAccountPicture(clientId: string, file: Express.Multer.File) {
+    return this.updateAccountPictureUseCase.execute(clientId, file);
   }
 
   async uploadDocument(userId: string, file: Express.Multer.File) {

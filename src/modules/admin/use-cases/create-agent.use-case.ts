@@ -5,14 +5,14 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { CreateAgentDto } from '../dto/create-agent.dto';
-import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import { ImageUploadService } from '@/external/cloudinary';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 
 @Injectable()
 export class CreateAgentUseCase {
   constructor(
     private readonly dataSource: DataSource,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imageUploadService: ImageUploadService,
     @Inject(IHasherToken) private readonly hasher: IHasher,
   ) {}
 
@@ -112,7 +112,7 @@ export class CreateAgentUseCase {
   }
 
   private async uploadFile(file: Express.Multer.File): Promise<string> {
-    const result = (await this.cloudinaryService.uploadImage(file)) as Record<
+    const result = (await this.imageUploadService.uploadImage(file)) as Record<
       string,
       unknown
     >;

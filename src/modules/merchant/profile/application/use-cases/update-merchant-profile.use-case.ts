@@ -6,7 +6,7 @@ import { Repository, DataSource } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileMerchant } from '../../infrastructure/entities/profile-merchant.entity';
 import { UpdateMerchantProfileDto } from '../../api/dto/update-merchant-profile.dto';
-import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import { ImageUploadService, VideoUploadService } from '@/external/cloudinary';
 import { MerchantGateway } from '../../api/gateways/merchant.gateway';
 import { EncryptionService } from '@/common/services/encryption.service';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
@@ -20,7 +20,8 @@ export class UpdateMerchantProfileUseCase {
   constructor(
     @InjectRepository(ProfileMerchant)
     private readonly merchantRepository: Repository<ProfileMerchant>,
-    private readonly cloudinary: CloudinaryService,
+    private readonly imageUploadService: ImageUploadService,
+    private readonly videoUploadService: VideoUploadService,
     private readonly merchantGateway: MerchantGateway,
     private readonly encryptionService: EncryptionService,
     private readonly notificationFacade: NotificationFacade,
@@ -72,7 +73,7 @@ export class UpdateMerchantProfileUseCase {
       // Handle Image upload
       if (files?.image?.[0]) {
         try {
-          const uploadResult = (await this.cloudinary.uploadImage(
+          const uploadResult = (await this.imageUploadService.uploadImage(
             files.image[0],
           )) as Record<string, unknown>;
           if (uploadResult && 'secure_url' in uploadResult) {
@@ -90,7 +91,7 @@ export class UpdateMerchantProfileUseCase {
       // Handle Video upload
       if (files?.video?.[0]) {
         try {
-          const uploadResult = (await this.cloudinary.uploadImage(
+          const uploadResult = (await this.videoUploadService.uploadVideo(
             files.video[0],
           )) as Record<string, unknown>;
           if (uploadResult && 'secure_url' in uploadResult) {
@@ -206,7 +207,7 @@ export class UpdateMerchantProfileUseCase {
       for (const field of docFields) {
         if (files?.[field]?.[0]) {
           try {
-            const uploadResult = (await this.cloudinary.uploadImage(
+            const uploadResult = (await this.imageUploadService.uploadImage(
               files[field][0],
             )) as Record<string, unknown>;
             if (uploadResult && 'secure_url' in uploadResult) {
@@ -239,7 +240,7 @@ export class UpdateMerchantProfileUseCase {
       if (files?.gallery?.length) {
         for (const file of files.gallery) {
           try {
-            const uploadResult = (await this.cloudinary.uploadImage(
+            const uploadResult = (await this.imageUploadService.uploadImage(
               file,
             )) as Record<string, unknown>;
             if (uploadResult && 'secure_url' in uploadResult) {

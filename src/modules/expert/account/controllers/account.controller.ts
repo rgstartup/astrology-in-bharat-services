@@ -14,7 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import { ImageUploadService, VideoUploadService } from '@/external/cloudinary';
 import { CurrentExpert } from '@/modules/expert/auth/decorators/current-expert.decorator';
 import { IExpert } from '@/common/types/access-token.payload';
 import { Public } from '@/common/decorators/public.decorator';
@@ -29,7 +29,8 @@ import { ExpertPujaDto } from '../../profile/api/dto/expert-puja.dto';
 export class ExpertAccountController {
   constructor(
     private readonly accountFacade: ExpertAccountFacade,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imageUploadService: ImageUploadService,
+    private readonly videoUploadService: VideoUploadService,
   ) {}
 
   @Get()
@@ -176,9 +177,9 @@ export class ExpertAccountController {
     if (!allowed.test(file.mimetype)) {
       throw new BadRequestException(`Unsupported file type: ${file.mimetype}`);
     }
-    const result = (await this.cloudinaryService.uploadImage(file)) as {
-      secure_url: string;
-    };
+    const result = file.mimetype.startsWith('video')
+      ? await this.videoUploadService.uploadVideo(file)
+      : await this.imageUploadService.uploadImage(file);
     return {
       message: 'File uploaded successfully',
       path: result.secure_url,

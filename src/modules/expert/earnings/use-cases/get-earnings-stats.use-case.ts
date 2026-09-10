@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
-import { CallFacade } from '@/modules/consultation/call/application/call.facade';
+import { ChatFacade } from '@/modules/consultation/chat/chat.facade';
+import { CallFacade } from '@/modules/consultation/call/call.facade';
 import { GetExpertPujasByDateUseCase } from '@/modules/puja-appointment/application/use-cases/get-expert-pujas-by-date.use-case';
-import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
-import { CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
+import { ReviewsFacade } from '@/modules/consultation/reviews/reviews.facade';
+import { CallType } from '@/modules/consultation/call/entities/call-session.entity';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
 

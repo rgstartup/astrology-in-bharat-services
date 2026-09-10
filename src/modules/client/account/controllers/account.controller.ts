@@ -45,15 +45,15 @@ export class AccountController {
     return this.accountFacade.updateAccount(client, dto);
   }
 
-  @Patch('picture')
+  @Patch(['avatar', 'picture'])
   @UseInterceptors(
     FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }),
   )
-  async updateAccountPicture(
-    @CurrentClient() client: ClientAccount,
+  async updateAccountAvatar(
+    @CurrentClient('id') clientId: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.accountFacade.updateAccountPicture(client, file);
+    return this.accountFacade.updateAccountPicture(clientId, file);
   }
 
   @Post('upload-document')

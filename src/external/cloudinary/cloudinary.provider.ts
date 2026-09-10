@@ -8,7 +8,7 @@ export const CLOUDINARY = Symbol('CLOUDINARY');
 export const CloudinaryProvider: Provider = {
   provide: CLOUDINARY,
   useFactory: (config: ConfigService) => {
-    const cloudinaryConfig = config.get<CloudinaryConfig>('cloudinary');
+    const cloudinaryConfig = config.getOrThrow<CloudinaryConfig>('cloudinary');
 
     if (!cloudinaryConfig) {
       throw new Error('Cloudinary config not found');

@@ -1,56 +1,28 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { Address, AddressTag } from '@/common/address/address.entity';
+
 import { ClientAccount } from '../entities/account.entity';
 import { UpdateClientAccountDto } from '../dto/account.dto';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { IUser } from '@/common/types/access-token.payload';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Address, AddressTag } from '@/common/address/address.entity';
+import { DatabaseService } from '@/core/database/database.service';
 
 @Injectable()
 export class UpdateAccountUseCase {
   private readonly logger = new Logger(UpdateAccountUseCase.name);
 
-  constructor(
-    @InjectRepository(ClientAccount)
-    private readonly repo: Repository<ClientAccount>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-    @InjectRepository(Address)
-    private readonly addressRepo: Repository<Address>,
-    private readonly dataSource: DataSource,
-    private readonly eventEmitter: EventEmitter2,
-  ) {}
+  constructor(private readonly db: DatabaseService) {}
 
-  async execute(client: ClientAccount | { id: string }, dto: UpdateClientAccountDto) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      const identifier = client.id;
-
-      let account = await queryRunner.manager.findOne(ClientAccount, {
-        where: [{ id: identifier }, { user: { id: identifier } }],
+  async execute(
+    client: ClientAccount | { id: string },
+    dto: UpdateClientAccountDto,
+  ) {
+    await this.db.transaction(async (queryRunner) => {
+      const account = await queryRunner.manager.findOne(ClientAccount, {
+        where: { id: client.id },
         relations: ['user', 'addresses'],
       });
-
-      if (!account) {
-        this.logger.log(
-          `No client account found for ${identifier}, creating on-the-fly`,
-        );
-        account = queryRunner.manager.create(ClientAccount, {
-          user: { id: identifier } as unknown as User,
-          gender: 'other',
-        });
-        await queryRunner.manager.save(ClientAccount, account);
-        account = await queryRunner.manager.findOne(ClientAccount, {
-          where: [{ id: identifier }, { user: { id: identifier } }],
-          relations: ['user', 'addresses'],
-        });
-      }
 
       if (!account) {
         throw new NotFoundException('Client account not found');
@@ -100,45 +72,24 @@ export class UpdateAccountUseCase {
               [addr.line1, addr.line2].filter(Boolean).join(', ') ||
               (addr.house_no as string) ||
               '',
-            house_no: addr.house_no as string | undefined,
-            city: addr.city as string | undefined,
-            district: addr.district as string | undefined,
-            state: addr.state as string | undefined,
-            country: addr.country as string | undefined,
-            zip_code:
-              (addr.zip_code as string | undefined) ||
-              (addr.pincode as string | undefined) ||
-              '',
-            pincode: addr.pincode as string | undefined,
-            is_primary: (addr.is_primary as boolean) ?? false,
-            tag: (addr.tag as AddressTag) || AddressTag.OTHER,
+            house_no: addr.house_no,
+            city: addr.city,
+            district: addr.district,
+            state: addr.state,
+            country: addr.country,
+            zip_code: addr.zip_code || addr.pincode || '',
+            pincode: addr.pincode,
+            is_primary: addr.is_primary ?? false,
+            tag: addr.tag || AddressTag.OTHER,
             client_account: account,
           };
           return queryRunner.manager.create(Address, addrData);
         });
       }
 
-      const updatedAccount = await queryRunner.manager.save(
-        ClientAccount,
-        account,
-      );
+      await queryRunner.manager.save(ClientAccount, account);
+    });
 
-      await queryRunner.commitTransaction();
-
-      this.eventEmitter.emit('client.account.updated', {
-        userId: account.user?.id || account.id,
-        accountId: updatedAccount.id,
-        payload: dto,
-      });
-
-      return new BooleanMessage(true, 'Account updated successfully');
-    } catch (err) {
-      if (queryRunner.isTransactionActive) {
-        await queryRunner.rollbackTransaction();
-      }
-      throw err;
-    } finally {
-      await queryRunner.release();
-    }
+    return new BooleanMessage(true, 'Account updated successfully');
   }
 }

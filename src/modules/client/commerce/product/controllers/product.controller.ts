@@ -20,7 +20,7 @@ import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import { ImageUploadService } from '@/external/cloudinary';
 import { UploadApiResponse } from 'cloudinary';
 
 @Controller({
@@ -30,7 +30,7 @@ import { UploadApiResponse } from 'cloudinary';
 export class ProductController {
   constructor(
     private readonly productFacade: ProductFacade,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imageUploadService: ImageUploadService,
   ) {}
 
   @Get()
@@ -64,7 +64,7 @@ export class ProductController {
 
     if (file) {
       try {
-        const uploadedImage = (await this.cloudinaryService.uploadImage(
+        const uploadedImage = (await this.imageUploadService.uploadImage(
           file,
         )) as UploadApiResponse;
         if (uploadedImage?.secure_url) {

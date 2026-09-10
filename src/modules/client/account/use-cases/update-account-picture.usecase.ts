@@ -1,96 +1,89 @@
 import {
   Injectable,
   Logger,
+  BadRequestException,
+  HttpException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import { ImageUploadService } from '@/external/cloudinary';
 import { ClientAccount } from '../entities/account.entity';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { IUser } from '@/common/types/access-token.payload';
+import { DatabaseService } from '@/core/database/database.service';
 
 @Injectable()
 export class UpdateAccountPictureUseCase {
   private readonly logger = new Logger(UpdateAccountPictureUseCase.name);
 
   constructor(
-    private readonly cloudinaryService: CloudinaryService,
-    @InjectRepository(ClientAccount)
-    private readonly accountRepo: Repository<ClientAccount>,
-    private readonly dataSource: DataSource,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly imageUploadService: ImageUploadService,
+    private readonly db: DatabaseService,
   ) {}
 
-  async execute(client: ClientAccount | { id: string }, file: Express.Multer.File) {
-    try {
-      const result = await this.cloudinaryService.uploadImage(file);
-      let pictureUrl: string | null = null;
+  async execute(clientId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No image file provided');
+    }
 
-      if (result.secure_url) {
-        pictureUrl = result.secure_url;
+    try {
+      const result = await this.imageUploadService.uploadImage(file);
+      const pictureUrl = result.secure_url;
+
+      if (!pictureUrl) {
+        throw new InternalServerErrorException(
+          'Image upload did not return a valid secure URL',
+        );
       }
 
-      const queryRunner = this.dataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
-      try {
-        const identifier = client.id;
-
-        let account = await queryRunner.manager.findOne(ClientAccount, {
-          where: [{ id: identifier }, { user: { id: identifier } }],
+      await this.db.transaction(async (queryRunner) => {
+        const account = await queryRunner.manager.findOne(ClientAccount, {
+          select: {
+            id: true,
+            avatar: true,
+            user: {
+              id: true,
+              avatar: true,
+            },
+          },
+          where: { id: clientId },
           relations: ['user'],
         });
 
         if (!account) {
-          account = queryRunner.manager.create(ClientAccount, {
-            user: { id: identifier } as unknown as User,
-            gender: 'other',
-          });
-          await queryRunner.manager.save(ClientAccount, account);
-          account = await queryRunner.manager.findOne(ClientAccount, {
-            where: [{ id: identifier }, { user: { id: identifier } }],
-            relations: ['user'],
-          });
+          throw new NotFoundException('Client not found');
         }
 
-        account!.avatar = pictureUrl || account!.avatar;
-        await queryRunner.manager.save(ClientAccount, account!);
+        const updatedClient = new ClientAccount();
+        updatedClient.id = account.id;
+        updatedClient.avatar = pictureUrl || account.avatar;
 
-        if (account?.user?.id) {
-          await queryRunner.manager.update(
-            User,
-            { id: account.user.id },
-            { avatar: pictureUrl },
-          );
-        }
+        const updatedUser = new User();
+        updatedUser.id = account.user.id;
+        updatedUser.avatar = pictureUrl || account.avatar;
 
-        await queryRunner.commitTransaction();
+        return Promise.all([
+          queryRunner.manager.save(ClientAccount, updatedClient),
+          queryRunner.manager.save(User, updatedUser),
+        ]);
+      });
 
-        this.eventEmitter.emit('client.account.updated', {
-          userId: account?.user?.id || account?.id,
-          accountId: account!.id,
-          payload: { avatar: pictureUrl },
-        });
-
-        return { success: true, avatar: pictureUrl };
-      } catch (err) {
-        if (queryRunner.isTransactionActive) {
-          await queryRunner.rollbackTransaction();
-        }
-        throw err;
-      } finally {
-        await queryRunner.release();
-      }
+      return {
+        success: true,
+        message: 'Picture uploaded successfully',
+        avatar: pictureUrl,
+      };
     } catch (error: unknown) {
+      console.log(error);
+
       const err = error as Error;
       this.logger.error(
-        `Failed to update profile picture for user ${client.id}: ${err.message}`,
+        `Failed to update profile picture for user ${clientId}: ${err.message}`,
       );
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException(
-        'Failed to upload profile picture',
+        err.message || 'Failed to upload profile picture',
       );
     }
   }

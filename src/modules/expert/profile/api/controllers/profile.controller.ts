@@ -15,8 +15,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
+import { ImageUploadService, VideoUploadService } from '@/external/cloudinary';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { ExpertProfileFacade } from '../../application/profile.facade';
@@ -47,7 +46,8 @@ import { getErrorMessage } from '@/common/utils/get-error-message.util';
 export class ProfileController {
   constructor(
     private readonly profileFacade: ExpertProfileFacade,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imageUploadService: ImageUploadService,
+    private readonly videoUploadService: VideoUploadService,
   ) {}
 
   @Get()
@@ -332,11 +332,26 @@ export class ProfileController {
     }
 
     try {
-      const result = (await this.cloudinaryService.uploadImage(file)) as {
+      let result: {
         secure_url: string;
         duration?: number;
         public_id?: string;
       };
+
+      if (file.mimetype.startsWith('video')) {
+        result = (await this.videoUploadService.uploadVideo(file)) as {
+          secure_url: string;
+          duration?: number;
+          public_id?: string;
+        };
+      } else {
+        result = (await this.imageUploadService.uploadImage(file)) as {
+          secure_url: string;
+          duration?: number;
+          public_id?: string;
+        };
+      }
+
       const finalUrl = result.secure_url;
 
       // Backend Duration Validation (30-90 seconds)
@@ -345,9 +360,7 @@ export class ProfileController {
         if (duration < 30 || duration > 90) {
           // Delete the invalid video from Cloudinary
           if (result.public_id) {
-            await cloudinary.uploader.destroy(result.public_id, {
-              resource_type: 'video',
-            });
+            await this.videoUploadService.deleteVideo(result.public_id);
           }
 
           throw new BadRequestException(

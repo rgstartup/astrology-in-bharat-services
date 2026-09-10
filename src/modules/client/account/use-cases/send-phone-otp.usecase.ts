@@ -1,9 +1,11 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { BooleanMessage } from '@/common/dto/boolean-message.dto';
-import { Repository } from 'typeorm';
-import { ClientAccount } from '../entities/account.entity';
 import twilio from 'twilio';
+import { Repository } from 'typeorm';
+
+import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
+
+import { ClientAccount } from '../entities/account.entity';
 import { SendPhoneOtpDto } from '../dto/phone-otp.dto';
 
 @Injectable()

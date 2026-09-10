@@ -26,7 +26,7 @@ import { ProfileModule } from '@/modules/expert/profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminAuditLog } from './entities/admin-audit-log.entity';
 import { CouponModule } from '@/modules/client/commerce/coupon/coupon.module';
-import { ChatSession } from '../consultation/chat/infrastructure/entities/chat-session.entity';
+import { ChatSession } from '../consultation/chat/entities/chat-session.entity';
 import { ExternalModule } from '@/external/external.module';
 import { User } from '../users/infrastructure/entities/user.entity';
 import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';

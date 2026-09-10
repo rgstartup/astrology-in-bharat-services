@@ -20,7 +20,7 @@ import { UpdateListingStatusAdminUseCase } from './use-cases/update-listing-stat
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
 import { CreateAgentDto } from './dto/create-agent.dto';
-import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
+import { ChatFacade } from '@/modules/consultation/chat/chat.facade';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
 import { SupportFacade } from '@/modules/support/application/support.facade';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';

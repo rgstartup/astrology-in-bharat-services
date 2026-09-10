@@ -5,7 +5,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
+import { ChatSession } from '@/modules/consultation/chat/entities/chat-session.entity';
 import {
   Transaction,
   TransactionType,

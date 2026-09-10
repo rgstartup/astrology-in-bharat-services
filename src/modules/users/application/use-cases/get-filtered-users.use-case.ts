@@ -5,7 +5,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import {
   ChatSession,
   ChatSessionStatus,
-} from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
+} from '@/modules/consultation/chat/entities/chat-session.entity';
 import {
   Order,
   OrderStatus,
