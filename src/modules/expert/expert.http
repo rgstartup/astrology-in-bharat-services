@@ -163,6 +163,12 @@ Content-Type: application/json
 ### List approved expert accounts
 GET {{baseUrl}}/expert/account/list?limit=20&offset=0&sort=rating
 
+### List specializations (public)
+GET {{baseUrl}}/specializations?limit=20&page=1
+
+### List specializations via expert route (public)
+GET {{baseUrl}}/expert/specializations?limit=20&page=1
+
 ### Get top-rated expert accounts
 GET {{baseUrl}}/expert/account/top-rated?limit=3
 

@@ -1,5 +1,7 @@
+import { PaginationDto } from '@/common/dto/pagination.dto';
 import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsIn,
   IsNumber,
   IsOptional,
@@ -8,20 +10,7 @@ import {
   Min,
 } from 'class-validator';
 
-export class QueryExpertDto {
-  // Pagination
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  limit: number = 10;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  page: number = 1;
-
+export class QueryExpertDto extends PaginationDto {
   // Search by expert name
   @IsOptional()
   @IsString()
@@ -29,8 +18,9 @@ export class QueryExpertDto {
 
   // Filter by specialization (comma-separated or array)
   @IsOptional()
-  @IsString()
-  specializations?: string;
+  @IsArray()
+  @IsString({ each: true })
+  specializations?: string[];
 
   // Filter by location (city)
   @IsOptional()

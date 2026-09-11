@@ -5,10 +5,10 @@ import { GetExpertAccountUseCase } from './use-cases/get-account.usecase';
 import { UpdateExpertAccountUseCase } from './use-cases/update-account.usecase';
 import { QueryExpertAccountsUseCase } from './use-cases/query-accounts.usecase';
 import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-status.usecase';
-import { QueryExpertDto } from '../profile/api/dto/query-expert.dto';
 import { ExpertKycStatus } from '../shared/enums/kyc-status.enum';
 import { ExpertAccountPujasUseCase } from './use-cases/account-pujas.usecase';
 import { ExpertPujaDto } from '../profile/api/dto/expert-puja.dto';
+import { QueryExpertDto } from './dto/request/query-expert.dto';
 
 @Injectable()
 export class ExpertAccountFacade {

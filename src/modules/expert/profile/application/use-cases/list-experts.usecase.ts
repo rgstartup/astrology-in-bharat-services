@@ -16,8 +16,6 @@ export class ListExpertsUseCase {
   ) {}
 
   async execute(query: QueryExpertDto) {
-    const limit = query.limit || 20;
-    const offset = query.page - 1 * query.limit || 0;
     const sort = query.sort || 'newest';
 
     // Determine relevant price column based on service filter
@@ -152,8 +150,8 @@ export class ListExpertsUseCase {
 
     try {
       const [experts, total] = await queryBuilder
-        .skip(offset)
-        .take(limit)
+        .skip(query.offset)
+        .take(query.limit)
         .getManyAndCount();
 
       const mapped = experts.map((ex) => {
@@ -189,10 +187,10 @@ export class ListExpertsUseCase {
       return {
         data: mapped,
         pagination: {
-          limit,
-          offset,
+          limit: query.limit,
+          offset: query.offset,
           total,
-          hasMore: offset + limit < total,
+          hasMore: query.offset + query.limit < total,
         },
       };
     } catch (error: unknown) {

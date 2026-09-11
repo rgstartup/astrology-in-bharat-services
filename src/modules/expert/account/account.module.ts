@@ -15,6 +15,8 @@ import { GetExpertAccountUseCase } from './use-cases/get-account.usecase';
 import { UpdateExpertAccountUseCase } from './use-cases/update-account.usecase';
 import { QueryExpertAccountsUseCase } from './use-cases/query-accounts.usecase';
 import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-status.usecase';
+import { SpecializationController } from './controllers/specialization.controller';
+import { GetSpecializationsUseCase } from './use-cases/get-specializations.usecase';
 
 @Module({
   imports: [
@@ -29,7 +31,7 @@ import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-sta
     ExpertAuthModule,
     CloudinaryModule,
   ],
-  controllers: [ExpertAccountController],
+  controllers: [ExpertAccountController, SpecializationController],
   providers: [
     ExpertAccountFacade,
     GetExpertAccountUseCase,
@@ -37,7 +39,8 @@ import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-sta
     QueryExpertAccountsUseCase,
     UpdateExpertAccountStatusUseCase,
     ExpertAccountPujasUseCase,
+    GetSpecializationsUseCase,
   ],
-  exports: [ExpertAccountFacade, TypeOrmModule],
+  exports: [ExpertAccountFacade, GetSpecializationsUseCase, TypeOrmModule],
 })
 export class ExpertAccountModule {}

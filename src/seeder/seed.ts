@@ -7,6 +7,7 @@ import {
   SystemSettingSeeder,
   ConsultationTopicSeeder,
   SpecializationSeeder,
+  ExpertSeeder,
 } from './seeders';
 
 async function bootstrap() {
@@ -15,6 +16,7 @@ async function bootstrap() {
     SystemSettingSeeder,
     ConsultationTopicSeeder,
     SpecializationSeeder,
+    ExpertSeeder,
   ];
 
   // Optional: support filtering by seeder name (e.g. pnpm run seed AdminSeeder or --name=AdminSeeder)

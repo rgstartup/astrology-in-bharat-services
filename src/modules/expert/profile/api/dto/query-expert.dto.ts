@@ -1,3 +1,5 @@
+import TrimString from '@/common/decorators/transform/trim.transform';
+import { PaginationDto } from '@/common/dto/pagination.dto';
 import { Type } from 'class-transformer';
 import {
   IsIn,
@@ -8,38 +10,29 @@ import {
   Min,
 } from 'class-validator';
 
-export class QueryExpertDto {
-  // Pagination
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  limit: number = 10;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  page: number = 1;
-
+export class QueryExpertDto extends PaginationDto {
   // Search by expert name
   @IsOptional()
   @IsString()
+  @TrimString()
   q?: string;
 
   // Filter by specialization (comma-separated or array)
   @IsOptional()
   @IsString()
+  @TrimString()
   specializations?: string;
 
   // Filter by location (city)
   @IsOptional()
   @IsString()
+  @TrimString()
   location?: string;
 
   // Filter by state
   @IsOptional()
   @IsString()
+  @TrimString()
   state?: string;
 
   // Filter by minimum rating
@@ -91,15 +84,18 @@ export class QueryExpertDto {
   // Filter by online/available status
   @IsOptional()
   @IsString()
+  @TrimString()
   onlineOnly?: string;
 
   // New filters
   @IsOptional()
   @IsString()
+  @TrimString()
   service?: string;
 
   @IsOptional()
   @IsString()
+  @TrimString()
   online?: string;
 
   @IsOptional()

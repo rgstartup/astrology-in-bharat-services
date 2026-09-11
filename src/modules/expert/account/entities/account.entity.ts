@@ -92,6 +92,7 @@ export class ExpertAccount {
   @Column({ type: 'text', nullable: true, name: 'phone_number' })
   phone_number!: string | null;
 
+  /******DO NOT USE | Soon to be Deprecated ************/
   @Column({ type: 'float', nullable: true })
   price!: number | null;
 
@@ -109,6 +110,7 @@ export class ExpertAccount {
 
   @Column({ type: 'float', nullable: true })
   horoscope_price!: number | null;
+  /******DO NOT USE | Soon to be Deprecated ************/
 
   @Column({ type: 'json', nullable: true })
   custom_services!: Record<string, unknown>[] | null;

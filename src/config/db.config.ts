@@ -1,5 +1,6 @@
+import 'dotenv/config';
 import { registerAs } from '@nestjs/config';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 
 export interface DatabaseConfig {
   url?: string;
@@ -23,19 +24,34 @@ export default registerAs<Partial<DatabaseConfig>>('database', () => ({
     : 100,
 }));
 
-import 'dotenv/config';
+const getDataSourceOptions = (): DataSourceOptions => {
+  const baseOptions = {
+    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+    migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+    synchronize: process.env.NODE_ENV !== 'production', // set to false in production
+    poolSize: process.env.DB_MAX_CONNECTIONS
+      ? parseInt(process.env.DB_MAX_CONNECTIONS, 10)
+      : 100,
+  };
 
-export const dataSource = new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
-  synchronize: process.env.NODE_ENV !== 'production', // set to false in production
-  poolSize: process.env.DB_MAX_CONNECTIONS
-    ? parseInt(process.env.DB_MAX_CONNECTIONS, 10)
-    : 100,
-});
+  if (process.env.DATABASE_URL) {
+    return {
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      ...baseOptions,
+    };
+  }
+
+  return {
+    type: 'postgres',
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    ...baseOptions,
+  };
+};
+
+export const dataSource = new DataSource(getDataSourceOptions());
+

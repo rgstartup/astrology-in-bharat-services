@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import TrimString from '../decorators/transform/trim.transform';
 
 export class PaginationDto {
   @IsOptional()
@@ -15,6 +16,8 @@ export class PaginationDto {
   limit: number = 10;
 
   @IsOptional()
+  @IsString()
+  @TrimString()
   search?: string;
 
   @IsOptional()
@@ -27,7 +30,7 @@ export class PaginationDto {
   role?: string;
 
   get offset(): number {
-    return (this.page - 1) * this.limit;
+    return Math.max(0, (this.page - 1) * this.limit);
   }
 
   get skip(): number {
@@ -36,4 +39,3 @@ export class PaginationDto {
 }
 
 export * from './paginated-response.dto';
-

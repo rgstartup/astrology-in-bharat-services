@@ -12,24 +12,18 @@ import { ExpertAccount } from './account.entity';
 import { Specialization } from './specialization.entity';
 
 @Entity({ schema: 'expert', name: 'expert_specializations' })
-@Index('UQ_expert_specialization', ['expert_id', 'specialization_id'], {
+@Index('UQ_expert_specialization', ['expert', 'specialization'], {
   unique: true,
 })
 export class ExpertSpecialization {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({ type: 'uuid', name: 'expert_id' })
-  expert_id!: string;
-
   @ManyToOne(() => ExpertAccount, (expert) => expert.specializations, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'expert_id' })
   expert!: ExpertAccount;
-
-  @Column({ type: 'uuid', name: 'specialization_id' })
-  specialization_id!: string;
 
   @ManyToOne(
     () => Specialization,

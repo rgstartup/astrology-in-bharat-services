@@ -19,24 +19,6 @@ export class GetExpertAccountUseCase {
   async execute(expert: IExpert): Promise<ExpertAccountResponseDto | null> {
     const account = await this.accounts
       .createQueryBuilder('expert')
-      .select([
-        'expert.id',
-        'expert.about',
-        'expert.languages',
-        'expert.name',
-        'expert.avatar',
-        'expert.experience_in_years',
-        'expert_spec.id',
-        'specialization.id',
-        'specialization.title',
-        'specialization.slug',
-        'pricing.id',
-        'pricing.call_price',
-        'pricing.video_call_price',
-        'pricing.chat_price',
-        'pricing.report_price',
-        'pricing.horoscope_price',
-      ])
       .leftJoin('expert.specializations', 'expert_spec')
       .leftJoin(
         'expert_spec.specialization',
@@ -57,6 +39,24 @@ export class GetExpertAccountUseCase {
           targetAudience: PricingTargetAudience.ALL,
         },
       )
+      .select([
+        'expert.id',
+        'expert.about',
+        'expert.languages',
+        'expert.name',
+        'expert.avatar',
+        'expert.experience_in_years',
+        'expert_spec.id',
+        'specialization.id',
+        'specialization.title',
+        'specialization.slug',
+        'pricing.id',
+        'pricing.call_price',
+        'pricing.video_call_price',
+        'pricing.chat_price',
+        'pricing.report_price',
+        'pricing.horoscope_price',
+      ])
       .where('expert.id = :id', { id: expert.sub })
       .addOrderBy('pricing.effective_from', 'DESC')
       .getOne();
