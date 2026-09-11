@@ -1,0 +1,11 @@
+services:
+  backend:
+    build:
+      target: production
+    env_file:
+      - ../.env
+    environment:
+      - NODE_ENV=production
+      - PORT=6543
+      - REDIS_HOST=aib-redis
+      - REDIS_PORT=6379

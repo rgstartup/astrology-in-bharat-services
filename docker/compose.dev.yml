@@ -1,0 +1,15 @@
+services:
+  backend:
+    build:
+      target: development
+    env_file:
+      - ../.env
+    environment:
+      - NODE_ENV=development
+      - PORT=6543
+      - REDIS_HOST=aib-redis
+      - REDIS_PORT=6379
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    command: ["pnpm", "run", "start:dev"]
