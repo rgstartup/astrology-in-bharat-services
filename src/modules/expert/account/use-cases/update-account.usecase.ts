@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { IExpert } from '@/common/types/access-token.payload';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ExpertAccount } from '../entities/account.entity';
-import { UpdateExpertAccountDto } from '../dto/account.dto';
+import { UpdateExpertAccountDto } from '../dto/request/account.dto';
 
 @Injectable()
 export class UpdateExpertAccountUseCase {

@@ -9,7 +9,6 @@ export const REQUIRED_SCHEMAS = [
   'auth',
   'client',
   'commerce',
-  'consultation',
   'consultations',
   'content',
   'expert',

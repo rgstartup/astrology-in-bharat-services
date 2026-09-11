@@ -20,8 +20,8 @@ import { IExpert } from '@/common/types/access-token.payload';
 import { Public } from '@/common/decorators/public.decorator';
 import { ExpertJwtAuthGuard } from '../../auth/guards/auth.guard';
 import { ExpertAccountFacade } from '../account.facade';
-import { UpdateExpertAccountDto } from '../dto/account.dto';
-import { QueryExpertDto } from '../dto/query-expert.dto';
+import { UpdateExpertAccountDto } from '../dto/request/account.dto';
+import { QueryExpertDto } from '../dto/request/query-expert.dto';
 import { ExpertPujaDto } from '../../profile/api/dto/expert-puja.dto';
 
 @Controller({ path: 'expert/account', version: '1' })

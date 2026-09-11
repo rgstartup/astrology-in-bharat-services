@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Review } from '../entities/review.entity';
 import { GetReviewsDto } from '../dto/get-reviews.dto';
 
+import { PaginatedResponseDto } from '@/common/dto/paginated-response.dto';
+
 @Injectable()
 export class GetMerchantReviewsUseCase {
   constructor(
@@ -12,7 +14,8 @@ export class GetMerchantReviewsUseCase {
   ) {}
 
   async execute(merchantId: string, dto: GetReviewsDto) {
-    const { page = 1, limit = 10 } = dto;
+    const page = dto.page || 1;
+    const limit = dto.limit || 10;
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await this.reviewRepository.findAndCount({
@@ -31,15 +34,7 @@ export class GetMerchantReviewsUseCase {
       createdAt: r.created_at,
     }));
 
-    return {
-      success: true,
-      data: formattedReviews,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return PaginatedResponseDto.from(formattedReviews, total, { page, limit });
   }
 }
+

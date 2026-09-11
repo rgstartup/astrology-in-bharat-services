@@ -10,7 +10,7 @@ import {
 
 type RefreshTokenRequest = Request & { refreshToken: string };
 
-@Controller({ path: 'auth/expert', version: '1' })
+@Controller({ path: 'expert/auth', version: '1' })
 export class ExpertAuthController {
   constructor(private readonly authFacade: ExpertAuthFacade) {}
 

@@ -26,15 +26,14 @@ export class PaginationDto {
   @IsOptional()
   role?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  offset?: number;
+  get offset(): number {
+    return (this.page - 1) * this.limit;
+  }
 
   get skip(): number {
-    return this.offset !== undefined
-      ? this.offset
-      : (this.page - 1) * this.limit;
+    return this.offset;
   }
 }
+
+export * from './paginated-response.dto';
+

@@ -1,20 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Seeder } from 'typeorm-extension';
+import { DataSource } from 'typeorm';
 import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
-import { ISeeder } from '../interfaces/seeder.interface';
 
-@Injectable()
-export class SystemSettingSeeder implements ISeeder {
-  readonly name = 'SystemSettingSeeder';
-  private readonly logger = new Logger(SystemSettingSeeder.name);
+export class SystemSettingSeeder implements Seeder {
+  async run(dataSource: DataSource): Promise<void> {
+    const systemSettingRepository = dataSource.getRepository(SystemSetting);
 
-  constructor(
-    @InjectRepository(SystemSetting)
-    private readonly systemSettingRepository: Repository<SystemSetting>,
-  ) {}
-
-  async run(): Promise<void> {
     const defaultSettings: Array<{ key: string; value: string; description: string }> = [
       {
         key: 'APP_NAME',
@@ -51,37 +42,19 @@ export class SystemSettingSeeder implements ISeeder {
     let createdCount = 0;
 
     for (const setting of defaultSettings) {
-      const existing = await this.systemSettingRepository.findOne({
+      const existing = await systemSettingRepository.findOne({
         where: { key: setting.key },
       });
 
       if (!existing) {
-        const item = this.systemSettingRepository.create(setting);
-        await this.systemSettingRepository.save(item);
+        const item = systemSettingRepository.create(setting);
+        await systemSettingRepository.save(item);
         createdCount++;
       }
     }
 
-    this.logger.log(
-      `SystemSettingSeeder finished. Added ${createdCount} new settings (${defaultSettings.length - createdCount} already existed).`,
+    console.log(
+      `[SystemSettingSeeder] Finished. Added ${createdCount} new settings (${defaultSettings.length - createdCount} already existed).`,
     );
-  }
-
-  async drop(): Promise<void> {
-    const keys = [
-      'APP_NAME',
-      'SUPPORT_EMAIL',
-      'CURRENCY_DEFAULT',
-      'MAINTENANCE_MODE',
-      'DEFAULT_COMMISSION_PERCENTAGE',
-      'FREE_TRIAL_MINUTES',
-    ];
-    await this.systemSettingRepository
-      .createQueryBuilder()
-      .delete()
-      .where('key IN (:...keys)', { keys })
-      .execute();
-
-    this.logger.log('Dropped default system settings.');
   }
 }

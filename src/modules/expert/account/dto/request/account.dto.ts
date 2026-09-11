@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateProfileExpertDto } from '../../profile/api/dto/profile-expert.dto';
+import { CreateProfileExpertDto } from '../../../profile/api/dto/profile-expert.dto';
 import { IsOptional, IsString } from 'class-validator';
 
 export class ExpertAccountDto extends CreateProfileExpertDto {

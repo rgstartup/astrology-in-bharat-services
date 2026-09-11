@@ -13,6 +13,8 @@ import { ColumnNumericTransformer } from '@/common/transformers/numeric.transfor
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
 import { ConsultationTopicPreference } from '@/modules/consultation/consultation/entities/consultation_topic_preference.entity';
+import { ExpertSpecialization } from './expert-specialization.entity';
+import { ExpertPricing } from './expert-pricing.entity';
 
 @Entity({ schema: 'expert', name: 'account' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -159,6 +161,15 @@ export class ExpertAccount {
     (preference) => preference.expert,
   )
   consultation_topic_preferences!: ConsultationTopicPreference[];
+
+  @OneToMany(
+    () => ExpertSpecialization,
+    (expertSpecialization) => expertSpecialization.expert,
+  )
+  specializations!: ExpertSpecialization[];
+
+  @OneToMany(() => ExpertPricing, (pricing) => pricing.expert)
+  pricings!: ExpertPricing[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

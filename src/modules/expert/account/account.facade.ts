@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IExpert } from '@/common/types/access-token.payload';
-import { UpdateExpertAccountDto } from './dto/account.dto';
+import { UpdateExpertAccountDto } from './dto/request/account.dto';
 import { GetExpertAccountUseCase } from './use-cases/get-account.usecase';
 import { UpdateExpertAccountUseCase } from './use-cases/update-account.usecase';
 import { QueryExpertAccountsUseCase } from './use-cases/query-accounts.usecase';
