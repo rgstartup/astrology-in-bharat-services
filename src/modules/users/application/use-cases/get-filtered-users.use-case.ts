@@ -9,7 +9,7 @@ import {
 import {
   Order,
   OrderStatus,
-} from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
+} from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 export interface FilterCriteria {

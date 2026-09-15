@@ -4,10 +4,10 @@ import { ProductLikeController } from './api/controllers/product-like.controller
 import { ExpertLikeController } from './api/controllers/expert-like.controller';
 import { PujaLikeController } from './api/controllers/puja-like.controller';
 import { Wishlist } from './infrastructure/entities/wishlist.entity';
-import { Product } from '@/modules/client/commerce/product/entities/product.entity';
+import { Product } from '@/modules/commerce/product/entities/product.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { UsersModule } from '../../../users/users.module';
-import { ExpertModule } from '../../../expert/expert.module';
+import { UsersModule } from '@/modules/users/users.module';
+import { ExpertModule } from '@/modules/expert/expert.module';
 import { WishlistFacade } from './application/wishlist.facade';
 import { AddProductToWishlistUseCase } from './application/use-cases/add-product-to-wishlist.use-case';
 import { RemoveProductFromWishlistUseCase } from './application/use-cases/remove-product-from-wishlist.use-case';

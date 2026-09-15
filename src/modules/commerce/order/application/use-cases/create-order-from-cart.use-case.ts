@@ -8,17 +8,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { OrderItem } from '../../infrastructure/entities/order-item.entity';
-import { Cart } from '@/modules/client/commerce/cart/entities/cart.entity';
-import { CartItem } from '@/modules/client/commerce/cart/entities/cart-item.entity';
+import { Cart } from '@/modules/commerce/cart/entities/cart.entity';
+import { CartItem } from '@/modules/commerce/cart/entities/cart-item.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import {
   Coupon,
   CouponStatus,
   CouponType,
-} from '@/modules/client/commerce/coupon/infrastructure/entities/coupon.entity';
-import { UserCoupon } from '@/modules/client/commerce/coupon/infrastructure/entities/user-coupon.entity';
-import { Product } from '@/modules/client/commerce/product/entities/product.entity';
+} from '@/modules/commerce/coupon/infrastructure/entities/coupon.entity';
+import { UserCoupon } from '@/modules/commerce/coupon/infrastructure/entities/user-coupon.entity';
+import { Product } from '@/modules/commerce/product/entities/product.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import {
   TransactionPurpose,

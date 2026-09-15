@@ -5,7 +5,7 @@ import {
   ProfileMerchant,
   MerchantStatus,
 } from '../../infrastructure/entities/profile-merchant.entity';
-import { Wishlist } from '@/modules/client/commerce/wishlist/infrastructure/entities/wishlist.entity';
+import { Wishlist } from '@/modules/commerce/wishlist/infrastructure/entities/wishlist.entity';
 
 import { GetPublicMerchantsDto } from '../../api/dto/get-public-merchants.dto';
 

@@ -8,8 +8,8 @@ import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade
 import {
   Coupon,
   CouponStatus,
-} from '@/modules/client/commerce/coupon/infrastructure/entities/coupon.entity';
-import { UserCoupon } from '@/modules/client/commerce/coupon/infrastructure/entities/user-coupon.entity';
+} from '@/modules/commerce/coupon/infrastructure/entities/coupon.entity';
+import { UserCoupon } from '@/modules/commerce/coupon/infrastructure/entities/user-coupon.entity';
 import {
   Notification,
   NotificationType,

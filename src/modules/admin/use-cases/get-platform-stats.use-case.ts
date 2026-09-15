@@ -1,4 +1,4 @@
-import { OrderStatus } from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
+import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';

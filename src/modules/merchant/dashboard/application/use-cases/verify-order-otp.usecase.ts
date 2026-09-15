@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
-import { OrderStatus } from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 
 @Injectable()
 export class VerifyOrderOtpUseCase {

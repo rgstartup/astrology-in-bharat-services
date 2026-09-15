@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OrderItem } from '@/modules/client/commerce/order/infrastructure/entities/order-item.entity';
-import { OrderStatus } from '@/modules/client/commerce/order/infrastructure/entities/order.entity';
+import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
+import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
 
 @Injectable()

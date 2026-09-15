@@ -1,6 +1,6 @@
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { Injectable } from '@nestjs/common';
-import { OrderFacade } from '@/modules/client/commerce/order/application/order.facade';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';

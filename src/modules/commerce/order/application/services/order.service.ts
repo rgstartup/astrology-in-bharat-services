@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { Product } from '@/modules/client/commerce/product/entities/product.entity';
+import { Product } from '@/modules/commerce/product/entities/product.entity';
 import {
   Notification,
   NotificationType,
@@ -287,7 +287,7 @@ export class OrderService {
                 });
 
                 const { ProfileMerchant } = await import(
-                  '../../../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+                  '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity'
                 );
                 const merchantProfile = await qr.manager.findOne(
                   ProfileMerchant,
@@ -383,7 +383,7 @@ export class OrderService {
 
                 if (agent_commission > 0 && agent_id) {
                   const { ProfileAgent } = await import(
-                    '../../../../../agent/infrastructure/entities/profile-agent.entity'
+                    '@/modules/agent/infrastructure/entities/profile-agent.entity'
                   );
                   const agentProfile = await qr.manager.findOne(ProfileAgent, {
                     where: { user_id: agent_id },
@@ -403,7 +403,7 @@ export class OrderService {
 
                 if (buyer_agent_commission > 0 && buyer_agent_id) {
                   const { ProfileAgent } = await import(
-                    '../../../../../agent/infrastructure/entities/profile-agent.entity'
+                    '@/modules/agent/infrastructure/entities/profile-agent.entity'
                   );
                   const agentProfile = await qr.manager.findOne(ProfileAgent, {
                     where: { user_id: buyer_agent_id },

@@ -23,13 +23,13 @@ import { GetOrderEarningsUseCase } from './application/use-cases/get-order-earni
 import { MerchantOrderQueriesUseCase } from './application/use-cases/merchant-order-queries.use-case';
 import { GetAdminMerchantSalesOverviewUseCase } from './application/use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './application/use-cases/get-admin-merchant-sales-details.use-case';
-import { CartModule } from '@/modules/client/commerce/cart/cart.module';
+import { CartModule } from '@/modules/commerce/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
-import { Product } from '@/modules/client/commerce/product/entities/product.entity';
+import { Product } from '@/modules/commerce/product/entities/product.entity';
 import { WalletModule } from '@/modules/finance/wallet/wallet.module';
-import { CouponModule } from '@/modules/client/commerce/coupon/coupon.module';
-import { ProductModule } from '@/modules/client/commerce/product/product.module';
+import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
+import { ProductModule } from '@/modules/commerce/product/product.module';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
