@@ -5,9 +5,9 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
-import { Specialization } from '@/modules/expert/account/entities/specialization.entity';
+import { Specialization } from '@/modules/expert/specialization/entities/specialization.entity';
 import { ExpertSpecialization } from '@/modules/expert/account/entities/expert-specialization.entity';
-import { ExpertPricing } from '@/modules/expert/account/entities/expert-pricing.entity';
+import { ExpertConsultationPricing } from '@/modules/expert/account/entities/expert-consultation-pricing.entity';
 import {
   PricingStatus,
   PricingTargetAudience,
@@ -59,7 +59,7 @@ export class ExpertSeeder implements Seeder {
     const profileRepository = dataSource.getRepository(ProfileExpert);
     const specializationRepository = dataSource.getRepository(Specialization);
     const expertSpecRepository = dataSource.getRepository(ExpertSpecialization);
-    const pricingRepository = dataSource.getRepository(ExpertPricing);
+    const pricingRepository = dataSource.getRepository(ExpertConsultationPricing);
     const walletRepository = dataSource.getRepository(Wallet);
 
     const defaultPassword = process.env.EXPERT_SEED_PASSWORD || 'Expert@123456';
@@ -350,7 +350,7 @@ export class ExpertSeeder implements Seeder {
         }
       }
 
-      // 6. Ensure Active ExpertPricing exists
+      // 6. Ensure Active ExpertConsultationPricing exists
       const existingPricing = await pricingRepository.findOne({
         where: {
           expert_id: account.id,
@@ -367,8 +367,6 @@ export class ExpertSeeder implements Seeder {
           chat_price: data.pricing.chatPrice,
           call_price: data.pricing.callPrice,
           video_call_price: data.pricing.videoCallPrice,
-          report_price: data.pricing.reportPrice,
-          horoscope_price: data.pricing.horoscopePrice,
           currency: data.pricing.currency,
           is_active: true,
           status: PricingStatus.ACTIVE,
@@ -380,8 +378,6 @@ export class ExpertSeeder implements Seeder {
         existingPricing.chat_price = data.pricing.chatPrice;
         existingPricing.call_price = data.pricing.callPrice;
         existingPricing.video_call_price = data.pricing.videoCallPrice;
-        existingPricing.report_price = data.pricing.reportPrice;
-        existingPricing.horoscope_price = data.pricing.horoscopePrice;
         existingPricing.currency = data.pricing.currency;
         await pricingRepository.save(existingPricing);
       }

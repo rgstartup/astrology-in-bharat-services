@@ -6,7 +6,7 @@ import {
   OneToMany,
   UpdateDateColumn,
 } from 'typeorm';
-import { ExpertSpecialization } from './expert-specialization.entity';
+import { ExpertSpecialization } from '@/modules/expert/account/entities/expert-specialization.entity';
 
 @Entity({ schema: 'expert', name: 'specializations' })
 export class Specialization {

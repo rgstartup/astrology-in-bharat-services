@@ -98,9 +98,7 @@ Content-Type: application/json
   "price": 500,
   "chat_price": 15,
   "call_price": 25,
-  "video_call_price": 35,
-  "report_price": 750,
-  "horoscope_price": 300
+  "video_call_price": 35
 }
 
 ### Update bank details

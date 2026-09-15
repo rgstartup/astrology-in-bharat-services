@@ -1,6 +1,6 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { Specialization } from '@/modules/expert/account/entities/specialization.entity';
+import { Specialization } from '@/modules/expert/specialization/entities/specialization.entity';
 
 export class SpecializationSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {

@@ -7,14 +7,14 @@ export class ExpertSpecializationResponseDto extends BaseDto {
   slug!: string;
 }
 
-export class ExpertPricingResponseDto extends BaseDto {
+export class ExpertConsultationPricingResponseDto extends BaseDto {
   id!: string;
   call_price!: number | null;
   video_call_price!: number | null;
   chat_price!: number | null;
-  report_price!: number | null;
-  horoscope_price!: number | null;
 }
+
+export { ExpertConsultationPricingResponseDto as ExpertPricingResponseDto };
 
 export class ExpertAccountResponseDto extends BaseDto {
   id!: string;
@@ -27,7 +27,6 @@ export class ExpertAccountResponseDto extends BaseDto {
   @Type(() => ExpertSpecializationResponseDto)
   specializations!: ExpertSpecializationResponseDto[];
 
-  @Type(() => ExpertPricingResponseDto)
-  pricing!: ExpertPricingResponseDto | null;
+  @Type(() => ExpertConsultationPricingResponseDto)
+  pricing!: ExpertConsultationPricingResponseDto | null;
 }
-

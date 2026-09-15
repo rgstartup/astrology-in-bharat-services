@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ExpertAccount } from './account.entity';
-import { Specialization } from './specialization.entity';
+import { Specialization } from '@/modules/expert/specialization/entities/specialization.entity';
 
 @Entity({ schema: 'expert', name: 'expert_specializations' })
 @Index('UQ_expert_specialization', ['expert', 'specialization'], {

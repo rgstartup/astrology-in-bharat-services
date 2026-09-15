@@ -16,17 +16,17 @@ import {
 } from '../../shared/enums/pricing.enum';
 import { ExpertAccount } from './account.entity';
 
-@Entity({ schema: 'expert', name: 'expert_pricing' })
-@Index('IDX_expert_pricing_lookup', [
+@Entity({ schema: 'expert', name: 'expert_consultation_pricing' })
+@Index('IDX_expert_consultation_pricing_lookup', [
   'expert_id',
   'target_audience',
   'is_active',
   'effective_from',
 ])
-@Index('IDX_expert_client_pricing', ['expert_id', 'client_id', 'is_active'], {
+@Index('IDX_expert_consultation_client_pricing', ['expert_id', 'client_id', 'is_active'], {
   where: '"client_id" IS NOT NULL',
 })
-export class ExpertPricing {
+export class ExpertConsultationPricing {
   @UuidPrimaryKeyColumn()
   id!: string;
 
@@ -80,24 +80,6 @@ export class ExpertPricing {
     transformer: new ColumnNumericTransformer(),
   })
   video_call_price!: number | null;
-
-  @Column({
-    type: 'decimal',
-    precision: 10,
-    scale: 2,
-    nullable: true,
-    transformer: new ColumnNumericTransformer(),
-  })
-  report_price!: number | null;
-
-  @Column({
-    type: 'decimal',
-    precision: 10,
-    scale: 2,
-    nullable: true,
-    transformer: new ColumnNumericTransformer(),
-  })
-  horoscope_price!: number | null;
 
   @Column({ type: 'varchar', length: 10, default: 'INR' })
   currency!: string;

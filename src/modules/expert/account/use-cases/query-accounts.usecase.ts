@@ -55,8 +55,6 @@ export class QueryExpertAccountsUseCase {
         'pricing.call_price',
         'pricing.video_call_price',
         'pricing.chat_price',
-        'pricing.report_price',
-        'pricing.horoscope_price',
         'pricing.currency',
       ])
       .skip(query.offset)
@@ -122,8 +120,6 @@ export class QueryExpertAccountsUseCase {
         'pricing.call_price',
         'pricing.video_call_price',
         'pricing.chat_price',
-        'pricing.report_price',
-        'pricing.horoscope_price',
         'pricing.currency',
       ])
       .orderBy('expert.rating', 'DESC')
@@ -172,8 +168,6 @@ export class QueryExpertAccountsUseCase {
         'pricing.call_price',
         'pricing.video_call_price',
         'pricing.chat_price',
-        'pricing.report_price',
-        'pricing.horoscope_price',
         'pricing.currency',
       ])
       .andWhere('expert.id = :id', { id })

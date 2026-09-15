@@ -54,8 +54,6 @@ export class GetExpertAccountUseCase {
         'pricing.call_price',
         'pricing.video_call_price',
         'pricing.chat_price',
-        'pricing.report_price',
-        'pricing.horoscope_price',
       ])
       .where('expert.id = :id', { id: expert.sub })
       .addOrderBy('pricing.effective_from', 'DESC')
