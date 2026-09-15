@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ChatSession } from '@/modules/consultation/chat/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/entities/call-session.entity';
 import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
@@ -42,9 +42,9 @@ export class Review {
   @Column({ type: 'uuid', name: 'merchant_id', nullable: true })
   merchant_id!: string | null;
 
-  @ManyToOne(() => ProfileMerchant)
+  @ManyToOne(() => MerchantAccount)
   @JoinColumn({ name: 'merchant_id' })
-  merchant!: ProfileMerchant;
+  merchant!: MerchantAccount;
 
   @Column({ type: 'uuid', nullable: true, name: 'session_id' })
   session_id!: string | null;

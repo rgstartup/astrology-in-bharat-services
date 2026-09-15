@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
@@ -48,9 +48,9 @@ export class Notification {
   @Column({ name: 'merchant_id', type: 'uuid', nullable: true })
   merchant_id!: string | null;
 
-  @ManyToOne(() => ProfileMerchant, { nullable: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => MerchantAccount, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'merchant_id' })
-  merchant!: ProfileMerchant | null;
+  merchant!: MerchantAccount | null;
 
   @Column({ name: 'agent_id', type: 'uuid', nullable: true })
   agent_id!: string | null;

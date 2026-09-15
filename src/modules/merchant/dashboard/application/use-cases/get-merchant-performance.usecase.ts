@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReviewsFacade } from '@/modules/consultation/reviews/reviews.facade';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 
 @Injectable()
 export class GetMerchantPerformanceUseCase {
@@ -11,8 +11,8 @@ export class GetMerchantPerformanceUseCase {
     @Inject(forwardRef(() => ReviewsFacade))
     private readonly reviewsFacade: ReviewsFacade,
     private readonly orderFacade: OrderFacade,
-    @InjectRepository(ProfileMerchant)
-    private readonly profileRepo: Repository<ProfileMerchant>,
+    @InjectRepository(MerchantAccount)
+    private readonly profileRepo: Repository<MerchantAccount>,
   ) {}
 
   async execute(userId: string) {
@@ -97,7 +97,7 @@ export class GetMerchantPerformanceUseCase {
       totalReviews: statsResult?.totalReviews || 0,
       rating_distribution: distribution,
       weekly_target_progress: 45,
-      current_tier: profile?.isVerified ? 'Silver' : 'Bronze',
+      current_tier: profile?.is_verified ? 'Silver' : 'Bronze',
       sales_data,
       growthRate,
       currentMonthEarnings,

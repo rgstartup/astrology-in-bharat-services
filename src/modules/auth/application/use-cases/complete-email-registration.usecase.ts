@@ -17,6 +17,7 @@ import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 
 @Injectable()
 export class CompleteEmailRegistrationUseCase {
@@ -28,7 +29,7 @@ export class CompleteEmailRegistrationUseCase {
     @Inject(IHasherToken) private readonly hasher: IHasher,
     private readonly authTokenService: AuthTokenService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
-  ) { }
+  ) {}
 
   async execute(dto: CompleteRegisterDto, ip?: string, userAgent?: string) {
     // 1. Verify Token
@@ -120,38 +121,36 @@ export class CompleteEmailRegistrationUseCase {
             await queryRunner.manager.save(Address, newAddress);
           }
         }
-      } else if (
-        [RoleEnum.MERCHANT].includes(updatedUser!.role)
-      ) {
-        const { ProfileMerchant } = await import(
-          '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+      } else if ([RoleEnum.MERCHANT].includes(updatedUser!.role)) {
+        const { MerchantAccount } = await import(
+          '@/modules/merchant/account/entities/account.entity'
         );
         let merchantProfile = await queryRunner.manager.findOne(
-          ProfileMerchant,
+          MerchantAccount,
           {
             where: { user_id: user.id },
           },
         );
 
-        const profileUpdates: Partial<typeof ProfileMerchant.prototype> = {
-          shopName: dto.shopName || dto.name,
+        const profileUpdates: Partial<MerchantAccount> = {
+          shop_name: dto.shopName || dto.name,
           phone: dto.phone || '',
         };
 
         if (merchantProfile) {
           Object.assign(merchantProfile, profileUpdates);
           merchantProfile = await queryRunner.manager.save(
-            ProfileMerchant,
+            MerchantAccount,
             merchantProfile,
           );
         } else {
-          merchantProfile = queryRunner.manager.create(ProfileMerchant, {
+          merchantProfile = queryRunner.manager.create(MerchantAccount, {
             user: { id: user.id },
             user_id: user.id,
             ...profileUpdates,
           });
           merchantProfile = await queryRunner.manager.save(
-            ProfileMerchant,
+            MerchantAccount,
             merchantProfile,
           );
         }
@@ -162,7 +161,7 @@ export class CompleteEmailRegistrationUseCase {
           merchantProfile.city = dto.address.city || merchantProfile.city;
           merchantProfile.pincode =
             dto.address.zipCode || merchantProfile.pincode;
-          await queryRunner.manager.save(ProfileMerchant, merchantProfile);
+          await queryRunner.manager.save(MerchantAccount, merchantProfile);
         }
       } else {
         const accountUpdates: Partial<ClientAccount> = {

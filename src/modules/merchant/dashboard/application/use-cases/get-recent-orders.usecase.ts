@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 
 @Injectable()
 export class GetRecentOrdersUseCase {
   constructor(
     private readonly orderFacade: OrderFacade,
-    @InjectRepository(ProfileMerchant)
-    private readonly profileRepo: Repository<ProfileMerchant>,
+    @InjectRepository(MerchantAccount)
+    private readonly profileRepo: Repository<MerchantAccount>,
   ) {}
 
   async execute(userId: string) {

@@ -1,9 +1,19 @@
 import { Module } from '@nestjs/common';
-import { ProfileModule } from './profile/profile.module';
 import { MerchantDashboardModule } from './dashboard/merchant-dashboard.module';
+import { MerchantAccountModule } from './account/account.module';
+import { MerchantAuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [ProfileModule, MerchantDashboardModule],
-  exports: [ProfileModule, MerchantDashboardModule],
+  imports: [
+    MerchantAccountModule,
+    MerchantAuthModule,
+    MerchantDashboardModule,
+  ],
+  exports: [
+    MerchantAccountModule,
+    MerchantAuthModule,
+    MerchantDashboardModule,
+  ],
 })
 export class MerchantModule {}
+

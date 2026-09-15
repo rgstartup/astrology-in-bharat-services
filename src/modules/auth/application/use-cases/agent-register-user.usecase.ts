@@ -7,7 +7,7 @@ import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { AgentRegisterUserDto } from '../../api/dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
@@ -97,30 +97,29 @@ export class AgentRegisterUserUseCase {
 
           const merchantUpdates = {
             agent_commission_rate: agentCommissionRate,
-            shopName: dto.name,
+            shop_name: dto.name,
             ...(dto.phone ? { phone: dto.phone } : {}),
           };
 
           let merchantProfile = await queryRunner.manager.findOne(
-            ProfileMerchant,
+            MerchantAccount,
             {
               where: {
-                user_id:
-                  createdUser.id as unknown as ProfileMerchant['user_id'],
+                user_id: createdUser.id,
               },
             },
           );
 
           if (merchantProfile) {
             Object.assign(merchantProfile, merchantUpdates);
-            await queryRunner.manager.save(ProfileMerchant, merchantProfile);
+            await queryRunner.manager.save(MerchantAccount, merchantProfile);
           } else {
-            merchantProfile = queryRunner.manager.create(ProfileMerchant, {
+            merchantProfile = queryRunner.manager.create(MerchantAccount, {
               user: { id: createdUser.id },
               user_id: createdUser.id,
               ...merchantUpdates,
             });
-            await queryRunner.manager.save(ProfileMerchant, merchantProfile);
+            await queryRunner.manager.save(MerchantAccount, merchantProfile);
           }
         } else if (dto.phone) {
           const clientUpdates = { phone: dto.phone };

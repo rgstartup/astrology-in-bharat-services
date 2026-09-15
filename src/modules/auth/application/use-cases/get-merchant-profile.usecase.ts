@@ -7,15 +7,15 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 
 @Injectable()
 export class GetMerchantProfileUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(ProfileMerchant)
-    private readonly profileMerchantRepository: Repository<ProfileMerchant>,
+    @InjectRepository(MerchantAccount)
+    private readonly profileMerchantRepository: Repository<MerchantAccount>,
     private readonly db: DatabaseService,
   ) { }
 
@@ -23,7 +23,7 @@ export class GetMerchantProfileUseCase {
     const [user, merchantProfile] = await Promise.all([
       this.userRepository.findOne({ where: { id: userId } }),
       this.profileMerchantRepository.findOne({
-        where: { user: { id: userId } },
+        where: { user_id: userId },
       }),
     ]);
 
@@ -38,7 +38,7 @@ export class GetMerchantProfileUseCase {
 
     return {
       merchantId: merchantProfile?.uid || merchantProfile?.id || user.id,
-      shopName: merchantProfile?.shopName || user.name,
+      shopName: merchantProfile?.shop_name || user.name,
       email: user.email,
       role: RoleEnum.MERCHANT,
       status: merchantProfile?.status || 'pending_verification',

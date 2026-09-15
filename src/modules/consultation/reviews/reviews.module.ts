@@ -22,7 +22,7 @@ import { GetApprovedPlatformReviewsUseCase } from './use-cases/get-approved-plat
 import { GetExpertReviewsByDateUseCase } from './use-cases/get-expert-reviews-by-date.use-case';
 
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
-import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
+import { MerchantAccountModule } from '@/modules/merchant/account/account.module';
 import { OrderModule } from '@/modules/commerce/order/order.module';
 
 @Module({
@@ -31,7 +31,7 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
     forwardRef(() => WalletModule),
     NotificationModule,
     forwardRef(() => ExpertProfileModule),
-    forwardRef(() => MerchantProfileModule),
+    forwardRef(() => MerchantAccountModule),
     forwardRef(() => OrderModule),
   ],
   controllers: [ReviewsController],

@@ -3,7 +3,7 @@ import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
+import { MerchantAccountFacade } from '@/modules/merchant/account/account.facade';
 import {
   MerchantAlreadyInWishlistError,
   MerchantNotFoundError,
@@ -15,7 +15,7 @@ export class AddMerchantToWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    private readonly merchantProfileFacade: MerchantProfileFacade,
+    private readonly merchantAccountFacade: MerchantAccountFacade,
   ) {}
 
   async execute(
@@ -23,7 +23,7 @@ export class AddMerchantToWishlistUseCase {
     merchantId: string,
   ): Promise<BooleanMessage> {
     const merchant =
-      await this.merchantProfileFacade.getProfileById(merchantId);
+      await this.merchantAccountFacade.getAccountById(merchantId);
     if (!merchant) {
       throw new MerchantNotFoundError(merchantId);
     }

@@ -5,7 +5,7 @@ import { AgentListing } from '@/modules/agent/infrastructure/entities/agent-list
 
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
+import { MerchantAccountFacade } from '@/modules/merchant/account/account.facade';
 
 @Injectable()
 export class GetAdminListingsUseCase {
@@ -15,8 +15,8 @@ export class GetAdminListingsUseCase {
     private readonly usersFacade: UsersFacade,
     @Inject(forwardRef(() => ExpertProfileFacade))
     private readonly expertFacade: ExpertProfileFacade,
-    @Inject(forwardRef(() => MerchantProfileFacade))
-    private readonly merchantFacade: MerchantProfileFacade,
+    @Inject(forwardRef(() => MerchantAccountFacade))
+    private readonly merchantFacade: MerchantAccountFacade,
   ) {}
 
   async execute(params?: {
@@ -95,7 +95,7 @@ export class GetAdminListingsUseCase {
             )) as Record<string, unknown> | null;
           }
           if ((uObj.role as string) === 'merchant') {
-            merchantProfile = (await this.merchantFacade.getProfileByUserId(
+            merchantProfile = (await this.merchantFacade.getByUserId(
               uObj.id,
             )) as Record<string, unknown> | null;
           }
@@ -148,12 +148,12 @@ export class GetAdminListingsUseCase {
         listing_name: u.name,
         listing_location: isExpert
           ? u.profile_expert?.city || '—'
-          : u.profile_merchant?.shop_address || '—',
+          : (u.profile_merchant?.address || u.profile_merchant?.city || u.profile_merchant?.shop_name || '—'),
         status: 'active',
         name: u.name,
         location: isExpert
           ? u.profile_expert?.city || '—'
-          : u.profile_merchant?.shop_address || '—',
+          : (u.profile_merchant?.address || u.profile_merchant?.city || u.profile_merchant?.shop_name || '—'),
         phone:
           u.profile_expert?.phone_number || u.profile_merchant?.phone || '—',
         agent_id: u.referred_by?.uid || u.referred_by_id?.toString(),

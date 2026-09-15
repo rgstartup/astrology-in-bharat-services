@@ -7,7 +7,7 @@ import { AgentListing } from '../../infrastructure/entities/agent-listing.entity
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { GetAgentListingsDto } from '../../api/dto/get-agent-listings.dto';
 import { IUser } from '@/common/types/access-token.payload';
@@ -79,7 +79,7 @@ export class GetAgentListingsUseCase {
           )
           .leftJoinAndMapOne(
             'u.profile_merchant',
-            ProfileMerchant,
+            MerchantAccount,
             'pm',
             'pm.user_id = u.id',
           )

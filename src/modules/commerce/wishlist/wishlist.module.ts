@@ -23,14 +23,14 @@ import { RemoveMerchantFromWishlistUseCase } from './application/use-cases/remov
 import { GetMerchantWishlistUseCase } from './application/use-cases/get-merchant-wishlist.use-case';
 import { MerchantLikeController } from './api/controllers/merchant-like.controller';
 import { AccountModule } from '@/modules/client/account/account.module';
-import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
+import { MerchantAccountModule } from '@/modules/merchant/account/account.module';
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Wishlist, Product, User]),
     AccountModule,
-    MerchantProfileModule,
+    MerchantAccountModule,
     ExpertProfileModule,
     UsersModule,
     ExpertModule,

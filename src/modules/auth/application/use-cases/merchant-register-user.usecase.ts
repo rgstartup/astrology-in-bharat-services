@@ -8,7 +8,7 @@ import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -50,21 +50,21 @@ export class MerchantRegisterUserUseCase {
 
       await this.profileCreationResolver.ensureProfile(user, queryRunner);
 
-      let profile = await queryRunner.manager.findOne(ProfileMerchant, {
-        where: { user_id: user.id as unknown as ProfileMerchant['user_id'] },
+      let profile = await queryRunner.manager.findOne(MerchantAccount, {
+        where: { user_id: user.id },
       });
 
       if (profile) {
-        Object.assign(profile, { shopName: dto.shopName, phone: dto.phone });
-        await queryRunner.manager.save(ProfileMerchant, profile);
+        Object.assign(profile, { shop_name: dto.shopName, phone: dto.phone });
+        await queryRunner.manager.save(MerchantAccount, profile);
       } else {
-        profile = queryRunner.manager.create(ProfileMerchant, {
+        profile = queryRunner.manager.create(MerchantAccount, {
           user: { id: user.id },
           user_id: user.id,
-          shopName: dto.shopName,
+          shop_name: dto.shopName,
           phone: dto.phone,
         });
-        await queryRunner.manager.save(ProfileMerchant, profile);
+        await queryRunner.manager.save(MerchantAccount, profile);
       }
 
       this.sendEmail(user);

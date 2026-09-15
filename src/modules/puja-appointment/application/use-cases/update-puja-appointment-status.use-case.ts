@@ -34,7 +34,6 @@ import {
 } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
 import { Todo } from '@/modules/expert/todos/entities/todo.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 

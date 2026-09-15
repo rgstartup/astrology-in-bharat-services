@@ -17,7 +17,7 @@ import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade
 import { TransactionPurpose } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
 import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
@@ -71,7 +71,7 @@ export class UpdateDisputeStatusUseCase {
         // It is delivered, so debit merchant first
         if (item.product?.merchant_id) {
           const merchantProfile = await this.dataSource
-            .getRepository(ProfileMerchant)
+            .getRepository(MerchantAccount)
             .findOne({
               where: { user_id: item.product.merchant_id },
             });

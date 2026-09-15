@@ -1,5 +1,5 @@
 import { PaginationDto } from '@/common/dto/pagination.dto';
-import { MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantStatus } from '@/modules/merchant/account/entities/account.entity';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class GetAdminMerchantsDto extends PaginationDto {

@@ -79,13 +79,13 @@ export class MerchantAuthController {
 
       this.setCookies(res, tokens);
 
-      const { ProfileMerchant } = await import(
-        '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+      const { MerchantAccount } = await import(
+        '@/modules/merchant/account/entities/account.entity'
       );
       const merchantProfile = await this.dataSource
-        .getRepository(ProfileMerchant)
+        .getRepository(MerchantAccount)
         .findOne({
-          where: { user: { id: user.id } },
+          where: { user_id: user.id },
         });
 
       return {
@@ -94,7 +94,7 @@ export class MerchantAuthController {
         token: tokens.accessToken,
         user: {
           merchantId: user.id.toString(),
-          shopName: merchantProfile?.shopName || user.name,
+          shopName: merchantProfile?.shop_name || user.name,
           email: user.email,
           role: user.role,
         },

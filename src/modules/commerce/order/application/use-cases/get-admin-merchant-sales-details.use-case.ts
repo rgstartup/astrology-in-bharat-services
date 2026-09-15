@@ -8,13 +8,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
-import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
+import { MerchantAccountFacade } from '@/modules/merchant/account/account.facade';
 
 @Injectable()
 export class GetAdminMerchantSalesDetailsUseCase {
   constructor(
-    @Inject(forwardRef(() => MerchantProfileFacade))
-    private readonly merchantFacade: MerchantProfileFacade,
+    @Inject(forwardRef(() => MerchantAccountFacade))
+    private readonly merchantFacade: MerchantAccountFacade,
     @InjectRepository(OrderItem)
     private readonly orderItemRepository: Repository<OrderItem>,
   ) {}
@@ -45,8 +45,8 @@ export class GetAdminMerchantSalesDetailsUseCase {
       return {
         merchant: {
           id: merchant.id,
-          shopName: merchant.shopName,
-          managerName: merchant.managerName,
+          shopName: merchant.shop_name,
+          managerName: merchant.manager_name,
           city: merchant.city,
         },
         sales: items.map((item) => ({

@@ -14,7 +14,7 @@ import { CommissionsModule } from '@/modules/finance/commissions/commissions.mod
 
 import { AgentFacade } from './application/agent.facade';
 import { ProfileModule as ExpertProfileModule } from '../expert/profile/profile.module';
-import { ProfileModule as MerchantProfileModule } from '../merchant/profile/profile.module';
+import { MerchantAccountModule } from '../merchant/account/account.module';
 import { GetAgentProfileUseCase } from './application/use-cases/get-agent-profile.use-case';
 import { UpdateAgentProfileUseCase } from './application/use-cases/update-agent-profile.use-case';
 import { GetAgentStatsUseCase } from './application/use-cases/get-agent-stats.use-case';
@@ -42,7 +42,7 @@ import { AdminModule } from '../admin/admin.module';
     UsersModule,
     forwardRef(() => AdminModule),
     forwardRef(() => ExpertProfileModule),
-    forwardRef(() => MerchantProfileModule),
+    forwardRef(() => MerchantAccountModule),
     forwardRef(() => ConsultationModule),
     forwardRef(() => PujaAppointmentModule),
   ],

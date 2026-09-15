@@ -24,7 +24,7 @@ import {
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 
 @Injectable()
@@ -128,7 +128,7 @@ export class RequestWithdrawalUseCase {
       ownerIdField = 'w.expert_id';
     } else if (walletKey === 'merchant_id') {
       const profile_merchant = await this.dataSource
-        .getRepository(ProfileMerchant)
+        .getRepository(MerchantAccount)
         .findOne({
           where: { id: profileId },
         });
@@ -136,7 +136,7 @@ export class RequestWithdrawalUseCase {
         throw new BadRequestException('Merchant profile not found');
       if (
         profile_merchant.status !== 'active' &&
-        !profile_merchant.isVerified
+        !profile_merchant.is_verified
       ) {
         throw new BadRequestException(
           'Your merchant account is not active or verified. Please contact support.',
@@ -232,7 +232,7 @@ export class RequestWithdrawalUseCase {
       // C. Capture Snapshot of Bank Details
       let merchantSnapshot: Record<string, unknown> = {};
       if (bank_account_id) {
-        const merchant = await queryRunner.manager.findOne(ProfileMerchant, {
+        const merchant = await queryRunner.manager.findOne(MerchantAccount, {
           where: { id: profileId },
         });
 
@@ -287,16 +287,16 @@ export class RequestWithdrawalUseCase {
           throw new BadRequestException('Invalid bank account selected');
       } else {
         // Fallback to legacy profiles
-        const merchant = await queryRunner.manager.findOne(ProfileMerchant, {
+        const merchant = await queryRunner.manager.findOne(MerchantAccount, {
           where: { id: profileId },
         });
 
-        if (merchant && merchant.bankName) {
+        if (merchant && merchant.bank_name) {
           merchantSnapshot = {
-            merchant_bank_name: merchant.bankName,
-            merchant_account_number: merchant.accountNumber,
+            merchant_bank_name: merchant.bank_name,
+            merchant_account_number: merchant.account_number,
             merchant_ifsc: merchant.ifsc,
-            merchant_account_holder: merchant.accountHolder || 'N/A',
+            merchant_account_holder: merchant.account_holder || 'N/A',
           };
         } else {
           const agent = await queryRunner.manager.findOne(ProfileAgent, {

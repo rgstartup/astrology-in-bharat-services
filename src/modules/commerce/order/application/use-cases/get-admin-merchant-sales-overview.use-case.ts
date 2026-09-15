@@ -3,13 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
-import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
+import { MerchantAccountFacade } from '@/modules/merchant/account/account.facade';
 
 @Injectable()
 export class GetAdminMerchantSalesOverviewUseCase {
   constructor(
-    @Inject(forwardRef(() => MerchantProfileFacade))
-    private readonly merchantFacade: MerchantProfileFacade,
+    @Inject(forwardRef(() => MerchantAccountFacade))
+    private readonly merchantFacade: MerchantAccountFacade,
     @InjectRepository(OrderItem)
     private readonly orderItemRepository: Repository<OrderItem>,
   ) {}
@@ -17,7 +17,7 @@ export class GetAdminMerchantSalesOverviewUseCase {
   async execute() {
     try {
       // 1. Fetch all merchants
-      const merchants = await this.merchantFacade.getRawProfiles();
+      const merchants = await this.merchantFacade.getRawAccounts();
 
       // 2. Aggregate sales data per merchant (grouped by user_id)
       const sales_data: Array<{
@@ -64,14 +64,14 @@ export class GetAdminMerchantSalesOverviewUseCase {
         return {
           id: merchant.id,
           userId: merchant.user_id,
-          shopName: merchant.shopName || 'Unnamed Shop',
-          managerName: merchant.managerName || merchant.user?.name || 'N/A',
+          shopName: merchant.shop_name || 'Unnamed Shop',
+          managerName: merchant.manager_name || merchant.user?.name || 'N/A',
           phone: merchant.phone || 'N/A',
           city: merchant.city || 'N/A',
           image: merchant.image || merchant.user?.avatar || null,
           rating: Number(merchant.rating) || 0,
-          reviewCount: merchant.reviewCount || 0,
-          isTrusted: merchant.isTrusted || false,
+          reviewCount: merchant.review_count || 0,
+          isTrusted: merchant.is_trusted || false,
           totalRevenue: Number(stats?.totalRevenue) || 0,
           totalOrders: Number(stats?.totalOrders) || 0,
           status: merchant.status,
@@ -83,3 +83,4 @@ export class GetAdminMerchantSalesOverviewUseCase {
     }
   }
 }
+

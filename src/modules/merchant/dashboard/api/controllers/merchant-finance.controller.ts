@@ -19,7 +19,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { GetMerchantFinanceStatsUseCase } from '../../application/use-cases/get-merchant-finance-stats.usecase';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { GetMerchantFinanceTransactionsDto } from '../dto/get-merchant-finance-transactions.dto';
 import { RequestMerchantWithdrawalDto } from '../dto/request-merchant-withdrawal.dto';
 
@@ -36,8 +36,8 @@ export class MerchantFinanceController {
   constructor(
     private readonly getStats: GetMerchantFinanceStatsUseCase,
     private readonly walletFacade: WalletFacade,
-    @InjectRepository(ProfileMerchant)
-    private readonly merchantRepo: Repository<ProfileMerchant>,
+    @InjectRepository(MerchantAccount)
+    private readonly merchantRepo: Repository<MerchantAccount>,
   ) {}
 
   @Get('stats')

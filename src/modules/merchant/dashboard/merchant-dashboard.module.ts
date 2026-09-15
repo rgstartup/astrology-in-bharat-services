@@ -18,20 +18,20 @@ import { CommissionsModule } from '@/modules/finance/commissions/commissions.mod
 import { OrderModule } from '@/modules/commerce/order/order.module';
 import { ProductModule } from '@/modules/commerce/product/product.module';
 import { ConsultationModule } from '@/modules/consultation/consultation.module';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { ProfileModule } from '../profile/profile.module';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
+import { MerchantAccountModule } from '../account/account.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProfileMerchant]),
+    TypeOrmModule.forFeature([MerchantAccount]),
     forwardRef(() => WalletModule),
     CommissionsModule,
     forwardRef(() => OrderModule),
     ProductModule,
     forwardRef(() => ConsultationModule),
-    forwardRef(() => ProfileModule),
+    forwardRef(() => MerchantAccountModule),
     NotificationModule,
     NodemailerModule,
   ],

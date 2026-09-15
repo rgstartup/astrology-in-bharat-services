@@ -34,7 +34,7 @@ import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { AccountModule } from '@/modules/client/account/account.module';
-import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
+import { MerchantAccountModule } from '@/modules/merchant/account/account.module';
 import { OrderService } from './application/services/order.service';
 
 @Module({
@@ -50,7 +50,7 @@ import { OrderService } from './application/services/order.service';
     forwardRef(() => WalletModule),
     forwardRef(() => CouponModule),
     forwardRef(() => AdminModule),
-    forwardRef(() => MerchantProfileModule),
+    forwardRef(() => MerchantAccountModule),
     QueueModule,
   ],
   controllers: [OrderController, OrderSingularController],

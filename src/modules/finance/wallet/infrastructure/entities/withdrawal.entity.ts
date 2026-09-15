@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { BankAccount } from '@/modules/expert/bank-accounts/entities/bank-account.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
@@ -39,9 +39,9 @@ export class Withdrawal {
   @Column({ type: 'uuid', name: 'expert_id', nullable: true })
   expert_id!: string | null;
 
-  @ManyToOne(() => ProfileMerchant, { nullable: true })
+  @ManyToOne(() => MerchantAccount, { nullable: true })
   @JoinColumn({ name: 'merchant_id' })
-  merchant!: ProfileMerchant | null;
+  merchant!: MerchantAccount | null;
 
   @Column({ type: 'uuid', name: 'merchant_id', nullable: true })
   merchant_id!: string | null;

@@ -2,7 +2,7 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { CalculateMerchantEarningsUseCase } from './calculate-merchant-earnings.usecase';
 
 @Injectable()
@@ -10,8 +10,8 @@ export class GetMerchantFinanceStatsUseCase {
   constructor(
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
-    @InjectRepository(ProfileMerchant)
-    private readonly merchantRepo: Repository<ProfileMerchant>,
+    @InjectRepository(MerchantAccount)
+    private readonly merchantRepo: Repository<MerchantAccount>,
     private readonly calculateEarnings: CalculateMerchantEarningsUseCase,
   ) {}
 

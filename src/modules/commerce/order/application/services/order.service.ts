@@ -286,11 +286,11 @@ export class OrderService {
                   where: { id: merchantId },
                 });
 
-                const { ProfileMerchant } = await import(
-                  '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity'
+                const { MerchantAccount } = await import(
+                  '@/modules/merchant/account/entities/account.entity'
                 );
                 const merchantProfile = await qr.manager.findOne(
-                  ProfileMerchant,
+                  MerchantAccount,
                   {
                     where: { user: { id: merchantId } },
                   },

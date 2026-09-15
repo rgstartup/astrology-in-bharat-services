@@ -33,7 +33,7 @@ import {
   RoleEnum,
   RolePipe,
 } from '@/modules/users/infrastructure/enums/Role.enum';
-import { MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantStatus } from '@/modules/merchant/account/entities/account.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { GetReviewsDTO } from '../dto/get-reviews.dto';
 import { CreateAgentDto } from '../dto/create-agent.dto';
@@ -330,12 +330,7 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { status: MerchantStatus },
   ) {
-    const result = await this.adminFacade.updateMerchantStatus(id, body);
-    if (result && result.success && 'data' in result) {
-      const { data: _data, ...rest } = result as Record<string, unknown>;
-      return rest;
-    }
-    return result;
+    return this.adminFacade.updateMerchantStatus(id, body);
   }
   @RequirePermissions(AdminPermission.SHOP_MANAGEMENT)
   @Get('merchant-sales')

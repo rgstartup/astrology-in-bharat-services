@@ -28,3 +28,14 @@ export interface IExpert {
   sub: string;
   email: string;
 }
+
+export interface IAccessTokenPayloadMerchant {
+  sub: string;
+  email: string;
+}
+
+export interface IMerchant {
+  sub: string;
+  email: string;
+}
+

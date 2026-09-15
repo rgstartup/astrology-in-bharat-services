@@ -14,7 +14,7 @@ import {
 import { ChatSession } from '@/modules/consultation/chat/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/entities/call-session.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { CreateReviewDto } from '../dto/create-review.dto';
 
 @Injectable()
@@ -210,7 +210,7 @@ export class CreateReviewUseCase {
     comment?: string,
     tags?: string[],
   ) {
-    const merchant = await manager.findOne(ProfileMerchant, {
+    const merchant = await manager.findOne(MerchantAccount, {
       where: [{ id: merchantId }, { user: { id: merchantId } }],
     });
     if (!merchant) throw new NotFoundException('Merchant not found');
@@ -316,8 +316,8 @@ export class CreateReviewUseCase {
 
     await manager
       .createQueryBuilder()
-      .update(ProfileMerchant)
-      .set({ rating: average, reviewCount: count })
+      .update(MerchantAccount)
+      .set({ rating: average, review_count: count })
       .where('id = :merchantId', { merchantId })
       .execute();
   }

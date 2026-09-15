@@ -10,7 +10,7 @@ import { ClientAccount } from '@/modules/client/account/entities/account.entity'
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { Product } from '@/modules/commerce/product/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'wishlists' })
@@ -56,13 +56,13 @@ export class Wishlist {
   @JoinColumn({ name: 'puja_id' })
   puja!: ExpertPuja;
 
-  @ManyToOne(() => ProfileMerchant, {
+  @ManyToOne(() => MerchantAccount, {
     onDelete: 'CASCADE',
     eager: true,
     nullable: true,
   })
   @JoinColumn({ name: 'merchant_id' })
-  merchant!: ProfileMerchant | null;
+  merchant!: MerchantAccount | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;

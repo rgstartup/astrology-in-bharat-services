@@ -10,7 +10,7 @@ import { DatabaseModule } from '@/core/database/database.module';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
-import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
+import { MerchantAccountModule } from '@/modules/merchant/account/account.module';
 import { QueueModule } from '@/core/queue/queue.module';
 
 import { UsedTokens } from './infrastructure/entities/used-tokens.entity';
@@ -60,7 +60,7 @@ import { AgentFindProfileStrategy } from './application/strategies/find-profile/
 import { MerchantFindProfileStrategy } from './application/strategies/find-profile/merchant-find-profile.strategy';
 import { FindProfileResolver } from './application/strategies/find-profile/find-profile.resolver';
 import { FIND_PROFILE_STRATEGIES } from './application/strategies/find-profile/find-profile.strategy';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { AuthTokenService } from './application/services/auth-token.service';
@@ -101,7 +101,7 @@ const handlers = [
       ProfileAgent,
       ClientAccount,
       ProfileExpert,
-      ProfileMerchant,
+      MerchantAccount,
       User,
       SystemSetting,
       Otp,
@@ -109,7 +109,7 @@ const handlers = [
     DatabaseModule,
     ExternalModule,
     ExpertProfileModule,
-    MerchantProfileModule,
+    MerchantAccountModule,
     QueueModule,
   ],
   providers: [

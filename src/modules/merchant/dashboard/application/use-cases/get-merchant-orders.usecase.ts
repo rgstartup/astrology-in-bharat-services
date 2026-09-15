@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 
 import { GetMerchantOrdersDto } from '../../api/dto/get-merchant-orders.dto';
 
@@ -10,8 +10,8 @@ import { GetMerchantOrdersDto } from '../../api/dto/get-merchant-orders.dto';
 export class GetMerchantOrdersUseCase {
   constructor(
     private readonly orderFacade: OrderFacade,
-    @InjectRepository(ProfileMerchant)
-    private readonly merchantRepo: Repository<ProfileMerchant>,
+    @InjectRepository(MerchantAccount)
+    private readonly merchantRepo: Repository<MerchantAccount>,
   ) {}
 
   async execute(userId: string, dto: GetMerchantOrdersDto) {

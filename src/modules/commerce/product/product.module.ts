@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductController } from './controllers/product.controller';
 import { Product } from './entities/product.entity';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
-import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
+import { MerchantAccountModule } from '@/modules/merchant/account/account.module';
 import { ProductFacade } from './product.facade';
 import { CreateProductUseCase } from './use-cases/create-product.use-case';
 import { FindAllProductsUseCase } from './use-cases/find-all-products.use-case';
@@ -16,7 +16,7 @@ import { MerchantProductsUseCase } from './use-cases/merchant-products.usecase';
   imports: [
     TypeOrmModule.forFeature([Product]),
     CloudinaryModule,
-    MerchantProfileModule,
+    MerchantAccountModule,
   ],
   controllers: [ProductController],
   providers: [

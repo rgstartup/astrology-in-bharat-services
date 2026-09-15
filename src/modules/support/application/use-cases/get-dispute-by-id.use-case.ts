@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Dispute } from '../../infrastructure/entities/dispute.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class GetDisputeByIdUseCase {
       .leftJoinAndSelect('orderItems.product', 'product')
       .leftJoinAndMapOne(
         'product.merchant',
-        ProfileMerchant,
+        MerchantAccount,
         'merchant',
         'merchant.user_id = product.merchant_id'
       )

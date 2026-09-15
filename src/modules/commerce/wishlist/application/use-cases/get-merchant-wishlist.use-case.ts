@@ -24,13 +24,13 @@ export class GetMerchantWishlistUseCase {
         const m = item.merchant!;
         return {
           id: m.id,
-          name: m.shopName || m.name || m.user?.name || 'Unnamed Shop',
+          name: m.shop_name || m.name || m.user?.name || 'Unnamed Shop',
           image: m.avatar || m.user?.avatar || '',
           address: m.address || '',
           city: m.city || '',
           rating: Number(m.rating) || 0,
-          reviewCount: m.reviewCount || 0,
-          isTrusted: m.isTrusted || false,
+          reviewCount: m.review_count || 0,
+          isTrusted: m.is_trusted || false,
           isLiked: true, // It's in the wishlist, so it's liked
         };
       });

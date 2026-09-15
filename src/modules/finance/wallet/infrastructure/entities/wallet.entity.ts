@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
@@ -34,9 +34,9 @@ export class Wallet {
   @Column({ name: 'expert_id', type: 'uuid', nullable: true })
   expert_id!: string | null;
 
-  @OneToOne(() => ProfileMerchant, { nullable: true })
+  @OneToOne(() => MerchantAccount, { nullable: true })
   @JoinColumn({ name: 'merchant_id' })
-  merchant!: ProfileMerchant | null;
+  merchant!: MerchantAccount | null;
 
   @Column({ name: 'merchant_id', type: 'uuid', nullable: true })
   merchant_id!: string | null;

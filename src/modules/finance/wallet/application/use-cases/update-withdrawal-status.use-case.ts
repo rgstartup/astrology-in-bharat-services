@@ -24,7 +24,7 @@ import {
 } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
@@ -112,7 +112,7 @@ export class UpdateWithdrawalStatusUseCase {
             where: { id: withdrawal.agent_profile_id },
           })) as unknown as ProfileInfo;
         } else if (withdrawal.merchant_id) {
-          profile = (await queryRunner.manager.findOne(ProfileMerchant, {
+          profile = (await queryRunner.manager.findOne(MerchantAccount, {
             where: { id: withdrawal.merchant_id },
           })) as unknown as ProfileInfo;
         }
@@ -145,7 +145,7 @@ export class UpdateWithdrawalStatusUseCase {
             );
           } else if (withdrawal.merchant_id) {
             await queryRunner.manager.update(
-              ProfileMerchant,
+              MerchantAccount,
               { id: profile.id },
               { razorpay_contact_id: newContactId },
             );

@@ -33,8 +33,13 @@ export class BlockStatusGuard implements CanActivate {
       // Allow going offline even if blocked. 
       // Note: UpdateStatusUseCase handles the check if they try to go online while blocked.
       const isExpertStatusUpdate = url.includes('/expert/status');
-      const isMerchantGoingOffline = url.includes('/merchant/profile') && 
-        (body.isOnline === false || body.isOnline === 'false' || body.isOnline === 0);
+      const isMerchantGoingOffline =
+        (url.includes('/merchant/account') || url.includes('/merchant/profile')) &&
+        (body.isOnline === false ||
+          body.isOnline === 'false' ||
+          body.is_online === false ||
+          body.is_online === 'false' ||
+          body.isOnline === 0);
 
       console.log(`[BlockStatusGuard] User ${user.id} is blocked. URL: ${url}, Body:`, body);
       console.log(`[BlockStatusGuard] isExpertStatusUpdate: ${isExpertStatusUpdate}`);
