@@ -19,6 +19,8 @@ export class GetExpertAccountUseCase {
   async execute(expert: IExpert): Promise<ExpertAccountResponseDto | null> {
     const account = await this.accounts
       .createQueryBuilder('expert')
+      .leftJoinAndSelect('expert.professions', 'expert_prof')
+      .leftJoinAndSelect('expert_prof.profession', 'profession')
       .leftJoin('expert.specializations', 'expert_spec')
       .leftJoin(
         'expert_spec.specialization',
@@ -46,6 +48,13 @@ export class GetExpertAccountUseCase {
         'expert.name',
         'expert.avatar',
         'expert.experience_in_years',
+        'expert_prof.id',
+        'expert_prof.profession_id',
+        'expert_prof.is_primary',
+        'profession.id',
+        'profession.title',
+        'profession.slug',
+        'profession.icon',
         'expert_spec.id',
         'specialization.id',
         'specialization.title',

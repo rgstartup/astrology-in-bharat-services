@@ -13,7 +13,9 @@ export class GetSpecializationsUseCase {
   ) {}
 
   async execute(dto: GetSpecializationsDto) {
-    const query = this.specializationRepo.createQueryBuilder('spec');
+    const query = this.specializationRepo
+      .createQueryBuilder('spec')
+      .leftJoinAndSelect('spec.professions', 'professions');
 
     // Default to active specializations for public listing unless explicitly requested
     if (dto.is_active !== undefined) {
@@ -22,6 +24,29 @@ export class GetSpecializationsUseCase {
       });
     } else {
       query.andWhere('spec.is_active = true');
+    }
+
+    if (dto.profession_id) {
+      query.innerJoin(
+        'spec.professions',
+        'filter_prof',
+        'filter_prof.id = :professionId',
+        { professionId: dto.profession_id },
+      );
+    } else if (dto.profession_slug) {
+      query.innerJoin(
+        'spec.professions',
+        'filter_prof',
+        'filter_prof.slug = :professionSlug',
+        { professionSlug: dto.profession_slug },
+      );
+    } else if (dto.profession_ids && dto.profession_ids.length > 0) {
+      query.innerJoin(
+        'spec.professions',
+        'filter_prof',
+        'filter_prof.id IN (:...professionIds)',
+        { professionIds: dto.profession_ids },
+      );
     }
 
     if (dto.search && dto.search.trim()) {
@@ -46,4 +71,22 @@ export class GetSpecializationsUseCase {
 
     return PaginatedResponseDto.from(items, total, dto);
   }
+
+  async getAvailableForExpert(expertId: string) {
+    const query = this.specializationRepo
+      .createQueryBuilder('spec')
+      .innerJoin('spec.professions', 'prof')
+      .innerJoin(
+        'expert.expert_professions',
+        'ep',
+        'ep.profession_id = prof.id AND ep.expert_id = :expertId',
+        { expertId },
+      )
+      .where('spec.is_active = true')
+      .orderBy('spec.sort_order', 'ASC');
+
+    const items = await query.getMany();
+    return items;
+  }
 }
+

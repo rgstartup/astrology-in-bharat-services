@@ -7,6 +7,15 @@ export class ExpertSpecializationResponseDto extends BaseDto {
   slug!: string;
 }
 
+export class ExpertProfessionItemResponseDto extends BaseDto {
+  id!: string;
+  profession_id!: string;
+  title!: string;
+  slug!: string;
+  icon!: string | null;
+  is_primary!: boolean;
+}
+
 export class ExpertConsultationPricingResponseDto extends BaseDto {
   id!: string;
   call_price!: number | null;
@@ -24,9 +33,13 @@ export class ExpertAccountResponseDto extends BaseDto {
   avatar!: string | null;
   experience_in_years!: number;
 
+  @Type(() => ExpertProfessionItemResponseDto)
+  professions!: ExpertProfessionItemResponseDto[];
+
   @Type(() => ExpertSpecializationResponseDto)
   specializations!: ExpertSpecializationResponseDto[];
 
   @Type(() => ExpertConsultationPricingResponseDto)
   pricing!: ExpertConsultationPricingResponseDto | null;
 }
+

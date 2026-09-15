@@ -7,6 +7,7 @@ import { ExpertAccountFacade } from './account.facade';
 import { ExpertAccount } from './entities/account.entity';
 import { ExpertAccountPuja } from './entities/account-puja.entity';
 import { ExpertSpecialization } from './entities/expert-specialization.entity';
+import { ExpertProfession } from '../profession/entities/expert-profession.entity';
 import { ExpertConsultationPricing } from './entities/expert-consultation-pricing.entity';
 import { ExpertAccountPujasUseCase } from './use-cases/account-pujas.usecase';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
@@ -21,6 +22,7 @@ import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-sta
       ExpertAccount,
       ExpertAccountPuja,
       ExpertSpecialization,
+      ExpertProfession,
       ExpertConsultationPricing,
       User,
     ]),

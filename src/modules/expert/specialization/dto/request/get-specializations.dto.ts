@@ -1,13 +1,34 @@
 import ToBoolean from '@/common/decorators/transform/bool.transform';
 import TrimString from '@/common/decorators/transform/trim.transform';
 import { PaginationDto } from '@/common/dto/pagination.dto';
-import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class GetSpecializationsDto extends PaginationDto {
   @IsOptional()
   @IsString()
   @TrimString()
   search?: string;
+
+  @IsOptional()
+  @IsUUID('4')
+  profession_id?: string;
+
+  @IsOptional()
+  @IsString()
+  @TrimString()
+  profession_slug?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  profession_ids?: string[];
 
   @IsOptional()
   @ToBoolean()
@@ -22,3 +43,4 @@ export class GetSpecializationsDto extends PaginationDto {
   @IsIn(['ASC', 'DESC', 'asc', 'desc'])
   order?: 'ASC' | 'DESC' | 'asc' | 'desc' = 'ASC';
 }
+

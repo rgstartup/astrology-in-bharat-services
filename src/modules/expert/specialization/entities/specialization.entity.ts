@@ -3,10 +3,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   OneToMany,
   UpdateDateColumn,
 } from 'typeorm';
 import { ExpertSpecialization } from '@/modules/expert/account/entities/expert-specialization.entity';
+import { Profession } from '@/modules/expert/profession/entities/profession.entity';
 
 @Entity({ schema: 'expert', name: 'specializations' })
 export class Specialization {
@@ -46,6 +48,9 @@ export class Specialization {
     default: 0,
   })
   sort_order!: number;
+
+  @ManyToMany(() => Profession, (prof) => prof.specializations)
+  professions!: Profession[];
 
   @OneToMany(
     () => ExpertSpecialization,

@@ -15,6 +15,7 @@ import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
 import { ConsultationTopicPreference } from '@/modules/consultation/consultation/entities/consultation_topic_preference.entity';
 import { ExpertSpecialization } from './expert-specialization.entity';
 import { ExpertConsultationPricing } from './expert-consultation-pricing.entity';
+import { ExpertProfession } from '../../profession/entities/expert-profession.entity';
 
 @Entity({ schema: 'expert', name: 'account' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -169,6 +170,9 @@ export class ExpertAccount {
     (expertSpecialization) => expertSpecialization.expert,
   )
   specializations!: ExpertSpecialization[];
+
+  @OneToMany(() => ExpertProfession, (ep) => ep.expert)
+  professions!: ExpertProfession[];
 
   @OneToMany(() => ExpertConsultationPricing, (pricing) => pricing.expert)
   pricings!: ExpertConsultationPricing[];
