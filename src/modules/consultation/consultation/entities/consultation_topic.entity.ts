@@ -11,35 +11,35 @@ import { ConsultationTopicPreference } from './consultation_topic_preference.ent
 @Entity({ schema: 'consultations', name: 'consultation_topic' })
 export class ConsultationTopic {
   @UuidPrimaryKeyColumn()
-  id: string;
+  id!: string;
 
   @Column({
     type: 'text',
   })
-  title: string;
+  title!: string;
 
   @Column({
     type: 'text',
     nullable: true,
   })
-  description: string;
+  description?: string;
 
   @Column({
     type: 'text',
   })
-  slug: string;
+  slug!: string;
 
   @Column({
     type: 'bool',
     default: true,
   })
-  is_active: boolean;
+  is_active!: boolean;
 
   @Column({
     type: 'int',
     default: 0,
   })
-  sort_order: number;
+  sort_order!: number;
 
   @OneToMany(
     () => ConsultationTopicPreference,
@@ -48,8 +48,8 @@ export class ConsultationTopic {
   preferences!: ConsultationTopicPreference[];
 
   @CreateDateColumn({ type: 'timestamptz' })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
+  updated_at!: Date;
 }
