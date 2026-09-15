@@ -7,9 +7,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
-import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
+import { Session } from '@/modules/auth/entities/session.entity';
+import { User } from '@/modules/users/entities/user.entity';
+import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
 import { MerchantAccount } from '../../account/entities/account.entity';
 import { MerchantLoginDto } from '../dto/merchant-login.dto';
 import { MerchantTokenCryptoService } from '../services/token-crypto.service';

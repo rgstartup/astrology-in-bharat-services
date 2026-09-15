@@ -3,7 +3,7 @@ import { GetClientNotificationsUseCase } from './use-cases/get-client-notificati
 import { GetClientUnreadCountUseCase } from './use-cases/get-client-unread-count.usecase';
 import { MarkClientNotificationAsReadUseCase } from './use-cases/mark-client-notification-as-read.usecase';
 import { ClearClientNotificationsUseCase } from './use-cases/clear-client-notifications.usecase';
-import { GetNotificationsDto } from '@/modules/notification/api/dto/get-notifications.dto';
+import { GetNotificationsDto } from '@/modules/notification/dto/get-notifications.dto';
 
 @Injectable()
 export class ClientNotificationFacade {

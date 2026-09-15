@@ -6,7 +6,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermission.enum';
+import { AdminPermission } from '@/modules/users/enums/AdminPermission.enum';
 
 export class UpdateSubAdminDto {
   @IsOptional()

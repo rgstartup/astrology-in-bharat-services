@@ -2,12 +2,12 @@ import { Injectable, ConflictException, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DatabaseService } from '@/core/database/database.service';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
+import { User } from '@/modules/users/entities/user.entity';
+import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
 import {
   Otp,
   OtpPurposeEnum,
-} from '@/modules/auth/infrastructure/entities/otp.entity';
+} from '@/modules/auth/entities/otp.entity';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 import { InitiateClientRegisterDto } from '../dto/client-register.dto';
 import { randomInt, createHash } from 'crypto';

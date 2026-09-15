@@ -1,10 +1,10 @@
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../entities/review.entity';
-import { NotificationFacade } from '@/modules/notification/application/notification.facade';
-import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { NotificationFacade } from '@/modules/notification/notification.facade';
+import { NotificationType } from '@/modules/notification/entities/notification.entity';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 
 @Injectable()

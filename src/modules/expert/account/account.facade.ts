@@ -7,7 +7,7 @@ import { QueryExpertAccountsUseCase } from './use-cases/query-accounts.usecase';
 import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-status.usecase';
 import { ExpertKycStatus } from '../shared/enums/kyc-status.enum';
 import { ExpertAccountPujasUseCase } from './use-cases/account-pujas.usecase';
-import { ExpertPujaDto } from '../profile/api/dto/expert-puja.dto';
+import { ExpertPujaDto } from '../profile/dto/expert-puja.dto';
 import { QueryExpertDto } from './dto/request/query-expert.dto';
 
 @Injectable()

@@ -7,13 +7,13 @@ import {
 import { Profile } from 'passport-google-oauth20';
 import { DatabaseService } from '@/core/database/database.service';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { TokenCryptoService } from '../services/token-crypto.service';
 import { IAccessTokenPayloadClient } from '@/common/types/access-token.payload';
-import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
+import { Session } from '@/modules/auth/entities/session.entity';
 import { ClientOAuthDto } from '../dto/client-oauth-user.dto';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { OAuthAccount } from '@/modules/auth/infrastructure/entities/oauth-accounts.entity';
+import { OAuthAccount } from '@/modules/auth/entities/oauth-accounts.entity';
 import crypto from 'node:crypto';
 
 @Injectable()

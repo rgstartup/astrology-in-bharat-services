@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import {
   Transaction,
   TransactionPurpose,
-} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+} from '@/modules/finance/wallet/entities/transaction.entity';
 
 @Injectable()
 export class GetAdminEarningsBreakdownUseCase {

@@ -22,7 +22,7 @@ import { ExpertJwtAuthGuard } from '../../auth/guards/auth.guard';
 import { ExpertAccountFacade } from '../account.facade';
 import { UpdateExpertAccountDto } from '../dto/request/account.dto';
 import { QueryExpertDto } from '../dto/request/query-expert.dto';
-import { ExpertPujaDto } from '../../profile/api/dto/expert-puja.dto';
+import { ExpertPujaDto } from '../../profile/dto/expert-puja.dto';
 
 @Controller({ path: 'expert/account', version: '1' })
 @UseGuards(ExpertJwtAuthGuard)

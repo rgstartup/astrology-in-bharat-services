@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/wallet.facade';
 
 @Injectable()
 export class ConvertToPaidUseCase {

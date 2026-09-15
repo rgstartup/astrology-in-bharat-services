@@ -1,5 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { SupportFacade } from '@/modules/support/application/support.facade';
+import { SupportFacade } from '@/modules/support/support.facade';
 import { GetDisputesDto } from '../dto/get-disputes.dto';
 
 @Injectable()

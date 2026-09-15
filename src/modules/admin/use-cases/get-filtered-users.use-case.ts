@@ -1,6 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { UsersFacade } from '@/modules/users/application/users.facade';
-import { FilterCriteria } from '@/modules/users/application/use-cases/get-filtered-users.use-case';
+import { UsersFacade } from '@/modules/users/users.facade';
+import { FilterCriteria } from '@/modules/users/use-cases/get-filtered-users.use-case';
 
 export { FilterCriteria };
 

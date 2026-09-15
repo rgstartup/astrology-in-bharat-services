@@ -4,7 +4,7 @@ import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
-import { createGoogleStrategyOptions } from '@/modules/auth/api/strategies/abstract/goole-auth.options';
+import { createGoogleStrategyOptions } from '@/modules/auth/strategies/abstract/goole-auth.options';
 import { ClientAuthFacade } from '../auth.facade';
 
 export interface ClientGoogleAuthResult {

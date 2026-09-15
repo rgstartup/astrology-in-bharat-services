@@ -10,7 +10,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
 import { CallFacade } from './call.facade';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/wallet.facade';
 import { CallSessionStatus } from './entities/call-session.entity';
 
 @WebSocketGateway({

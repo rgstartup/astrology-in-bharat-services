@@ -11,13 +11,13 @@ import {
   ChatSession,
   ChatSessionStatus,
 } from '../entities/chat-session.entity';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/profile.facade';
+import { Wallet } from '@/modules/finance/wallet/entities/wallet.entity';
 import {
   Transaction,
   TransactionType,
   TransactionPurpose,
-} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+} from '@/modules/finance/wallet/entities/transaction.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 
 @Injectable()

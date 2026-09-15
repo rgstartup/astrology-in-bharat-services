@@ -1,9 +1,9 @@
 import { Injectable, ConflictException, Inject } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import * as crypto from 'crypto';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { User } from '@/modules/users/entities/user.entity';
+import { ProfileAgent } from '@/modules/agent/entities/profile-agent.entity';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
 import { CreateAgentDto } from '../dto/create-agent.dto';
 import { ImageUploadService } from '@/external/cloudinary';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';

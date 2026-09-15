@@ -1,5 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { UsersFacade } from '@/modules/users/application/users.facade';
+import { UsersFacade } from '@/modules/users/users.facade';
 import { GetExpertsDto } from '../dto/get-experts.dto';
 
 @Injectable()

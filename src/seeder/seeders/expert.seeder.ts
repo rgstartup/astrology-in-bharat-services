@@ -1,9 +1,9 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource, In } from 'typeorm';
 import * as argon2 from 'argon2';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
+import { User } from '@/modules/users/entities/user.entity';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
+import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
 import { Specialization } from '@/modules/expert/specialization/entities/specialization.entity';
 import { ExpertSpecialization } from '@/modules/expert/account/entities/expert-specialization.entity';
@@ -13,8 +13,8 @@ import {
   PricingTargetAudience,
 } from '@/modules/expert/shared/enums/pricing.enum';
 import { ExpertKycStatus } from '@/modules/expert/shared/enums/kyc-status.enum';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
+import { Wallet } from '@/modules/finance/wallet/entities/wallet.entity';
 
 interface ExpertSeedData {
   user: {

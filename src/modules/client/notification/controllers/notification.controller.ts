@@ -12,7 +12,7 @@ import { ClientNotificationFacade } from '../notification.facade';
 import { ClientJwtAuthGuard } from '@/modules/client/auth/guards/auth.guard';
 import { CurrentClient } from '@/common/decorators/current-client.decorator';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { GetNotificationsDto } from '@/modules/notification/api/dto/get-notifications.dto';
+import { GetNotificationsDto } from '@/modules/notification/dto/get-notifications.dto';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 
 @Controller({

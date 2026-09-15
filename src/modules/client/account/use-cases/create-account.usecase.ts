@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ClientAccount } from '../entities/account.entity';
 import { CreateClientAccountDto } from '../dto/account.dto';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import crypto from 'node:crypto';
 import { BaseService } from '@/common/services/transaction.service';
 

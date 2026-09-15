@@ -1,9 +1,9 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import * as argon2 from 'argon2';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
+import { User } from '@/modules/users/entities/user.entity';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
+import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
 
 export class AdminSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {

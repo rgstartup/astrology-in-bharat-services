@@ -3,7 +3,7 @@ import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GeneralLedgerEntry } from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+import { GeneralLedgerEntry } from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
 import {
   LedgerJobPayload,
   LEDGER_QUEUE,

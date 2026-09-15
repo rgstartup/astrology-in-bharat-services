@@ -19,8 +19,8 @@ import {
   TransactionPurpose,
   Transaction,
   TransactionType,
-} from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
-import { Wallet } from '@/modules/finance/wallet/infrastructure/entities/wallet.entity';
+} from '@/modules/finance/wallet/entities/transaction.entity';
+import { Wallet } from '@/modules/finance/wallet/entities/wallet.entity';
 import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import {
   CommissionRule,
@@ -28,27 +28,27 @@ import {
   CommissionEventType,
   CommissionAppliesRole,
   CommissionRateType,
-} from '@/modules/finance/commissions/infrastructure/entities/commission-rule.entity';
+} from '@/modules/finance/commissions/entities/commission-rule.entity';
 import {
   CommissionSplit,
   SplitReferenceType,
-} from '@/modules/finance/commissions/infrastructure/entities/commission-split.entity';
-import { CommissionTier } from '@/modules/finance/commissions/infrastructure/entities/commission-tier.entity';
+} from '@/modules/finance/commissions/entities/commission-split.entity';
+import { CommissionTier } from '@/modules/finance/commissions/entities/commission-tier.entity';
 
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+} from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ExpertProfileFacade } from '@/modules/expert/profile/profile.facade';
 import {
   Notification,
   NotificationType,
-} from '@/modules/notification/infrastructure/entities/notification.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+} from '@/modules/notification/entities/notification.entity';
+import { User } from '@/modules/users/entities/user.entity';
 
 import { EndCallDto } from '../dto/end-call.dto';
 
@@ -299,9 +299,7 @@ export class EndCallUseCase {
 
           // 💰 Credit Seller's Agent
           if (agent_commission > 0 && agent_id) {
-            const { ProfileAgent } = await import(
-              '../../../agent/infrastructure/entities/profile-agent.entity'
-            );
+            const { ProfileAgent } = await import('../../../agent/entities/profile-agent.entity');
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {
@@ -327,9 +325,7 @@ export class EndCallUseCase {
 
           // 💰 Credit Buyer's Agent
           if (buyer_agent_commission > 0 && buyer_agent_id) {
-            const { ProfileAgent } = await import(
-              '../../../agent/infrastructure/entities/profile-agent.entity'
-            );
+            const { ProfileAgent } = await import('../../../agent/entities/profile-agent.entity');
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {

@@ -12,11 +12,11 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '@/common/decorators/permissions.decorator';
-import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermission.enum';
+import { AdminPermission } from '@/modules/users/enums/AdminPermission.enum';
 import {
   hasRoles,
   RoleEnum,
-} from '@/modules/users/infrastructure/enums/Role.enum';
+} from '@/modules/users/enums/Role.enum';
 
 interface JwtUser {
   id: string;

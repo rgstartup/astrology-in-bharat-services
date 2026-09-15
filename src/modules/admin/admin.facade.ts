@@ -21,9 +21,9 @@ import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merc
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
 import { CreateAgentDto } from './dto/create-agent.dto';
 import { ChatFacade } from '@/modules/consultation/chat/chat.facade';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
-import { SupportFacade } from '@/modules/support/application/support.facade';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { WalletFacade } from '@/modules/finance/wallet/wallet.facade';
+import { SupportFacade } from '@/modules/support/support.facade';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
 import { GetSystemSettingsUseCase } from './use-cases/get-system-settings.use-case';
 
 // New DTO imports

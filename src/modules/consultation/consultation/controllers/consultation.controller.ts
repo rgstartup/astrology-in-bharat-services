@@ -1,9 +1,9 @@
 import { Controller, Get, Query, UseGuards, Header } from '@nestjs/common';
-import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { IUser } from '@/common/types/access-token.payload';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
 import { GetUnifiedHistoryUseCase } from '../use-cases/get-unified-history.use-case';
 import { CallFacade } from '@/modules/consultation/call/call.facade';
 import { ChatFacade } from '@/modules/consultation/chat/chat.facade';

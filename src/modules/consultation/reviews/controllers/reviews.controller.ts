@@ -13,8 +13,8 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ReviewsFacade } from '../reviews.facade';
-import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
+import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { CreateReviewDto } from '../dto/create-review.dto';

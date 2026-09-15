@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsObject, IsString } from 'class-validator';
-import { FilterCriteria } from '@/modules/users/application/use-cases/get-filtered-users.use-case';
+import { FilterCriteria } from '@/modules/users/use-cases/get-filtered-users.use-case';
 
 export class AssignCouponBulkDto {
   @IsNotEmpty()

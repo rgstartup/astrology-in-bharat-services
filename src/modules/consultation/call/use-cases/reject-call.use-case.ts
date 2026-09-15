@@ -6,7 +6,7 @@ import {
   CallSessionStatus,
 } from '../entities/call-session.entity';
 import { CallGateway } from '../call.gateway';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/wallet.facade';
 
 @Injectable()
 export class RejectCallUseCase {

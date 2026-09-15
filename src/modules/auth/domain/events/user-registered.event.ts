@@ -1,4 +1,4 @@
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
 
 export class UserRegisteredEvent {
   constructor(

@@ -1,0 +1,83 @@
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { DatabaseService } from '@/core/database/database.service';
+import { UsedTokensService } from '../services/used-tokens.service';
+import { EmailVerificationPolicy } from '../domain/policies/email-verification.policy';
+import { TokenCryptoService } from '../tokens/token-crypto.service';
+import { AuthTokenService } from '../services/auth-token.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/modules/users/entities/user.entity';
+
+@Injectable()
+export class VerifyEmailUseCase {
+  constructor(
+    private readonly db: DatabaseService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly usedTokenService: UsedTokensService,
+    private readonly tokenCrypto: TokenCryptoService,
+    private readonly authTokenService: AuthTokenService,
+  ) { }
+
+  async execute(token: string) {
+    const payload = await this.verifyTokenOrFail(token);
+
+    const user = await this.userRepository.findOne({
+      where: { email: payload.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Only throw EmailAlreadyVerified if they are fully registered
+    if (user.password || user.name) {
+      EmailVerificationPolicy.ensureEmailNotVerified(user);
+    }
+
+    const isTokenUsed = await this.usedTokenService.isTokenUsed(token, user.id);
+
+    EmailVerificationPolicy.ensureTokenNotUsed(isTokenUsed);
+
+    await this.db.transaction(async (qr) => {
+      return Promise.all([
+        qr.manager.update(User, { id: user.id }, { email_verified_at: new Date() }),
+        this.usedTokenService.markTokenAsUsed(
+          token,
+          user.id,
+          'email_confirmation',
+          qr,
+        ),
+      ]);
+    });
+
+    const tokens = await this.authTokenService.issueAuthTokens(user);
+
+    return {
+      message: 'Email verified successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+      ...tokens,
+    };
+  }
+
+  // 🔐 infra → application boundary
+  private async verifyTokenOrFail(token: string) {
+    try {
+      return await this.tokenCrypto.verifyJwt<{
+        userId: string;
+        email: string;
+      }>(token);
+    } catch {
+      throw new BadRequestException('Invalid or expired token');
+    }
+  }
+}

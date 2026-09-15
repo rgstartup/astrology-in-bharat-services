@@ -1,5 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { AgentFacade } from '@/modules/agent/application/agent.facade';
+import { AgentFacade } from '@/modules/agent/agent.facade';
 import { GetAdminListingsDto } from '../dto/get-listings.dto';
 
 @Injectable()

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ExpertProfileFacade } from '@/modules/expert/profile/profile.facade';
 import { UpdateExpertStatusDto } from '../dto/update-expert-status.dto';
 
 @Injectable()

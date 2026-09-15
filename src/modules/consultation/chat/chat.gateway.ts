@@ -14,7 +14,7 @@ import { Repository } from 'typeorm';
 import { ChatFacade } from './chat.facade';
 import { MessageType } from './entities/chat-message.entity';
 import { ChatSessionStatus, ChatSession } from './entities/chat-session.entity';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/wallet.facade';
 
 @WebSocketGateway({
   cors: {

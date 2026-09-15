@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
-import { UsersFacade } from '@/modules/users/application/users.facade';
+import { UsersFacade } from '@/modules/users/users.facade';
 
 @Injectable()
 export class BlockStatusGuard implements CanActivate {

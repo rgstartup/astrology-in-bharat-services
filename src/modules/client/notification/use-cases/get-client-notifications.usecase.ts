@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Notification } from '@/modules/notification/infrastructure/entities/notification.entity';
-import { GetNotificationsDto } from '@/modules/notification/api/dto/get-notifications.dto';
+import { Notification } from '@/modules/notification/entities/notification.entity';
+import { GetNotificationsDto } from '@/modules/notification/dto/get-notifications.dto';
 
 @Injectable()
 export class GetClientNotificationsUseCase {

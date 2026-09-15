@@ -9,7 +9,7 @@ import { Product } from '../entities/product.entity';
 import {
   CreateMerchantProductDto,
   MerchantProductStatus,
-} from '@/modules/merchant/dashboard/api/dto/create-merchant-product.dto';
+} from '@/modules/merchant/dashboard/dto/create-merchant-product.dto';
 
 type ProductStatus = 'active' | 'draft' | 'out_of_stock';
 

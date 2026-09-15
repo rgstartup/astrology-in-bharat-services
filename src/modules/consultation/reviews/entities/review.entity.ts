@@ -6,11 +6,11 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ChatSession } from '@/modules/consultation/chat/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/entities/call-session.entity';
-import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { Order } from '@/modules/commerce/order/entities/order.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'consultations', name: 'reviews' })

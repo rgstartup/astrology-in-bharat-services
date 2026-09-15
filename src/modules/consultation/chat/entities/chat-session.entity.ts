@@ -7,7 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 
 export enum ChatSessionStatus {
   PENDING = 'pending',

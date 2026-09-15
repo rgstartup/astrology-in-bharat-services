@@ -28,10 +28,10 @@ import { AdminAuditLog } from './entities/admin-audit-log.entity';
 import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 import { ChatSession } from '../consultation/chat/entities/chat-session.entity';
 import { ExternalModule } from '@/external/external.module';
-import { User } from '../users/infrastructure/entities/user.entity';
-import { Transaction } from '@/modules/finance/wallet/infrastructure/entities/transaction.entity';
+import { User } from '../users/entities/user.entity';
+import { Transaction } from '@/modules/finance/wallet/entities/transaction.entity';
 import { SupportModule } from '../support/support.module';
-import { ProfileExpert } from '../expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileExpert } from '../expert/profile/entities/profile-expert.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { MerchantModule } from '../merchant/merchant.module';
 import { AgentModule } from '../agent/agent.module';
@@ -49,7 +49,7 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
 
 import { PublicSettingsController } from './controllers/public-settings.controller';
 import { IHasherToken } from '@/common/contracts/hasher.contract';
-import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-password.hasher';
+import { Argon2PasswordHasher } from '../auth/hashing/argon2-password.hasher';
 
 // New Use Cases
 import { GetAdminClientsUseCase } from './use-cases/get-admin-clients.use-case';

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ImageUploadService } from '@/external/cloudinary';
 import { ClientAccount } from '../entities/account.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { DatabaseService } from '@/core/database/database.service';
 
 @Injectable()

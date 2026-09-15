@@ -39,7 +39,10 @@ export class Profession {
     name: 'profession_specializations',
     schema: 'expert',
     joinColumn: { name: 'profession_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'specialization_id', referencedColumnName: 'id' },
+    inverseJoinColumn: {
+      name: 'specialization_id',
+      referencedColumnName: 'id',
+    },
   })
   specializations!: Specialization[];
 

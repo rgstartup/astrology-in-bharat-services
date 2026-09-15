@@ -8,9 +8,9 @@ import {
 import { QueryRunner } from 'typeorm';
 import { DatabaseService } from '@/core/database/database.service';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
-import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
+import { Session } from '@/modules/auth/entities/session.entity';
+import { User } from '@/modules/users/entities/user.entity';
+import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
 import { ExpertAccount } from '../../account/entities/account.entity';
 import { CompleteExpertRegisterDto } from '../dto/expert-register.dto';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';

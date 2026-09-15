@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { Repository } from 'typeorm';
-import { createJwtStrategyOptions } from '@/modules/auth/api/strategies/abstract/jwt.options';
+import { createJwtStrategyOptions } from '@/modules/auth/strategies/abstract/jwt.options';
 import { ExpertAccount } from '../../account/entities/account.entity';
 import { IExpert } from '@/common/types/access-token.payload';
 

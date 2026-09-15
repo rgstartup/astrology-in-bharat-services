@@ -1,9 +1,9 @@
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import {
   EmailNotVerifiedError,
   RequiredRoleMissingError,
 } from '../errors/email-not-verified.error';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 import { Inject, Injectable } from '@nestjs/common';
 

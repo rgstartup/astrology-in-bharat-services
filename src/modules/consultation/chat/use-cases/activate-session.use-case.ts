@@ -12,7 +12,7 @@ import {
   ChatSessionStatus,
 } from '../entities/chat-session.entity';
 import { ChatMessage, MessageType } from '../entities/chat-message.entity';
-import { WalletFacade } from '@/modules/finance/wallet/application/wallet.facade';
+import { WalletFacade } from '@/modules/finance/wallet/wallet.facade';
 
 @Injectable()
 export class ActivateSessionUseCase {

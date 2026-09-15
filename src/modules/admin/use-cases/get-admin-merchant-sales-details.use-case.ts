@@ -1,5 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { OrderFacade } from '@/modules/commerce/order/order.facade';
 
 @Injectable()
 export class GetAdminMerchantSalesDetailsUseCase {

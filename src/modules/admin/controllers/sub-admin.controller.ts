@@ -13,8 +13,8 @@ import {
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
+import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { IUser } from '@/common/types/access-token.payload';

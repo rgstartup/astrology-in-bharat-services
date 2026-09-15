@@ -1,4 +1,4 @@
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Column,

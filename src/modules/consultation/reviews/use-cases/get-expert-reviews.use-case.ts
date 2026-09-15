@@ -2,7 +2,7 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../entities/review.entity';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ExpertProfileFacade } from '@/modules/expert/profile/profile.facade';
 import { GetReviewsDto } from '../dto/get-reviews.dto';
 
 @Injectable()

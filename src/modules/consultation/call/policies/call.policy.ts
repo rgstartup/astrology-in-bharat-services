@@ -1,4 +1,4 @@
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import {
   CallSession,
   CallSessionStatus,

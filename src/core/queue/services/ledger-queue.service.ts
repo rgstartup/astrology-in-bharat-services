@@ -5,7 +5,7 @@ import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/modules/finance/general-ledger/infrastructure/entities/general-ledger-entry.entity';
+} from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
 
 export interface LedgerJobPayload {
   event_id: string | null;

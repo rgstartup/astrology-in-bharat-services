@@ -11,8 +11,8 @@ import { GetSupportSettingsUseCase } from '../use-cases/get-support-settings.use
 import { GetSystemSettingsUseCase } from '../use-cases/get-system-settings.use-case';
 import { UpdateSystemSettingUseCase } from '../use-cases/update-system-setting.use-case';
 import { UpdateSupportSettingsUseCase } from '../use-cases/update-support-settings.use-case';
-import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
+import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 
 // New DTO imports

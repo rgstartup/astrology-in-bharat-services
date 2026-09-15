@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IExpert } from '@/common/types/access-token.payload';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { ExpertAccount } from '../entities/account.entity';
 import { UpdateExpertAccountDto } from '../dto/request/account.dto';
 

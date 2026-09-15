@@ -10,12 +10,14 @@ import {
 } from 'typeorm';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
 import { ConsultationTopicPreference } from '@/modules/consultation/consultation/entities/consultation_topic_preference.entity';
 import { ExpertSpecialization } from './expert-specialization.entity';
 import { ExpertConsultationPricing } from './expert-consultation-pricing.entity';
 import { ExpertProfession } from '../../profession/entities/expert-profession.entity';
+import { ExpertAstrologyService } from './expert-astrology-service.entity';
+import { ExpertDevotionalRitual } from './expert-devotional-ritual.entity';
 
 @Entity({ schema: 'expert', name: 'account' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -173,6 +175,12 @@ export class ExpertAccount {
 
   @OneToMany(() => ExpertProfession, (ep) => ep.expert)
   professions!: ExpertProfession[];
+
+  @OneToMany(() => ExpertAstrologyService, (eas) => eas.expert)
+  astrology_services!: ExpertAstrologyService[];
+
+  @OneToMany(() => ExpertDevotionalRitual, (edr) => edr.expert)
+  devotional_rituals!: ExpertDevotionalRitual[];
 
   @OneToMany(() => ExpertConsultationPricing, (pricing) => pricing.expert)
   pricings!: ExpertConsultationPricing[];

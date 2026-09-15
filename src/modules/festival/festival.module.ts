@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Festival } from './infrastructure/entities/festival.entity';
-import { FestivalController } from './api/controllers/festival.controller';
-import { FestivalFacade } from './application/festival.facade';
-import { GetAllFestivalsUseCase } from './application/use-cases/get-all-festivals.use-case';
-import { GetFestivalUseCase } from './application/use-cases/get-festival.use-case';
-import { CreateFestivalUseCase } from './application/use-cases/create-festival.use-case';
-import { UpdateFestivalUseCase } from './application/use-cases/update-festival.use-case';
-import { RemoveFestivalUseCase } from './application/use-cases/remove-festival.use-case';
+import { Festival } from './entities/festival.entity';
+import { FestivalController } from './controllers/festival.controller';
+import { FestivalFacade } from './festival.facade';
+import { GetAllFestivalsUseCase } from './use-cases/get-all-festivals.use-case';
+import { GetFestivalUseCase } from './use-cases/get-festival.use-case';
+import { CreateFestivalUseCase } from './use-cases/create-festival.use-case';
+import { UpdateFestivalUseCase } from './use-cases/update-festival.use-case';
+import { RemoveFestivalUseCase } from './use-cases/remove-festival.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Festival])],

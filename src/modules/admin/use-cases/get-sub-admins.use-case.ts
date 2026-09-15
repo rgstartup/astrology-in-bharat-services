@@ -2,8 +2,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { User } from '@/modules/users/entities/user.entity';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
 
 @Injectable()
 export class GetSubAdminsUseCase {

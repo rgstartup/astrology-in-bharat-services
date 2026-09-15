@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { AddressTag } from '../enums/address-tag.enum';

@@ -7,18 +7,18 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { ClientLoginDto } from '../dto/client-login.dto';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 import { IAccessTokenPayloadClient } from '@/common/types/access-token.payload';
 import { TokenCryptoService } from '../services/token-crypto.service';
-import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
+import { Session } from '@/modules/auth/entities/session.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
+import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
 import {
   Otp,
   OtpPurposeEnum,
-} from '@/modules/auth/infrastructure/entities/otp.entity';
+} from '@/modules/auth/entities/otp.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomInt, createHash } from 'crypto';
 

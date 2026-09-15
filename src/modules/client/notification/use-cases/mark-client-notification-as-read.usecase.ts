@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Notification } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { Notification } from '@/modules/notification/entities/notification.entity';
 
 @Injectable()
 export class MarkClientNotificationAsReadUseCase {

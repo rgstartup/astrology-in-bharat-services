@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DatabaseService } from '@/core/database/database.service';
-import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
+import { Session } from '@/modules/auth/entities/session.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { TokenCryptoService } from '../services/token-crypto.service';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UsersFacade } from '@/modules/users/application/users.facade';
+import { UsersFacade } from '@/modules/users/users.facade';
 import { AdminAuditLog } from '../entities/admin-audit-log.entity';
 
 export interface ToggleUserBlockInput {

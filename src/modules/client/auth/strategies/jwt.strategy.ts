@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
-import { createJwtStrategyOptions } from '@/modules/auth/api/strategies/abstract/jwt.options';
+import { createJwtStrategyOptions } from '@/modules/auth/strategies/abstract/jwt.options';
 
 export interface ClientJwtPayload {
   sub: string;

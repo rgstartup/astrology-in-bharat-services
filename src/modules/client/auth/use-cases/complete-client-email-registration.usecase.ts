@@ -8,15 +8,15 @@ import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../services/token-crypto.service';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { CompleteClientRegisterDto } from '../dto/client-register.dto';
-import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
-import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
+import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
+import { Session } from '@/modules/auth/entities/session.entity';
 import { IAccessTokenPayloadClient } from '@/common/types/access-token.payload';
 import {
   Otp,
   OtpPurposeEnum,
-} from '@/modules/auth/infrastructure/entities/otp.entity';
+} from '@/modules/auth/entities/otp.entity';
 import { createHash } from 'crypto';
 
 @Injectable()

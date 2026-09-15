@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { Address, AddressTag } from '@/common/address/address.entity';
 
 import { ClientAccount } from '../entities/account.entity';

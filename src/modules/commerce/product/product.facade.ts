@@ -11,7 +11,7 @@ import { GetProductsDto } from './dto/get-products.dto';
 import {
   CreateMerchantProductDto,
   MerchantProductStatus,
-} from '@/modules/merchant/dashboard/api/dto/create-merchant-product.dto';
+} from '@/modules/merchant/dashboard/dto/create-merchant-product.dto';
 
 @Injectable()
 export class ProductFacade {

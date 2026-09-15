@@ -1,5 +1,5 @@
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermission.enum';
+import { RoleEnum } from '@/modules/users/enums/Role.enum';
+import { AdminPermission } from '@/modules/users/enums/AdminPermission.enum';
 
 export interface IAccessTokenPayload {
   sub: string; // user ID

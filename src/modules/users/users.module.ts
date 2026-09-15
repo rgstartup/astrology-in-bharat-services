@@ -1,21 +1,21 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersController } from './api/controllers/users.controller';
-import { User } from './infrastructure/entities/user.entity';
-import { UserRepository } from './infrastructure/repositories/user.repository';
-import { CreateUserUseCase } from './application/use-cases/create-user.usecase';
-import { FindUserUseCase } from './application/use-cases/find-user.usecase';
-import { UpdateUserUseCase } from './application/use-cases/update-user.usecase';
+import { UsersController } from './controllers/users.controller';
+import { User } from './entities/user.entity';
+import { UserRepository } from './repositories/user.repository';
+import { CreateUserUseCase } from './use-cases/create-user.usecase';
+import { FindUserUseCase } from './use-cases/find-user.usecase';
+import { UpdateUserUseCase } from './use-cases/update-user.usecase';
 
-import { DeleteUserUseCase } from './application/use-cases/delete-user.usecase';
-import { AssignRoleToUserUseCase } from './application/use-cases/assign-role-to-user.usecase';
-import { GetExpertStatsUseCase } from './application/use-cases/get-expert-stats.usecase';
-import { GetClientStatsUseCase } from './application/use-cases/get-client-stats.usecase';
-import { GetUserExpertGrowthStatsUseCase } from './application/use-cases/get-user-expert-growth-stats.usecase';
-import { FindUsersByRoleUseCase } from './application/use-cases/find-users-by-role.usecase';
-import { FindReferredUsersUseCase } from './application/use-cases/find-referred-users.usecase';
-import { GetFilteredUsersUseCase } from './application/use-cases/get-filtered-users.use-case';
-import { UsersFacade } from './application/users.facade';
+import { DeleteUserUseCase } from './use-cases/delete-user.usecase';
+import { AssignRoleToUserUseCase } from './use-cases/assign-role-to-user.usecase';
+import { GetExpertStatsUseCase } from './use-cases/get-expert-stats.usecase';
+import { GetClientStatsUseCase } from './use-cases/get-client-stats.usecase';
+import { GetUserExpertGrowthStatsUseCase } from './use-cases/get-user-expert-growth-stats.usecase';
+import { FindUsersByRoleUseCase } from './use-cases/find-users-by-role.usecase';
+import { FindReferredUsersUseCase } from './use-cases/find-referred-users.usecase';
+import { GetFilteredUsersUseCase } from './use-cases/get-filtered-users.use-case';
+import { UsersFacade } from './users.facade';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User])],

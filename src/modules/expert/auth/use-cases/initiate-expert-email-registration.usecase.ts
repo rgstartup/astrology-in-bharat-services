@@ -2,8 +2,8 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { QueryRunner } from 'typeorm';
 import { DatabaseService } from '@/core/database/database.service';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { PlatformEnum } from '@/modules/users/infrastructure/enums/Platform.enum';
+import { User } from '@/modules/users/entities/user.entity';
+import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';
 
 @Injectable()

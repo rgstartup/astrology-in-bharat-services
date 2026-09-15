@@ -8,8 +8,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
-import { Session } from '@/modules/auth/infrastructure/entities/session.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { Session } from '@/modules/auth/entities/session.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { ExpertAccount } from '../../account/entities/account.entity';
 import { ExpertLoginDto } from '../dto/expert-login.dto';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';

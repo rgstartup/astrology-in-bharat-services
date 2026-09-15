@@ -1,6 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
 import { MerchantAuthModule } from '../auth/auth.module';
 import { MerchantAccount } from './entities/account.entity';

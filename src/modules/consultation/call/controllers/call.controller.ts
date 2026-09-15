@@ -10,7 +10,7 @@ import {
   ParseUUIDPipe,
   Query,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { CallType } from '../entities/call-session.entity';
 import { CallFacade } from '../call.facade';

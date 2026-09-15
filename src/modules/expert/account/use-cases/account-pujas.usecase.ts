@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IExpert } from '@/common/types/access-token.payload';
-import { ExpertPujaDto } from '../../profile/api/dto/expert-puja.dto';
+import { ExpertPujaDto } from '../../profile/dto/expert-puja.dto';
 import { ExpertAccount } from '../entities/account.entity';
 import { ExpertAccountPuja } from '../entities/account-puja.entity';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';

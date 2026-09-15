@@ -10,10 +10,10 @@ import { Review } from '../entities/review.entity';
 import {
   Order,
   OrderStatus,
-} from '@/modules/commerce/order/infrastructure/entities/order.entity';
+} from '@/modules/commerce/order/entities/order.entity';
 import { ChatSession } from '@/modules/consultation/chat/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/entities/call-session.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { CreateReviewDto } from '../dto/create-review.dto';
 

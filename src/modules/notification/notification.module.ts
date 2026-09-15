@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Notification } from './infrastructure/entities/notification.entity';
-import { NotificationController } from './api/controllers/notification.controller';
-import { NotificationGateway } from './api/gateways/notification.gateway';
-import { NotificationFacade } from './application/notification.facade';
-import { CreateNotificationUseCase } from './application/use-cases/create-notification.use-case';
-import { GetNotificationsUseCase } from './application/use-cases/get-notifications.use-case';
-import { MarkAsReadUseCase } from './application/use-cases/mark-as-read.use-case';
-import { ClearAllNotificationsUseCase } from './application/use-cases/clear-all-notifications.use-case';
+import { Notification } from './entities/notification.entity';
+import { NotificationController } from './controllers/notification.controller';
+import { NotificationGateway } from './gateways/notification.gateway';
+import { NotificationFacade } from './notification.facade';
+import { CreateNotificationUseCase } from './use-cases/create-notification.use-case';
+import { GetNotificationsUseCase } from './use-cases/get-notifications.use-case';
+import { MarkAsReadUseCase } from './use-cases/mark-as-read.use-case';
+import { ClearAllNotificationsUseCase } from './use-cases/clear-all-notifications.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Notification])],

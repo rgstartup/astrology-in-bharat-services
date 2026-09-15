@@ -14,16 +14,16 @@ import {
   ParseIntPipe,
   BadRequestException,
 } from '@nestjs/common';
-import { UsersFacade } from '@/modules/users/application/users.facade';
+import { UsersFacade } from '@/modules/users/users.facade';
 import { AdminFacade } from '../admin.facade';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
-import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/guards/role.guard';
+import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 import { AdminPermissionGuard } from '@/common/guards/admin-permission.guard';
 import { RequirePermissions } from '@/common/decorators/permissions.decorator';
-import { AdminPermission } from '@/modules/users/infrastructure/enums/AdminPermission.enum';
+import { AdminPermission } from '@/modules/users/enums/AdminPermission.enum';
 import { ChatFacade } from '@/modules/consultation/chat/chat.facade';
-import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
+import { CouponFacade } from '@/modules/commerce/coupon/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { IUser } from '@/common/types/access-token.payload';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -32,7 +32,7 @@ import { ReviewsFacade } from '@/modules/consultation/reviews/reviews.facade';
 import {
   RoleEnum,
   RolePipe,
-} from '@/modules/users/infrastructure/enums/Role.enum';
+} from '@/modules/users/enums/Role.enum';
 import { MerchantStatus } from '@/modules/merchant/account/entities/account.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { GetReviewsDTO } from '../dto/get-reviews.dto';

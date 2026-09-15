@@ -1,7 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Order } from './infrastructure/entities/order.entity';
-import { OrderItem } from './infrastructure/entities/order-item.entity';
+import { Order } from './entities/order.entity';
+import { OrderItem } from './entities/order-item.entity';
 import { QueueModule } from '@/core/queue/queue.module';
 //import by me
 import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
@@ -9,20 +9,20 @@ import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 import {
   OrderController,
   OrderSingularController,
-} from './api/controllers/order.controller';
-import { OrderFacade } from './application/order.facade';
-import { CreateOrderFromCartUseCase } from './application/use-cases/create-order-from-cart.use-case';
-import { MarkOrderAsPaidUseCase } from './application/use-cases/mark-order-as-paid.use-case';
-import { SetOrderRazorpayIdUseCase } from './application/use-cases/set-order-razorpay-id.use-case';
-import { GetUserOrdersUseCase } from './application/use-cases/get-user-orders.use-case';
-import { GetOrderByIdUseCase } from './application/use-cases/get-order-by-id.use-case';
-import { UpdateOrderStatusUseCase } from './application/use-cases/update-order-status.use-case';
-import { CancelUserOrderUseCase } from './application/use-cases/cancel-user-order.use-case';
-import { FindAllOrdersUseCase } from './application/use-cases/find-all-orders.use-case';
-import { GetOrderEarningsUseCase } from './application/use-cases/get-order-earnings.use-case';
-import { MerchantOrderQueriesUseCase } from './application/use-cases/merchant-order-queries.use-case';
-import { GetAdminMerchantSalesOverviewUseCase } from './application/use-cases/get-admin-merchant-sales-overview.use-case';
-import { GetAdminMerchantSalesDetailsUseCase } from './application/use-cases/get-admin-merchant-sales-details.use-case';
+} from './controllers/order.controller';
+import { OrderFacade } from './order.facade';
+import { CreateOrderFromCartUseCase } from './use-cases/create-order-from-cart.use-case';
+import { MarkOrderAsPaidUseCase } from './use-cases/mark-order-as-paid.use-case';
+import { SetOrderRazorpayIdUseCase } from './use-cases/set-order-razorpay-id.use-case';
+import { GetUserOrdersUseCase } from './use-cases/get-user-orders.use-case';
+import { GetOrderByIdUseCase } from './use-cases/get-order-by-id.use-case';
+import { UpdateOrderStatusUseCase } from './use-cases/update-order-status.use-case';
+import { CancelUserOrderUseCase } from './use-cases/cancel-user-order.use-case';
+import { FindAllOrdersUseCase } from './use-cases/find-all-orders.use-case';
+import { GetOrderEarningsUseCase } from './use-cases/get-order-earnings.use-case';
+import { MerchantOrderQueriesUseCase } from './use-cases/merchant-order-queries.use-case';
+import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
+import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
 import { CartModule } from '@/modules/commerce/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
@@ -35,7 +35,7 @@ import { AdminModule } from '@/modules/admin/admin.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 import { AccountModule } from '@/modules/client/account/account.module';
 import { MerchantAccountModule } from '@/modules/merchant/account/account.module';
-import { OrderService } from './application/services/order.service';
+import { OrderService } from './services/order.service';
 
 @Module({
   imports: [
