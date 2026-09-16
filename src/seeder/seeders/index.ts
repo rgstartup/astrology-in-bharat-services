@@ -2,5 +2,8 @@ export * from './admin.seeder';
 export * from './system-setting.seeder';
 export * from './consultation-topic.seeder';
 export * from './specialization.seeder';
+export * from './profession.seeder';
+export * from './astrology-service.seeder';
+export * from './devotional-ritual.seeder';
 export * from './expert.seeder';
 

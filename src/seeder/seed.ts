@@ -7,6 +7,9 @@ import {
   SystemSettingSeeder,
   ConsultationTopicSeeder,
   SpecializationSeeder,
+  ProfessionSeeder,
+  AstrologyServiceSeeder,
+  DevotionalRitualSeeder,
   ExpertSeeder,
 } from './seeders';
 
@@ -16,6 +19,9 @@ async function bootstrap() {
     SystemSettingSeeder,
     ConsultationTopicSeeder,
     SpecializationSeeder,
+    ProfessionSeeder,
+    AstrologyServiceSeeder,
+    DevotionalRitualSeeder,
     ExpertSeeder,
   ];
 

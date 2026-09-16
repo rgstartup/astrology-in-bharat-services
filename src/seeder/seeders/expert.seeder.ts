@@ -15,6 +15,12 @@ import {
 import { ExpertKycStatus } from '@/modules/expert/shared/enums/kyc-status.enum';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import { Wallet } from '@/modules/finance/wallet/entities/wallet.entity';
+import { Profession } from '@/modules/expert/profession/entities/profession.entity';
+import { ExpertProfession } from '@/modules/expert/profession/entities/expert-profession.entity';
+import { AstrologyService } from '@/modules/astrology/entities/astrology-service.entity';
+import { ExpertAstrologyService } from '@/modules/expert/account/entities/expert-astrology-service.entity';
+import { DevotionalRitual } from '@/modules/devotion/entities/devotional-ritual.entity';
+import { ExpertDevotionalRitual } from '@/modules/expert/account/entities/expert-devotional-ritual.entity';
 
 interface ExpertSeedData {
   user: {
@@ -41,7 +47,10 @@ interface ExpertSeedData {
     consultationCount: number;
     isAvailable: boolean;
   };
+  professionSlugs: string[];
   specializationSlugs: string[];
+  astrologyServiceSlugs: string[];
+  devotionalRitualSlugs: string[];
   pricing: {
     chatPrice: number;
     callPrice: number;
@@ -61,6 +70,19 @@ export class ExpertSeeder implements Seeder {
     const expertSpecRepository = dataSource.getRepository(ExpertSpecialization);
     const pricingRepository = dataSource.getRepository(ExpertConsultationPricing);
     const walletRepository = dataSource.getRepository(Wallet);
+    const professionRepository = dataSource.getRepository(Profession);
+    const expertProfessionRepository =
+      dataSource.getRepository(ExpertProfession);
+    const astrologyServiceRepository =
+      dataSource.getRepository(AstrologyService);
+    const expertAstrologyServiceRepository = dataSource.getRepository(
+      ExpertAstrologyService,
+    );
+    const devotionalRitualRepository =
+      dataSource.getRepository(DevotionalRitual);
+    const expertDevotionalRitualRepository = dataSource.getRepository(
+      ExpertDevotionalRitual,
+    );
 
     const defaultPassword = process.env.EXPERT_SEED_PASSWORD || 'Expert@123456';
     const hashedPassword = await argon2.hash(defaultPassword, {
@@ -94,12 +116,28 @@ export class ExpertSeeder implements Seeder {
           consultationCount: 480,
           isAvailable: true,
         },
+        professionSlugs: ['astrologer', 'pandit'],
         specializationSlugs: [
           'vedic_astrology',
           'kundli_reading',
           'prashna_kundli',
           'muhurat',
           'astrology_remedies',
+        ],
+        astrologyServiceSlugs: [
+          'kundli-matching',
+          'life-horoscope-report',
+          'career-wealth-forecast',
+          'gemstone-recommendation',
+          'prashna-kundali',
+          'yearly-varshphal-report',
+        ],
+        devotionalRitualSlugs: [
+          'rudrabhishek-puja',
+          'maha-mrityunjaya-jaap',
+          'navagraha-shanti-havan',
+          'satyanarayan-katha',
+          'griha-pravesh-puja',
         ],
         pricing: {
           chatPrice: 25.0,
@@ -136,12 +174,22 @@ export class ExpertSeeder implements Seeder {
           consultationCount: 310,
           isAvailable: true,
         },
+        professionSlugs: ['tarot_reader', 'numerologist', 'vastu_expert'],
         specializationSlugs: [
           'tarot_reading',
           'numerology',
           'vastu_shastra',
           'compatibility',
           'gemstone_consultation',
+        ],
+        astrologyServiceSlugs: [
+          'numerology-name-correction',
+          'gemstone-recommendation',
+          'vastu-video-consultation',
+        ],
+        devotionalRitualSlugs: [
+          'lakshmi-kuber-havan',
+          'pitra-dosh-shanti',
         ],
         pricing: {
           chatPrice: 20.0,
@@ -380,6 +428,96 @@ export class ExpertSeeder implements Seeder {
         existingPricing.video_call_price = data.pricing.videoCallPrice;
         existingPricing.currency = data.pricing.currency;
         await pricingRepository.save(existingPricing);
+      }
+
+      // 7. Link Professions
+      if (data.professionSlugs && data.professionSlugs.length > 0) {
+        const matchedProfessions = await professionRepository.find({
+          where: { slug: In(data.professionSlugs) },
+        });
+
+        for (let i = 0; i < matchedProfessions.length; i++) {
+          const prof = matchedProfessions[i];
+          const existingProfLink = await expertProfessionRepository.findOne({
+            where: {
+              expert: { id: account.id },
+              profession: { id: prof.id },
+            },
+          });
+
+          if (!existingProfLink) {
+            const profLink = expertProfessionRepository.create({
+              expert: account,
+              profession: prof,
+              is_primary: i === 0,
+            });
+            await expertProfessionRepository.save(profLink);
+          }
+        }
+      }
+
+      // 8. Link Astrology Services
+      if (data.astrologyServiceSlugs && data.astrologyServiceSlugs.length > 0) {
+        const matchedServices = await astrologyServiceRepository.find({
+          where: { slug: In(data.astrologyServiceSlugs) },
+        });
+
+        for (const s of matchedServices) {
+          const existingServiceLink =
+            await expertAstrologyServiceRepository.findOne({
+              where: {
+                expert_id: account.id,
+                service_id: s.id,
+              },
+            });
+
+          if (!existingServiceLink) {
+            const serviceLink = expertAstrologyServiceRepository.create({
+              expert_id: account.id,
+              service_id: s.id,
+              price: data.pricing.reportPrice,
+              is_enabled: true,
+              languages: ['Hindi', 'English'],
+            });
+            await expertAstrologyServiceRepository.save(serviceLink);
+          }
+        }
+      }
+
+      // 9. Link Devotional Rituals
+      if (data.devotionalRitualSlugs && data.devotionalRitualSlugs.length > 0) {
+        const matchedRituals = await devotionalRitualRepository.find({
+          where: { slug: In(data.devotionalRitualSlugs) },
+        });
+
+        for (const r of matchedRituals) {
+          const existingRitualLink =
+            await expertDevotionalRitualRepository.findOne({
+              where: {
+                expert_id: account.id,
+                ritual_id: r.id,
+              },
+            });
+
+          if (!existingRitualLink) {
+            const ritualLink = expertDevotionalRitualRepository.create({
+              expert_id: account.id,
+              ritual_id: r.id,
+              online_price: 2100,
+              home_visit_without_samagri_price: 3100,
+              home_visit_with_samagri_price: 5100,
+              serviceable_districts: [
+                'Varanasi',
+                'Lucknow',
+                'Delhi NCR',
+                'Mumbai',
+              ],
+              languages: ['Hindi', 'Sanskrit', 'English'],
+              is_enabled: true,
+            });
+            await expertDevotionalRitualRepository.save(ritualLink);
+          }
+        }
       }
 
       seededCount++;

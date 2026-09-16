@@ -11,6 +11,7 @@ export const REQUIRED_SCHEMAS = [
   'commerce',
   'consultations',
   'content',
+  'devotion',
   'expert',
   'finance',
   'merchant',
