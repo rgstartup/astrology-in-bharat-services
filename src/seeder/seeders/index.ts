@@ -6,4 +6,5 @@ export * from './profession.seeder';
 export * from './astrology-service.seeder';
 export * from './devotional-ritual.seeder';
 export * from './expert.seeder';
-
+export * from './client.seeder';
+export * from './merchant.seeder';

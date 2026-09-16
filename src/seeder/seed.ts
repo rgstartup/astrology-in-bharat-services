@@ -11,6 +11,8 @@ import {
   AstrologyServiceSeeder,
   DevotionalRitualSeeder,
   ExpertSeeder,
+  ClientSeeder,
+  MerchantSeeder,
 } from './seeders';
 
 async function bootstrap() {
@@ -23,6 +25,8 @@ async function bootstrap() {
     AstrologyServiceSeeder,
     DevotionalRitualSeeder,
     ExpertSeeder,
+    ClientSeeder,
+    MerchantSeeder,
   ];
 
   // Optional: support filtering by seeder name (e.g. pnpm run seed AdminSeeder or --name=AdminSeeder)
