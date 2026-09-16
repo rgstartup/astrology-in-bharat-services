@@ -11,7 +11,7 @@ export class GetClientNotificationsUseCase {
     private readonly notificationRepo: Repository<Notification>,
   ) {}
 
-  async execute(clientId: string, dto: GetNotificationsDto) {
+  async execute(clientId: number, dto: GetNotificationsDto) {
     const { limit = 20, offset = 0 } = dto;
     const [data, totalCount] = await this.notificationRepo.findAndCount({
       where: { client_id: clientId },

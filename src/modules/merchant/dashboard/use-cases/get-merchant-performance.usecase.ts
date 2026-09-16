@@ -15,7 +15,7 @@ export class GetMerchantPerformanceUseCase {
     private readonly profileRepo: Repository<MerchantAccount>,
   ) {}
 
-  async execute(userId: string) {
+  async execute(userId: number) {
     const merchantId = userId;
 
     // 1. Rating Stats

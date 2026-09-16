@@ -1,5 +1,5 @@
-﻿import {
-  ParseUUIDPipe,
+import {
+  ParseIntPipe,
   Controller,
   Get,
   Post,
@@ -42,13 +42,13 @@ export class UsersController {
   }
 
   @Get(':id')
-  async getUserById(@Param('id', ParseUUIDPipe) id: string) {
+  async getUserById(@Param('id', ParseIntPipe) id: number) {
     return this.usersFacade.findById(id);
   }
 
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: Partial<CreateUserDto>,
   ) {
     // TODO: Handle role updates properly or separate them
@@ -60,7 +60,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     const _result = await this.usersFacade.delete(id);
     return { success: true };
   }
@@ -69,7 +69,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async assignRole(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('role', RolePipe({ optional: true })) role: RoleEnum,
   ) {
     return this.usersFacade.assignRole(id, role);

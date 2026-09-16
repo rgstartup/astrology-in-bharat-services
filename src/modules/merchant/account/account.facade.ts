@@ -29,7 +29,7 @@ export class MerchantAccountFacade {
     return this.updateStatusUseCase.execute(merchant, isOnline);
   }
 
-  updateVerification(id: string, status: MerchantStatus, isVerified?: boolean) {
+  updateVerification(id: number, status: MerchantStatus, isVerified?: boolean) {
     return this.updateStatusUseCase.updateVerification(id, status, isVerified);
   }
 
@@ -37,23 +37,23 @@ export class MerchantAccountFacade {
     return this.queryAccountsUseCase.list(query);
   }
 
-  getById(id: string) {
+  getById(id: number) {
     return this.queryAccountsUseCase.byId(id);
   }
 
-  getAccountById(id: string) {
+  getAccountById(id: number) {
     return this.queryAccountsUseCase.findEntityById(id);
   }
 
-  getProfileById(id: string) {
+  getProfileById(id: number) {
     return this.queryAccountsUseCase.findEntityById(id);
   }
 
-  getByUserId(userId: string) {
+  getByUserId(userId: number) {
     return this.queryAccountsUseCase.byUserId(userId);
   }
 
-  getProfileByUserId(userId: string) {
+  getProfileByUserId(userId: number) {
     return this.queryAccountsUseCase.byUserId(userId);
   }
 

@@ -12,7 +12,7 @@ export class RemoveTodoUseCase {
     private readonly todoRepo: Repository<Todo>,
   ) {}
 
-  async execute(expertAccountId: string, id: string) {
+  async execute(expertAccountId: number, id: number) {
     const todo = await this.todoRepo.findOne({
       where: { id, expert: { id: expertAccountId } },
     });

@@ -6,7 +6,7 @@ import {
 import { getCurrentUser } from './current-user.decorator';
 
 export const CurrentProfile = createParamDecorator(
-  (_data: undefined, ctx: ExecutionContext): string => {
+  (_data: undefined, ctx: ExecutionContext): number => {
     const user = getCurrentUser(ctx);
 
     if (!user.profile) {

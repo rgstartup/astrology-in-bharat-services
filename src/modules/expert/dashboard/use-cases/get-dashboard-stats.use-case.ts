@@ -18,7 +18,7 @@ export class GetDashboardStatsUseCase {
     private readonly callFacade: CallFacade,
   ) {}
 
-  async execute(expertProfileId: string, type: 'today' | 'total' = 'today') {
+  async execute(expertProfileId: number, type: 'today' | 'total' = 'today') {
     if (!expertProfileId) {
       throw new Error('Expert profile ID is required');
     }
@@ -27,33 +27,31 @@ export class GetDashboardStatsUseCase {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const reviewStats = await this.reviewsFacade.getReviewsStats(
-      expert_id as unknown as string,
-    );
+    const reviewStats = await this.reviewsFacade.getReviewsStats(expert_id);
 
     if (type === 'today') {
       const todayChatAppointments = await this.chatFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           startDate: startOfToday,
         },
       );
       const todayCallAppointments = await this.callFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           startDate: startOfToday,
         },
       );
 
       const completedToday = await this.chatFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           status: 'completed' as unknown as ChatSessionStatus,
           startDate: startOfToday,
         },
       );
       const completedCallsToday = await this.callFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           status: 'completed' as unknown as CallSessionStatus,
           startDate: startOfToday,
@@ -61,14 +59,14 @@ export class GetDashboardStatsUseCase {
       );
 
       const expiredToday = await this.chatFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           status: ['expired', 'cancelled'] as unknown as ChatSessionStatus[],
           startDate: startOfToday,
         },
       );
       const expiredCallsToday = await this.callFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           status: [
             'expired',
@@ -104,33 +102,33 @@ export class GetDashboardStatsUseCase {
       };
     } else {
       const totalChatAppointments = await this.chatFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
       );
       const totalCallAppointments = await this.callFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
       );
 
       const totalCompleted = await this.chatFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           status: 'completed' as unknown as ChatSessionStatus,
         },
       );
       const totalCompletedCalls = await this.callFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           status: 'completed' as unknown as CallSessionStatus,
         },
       );
 
       const totalExpired = await this.chatFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           status: ['expired', 'cancelled'] as unknown as ChatSessionStatus[],
         },
       );
       const totalExpiredCalls = await this.callFacade.getExpertSessionCount(
-        expert_id as unknown as string,
+        expert_id,
         {
           status: [
             'expired',

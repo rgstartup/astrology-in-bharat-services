@@ -8,7 +8,7 @@ import { Strategy } from 'passport-jwt';
 import { createJwtStrategyOptions } from '@/modules/auth/strategies/abstract/jwt.options';
 
 export interface ClientJwtPayload {
-  sub: string;
+  sub: number | string;
   email: string;
 }
 
@@ -28,7 +28,7 @@ export class ClientJwtStrategy extends PassportStrategy(
   async validate(payload: ClientJwtPayload): Promise<ClientAccount> {
     const client = await this.clientRepository.findOne({
       where: {
-        id: payload.sub,
+        id: Number(payload.sub),
       },
     });
 

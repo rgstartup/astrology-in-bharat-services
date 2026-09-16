@@ -16,7 +16,7 @@ export class AgentFindProfileStrategy implements IFindProfileStrategy {
     return role === RoleEnum.AGENT;
   }
 
-  async findProfile(userId: string): Promise<string | null> {
+  async findProfile(userId: number): Promise<number | null> {
     const profile = await this.profileRepo.findOne({
       where: { user_id: userId },
       select: ['id'],

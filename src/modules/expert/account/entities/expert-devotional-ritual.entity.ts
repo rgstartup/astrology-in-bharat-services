@@ -6,16 +6,16 @@ import {
   Unique,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ExpertAccount } from './account.entity';
 import { DevotionalRitual } from '@/modules/devotion/entities/devotional-ritual.entity';
 
 @Entity({ schema: 'expert', name: 'expert_devotional_rituals' })
 @Unique(['expert_id', 'ritual_id'])
 export class ExpertDevotionalRitual {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => ExpertAccount, (ea) => ea.devotional_rituals, {
     onDelete: 'CASCADE',
@@ -23,8 +23,8 @@ export class ExpertDevotionalRitual {
   @JoinColumn({ name: 'expert_id' })
   expert!: ExpertAccount;
 
-  @Column({ type: 'uuid' })
-  expert_id!: string;
+  @Column({ type: 'int' })
+  expert_id!: number;
 
   @ManyToOne(() => DevotionalRitual, (r) => r.expert_rituals, {
     eager: true,
@@ -33,8 +33,8 @@ export class ExpertDevotionalRitual {
   @JoinColumn({ name: 'ritual_id' })
   ritual!: DevotionalRitual;
 
-  @Column({ type: 'uuid' })
-  ritual_id!: string;
+  @Column({ type: 'int' })
+  ritual_id!: number;
 
   @Column({ type: 'float', default: 0 })
   online_price!: number;

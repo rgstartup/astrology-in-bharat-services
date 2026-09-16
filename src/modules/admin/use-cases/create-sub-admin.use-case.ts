@@ -13,7 +13,7 @@ export interface CreateSubAdminInput {
   email: string;
   password: string;
   permissions: AdminPermission[];
-  createdByAdminId: string;
+  createdByAdminId: number;
 }
 
 @Injectable()
@@ -58,7 +58,7 @@ export class CreateSubAdminUseCase {
         admin_id: input.createdByAdminId,
         action: 'CREATE_SUB_ADMIN',
         resource_type: 'SUB_ADMIN',
-        resource_id: saved.id,
+        resource_id: String(saved.id),
         details: {
           sub_admin_email: input.email,
           permissions_granted: input.permissions,

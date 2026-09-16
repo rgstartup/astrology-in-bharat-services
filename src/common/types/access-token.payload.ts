@@ -2,40 +2,40 @@ import { RoleEnum } from '@/modules/users/enums/Role.enum';
 import { AdminPermission } from '@/modules/users/enums/AdminPermission.enum';
 
 export interface IAccessTokenPayload {
-  sub: string; // user ID
+  sub: number; // user ID
   email: string;
   role: RoleEnum;
-  profile?: string;
+  profile?: number;
   // Sub-admin ke allowed pages. Super admin ke liye null (full access).
   admin_permissions?: AdminPermission[] | null;
 }
 
 export interface IUser extends Omit<IAccessTokenPayload, 'sub'> {
-  id: string;
+  id: number;
 }
 
 export interface IAccessTokenPayloadClient {
-  sub: string;
+  sub: number;
   email: string;
 }
 
 export interface IAccessTokenPayloadExpert {
-  sub: string;
+  sub: number;
   email: string;
 }
 
 export interface IExpert {
-  sub: string;
+  sub: number;
   email: string;
 }
 
 export interface IAccessTokenPayloadMerchant {
-  sub: string;
+  sub: number;
   email: string;
 }
 
 export interface IMerchant {
-  sub: string;
+  sub: number;
   email: string;
 }
 

@@ -7,12 +7,12 @@ export class ValidateBalanceUseCase {
   constructor(private readonly walletRepo: WalletRepository) {}
 
   async execute(
-    profileId: string,
+    profileId: number | string,
     walletKey: WalletKey,
     minAmount: number,
   ): Promise<boolean> {
     const wallet = await this.walletRepo.getOrCreateWallet(
-      profileId,
+      Number(profileId),
       walletKey,
     );
 

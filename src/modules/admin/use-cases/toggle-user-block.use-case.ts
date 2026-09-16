@@ -14,9 +14,9 @@ import { UsersFacade } from '@/modules/users/users.facade';
 import { AdminAuditLog } from '../entities/admin-audit-log.entity';
 
 export interface ToggleUserBlockInput {
-  targetUserId: string; // Jis user ko block/unblock karna hai
+  targetUserId: number; // Jis user ko block/unblock karna hai
   isBlocked: boolean; // true = block, false = unblock
-  adminId: string; // Action perform karne wala admin/sub-admin ki ID
+  adminId: number; // Action perform karne wala admin/sub-admin ki ID
   adminName: string; // Admin ka naam (frontend par dikhane ke liye)
 }
 
@@ -53,7 +53,7 @@ export class ToggleUserBlockUseCase {
         admin_id: adminId,
         action: isBlocked ? 'BLOCK_USER' : 'UNBLOCK_USER',
         resource_type: 'USER',
-        resource_id: targetUserId,
+        resource_id: String(targetUserId),
         details: {
           target_user_email: user.email,
           target_user_name: user.name,

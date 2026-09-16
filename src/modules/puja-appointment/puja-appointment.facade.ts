@@ -13,7 +13,7 @@ export class PujaAppointmentFacade {
     private readonly resolveAppointmentDetailsUseCase: ResolveAppointmentDetailsUseCase,
   ) {}
 
-  getUserAppointments(clientProfileId: string) {
+  getUserAppointments(clientProfileId: number) {
     return this.getUserPujaAppointmentsUseCase.execute(clientProfileId);
   }
 
@@ -21,7 +21,7 @@ export class PujaAppointmentFacade {
     return this.getPujaEarningsUseCase.execute(dateLimit);
   }
 
-  getExpertRevenueAndCount(expertProfileId: string) {
+  getExpertRevenueAndCount(expertProfileId: number) {
     return this.getExpertPujaAppointmentsUseCase.getRevenueAndCount(
       expertProfileId,
     );
@@ -31,7 +31,7 @@ export class PujaAppointmentFacade {
     return this.getExpertPujaAppointmentsUseCase.getAllExpertsRevenueAndCount();
   }
 
-  async resolveAppointmentDetails(appointmentIds: string[]) {
+  async resolveAppointmentDetails(appointmentIds: (string | number)[]) {
     return this.resolveAppointmentDetailsUseCase.execute(appointmentIds);
   }
 }

@@ -19,7 +19,7 @@ export class RejectCallUseCase {
     private readonly walletFacade: WalletFacade,
   ) {}
 
-  async execute(sessionId: string) {
+  async execute(sessionId: number) {
     console.log(`[RejectCallUseCase] Rejecting sessionId: ${sessionId}`);
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },

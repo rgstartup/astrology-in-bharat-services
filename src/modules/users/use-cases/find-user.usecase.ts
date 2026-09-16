@@ -8,7 +8,7 @@ import { UserRepository } from '../repositories/user.repository';
 export class FindUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async findById(id: string, queryRunner?: QueryRunner): Promise<User | null> {
+  async findById(id: number, queryRunner?: QueryRunner): Promise<User | null> {
     const user = await this.userRepository.findById(id, true, queryRunner);
     return user;
   }

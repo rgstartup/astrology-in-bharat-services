@@ -6,8 +6,8 @@ import { WalletKey } from '../entities/wallet.entity';
 export class GetBalanceUseCase {
   constructor(private readonly getWalletUseCase: GetWalletUseCase) {}
 
-  async execute(profileId: string, walletKey: WalletKey): Promise<number> {
+  async execute(profileId: string | number, walletKey: WalletKey): Promise<number> {
     const wallet = await this.getWalletUseCase.execute(profileId, walletKey);
-    return Number(wallet.balance);
+    return wallet.balance;
   }
 }

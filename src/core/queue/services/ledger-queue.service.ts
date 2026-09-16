@@ -12,7 +12,7 @@ export interface LedgerJobPayload {
   event_type: GeneralLedgerEventType;
   entry_type: GeneralLedgerEntryType;
   party_type: GeneralLedgerPartyType;
-  party_id: string | null;
+  party_id: number | null;
   amount: number;
   note?: string | null;
 }

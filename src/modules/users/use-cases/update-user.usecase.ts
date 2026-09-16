@@ -9,7 +9,7 @@ export class UpdateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
   async execute(
-    id: string,
+    id: number,
     data: Partial<User>,
     queryRunner?: QueryRunner,
   ): Promise<BooleanMessage> {

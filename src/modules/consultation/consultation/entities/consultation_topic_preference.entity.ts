@@ -5,9 +5,9 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ConsultationTopic } from './consultation_topic.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
@@ -22,11 +22,11 @@ import { ExpertAccount } from '@/modules/expert/account/entities/account.entity'
   where: '"expert_id" IS NOT NULL',
 })
 export class ConsultationTopicPreference {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  @Column({ type: 'uuid', nullable: true, name: 'client_id' })
-  client_id!: string | null;
+  @Column({ type: 'int', nullable: true, name: 'client_id' })
+  client_id!: number | null;
 
   @ManyToOne(
     () => ClientAccount,
@@ -39,8 +39,8 @@ export class ConsultationTopicPreference {
   @JoinColumn({ name: 'client_id' })
   client!: ClientAccount | null;
 
-  @Column({ type: 'uuid', nullable: true, name: 'expert_id' })
-  expert_id!: string | null;
+  @Column({ type: 'int', nullable: true, name: 'expert_id' })
+  expert_id!: number | null;
 
   @ManyToOne(
     () => ExpertAccount,
@@ -53,8 +53,8 @@ export class ConsultationTopicPreference {
   @JoinColumn({ name: 'expert_id' })
   expert!: ExpertAccount | null;
 
-  @Column({ type: 'uuid', name: 'topic_id' })
-  topic_id!: string;
+  @Column({ type: 'int', name: 'topic_id' })
+  topic_id!: number;
 
   @ManyToOne(() => ConsultationTopic, (topic) => topic.preferences, {
     onDelete: 'CASCADE',

@@ -8,7 +8,6 @@ import {
   Param,
   UseGuards,
   Query,
-  ParseUUIDPipe,
   DefaultValuePipe,
   ParseIntPipe,
 } from '@nestjs/common';
@@ -32,7 +31,7 @@ export class ReviewsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async createReview(
-    @CurrentProfile() clientId: string,
+    @CurrentProfile() clientId: number,
     @Body() body: CreateReviewDto,
   ) {
     return this.reviewsFacade.createReview(clientId, body);
@@ -49,21 +48,21 @@ export class ReviewsController {
   // ─── Public: Expert reviews ─────────────────────────────────────────────────
   @Get('expert/:expert_id')
   async getReviews(
-    @Param('expert_id', ParseUUIDPipe) expert_id: string,
+    @Param('expert_id', ParseIntPipe) expert_id: number,
     @Query() dto: GetReviewsDto,
   ) {
     return this.reviewsFacade.getExpertReviews(expert_id, dto);
   }
 
   @Get('expert/:expert_id/stats')
-  async getStats(@Param('expert_id', ParseUUIDPipe) expert_id: string) {
+  async getStats(@Param('expert_id', ParseIntPipe) expert_id: number) {
     return this.reviewsFacade.getReviewsStats(expert_id);
   }
 
   // ─── Public: Merchant reviews ────────────────────────────────────────────────
   @Get('merchant/:merchantId')
   async getMerchantReviews(
-    @Param('merchantId', ParseUUIDPipe) merchantId: string,
+    @Param('merchantId', ParseIntPipe) merchantId: number,
     @Query() dto: GetReviewsDto,
   ) {
     return this.reviewsFacade.getMerchantReviews(merchantId, dto);
@@ -90,7 +89,7 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async updateStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('status') status: string,
   ) {
     await this.reviewsFacade.updateReviewStatus(id, status);
@@ -101,7 +100,7 @@ export class ReviewsController {
   @Delete('admin/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
+  async deleteReview(@Param('id', ParseIntPipe) id: number) {
     await this.reviewsFacade.deleteReview(id);
     return { success: true };
   }

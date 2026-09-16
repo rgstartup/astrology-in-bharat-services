@@ -11,7 +11,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/guards/role.guard';
@@ -32,7 +32,7 @@ export class MerchantProductsController {
   @Get()
   @HttpCode(HttpStatus.OK)
   async findAll(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id') userId: number,
     @Query() dto: GetMerchantProductsDto,
   ) {
     const products = await this.productFacade.findMerchantProducts(userId, {
@@ -45,8 +45,8 @@ export class MerchantProductsController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async findOne(
-    @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) productId: string,
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) productId: number,
   ) {
     const product = await this.productFacade.findOneMerchantProduct(
       userId,
@@ -59,7 +59,7 @@ export class MerchantProductsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id') userId: number,
     @Body() dto: CreateMerchantProductDto,
   ) {
     const product = await this.productFacade.createMerchantProduct(userId, dto);
@@ -70,7 +70,7 @@ export class MerchantProductsController {
   @Patch('bulk-status')
   @HttpCode(HttpStatus.OK)
   async bulkStatus(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id') userId: number,
     @Body() dto: BulkUpdateStatusDto,
   ) {
     await this.productFacade.bulkUpdateMerchantProductStatus(
@@ -85,8 +85,8 @@ export class MerchantProductsController {
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async update(
-    @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) productId: string,
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) productId: number,
     @Body() dto: CreateMerchantProductDto,
   ) {
     await this.productFacade.updateMerchantProduct(userId, productId, dto);
@@ -97,8 +97,8 @@ export class MerchantProductsController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async remove(
-    @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) productId: string,
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) productId: number,
   ) {
     await this.productFacade.removeMerchantProduct(userId, productId);
     return { success: true };

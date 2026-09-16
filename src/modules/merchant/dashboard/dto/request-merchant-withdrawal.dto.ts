@@ -1,4 +1,5 @@
 import { IsNumber, IsPositive, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class RequestMerchantWithdrawalDto {
   @IsNumber()
@@ -6,5 +7,7 @@ export class RequestMerchantWithdrawalDto {
   amount: number;
 
   @IsNotEmpty()
-  bankAccountId: string | number;
+  @Type(() => Number)
+  @IsNumber()
+  bankAccountId: number;
 }

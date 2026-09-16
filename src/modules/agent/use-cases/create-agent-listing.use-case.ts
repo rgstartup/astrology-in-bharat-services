@@ -7,7 +7,7 @@ export class CreateAgentListingUseCase {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async execute(
-    userId: string,
+    userId: number,
     body: {
       type?: string;
       name?: string;

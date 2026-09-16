@@ -27,14 +27,14 @@ export class AccountFacade {
   ) {}
 
   async getAccount(
-    client: ClientAccount | { id: string },
+    client: ClientAccount | { id: number | string },
     queryRunner?: QueryRunner,
   ): Promise<ClientAccount | null> {
     return this.getAccountUseCase.execute(client, queryRunner);
   }
 
   async createAccount(
-    userId: string,
+    userId: number | string,
     dto: CreateClientAccountDto,
     queryRunner?: QueryRunner,
   ): Promise<ClientAccount> {
@@ -42,25 +42,25 @@ export class AccountFacade {
   }
 
   async updateAccount(
-    client: ClientAccount | { id: string },
+    client: ClientAccount | { id: number | string },
     dto: UpdateClientAccountDto,
   ) {
     return this.updateAccountUseCase.execute(client, dto);
   }
 
-  async updateAccountPicture(clientId: string, file: Express.Multer.File) {
+  async updateAccountPicture(clientId: number | string, file: Express.Multer.File) {
     return this.updateAccountPictureUseCase.execute(clientId, file);
   }
 
-  async uploadDocument(userId: string, file: Express.Multer.File) {
+  async uploadDocument(userId: number | string, file: Express.Multer.File) {
     return this.uploadDocumentUseCase.execute(userId, file);
   }
 
-  async sendPhoneOtp(userId: string, dto: SendPhoneOtpDto) {
+  async sendPhoneOtp(userId: number | string, dto: SendPhoneOtpDto) {
     return this.sendPhoneOtpUseCase.execute(userId, dto);
   }
 
-  async verifyPhoneOtp(userId: string, dto: VerifyPhoneOtpDto) {
+  async verifyPhoneOtp(userId: number | string, dto: VerifyPhoneOtpDto) {
     return this.verifyPhoneOtpUseCase.execute(userId, dto);
   }
 }

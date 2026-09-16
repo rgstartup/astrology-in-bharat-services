@@ -12,7 +12,7 @@ export class RemoveQuoteUseCase {
     private readonly quoteRepository: Repository<Quote>,
   ) {}
 
-  async execute(id: string): Promise<BooleanMessage> {
+  async execute(id: number): Promise<BooleanMessage> {
     const existing = await this.quoteRepository.findOneBy({ id });
     if (!existing) throw new QuoteNotFoundError(id);
     await this.quoteRepository.delete(id);

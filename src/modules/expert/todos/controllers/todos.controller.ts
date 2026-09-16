@@ -7,7 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { TodosFacade } from '../todos.facade';
 import { CreateTodoDto, UpdateTodoDto } from '../dto/todo.dto';
@@ -36,7 +36,7 @@ export class TodosController {
   @Patch(':id')
   async update(
     @CurrentExpert() expert: IExpert,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTodoDto,
   ) {
     await this.todosFacade.update(expert.sub, id, dto);
@@ -46,7 +46,7 @@ export class TodosController {
   @Delete(':id')
   async remove(
     @CurrentExpert() expert: IExpert,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     await this.todosFacade.remove(expert.sub, id);
     return { success: true };

@@ -16,7 +16,7 @@ export class RemoveBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(expertAccountId: string, id: string) {
+  async execute(expertAccountId: number, id: number) {
     const account = await this.getBankAccountUseCase.execute(
       expertAccountId,
       id,

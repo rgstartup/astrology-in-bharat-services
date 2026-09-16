@@ -15,7 +15,7 @@ export class ExpireSessionUseCase {
     @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
   ) {}
 
-  async execute(sessionId: string) {
+  async execute(sessionId: number) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
     });

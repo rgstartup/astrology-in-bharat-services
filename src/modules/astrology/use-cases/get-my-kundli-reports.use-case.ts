@@ -10,9 +10,9 @@ export class GetMyKundliReportsUseCase {
     private readonly reportRepository: Repository<KundliReport>,
   ) {}
 
-  async execute(clientId: string) {
+  async execute(clientId: number | string) {
     const reports = await this.reportRepository.find({
-      where: { client_id: clientId },
+      where: { client_id: Number(clientId) },
       order: { created_at: 'DESC' },
     });
 

@@ -1,9 +1,9 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsObject,
-  IsUUID,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateDisputeDto {
@@ -12,20 +12,24 @@ export class CreateDisputeDto {
   type: string;
 
   @IsOptional()
-  @IsUUID()
-  itemId?: string;
+  @Type(() => Number)
+  @IsNumber()
+  itemId?: number;
 
   @IsOptional()
-  @IsUUID()
-  orderId?: string;
+  @Type(() => Number)
+  @IsNumber()
+  orderId?: number;
 
   @IsOptional()
-  @IsUUID()
-  consultationId?: string;
+  @Type(() => Number)
+  @IsNumber()
+  consultationId?: number;
 
   @IsOptional()
-  @IsUUID()
-  pujaId?: string;
+  @Type(() => Number)
+  @IsNumber()
+  pujaId?: number;
 
   @IsNotEmpty()
   @IsString()

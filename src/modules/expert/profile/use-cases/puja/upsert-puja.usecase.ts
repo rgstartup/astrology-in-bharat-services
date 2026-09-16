@@ -59,7 +59,7 @@ export class UpsertPujaUseCase {
     }
   }
 
-  async execute(user: IUser, dto: ExpertPujaDto, id?: string) {
+  async execute(user: IUser, dto: ExpertPujaDto, id?: number) {
     const where = user.profile
       ? { id: user.profile, user: { id: user.id } }
       : { user: { id: user.id } };

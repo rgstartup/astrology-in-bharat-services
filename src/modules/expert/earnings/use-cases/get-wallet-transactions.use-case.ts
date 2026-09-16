@@ -7,7 +7,7 @@ import { GetExpertTransactionsDto } from '../dto/get-expert-transactions.dto';
 export class GetWalletTransactionsUseCase {
   constructor(private readonly walletFacade: WalletFacade) {}
 
-  async execute(expertProfileId: string, dto: GetExpertTransactionsDto) {
+  async execute(expertProfileId: number, dto: GetExpertTransactionsDto) {
     const { limit = 10, page = 1, offset, type = 'all' } = dto;
     const parsedOffset = offset !== undefined ? offset : (page - 1) * limit;
 

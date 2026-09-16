@@ -12,7 +12,7 @@ export class UpdateSessionMetadataUseCase {
   ) {}
 
   async execute(
-    sessionId: string,
+    sessionId: number,
     metadata: Record<string, unknown>,
   ): Promise<BooleanMessage> {
     const session = await this.sessionRepo.findOne({

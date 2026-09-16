@@ -13,7 +13,7 @@ import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
 
 export interface ResolvedCommission {
   amount: number;
-  ruleId: string | null;
+  ruleId: number | string | null;
 }
 
 const LEGACY_SETTING_MAP: Partial<
@@ -100,7 +100,7 @@ export class ResolveCommissionUseCase {
   async execute(
     eventType: CommissionEventType,
     commissionType: CommissionType,
-    profileId: string | null,
+    profileId: number | string | null,
     role: CommissionAppliesRole,
     grossAmount: number,
   ): Promise<ResolvedCommission> {
@@ -124,8 +124,8 @@ export class ResolveCommissionUseCase {
 
     // Specificity: individual → role → all
     const rule =
-      (profileId
-        ? activeRules.find((r) => r.applies_to_id === profileId)
+      (profileId != null
+        ? activeRules.find((r) => r.applies_to_id === Number(profileId))
         : undefined) ??
       activeRules.find(
         (r) => r.applies_to_role === role && r.applies_to_id === null,

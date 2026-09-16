@@ -10,7 +10,7 @@ export class MarkClientNotificationAsReadUseCase {
     private readonly notificationRepo: Repository<Notification>,
   ) {}
 
-  async execute(id: string, clientId: string): Promise<void> {
+  async execute(id: number, clientId: number): Promise<void> {
     const notification = await this.notificationRepo.findOne({
       where: { id, client_id: clientId },
     });

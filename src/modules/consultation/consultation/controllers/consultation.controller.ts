@@ -8,7 +8,7 @@ import { GetUnifiedHistoryUseCase } from '../use-cases/get-unified-history.use-c
 import { CallFacade } from '@/modules/consultation/call/call.facade';
 import { ChatFacade } from '@/modules/consultation/chat/chat.facade';
 import { GetUnifiedHistoryDto } from '../dto/get-unified-history.dto';
-import { Post, Param, ParseUUIDPipe } from '@nestjs/common';
+import { Post, Param, ParseIntPipe } from '@nestjs/common';
 
 @Controller({
   path: 'consultations',
@@ -25,7 +25,7 @@ export class ConsultationController {
   @Get('history')
   @Header('Cache-Control', 'no-store')
   async getHistory(
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @CurrentUser() user: IUser,
     @Query() dto: GetUnifiedHistoryDto,
   ) {
@@ -53,7 +53,7 @@ export class ConsultationController {
 
   @Post('reject/:sessionId')
   async reject(
-    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('sessionId', ParseIntPipe) sessionId: number,
     @Query('type') type?: string,
   ) {
     if (type === 'call') {

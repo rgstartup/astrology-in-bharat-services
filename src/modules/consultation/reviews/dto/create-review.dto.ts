@@ -7,25 +7,30 @@ import {
   IsIn,
   Max,
   Min,
-  IsUUID,
+  IsInt,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateReviewDto {
   @IsOptional()
-  @IsUUID()
-  expert_id?: string;
+  @Type(() => Number)
+  @IsInt()
+  expert_id?: number;
 
   @IsOptional()
-  @IsUUID()
-  merchantId?: string;
+  @Type(() => Number)
+  @IsInt()
+  merchantId?: number;
 
   @IsOptional()
-  @IsUUID()
-  orderId?: string;
+  @Type(() => Number)
+  @IsInt()
+  orderId?: number;
 
   @IsOptional()
-  @IsUUID()
-  sessionId?: string;
+  @Type(() => Number)
+  @IsInt()
+  sessionId?: number;
 
   @IsNotEmpty()
   @IsNumber()

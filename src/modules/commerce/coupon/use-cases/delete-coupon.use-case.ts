@@ -11,8 +11,8 @@ export class DeleteCouponUseCase {
     private readonly couponRepository: Repository<Coupon>,
   ) {}
 
-  async execute(id: string) {
-    const coupon = await this.couponRepository.findOne({ where: { id } });
+  async execute(id: number | string) {
+    const coupon = await this.couponRepository.findOne({ where: { id: Number(id) } });
     if (!coupon) {
       throw new NotFoundException('Coupon not found');
     }

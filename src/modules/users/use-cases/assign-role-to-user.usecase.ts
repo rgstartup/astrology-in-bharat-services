@@ -9,7 +9,7 @@ export class AssignRoleToUserUseCase {
   constructor(private readonly userRepository: UserRepository) { }
 
   async execute(
-    userId: string,
+    userId: number,
     roleName: RoleEnum,
     queryRunner?: QueryRunner,
   ): Promise<User> {

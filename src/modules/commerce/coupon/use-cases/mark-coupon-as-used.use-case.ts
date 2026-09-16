@@ -14,7 +14,7 @@ export class MarkCouponAsUsedUseCase {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(profileId: string, code: string, manager?: EntityManager) {
+  async execute(profileId: number | string, code: string, manager?: EntityManager) {
     const executeLogic = async (mgr: EntityManager) => {
       const repo = mgr.getRepository(Coupon);
       const userCouponRepo = mgr.getRepository(UserCoupon);
@@ -35,7 +35,7 @@ export class MarkCouponAsUsedUseCase {
 
       // Record user usage
       let userCoupon = await userCouponRepo.findOne({
-        where: { client_id: profileId, coupon_id: coupon.id },
+        where: { client_id: Number(profileId), coupon_id: coupon.id },
       });
 
       if (userCoupon) {
@@ -43,7 +43,7 @@ export class MarkCouponAsUsedUseCase {
         userCoupon.used_at = new Date();
       } else {
         userCoupon = userCouponRepo.create({
-          client_id: profileId,
+          client_id: Number(profileId),
           coupon_id: coupon.id,
           is_used: true,
           used_at: new Date(),
@@ -51,17 +51,23 @@ export class MarkCouponAsUsedUseCase {
       }
 
       await userCouponRepo.save(userCoupon);
+
+      return {
+        success: true,
+        message: 'Coupon applied and marked as used',
+      };
     };
 
     if (manager) {
-      await executeLogic(manager);
+      return await executeLogic(manager);
     } else {
       const queryRunner = this.dataSource.createQueryRunner();
       await queryRunner.connect();
       await queryRunner.startTransaction();
       try {
-        await executeLogic(queryRunner.manager);
+        const result = await executeLogic(queryRunner.manager);
         await queryRunner.commitTransaction();
+        return result;
       } catch (err) {
         await queryRunner.rollbackTransaction();
         throw err;

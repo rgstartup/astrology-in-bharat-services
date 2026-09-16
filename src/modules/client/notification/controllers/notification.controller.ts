@@ -5,7 +5,7 @@ import {
   Patch,
   Delete,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Query,
 } from '@nestjs/common';
 import { ClientNotificationFacade } from '../notification.facade';
@@ -52,7 +52,7 @@ export class ClientNotificationController {
   @Patch(':id/read')
   async markAsRead(
     @CurrentClient() client: ClientAccount,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     await this.clientNotificationFacade.markAsRead(id, client.id);
     return new BooleanMessage(true, "Notification marked as read");

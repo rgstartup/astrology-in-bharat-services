@@ -3,7 +3,7 @@ import {
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Put,
   Query,
   UseGuards,
@@ -33,7 +33,7 @@ export class ProfessionController {
 
   @Public()
   @Get(':id')
-  async getProfessionById(@Param('id', ParseUUIDPipe) id: string) {
+  async getProfessionById(@Param('id', ParseIntPipe) id: number) {
     return this.professionFacade.getProfessionById(id);
   }
 }

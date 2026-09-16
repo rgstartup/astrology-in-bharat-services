@@ -10,13 +10,13 @@ export class RemoveCartItemUseCase {
     private cartItemRepository: Repository<CartItem>,
   ) {}
 
-  async execute(clientId: string, productId: string) {
+  async execute(clientId: number | string, productId: number | string) {
     const cartItem = await this.cartItemRepository
       .createQueryBuilder('cartItem')
       .innerJoin('cartItem.cart', 'cart')
       .innerJoin('cart.client', 'client')
-      .where('client.id = :clientId', { clientId })
-      .andWhere('cartItem.product_id = :productId', { productId })
+      .where('client.id = :clientId', { clientId: Number(clientId) })
+      .andWhere('cartItem.product_id = :productId', { productId: Number(productId) })
       .getOne();
 
     if (!cartItem) {

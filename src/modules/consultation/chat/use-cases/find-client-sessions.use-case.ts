@@ -10,7 +10,7 @@ export class FindClientSessionsUseCase {
     private sessionRepo: Repository<ChatSession>,
   ) {}
 
-  async execute(clientId: string) {
+  async execute(clientId: number) {
     return this.sessionRepo.find({
       where: { client_id: clientId },
       relations: ['client', 'client.user', 'expert', 'expert.user'],

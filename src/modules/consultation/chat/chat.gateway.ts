@@ -27,11 +27,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   private logger: Logger = new Logger('ChatGateway');
-  private sessionTimers = new Map<string, NodeJS.Timeout>();
-  private expertSockets = new Map<string, string>(); // expert_id -> socketId
-  private disconnectTimers = new Map<string, NodeJS.Timeout>(); // expert_id -> timeout
-  private socketToSession = new Map<string, string>(); // socketId -> sessionId
-  private sessionDisconnectTimeouts = new Map<string, NodeJS.Timeout>(); // sessionId -> timeout
+  private sessionTimers = new Map<number, NodeJS.Timeout>();
+  private expertSockets = new Map<number, string>(); // expert_id -> socketId
+  private disconnectTimers = new Map<number, NodeJS.Timeout>(); // expert_id -> timeout
+  private socketToSession = new Map<string, number>(); // socketId -> sessionId
+  private sessionDisconnectTimeouts = new Map<number, NodeJS.Timeout>(); // sessionId -> timeout
 
   constructor(
     @Inject(forwardRef(() => ChatFacade))
@@ -125,19 +125,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('register_expert')
   handleRegisterExpert(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { expert_id: string },
+    @MessageBody() payload: { expert_id: number | string },
   ) {
-    this.expertSockets.set(payload.expert_id, client.id);
-    void client.join(`expert_${payload.expert_id}`); // Join a private notification room
+    const expert_id = Number(payload.expert_id);
+    this.expertSockets.set(expert_id, client.id);
+    void client.join(`expert_${expert_id}`); // Join a private notification room
     this.logger.log(
-      `Expert ${payload.expert_id} registered and joined expert_${payload.expert_id}`,
+      `Expert ${expert_id} registered and joined expert_${expert_id}`,
     );
 
-    if (this.disconnectTimers.has(payload.expert_id)) {
-      clearTimeout(this.disconnectTimers.get(payload.expert_id)!);
-      this.disconnectTimers.delete(payload.expert_id);
+    if (this.disconnectTimers.has(expert_id)) {
+      clearTimeout(this.disconnectTimers.get(expert_id)!);
+      this.disconnectTimers.delete(expert_id);
       this.logger.log(
-        `Expert ${payload.expert_id} reconnected. Cancelled disconnect timer.`,
+        `Expert ${expert_id} reconnected. Cancelled disconnect timer.`,
       );
     }
 
@@ -147,15 +148,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('force_end_active_chats')
   async handleForceEndActiveChats(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { expert_id: string },
+    @MessageBody() payload: { expert_id: number | string },
   ) {
+    const expert_id = Number(payload.expert_id);
     this.logger.log(
-      `Received force_end_active_chats for expert ${payload.expert_id}`,
+      `Received force_end_active_chats for expert ${expert_id}`,
     );
     try {
       const activeSessions = await this.sessionRepo.find({
         where: {
-          expert_id: payload.expert_id,
+          expert_id,
           status: ChatSessionStatus.ACTIVE,
         },
       });
@@ -167,18 +169,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     } catch (error) {
       this.logger.error(
-        `Error ending active chats for expert ${payload.expert_id} on force end:`,
+        `Error ending active chats for expert ${expert_id} on force end:`,
         error,
       );
     }
   }
 
-  async getWalletBalance(profileId: string): Promise<number> {
+  async getWalletBalance(profileId: number): Promise<number> {
     return this.walletFacade.getBalance(profileId, 'client_id');
   }
 
   async getWallet(
-    profileId: string,
+    profileId: number,
     walletKey:
       | 'client_id'
       | 'expert_id'
@@ -188,7 +190,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.walletFacade.getWallet(profileId, walletKey);
   }
 
-  notifyExpertNewRequest(expert_id: string, session: ChatSession) {
+  notifyExpertNewRequest(expert_id: number, session: ChatSession) {
     this.server.to(`expert_${expert_id}`).emit('new_chat_request', session);
     this.logger.log(
       `Notified expert room expert_${expert_id} of new session ${session.id}`,
@@ -199,7 +201,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Notify an expert's dashboard about any session status change
    */
   notifyExpertStatusUpdate(
-    expert_id: string,
+    expert_id: number,
     event: 'session_activated' | 'session_ended',
     data: unknown,
   ) {
@@ -212,9 +214,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('join_room')
   async handleJoinRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { sessionId: string },
+    @MessageBody() payload: { sessionId: number | string },
   ) {
-    const session = await this.chatFacade.getSession(payload.sessionId);
+    const sessionId = Number(payload.sessionId);
+    const session = await this.chatFacade.getSession(sessionId);
     if (!session) {
       return { status: 'error', message: 'Session not found' };
     }
@@ -229,26 +232,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       };
     }
 
-    void client.join(`room_${payload.sessionId}`);
-    this.logger.log(`Client ${client.id} joined room_${payload.sessionId}`);
+    void client.join(`room_${sessionId}`);
+    this.logger.log(`Client ${client.id} joined room_${sessionId}`);
 
     // Track for auto-disconnect
-    this.socketToSession.set(client.id, payload.sessionId);
+    this.socketToSession.set(client.id, sessionId);
 
     // Clear any existing session disconnect timeout if they reconnected in time
-    if (this.sessionDisconnectTimeouts.has(payload.sessionId)) {
+    if (this.sessionDisconnectTimeouts.has(sessionId)) {
       this.logger.log(
-        `[ChatGateway] 🔄 User reconnected to chat session ${payload.sessionId}. Cleared auto-end timer.`,
+        `[ChatGateway] 🔄 User reconnected to chat session ${sessionId}. Cleared auto-end timer.`,
       );
-      clearTimeout(this.sessionDisconnectTimeouts.get(payload.sessionId));
-      this.sessionDisconnectTimeouts.delete(payload.sessionId);
+      clearTimeout(this.sessionDisconnectTimeouts.get(sessionId));
+      this.sessionDisconnectTimeouts.delete(sessionId);
     }
 
     return { status: 'joined' };
   }
 
   public async activateSession(
-    sessionId: string,
+    sessionId: number,
     sessionData?: Partial<ChatSession>,
     introCardData?: unknown,
   ) {
@@ -468,20 +471,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('activate_session')
   async handleActivateSession(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { sessionId: string },
+    @MessageBody() payload: { sessionId: number | string },
   ) {
-    await this.activateSession(payload.sessionId);
+    await this.activateSession(Number(payload.sessionId));
   }
 
   @SubscribeMessage('confirm_paid_continuation')
   async handleConfirmContinuation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { sessionId: string },
+    @MessageBody() payload: { sessionId: number | string },
   ) {
     try {
-      const session = await this.chatFacade.convertToPaid(payload.sessionId);
+      const sessionId = Number(payload.sessionId);
+      const session = await this.chatFacade.convertToPaid(sessionId);
       this.server
-        .to(`room_${payload.sessionId}`)
+        .to(`room_${sessionId}`)
         .emit('continuation_confirmed', {
           message:
             'Continuation confirmed. Chat will continue as a paid session.',
@@ -498,8 +502,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody()
     payload: {
-      sessionId: string;
-      senderId: string;
+      sessionId: number | string;
+      senderId: number | string;
       senderType: 'user' | 'expert';
       content: string;
       type?: MessageType;
@@ -507,23 +511,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       attachmentType?: string;
     },
   ) {
+    const sessionId = Number(payload.sessionId);
+    const senderId = Number(payload.senderId);
+
     console.log(
-      `[ChatGateway] Received send_message from ${payload.senderType} (${payload.senderId}) for room_${payload.sessionId}. Payload:`,
+      `[ChatGateway] Received send_message from ${payload.senderType} (${senderId}) for room_${sessionId}. Payload:`,
       payload,
     );
     // Validation: Only allow messages if session is active
-    const session = await this.chatFacade.getSession(payload.sessionId);
+    const session = await this.chatFacade.getSession(sessionId);
     if (!session || session.status !== ChatSessionStatus.ACTIVE) {
       console.log(
-        `[ChatGateway] Chat is not active for session ${payload.sessionId}. Status: ${session?.status}`,
+        `[ChatGateway] Chat is not active for session ${sessionId}. Status: ${session?.status}`,
       );
       return { status: 'error', message: 'Chat is not active' };
     }
 
     try {
       const savedMsg = await this.chatFacade.saveMessage(
-        payload.sessionId,
-        payload.senderId,
+        sessionId,
+        senderId,
         payload.senderType,
         payload.content,
         payload.type || MessageType.TEXT,
@@ -532,13 +539,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       console.log(
-        `[ChatGateway] Message saved successfully. Emitting new_message to room_${payload.sessionId}...`,
+        `[ChatGateway] Message saved successfully. Emitting new_message to room_${sessionId}...`,
         savedMsg,
       );
 
       // Use client to ensure we are emitting in the correct namespace
       // client.to(room) emits to everyone in the room EXCEPT the sender
-      client.to(`room_${payload.sessionId}`).emit('new_message', savedMsg);
+      client.to(`room_${sessionId}`).emit('new_message', savedMsg);
       // client.emit sends to the sender themselves
       client.emit('new_message', savedMsg);
 
@@ -555,12 +562,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('end_chat')
   async handleEndChat(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { sessionId: string },
+    @MessageBody() payload: { sessionId: number | string },
   ) {
-    const session = await this.chatFacade.endChat(payload.sessionId);
+    const sessionId = Number(payload.sessionId);
+    const session = await this.chatFacade.endChat(sessionId);
 
     // Broadcast to the room so BOTH User and Expert know immediately
-    this.server.to(`room_${payload.sessionId}`).emit('session_ended', session);
+    this.server.to(`room_${sessionId}`).emit('session_ended', session);
 
     // ✅ Broadcast expert is now FREE again
     if (session && session.expert_id) {
@@ -579,9 +587,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
     }
 
-    if (this.sessionTimers.has(payload.sessionId)) {
-      clearInterval(this.sessionTimers.get(payload.sessionId));
-      this.sessionTimers.delete(payload.sessionId);
+    if (this.sessionTimers.has(sessionId)) {
+      clearInterval(this.sessionTimers.get(sessionId));
+      this.sessionTimers.delete(sessionId);
     }
 
     return session;
@@ -591,9 +599,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleTyping(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    payload: { sessionId: string; senderName: string; isTyping: boolean },
+    payload: { sessionId: number | string; senderName: string; isTyping: boolean },
   ) {
-    client.to(`room_${payload.sessionId}`).emit('typing_status', payload);
+    const sessionId = Number(payload.sessionId);
+    client.to(`room_${sessionId}`).emit('typing_status', payload);
   }
 
   @SubscribeMessage('admin_terminate_session')
@@ -601,16 +610,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody()
     payload: {
-      sessionId: string;
-      adminId: string;
+      sessionId: number | string;
+      adminId: number | string;
       userMessage?: string;
       expertMessage?: string;
     },
   ) {
     try {
+      const sessionId = Number(payload.sessionId);
+      const adminId = Number(payload.adminId);
       const session = await this.chatFacade.adminTerminateSession(
-        payload.sessionId,
-        payload.adminId,
+        sessionId,
+        adminId,
         payload.userMessage,
         payload.expertMessage,
       );

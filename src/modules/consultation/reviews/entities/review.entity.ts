@@ -4,6 +4,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
@@ -11,50 +12,49 @@ import { MerchantAccount } from '@/modules/merchant/account/entities/account.ent
 import { ChatSession } from '@/modules/consultation/chat/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/entities/call-session.entity';
 import { Order } from '@/modules/commerce/order/entities/order.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'consultations', name: 'reviews' })
 export class Review {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  @Column({ type: 'uuid', name: 'client_id' })
-  client_id!: string;
+  @Column({ type: 'int', name: 'client_id' })
+  client_id!: number;
 
   @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
   client!: ClientAccount;
 
-  @Column({ type: 'uuid', name: 'order_id', nullable: true })
-  order_id!: string | null;
+  @Column({ type: 'int', name: 'order_id', nullable: true })
+  order_id!: number | null;
 
   @ManyToOne(() => Order, { nullable: true })
   @JoinColumn({ name: 'order_id' })
   order!: Order | null;
 
-  @Column({ type: 'uuid', name: 'expert_id', nullable: true })
-  expert_id!: string | null;
+  @Column({ type: 'int', name: 'expert_id', nullable: true })
+  expert_id!: number | null;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
   expert!: ProfileExpert;
 
-  @Column({ type: 'uuid', name: 'merchant_id', nullable: true })
-  merchant_id!: string | null;
+  @Column({ type: 'int', name: 'merchant_id', nullable: true })
+  merchant_id!: number | null;
 
   @ManyToOne(() => MerchantAccount)
   @JoinColumn({ name: 'merchant_id' })
   merchant!: MerchantAccount;
 
-  @Column({ type: 'uuid', nullable: true, name: 'session_id' })
-  session_id!: string | null;
+  @Column({ type: 'int', nullable: true, name: 'session_id' })
+  session_id!: number | null;
 
   @ManyToOne(() => ChatSession, { nullable: true })
   @JoinColumn({ name: 'session_id' })
   session!: ChatSession;
 
-  @Column({ type: 'uuid', nullable: true, name: 'call_session_id' })
-  call_session_id!: string | null;
+  @Column({ type: 'int', nullable: true, name: 'call_session_id' })
+  call_session_id!: number | null;
 
   @ManyToOne(() => CallSession, { nullable: true })
   @JoinColumn({ name: 'call_session_id' })

@@ -12,7 +12,7 @@ export class DevotionFacade {
     return this.getDevotionalRitualsUseCase.execute(dto);
   }
 
-  getRitualById(id: string) {
+  getRitualById(id: number) {
     return this.getDevotionalRitualsUseCase.getById(id);
   }
 }

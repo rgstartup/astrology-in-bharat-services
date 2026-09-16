@@ -12,7 +12,7 @@ export class UploadDocumentUseCase {
 
   constructor(private readonly imageUploadService: ImageUploadService) {}
 
-  async execute(userId: string, file: Express.Multer.File) {
+  async execute(userId: number | string, file: Express.Multer.File) {
     this.logger.log(`Received upload request from user: ${userId}`);
 
     if (!file) {

@@ -15,7 +15,7 @@ export class SendOrderOtpUseCase {
     private emailService: NodeMailerService,
   ) {}
 
-  async execute(merchantId: string, orderId: string) {
+  async execute(merchantId: number, orderId: number) {
     const { order, merchantItems } = await this.orderFacade.sendOrderOtp(
       orderId,
       merchantId,

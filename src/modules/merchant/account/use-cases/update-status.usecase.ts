@@ -33,7 +33,7 @@ export class UpdateMerchantStatusUseCase {
   }
 
   async updateVerification(
-    id: string,
+    id: number,
     status: MerchantStatus,
     isVerified?: boolean,
   ): Promise<MerchantAccountResponseDto> {

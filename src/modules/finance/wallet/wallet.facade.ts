@@ -73,16 +73,16 @@ export class WalletFacade {
     private readonly createCommissionSplitUseCase: CreateCommissionSplitUseCase,
   ) {}
 
-  async getWallet(profileId: string, walletKey: WalletKey) {
+  async getWallet(profileId: string | number, walletKey: WalletKey) {
     return this.getWalletUseCase.execute(profileId, walletKey);
   }
 
-  async getBalance(profileId: string, walletKey: WalletKey) {
+  async getBalance(profileId: string | number, walletKey: WalletKey) {
     return this.getBalanceUseCase.execute(profileId, walletKey);
   }
 
   async validateBalance(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     minAmount: number,
   ) {
@@ -90,14 +90,14 @@ export class WalletFacade {
   }
 
   async topUp(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     amount: number,
     referenceId?: string,
     externalQueryRunner?: QueryRunner,
   ) {
     return this.topUpUseCase.execute(
-      profileId,
+      Number(profileId),
       walletKey,
       amount,
       referenceId,
@@ -106,7 +106,7 @@ export class WalletFacade {
   }
 
   async credit(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     amount: number,
     purpose: TransactionPurpose,
@@ -114,7 +114,7 @@ export class WalletFacade {
     externalQueryRunner?: QueryRunner,
   ) {
     return this.creditUseCase.execute(
-      profileId,
+      Number(profileId),
       walletKey,
       amount,
       purpose,
@@ -124,7 +124,7 @@ export class WalletFacade {
   }
 
   async debit(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     amount: number,
     purpose: TransactionPurpose,
@@ -133,7 +133,7 @@ export class WalletFacade {
     allowNegative: boolean = false,
   ) {
     return this.debitUseCase.execute(
-      profileId,
+      Number(profileId),
       walletKey,
       amount,
       purpose,
@@ -144,14 +144,14 @@ export class WalletFacade {
   }
 
   async reserveBalance(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     amount: number,
     referenceId: string,
     externalQueryRunner?: QueryRunner,
   ) {
     return this.reserveBalanceUseCase.execute(
-      profileId,
+      Number(profileId),
       walletKey,
       amount,
       referenceId,
@@ -160,14 +160,14 @@ export class WalletFacade {
   }
 
   async deductFromReserved(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     amount: number,
     referenceId: string,
     externalQueryRunner?: QueryRunner,
   ) {
     return this.deductFromReservedUseCase.execute(
-      profileId,
+      Number(profileId),
       walletKey,
       amount,
       referenceId,
@@ -176,14 +176,14 @@ export class WalletFacade {
   }
 
   async releaseReserved(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     amount: number,
     referenceId: string,
     externalQueryRunner?: QueryRunner,
   ) {
     return this.releaseReservedUseCase.execute(
-      profileId,
+      Number(profileId),
       walletKey,
       amount,
       referenceId,
@@ -192,7 +192,7 @@ export class WalletFacade {
   }
 
   async getTransactions(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     dtoOrLimit?: GetTransactionsDto | string,
     offset?: string,
@@ -201,14 +201,14 @@ export class WalletFacade {
   ) {
     if (dtoOrLimit && typeof dtoOrLimit === 'object') {
       return this.getTransactionsUseCase.execute(
-        profileId,
+        Number(profileId),
         walletKey,
         dtoOrLimit,
       );
     }
     const limitNum = dtoOrLimit ? parseInt(dtoOrLimit, 10) : undefined;
     const offsetNum = offset ? parseInt(offset, 10) : undefined;
-    return this.getTransactionsUseCase.execute(profileId, walletKey, {
+    return this.getTransactionsUseCase.execute(Number(profileId), walletKey, {
       limit: limitNum,
       offset: offsetNum,
       type,
@@ -217,7 +217,7 @@ export class WalletFacade {
   }
 
   async getMerchantTransactions(
-    merchantProfileId: string,
+    merchantProfileId: string | number,
     options: { search?: string; page?: number; limit?: number },
   ) {
     return this.getMerchantTransactionsUseCase.execute(
@@ -227,11 +227,15 @@ export class WalletFacade {
   }
 
   async getTotalEarnings(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     options: { startDate?: Date; endDate?: Date } = {},
   ) {
-    return this.getTotalEarningsUseCase.execute(profileId, walletKey, options);
+    return this.getTotalEarningsUseCase.execute(
+      Number(profileId),
+      walletKey,
+      options,
+    );
   }
 
   async getGlobalEarnings() {
@@ -239,7 +243,7 @@ export class WalletFacade {
   }
 
   async getWithdrawalsStatus(
-    profileId: string | undefined,
+    profileId: string | number | undefined,
     walletKey: WalletKey,
   ) {
     if (!profileId) throw new Error('profileId is required');
@@ -247,13 +251,13 @@ export class WalletFacade {
   }
 
   async getWithdrawals(
-    profileId: string,
+    profileId: string | number,
     walletKey: WalletKey,
     limit?: number,
     offset?: number,
   ) {
     return this.getWithdrawalsUseCase.execute(
-      profileId,
+      Number(profileId),
       walletKey,
       limit,
       offset,
@@ -261,10 +265,10 @@ export class WalletFacade {
   }
 
   async requestWithdrawal(
-    profileId: string,
+    profileId: number,
     walletKey: WalletKey,
     amount: number,
-    bank_account_id?: string | number,
+    bank_account_id?: number,
     idempotencyKey?: string,
     securityMetadata?: { ip?: string; ua?: string },
   ) {
@@ -293,9 +297,9 @@ export class WalletFacade {
   }
 
   async updateWithdrawalStatus(
-    id: string,
+    id: string | number,
     status: WithdrawalStatus,
-    adminId: string,
+    adminId: string | number,
     remark?: string,
   ) {
     return this.updateWithdrawalStatusUseCase.execute(
@@ -341,7 +345,7 @@ export class WalletFacade {
   async resolveCommission(
     eventType: CommissionEventType,
     commissionType: CommissionType,
-    profileId: string | null,
+    profileId: string | number | null,
     role: CommissionAppliesRole,
     grossAmount: number,
   ) {

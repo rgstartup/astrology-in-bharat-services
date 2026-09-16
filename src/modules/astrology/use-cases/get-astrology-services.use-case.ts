@@ -52,8 +52,8 @@ export class GetAstrologyServicesUseCase {
     return PaginatedResponseDto.from(items, total, dto);
   }
 
-  async getById(id: string): Promise<AstrologyService> {
-    const item = await this.serviceRepo.findOne({ where: { id } });
+  async getById(id: number | string): Promise<AstrologyService> {
+    const item = await this.serviceRepo.findOne({ where: { id: Number(id) } });
     if (!item) {
       throw new NotFoundException('Astrology service not found');
     }

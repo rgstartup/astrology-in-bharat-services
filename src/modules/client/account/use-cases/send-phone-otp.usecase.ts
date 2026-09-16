@@ -17,7 +17,7 @@ export class SendPhoneOtpUseCase {
     private readonly accountRepo: Repository<ClientAccount>,
   ) {}
 
-  async execute(userId: string, dto: SendPhoneOtpDto): Promise<BooleanMessage> {
+  async execute(userId: number | string, dto: SendPhoneOtpDto): Promise<BooleanMessage> {
     const { phone } = dto;
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -55,8 +55,8 @@ export class SendPhoneOtpUseCase {
 
     if (
       existingAccount &&
-      existingAccount.user?.id !== userId &&
-      existingAccount.id !== userId &&
+      existingAccount.user?.id !== Number(userId) &&
+      existingAccount.id !== Number(userId) &&
       existingAccount.phone_verified_at
     ) {
       throw new BadRequestException(

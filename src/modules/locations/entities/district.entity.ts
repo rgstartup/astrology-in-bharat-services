@@ -3,14 +3,14 @@ import { StateEntity } from './state.entity';
 
 @Entity('districts')
 export class DistrictEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ type: 'varchar', length: 150 })
   name: string;
 
-  @Column({ type: 'uuid' })
-  state_id: string;
+  @Column({ type: 'int' })
+  state_id: number;
 
   @ManyToOne(() => StateEntity, state => state.districts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'state_id' })

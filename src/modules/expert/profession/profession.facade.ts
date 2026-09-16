@@ -17,7 +17,7 @@ export class ProfessionFacade {
     return this.getProfessionsUseCase.execute(dto);
   }
 
-  getProfessionById(id: string) {
+  getProfessionById(id: number) {
     return this.getProfessionsUseCase.getById(id);
   }
 

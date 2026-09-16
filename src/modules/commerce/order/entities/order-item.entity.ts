@@ -4,29 +4,29 @@ import {
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Order } from './order.entity';
 import { Product } from '@/modules/commerce/product/entities/product.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'order_items' })
 export class OrderItem {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => Order, (order) => order.items, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'order_id' })
   order!: Order;
 
-  @Column({ name: 'order_id', type: 'uuid' })
-  order_id!: string;
+  @Column({ name: 'order_id', type: 'int' })
+  order_id!: number;
 
   @ManyToOne(() => Product)
   @JoinColumn({ name: 'product_id' })
   product!: Product;
 
-  @Column({ name: 'product_id', type: 'uuid' })
-  product_id!: string;
+  @Column({ name: 'product_id', type: 'int' })
+  product_id!: number;
 
   @Column({ type: 'int' })
   quantity!: number;

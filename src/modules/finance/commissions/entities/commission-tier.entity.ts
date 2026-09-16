@@ -1,11 +1,10 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { CommissionRule } from './commission-rule.entity';
 
 @Entity({ schema: 'finance', name: 'commission_tiers' })
 export class CommissionTier {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => CommissionRule, (rule) => rule.tiers, {
     onDelete: 'CASCADE',
@@ -13,8 +12,8 @@ export class CommissionTier {
   @JoinColumn({ name: 'rule_id' })
   rule!: CommissionRule;
 
-  @Column({ type: 'uuid' })
-  rule_id!: string;
+  @Column({ type: 'int' })
+  rule_id!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   from_amount!: number;

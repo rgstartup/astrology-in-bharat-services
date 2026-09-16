@@ -18,13 +18,13 @@ export class CancelUserOrderUseCase {
   ) {}
 
   async execute(
-    orderId: string,
-    profileId: string,
+    orderId: number | string,
+    profileId: number | string,
     cancellationReason: string,
     user: IUser,
   ) {
     const order = await this.orderRepo.findOne({
-      where: { id: orderId, client_id: profileId },
+      where: { id: Number(orderId), client_id: Number(profileId) },
       relations: ['items'],
     });
 

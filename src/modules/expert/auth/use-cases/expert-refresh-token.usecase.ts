@@ -29,7 +29,7 @@ export class ExpertRefreshTokenUseCase {
       throw new UnauthorizedException('Invalid refresh token');
     }
     const session = await this.sessions.findOne({
-      where: { id: sessionId, type: 'refresh_token', revoked: false },
+      where: { id: Number(sessionId), type: 'refresh_token', revoked: false },
       relations: { user: true },
     });
     if (!session || !session.isActive()) {

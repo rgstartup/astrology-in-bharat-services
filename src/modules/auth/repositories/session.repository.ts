@@ -19,24 +19,24 @@ export class SessionRepository extends BaseService<Session> {
     return repo.save(session);
   }
 
-  revoke(userId: string, sessionId?: string, queryRunner?: QueryRunner) {
+  revoke(userId: number | string, sessionId?: number | string, queryRunner?: QueryRunner) {
     const repo = this.getRepo(queryRunner);
 
     const options: FindOptionsWhere<Session> = {
-      user: { id: userId },
+      user: { id: Number(userId) },
     };
 
     if (sessionId) {
-      options.id = sessionId;
+      options.id = Number(sessionId);
     }
 
     return repo.update(options, { revoked: true });
   }
 
-  findUnRevokedRefreshToken(sessionId: string) {
+  findUnRevokedRefreshToken(sessionId: number | string) {
     return this.sessionsRepo.findOne({
       where: {
-        id: sessionId,
+        id: Number(sessionId),
         type: 'refresh_token',
         revoked: false,
       },

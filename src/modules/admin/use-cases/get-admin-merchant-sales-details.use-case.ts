@@ -8,7 +8,7 @@ export class GetAdminMerchantSalesDetailsUseCase {
     private readonly orderFacade: OrderFacade,
   ) {}
 
-  async execute(merchantId: string) {
+  async execute(merchantId: number) {
     return this.orderFacade.getAdminMerchantSalesDetails(merchantId);
   }
 }

@@ -8,7 +8,7 @@ export class RequestWithdrawalUseCase {
   constructor(private readonly walletFacade: WalletFacade) {}
 
   async execute(
-    expertProfileId: string,
+    expertProfileId: number,
     dto: RequestExpertWithdrawalDto,
     idempotencyKey?: string,
     securityMetadata?: { ip?: string; ua?: string },

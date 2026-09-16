@@ -20,7 +20,7 @@ export class GetAgentCommissionsUseCase {
     private readonly transactionRepo: Repository<Transaction>,
   ) {}
 
-  async execute(userId: string, pagination: PaginationDto) {
+  async execute(userId: number, pagination: PaginationDto) {
     const agentProfile = await this.profileAgentRepo.findOne({
       where: { user_id: userId },
     });

@@ -11,12 +11,15 @@ export class ResolveSessionDetailsUseCase {
   ) {}
 
   async execute(
-    sessionIds: string[],
+    sessionIds: (number | string)[],
   ): Promise<Record<string, { expertName: string; type: string }>> {
     if (!sessionIds || sessionIds.length === 0) return {};
 
+    const numericIds = sessionIds.map((id) => Number(id)).filter((id) => !isNaN(id));
+    if (numericIds.length === 0) return {};
+
     const sessions = await this.chatSessionRepo.find({
-      where: { id: In(sessionIds) },
+      where: { id: In(numericIds) },
       relations: ['expert', 'expert.user'],
     });
 

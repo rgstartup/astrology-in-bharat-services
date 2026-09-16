@@ -32,23 +32,23 @@ export class ReviewsFacade {
     private readonly getExpertReviewsByDateUseCase: GetExpertReviewsByDateUseCase,
   ) {}
 
-  async createReview(clientId: string, dto: CreateReviewDto) {
+  async createReview(clientId: number, dto: CreateReviewDto) {
     return this.createReviewUseCase.execute(clientId, dto);
   }
 
-  async getExpertReviews(expert_id: string, dto: GetReviewsDto) {
+  async getExpertReviews(expert_id: number, dto: GetReviewsDto) {
     return this.getExpertReviewsUseCase.execute(expert_id, dto);
   }
 
-  async getMerchantReviews(merchantId: string, dto: GetReviewsDto) {
+  async getMerchantReviews(merchantId: number, dto: GetReviewsDto) {
     return this.getMerchantReviewsUseCase.execute(merchantId, dto);
   }
 
-  async getReviewsStats(expert_id: string) {
+  async getReviewsStats(expert_id: number) {
     return this.getReviewsStatsUseCase.execute(expert_id);
   }
 
-  async getMerchantReviewsStats(merchantId: string) {
+  async getMerchantReviewsStats(merchantId: number) {
     return this.getMerchantReviewsStatsUseCase.execute(merchantId);
   }
 
@@ -60,15 +60,15 @@ export class ReviewsFacade {
     return this.getAdminReviewsStatsUseCase.execute();
   }
 
-  async updateReviewStatus(id: string, status: string) {
+  async updateReviewStatus(id: number, status: string) {
     return this.updateReviewStatusUseCase.execute(id, status);
   }
 
-  async deleteReview(id: string) {
+  async deleteReview(id: number) {
     return this.deleteReviewUseCase.execute(id);
   }
 
-  async sendReviewResponse(id: string, message: string) {
+  async sendReviewResponse(id: number, message: string) {
     return this.sendReviewResponseUseCase.execute(id, message);
   }
 
@@ -77,7 +77,7 @@ export class ReviewsFacade {
   }
 
   async getExpertReviewsByDate(
-    expert_id: string,
+    expert_id: number,
     startDate: Date,
     endDate: Date,
   ) {

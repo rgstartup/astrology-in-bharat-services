@@ -33,7 +33,7 @@ export class OrderFacade {
     private readonly getAdminMerchantSalesDetailsUseCase: GetAdminMerchantSalesDetailsUseCase,
   ) {}
 
-  async createOrder(profileId: string, userId: string, dto: CreateOrderDto) {
+  async createOrder(profileId: number, userId: number, dto: CreateOrderDto) {
     if (dto.product_id) {
       // Logic for single product order will be added to the use case
     }
@@ -41,8 +41,8 @@ export class OrderFacade {
   }
 
   async createOrderFromCart(
-    profileId: string,
-    userId: string,
+    profileId: number,
+    userId: number,
     shippingAddress: Record<string, unknown>,
   ) {
     return this.createOrderFromCartUseCase.execute(profileId, userId, {
@@ -58,7 +58,7 @@ export class OrderFacade {
   }
 
   async setRazorpayOrderId(
-    orderId: string,
+    orderId: number,
     razorpayOrderId: string,
     queryRunner?: import('typeorm').QueryRunner,
   ) {
@@ -70,22 +70,22 @@ export class OrderFacade {
   }
 
   async getUserOrders(
-    profileId: string,
-    userId: string,
+    profileId: number,
+    userId: number,
     dto: import('./dto/get-my-orders.dto').GetMyOrdersDto,
   ) {
     return this.getUserOrdersUseCase.execute(profileId, userId, dto);
   }
 
-  async getOrderById(id: string, profileId: string) {
+  async getOrderById(id: number, profileId: number) {
     return this.getOrderByIdUseCase.execute(id, profileId);
   }
 
   async updateOrderStatus(
-    id: string,
+    id: number,
     status: OrderStatus,
     cancellationReason?: string,
-    merchantId?: string,
+    merchantId?: number,
     user?: any,
   ) {
     return this.updateOrderStatusUseCase.execute(
@@ -98,8 +98,8 @@ export class OrderFacade {
   }
 
   async cancelUserOrder(
-    orderId: string,
-    profileId: string,
+    orderId: number,
+    profileId: number,
     cancellationReason: string,
     user: import('@/common/types/access-token.payload').IUser,
   ) {
@@ -129,18 +129,18 @@ export class OrderFacade {
     );
   }
 
-  async getMerchantTotalOrders(merchantId: string) {
+  async getMerchantTotalOrders(merchantId: number) {
     return this.merchantOrderQueriesUseCase.getMerchantTotalOrders(merchantId);
   }
 
-  async getMerchantGrossTotalEarnings(merchantId: string) {
+  async getMerchantGrossTotalEarnings(merchantId: number) {
     return this.merchantOrderQueriesUseCase.getMerchantGrossTotalEarnings(
       merchantId,
     );
   }
 
   async getMerchantGrossMonthlyEarnings(
-    merchantId: string,
+    merchantId: number,
     startOfMonth: Date,
     endDate?: Date,
   ) {
@@ -152,7 +152,7 @@ export class OrderFacade {
   }
 
   async getMerchantOrders(
-    merchantId: string,
+    merchantId: number,
     filters?: Record<string, unknown>,
   ) {
     return this.merchantOrderQueriesUseCase.getMerchantOrders(
@@ -161,18 +161,18 @@ export class OrderFacade {
     );
   }
 
-  async getMerchantRecentOrders(merchantId: string, limit: number = 5) {
+  async getMerchantRecentOrders(merchantId: number, limit: number = 5) {
     return this.merchantOrderQueriesUseCase.getMerchantRecentOrders(
       merchantId,
       limit,
     );
   }
 
-  async sendOrderOtp(orderId: string, merchantId: string) {
+  async sendOrderOtp(orderId: number, merchantId: number) {
     return this.merchantOrderQueriesUseCase.sendOrderOtp(orderId, merchantId);
   }
 
-  async verifyOrderOtp(orderId: string, otp: string, merchantId: string) {
+  async verifyOrderOtp(orderId: number, otp: string, merchantId: number) {
     return this.merchantOrderQueriesUseCase.verifyOrderOtp(
       orderId,
       otp,
@@ -181,7 +181,7 @@ export class OrderFacade {
   }
 
   async getMerchantRevenueTimeline(
-    merchantId: string,
+    merchantId: number,
   ): Promise<Array<{ date: string; revenue: string }>> {
     return this.merchantOrderQueriesUseCase.getMerchantRevenueTimeline(
       merchantId,
@@ -189,7 +189,7 @@ export class OrderFacade {
   }
 
   async getMerchantTopProducts(
-    merchantId: string,
+    merchantId: number,
   ): Promise<
     Array<{ name: string; sales_count: string; total_revenue: string }>
   > {
@@ -197,7 +197,7 @@ export class OrderFacade {
   }
 
   async getMerchantOrdersWithStats(
-    merchantId: string,
+    merchantId: number,
     page: number,
     limit: number,
     status?: string,
@@ -216,7 +216,7 @@ export class OrderFacade {
     return this.getAdminMerchantSalesOverviewUseCase.execute();
   }
 
-  async getAdminMerchantSalesDetails(merchantId: string) {
+  async getAdminMerchantSalesDetails(merchantId: number) {
     return this.getAdminMerchantSalesDetailsUseCase.execute(merchantId);
   }
 }

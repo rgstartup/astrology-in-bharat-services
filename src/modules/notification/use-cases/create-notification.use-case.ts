@@ -18,7 +18,7 @@ export class CreateNotificationUseCase {
   ) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     profileType: ProfileType,
     type: NotificationType,
     title: string,
@@ -37,7 +37,7 @@ export class CreateNotificationUseCase {
 
     try {
       this.notificationGateway.emitToProfile(
-        profileId,
+        String(profileId),
         'new_notification',
         savedNotification,
       );
@@ -49,7 +49,7 @@ export class CreateNotificationUseCase {
   }
 
   private buildProfileFk(
-    profileId: string,
+    profileId: number,
     profileType: ProfileType,
   ): Partial<Notification> {
     switch (profileType) {

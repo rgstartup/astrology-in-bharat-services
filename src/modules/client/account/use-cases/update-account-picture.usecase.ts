@@ -20,7 +20,7 @@ export class UpdateAccountPictureUseCase {
     private readonly db: DatabaseService,
   ) {}
 
-  async execute(clientId: string, file: Express.Multer.File) {
+  async execute(clientId: number | string, file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }
@@ -45,7 +45,7 @@ export class UpdateAccountPictureUseCase {
               avatar: true,
             },
           },
-          where: { id: clientId },
+          where: { id: Number(clientId) },
           relations: ['user'],
         });
 

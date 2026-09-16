@@ -48,7 +48,7 @@ export class GetAdminAgentsUseCase {
     const agentsData = await Promise.all(
       users.map(async (uObj) => {
         const u = uObj as unknown as {
-          id: string;
+          id: number;
           uid: string;
           name: string;
           email: string;

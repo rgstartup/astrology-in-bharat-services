@@ -17,7 +17,7 @@ export class GetNotificationsUseCase {
   ) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     profileType: ProfileType,
     dto: GetNotificationsDto,
   ) {
@@ -33,13 +33,13 @@ export class GetNotificationsUseCase {
     return { data, totalCount };
   }
 
-  async getUnreadCount(profileId: string, profileType: ProfileType) {
+  async getUnreadCount(profileId: number, profileType: ProfileType) {
     const where = this.buildWhere(profileId, profileType);
     return this.notificationRepo.count({ where: { ...where, is_read: false } });
   }
 
   private buildWhere(
-    profileId: string,
+    profileId: number,
     profileType: ProfileType,
   ): FindOptionsWhere<Notification> {
     switch (profileType) {

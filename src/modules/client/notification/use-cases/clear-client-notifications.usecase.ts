@@ -10,7 +10,7 @@ export class ClearClientNotificationsUseCase {
     private readonly notificationRepo: Repository<Notification>,
   ) {}
 
-  async execute(clientId: string): Promise<void> {
+  async execute(clientId: number): Promise<void> {
     await this.notificationRepo.delete({ client_id: clientId });
   }
 }

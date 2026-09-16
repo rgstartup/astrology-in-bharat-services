@@ -5,14 +5,14 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'expert', name: 'todos' })
 export class Todo {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'text' })
   text!: string;

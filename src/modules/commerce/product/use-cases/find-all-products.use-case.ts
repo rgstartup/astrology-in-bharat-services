@@ -5,7 +5,7 @@ import { Product } from '../entities/product.entity';
 import { GetProductsDto } from '../dto/get-products.dto';
 
 export interface ProductWithLikesRaw {
-  id: string;
+  id: number;
   name: string;
   sku: string | null;
   category: string | null;

@@ -7,8 +7,8 @@ import {
 
 @Entity('prokerala_cache')
 export class ProkeralaCacheEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ type: 'varchar', unique: true })
   cacheKey: string;

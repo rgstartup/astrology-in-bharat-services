@@ -11,7 +11,7 @@ export class GetAccountUseCase {
   ) {}
 
   async execute(
-    client: ClientAccount | { id: string },
+    client: ClientAccount | { id: number | string },
     queryRunner?: QueryRunner,
   ): Promise<ClientAccount | null> {
     const repo = queryRunner
@@ -19,7 +19,7 @@ export class GetAccountUseCase {
       : this.accountRepo;
 
     const data = await repo.findOne({
-      where: { id: client.id },
+      where: { id: Number(client.id) },
       // relations: ['addresses'],
     });
 

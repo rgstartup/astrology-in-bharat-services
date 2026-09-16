@@ -12,7 +12,7 @@ export class RemoveProductUseCase {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async execute(id: string): Promise<BooleanMessage> {
+  async execute(id: number): Promise<BooleanMessage> {
     const existing = await this.productRepository.findOneBy({ id });
     if (!existing) {
       throw new ProductNotFoundError(id);

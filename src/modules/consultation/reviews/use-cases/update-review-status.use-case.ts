@@ -3,6 +3,8 @@ import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Review } from '../entities/review.entity';
+import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 
 @Injectable()
 export class UpdateReviewStatusUseCase {
@@ -13,7 +15,7 @@ export class UpdateReviewStatusUseCase {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(id: string, status: string) {
+  async execute(id: number, status: string) {
     const review = await this.reviewRepository.findOne({ where: { id } });
     if (!review) {
       throw new NotFoundException(`Review with id ${id} not found`);
@@ -35,7 +37,7 @@ export class UpdateReviewStatusUseCase {
     return new BooleanMessage(true, 'Review Updated Successfully');
   }
 
-  private async updateExpertRating(expert_id: string) {
+  private async updateExpertRating(expert_id: number) {
     const result = await this.reviewRepository
       .createQueryBuilder('review')
       .select('AVG(review.rating)', 'average')
@@ -51,13 +53,13 @@ export class UpdateReviewStatusUseCase {
 
     await this.dataSource
       .createQueryBuilder()
-      .update('expert.profile')
+      .update(ProfileExpert)
       .set({ rating: average, total_reviews: count })
       .where('id = :expert_id', { expert_id })
       .execute();
   }
 
-  private async updateMerchantRating(merchantId: string) {
+  private async updateMerchantRating(merchantId: number) {
     const result = (await this.reviewRepository
       .createQueryBuilder('review')
       .select('AVG(review.rating)', 'average')
@@ -76,8 +78,8 @@ export class UpdateReviewStatusUseCase {
 
     await this.dataSource
       .createQueryBuilder()
-      .update('merchant.profile')
-      .set({ rating: average, reviewCount: count })
+      .update(MerchantAccount)
+      .set({ rating: average, review_count: count })
       .where('id = :merchantId', { merchantId })
       .execute();
   }

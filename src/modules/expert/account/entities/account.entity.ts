@@ -6,9 +6,9 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { User } from '@/modules/users/entities/user.entity';
 import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
@@ -23,8 +23,8 @@ import { ExpertDevotionalRitual } from './expert-devotional-ritual.entity';
 @Check(`"gender" IN ('male', 'female', 'other')`)
 @Check(`"experience_in_years" >= 0`)
 export class ExpertAccount {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })

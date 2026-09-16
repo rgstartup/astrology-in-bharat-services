@@ -11,7 +11,7 @@ export class CreateTodoUseCase {
     private readonly todoRepo: Repository<Todo>,
   ) {}
 
-  async execute(expertAccountId: string, dto: CreateTodoDto) {
+  async execute(expertAccountId: number, dto: CreateTodoDto) {
     const todo = this.todoRepo.create({
       ...dto,
       expert: { id: expertAccountId },

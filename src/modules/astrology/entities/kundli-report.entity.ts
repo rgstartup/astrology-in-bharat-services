@@ -4,17 +4,17 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 
 @Entity({ schema: 'astrology', name: 'kundli_reports' })
 export class KundliReport {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  @Column({ name: 'client_id', type: 'uuid' })
-  client_id!: string;
+  @Column({ name: 'client_id', type: 'int' })
+  client_id!: number;
 
   @ManyToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })

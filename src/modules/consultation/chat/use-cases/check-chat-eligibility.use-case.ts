@@ -19,7 +19,7 @@ export class CheckChatEligibilityUseCase {
     private walletFacade: WalletFacade,
   ) {}
 
-  async execute(clientId: string, expertId: string) {
+  async execute(clientId: number, expertId: number) {
     // Get expert details
     const expert = await this.expertProfileFacade.getExpertById(expertId);
     const chatPrice = expert

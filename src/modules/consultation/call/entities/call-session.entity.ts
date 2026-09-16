@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
+import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 
 export enum CallSessionStatus {
   PENDING = 'pending',
@@ -23,27 +25,24 @@ export enum CallType {
   VIDEO = 'video',
 }
 
-import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
-
 @Entity({ schema: 'consultations', name: 'call_sessions' })
 export class CallSession {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
   client!: ClientAccount;
 
-  @Column({ type: 'uuid', name: 'client_id' })
-  client_id!: string;
+  @Column({ type: 'int', name: 'client_id' })
+  client_id!: number;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
   expert!: ProfileExpert;
 
-  @Column({ type: 'uuid', name: 'expert_id' })
-  expert_id!: string;
+  @Column({ type: 'int', name: 'expert_id' })
+  expert_id!: number;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'start_time' })
   start_time!: Date;
@@ -87,8 +86,8 @@ export class CallSession {
   })
   expert_earning!: number;
 
-  @Column({ type: 'uuid', nullable: true, name: 'agent_id' })
-  agent_id?: string;
+  @Column({ type: 'int', nullable: true, name: 'agent_id' })
+  agent_id?: number | null;
 
   @Column({
     type: 'decimal',

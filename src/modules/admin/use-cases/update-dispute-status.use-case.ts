@@ -9,7 +9,7 @@ export class UpdateDisputeStatusUseCase {
     private readonly supportFacade: SupportFacade,
   ) {}
 
-  async execute(id: string, dto: UpdateDisputeStatusDto) {
+  async execute(id: number, dto: UpdateDisputeStatusDto) {
     return this.supportFacade.updateDisputeStatus(id, {
       status: dto.status,
       notes: dto.notes,

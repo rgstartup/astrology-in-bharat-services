@@ -56,7 +56,7 @@ export class UpdateStatusUseCase {
     // Business Logic: Prevent going offline if there are active sessions
     if (isAvailable === false) {
       const activeSessionsCount = await this.chatFacade.getExpertSessionCount(
-        profile.id as unknown as string,
+        profile.id,
         {
           status: [ChatSessionStatus.ACTIVE, ChatSessionStatus.PENDING],
         },

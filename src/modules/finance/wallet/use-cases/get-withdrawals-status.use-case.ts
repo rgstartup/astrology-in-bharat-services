@@ -13,10 +13,10 @@ export class GetWithdrawalsStatusUseCase {
     private readonly getWalletUseCase: GetWalletUseCase,
   ) {}
 
-  async execute(profileId: string, walletKey: WalletKey) {
+  async execute(profileId: string | number, walletKey: WalletKey) {
     const wallet = await this.getWalletUseCase.execute(profileId, walletKey);
     let ownerKey = '';
-    let ownerId = '';
+    let ownerId: number | string = '';
 
     if (wallet.expert_id) {
       ownerKey = 'expert_id';

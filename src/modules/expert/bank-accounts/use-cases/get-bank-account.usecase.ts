@@ -10,7 +10,7 @@ export class GetBankAccountUseCase {
     private readonly bankAccountRepo: Repository<BankAccount>,
   ) {}
 
-  async execute(expertAccountId: string, id: string) {
+  async execute(expertAccountId: number, id: number) {
     const account = await this.bankAccountRepo.findOne({
       where: { id, expert: { id: expertAccountId } },
       relations: { expert: { user: true } },

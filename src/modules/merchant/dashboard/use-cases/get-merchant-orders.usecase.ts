@@ -14,7 +14,7 @@ export class GetMerchantOrdersUseCase {
     private readonly merchantRepo: Repository<MerchantAccount>,
   ) {}
 
-  async execute(userId: string, dto: GetMerchantOrdersDto) {
+  async execute(userId: number, dto: GetMerchantOrdersDto) {
     const { page = 1, limit = 20, status, search } = dto;
     const merchantId = userId;
 
@@ -47,15 +47,13 @@ export class GetMerchantOrdersUseCase {
     const groupedOrdersMap = new Map<string, any>();
     try {
       for (const item of items) {
-        const orderIdStr = item.order?.id?.toString() || item.order_id;
+        const orderIdStr = String(item.order?.id ?? item.order_id);
         if (!groupedOrdersMap.has(orderIdStr)) {
           groupedOrdersMap.set(orderIdStr, {
-            id: item.order?.id?.toString() || item.order_id,
-            short_id: (item.order?.id?.toString() || item.order_id)
-              .slice(-8)
-              .toUpperCase(),
+            id: orderIdStr,
+            short_id: orderIdStr.slice(-8).toUpperCase(),
             orderId: orderIdStr,
-            orderNumber: `AIB-ORD-${orderIdStr.split('-')[0].toUpperCase()}`,
+            orderNumber: `AIB-ORD-${orderIdStr}`,
             customerName:
               (
                 item.order as unknown as {

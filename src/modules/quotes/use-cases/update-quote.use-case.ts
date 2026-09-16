@@ -13,7 +13,7 @@ export class UpdateQuoteUseCase {
     private readonly quoteRepository: Repository<Quote>,
   ) {}
 
-  async execute(id: string, dto: UpdateQuoteDto): Promise<BooleanMessage> {
+  async execute(id: number, dto: UpdateQuoteDto): Promise<BooleanMessage> {
     const existing = await this.quoteRepository.findOneBy({ id });
     if (!existing) throw new QuoteNotFoundError(id);
     await this.quoteRepository.update(id, dto);

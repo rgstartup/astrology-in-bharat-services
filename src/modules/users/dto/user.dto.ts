@@ -4,10 +4,12 @@ import {
   IsDateString,
   IsEmail,
   IsEnum,
+  IsNumber,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { RoleEnum } from '../enums/Role.enum';
 import { PlatformEnum } from '../enums/Platform.enum';
 
@@ -41,8 +43,9 @@ class UserDto {
   avatar?: string;
 
   @IsOptional()
-  @IsString()
-  referred_by_id?: string | null;
+  @Type(() => Number)
+  @IsNumber()
+  referred_by_id?: number | null;
 }
 
 export class CreateUserDto extends UserDto { }

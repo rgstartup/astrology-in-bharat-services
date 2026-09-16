@@ -4,8 +4,8 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { CommissionTier } from './commission-tier.entity';
 
 export enum CommissionEventType {
@@ -37,8 +37,8 @@ export enum CommissionAppliesRole {
 
 @Entity({ schema: 'finance', name: 'commission_rules' })
 export class CommissionRule {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'varchar', length: 255 })
   name!: string;
@@ -72,8 +72,8 @@ export class CommissionRule {
   })
   applies_to_role!: CommissionAppliesRole;
 
-  @Column({ type: 'uuid', nullable: true })
-  applies_to_id!: string | null;
+  @Column({ type: 'int', nullable: true })
+  applies_to_id!: number | null;
 
   @Column({ type: 'int', default: 0 })
   priority!: number;

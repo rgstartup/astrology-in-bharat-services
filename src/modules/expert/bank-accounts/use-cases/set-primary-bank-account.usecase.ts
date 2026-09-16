@@ -16,7 +16,7 @@ export class SetPrimaryBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(expertProfileId: string, id: string) {
+  async execute(expertProfileId: number, id: number) {
     const account = await this.getBankAccountUseCase.execute(
       expertProfileId,
       id,

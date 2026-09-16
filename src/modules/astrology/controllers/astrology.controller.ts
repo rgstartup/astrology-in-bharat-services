@@ -7,6 +7,7 @@ import {
   UseGuards,
   Delete,
   Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
@@ -101,18 +102,21 @@ export class AstrologyController {
   @UseGuards(JwtAuthGuard)
   async deleteKundliReport(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<unknown> {
     return this.astrologyFacade.deleteKundliReport(user.profile, id);
   }
 
   @Get('services')
-  async getServices(@Query() query: import('../dto/get-astrology-services.dto').GetAstrologyServicesDto) {
+  async getServices(
+    @Query()
+    query: import('../dto/get-astrology-services.dto').GetAstrologyServicesDto,
+  ) {
     return this.astrologyFacade.getServices(query);
   }
 
   @Get('services/:id')
-  async getServiceById(@Param('id') id: string) {
+  async getServiceById(@Param('id', ParseIntPipe) id: number) {
     return this.astrologyFacade.getServiceById(id);
   }
 }

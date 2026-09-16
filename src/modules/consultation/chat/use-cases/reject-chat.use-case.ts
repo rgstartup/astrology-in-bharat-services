@@ -15,7 +15,7 @@ export class RejectChatUseCase {
     @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
   ) {}
 
-  async execute(sessionId: string) {
+  async execute(sessionId: number) {
     console.log(`[RejectChatUseCase] Rejecting chat sessionId: ${sessionId}`);
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },

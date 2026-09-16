@@ -5,14 +5,14 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'agent', name: 'profile' })
 export class ProfileAgent {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   total_earnings!: number;
@@ -23,11 +23,11 @@ export class ProfileAgent {
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 10.0 })
   commission_rate!: number;
 
-  @Column({ type: 'uuid', array: true, default: '{}' })
-  registered_user_ids!: string[];
+  @Column({ type: 'int', array: true, default: '{}' })
+  registered_user_ids!: number[];
 
-  @Column({ type: 'uuid', array: true, default: '{}' })
-  registered_astrologer_ids!: string[];
+  @Column({ type: 'int', array: true, default: '{}' })
+  registered_astrologer_ids!: number[];
 
   @Column({ type: 'character varying', length: 255, nullable: true })
   bank_name!: string;
@@ -75,8 +75,8 @@ export class ProfileAgent {
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @Column({ type: 'uuid' })
-  user_id!: string;
+  @Column({ type: 'int' })
+  user_id!: number;
 
   @Column({ type: 'text', unique: true, nullable: true })
   uid!: string | null;

@@ -1,10 +1,10 @@
-﻿import {
+import {
   Body,
   Controller,
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -42,7 +42,7 @@ export class QuotesController {
   @ApiOperation({ summary: 'Get a quote by id' })
   @ApiResponse({ status: 200, description: 'Return the quote.' })
   @ApiResponse({ status: 404, description: 'Quote not found.' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.quotesFacade.findOne(id);
   }
 
@@ -53,7 +53,7 @@ export class QuotesController {
     description: 'The quote has been successfully updated.',
   })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateQuoteDto: UpdateQuoteDto,
   ) {
     const _result = await this.quotesFacade.update(id, updateQuoteDto);
@@ -66,7 +66,7 @@ export class QuotesController {
     status: 200,
     description: 'The quote has been successfully deleted.',
   })
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     const _result = await this.quotesFacade.remove(id);
     return { success: true };
   }

@@ -30,7 +30,7 @@ export class ConsultationController {
 
   @Post('book-with-wallet')
   async bookWithWallet(
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @Body() dto: ConsultationBookDto,
   ) {
     const { expert_id, amount } = dto;

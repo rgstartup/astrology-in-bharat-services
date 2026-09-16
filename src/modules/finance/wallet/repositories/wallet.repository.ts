@@ -5,20 +5,24 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export default class WalletRepository extends Repository<Wallet> {
   async getOrCreateWallet(
-    profileId: string,
+    profileId: string | number,
     walletKey: string,
   ): Promise<Wallet> {
+    const numProfileId =
+      typeof profileId === 'number'
+        ? profileId
+        : Number(profileId) || profileId;
     const existingWallet = await this.findOne({
-      where: { [walletKey]: profileId },
+      where: { [walletKey]: numProfileId } as any,
     });
 
     if (existingWallet) return existingWallet;
 
     const newWallet = this.create({
-      [walletKey]: profileId,
+      [walletKey]: numProfileId,
       balance: 0,
       reserved_balance: 0,
-    });
-    return this.save(newWallet);
+    } as any);
+    return this.save(newWallet) as any;
   }
 }

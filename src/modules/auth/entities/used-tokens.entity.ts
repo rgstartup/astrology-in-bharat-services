@@ -5,19 +5,19 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
 import { createHash } from 'crypto';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({
   schema: 'auth',
 })
 @Unique(['user', 'token'])
 export class UsedTokens {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })

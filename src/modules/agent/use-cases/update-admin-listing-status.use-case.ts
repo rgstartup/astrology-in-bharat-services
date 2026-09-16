@@ -11,10 +11,9 @@ export class UpdateAdminListingStatusUseCase {
     private readonly listingRepository: Repository<AgentListing>,
   ) {}
 
-  async execute(id: string, data: { status: string }) {
-    const stringId = String(id);
+  async execute(id: number, data: { status: string }) {
     const listing = await this.listingRepository.findOne({
-      where: { id: stringId },
+      where: { id },
     });
 
     if (!listing) {

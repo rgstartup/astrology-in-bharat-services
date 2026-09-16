@@ -25,11 +25,11 @@ export class MerchantRefreshTokenUseCase {
 
   async execute(refreshToken: string, ip?: string, userAgent?: string) {
     const [sessionId, raw] = (refreshToken || '').split('.');
-    if (!sessionId || !raw) {
+    if (!sessionId || !raw || isNaN(Number(sessionId))) {
       throw new UnauthorizedException('Invalid refresh token');
     }
     const session = await this.sessions.findOne({
-      where: { id: sessionId, type: 'refresh_token', revoked: false },
+      where: { id: Number(sessionId), type: 'refresh_token', revoked: false },
       relations: { user: true },
     });
     if (!session || !session.isActive()) {

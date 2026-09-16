@@ -10,7 +10,7 @@ export class GetMessagesUseCase {
     private messageRepo: Repository<ChatMessage>,
   ) {}
 
-  async execute(sessionId: string) {
+  async execute(sessionId: number) {
     return this.messageRepo.find({
       where: { session_id: sessionId },
       order: { created_at: 'ASC' },

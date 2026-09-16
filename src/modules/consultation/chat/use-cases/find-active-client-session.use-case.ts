@@ -13,7 +13,7 @@ export class FindActiveClientSessionUseCase {
     private sessionRepo: Repository<ChatSession>,
   ) {}
 
-  async execute(clientId: string) {
+  async execute(clientId: number) {
     return this.sessionRepo.findOne({
       where: {
         client_id: clientId,

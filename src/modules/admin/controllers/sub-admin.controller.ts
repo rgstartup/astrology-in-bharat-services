@@ -10,7 +10,7 @@ import {
   Delete,
   Body,
   Param,
-  ParseUUIDPipe,
+  ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
@@ -61,7 +61,7 @@ export class SubAdminController {
   // Sub-admin ki permissions/details update karo
   @Put(':id')
   async updateSubAdmin(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateSubAdminDto,
     @CurrentUser() admin: IUser,
   ) {
@@ -77,7 +77,7 @@ export class SubAdminController {
   // Sub-admin delete karo
   @Delete(':id')
   async deleteSubAdmin(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @CurrentUser() admin: IUser,
   ) {
     return this.deleteSubAdminUseCase.execute(id, admin.id);

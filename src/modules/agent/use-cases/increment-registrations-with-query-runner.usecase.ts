@@ -15,8 +15,8 @@ export class IncrementRegistrationsWithQueryRunnerUseCase {
   ) {}
 
   async execute(
-    agentId: string,
-    registeredUserId: string,
+    agentId: number,
+    registeredUserId: number,
     isExpert: boolean,
     queryRunner: QueryRunner,
   ) {

@@ -15,7 +15,7 @@ export class SendReviewResponseUseCase {
     private readonly notificationFacade: NotificationFacade,
   ) {}
 
-  async execute(reviewId: string, message: string) {
+  async execute(reviewId: number, message: string) {
     const review = await this.reviewRepository.findOne({
       where: { id: reviewId },
       relations: ['expert', 'expert.user'],

@@ -7,7 +7,7 @@ import {
   UseGuards,
   Header,
   Param,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
@@ -33,7 +33,7 @@ export class CallController {
 
   @Post('initiate')
   async initiate(
-    @CurrentProfile() clientId: string,
+    @CurrentProfile() clientId: number,
     @Body() dto: InitiateCallDto,
   ) {
     console.log(
@@ -44,8 +44,8 @@ export class CallController {
 
   @Post('accept')
   async accept(
-    @CurrentProfile() profileId: string,
-    @Body() body: { sessionId: string },
+    @CurrentProfile() profileId: number,
+    @Body() body: { sessionId: number },
   ) {
     console.log(
       `[CallController] Accept call: profileId=${profileId}, sessionId=${body.sessionId}`,
@@ -63,8 +63,8 @@ export class CallController {
 
   @Patch('session/:sessionId/status')
   async updateStatus(
-    @CurrentProfile() profileId: string,
-    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @CurrentProfile() profileId: number,
+    @Param('sessionId', ParseIntPipe) sessionId: number,
     @Body('status') status: string,
   ) {
     console.log(
@@ -91,22 +91,22 @@ export class CallController {
 
   @Get('session/:sessionId')
   @Header('Cache-Control', 'no-store')
-  async getSession(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
+  async getSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
     return this.callFacade.getSession(sessionId);
   }
 
   @Get('token/:sessionId')
   @Header('Cache-Control', 'no-store')
   async getToken(
-    @CurrentProfile() profileId: string,
-    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @CurrentProfile() profileId: number,
+    @Param('sessionId', ParseIntPipe) sessionId: number,
   ) {
     return this.callFacade.getCallToken(profileId, sessionId);
   }
 
   @Get('sessions/appointments/pending')
   @Header('Cache-Control', 'no-store')
-  async getPendingAppointments(@CurrentProfile() profileId: string) {
+  async getPendingAppointments(@CurrentProfile() profileId: number) {
     return this.callFacade.getExpertSessions(
       profileId,
       CallSessionFilter.RECENT_PENDING,
@@ -115,7 +115,7 @@ export class CallController {
 
   @Get('sessions/appointments/completed')
   @Header('Cache-Control', 'no-store')
-  async getCompletedAppointments(@CurrentProfile() profileId: string) {
+  async getCompletedAppointments(@CurrentProfile() profileId: number) {
     return this.callFacade.getExpertSessions(
       profileId,
       CallSessionFilter.RECENT_COMPLETED,
@@ -125,7 +125,7 @@ export class CallController {
   @Get('sessions/all')
   @Header('Cache-Control', 'no-store')
   async getAllSessions(
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @Query() dto: GetCallSessionsDto,
   ) {
     return this.callFacade.getExpertSessions(

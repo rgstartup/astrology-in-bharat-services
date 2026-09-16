@@ -18,8 +18,8 @@ export class UpdateBankAccountUseCase {
   ) {}
 
   async execute(
-    expertProfileId: string,
-    id: string,
+    expertProfileId: number,
+    id: number,
     dto: UpdateBankAccountDto,
   ) {
     const account = await this.getBankAccountUseCase.execute(

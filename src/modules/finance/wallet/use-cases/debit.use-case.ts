@@ -44,10 +44,10 @@ export class DebitUseCase {
   constructor(
     private readonly dataSource: DataSource,
     private readonly ledgerQueueService: LedgerQueueService,
-  ) { }
+  ) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     walletKey: WalletKey,
     amount: number,
     purpose: TransactionPurpose,

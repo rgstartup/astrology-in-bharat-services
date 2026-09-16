@@ -14,7 +14,7 @@ export class GetWithdrawalsUseCase {
   ) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     walletKey: WalletKey,
     limit: number = 50,
     offset: number = 0,

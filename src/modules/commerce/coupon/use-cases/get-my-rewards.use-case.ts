@@ -10,9 +10,9 @@ export class GetMyRewardsUseCase {
     private readonly userCouponRepo: Repository<UserCoupon>,
   ) {}
 
-  async execute(profileId: string) {
+  async execute(profileId: number | string) {
     return this.userCouponRepo.find({
-      where: { client_id: profileId },
+      where: { client_id: Number(profileId) },
       relations: ['coupon'],
       order: { assigned_at: 'DESC' },
     });

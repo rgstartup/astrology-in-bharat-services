@@ -14,13 +14,13 @@ export enum ConsultationStatus {
 }
 
 export class ConsultationExpertDto {
-  id!: string;
+  id!: number | string;
   name!: string;
   profile_image!: string;
 }
 
 export class ConsultationHistoryDto {
-  id!: string;
+  id!: number | string;
   displayId?: string;
   type!: ConsultationType;
   status!: ConsultationStatus;

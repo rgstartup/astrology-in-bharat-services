@@ -51,7 +51,7 @@ export class GetProfessionsUseCase {
     return PaginatedResponseDto.from(dtos, total, dto);
   }
 
-  async getById(id: string): Promise<ProfessionResponseDto> {
+  async getById(id: number): Promise<ProfessionResponseDto> {
     const profession = await this.professionRepo.findOne({
       where: { id },
       relations: ['specializations'],

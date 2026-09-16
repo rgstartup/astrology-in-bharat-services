@@ -14,19 +14,19 @@ export class TodosFacade {
     private readonly removeTodoUseCase: RemoveTodoUseCase,
   ) {}
 
-  async findAll(expertProfileId: string) {
+  async findAll(expertProfileId: number) {
     return this.findAllTodosUseCase.execute(expertProfileId);
   }
 
-  async create(expertProfileId: string, dto: CreateTodoDto) {
+  async create(expertProfileId: number, dto: CreateTodoDto) {
     return this.createTodoUseCase.execute(expertProfileId, dto);
   }
 
-  async update(expertProfileId: string, id: string, dto: UpdateTodoDto) {
+  async update(expertProfileId: number, id: number, dto: UpdateTodoDto) {
     return this.updateTodoUseCase.execute(expertProfileId, id, dto);
   }
 
-  async remove(expertProfileId: string, id: string) {
+  async remove(expertProfileId: number, id: number) {
     return this.removeTodoUseCase.execute(expertProfileId, id);
   }
 }

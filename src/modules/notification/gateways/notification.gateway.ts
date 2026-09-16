@@ -23,9 +23,9 @@ export class NotificationGateway {
   @SubscribeMessage('register_user')
   async handleRegisterUser(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { profileId: string },
+    @MessageBody() payload: { profileId: string | number },
   ) {
-    this.profileSockets.set(payload.profileId, client.id);
+    this.profileSockets.set(String(payload.profileId), client.id);
     await client.join(`profile_${payload.profileId}`);
     this.logger.log(
       `Profile ${payload.profileId} registered for notifications`,
@@ -33,7 +33,7 @@ export class NotificationGateway {
     return { status: 'registered' };
   }
 
-  emitToProfile(profileId: string, event: string, data: unknown) {
+  emitToProfile(profileId: string | number, event: string, data: unknown) {
     if (!this.server) {
       this.logger.warn(
         `Cannot emit event ${event} because WebSocketServer is not initialized.`,
@@ -44,7 +44,7 @@ export class NotificationGateway {
     this.logger.log(`Emitted ${event} to profile ${profileId}`);
   }
 
-  emitToClient<T extends object>(id: string, event: NotificationType, data: T) {
+  emitToClient<T extends object>(id: string | number, event: NotificationType, data: T) {
     if (!this.server) {
       this.logger.warn(
         `Cannot emit event ${event} because WebSocketServer is not initialized.`,

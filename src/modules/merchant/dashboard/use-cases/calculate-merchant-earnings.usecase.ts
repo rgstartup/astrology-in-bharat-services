@@ -26,7 +26,7 @@ export class CalculateMerchantEarningsUseCase {
     private readonly merchantRepo: Repository<MerchantAccount>,
   ) {}
 
-  async execute(userId: string): Promise<MerchantEarningsStats> {
+  async execute(userId: number): Promise<MerchantEarningsStats> {
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);

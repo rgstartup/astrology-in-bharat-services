@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { WishlistFacade } from '../wishlist.facade';
 import { CreateWishlistDto } from '../dto/create-wishlist.dto';
@@ -21,13 +22,13 @@ export class ProductLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAll(@CurrentProfile() profileId: string) {
+  findAll(@CurrentProfile() profileId: number) {
     return this.wishlistFacade.getProductWishlist(profileId);
   }
 
   @Post('add')
   create(
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @Body() createWishlistDto: CreateWishlistDto,
   ) {
     return this.wishlistFacade.addProductToWishlist(
@@ -38,8 +39,8 @@ export class ProductLikeController {
 
   @Delete('remove/:productId')
   async remove(
-    @CurrentProfile() profileId: string,
-    @Param('productId') productId: string,
+    @CurrentProfile() profileId: number,
+    @Param('productId', ParseIntPipe) productId: number,
   ) {
     const _result = await this.wishlistFacade.removeProductFromWishlist(
       profileId,

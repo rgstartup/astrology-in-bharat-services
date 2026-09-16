@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { WishlistFacade } from '../wishlist.facade';
 import { AddPujaToWishlistDto } from '../dto/add-puja-wishlist.dto';
@@ -21,13 +22,13 @@ export class PujaLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAllPujas(@CurrentProfile() profileId: string) {
+  findAllPujas(@CurrentProfile() profileId: number) {
     return this.wishlistFacade.getPujaWishlist(profileId);
   }
 
   @Post('add')
   createPuja(
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @Body() addPujaToWishlistDto: AddPujaToWishlistDto,
   ) {
     return this.wishlistFacade.addPujaToWishlist(
@@ -38,8 +39,8 @@ export class PujaLikeController {
 
   @Delete('remove/:pujaId')
   async removePuja(
-    @CurrentProfile() profileId: string,
-    @Param('pujaId') pujaId: string,
+    @CurrentProfile() profileId: number,
+    @Param('pujaId', ParseIntPipe) pujaId: number,
   ) {
     const _result = await this.wishlistFacade.removePujaFromWishlist(
       profileId,

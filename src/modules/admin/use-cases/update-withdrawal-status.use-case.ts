@@ -9,7 +9,7 @@ export class UpdateWithdrawalStatusUseCase {
     private readonly walletFacade: WalletFacade,
   ) {}
 
-  async execute(id: string, adminId: string, dto: UpdateWithdrawalStatusDto) {
+  async execute(id: number, adminId: number, dto: UpdateWithdrawalStatusDto) {
     const { status, remark } = dto;
     return this.walletFacade.updateWithdrawalStatus(
       id,

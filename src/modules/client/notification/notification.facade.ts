@@ -14,19 +14,19 @@ export class ClientNotificationFacade {
     private readonly clearClientNotificationsUseCase: ClearClientNotificationsUseCase,
   ) { }
 
-  async getNotifications(clientId: string, dto: GetNotificationsDto) {
+  async getNotifications(clientId: number, dto: GetNotificationsDto) {
     return this.getClientNotificationsUseCase.execute(clientId, dto);
   }
 
-  async getUnreadCount(clientId: string) {
+  async getUnreadCount(clientId: number) {
     return this.getClientUnreadCountUseCase.execute(clientId);
   }
 
-  async markAsRead(id: string, clientId: string) {
+  async markAsRead(id: number, clientId: number) {
     return this.markClientNotificationAsReadUseCase.execute(id, clientId);
   }
 
-  async clear(clientId: string) {
+  async clear(clientId: number) {
     return this.clearClientNotificationsUseCase.execute(clientId);
   }
 }

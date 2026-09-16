@@ -9,7 +9,7 @@ export class TerminateSessionUseCase {
     private readonly chatFacade: ChatFacade,
   ) {}
 
-  async execute(sessionId: string, adminId: string, dto: TerminateSessionDto) {
+  async execute(sessionId: number, adminId: number, dto: TerminateSessionDto) {
     const { userMessage, expertMessage } = dto;
     return this.chatFacade.adminTerminateSession(
       sessionId,

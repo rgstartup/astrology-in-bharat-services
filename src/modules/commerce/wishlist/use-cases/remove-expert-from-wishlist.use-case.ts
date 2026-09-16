@@ -21,8 +21,8 @@ export class RemoveExpertFromWishlistUseCase {
   ) {}
 
   async execute(
-    profileId: string,
-    expert_id: string,
+    profileId: number,
+    expert_id: number,
   ): Promise<{ message: string }> {
     if (!profileId) {
       throw new UserNotFoundError();

@@ -41,7 +41,7 @@ import { User } from '@/modules/users/entities/user.entity';
 interface ResolvedCommission {
   amount: number;
   rate: number;
-  ruleId: string | null;
+  ruleId: number | null;
 }
 
 @Injectable()
@@ -58,7 +58,7 @@ export class UpdatePujaAppointmentStatusUseCase {
     manager: EntityManager,
     eventType: string,
     commissionType: string,
-    profileId: string | null,
+    profileId: number | null,
     role: string,
     grossAmount: number,
   ): Promise<ResolvedCommission> {
@@ -105,7 +105,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
   private async debit(
     manager: EntityManager,
-    profileId: string,
+    profileId: number,
     walletKey: string,
     amount: number,
     purpose: TransactionPurpose,
@@ -214,7 +214,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
   private async credit(
     manager: EntityManager,
-    profileId: string,
+    profileId: number,
     walletKey: string,
     amount: number,
     purpose: TransactionPurpose,
@@ -369,8 +369,8 @@ export class UpdatePujaAppointmentStatusUseCase {
   }
 
   async execute(
-    id: string,
-    operatingProfileId: string,
+    id: number,
+    operatingProfileId: number,
     dto: UpdatePujaAppointmentStatusDto,
   ): Promise<BooleanMessage> {
     const qr = this.dataSource.createQueryRunner();
@@ -426,11 +426,13 @@ export class UpdatePujaAppointmentStatusUseCase {
           const totalAmount = appointment.price;
 
           // Fetch Expert's full user profile for referral check
-          const expertUser = await qr.manager.findOne(User, {
-            where: {
-              id: (appointment.expert?.user_id as unknown as string) || '',
-            },
-          });
+          const expertUser = appointment.expert?.user_id
+            ? await qr.manager.findOne(User, {
+                where: {
+                  id: appointment.expert.user_id,
+                },
+              })
+            : null;
 
           // Resolve commissions via rules engine locally
           const platformFeeResolved = await this.resolveCommissionLocal(
@@ -465,7 +467,7 @@ export class UpdatePujaAppointmentStatusUseCase {
           const gst = Number((platformFee * (gst_rate / 100)).toFixed(2));
 
           let agent_commission = 0;
-          let agent_id: string | undefined = undefined;
+          let agent_id: number | undefined = undefined;
 
           // Check if Seller Agent Commission is applicable (Referred)
           if (expertUser?.referred_by_id) {
@@ -482,14 +484,16 @@ export class UpdatePujaAppointmentStatusUseCase {
           }
 
           let buyer_agent_commission = 0;
-          let buyer_agent_id: string | undefined = undefined;
+          let buyer_agent_id: number | undefined = undefined;
 
-          const buyerUser = await qr.manager.findOne(User, {
-            where: {
-              id: appointment.client?.user?.id || '',
-            },
-            select: ['id', 'referred_by_id'],
-          });
+          const buyerUser = appointment.client?.user?.id
+            ? await qr.manager.findOne(User, {
+                where: {
+                  id: appointment.client.user.id,
+                },
+                select: ['id', 'referred_by_id'],
+              })
+            : null;
 
           if (buyerUser?.referred_by_id) {
             buyer_agent_id = buyerUser.referred_by_id;
@@ -591,7 +595,7 @@ export class UpdatePujaAppointmentStatusUseCase {
           // 3. Create Todo for Expert
           try {
             const todo = qr.manager.create(Todo, {
-              user_id: appointment.expert.user_id as unknown as string,
+              expert: { id: appointment.expert.id } as any,
               text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.client?.user?.name || 'Client'} on ${String(appointment.scheduled_date || 'TBD')} at ${String(appointment.scheduled_time || 'TBD')}`,
             });
             await qr.manager.save(Todo, todo);
@@ -683,7 +687,7 @@ export class UpdatePujaAppointmentStatusUseCase {
 
         try {
           await this.notificationFacade.create(
-            appointment.client?.id || '',
+            appointment.client?.id ?? 0,
             RoleEnum.CLIENT,
             NotificationType.GENERAL,
             title,

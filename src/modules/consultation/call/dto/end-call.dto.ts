@@ -1,8 +1,10 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class EndCallDto {
-  @IsString()
-  sessionId!: string;
+  @IsInt()
+  @Type(() => Number)
+  sessionId!: number;
 
   @IsOptional()
   @IsString()

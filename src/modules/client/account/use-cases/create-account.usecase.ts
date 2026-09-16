@@ -17,21 +17,21 @@ export class CreateAccountUseCase extends BaseService<ClientAccount> {
   }
 
   async execute(
-    userId: string,
+    userId: number | string,
     dto: CreateClientAccountDto,
     queryRunner?: QueryRunner,
   ): Promise<ClientAccount> {
     const repo = this.getRepo(queryRunner);
 
     const existingAccount = await repo.findOne({
-      where: { user: { id: userId } },
+      where: { user: { id: Number(userId) } },
     });
 
     if (existingAccount) return existingAccount;
 
     const account = repo.create();
     Object.assign(account, dto);
-    account.user = { id: userId } as User;
+    account.user = { id: Number(userId) } as User;
 
     const suffix = crypto
       .randomBytes(4)

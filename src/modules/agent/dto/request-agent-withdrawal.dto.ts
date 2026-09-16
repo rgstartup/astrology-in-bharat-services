@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class RequestAgentWithdrawalDto {
   @IsNotEmpty()
@@ -6,5 +7,7 @@ export class RequestAgentWithdrawalDto {
   amount!: number;
 
   @IsNotEmpty()
-  bank_account_id!: string | number;
+  @Type(() => Number)
+  @IsNumber()
+  bank_account_id!: number;
 }

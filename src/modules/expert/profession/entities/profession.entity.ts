@@ -6,15 +6,15 @@ import {
   ManyToMany,
   JoinTable,
   OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { Specialization } from '@/modules/expert/specialization/entities/specialization.entity';
 import { ExpertProfession } from './expert-profession.entity';
 
 @Entity({ schema: 'expert', name: 'professions' })
 export class Profession {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'text' })
   title!: string;

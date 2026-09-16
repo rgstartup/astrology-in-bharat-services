@@ -15,12 +15,12 @@ export class UpdateAccountUseCase {
   constructor(private readonly db: DatabaseService) {}
 
   async execute(
-    client: ClientAccount | { id: string },
+    client: ClientAccount | { id: number | string },
     dto: UpdateClientAccountDto,
   ) {
     await this.db.transaction(async (queryRunner) => {
       const account = await queryRunner.manager.findOne(ClientAccount, {
-        where: { id: client.id },
+        where: { id: Number(client.id) },
         relations: ['user', 'addresses'],
       });
 

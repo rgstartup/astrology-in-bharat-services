@@ -7,11 +7,11 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { UserStatusEnum } from '@/common/enums/user-status.enum';
 import { ConsultationTopicPreference } from '@/modules/consultation/consultation/entities/consultation_topic_preference.entity';
 
@@ -20,8 +20,8 @@ export type GENDER = 'male' | 'female' | 'other';
 @Entity({ schema: 'client', name: 'account' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 export class ClientAccount {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })

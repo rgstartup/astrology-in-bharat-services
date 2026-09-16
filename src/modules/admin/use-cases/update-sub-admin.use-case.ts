@@ -14,11 +14,11 @@ import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 import { AdminAuditLog } from '../entities/admin-audit-log.entity';
 
 export interface UpdateSubAdminInput {
-  targetId: string;
+  targetId: number;
   permissions?: AdminPermission[];
   name?: string;
   password?: string;
-  updatedByAdminId: string;
+  updatedByAdminId: number;
 }
 
 @Injectable()
@@ -74,7 +74,7 @@ export class UpdateSubAdminUseCase {
         admin_id: input.updatedByAdminId,
         action: 'UPDATE_SUB_ADMIN',
         resource_type: 'SUB_ADMIN',
-        resource_id: input.targetId,
+        resource_id: String(input.targetId),
         details: {
           old_permissions: oldPermissions,
           new_permissions: input.permissions,

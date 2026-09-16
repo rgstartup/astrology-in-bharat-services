@@ -12,7 +12,7 @@ export class GetDisputeByIdUseCase {
     private readonly disputeRepo: Repository<Dispute>,
   ) {}
 
-  async execute(profileId: string, disputeId: string, isAdmin = false) {
+  async execute(profileId: number, disputeId: number, isAdmin = false) {
     const query = this.disputeRepo
       .createQueryBuilder('dispute')
       .leftJoinAndSelect('dispute.client', 'client')

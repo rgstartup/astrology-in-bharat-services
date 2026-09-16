@@ -25,7 +25,7 @@ export class CouponFacade {
     return this.applyCouponUseCase.execute({ code, amount });
   }
 
-  async markCouponAsUsed(profileId: string, code: string, manager?: unknown) {
+  async markCouponAsUsed(profileId: number | string, code: string, manager?: unknown) {
     return this.markCouponAsUsedUseCase.execute(
       profileId,
       code,
@@ -45,15 +45,15 @@ export class CouponFacade {
     return this.getCouponStatsUseCase.execute();
   }
 
-  async updateCoupon(id: string, data: Record<string, unknown>) {
+  async updateCoupon(id: number | string, data: Record<string, unknown>) {
     return this.updateCouponUseCase.execute(id, data);
   }
 
-  async deleteCoupon(id: string) {
+  async deleteCoupon(id: number | string) {
     return this.deleteCouponUseCase.execute(id);
   }
 
-  async bulkAssign(couponCode: string, userIds: string[]) {
+  async bulkAssign(couponCode: string, userIds: (string | number)[]) {
     return this.bulkAssignCouponUseCase.execute(couponCode, userIds);
   }
 }

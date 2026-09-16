@@ -195,7 +195,7 @@ export class GetFilteredUsersUseCase {
     return enhancedUsers;
   }
 
-  async executeIds(filters: FilterCriteria): Promise<string[]> {
+  async executeIds(filters: FilterCriteria): Promise<number[]> {
     const query = this.buildBaseQuery(filters);
     this.applyComplexFilters(query, filters);
 

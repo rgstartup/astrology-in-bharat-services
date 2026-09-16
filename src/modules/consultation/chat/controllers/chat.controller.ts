@@ -6,7 +6,7 @@ import {
   Body,
   Param,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Header,
   Query,
   NotFoundException,
@@ -33,7 +33,7 @@ export class ChatController {
 
   @Post('initiate')
   async initiateChat(
-    @CurrentProfile() clientId: string,
+    @CurrentProfile() clientId: number,
     @Body() dto: InitiateChatDto,
   ) {
     const session = await this.chatFacade.initiateChat(
@@ -88,21 +88,21 @@ export class ChatController {
   }
 
   /**
-   * GET /api/v1/chat/eligibility?expert_id=<uuid>
+   * GET /api/v1/chat/eligibility?expert_id=<id>
    * Returns eligibility info for the current user to start a chat with an expert.
    * Business logic is fully handled on the backend.
    */
   @Get('eligibility')
   @Header('Cache-Control', 'no-store')
   async checkEligibility(
-    @CurrentProfile() clientId: string,
-    @Query('expert_id') expertId: string,
+    @CurrentProfile() clientId: number,
+    @Query('expert_id', ParseIntPipe) expertId: number,
   ) {
     return this.chatFacade.checkEligibility(clientId, expertId);
   }
 
   @Post('activate/:sessionId')
-  async activateSession(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
+  async activateSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
     const { session, introCard } =
       await this.chatFacade.activateSession(sessionId);
     if (session) {
@@ -134,7 +134,7 @@ export class ChatController {
   }
 
   @Post('end/:sessionId')
-  async endChat(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
+  async endChat(@Param('sessionId', ParseIntPipe) sessionId: number) {
     const session = await this.chatFacade.endChat(sessionId);
     if (session) {
       // Notify the specific chat room
@@ -153,7 +153,7 @@ export class ChatController {
 
   @Patch('session/:sessionId/status')
   async updateStatus(
-    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('sessionId', ParseIntPipe) sessionId: number,
     @Body('status') status: string,
   ) {
     if (status === 'accepted') {
@@ -212,7 +212,7 @@ export class ChatController {
 
   @Get('session/:sessionId')
   @Header('Cache-Control', 'no-store')
-  async getSession(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
+  async getSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
     const session = await this.chatFacade.getSession(sessionId);
     if (!session) return null;
 
@@ -222,7 +222,7 @@ export class ChatController {
   }
 
   @Get('history/:sessionId')
-  getHistory(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
+  getHistory(@Param('sessionId', ParseIntPipe) sessionId: number) {
     return this.chatFacade.getHistory(sessionId);
   }
 
@@ -233,16 +233,18 @@ export class ChatController {
   @Get('user-session/:expert_id')
   @Header('Cache-Control', 'no-store')
   async getUserSession(
-    @Param('expert_id', ParseUUIDPipe) expert_id: string,
+    @Param('expert_id', ParseIntPipe) expert_id: number,
     @Query('sessionId') sessionIdStr?: string,
   ) {
     let session: Record<string, unknown> | null = null;
 
     if (sessionIdStr) {
-      // sessionId is a UUID string â€” do NOT parseInt it
-      session = (await this.chatFacade.getSession(
-        sessionIdStr,
-      )) as unknown as Record<string, unknown>;
+      const sessionId = Number(sessionIdStr);
+      if (!isNaN(sessionId)) {
+        session = (await this.chatFacade.getSession(
+          sessionId,
+        )) as unknown as Record<string, unknown>;
+      }
     }
 
     if (!session) {
@@ -296,7 +298,7 @@ export class ChatController {
 
   @Get('sessions/pending')
   @Header('Cache-Control', 'no-store')
-  async getPendingSessions(@CurrentProfile() profileId: string) {
+  async getPendingSessions(@CurrentProfile() profileId: number) {
     const { data: sessions, total_count } =
       await this.chatFacade.getExpertSessions(
         profileId,
@@ -315,7 +317,7 @@ export class ChatController {
   @Get('sessions/completed')
   @Header('Cache-Control', 'no-store')
   async getCompletedSessions(
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @Query() dto: GetExpertChatSessionsDto,
   ) {
     const limitNum = dto.limit ? dto.limit : 20;
@@ -342,7 +344,7 @@ export class ChatController {
 
   @Get('sessions/appointments/pending')
   @Header('Cache-Control', 'no-store')
-  async getRecentPendingSessions(@CurrentProfile() profileId: string) {
+  async getRecentPendingSessions(@CurrentProfile() profileId: number) {
     const { data: sessions, total_count } =
       await this.chatFacade.getExpertSessions(
         profileId,
@@ -360,7 +362,7 @@ export class ChatController {
 
   @Get('sessions/appointments/completed')
   @Header('Cache-Control', 'no-store')
-  async getRecentCompletedSessions(@CurrentProfile() profileId: string) {
+  async getRecentCompletedSessions(@CurrentProfile() profileId: number) {
     const { data: sessions, total_count } =
       await this.chatFacade.getExpertSessions(
         profileId,
@@ -379,7 +381,7 @@ export class ChatController {
   @Get('sessions/all')
   @Header('Cache-Control', 'no-store')
   async getAllSessions(
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @Query() dto: GetExpertChatSessionsDto,
   ) {
     const limitNum = dto.limit ? dto.limit : 20;
@@ -416,7 +418,7 @@ export class ChatController {
         const userBalance =
           session.status === 'pending'
             ? await this.chatGateway.getWalletBalance(
-                session.client_id as string,
+                session.client_id as number,
               )
             : 0;
         const maxMinutes = session.is_free
@@ -442,9 +444,8 @@ export class ChatController {
 
   @Get('sessions/my-sessions')
   @Header('Cache-Control', 'no-store')
-  async getMySessionsAsClient(@CurrentProfile() clientId: string) {
+  async getMySessionsAsClient(@CurrentProfile() clientId: number) {
     const sessions = await this.chatFacade.getClientSessions(clientId);
-    // expiryTime unused - available for future use
 
     return Promise.all(
       sessions.map((session) => {
@@ -488,7 +489,7 @@ export class ChatController {
 
   @Get('sessions/active-client')
   @Header('Cache-Control', 'no-store')
-  async getActiveClientSession(@CurrentProfile() clientId: string) {
+  async getActiveClientSession(@CurrentProfile() clientId: number) {
     const session = await this.chatFacade.getActiveClientSession(clientId);
     if (!session) return null;
 
@@ -532,7 +533,7 @@ export class ChatController {
       );
 
       const wallet = await this.chatGateway.getWallet(
-        session.client_id as string,
+        session.client_id as number,
         'client_id',
       );
       const totalAffordableBalance =

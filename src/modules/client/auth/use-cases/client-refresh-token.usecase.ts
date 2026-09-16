@@ -44,7 +44,7 @@ export class ClientRefreshTokenUseCase {
         },
       },
       where: {
-        id: sessionId,
+        id: Number(sessionId),
         type: 'refresh_token',
         revoked: false,
       },

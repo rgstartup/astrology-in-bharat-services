@@ -4,7 +4,7 @@ import {
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -60,7 +60,7 @@ export class MerchantAccountController {
 
   @Get(':id')
   @Public()
-  getById(@Param('id', ParseUUIDPipe) id: string) {
+  getById(@Param('id', ParseIntPipe) id: number) {
     return this.accountFacade.getById(id);
   }
 

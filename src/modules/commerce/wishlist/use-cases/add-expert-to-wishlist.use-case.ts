@@ -21,7 +21,7 @@ export class AddExpertToWishlistUseCase {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(profileId: string, expert_id: string): Promise<BooleanMessage> {
+  async execute(profileId: number, expert_id: number): Promise<BooleanMessage> {
     if (!profileId) {
       throw new UserNotFoundError();
     }

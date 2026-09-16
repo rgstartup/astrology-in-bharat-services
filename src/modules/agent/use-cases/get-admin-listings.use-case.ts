@@ -37,11 +37,12 @@ export class GetAdminListingsUseCase {
 
     let placeData: AgentListing[] = [];
     let expertData: Array<{
-      id: string;
+      id: number;
       name?: string;
+      role?: any;
       roles?: string[];
       referred_by?: { uid?: string; name?: string };
-      referred_by_id?: string;
+      referred_by_id?: number;
       created_at: Date;
       profile_expert?: Record<string, unknown> | null;
       profile_merchant?: Record<string, unknown> | null;

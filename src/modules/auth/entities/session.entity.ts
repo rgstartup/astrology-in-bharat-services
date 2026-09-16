@@ -1,23 +1,20 @@
-// src/auth/credential.entity.ts
 import {
   Entity,
   Column,
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
-  BeforeInsert,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
-import { uuidv7 } from 'uuidv7';
-import { UuidV7PrimaryKey } from '@/common/decorators/uuid-primary-key.decorator';
 
 @Entity({
   schema: 'auth',
   name: 'sessions',
 })
 export class Session {
-  @UuidV7PrimaryKey()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   // hashed refresh token (or session secret)
   @Column({ type: 'text' })
@@ -48,10 +45,5 @@ export class Session {
 
   isActive(now: Date = new Date()) {
     return !this.revoked && now < this.expires_at;
-  }
-
-  @BeforeInsert()
-  generateId() {
-    if (!this.id) this.id = uuidv7();
   }
 }

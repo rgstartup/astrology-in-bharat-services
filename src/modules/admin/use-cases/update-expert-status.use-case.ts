@@ -6,7 +6,7 @@ import { UpdateExpertStatusDto } from '../dto/update-expert-status.dto';
 export class UpdateExpertStatusUseCase {
   constructor(private readonly profileFacade: ExpertProfileFacade) {}
 
-  async execute(id: string, dto: UpdateExpertStatusDto) {
+  async execute(id: number, dto: UpdateExpertStatusDto) {
     const { status, reason } = dto;
     return this.profileFacade.updateKycStatus(id, status, reason);
   }

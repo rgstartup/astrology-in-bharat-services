@@ -58,21 +58,21 @@ export class OrderService {
   ) {}
 
   async updateOrderStatus(
-    id: string,
+    id: number | string,
     status: OrderStatus,
     cancellationReason?: string,
-    merchantId?: string,
+    merchantId?: number | string,
     user?: IUser,
   ) {
     const order = await this.orderRepo.findOne({
-      where: { id },
+      where: { id: Number(id) },
       relations: ['items', 'items.product', 'client', 'client.user'],
     });
     if (!order) throw new NotFoundException('Order not found');
 
     if (merchantId) {
       const belongsToMerchant = order.items.some(
-        (item) => item.product?.merchant_id === merchantId,
+        (item) => item.product?.merchant_id === Number(merchantId),
       );
       if (!belongsToMerchant) {
         throw new ForbiddenException(
@@ -82,7 +82,7 @@ export class OrderService {
     }
 
     const targetItems = merchantId
-      ? order.items.filter((item) => item.product?.merchant_id === merchantId)
+      ? order.items.filter((item) => item.product?.merchant_id === Number(merchantId))
       : order.items;
 
     if (targetItems.length === 0) {
@@ -131,23 +131,6 @@ export class OrderService {
         }
       }
 
-      const updatedBy: string = user?.profile || merchantId || 'system';
-      const role = user?.role || (merchantId ? 'merchant' : 'system');
-
-      const newHistoryEntry = {
-        status: status,
-        updated_by: updatedBy,
-        role: role,
-        merchant_id: merchantId,
-        updated_at: new Date().toISOString(),
-      };
-
-      order.status_history = Array.isArray(order.status_history)
-        ? [...order.status_history, newHistoryEntry]
-        : [newHistoryEntry];
-
-      await queryRunner.manager.save(Order, order);
-
       if (status === OrderStatus.PAID) {
         try {
           const clientAccount = await queryRunner.manager.findOne(
@@ -177,16 +160,38 @@ export class OrderService {
         }
       }
 
+      const updatedBy: string = String(user?.profile || merchantId || 'system');
+      const role = user?.role || (merchantId ? 'merchant' : 'system');
+
+      const newHistoryEntry = {
+        status: status,
+        updated_by: updatedBy,
+        role: role,
+        timestamp: new Date().toISOString(),
+        note: cancellationReason || undefined,
+      };
+
+      await queryRunner.manager.update(
+        Order,
+        { id: Number(id) },
+        {
+          status,
+          ...(cancellationReason ? { cancellation_reason: cancellationReason } : {}),
+          status_history: () =>
+            `jsonb_build_array(coalesce(status_history, '[]'::jsonb), '${JSON.stringify(newHistoryEntry)}'::jsonb)`,
+        },
+      );
+
       if (status === OrderStatus.CANCELLED) {
         const orderInsideTx = await queryRunner.manager.findOne(Order, {
-          where: { id },
+          where: { id: Number(id) },
           relations: ['items', 'items.product'],
         });
 
         if (orderInsideTx) {
           const txTargetItems = merchantId
             ? orderInsideTx.items.filter(
-                (item) => item.product?.merchant_id === merchantId,
+                (item) => item.product?.merchant_id === Number(merchantId),
               )
             : orderInsideTx.items;
 
@@ -266,14 +271,14 @@ export class OrderService {
         await qr.startTransaction();
         try {
           const orderWithItems = await qr.manager.findOne(Order, {
-            where: { id },
+            where: { id: Number(id) },
             relations: ['items', 'items.product'],
           });
 
           if (orderWithItems) {
             const txTargetItems = merchantId
               ? orderWithItems.items.filter(
-                  (item) => item.product?.merchant_id === merchantId,
+                  (item) => item.product?.merchant_id === Number(merchantId),
                 )
               : orderWithItems.items;
 
@@ -328,7 +333,7 @@ export class OrderService {
                 ]);
 
                 let agent_commission = 0;
-                let agent_id: string | undefined = undefined;
+                let agent_id: number | undefined = undefined;
 
                 if (merchantUser?.referred_by_id && merchantProfile) {
                   agent_id = merchantUser.referred_by_id;
@@ -344,7 +349,7 @@ export class OrderService {
                 }
 
                 let buyer_agent_commission = 0;
-                let buyer_agent_id: string | undefined = undefined;
+                let buyer_agent_id: number | undefined = undefined;
 
                 const buyerUser = await qr.manager.findOne(User, {
                   where: { id: orderWithItems.client_id },
@@ -567,10 +572,10 @@ export class OrderService {
     manager: any,
     eventType: CommissionEventType,
     commissionType: CommissionType,
-    profileId: string | null,
+    profileId: number | null,
     role: CommissionAppliesRole,
     grossAmount: number,
-  ): Promise<{ amount: number; ruleId: string | null }> {
+  ): Promise<{ amount: number; ruleId: number | null }> {
     const now = new Date();
 
     const rules = await manager.find(CommissionRule, {
@@ -732,7 +737,7 @@ export class OrderService {
 
   private async credit(
     manager: any,
-    profileId: string,
+    profileId: number,
     walletKey: string,
     amount: number,
     purpose: TransactionPurpose,

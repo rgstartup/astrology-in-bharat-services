@@ -23,7 +23,7 @@ export class GetEarningsStatsUseCase {
     private walletFacade: WalletFacade,
   ) {}
 
-  async execute(expertProfileId: string, dto: GetExpertEarningsStatsDto) {
+  async execute(expertProfileId: number, dto: GetExpertEarningsStatsDto) {
     const {
       period = 'last_6_months',
       startDate: startDateStr,
@@ -89,22 +89,22 @@ export class GetEarningsStatsUseCase {
     // --- Data Fetching (Current Period) ---
     const [sessions, calls, pujas, reviews] = await Promise.all([
       this.chatFacade.getExpertSessionsByDate(
-        expert_id as unknown as string,
+        expert_id,
         startDate,
         endDate,
       ),
       this.callFacade.getExpertCallsByDate(
-        expert_id as unknown as string,
+        expert_id,
         startDate,
         endDate,
       ),
       this.getExpertPujasByDateUseCase.execute(
-        expert_id as unknown as string,
+        expert_id,
         startDate,
         endDate,
       ),
       this.reviewsFacade.getExpertReviewsByDate(
-        expert_id as unknown as string,
+        expert_id,
         startDate,
         endDate,
       ),
@@ -113,17 +113,17 @@ export class GetEarningsStatsUseCase {
     // --- Data Fetching (Previous Period for Growth) ---
     const [prevSessions, prevCalls, prevPujas] = await Promise.all([
       this.chatFacade.getExpertSessionsByDate(
-        expert_id as unknown as string,
+        expert_id,
         prevStartDate,
         prevEndDate,
       ),
       this.callFacade.getExpertCallsByDate(
-        expert_id as unknown as string,
+        expert_id,
         prevStartDate,
         prevEndDate,
       ),
       this.getExpertPujasByDateUseCase.execute(
-        expert_id as unknown as string,
+        expert_id,
         prevStartDate,
         prevEndDate,
       ),

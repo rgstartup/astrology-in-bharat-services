@@ -29,7 +29,7 @@ export class CreateReviewUseCase {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(clientId: string, dto: CreateReviewDto): Promise<Review> {
+  async execute(clientId: number, dto: CreateReviewDto): Promise<Review> {
     const {
       expert_id,
       merchantId,
@@ -100,7 +100,7 @@ export class CreateReviewUseCase {
 
   private async handlePlatformReview(
     manager: EntityManager,
-    clientId: string,
+    clientId: number,
     rating: number,
     comment?: string,
     tags?: string[],
@@ -136,9 +136,9 @@ export class CreateReviewUseCase {
 
   private async handleExpertReview(
     manager: EntityManager,
-    clientId: string,
-    expert_id: string,
-    sessionId: string | undefined,
+    clientId: number,
+    expert_id: number,
+    sessionId: number | undefined,
     rating: number,
     comment?: string,
     tags?: string[],
@@ -150,28 +150,28 @@ export class CreateReviewUseCase {
 
     const actualExpertId = expert.id;
 
-    let chatSessionId: string | undefined = undefined;
-    let callSessionId: string | undefined = undefined;
+    let chatSessionId: number | undefined = undefined;
+    let callSessionId: number | undefined = undefined;
 
     if (sessionId) {
       const chatSession = await manager.findOne(ChatSession, {
-        where: { id: sessionId as unknown as string },
+        where: { id: sessionId },
       });
       if (chatSession) {
         chatSessionId = sessionId;
         const existingReview = await manager.findOne(Review, {
-          where: { session_id: sessionId as unknown as string },
+          where: { session_id: sessionId },
         });
         if (existingReview)
           throw new BadRequestException('Session already reviewed');
       } else {
         const callSession = await manager.findOne(CallSession, {
-          where: { id: sessionId as unknown as string },
+          where: { id: sessionId },
         });
         if (callSession) {
           callSessionId = sessionId;
           const existingReview = await manager.findOne(Review, {
-            where: { call_session_id: sessionId as unknown as string },
+            where: { call_session_id: sessionId },
           });
           if (existingReview)
             throw new BadRequestException('Session already reviewed');
@@ -180,8 +180,8 @@ export class CreateReviewUseCase {
     }
 
     const review = manager.create(Review, {
-      client_id: clientId as unknown as string,
-      expert: { id: actualExpertId } as unknown as Record<string, unknown>,
+      client_id: clientId,
+      expert_id: actualExpertId,
       session_id: chatSessionId ?? null,
       call_session_id: callSessionId ?? null,
       rating,
@@ -193,7 +193,7 @@ export class CreateReviewUseCase {
 
     try {
       const savedReview = await manager.save(Review, review);
-      await this.updateExpertRating(manager, actualExpertId as string);
+      await this.updateExpertRating(manager, actualExpertId);
       return savedReview;
     } catch (error) {
       console.error('[CreateReview] Error saving review:', error);
@@ -203,9 +203,9 @@ export class CreateReviewUseCase {
 
   private async handleMerchantReview(
     manager: EntityManager,
-    clientId: string,
-    merchantId: string,
-    orderId: string | undefined,
+    clientId: number,
+    merchantId: number,
+    orderId: number | undefined,
     rating: number,
     comment?: string,
     tags?: string[],
@@ -231,7 +231,7 @@ export class CreateReviewUseCase {
       }
 
       const hasMerchantProduct = order.items.some(
-        (item: { product?: { merchant_id?: string } }) =>
+        (item: { product?: { merchant_id: number | null } }) =>
           item.product?.merchant_id === merchant.user_id ||
           item.product?.merchant_id === merchant.id,
       );
@@ -243,7 +243,7 @@ export class CreateReviewUseCase {
 
       const existingReview = await manager.findOne(Review, {
         where: {
-          order_id: orderId as unknown as string,
+          order_id: orderId,
           merchant_id: actualMerchantId,
         },
       });
@@ -254,7 +254,7 @@ export class CreateReviewUseCase {
     }
 
     const review = manager.create(Review, {
-      client_id: clientId as unknown as string,
+      client_id: clientId,
       merchant_id: actualMerchantId,
       order_id: orderId ?? null,
       rating,
@@ -269,7 +269,7 @@ export class CreateReviewUseCase {
     return savedReview;
   }
 
-  private async updateExpertRating(manager: EntityManager, expert_id: string) {
+  private async updateExpertRating(manager: EntityManager, expert_id: number) {
     const result = (await manager
       .createQueryBuilder(Review, 'review')
       .select('AVG(review.rating)', 'average')
@@ -296,7 +296,7 @@ export class CreateReviewUseCase {
 
   private async updateMerchantRating(
     manager: EntityManager,
-    merchantId: string,
+    merchantId: number,
   ) {
     const result = (await manager
       .createQueryBuilder(Review, 'review')

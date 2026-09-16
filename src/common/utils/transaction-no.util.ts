@@ -4,7 +4,7 @@ import { TransactionPurpose } from '@/modules/finance/wallet/entities/transactio
 export function generateTransactionNo(
   role: Role,
   purpose: TransactionPurpose,
-  id: string,
+  id: string | number,
 ): string {
   const prefix = 'AIB';
 

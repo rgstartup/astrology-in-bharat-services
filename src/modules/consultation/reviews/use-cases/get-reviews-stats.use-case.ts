@@ -13,7 +13,7 @@ export class GetReviewsStatsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) {}
 
-  async execute(expert_id: string) {
+  async execute(expert_id: number) {
     const expert =
       (await this.expertProfileFacade.getExpertById(expert_id)) ||
       (await this.expertProfileFacade.getExpertByUserId(expert_id));
@@ -24,7 +24,7 @@ export class GetReviewsStatsUseCase {
       .createQueryBuilder('review')
       .select('CAST(review.rating AS INTEGER)', 'rating')
       .addSelect('COUNT(*)', 'count')
-      .where('review.expert_id = :expert_id', { expert_id: String(expert.id) })
+      .where('review.expert_id = :expert_id', { expert_id: expert.id })
       .andWhere('review.status = :status', { status: 'approved' })
       .groupBy('review.rating')
       .getRawMany();

@@ -31,8 +31,8 @@ export class InitiateChatUseCase {
   ) {}
 
   async execute(
-    clientId: string,
-    expert_id: string,
+    clientId: number,
+    expert_id: number,
     metadata?: Record<string, unknown>,
   ) {
     const queryRunner = this.dataSource.createQueryRunner();
@@ -186,7 +186,7 @@ export class InitiateChatUseCase {
 
   private async reserveBalance(
     manager: EntityManager,
-    profileId: string,
+    profileId: number,
     walletKey: string,
     amount: number,
     referenceId: string,

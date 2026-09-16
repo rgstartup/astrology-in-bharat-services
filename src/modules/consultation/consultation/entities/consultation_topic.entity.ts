@@ -1,17 +1,17 @@
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Column,
   CreateDateColumn,
   Entity,
   OneToMany,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ConsultationTopicPreference } from './consultation_topic_preference.entity';
 
 @Entity({ schema: 'consultations', name: 'consultation_topic' })
 export class ConsultationTopic {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({
     type: 'text',

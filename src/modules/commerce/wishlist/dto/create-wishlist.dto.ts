@@ -1,7 +1,9 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsInt, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateWishlistDto {
   @IsNotEmpty()
-  @IsString()
-  productId: string;
+  @IsInt()
+  @Type(() => Number)
+  productId: number;
 }

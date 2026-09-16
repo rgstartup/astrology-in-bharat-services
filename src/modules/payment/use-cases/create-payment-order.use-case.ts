@@ -78,7 +78,7 @@ export class CreatePaymentOrderUseCase {
         const internalOrderId = notesRecord.orderId || notesRecord.order_id;
         if (type === 'product' && internalOrderId) {
           await this.orderFacade.setRazorpayOrderId(
-            internalOrderId as string,
+            Number(internalOrderId),
             order.providerOrderId,
             queryRunner,
           );

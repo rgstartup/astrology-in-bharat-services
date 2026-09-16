@@ -44,7 +44,7 @@ export class QueryMerchantAccountsUseCase {
     return new PaginatedResponseDto(mapped, total, query.page, query.limit);
   }
 
-  async byId(id: string): Promise<MerchantAccountResponseDto> {
+  async byId(id: number): Promise<MerchantAccountResponseDto> {
     const account = await this.accountRepo.findOne({
       where: { id },
       relations: { user: true },
@@ -57,14 +57,14 @@ export class QueryMerchantAccountsUseCase {
     return MerchantAccountResponseDto.from(account);
   }
 
-  async findEntityById(id: string): Promise<MerchantAccount | null> {
+  async findEntityById(id: number): Promise<MerchantAccount | null> {
     return this.accountRepo.findOne({
       where: { id },
       relations: { user: true },
     });
   }
 
-  async byUserId(userId: string): Promise<MerchantAccount | null> {
+  async byUserId(userId: number): Promise<MerchantAccount | null> {
     return this.accountRepo.findOne({
       where: { user: { id: userId } },
       relations: { user: true },

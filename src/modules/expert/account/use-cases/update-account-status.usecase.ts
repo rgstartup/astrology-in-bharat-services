@@ -28,7 +28,7 @@ export class UpdateExpertAccountStatusUseCase {
     return this.accounts.save(account);
   }
 
-  async updateKyc(id: string, status: ExpertKycStatus, reason?: string) {
+  async updateKyc(id: number, status: ExpertKycStatus, reason?: string) {
     const account = await this.accounts.findOneBy({ id });
     if (!account) throw new NotFoundException('Expert account not found');
     account.kyc_status = status;

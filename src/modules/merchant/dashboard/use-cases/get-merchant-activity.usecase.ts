@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class GetMerchantActivityUseCase {
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-  async execute(userId: string) {
+  async execute(userId: number) {
     // Returning Mock data as requested to make the dashboard "Live"
     return [
       {

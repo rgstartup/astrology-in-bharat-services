@@ -5,15 +5,15 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { CartItem } from './cart-item.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'carts' })
 export class Cart {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @OneToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })

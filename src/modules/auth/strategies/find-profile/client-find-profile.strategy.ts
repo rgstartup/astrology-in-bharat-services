@@ -16,7 +16,7 @@ export class ClientFindProfileStrategy implements IFindProfileStrategy {
     return role === RoleEnum.CLIENT;
   }
 
-  async findProfile(userId: string): Promise<string | null> {
+  async findProfile(userId: number): Promise<number | null> {
     const account = await this.accountRepo.findOne({
       where: { user: { id: userId } },
       select: ['id'],

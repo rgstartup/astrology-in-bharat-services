@@ -22,7 +22,7 @@ export class NotificationFacade {
   ) {}
 
   async create(
-    profileId: string,
+    profileId: number,
     profileType: ProfileType,
     type: NotificationType,
     title: string,
@@ -40,7 +40,7 @@ export class NotificationFacade {
   }
 
   async getUserNotifications(
-    profileId: string,
+    profileId: number,
     profileType: ProfileType,
     dto: GetNotificationsDto,
   ) {
@@ -51,15 +51,15 @@ export class NotificationFacade {
     );
   }
 
-  async markAsRead(id: string, profileId?: string, profileType?: ProfileType) {
+  async markAsRead(id: number, profileId?: number, profileType?: ProfileType) {
     return this.markAsReadUseCase.execute(id, profileId, profileType);
   }
 
-  async getUnreadCount(profileId: string, profileType: ProfileType) {
+  async getUnreadCount(profileId: number, profileType: ProfileType) {
     return this.getNotificationsUseCase.getUnreadCount(profileId, profileType);
   }
 
-  async clearAll(profileId: string, profileType: ProfileType) {
+  async clearAll(profileId: number, profileType: ProfileType) {
     return this.clearAllNotificationsUseCase.execute(profileId, profileType);
   }
 }

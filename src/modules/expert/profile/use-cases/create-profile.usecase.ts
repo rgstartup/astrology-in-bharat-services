@@ -108,7 +108,7 @@ export class CreateProfileUseCase {
         this.eventEmitter.emit(
           'expert.status.changed',
           new ExpertStatusChangedEvent(
-            user.id as unknown as string,
+            user.id,
             dto.is_available,
           ),
         );

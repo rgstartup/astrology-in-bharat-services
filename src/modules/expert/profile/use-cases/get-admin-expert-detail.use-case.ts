@@ -33,7 +33,7 @@ export class GetExpertDetailUseCase {
     private readonly profileExpertRepo: Repository<ProfileExpert>,
   ) {}
 
-  async execute(id: string) {
+  async execute(id: number) {
     const user = await this.usersFacade.findById(id);
 
     if (!user) {
@@ -48,8 +48,7 @@ export class GetExpertDetailUseCase {
     const clientAccount = await this.accountFacade.getAccount({
       id: user.id,
     });
-    const expertProfileId =
-      profile?.id || '00000000-0000-0000-0000-000000000000';
+    const expertProfileId = profile?.id || 0;
     const total_earnings = await this.walletFacade.getTotalEarnings(
       expertProfileId,
       'expert_id',

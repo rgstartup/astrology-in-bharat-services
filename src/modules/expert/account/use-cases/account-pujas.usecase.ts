@@ -16,7 +16,7 @@ export class ExpertAccountPujasUseCase {
     private readonly pujas: Repository<ExpertAccountPuja>,
   ) {}
 
-  async upsert(expert: IExpert, dto: ExpertPujaDto, id?: string) {
+  async upsert(expert: IExpert, dto: ExpertPujaDto, id?: number) {
     const account = await this.accounts.findOneBy({ id: expert.sub });
     if (!account) throw new NotFoundException('Expert account not found');
 
@@ -30,7 +30,7 @@ export class ExpertAccountPujasUseCase {
     return this.pujas.save(puja);
   }
 
-  async remove(expert: IExpert, id: string) {
+  async remove(expert: IExpert, id: number) {
     const account = await this.accounts.findOneBy({ id: expert.sub });
 
     if (!account) throw new NotFoundException('Expert account not found');
@@ -48,7 +48,7 @@ export class ExpertAccountPujasUseCase {
     return this.pujas.find({ relations: { account: true } });
   }
 
-  async byId(id: string) {
+  async byId(id: number) {
     const puja = await this.pujas.findOne({
       where: { id },
       relations: { account: true },
@@ -57,7 +57,7 @@ export class ExpertAccountPujasUseCase {
     return puja;
   }
 
-  async updateLikes(id: string, diff: number) {
+  async updateLikes(id: number, diff: number) {
     await this.pujas.increment({ id }, 'total_likes', diff);
     return this.byId(id);
   }

@@ -6,7 +6,7 @@ import {
   Body,
   Param,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SupportFacade } from '../support.facade';
 import { CreateDisputeDto } from '../dto/create-dispute.dto';
@@ -25,14 +25,14 @@ export class SupportController {
   constructor(private readonly supportFacade: SupportFacade) {}
 
   @Get('disputes')
-  async getDisputes(@CurrentProfile() profileId: string) {
+  async getDisputes(@CurrentProfile() profileId: number) {
     return this.supportFacade.getDisputes(profileId);
   }
 
   @Get('disputes/:id')
   async getDisputeById(
-    @CurrentProfile() profileId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentProfile() profileId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     return this.supportFacade.getDisputeById(profileId, id);
   }
@@ -47,16 +47,16 @@ export class SupportController {
 
   @Get('disputes/:id/messages')
   async getMessages(
-    @CurrentProfile() profileId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentProfile() profileId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     return this.supportFacade.getMessages(profileId, id);
   }
 
   @Post('disputes/:id/messages')
   async sendMessage(
-    @CurrentProfile() profileId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentProfile() profileId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: SendDisputeMessageDto,
   ) {
     return this.supportFacade.sendMessage(profileId, id, dto);
@@ -64,8 +64,8 @@ export class SupportController {
 
   @Patch('disputes/:id/messages/read')
   async markMessagesAsRead(
-    @CurrentProfile() profileId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentProfile() profileId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     const result = await this.supportFacade.markMessagesAsRead(profileId, id);
     if (

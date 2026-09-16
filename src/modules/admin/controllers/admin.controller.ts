@@ -83,20 +83,20 @@ export class AdminController {
   @RequirePermissions(AdminPermission.REVIEWS_MODERATION)
   @Patch('reviews/:id/status')
   async updateReviewStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('status') status: string,
   ) {
     return this.reviewsFacade.updateReviewStatus(id, status);
   }
   @RequirePermissions(AdminPermission.REVIEWS_MODERATION)
   @Delete('reviews/:id')
-  async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
+  async deleteReview(@Param('id', ParseIntPipe) id: number) {
     return this.reviewsFacade.deleteReview(id);
   }
   @RequirePermissions(AdminPermission.REVIEWS_MODERATION)
   @Post('reviews/:id/response')
   async sendReviewResponse(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('message') message: string,
   ) {
     return this.reviewsFacade.sendReviewResponse(id, message);
@@ -144,7 +144,7 @@ export class AdminController {
   }
   @RequirePermissions(AdminPermission.USER_MANAGEMENT)
   @Get('clients/:id')
-  async getClientDetail(@Param('id', ParseUUIDPipe) id: string) {
+  async getClientDetail(@Param('id', ParseIntPipe) id: number) {
     return this.usersFacade.findById(id);
   }
   @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
@@ -154,13 +154,13 @@ export class AdminController {
   }
   @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
   @Get('experts/:id')
-  async getExpertDetail(@Param('id', ParseUUIDPipe) id: string) {
+  async getExpertDetail(@Param('id', ParseIntPipe) id: number) {
     return this.adminFacade.getExpertDetail(id);
   }
   @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
   @Patch('experts/:id/status')
   async updateExpertStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateExpertStatusDto,
   ) {
     await this.adminFacade.updateExpertStatus(id, body);
@@ -169,7 +169,7 @@ export class AdminController {
   @RequirePermissions(AdminPermission.USER_MANAGEMENT)
   @Patch('clients/:id/block')
   async toggleUserBlock(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: { isBlocked: boolean },
     @CurrentUser() admin: IUser,
   ) {
@@ -199,13 +199,13 @@ export class AdminController {
   }
   @RequirePermissions(AdminPermission.LIVE_SESSIONS)
   @Get('live-sessions/:id/history')
-  async getChatHistory(@Param('id', ParseUUIDPipe) id: string) {
+  async getChatHistory(@Param('id', ParseIntPipe) id: number) {
     return this.chatFacade.getHistory(id);
   }
   @RequirePermissions(AdminPermission.LIVE_SESSIONS)
   @Post('live-sessions/:id/terminate')
   async terminateSession(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @CurrentUser() admin: IUser,
     @Body() body: TerminateSessionDto,
   ) {
@@ -241,7 +241,7 @@ export class AdminController {
   @RequirePermissions(AdminPermission.COUPONS_OFFERS)
   @Patch('coupons/:id')
   async updateCoupon(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() data: Record<string, unknown>,
   ) {
     const result = await this.couponFacade.updateCoupon(id, data);
@@ -268,7 +268,7 @@ export class AdminController {
   @RequirePermissions(AdminPermission.PAYOUT_REQUESTS)
   @Patch('withdrawals/:id/status')
   async updateWithdrawalStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @CurrentUser() admin: IUser,
     @Body() body: UpdateWithdrawalStatusDto,
   ) {
@@ -327,7 +327,7 @@ export class AdminController {
   @RequirePermissions(AdminPermission.SHOP_MANAGEMENT)
   @Patch('merchants/:id/status')
   async updateMerchantStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: { status: MerchantStatus },
   ) {
     return this.adminFacade.updateMerchantStatus(id, body);
@@ -339,7 +339,7 @@ export class AdminController {
   }
   @RequirePermissions(AdminPermission.SHOP_MANAGEMENT)
   @Get('merchant-sales/:id')
-  async getMerchantSalesDetails(@Param('id', ParseUUIDPipe) id: string) {
+  async getMerchantSalesDetails(@Param('id', ParseIntPipe) id: number) {
     return this.adminFacade.getMerchantSalesDetails(id);
   }
 
@@ -388,7 +388,7 @@ export class AdminController {
   @RequirePermissions(AdminPermission.PRODUCTS)
   @Patch('listings/:id/status')
   async updateListingStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('status') status: string,
   ) {
     const result = await this.adminFacade.updateListingStatus(id, status);
@@ -406,13 +406,13 @@ export class AdminController {
   }
 
   @Get('support/disputes/:id')
-  async getDisputeById(@Param('id', ParseUUIDPipe) id: string) {
+  async getDisputeById(@Param('id', ParseIntPipe) id: number) {
     return this.adminFacade.getDisputeById(id);
   }
 
   @Patch('support/disputes/:id/status')
   async updateDisputeStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateDisputeStatusDto,
   ) {
     await this.adminFacade.updateDisputeStatus(id, body);
@@ -420,13 +420,13 @@ export class AdminController {
   }
 
   @Get('support/disputes/:id/messages')
-  async getDisputeMessages(@Param('id', ParseUUIDPipe) id: string) {
+  async getDisputeMessages(@Param('id', ParseIntPipe) id: number) {
     return this.adminFacade.getDisputeMessages(id);
   }
 
   @Post('support/disputes/:id/messages')
   async sendDisputeMessage(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @CurrentUser() admin: IUser,
     @Body() data: { message: string },
   ) {

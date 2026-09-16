@@ -8,7 +8,7 @@ import {
   Query,
   UseGuards,
   Param,
-  ParseUUIDPipe,
+  ParseIntPipe,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
@@ -277,15 +277,15 @@ export class ProfileController {
   upsertPuja(
     @CurrentUser() user: IUser,
     @Body() dto: ExpertPujaDto,
-    @Query('id') id?: string,
+    @Query('id', new ParseIntPipe({ optional: true })) id?: number,
   ) {
-    return this.profileFacade.upsertPuja(user, dto, id ? id : undefined);
+    return this.profileFacade.upsertPuja(user, dto, id);
   }
 
   @Delete('puja/:id')
   async deletePuja(
     @CurrentUser() user: IUser,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     const result = await this.profileFacade.deletePuja(user, id);
     if (
@@ -309,7 +309,7 @@ export class ProfileController {
 
   @Get('puja/info/:id')
   @Public()
-  getPujaById(@Param('id', ParseUUIDPipe) id: string) {
+  getPujaById(@Param('id', ParseIntPipe) id: number) {
     return this.profileFacade.getPujaById(id);
   }
 
@@ -399,7 +399,7 @@ export class ProfileController {
   // other modules like 'bank-accounts' and avoid path-to-regexp v8 crash matching
   @Get('details/:id')
   @Public()
-  getExpertById(@Param('id', ParseUUIDPipe) id: string) {
+  getExpertById(@Param('id', ParseIntPipe) id: number) {
     return this.profileFacade.getExpertById(id);
   }
 }

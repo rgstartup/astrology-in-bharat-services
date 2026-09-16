@@ -67,7 +67,7 @@ export class LoginWithMagicLinkUseCase {
   // 🔐 infra → application boundary
   private verifyTokenOrFail(token: string) {
     try {
-      return this.tokenCrypto.verifyJwt<{ userId: string; email: string }>(
+      return this.tokenCrypto.verifyJwt<{ userId: number | string; email: string }>(
         token,
       );
     } catch {

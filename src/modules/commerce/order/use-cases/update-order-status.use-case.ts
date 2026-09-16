@@ -8,10 +8,10 @@ export class UpdateOrderStatusUseCase {
   constructor(private readonly orderService: OrderService) {}
 
   async execute(
-    id: string,
+    id: number,
     status: OrderStatus,
     cancellationReason?: string,
-    merchantId?: string,
+    merchantId?: number,
     user?: IUser,
   ) {
     return this.orderService.updateOrderStatus(

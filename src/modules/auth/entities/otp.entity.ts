@@ -5,9 +5,9 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
-import { UuidV7PrimaryKey } from '@/common/decorators/uuid-primary-key.decorator';
 
 export enum OtpPurposeEnum {
   REGISTRATION = 'registration',
@@ -21,8 +21,8 @@ export enum OtpPurposeEnum {
   name: 'otp',
 })
 export class Otp {
-  @UuidV7PrimaryKey()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'user_id' })

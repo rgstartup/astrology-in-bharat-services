@@ -15,7 +15,7 @@ export class ClearAllNotificationsUseCase {
     private readonly notificationRepo: Repository<Notification>,
   ) {}
 
-  async execute(profileId: string, profileType: ProfileType) {
+  async execute(profileId: number, profileType: ProfileType) {
     switch (profileType) {
       case RoleEnum.CLIENT:
         await this.notificationRepo.delete({ client_id: profileId });

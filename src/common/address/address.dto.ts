@@ -4,13 +4,16 @@ import {
   IsPostalCode,
   IsEnum,
   IsBoolean,
+  IsNumber,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { AddressTag } from './address.entity';
 
 export class AddressDto {
   @IsOptional()
-  @IsString()
-  id?: string;
+  @Type(() => Number)
+  @IsNumber()
+  id?: number;
 
   @IsString()
   line1: string;

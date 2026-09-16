@@ -7,7 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CartFacade } from '../cart.facade';
 import { AddToCartDto } from '../dto/create-cart.dto';
@@ -25,13 +25,13 @@ export class CartController {
   constructor(private readonly cartFacade: CartFacade) {}
 
   @Get()
-  async getCart(@CurrentClient('id') clientId: string) {
+  async getCart(@CurrentClient('id') clientId: number) {
     return this.cartFacade.getCart(clientId);
   }
 
   @Post()
   async addToCart(
-    @CurrentClient('id') clientId: string,
+    @CurrentClient('id') clientId: number,
     @Body() addToCartDto: AddToCartDto,
   ) {
     await this.cartFacade.addToCart(clientId, addToCartDto);
@@ -40,7 +40,7 @@ export class CartController {
 
   @Put()
   async updateCartItem(
-    @CurrentClient('id') clientId: string,
+    @CurrentClient('id') clientId: number,
     @Body() updateCartItemDto: UpdateCartItemDto,
   ) {
     await this.cartFacade.updateCartItem(clientId, updateCartItemDto);
@@ -49,8 +49,8 @@ export class CartController {
 
   @Delete(':id')
   async removeCartItem(
-    @CurrentClient('id') clientId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentClient('id') clientId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     await this.cartFacade.removeCartItem(clientId, id);
     return new BooleanMessage(true, 'Cart item removed');

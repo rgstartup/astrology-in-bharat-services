@@ -72,7 +72,7 @@ export class GetSpecializationsUseCase {
     return PaginatedResponseDto.from(items, total, dto);
   }
 
-  async getAvailableForExpert(expertId: string) {
+  async getAvailableForExpert(expertId: number) {
     const query = this.specializationRepo
       .createQueryBuilder('spec')
       .innerJoin('spec.professions', 'prof')

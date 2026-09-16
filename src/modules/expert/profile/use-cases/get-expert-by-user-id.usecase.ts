@@ -10,7 +10,7 @@ export class GetExpertByUserIdUseCase {
     private readonly expertProfileRepo: Repository<ProfileExpert>,
   ) {}
 
-  async execute(userId: string, queryRunner?: QueryRunner) {
+  async execute(userId: number, queryRunner?: QueryRunner) {
     const repo = queryRunner
       ? queryRunner.manager.getRepository(ProfileExpert)
       : this.expertProfileRepo;

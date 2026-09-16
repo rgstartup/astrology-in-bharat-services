@@ -20,13 +20,13 @@ export class GetMerchantTransactionsUseCase {
   ) {}
 
   async execute(
-    merchantProfileId: string,
+    merchantProfileId: string | number,
     options: { search?: string; page?: number; limit?: number },
   ) {
     const { search, page = 1, limit = 10 } = options;
 
     const wallet = await this.walletRepo.findOne({
-      where: { merchant_id: merchantProfileId },
+      where: { merchant_id: Number(merchantProfileId) },
     });
     if (!wallet) {
       return { transactions: [], total: 0, page, limit };
@@ -81,7 +81,7 @@ export class GetMerchantTransactionsUseCase {
               txn.reference_id.replace('REFUND-WD-', ''),
             );
             const withdrawal = await this.withdrawalRepo.findOne({
-              where: { id: withdrawalId as unknown as string },
+              where: { id: withdrawalId },
             });
             if (withdrawal) {
               orderId = `WD-${withdrawalId}`;

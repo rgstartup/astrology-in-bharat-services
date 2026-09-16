@@ -14,7 +14,7 @@ export class GetMerchantAnalyticsUseCase {
     private readonly profileRepo: Repository<MerchantAccount>,
   ) {}
 
-  async execute(userId: string) {
+  async execute(userId: number) {
     const merchantId = userId;
 
     if (!merchantId) {

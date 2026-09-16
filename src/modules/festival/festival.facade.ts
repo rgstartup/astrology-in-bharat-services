@@ -22,7 +22,7 @@ export class FestivalFacade {
     return this.getAllFestivalsUseCase.execute(dto);
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) {
     return this.getFestivalUseCase.execute(id);
   }
 
@@ -30,11 +30,11 @@ export class FestivalFacade {
     return this.createFestivalUseCase.execute(dto);
   }
 
-  async update(id: string, dto: UpdateFestivalDto) {
+  async update(id: number, dto: UpdateFestivalDto) {
     return this.updateFestivalUseCase.execute(id, dto);
   }
 
-  async remove(id: string) {
+  async remove(id: number) {
     return this.removeFestivalUseCase.execute(id);
   }
 }

@@ -1,16 +1,16 @@
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Entity,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
   AfterLoad,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity({ schema: 'commerce', name: 'products' })
 export class Product {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'character varying', length: 255 })
   name!: string;
@@ -48,8 +48,8 @@ export class Product {
   @Column({ type: 'int', default: 0 })
   stock!: number;
 
-  @Column({ name: 'merchant_id', type: 'uuid', nullable: true })
-  merchant_id!: string;
+  @Column({ name: 'merchant_id', type: 'int', nullable: true })
+  merchant_id!: number | null;
 
   @Column({ type: 'bool', default: false, name: 'is_shipping_chargeable' })
   is_shipping_chargeable!: boolean;

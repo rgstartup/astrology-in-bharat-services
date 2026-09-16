@@ -5,14 +5,14 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'agent', name: 'listings' })
 export class AgentListing {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'varchar', length: 20 })
   type!: string; // 'mandir' | 'puja_shop'
@@ -39,8 +39,8 @@ export class AgentListing {
   @JoinColumn({ name: 'agent_id' })
   agent!: User;
 
-  @Column({ type: 'uuid' })
-  agent_id!: string;
+  @Column({ type: 'int' })
+  agent_id!: number;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

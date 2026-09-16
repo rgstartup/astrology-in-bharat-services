@@ -9,7 +9,7 @@ import { MerchantAccount } from '../../account/entities/account.entity';
 import { IMerchant } from '@/common/types/access-token.payload';
 
 export interface MerchantJwtPayload {
-  sub: string;
+  sub: number;
   email: string;
 }
 

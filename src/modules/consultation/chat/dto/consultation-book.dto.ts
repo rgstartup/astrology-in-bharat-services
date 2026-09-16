@@ -1,9 +1,11 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class ConsultationBookDto {
   @IsNotEmpty()
-  @IsString()
-  expert_id!: string;
+  @IsInt()
+  @Type(() => Number)
+  expert_id!: number;
 
   @IsNotEmpty()
   @IsNumber()

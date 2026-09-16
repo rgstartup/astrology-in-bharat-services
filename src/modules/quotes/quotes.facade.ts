@@ -25,15 +25,15 @@ export class QuotesFacade {
     return this.findAllQuotesUseCase.execute();
   }
 
-  findOne(id: string) {
+  findOne(id: number) {
     return this.findQuoteUseCase.execute(id);
   }
 
-  update(id: string, dto: UpdateQuoteDto) {
+  update(id: number, dto: UpdateQuoteDto) {
     return this.updateQuoteUseCase.execute(id, dto);
   }
 
-  remove(id: string) {
+  remove(id: number) {
     return this.removeQuoteUseCase.execute(id);
   }
 }

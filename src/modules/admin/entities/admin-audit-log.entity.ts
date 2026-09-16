@@ -1,13 +1,12 @@
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
-import { Entity, Column, CreateDateColumn } from 'typeorm';
+import { Entity, Column, CreateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ schema: 'admin', name: 'admin_audit_logs' })
 export class AdminAuditLog {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  @Column({ name: 'admin_id', type: 'uuid' })
-  admin_id!: string;
+  @Column({ name: 'admin_id', type: 'int' })
+  admin_id!: number;
 
   @Column({ type: 'character varying', length: 255 })
   action!: string; // e.g., 'APPROVE_WITHDRAWAL', 'REJECT_WITHDRAWAL'

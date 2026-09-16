@@ -5,9 +5,9 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ExpertAccount } from './account.entity';
 import { Specialization } from '@/modules/expert/specialization/entities/specialization.entity';
 
@@ -16,8 +16,8 @@ import { Specialization } from '@/modules/expert/specialization/entities/special
   unique: true,
 })
 export class ExpertSpecialization {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => ExpertAccount, (expert) => expert.specializations, {
     onDelete: 'CASCADE',

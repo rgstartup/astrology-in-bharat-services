@@ -6,10 +6,10 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { OrderItem } from './order-item.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum OrderStatus {
   PENDING = 'pending',
@@ -23,15 +23,15 @@ export enum OrderStatus {
 
 @Entity({ schema: 'commerce', name: 'product_orders' })
 export class Order {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
   client!: ClientAccount;
 
-  @Column({ type: 'uuid', name: 'client_id' })
-  client_id!: string;
+  @Column({ type: 'int', name: 'client_id' })
+  client_id!: number;
 
   @Column({
     name: 'total_amount',

@@ -45,7 +45,7 @@ export class InitiateCallUseCase {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(clientId: string, dto: InitiateCallDto) {
+  async execute(clientId: number, dto: InitiateCallDto) {
     const { expert_id, type = CallType.AUDIO } = dto;
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -225,7 +225,7 @@ export class InitiateCallUseCase {
 
   private async reserveBalance(
     manager: EntityManager,
-    profileId: string,
+    profileId: number,
     walletKey: string,
     amount: number,
     referenceId: string,

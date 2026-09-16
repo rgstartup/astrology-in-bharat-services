@@ -13,9 +13,9 @@ export class FindProfileResolver {
   ) {}
 
   async findProfile(
-    userId: string,
+    userId: number,
     targetRole: RoleEnum,
-  ): Promise<string | null> {
+  ): Promise<number | null> {
     const strategy = this.strategies.find((s) => s.supports(targetRole));
     if (!strategy) {
       return null;

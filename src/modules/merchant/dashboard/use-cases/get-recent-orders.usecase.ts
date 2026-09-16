@@ -12,7 +12,7 @@ export class GetRecentOrdersUseCase {
     private readonly profileRepo: Repository<MerchantAccount>,
   ) {}
 
-  async execute(userId: string) {
+  async execute(userId: number) {
     const merchantId = userId;
 
     console.log('[RECENT_ORDERS] Request for userId:', userId);
@@ -25,14 +25,12 @@ export class GetRecentOrdersUseCase {
 
     try {
       for (const item of recentOrderItems) {
-        const orderIdStr = item.order?.id?.toString() || item.order_id;
+        const orderIdStr = String(item.order?.id ?? item.order_id);
         if (!groupedOrdersMap.has(orderIdStr)) {
           groupedOrdersMap.set(orderIdStr, {
-            id: item.order?.id?.toString() || item.order_id,
-            short_id: (item.order?.id?.toString() || item.order_id)
-              .slice(-8)
-              .toUpperCase(),
-            orderNumber: `AIB-ORD-${orderIdStr.split('-')[4]?.toUpperCase() || orderIdStr.slice(-8).toUpperCase()}`,
+            id: orderIdStr,
+            short_id: orderIdStr.slice(-8).toUpperCase(),
+            orderNumber: `AIB-ORD-${orderIdStr}`,
             customerName:
               (
                 item.order as unknown as {

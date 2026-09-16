@@ -20,7 +20,7 @@ export class GenerateAndSaveKundliReportUseCase {
     private readonly reportRepository: Repository<KundliReport>,
   ) {}
 
-  async execute(clientId: string, dto: GenerateKundliReportDto) {
+  async execute(clientId: number | string, dto: GenerateKundliReportDto) {
     const {
       girl_dob,
       girl_lat,
@@ -66,7 +66,7 @@ export class GenerateAndSaveKundliReportUseCase {
 
     // 2. Save to database
     const report = this.reportRepository.create({
-      client_id: clientId,
+      client_id: Number(clientId),
       boy_details: boyParams,
       girl_details: girlParams,
       match_result: result,

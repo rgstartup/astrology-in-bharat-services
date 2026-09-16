@@ -25,7 +25,7 @@ export class ActivateSessionUseCase {
   ) {}
 
   async execute(
-    sessionId: string,
+    sessionId: number,
   ): Promise<{ session: ChatSession; introCard?: ChatMessage }> {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },

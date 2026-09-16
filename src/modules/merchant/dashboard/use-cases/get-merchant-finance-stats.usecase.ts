@@ -15,7 +15,7 @@ export class GetMerchantFinanceStatsUseCase {
     private readonly calculateEarnings: CalculateMerchantEarningsUseCase,
   ) {}
 
-  async execute(userId: string) {
+  async execute(userId: number) {
     console.log('[FINANCE_STATS] Executing for userId:', userId);
     try {
       // Resolve merchant profile ID from user ID

@@ -10,7 +10,7 @@ export class UpdatePujaLikesUseCase {
     private readonly pujaRepository: Repository<ExpertPuja>,
   ) {}
 
-  async execute(pujaId: string, diff: number): Promise<void> {
+  async execute(pujaId: number, diff: number): Promise<void> {
     const puja = await this.pujaRepository.findOne({ where: { id: pujaId } });
     if (!puja) {
       throw new NotFoundException('Puja not found');

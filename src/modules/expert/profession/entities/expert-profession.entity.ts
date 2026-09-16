@@ -5,23 +5,23 @@ import {
   JoinColumn,
   Unique,
   CreateDateColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
 import { Profession } from './profession.entity';
 
 @Entity({ schema: 'expert', name: 'expert_professions' })
 @Unique(['expert_id', 'profession_id'])
 export class ExpertProfession {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => ExpertAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'expert_id' })
   expert!: ExpertAccount;
 
-  @Column({ type: 'uuid' })
-  expert_id!: string;
+  @Column({ type: 'int' })
+  expert_id!: number;
 
   @ManyToOne(() => Profession, (p) => p.expert_professions, {
     eager: true,
@@ -30,8 +30,8 @@ export class ExpertProfession {
   @JoinColumn({ name: 'profession_id' })
   profession!: Profession;
 
-  @Column({ type: 'uuid' })
-  profession_id!: string;
+  @Column({ type: 'int' })
+  profession_id!: number;
 
   @Column({ type: 'bool', default: false })
   is_primary!: boolean;

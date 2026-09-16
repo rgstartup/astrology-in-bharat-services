@@ -10,7 +10,7 @@ export class GetExpertReviewsByDateUseCase {
     private readonly reviewRepo: Repository<Review>,
   ) {}
 
-  async execute(expert_id: string, startDate: Date, endDate: Date) {
+  async execute(expert_id: number, startDate: Date, endDate: Date) {
     return this.reviewRepo.find({
       where: {
         expert_id: expert_id,

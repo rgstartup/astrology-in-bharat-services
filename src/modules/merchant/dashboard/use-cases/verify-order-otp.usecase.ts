@@ -8,7 +8,7 @@ export class VerifyOrderOtpUseCase {
 
   constructor(private readonly orderFacade: OrderFacade) {}
 
-  async execute(merchantUserId: string, orderId: string, otp: string) {
+  async execute(merchantUserId: number, orderId: number, otp: string) {
     const { netPayout } = await this.orderFacade.verifyOrderOtp(
       orderId,
       otp,

@@ -6,6 +6,7 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -13,21 +14,20 @@ import { User } from '@/modules/users/entities/user.entity';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { ExpertPuja } from './expert-puja.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'expert', name: 'profile' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
 @Check(`"experience_in_years" >= 0`)
 export class ProfileExpert {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @Column({ name: 'user_id' })
-  user_id!: string;
+  @Column({ name: 'user_id', type: 'int' })
+  user_id!: number;
 
   @Column({ type: 'text', unique: true, nullable: true })
   uid!: string | null;

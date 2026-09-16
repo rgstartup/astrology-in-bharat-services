@@ -13,7 +13,7 @@ export class UpdateProductUseCase {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async execute(id: string, dto: UpdateProductDto): Promise<BooleanMessage> {
+  async execute(id: number, dto: UpdateProductDto): Promise<BooleanMessage> {
     const existing = await this.productRepository.findOneBy({ id });
     if (!existing) {
       throw new ProductNotFoundError(id);

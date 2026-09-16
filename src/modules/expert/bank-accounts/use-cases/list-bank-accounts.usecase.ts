@@ -10,7 +10,7 @@ export class ListBankAccountsUseCase {
     private readonly bankAccountRepo: Repository<BankAccount>,
   ) {}
 
-  async execute(expertAccountId: string) {
+  async execute(expertAccountId: number) {
     return this.bankAccountRepo.find({
       where: { expert: { id: expertAccountId } },
       order: { is_primary: 'DESC', created_at: 'DESC' },

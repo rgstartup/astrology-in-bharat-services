@@ -14,7 +14,7 @@ export class DeletePujaUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
   ) {}
 
-  async execute(user: IUser, id: string) {
+  async execute(user: IUser, id: number) {
     const where = user.profile
       ? { id: user.profile, user: { id: user.id } }
       : { user: { id: user.id } };

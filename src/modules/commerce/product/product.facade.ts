@@ -32,42 +32,42 @@ export class ProductFacade {
     return this.findAllProductsUseCase.execute(dto);
   }
 
-  findOne(id: string) {
+  findOne(id: number) {
     return this.findProductUseCase.execute(id);
   }
 
-  update(id: string, dto: UpdateProductDto) {
+  update(id: number, dto: UpdateProductDto) {
     return this.updateProductUseCase.execute(id, dto);
   }
 
-  remove(id: string) {
+  remove(id: number) {
     return this.removeProductUseCase.execute(id);
   }
 
   // Merchant Dashboard Specific Methods
-  findMerchantProducts(merchantId: string, opts: Record<string, unknown>) {
+  findMerchantProducts(merchantId: number, opts: Record<string, unknown>) {
     return this.merchantProductsUseCase.findAll(merchantId, opts);
   }
 
-  createMerchantProduct(merchantId: string, dto: CreateMerchantProductDto) {
+  createMerchantProduct(merchantId: number, dto: CreateMerchantProductDto) {
     return this.merchantProductsUseCase.create(merchantId, dto);
   }
 
   updateMerchantProduct(
-    merchantId: string,
-    productId: string,
+    merchantId: number,
+    productId: number,
     dto: Partial<CreateMerchantProductDto>,
   ) {
     return this.merchantProductsUseCase.update(merchantId, productId, dto);
   }
 
-  removeMerchantProduct(merchantId: string, productId: string) {
+  removeMerchantProduct(merchantId: number, productId: number) {
     return this.merchantProductsUseCase.remove(merchantId, productId);
   }
 
   bulkUpdateMerchantProductStatus(
-    merchantId: string,
-    ids: string[],
+    merchantId: number,
+    ids: number[],
     status: MerchantProductStatus,
   ) {
     return this.merchantProductsUseCase.bulkUpdateStatus(
@@ -77,11 +77,11 @@ export class ProductFacade {
     );
   }
 
-  findOneMerchantProduct(merchantId: string, productId: string) {
+  findOneMerchantProduct(merchantId: number, productId: number) {
     return this.merchantProductsUseCase.findOne(merchantId, productId);
   }
 
-  getMerchantStockLevels(merchantId: string) {
+  getMerchantStockLevels(merchantId: number) {
     return this.merchantProductsUseCase.getMerchantStockLevels(merchantId);
   }
 }

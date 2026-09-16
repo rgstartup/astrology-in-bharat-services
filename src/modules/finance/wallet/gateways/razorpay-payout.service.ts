@@ -124,7 +124,7 @@ export class RazorpayPayoutService {
    * Initiate a Payout
    */
   async initiatePayout(
-    withdrawalId: string,
+    withdrawalId: number,
     amount: number,
     fundAccountId: string,
   ) {

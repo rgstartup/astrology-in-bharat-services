@@ -15,8 +15,8 @@ export class GetUserOrdersUseCase {
   ) {}
 
   async execute(
-    profileId: string,
-    userId: string,
+    profileId: number,
+    userId: number,
     dto: GetMyOrdersDto,
   ) {
     const { limit, offset } = dto;
@@ -35,8 +35,8 @@ export class GetUserOrdersUseCase {
     // 3. Normalize and Combine
     const normalizedProducts = productOrders.map((o) => {
       // Group items by merchant
-      const merchantGroups: Record<string, {
-        merchant_id: string;
+      const merchantGroups: Record<string | number, {
+        merchant_id: number;
         merchant_name: string;
         status: string;
         delivery_otp: string | null;
@@ -45,7 +45,7 @@ export class GetUserOrdersUseCase {
       }> = {};
 
       (o.items || []).forEach((i) => {
-        const mId = i.product?.merchant_id || 'unknown';
+        const mId = i.product?.merchant_id || 0;
         const mName = (i.product as any)?.merchant?.shopName || (i.product as any)?.merchant?.name || 'Shop';
         if (!merchantGroups[mId]) {
           merchantGroups[mId] = { 
@@ -76,7 +76,7 @@ export class GetUserOrdersUseCase {
 
       return {
         id: o.id,
-        tracking_id: `AIB-ORD-${o.id.split('-')[0].toUpperCase()}`,
+        tracking_id: `AIB-ORD-${String(o.id).padStart(6, '0')}`,
         type: 'product',
         name: o.items?.length > 0 ? (o.items[0].product?.name || 'Product Order') : 'Product Order',
         item_count: o.items?.length || 0,
@@ -109,7 +109,7 @@ export class GetUserOrdersUseCase {
 
     const normalizedPujas = pujaOrders.map((p) => ({
       id: p.id,
-      tracking_id: `AIB-PUJA-${p.id.split('-')[0].toUpperCase()}`,
+      tracking_id: `AIB-PUJA-${String(p.id).padStart(6, '0')}`,
       type: 'puja',
       name: p.puja?.name || 'Puja Service',
       item_count: 1,

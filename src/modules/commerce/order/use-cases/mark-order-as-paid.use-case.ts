@@ -123,7 +123,7 @@ export class MarkOrderAsPaidUseCase {
               client_id: clientAccount.id,
               type: NotificationType.ORDER_PLACED,
               title: 'Order Placed Successfully',
-              message: `Your order AIB-ORD-${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
+              message: `Your order AIB-ORD-${String(order.id).padStart(6, '0')} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
               metadata: { orderId: order.id },
             });
             await qr.manager.save(Notification, notif);
@@ -147,7 +147,7 @@ export class MarkOrderAsPaidUseCase {
                 merchant_id: mId,
                 type: NotificationType.ORDER_PLACED,
                 title: 'New Order Received!',
-                message: `You have received a new order (AIB-ORD-${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,
+                message: `You have received a new order (AIB-ORD-${String(order.id).padStart(6, '0')}). Please check your dashboard for details.`,
                 metadata: { orderId: order.id },
               });
               await qr.manager.save(Notification, notif);

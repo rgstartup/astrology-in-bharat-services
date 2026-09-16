@@ -1,11 +1,11 @@
 import { User } from '@/modules/users/entities/user.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -17,15 +17,15 @@ export enum MerchantStatus {
 
 @Entity({ schema: 'merchant', name: 'account' })
 export class MerchantAccount {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @Column({ name: 'user_id', type: 'uuid', unique: true, nullable: true })
-  user_id!: string;
+  @Column({ name: 'user_id', type: 'int', unique: true, nullable: true })
+  user_id!: number;
 
   @Column({ type: 'text', unique: true, nullable: true })
   uid!: string | null;

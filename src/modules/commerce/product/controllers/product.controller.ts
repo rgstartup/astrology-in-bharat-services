@@ -10,7 +10,7 @@ import {
   UseInterceptors,
   InternalServerErrorException,
   Query,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProductFacade } from '../product.facade';
 import { UpdateProductDto } from '../dto/update-product.dto';
@@ -39,7 +39,7 @@ export class ProductController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productFacade.findOne(id);
   }
 
@@ -52,7 +52,7 @@ export class ProductController {
     }),
   )
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateProductDto: UpdateProductDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
@@ -88,7 +88,7 @@ export class ProductController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     const _result = await this.productFacade.remove(id);
     return { success: true };
   }

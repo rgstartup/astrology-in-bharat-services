@@ -17,7 +17,7 @@ export class CouponController {
   ) {}
 
   @Get('my-rewards')
-  async getMyRewards(@CurrentProfile() profileId: string) {
+  async getMyRewards(@CurrentProfile() profileId: number) {
     return this.getMyRewardsUseCase.execute(profileId);
   }
 

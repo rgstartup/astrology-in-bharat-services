@@ -6,7 +6,7 @@ import { Wallet, WalletKey } from '../entities/wallet.entity';
 export class GetWalletUseCase {
   constructor(private readonly walletRepository: WalletRepository) {}
 
-  async execute(profileId: string, walletKey: WalletKey): Promise<Wallet> {
+  async execute(profileId: string | number, walletKey: WalletKey): Promise<Wallet> {
     return this.walletRepository.getOrCreateWallet(profileId, walletKey);
   }
 }

@@ -45,7 +45,7 @@ export class AstrologyFacade {
     return this.getAstrologyServicesUseCase.execute(dto);
   }
 
-  getServiceById(id: string) {
+  getServiceById(id: number | string) {
     return this.getAstrologyServicesUseCase.getById(id);
   }
 
@@ -82,19 +82,19 @@ export class AstrologyFacade {
   }
 
   async generateAndSaveKundliReport(
-    clientId: string,
+    clientId: number | string,
     dto: GenerateKundliReportDto,
   ): Promise<unknown> {
     return this.generateAndSaveKundliReportUseCase.execute(clientId, dto);
   }
 
-  async getMyKundliReports(clientId: string): Promise<unknown> {
+  async getMyKundliReports(clientId: number | string): Promise<unknown> {
     return this.getMyKundliReportsUseCase.execute(clientId);
   }
 
   async deleteKundliReport(
-    clientId: string,
-    reportId: string,
+    clientId: number | string,
+    reportId: number | string,
   ): Promise<unknown> {
     return this.deleteKundliReportUseCase.execute(clientId, reportId);
   }

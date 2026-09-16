@@ -1,5 +1,4 @@
-import { Entity, Column, CreateDateColumn } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+import { Entity, Column, CreateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum GeneralLedgerEntryType {
   CREDIT = 'credit',
@@ -27,8 +26,8 @@ export enum GeneralLedgerEventType {
 
 @Entity({ schema: 'finance', name: 'general_ledger' })
 export class GeneralLedgerEntry {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'text', nullable: true })
   event_id!: string | null;
@@ -42,8 +41,8 @@ export class GeneralLedgerEntry {
   @Column({ type: 'enum', enum: GeneralLedgerPartyType })
   party_type!: GeneralLedgerPartyType;
 
-  @Column({ type: 'uuid', nullable: true })
-  party_id!: string | null;
+  @Column({ type: 'int', nullable: true })
+  party_id!: number | null;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount!: number;

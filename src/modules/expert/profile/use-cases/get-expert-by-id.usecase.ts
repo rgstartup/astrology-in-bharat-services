@@ -12,7 +12,7 @@ export class GetExpertByIdUseCase {
     private readonly expertGateway: ExpertGateway,
   ) {}
 
-  async execute(id: string) {
+  async execute(id: number) {
     const queryBuilder = this.profileRepo
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')

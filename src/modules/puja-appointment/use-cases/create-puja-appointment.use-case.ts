@@ -96,7 +96,7 @@ export class CreatePujaAppointmentUseCase {
     // Notify Expert
     const expertProfile = puja.expert;
 
-    if (expertProfile && (expertProfile.user_id as unknown as string)) {
+    if (expertProfile && expertProfile.user_id) {
       try {
         await this.notificationFacade.create(
           expertProfile.id,
@@ -109,7 +109,7 @@ export class CreatePujaAppointmentUseCase {
 
         // Real-time socket notification
         this.expertGateway.notifyNewPujaBooking(
-          expertProfile.user_id as unknown as string,
+          String(expertProfile.user_id),
           {
             ...saved,
             user: clientAccount.user,

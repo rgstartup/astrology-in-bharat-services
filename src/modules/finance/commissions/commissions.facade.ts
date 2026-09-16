@@ -56,13 +56,13 @@ export class CommissionsFacade {
   }
 
   updateRule(
-    id: string,
+    id: number | string,
     dto: UpdateCommissionRuleDto,
   ): Promise<CommissionRule> {
     return this.updateCommissionRuleUseCase.execute(id, dto);
   }
 
-  deactivateRule(id: string): Promise<CommissionRule> {
+  deactivateRule(id: number | string): Promise<CommissionRule> {
     return this.updateCommissionRuleUseCase.execute(id, { is_active: false });
   }
 
@@ -86,10 +86,10 @@ export class CommissionsFacade {
   resolveCommission(
     eventType: CommissionEventType,
     commissionType: CommissionType,
-    profileId: string | null,
+    profileId: number | string | null,
     role: CommissionAppliesRole,
     grossAmount: number,
-  ): Promise<{ amount: number; ruleId: string | null }> {
+  ): Promise<{ amount: number; ruleId: number | string | null }> {
     return this.resolveCommissionUseCase.execute(
       eventType,
       commissionType,

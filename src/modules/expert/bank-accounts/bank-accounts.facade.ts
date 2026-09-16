@@ -21,27 +21,27 @@ export class BankAccountsFacade {
     private readonly removeBankAccountUseCase: RemoveBankAccountUseCase,
   ) {}
 
-  async create(expertProfileId: string, dto: CreateBankAccountDto) {
+  async create(expertProfileId: number, dto: CreateBankAccountDto) {
     return this.createBankAccountUseCase.execute(expertProfileId, dto);
   }
 
-  async findAll(expertProfileId: string) {
+  async findAll(expertProfileId: number) {
     return this.listBankAccountsUseCase.execute(expertProfileId);
   }
 
-  async findOne(expertProfileId: string, id: string) {
+  async findOne(expertProfileId: number, id: number) {
     return this.getBankAccountUseCase.execute(expertProfileId, id);
   }
 
-  async update(expertProfileId: string, id: string, dto: UpdateBankAccountDto) {
+  async update(expertProfileId: number, id: number, dto: UpdateBankAccountDto) {
     return this.updateBankAccountUseCase.execute(expertProfileId, id, dto);
   }
 
-  async setPrimary(expertProfileId: string, id: string) {
+  async setPrimary(expertProfileId: number, id: number) {
     return this.setPrimaryBankAccountUseCase.execute(expertProfileId, id);
   }
 
-  async remove(expertProfileId: string, id: string) {
+  async remove(expertProfileId: number, id: number) {
     return this.removeBankAccountUseCase.execute(expertProfileId, id);
   }
 }

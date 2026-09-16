@@ -14,7 +14,7 @@ export class CountExpertCallSessionsUseCase {
   ) {}
 
   async execute(
-    expert_id: string,
+    expert_id: number,
     options: {
       status?: CallSessionStatus | CallSessionStatus[];
       startDate?: Date;

@@ -19,7 +19,7 @@ export class BulkAssignCouponUseCase {
     private readonly databaseService: DatabaseService,
   ) {}
 
-  async execute(couponCode: string, userIds: string[]) {
+  async execute(couponCode: string, userIds: (string | number)[]) {
     const coupon = await this.couponRepo.findOne({
       where: { code: couponCode, is_active: true, status: CouponStatus.ACTIVE },
     });
@@ -38,10 +38,10 @@ export class BulkAssignCouponUseCase {
 
     await this.databaseService.transaction(async (queryRunner) => {
       // 1. Fetch ClientAccount IDs for the provided user IDs (Only those that exist)
-      const clientAccounts: { id: string }[] = await queryRunner.manager
+      const clientAccounts: { id: number }[] = await queryRunner.manager
         .createQueryBuilder(ClientAccount, 'clientAccount')
         .select('clientAccount.id', 'id')
-        .where('clientAccount.user_id IN (:...userIds)', { userIds })
+        .where('clientAccount.user_id IN (:...userIds)', { userIds: userIds.map(Number) })
         .getRawMany();
 
       if (clientAccounts.length === 0) return;
@@ -51,7 +51,7 @@ export class BulkAssignCouponUseCase {
       // 2. Perform a Bulk Insert using QueryBuilder and ignore conflicts
       // PostgreSQL handles ON CONFLICT DO NOTHING natively when using orIgnore()
       const valuesToInsert = clientAccountIds.map((clientId) => ({
-        client_id: clientId,
+        client_id: Number(clientId),
         coupon_id: coupon.id,
         is_used: false,
       }));

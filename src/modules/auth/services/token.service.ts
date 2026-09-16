@@ -66,15 +66,15 @@ export class TokenService extends BaseService<Session> {
     return { accessToken, refreshToken: refreshTokenRaw };
   }
 
-  async refreshTokens(userId: string, refreshToken: string) {
+  async refreshTokens(userId: number | string, refreshToken: string) {
     const creds = await this.sessionRepo.find({
-      where: { user: { id: userId }, type: 'refresh_token', revoked: false },
+      where: { user: { id: Number(userId) }, type: 'refresh_token', revoked: false },
     });
 
     for (const c of creds) {
       if (c.expires_at < new Date()) continue;
       const valid = await this.hasher.verify(c.secret_hash, refreshToken);
-      if (valid) return this.generateTokens({ id: userId } as User);
+      if (valid) return this.generateTokens({ id: Number(userId) } as unknown as User);
     }
 
     throw new Error('Invalid refresh token');
@@ -87,12 +87,12 @@ export class TokenService extends BaseService<Session> {
     });
   }
 
-  async revoke(userId: string) {
-    await this.sessionRepo.update({ user: { id: userId } }, { revoked: true });
+  async revoke(userId: number | string) {
+    await this.sessionRepo.update({ user: { id: Number(userId) } }, { revoked: true });
   }
 
   async verifyToken(token: string) {
-    return this.jwtService.verifyAsync<{ userId: string; email: string }>(
+    return this.jwtService.verifyAsync<{ userId: number; email: string }>(
       token,
       {
         secret: this.jwtConfig.jwtSecret,

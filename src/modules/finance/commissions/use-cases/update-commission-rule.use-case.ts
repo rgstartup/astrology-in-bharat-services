@@ -17,11 +17,11 @@ export class UpdateCommissionRuleUseCase {
   ) {}
 
   async execute(
-    id: string,
+    id: number | string,
     dto: UpdateCommissionRuleDto,
   ): Promise<CommissionRule> {
     const rule = await this.ruleRepo.findOne({
-      where: { id },
+      where: { id: Number(id) },
       relations: ['tiers'],
     });
     if (!rule) throw new NotFoundException(`Commission rule ${id} not found`);

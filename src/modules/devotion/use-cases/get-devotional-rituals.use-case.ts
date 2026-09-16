@@ -52,7 +52,7 @@ export class GetDevotionalRitualsUseCase {
     return PaginatedResponseDto.from(items, total, dto);
   }
 
-  async getById(id: string): Promise<DevotionalRitual> {
+  async getById(id: number): Promise<DevotionalRitual> {
     const item = await this.ritualRepo.findOne({ where: { id } });
     if (!item) {
       throw new NotFoundException('Devotional ritual not found');

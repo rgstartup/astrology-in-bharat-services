@@ -5,10 +5,10 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum PaymentStatus {
   PENDING = 'pending',
@@ -27,11 +27,11 @@ export class ColumnNumericTransformer {
 
 @Entity({ schema: 'finance', name: 'payment_orders' })
 export class PaymentOrder {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  @Column({ type: 'uuid', name: 'client_id', nullable: true })
-  client_id!: string | null;
+  @Column({ type: 'int', name: 'client_id', nullable: true })
+  client_id!: number | null;
 
   @ManyToOne(() => ClientAccount, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'client_id' })

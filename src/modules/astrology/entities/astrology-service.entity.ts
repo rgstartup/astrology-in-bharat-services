@@ -4,14 +4,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ExpertAstrologyService } from '@/modules/expert/account/entities/expert-astrology-service.entity';
 
 @Entity({ schema: 'astrology', name: 'astrology_services' })
 export class AstrologyService {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'text' })
   title!: string; // e.g. "Kundali Matchmaking", "Detailed Horoscope Analysis", "Numerology Name Correction"

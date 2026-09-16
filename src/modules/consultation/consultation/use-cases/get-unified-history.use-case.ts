@@ -32,7 +32,7 @@ export class GetUnifiedHistoryUseCase {
   ) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     isExpert: boolean,
     dto: GetUnifiedHistoryDto,
   ) {
@@ -78,11 +78,11 @@ export class GetUnifiedHistoryUseCase {
         : [];
 
     const chatReviewMap = new Map<
-      string,
+      number,
       { rating: number; comment?: string }
     >();
     const callReviewMap = new Map<
-      string,
+      number,
       { rating: number; comment?: string }
     >();
 
@@ -136,7 +136,7 @@ export class GetUnifiedHistoryUseCase {
       filteredHistory = unifiedHistory.filter(
         (h) =>
           (h.displayId && h.displayId.toLowerCase().includes(lowerSearch)) ||
-          (h.id && h.id.toLowerCase().includes(lowerSearch)),
+          String(h.id).toLowerCase().includes(lowerSearch),
       );
     }
 
@@ -162,7 +162,7 @@ export class GetUnifiedHistoryUseCase {
     clientProfile?: ClientAccount,
   ): ConsultationHistoryDto {
     const total_cost = Number(session.total_cost || 0);
-    const displayId = `AIB-CHAT-${session.id.split('-').pop()?.substring(6).toUpperCase()}`;
+    const displayId = `AIB-CHAT-${session.id}`;
 
     return {
       id: session.id,
@@ -220,7 +220,7 @@ export class GetUnifiedHistoryUseCase {
   ): ConsultationHistoryDto {
     const final_price = Number(session.final_price || 0);
     const typeLabel = session.type === CallType.VIDEO ? 'VID' : 'CALL';
-    const displayId = `AIB-${typeLabel}-${session.id.split('-').pop()?.substring(6).toUpperCase()}`;
+    const displayId = `AIB-${typeLabel}-${session.id}`;
 
     return {
       id: session.id,

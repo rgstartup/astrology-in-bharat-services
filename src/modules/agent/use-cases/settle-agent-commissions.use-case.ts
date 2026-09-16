@@ -39,7 +39,7 @@ export class SettleAgentCommissionsUseCase {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  async execute(userId: string) {
+  async execute(userId: number) {
     return this.databaseService.transaction(async (queryRunner) => {
       const profile = await queryRunner.manager.findOne(ProfileAgent, {
         where: { user_id: userId },
@@ -82,8 +82,8 @@ export class SettleAgentCommissionsUseCase {
       let totalAgentCommissionCalculated = 0;
       for (const uObj of usersForStats) {
         const u = uObj as User & {
-          profile_expert?: { id?: string; total_earning?: number };
-          profile_client?: { id?: string; total_spending?: number };
+          profile_expert?: { id?: number; total_earning?: number };
+          profile_client?: { id?: number; total_spending?: number };
         };
         if (u.profile_expert) {
           const earning = Number(u.profile_expert.total_earning || 0);

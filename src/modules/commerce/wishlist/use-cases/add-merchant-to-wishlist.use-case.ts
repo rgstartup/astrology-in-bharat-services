@@ -19,8 +19,8 @@ export class AddMerchantToWishlistUseCase {
   ) {}
 
   async execute(
-    profileId: string,
-    merchantId: string,
+    profileId: number,
+    merchantId: number,
   ): Promise<BooleanMessage> {
     const merchant =
       await this.merchantAccountFacade.getAccountById(merchantId);

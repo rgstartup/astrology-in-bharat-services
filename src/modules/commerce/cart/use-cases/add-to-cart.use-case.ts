@@ -15,11 +15,11 @@ export class AddToCartUseCase {
     private readonly db: DatabaseService,
   ) {}
 
-  async execute(clientId: string, addToCartDto: AddToCartDto) {
+  async execute(clientId: number | string, addToCartDto: AddToCartDto) {
     const { productId, quantity } = addToCartDto;
 
     const product = await this.productRepository.findOne({
-      where: { id: productId },
+      where: { id: Number(productId) },
     });
 
     if (!product) {
@@ -34,18 +34,18 @@ export class AddToCartUseCase {
 
   private async findOrCreateCart(
     queryRunner: QueryRunner,
-    clientId: string,
+    clientId: number | string,
   ): Promise<Cart> {
     const cartRepo = queryRunner.manager.getRepository(Cart);
 
     const existingCart = await cartRepo.findOne({
-      where: { client: { id: clientId } },
+      where: { client: { id: Number(clientId) } },
     });
 
     if (existingCart) return existingCart;
 
     const newCart = cartRepo.create({
-      client: { id: clientId },
+      client: { id: Number(clientId) },
     });
 
     return cartRepo.save(newCart);
@@ -53,14 +53,14 @@ export class AddToCartUseCase {
 
   private async addCartItem(
     queryRunner: QueryRunner,
-    cartId: string,
-    productId: string,
+    cartId: number | string,
+    productId: number | string,
     quantity: number,
   ) {
     const cartItemRepo = queryRunner.manager.getRepository(CartItem);
 
     const existingCartItem = await cartItemRepo.findOne({
-      where: { cart: { id: cartId }, product: { id: productId } },
+      where: { cart: { id: Number(cartId) }, product: { id: Number(productId) } },
     });
 
     if (existingCartItem) {
@@ -69,8 +69,8 @@ export class AddToCartUseCase {
     }
 
     const newCartItem = cartItemRepo.create({
-      cart: { id: cartId },
-      product: { id: productId },
+      cart: { id: Number(cartId) },
+      product: { id: Number(productId) },
       quantity,
     });
     return cartItemRepo.save(newCartItem);

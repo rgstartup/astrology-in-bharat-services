@@ -5,13 +5,13 @@ import {
   CreateDateColumn,
   Unique,
   Column,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import { Product } from '@/modules/commerce/product/entities/product.entity';
 import { ExpertPuja } from '@/modules/expert/profile/entities/expert-puja.entity';
 import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'commerce', name: 'wishlists' })
 @Unique(['client', 'product'])
@@ -19,15 +19,15 @@ import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator'
 @Unique(['client', 'puja'])
 @Unique(['client', 'merchant'])
 export class Wishlist {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
   client!: ClientAccount;
 
-  @Column({ name: 'client_id', type: 'uuid' })
-  client_id!: string;
+  @Column({ name: 'client_id', type: 'int' })
+  client_id!: number;
 
   @ManyToOne(() => ProfileExpert, {
     onDelete: 'CASCADE',
@@ -37,8 +37,8 @@ export class Wishlist {
   @JoinColumn({ name: 'expert_id' })
   expert!: ProfileExpert | null;
 
-  @Column({ name: 'expert_id', type: 'uuid', nullable: true })
-  expert_id!: string | null;
+  @Column({ name: 'expert_id', type: 'int', nullable: true })
+  expert_id!: number | null;
 
   @ManyToOne(() => Product, {
     onDelete: 'CASCADE',

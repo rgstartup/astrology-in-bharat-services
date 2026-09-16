@@ -11,13 +11,13 @@ export class UpdateProfileWithQueryRunnerUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    userId: number,
     updates: import('typeorm/query-builder/QueryPartialEntity').QueryDeepPartialEntity<ProfileExpert>,
     queryRunner: QueryRunner,
   ) {
     await queryRunner.manager.update(
       ProfileExpert,
-      { user: { id: userId as unknown as string } },
+      { user: { id: userId } },
       updates,
     );
   }

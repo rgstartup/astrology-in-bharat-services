@@ -16,8 +16,8 @@ export class TogglePujaWishlistUseCase {
   ) {}
 
   async execute(
-    profileId: string,
-    pujaId: string,
+    profileId: number,
+    pujaId: number,
   ): Promise<{ liked: boolean; total_likes: number }> {
     const puja = await this.expertProfileFacade.getPujaById(pujaId);
     if (!puja) throw new NotFoundException('Puja not found');

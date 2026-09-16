@@ -10,11 +10,14 @@ export class ResolveAppointmentDetailsUseCase {
     private readonly pujaAppointmentRepo: Repository<PujaAppointment>,
   ) {}
 
-  async execute(appointmentIds: string[]): Promise<Record<string, { expertName: string, type: string }>> {
+  async execute(appointmentIds: (string | number)[]): Promise<Record<string, { expertName: string, type: string }>> {
     if (!appointmentIds || appointmentIds.length === 0) return {};
     
+    const numericIds = appointmentIds.map((id) => Number(id)).filter((id) => !isNaN(id));
+    if (numericIds.length === 0) return {};
+
     const appointments = await this.pujaAppointmentRepo.find({
-      where: { id: In(appointmentIds) },
+      where: { id: In(numericIds) },
       relations: ['expert', 'expert.user'],
     });
 

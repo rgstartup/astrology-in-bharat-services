@@ -37,7 +37,7 @@ export class AgentRegisterUserUseCase {
     private readonly configService: ConfigService,
   ) {}
 
-  async execute(dto: AgentRegisterUserDto, agentId: string) {
+  async execute(dto: AgentRegisterUserDto, agentId: number | string) {
     const existingUser = await this.userRepository.findOne({
       where: { email: dto.email },
     });
@@ -59,7 +59,7 @@ export class AgentRegisterUserUseCase {
           email: dto.email,
           roles: dto.roles,
           password: hashedPassword,
-          referred_by_id: agentId,
+          referred_by_id: Number(agentId),
         });
 
         createdUser = await queryRunner.manager.save(User, user);
@@ -81,7 +81,7 @@ export class AgentRegisterUserUseCase {
 
           await queryRunner.manager.update(
             ProfileExpert,
-            { user: { id: createdUser.id as unknown as string } },
+            { user: { id: createdUser.id } },
             {
               agent_commission_rate: agentCommissionRate,
               ...(dto.phone ? { phone_number: dto.phone } : {}),
@@ -141,7 +141,7 @@ export class AgentRegisterUserUseCase {
 
         const isExpertProfile = hasRoles(dto.roles, 'EXPERT');
         const agentProfile = await queryRunner.manager.findOne(ProfileAgent, {
-          where: { user_id: agentId },
+          where: { user_id: Number(agentId) },
         });
 
         if (agentProfile) {
@@ -158,7 +158,7 @@ export class AgentRegisterUserUseCase {
 
           await queryRunner.manager.increment(
             ProfileAgent,
-            { user_id: agentId },
+            { user_id: Number(agentId) },
             'total_registrations',
             1,
           );

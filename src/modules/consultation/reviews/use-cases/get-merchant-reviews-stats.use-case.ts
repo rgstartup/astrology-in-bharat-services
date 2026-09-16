@@ -10,7 +10,7 @@ export class GetMerchantReviewsStatsUseCase {
     private readonly reviewRepo: Repository<Review>,
   ) {}
 
-  async execute(merchantId: string) {
+  async execute(merchantId: number) {
     const statsResult = (await this.reviewRepo
       .createQueryBuilder('r')
       .where('r.merchant_id = :merchantId', { merchantId })

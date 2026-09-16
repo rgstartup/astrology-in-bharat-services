@@ -41,11 +41,11 @@ export class ExpertAccountFacade {
     return this.queryAccountsUseCase.topRated(limit);
   }
 
-  getById(id: string) {
+  getById(id: number) {
     return this.queryAccountsUseCase.byId(id);
   }
 
-  getByUserId(userId: string) {
+  getByUserId(userId: number) {
     return this.queryAccountsUseCase.byUserId(userId);
   }
 
@@ -53,15 +53,15 @@ export class ExpertAccountFacade {
     return this.updateStatusUseCase.execute(expert, isAvailable);
   }
 
-  updateKycStatus(id: string, status: ExpertKycStatus, reason?: string) {
+  updateKycStatus(id: number, status: ExpertKycStatus, reason?: string) {
     return this.updateStatusUseCase.updateKyc(id, status, reason);
   }
 
-  upsertPuja(expert: IExpert, dto: ExpertPujaDto, id?: string) {
+  upsertPuja(expert: IExpert, dto: ExpertPujaDto, id?: number) {
     return this.pujasUseCase.upsert(expert, dto, id);
   }
 
-  deletePuja(expert: IExpert, id: string) {
+  deletePuja(expert: IExpert, id: number) {
     return this.pujasUseCase.remove(expert, id);
   }
 
@@ -69,11 +69,11 @@ export class ExpertAccountFacade {
     return this.pujasUseCase.list();
   }
 
-  getPujaById(id: string) {
+  getPujaById(id: number) {
     return this.pujasUseCase.byId(id);
   }
 
-  updatePujaLikes(id: string, diff: number) {
+  updatePujaLikes(id: number, diff: number) {
     return this.pujasUseCase.updateLikes(id, diff);
   }
 }

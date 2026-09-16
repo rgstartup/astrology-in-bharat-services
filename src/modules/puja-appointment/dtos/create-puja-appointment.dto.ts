@@ -12,8 +12,9 @@ import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
 
 export class CreatePujaAppointmentDto {
-  @IsUUID()
-  puja_id: string;
+  @Type(() => Number)
+  @IsNumber()
+  puja_id: number;
 
   @IsOptional()
   @IsString()

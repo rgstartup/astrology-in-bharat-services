@@ -11,16 +11,17 @@ export class ResolveSessionDetailsUseCase {
   ) {}
 
   async execute(
-    sessionIds: string[],
-  ): Promise<Record<string, { expertName: string; type: string }>> {
+    sessionIds: (string | number)[],
+  ): Promise<Record<string | number, { expertName: string; type: string }>> {
     if (!sessionIds || sessionIds.length === 0) return {};
 
+    const numericIds = sessionIds.map(Number);
     const sessions = await this.callSessionRepo.find({
-      where: { id: In(sessionIds) },
+      where: { id: In(numericIds) },
       relations: ['expert', 'expert.user'],
     });
 
-    const result: Record<string, { expertName: string; type: string }> = {};
+    const result: Record<string | number, { expertName: string; type: string }> = {};
     for (const session of sessions) {
       result[session.id] = {
         expertName: session.expert?.user?.name || 'Expert',

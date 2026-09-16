@@ -10,7 +10,7 @@ export class GetSessionUseCase {
     private sessionRepo: Repository<ChatSession>,
   ) {}
 
-  async execute(id: string) {
+  async execute(id: number) {
     const session = await this.sessionRepo.findOne({
       where: { id },
       relations: ['client', 'client.user', 'expert', 'expert.user'],

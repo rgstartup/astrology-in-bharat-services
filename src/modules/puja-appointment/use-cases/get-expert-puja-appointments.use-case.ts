@@ -10,7 +10,7 @@ export class GetExpertPujaAppointmentsUseCase {
     private pujaAppointmentRepository: Repository<PujaAppointment>,
   ) {}
 
-  async execute(expertProfileId: string): Promise<PujaAppointment[]> {
+  async execute(expertProfileId: number): Promise<PujaAppointment[]> {
     return await this.pujaAppointmentRepository.find({
       where: { expert_id: expertProfileId },
       relations: ['client', 'client.user', 'puja'],
@@ -18,7 +18,7 @@ export class GetExpertPujaAppointmentsUseCase {
     });
   }
 
-  async getRevenueAndCount(expertProfileId: string) {
+  async getRevenueAndCount(expertProfileId: number) {
     const stats = (await this.pujaAppointmentRepository
       .createQueryBuilder('puja')
       .select('SUM(puja.price)', 'total')

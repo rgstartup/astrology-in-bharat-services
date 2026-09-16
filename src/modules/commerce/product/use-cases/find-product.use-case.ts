@@ -11,7 +11,7 @@ export class FindProductUseCase {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async execute(id: string): Promise<any> {
+  async execute(id: number): Promise<any> {
     const product = await this.productRepository.findOneBy({ id });
     if (!product) {
       throw new ProductNotFoundError(id);

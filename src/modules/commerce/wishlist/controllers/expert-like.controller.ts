@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { WishlistFacade } from '../wishlist.facade';
 import { AddExpertToWishlistDto } from '../dto/add-expert-wishlist.dto';
@@ -21,13 +22,13 @@ export class ExpertLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAllExperts(@CurrentProfile() profileId: string) {
+  findAllExperts(@CurrentProfile() profileId: number) {
     return this.wishlistFacade.getExpertWishlist(profileId);
   }
 
   @Post('add')
   createExpert(
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @Body() addExpertToWishlistDto: AddExpertToWishlistDto,
   ) {
     return this.wishlistFacade.addExpertToWishlist(
@@ -38,8 +39,8 @@ export class ExpertLikeController {
 
   @Delete('remove/:expert_id')
   async removeExpert(
-    @CurrentProfile() profileId: string,
-    @Param('expert_id') expert_id: string,
+    @CurrentProfile() profileId: number,
+    @Param('expert_id', ParseIntPipe) expert_id: number,
   ) {
     const _result = await this.wishlistFacade.removeExpertFromWishlist(
       profileId,

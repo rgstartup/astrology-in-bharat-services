@@ -16,8 +16,8 @@ export class RemoveMerchantFromWishlistUseCase {
   ) {}
 
   async execute(
-    profileId: string,
-    merchantId: string,
+    profileId: number,
+    merchantId: number,
   ): Promise<BooleanMessage> {
     if (!profileId) {
       throw new UserNotFoundError();

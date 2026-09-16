@@ -6,7 +6,7 @@ import {
   Param,
   UseGuards,
   Patch,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
 import { CreatePujaAppointmentUseCase } from '../use-cases/create-puja-appointment.use-case';
@@ -39,21 +39,21 @@ export class PujaAppointmentController {
 
   @Get('user')
   @UseGuards(JwtAuthGuard)
-  async getUserAppointments(@CurrentProfile() profileId: string) {
+  async getUserAppointments(@CurrentProfile() profileId: number) {
     return await this.getUserPujaAppointmentsUseCase.execute(profileId);
   }
 
   @Get('expert')
   @UseGuards(JwtAuthGuard)
-  async getExpertAppointments(@CurrentProfile() profileId: string) {
+  async getExpertAppointments(@CurrentProfile() profileId: number) {
     return await this.getExpertPujaAppointmentsUseCase.execute(profileId);
   }
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
   async updateStatus(
-    @CurrentProfile() profileId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentProfile() profileId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdatePujaAppointmentStatusDto,
   ) {
     const _result = await this.updatePujaAppointmentStatusUseCase.execute(

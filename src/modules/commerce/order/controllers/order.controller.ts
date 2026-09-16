@@ -7,7 +7,7 @@ import {
   Param,
   Query,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { OrderFacade } from '../order.facade';
 import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
@@ -31,8 +31,8 @@ export class OrderController {
 
   @Post()
   async createOrder(
-    @CurrentProfile() profileId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentProfile() profileId: number,
+    @CurrentUser('id') userId: number,
     @Body() dto: CreateOrderDto,
   ) {
     return this.orderFacade.createOrder(profileId, userId, dto);
@@ -40,8 +40,8 @@ export class OrderController {
 
   @Get('my-orders')
   async getMyOrders(
-    @CurrentProfile() profileId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentProfile() profileId: number,
+    @CurrentUser('id') userId: number,
     @Query() dto: GetMyOrdersDto,
   ) {
     const limitNum = dto.limit ? dto.limit : 10;
@@ -64,8 +64,8 @@ export class OrderController {
 
   @Get()
   async getMyOrdersAlias(
-    @CurrentProfile() profileId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentProfile() profileId: number,
+    @CurrentUser('id') userId: number,
     @Query() dto: GetMyOrdersDto,
   ) {
     return this.getMyOrders(profileId, userId, dto);
@@ -82,7 +82,7 @@ export class OrderController {
   @UseGuards(RolesGuard)
   @Patch(':id/status')
   async updateStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateOrderStatusDto,
     @CurrentUser() user: IUser,
   ) {
@@ -97,9 +97,9 @@ export class OrderController {
   }
   @Patch(':id/cancel')
   async cancelOrder(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('cancellation_reason') cancellationReason: string,
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @CurrentUser() user: IUser,
   ) {
     await this.orderFacade.cancelUserOrder(
@@ -113,8 +113,8 @@ export class OrderController {
 
   @Get(':id')
   async getOrder(
-    @CurrentProfile() profileId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentProfile() profileId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     return this.orderFacade.getOrderById(id, profileId);
   }
@@ -131,8 +131,8 @@ export class OrderSingularController {
 
   @Post()
   async createOrder(
-    @CurrentProfile() profileId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentProfile() profileId: number,
+    @CurrentUser('id') userId: number,
     @Body() dto: CreateOrderDto,
   ) {
     return this.orderFacade.createOrder(profileId, userId, dto);
@@ -140,8 +140,8 @@ export class OrderSingularController {
 
   @Get('my-orders')
   async getMyOrders(
-    @CurrentProfile() profileId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentProfile() profileId: number,
+    @CurrentUser('id') userId: number,
     @Query() dto: GetMyOrdersDto,
   ) {
     const limitNum = dto.limit ? dto.limit : 10;
@@ -167,7 +167,7 @@ export class OrderSingularController {
   @UseGuards(RolesGuard)
   @Patch(':id/status')
   async updateStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateOrderStatusDto,
     @CurrentUser() user: IUser,
   ) {
@@ -182,9 +182,9 @@ export class OrderSingularController {
   }
   @Patch(':id/cancel')
   async cancelOrder(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('cancellation_reason') cancellationReason: string,
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @CurrentUser() user: IUser,
   ) {
     await this.orderFacade.cancelUserOrder(
@@ -198,8 +198,8 @@ export class OrderSingularController {
 
   @Get(':id')
   async getOrder(
-    @CurrentProfile() profileId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentProfile() profileId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     return this.orderFacade.getOrderById(id, profileId);
   }

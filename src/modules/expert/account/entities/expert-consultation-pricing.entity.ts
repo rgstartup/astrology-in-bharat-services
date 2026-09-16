@@ -5,9 +5,9 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import {
@@ -27,11 +27,11 @@ import { ExpertAccount } from './account.entity';
   where: '"client_id" IS NOT NULL',
 })
 export class ExpertConsultationPricing {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  @Column({ type: 'uuid', name: 'expert_id' })
-  expert_id!: string;
+  @Column({ type: 'int', name: 'expert_id' })
+  expert_id!: number;
 
   @ManyToOne(() => ExpertAccount, (expert) => expert.pricings, {
     onDelete: 'CASCADE',
@@ -39,8 +39,8 @@ export class ExpertConsultationPricing {
   @JoinColumn({ name: 'expert_id' })
   expert!: ExpertAccount;
 
-  @Column({ type: 'uuid', nullable: true, name: 'client_id' })
-  client_id!: string | null;
+  @Column({ type: 'int', nullable: true, name: 'client_id' })
+  client_id!: number | null;
 
   @ManyToOne(() => ClientAccount, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'client_id' })
@@ -103,8 +103,8 @@ export class ExpertConsultationPricing {
   @Column({ type: 'text', nullable: true })
   change_reason!: string | null;
 
-  @Column({ type: 'uuid', nullable: true, name: 'changed_by' })
-  changed_by!: string | null;
+  @Column({ type: 'int', nullable: true, name: 'changed_by' })
+  changed_by!: number | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

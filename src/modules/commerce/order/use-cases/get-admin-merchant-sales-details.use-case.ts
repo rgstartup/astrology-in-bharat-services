@@ -19,7 +19,7 @@ export class GetAdminMerchantSalesDetailsUseCase {
     private readonly orderItemRepository: Repository<OrderItem>,
   ) {}
 
-  async execute(merchantId: string) {
+  async execute(merchantId: number) {
     try {
       // 1. Verify merchant exists and get their user_id
       const merchant = await this.merchantFacade.getProfileById(merchantId);

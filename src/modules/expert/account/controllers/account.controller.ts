@@ -5,7 +5,7 @@ import {
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -133,7 +133,7 @@ export class ExpertAccountController {
 
   @Get(':id')
   @Public()
-  getById(@Param('id', ParseUUIDPipe) id: string) {
+  getById(@Param('id', ParseIntPipe) id: number) {
     return this.accountFacade.getById(id);
   }
 
@@ -141,7 +141,7 @@ export class ExpertAccountController {
   upsertPuja(
     @CurrentExpert() expert: IExpert,
     @Body() dto: ExpertPujaDto,
-    @Query('id') id?: string,
+    @Query('id', new ParseIntPipe({ optional: true })) id?: number,
   ) {
     return this.accountFacade.upsertPuja(expert, dto, id);
   }
@@ -149,7 +149,7 @@ export class ExpertAccountController {
   @Delete('puja/:id')
   deletePuja(
     @CurrentExpert() expert: IExpert,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     return this.accountFacade.deletePuja(expert, id);
   }
@@ -162,7 +162,7 @@ export class ExpertAccountController {
 
   @Get('puja/info/:id')
   @Public()
-  getPujaById(@Param('id', ParseUUIDPipe) id: string) {
+  getPujaById(@Param('id', ParseIntPipe) id: number) {
     return this.accountFacade.getPujaById(id);
   }
 

@@ -8,7 +8,7 @@ export class TopUpUseCase {
   constructor(private readonly creditUseCase: CreditUseCase) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     walletKey: WalletKey,
     amount: number,
     referenceId?: string,

@@ -2,14 +2,14 @@ import { Profession } from '../../entities/profession.entity';
 import { ExpertProfession } from '../../entities/expert-profession.entity';
 
 export class ProfessionResponseDto {
-  id!: string;
+  id!: number;
   title!: string;
   slug!: string;
   description!: string | null;
   icon!: string | null;
   is_active!: boolean;
   sort_order!: number;
-  specializations?: { id: string; title: string; slug: string }[];
+  specializations?: { id: number; title: string; slug: string }[];
   created_at!: Date;
   updated_at!: Date;
 
@@ -38,8 +38,8 @@ export class ProfessionResponseDto {
 }
 
 export class ExpertProfessionResponseDto {
-  id!: string;
-  profession_id!: string;
+  id!: number;
+  profession_id!: number;
   title!: string;
   slug!: string;
   icon!: string | null;

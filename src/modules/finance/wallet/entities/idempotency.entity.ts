@@ -4,17 +4,17 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
 import { ProfileAgent } from '@/modules/agent/entities/profile-agent.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'finance', name: 'idempotency_keys' })
 export class Idempotency {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'text' })
   key!: string;
@@ -23,29 +23,29 @@ export class Idempotency {
   @JoinColumn({ name: 'client_id' })
   client!: ClientAccount | null;
 
-  @Column({ name: 'client_id', type: 'uuid', nullable: true })
-  client_id!: string | null;
+  @Column({ name: 'client_id', type: 'int', nullable: true })
+  client_id!: number | null;
 
   @ManyToOne(() => ProfileExpert, { nullable: true })
   @JoinColumn({ name: 'expert_id' })
   expert!: ProfileExpert | null;
 
-  @Column({ name: 'expert_id', type: 'uuid', nullable: true })
-  expert_id!: string | null;
+  @Column({ name: 'expert_id', type: 'int', nullable: true })
+  expert_id!: number | null;
 
   @ManyToOne(() => MerchantAccount, { nullable: true })
   @JoinColumn({ name: 'merchant_id' })
   merchant!: MerchantAccount | null;
 
-  @Column({ name: 'merchant_id', type: 'uuid', nullable: true })
-  merchant_id!: string | null;
+  @Column({ name: 'merchant_id', type: 'int', nullable: true })
+  merchant_id!: number | null;
 
   @ManyToOne(() => ProfileAgent, { nullable: true })
   @JoinColumn({ name: 'agent_id' })
   agent!: ProfileAgent | null;
 
-  @Column({ name: 'agent_id', type: 'uuid', nullable: true })
-  agent_id!: string | null;
+  @Column({ name: 'agent_id', type: 'int', nullable: true })
+  agent_id!: number | null;
 
   @Column({ name: 'payload_hash', type: 'text', nullable: true })
   payload_hash!: string | null;

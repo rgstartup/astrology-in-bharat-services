@@ -214,8 +214,8 @@ export class UpdateProfileUseCase {
       this.eventEmitter.emit(
         'expert.profile.updated',
         new ProfileUpdatedEvent(
-          user.id as unknown as string,
-          savedProfile.id as unknown as string,
+          user.id,
+          savedProfile.id,
           dto,
         ),
       );
@@ -224,7 +224,7 @@ export class UpdateProfileUseCase {
         this.eventEmitter.emit(
           'expert.status.changed',
           new ExpertStatusChangedEvent(
-            user.id as unknown as string,
+            user.id,
             dto.is_available,
           ),
         );

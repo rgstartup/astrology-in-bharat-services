@@ -15,7 +15,7 @@ export class MarkAsReadUseCase {
     private readonly notificationRepo: Repository<Notification>,
   ) {}
 
-  async execute(id: string, profileId?: string, profileType?: ProfileType) {
+  async execute(id: number, profileId?: number, profileType?: ProfileType) {
     if (profileId && profileType) {
       const whereClause: Record<string, unknown> = { id };
       switch (profileType) {

@@ -7,10 +7,8 @@ import {
   HttpCode,
   HttpStatus,
   Query,
-  DefaultValuePipe,
   Headers,
   Ip,
-  ParseIntPipe,
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -42,7 +40,7 @@ export class MerchantFinanceController {
 
   @Get('stats')
   @HttpCode(HttpStatus.OK)
-  async stats(@CurrentUser('id') userId: string) {
+  async stats(@CurrentUser('id') userId: number) {
     const stats = await this.getStats.execute(userId);
     return { success: true, data: stats };
   }
@@ -50,7 +48,7 @@ export class MerchantFinanceController {
   @Get('transactions')
   @HttpCode(HttpStatus.OK)
   async transactions(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id') userId: number,
     @Query() dto: GetMerchantFinanceTransactionsDto,
   ) {
     const profile = await this.merchantRepo.findOne({
@@ -68,7 +66,7 @@ export class MerchantFinanceController {
   @Post('withdraw')
   @HttpCode(HttpStatus.OK)
   async withdraw(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id') userId: number,
     @Body() dto: RequestMerchantWithdrawalDto,
     @Ip() ip: string,
     @Headers('user-agent') ua: string,

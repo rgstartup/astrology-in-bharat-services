@@ -5,7 +5,7 @@ import { WalletFacade } from '@/modules/finance/wallet/wallet.facade';
 export class GetWalletBalanceUseCase {
   constructor(private readonly walletFacade: WalletFacade) {}
 
-  async execute(expertProfileId: string) {
+  async execute(expertProfileId: number) {
     const balance = await this.walletFacade.getBalance(
       expertProfileId,
       'expert_id',

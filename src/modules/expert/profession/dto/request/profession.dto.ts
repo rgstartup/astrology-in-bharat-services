@@ -6,9 +6,9 @@ import {
   IsBoolean,
   IsIn,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
 } from 'class-validator';
 
 export class GetProfessionsDto extends PaginationDto {
@@ -59,8 +59,8 @@ export class CreateProfessionDto {
 
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
-  specialization_ids?: string[];
+  @IsNumber({}, { each: true })
+  specialization_ids?: number[];
 }
 
 export class UpdateProfessionDto {
@@ -91,17 +91,17 @@ export class UpdateProfessionDto {
 
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
-  specialization_ids?: string[];
+  @IsNumber({}, { each: true })
+  specialization_ids?: number[];
 }
 
 export class SyncExpertProfessionsDto {
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsNumber({}, { each: true })
   @IsNotEmpty()
-  profession_ids!: string[];
+  profession_ids!: number[];
 
   @IsOptional()
-  @IsUUID('4')
-  primary_profession_id?: string;
+  @IsNumber()
+  primary_profession_id?: number;
 }

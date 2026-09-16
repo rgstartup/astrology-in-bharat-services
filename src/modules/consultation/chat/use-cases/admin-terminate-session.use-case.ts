@@ -22,8 +22,8 @@ export class AdminTerminateSessionUseCase {
   ) {}
 
   async execute(
-    sessionId: string,
-    adminId: string,
+    sessionId: number,
+    adminId: number | string,
     userMessage?: string,
     expertMessage?: string,
   ) {

@@ -106,7 +106,7 @@ export class AdminFacade {
     return this.getUserGrowthStatsUseCase.execute(days);
   }
 
-  async getExpertDetail(id: string) {
+  async getExpertDetail(id: number) {
     return this.getExpertDetailUseCase.execute(id);
   }
 
@@ -127,8 +127,8 @@ export class AdminFacade {
   }
 
   async terminateSession(
-    sessionId: string,
-    adminId: string,
+    sessionId: number,
+    adminId: number,
     dto: TerminateSessionDto,
   ) {
     return this.terminateSessionUseCase.execute(sessionId, adminId, dto);
@@ -139,8 +139,8 @@ export class AdminFacade {
   }
 
   async updateWithdrawalStatus(
-    id: string,
-    adminId: string,
+    id: number,
+    adminId: number,
     dto: UpdateWithdrawalStatusDto,
   ) {
     return this.updateWithdrawalStatusUseCase.execute(id, adminId, dto);
@@ -174,7 +174,7 @@ export class AdminFacade {
     return this.getAdminListingsUseCase.execute(dto);
   }
 
-  async updateListingStatus(id: string, status: string) {
+  async updateListingStatus(id: number, status: string) {
     return this.updateListingStatusAdminUseCase.execute(id, { status });
   }
 
@@ -195,25 +195,25 @@ export class AdminFacade {
     return this.getAdminDisputesUseCase.execute(dto);
   }
 
-  async getDisputeById(disputeId: string) {
+  async getDisputeById(disputeId: number) {
     return this.supportFacade.getDisputeByIdForAdmin(disputeId);
   }
 
-  async updateDisputeStatus(id: string, dto: UpdateDisputeStatusDto) {
+  async updateDisputeStatus(id: number, dto: UpdateDisputeStatusDto) {
     return this.updateDisputeStatusUseCase.execute(id, dto);
   }
 
-  async updateExpertStatus(id: string, dto: UpdateExpertStatusDto) {
+  async updateExpertStatus(id: number, dto: UpdateExpertStatusDto) {
     return this.updateExpertStatusUseCase.execute(id, dto);
   }
 
-  async getDisputeMessages(disputeId: string) {
+  async getDisputeMessages(disputeId: number) {
     return this.supportFacade.getAdminMessages(disputeId);
   }
 
   async sendDisputeMessage(
-    disputeId: string,
-    adminId: string,
+    disputeId: number,
+    adminId: number,
     data: { message: string },
   ) {
     return this.supportFacade.sendAdminMessage(adminId, disputeId, data);
@@ -224,7 +224,7 @@ export class AdminFacade {
   }
 
   async updateMerchantStatus(
-    id: string,
+    id: number,
     data: { status: string; kycStatus?: string },
   ) {
     return this.updateMerchantStatusAdminUseCase.execute(id, data);
@@ -234,7 +234,7 @@ export class AdminFacade {
     return this.getMerchantSalesOverviewUseCase.execute();
   }
 
-  async getMerchantSalesDetails(merchantId: string) {
+  async getMerchantSalesDetails(merchantId: number) {
     return this.getMerchantSalesDetailsUseCase.execute(merchantId);
   }
 

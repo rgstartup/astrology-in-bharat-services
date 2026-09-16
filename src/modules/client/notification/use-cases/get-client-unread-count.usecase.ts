@@ -10,7 +10,7 @@ export class GetClientUnreadCountUseCase {
     private readonly notificationRepo: Repository<Notification>,
   ) {}
 
-  async execute(clientId: string): Promise<number> {
+  async execute(clientId: number): Promise<number> {
     return this.notificationRepo.count({
       where: {
         client_id: clientId,

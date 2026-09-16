@@ -14,7 +14,7 @@ export class CountExpertSessionsUseCase {
   ) {}
 
   async execute(
-    expert_id: string,
+    expert_id: number,
     options: {
       status?: ChatSessionStatus | ChatSessionStatus[];
       startDate?: Date;
@@ -39,7 +39,7 @@ export class CountExpertSessionsUseCase {
     return this.chatSessionRepo.count({ where });
   }
 
-  async getRevenueAndCount(expertProfileId: string) {
+  async getRevenueAndCount(expertProfileId: number) {
     const stats = (await this.chatSessionRepo
       .createQueryBuilder('chat')
       .select('SUM(chat.total_cost)', 'total')

@@ -41,11 +41,11 @@ export class CallFacade {
   ) {}
 
   async initiate(
-    clientId: string,
-    dtoOrExpertId: InitiateCallDto | string,
+    clientId: number,
+    dtoOrExpertId: InitiateCallDto | number,
     type: CallType = CallType.AUDIO,
   ) {
-    if (typeof dtoOrExpertId === 'string') {
+    if (typeof dtoOrExpertId === 'number') {
       return this.initiateCallUseCase.execute(clientId, {
         expert_id: dtoOrExpertId,
         type,
@@ -54,16 +54,16 @@ export class CallFacade {
     return this.initiateCallUseCase.execute(clientId, dtoOrExpertId);
   }
 
-  async accept(expertProfileId: string, sessionId: string) {
+  async accept(expertProfileId: number, sessionId: number) {
     return this.acceptCallUseCase.execute(expertProfileId, sessionId);
   }
 
   async end(
-    dtoOrSessionId: EndCallDto | string,
+    dtoOrSessionId: EndCallDto | number,
     terminatedBy?: string,
     reason?: string,
   ) {
-    if (typeof dtoOrSessionId === 'string') {
+    if (typeof dtoOrSessionId === 'number') {
       return this.endCallUseCase.execute({
         sessionId: dtoOrSessionId,
         endedBy: terminatedBy,
@@ -73,12 +73,12 @@ export class CallFacade {
     return this.endCallUseCase.execute(dtoOrSessionId);
   }
 
-  async convertToPaid(sessionId: string) {
+  async convertToPaid(sessionId: number) {
     return this.convertToPaidUseCase.execute(sessionId);
   }
 
   async getExpertSessions(
-    expertProfileId: string,
+    expertProfileId: number,
     filter: CallSessionFilter,
     options: GetCallSessionsDto = {},
   ) {
@@ -89,19 +89,19 @@ export class CallFacade {
     );
   }
 
-  async resolveSessionDetails(sessionIds: string[]) {
+  async resolveSessionDetails(sessionIds: (string | number)[]) {
     return this.resolveSessionDetailsUseCase.execute(sessionIds);
   }
 
-  async getSession(sessionId: string) {
+  async getSession(sessionId: number) {
     return this.getCallSessionUseCase.execute(sessionId);
   }
 
-  async getCallToken(profileId: string, sessionId: string) {
+  async getCallToken(profileId: number, sessionId: number) {
     return this.getCallTokenUseCase.execute(profileId, sessionId);
   }
 
-  async reject(sessionId: string) {
+  async reject(sessionId: number) {
     return this.rejectCallUseCase.execute(sessionId);
   }
 
@@ -116,7 +116,7 @@ export class CallFacade {
   }
 
   async getExpertSessionCount(
-    expert_id: string,
+    expert_id: number,
     options: {
       status?: CallSessionStatus | CallSessionStatus[];
       startDate?: Date;
@@ -126,7 +126,7 @@ export class CallFacade {
   }
 
   async getExpertCallsByDate(
-    expert_id: string,
+    expert_id: number,
     startDate: Date,
     endDate: Date,
   ) {

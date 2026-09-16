@@ -6,10 +6,7 @@ import {
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import {
-  Withdrawal,
-  WithdrawalStatus,
-} from '../entities/withdrawal.entity';
+import { Withdrawal, WithdrawalStatus } from '../entities/withdrawal.entity';
 import {
   Transaction,
   TransactionType,
@@ -39,13 +36,14 @@ export class UpdateWithdrawalStatusUseCase {
   ) {}
 
   async execute(
-    id: string,
+    id: string | number,
     status: WithdrawalStatus,
-    adminId: string,
+    adminId: string | number,
     remark?: string,
   ) {
+    const numId = Number(id);
     const withdrawal = await this.withdrawalRepository.findOne({
-      where: { id },
+      where: { id: numId },
     });
 
     if (!withdrawal) {
@@ -123,7 +121,7 @@ export class UpdateWithdrawalStatusUseCase {
           );
 
         user = (await queryRunner.manager.findOne(User, {
-          where: { id: profile.user_id },
+          where: { id: Number(profile.user_id) },
         })) as unknown as UserInfo;
 
         // 1. Get or Create Razorpay Contact
@@ -246,7 +244,7 @@ export class UpdateWithdrawalStatusUseCase {
       }
 
       withdrawal.status = finalStatus;
-      withdrawal.admin_id = adminId;
+      withdrawal.admin_id = Number(adminId);
       withdrawal.approval_date = new Date();
       if (remark && !withdrawal.remark?.includes(remark)) {
         withdrawal.remark = `${remark} | ${withdrawal.remark || ''}`;
@@ -309,7 +307,7 @@ export class UpdateWithdrawalStatusUseCase {
             '@/common/utils/transaction-no.util'
           );
           const transaction = queryRunner.manager.create(Transaction, {
-            wallet_id: wallet.id as string,
+            wallet_id: wallet.id as number,
             amount: amountToRefund,
             type: TransactionType.CREDIT,
             purpose: TransactionPurpose.REFUND,
@@ -348,7 +346,7 @@ export class UpdateWithdrawalStatusUseCase {
 
       // Create Admin Audit Log
       const auditLog = queryRunner.manager.create(AdminAuditLog, {
-        admin_id: adminId,
+        admin_id: Number(adminId),
         action: `${status.toUpperCase()}_WITHDRAWAL`,
         resource_type: 'WITHDRAWAL',
         resource_id: id.toString(),
@@ -392,7 +390,7 @@ export class UpdateWithdrawalStatusUseCase {
           message = `Your payout request of ₹${Number(withdrawal.amount).toLocaleString('en-IN')} was rejected/cancelled. Reason: ${remark || 'N/A'}. The amount has been refunded to your wallet.`;
         }
 
-        let notifyProfileId: string | null = null;
+        let notifyProfileId: number | null = null;
         let notifyProfileType: ProfileType | null = null;
         if (withdrawal.expert_id) {
           notifyProfileId = withdrawal.expert_id;

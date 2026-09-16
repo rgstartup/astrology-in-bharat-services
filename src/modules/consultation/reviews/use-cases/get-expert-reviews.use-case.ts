@@ -14,7 +14,7 @@ export class GetExpertReviewsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) {}
 
-  async execute(expert_id: string, dto: GetReviewsDto) {
+  async execute(expert_id: number, dto: GetReviewsDto) {
     const { page = 1, limit = 20 } = dto;
     const expert =
       (await this.expertProfileFacade.getExpertById(expert_id)) ||
@@ -30,7 +30,7 @@ export class GetExpertReviewsUseCase {
     }
 
     const [reviews, total] = await this.reviewRepository.findAndCount({
-      where: { expert_id: String(expert.id), status: 'approved' },
+      where: { expert_id: expert.id as number, status: 'approved' },
       relations: ['client', 'client.user'],
       order: { created_at: 'DESC' },
       take: limit,

@@ -70,11 +70,11 @@ export class ExpertProfileFacade {
     return this.listExpertsUseCase.execute(query);
   }
 
-  async getExpertById(id: string) {
+  async getExpertById(id: number) {
     return this.getExpertByIdUseCase.execute(id);
   }
 
-  async updateKycStatus(expert_id: string, status: string, reason?: string) {
+  async updateKycStatus(expert_id: number, status: string, reason?: string) {
     return this.updateKycStatusUseCase.execute(expert_id, status, reason);
   }
 
@@ -82,15 +82,15 @@ export class ExpertProfileFacade {
     return this.getTopRatedExpertsUseCase.execute(limit);
   }
 
-  async getExpertByUserId(userId: string, queryRunner?: QueryRunner) {
+  async getExpertByUserId(userId: number, queryRunner?: QueryRunner) {
     return this.getExpertByUserIdUseCase.execute(userId, queryRunner);
   }
 
-  async upsertPuja(user: IUser, dto: ExpertPujaDto, id?: string) {
+  async upsertPuja(user: IUser, dto: ExpertPujaDto, id?: number) {
     return this.upsertPujaUseCase.execute(user, dto, id);
   }
 
-  async deletePuja(user: IUser, id: string) {
+  async deletePuja(user: IUser, id: number) {
     return this.deletePujaUseCase.execute(user, id);
   }
 
@@ -98,12 +98,12 @@ export class ExpertProfileFacade {
     return this.listAllPujasUseCase.execute();
   }
 
-  async getPujaById(id: string) {
+  async getPujaById(id: number) {
     return this.getPujaByIdUseCase.execute(id);
   }
 
   async updateProfileWithQueryRunner(
-    userId: string,
+    userId: number,
     updates: import('typeorm/query-builder/QueryPartialEntity').QueryDeepPartialEntity<
       import('./entities/profile-expert.entity').ProfileExpert
     >,
@@ -116,11 +116,11 @@ export class ExpertProfileFacade {
     );
   }
 
-  async updatePujaLikes(pujaId: string, diff: number) {
+  async updatePujaLikes(pujaId: number, diff: number) {
     return this.updatePujaLikesUseCase.execute(pujaId, diff);
   }
 
-  async getAdminExpertDetails(id: string) {
+  async getAdminExpertDetails(id: number) {
     return this.getExpertDetailUseCase.execute(id);
   }
 }

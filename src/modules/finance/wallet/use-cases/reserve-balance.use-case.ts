@@ -13,7 +13,7 @@ export class ReserveBalanceUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     walletKey: WalletKey,
     amount: number,
     referenceId: string,

@@ -18,8 +18,8 @@ export class SendDisputeMessageUseCase {
   ) {}
 
   async execute(
-    profileId: string,
-    disputeId: string,
+    profileId: number,
+    disputeId: number,
     dto: SendDisputeMessageDto,
     isAdmin = false,
   ) {
@@ -38,8 +38,8 @@ export class SendDisputeMessageUseCase {
       throw new NotFoundException(`Dispute with ID ${disputeId} not found`);
     }
 
-    let clientId: string | null = null;
-    let expert_id: string | null = null;
+    let clientId: number | null = null;
+    let expert_id: number | null = null;
 
     if (!isAdmin) {
       if (dispute.client_id === profileId) {

@@ -4,22 +4,22 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ExpertAccount } from './account.entity';
 
 @Entity({ schema: 'expert', name: 'account_pujas' })
 export class ExpertAccountPuja {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => ExpertAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'expert_account_id' })
   account!: ExpertAccount;
 
-  @Column({ name: 'expert_account_id', type: 'uuid' })
-  expert_account_id!: string;
+  @Column({ name: 'expert_account_id', type: 'int' })
+  expert_account_id!: number;
 
   @Column({ type: 'boolean', default: false })
   is_online!: boolean;

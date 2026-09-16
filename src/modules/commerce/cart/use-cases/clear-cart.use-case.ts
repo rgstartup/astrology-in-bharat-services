@@ -10,9 +10,9 @@ export class ClearCartUseCase {
     private readonly cartRepo: Repository<Cart>,
   ) {}
 
-  async execute(clientId: string): Promise<void> {
+  async execute(clientId: number | string): Promise<void> {
     const result = await this.cartRepo.delete({
-      client: { id: clientId },
+      client: { id: Number(clientId) },
     });
 
     if (result.affected === 0) {

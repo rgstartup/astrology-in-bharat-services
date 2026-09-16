@@ -79,8 +79,9 @@ export class CreateCommissionRuleDto {
   applies_to_role?: CommissionAppliesRole;
 
   @IsOptional()
-  @IsUUID()
-  applies_to_id?: string | null;
+  @IsInt()
+  @Type(() => Number)
+  applies_to_id?: number | null;
 
   @IsOptional()
   @IsInt()

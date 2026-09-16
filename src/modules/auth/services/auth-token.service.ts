@@ -51,9 +51,9 @@ export class AuthTokenService {
   }
 
   private async findProfileForRole(
-    userId: string,
+    userId: number,
     targetRole?: RoleEnum,
-  ): Promise<string | null> {
+  ): Promise<number | null> {
     if (!targetRole) return null;
 
     const profileId = await this.findProfileResolver.findProfile(

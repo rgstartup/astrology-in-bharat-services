@@ -18,7 +18,7 @@ export class GetTotalEarningsUseCase {
   ) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     walletKey: WalletKey,
     options: { startDate?: Date; endDate?: Date } = {},
   ): Promise<number> {

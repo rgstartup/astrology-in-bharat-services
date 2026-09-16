@@ -16,7 +16,7 @@ export class VerifyPhoneOtpUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    userId: number | string,
     dto: VerifyPhoneOtpDto,
   ): Promise<BooleanMessage> {
     const { phone, code } = dto;
@@ -32,7 +32,7 @@ export class VerifyPhoneOtpUseCase {
       if (process.env.NODE_ENV === 'development') {
         if (code === '123456') {
           const account = await this.accountRepo.findOne({
-            where: [{ id: userId }, { user: { id: userId } }],
+            where: [{ id: Number(userId) }, { user: { id: Number(userId) } }],
           });
           if (!account) {
             throw new BadRequestException('Account not found.');
@@ -71,7 +71,7 @@ export class VerifyPhoneOtpUseCase {
 
       if (verificationCheck.status === 'approved') {
         const account = await this.accountRepo.findOne({
-          where: [{ id: userId }, { user: { id: userId } }],
+          where: [{ id: Number(userId) }, { user: { id: Number(userId) } }],
         });
         if (!account) {
           throw new BadRequestException('Account not found.');

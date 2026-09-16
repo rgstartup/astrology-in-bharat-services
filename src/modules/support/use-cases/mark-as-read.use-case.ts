@@ -13,7 +13,7 @@ export class MarkMessagesAsReadUseCase {
     private readonly messageRepo: Repository<DisputeMessage>,
   ) {}
 
-  async execute(profileId: string, disputeId: string) {
+  async execute(profileId: number, disputeId: number) {
     const query = this.disputeRepo.createQueryBuilder('dispute')
       .where('dispute.id = :disputeId', { disputeId })
       .andWhere(

@@ -7,8 +7,6 @@ import {
   HttpCode,
   HttpStatus,
   Query,
-  DefaultValuePipe,
-  ParseUUIDPipe,
   Param,
   Body,
   ParseIntPipe,
@@ -26,7 +24,6 @@ import { GetMerchantAnalyticsUseCase } from '../use-cases/get-merchant-analytics
 import { SendOrderOtpUseCase } from '../use-cases/send-order-otp.usecase';
 import { VerifyOrderOtpUseCase } from '../use-cases/verify-order-otp.usecase';
 import { OrderFacade } from '@/modules/commerce/order/order.facade';
-import { OrderStatus } from '@/modules/commerce/order/entities/order.entity';
 import { GetMerchantOrdersDto } from '../dto/get-merchant-orders.dto';
 import { UpdateMerchantOrderStatusDto } from '../dto/update-merchant-order-status.dto';
 
@@ -51,7 +48,7 @@ export class MerchantDashboardController {
 
   @Get('stats')
   @HttpCode(HttpStatus.OK)
-  async stats(@CurrentUser('id') userId: string) {
+  async stats(@CurrentUser('id') userId: number) {
     const stats = await this.getStats.execute(userId);
     return { success: true, data: stats };
   }
@@ -59,7 +56,7 @@ export class MerchantDashboardController {
   @Get('orders')
   @HttpCode(HttpStatus.OK)
   async orders(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id') userId: number,
     @Query() dto: GetMerchantOrdersDto,
   ) {
     const orders = await this.getAllOrders.execute(userId, dto);
@@ -68,28 +65,28 @@ export class MerchantDashboardController {
 
   @Get('orders/recent')
   @HttpCode(HttpStatus.OK)
-  async recentOrders(@CurrentUser('id') userId: string) {
+  async recentOrders(@CurrentUser('id') userId: number) {
     const orders = await this.getRecentOrders.execute(userId);
     return { success: true, data: orders };
   }
 
   @Get('activity')
   @HttpCode(HttpStatus.OK)
-  async activity(@CurrentUser('id') userId: string) {
+  async activity(@CurrentUser('id') userId: number) {
     const activity = await this.getActivity.execute(userId);
     return { success: true, data: activity };
   }
 
   @Get('performance')
   @HttpCode(HttpStatus.OK)
-  async performance(@CurrentUser('id') userId: string) {
+  async performance(@CurrentUser('id') userId: number) {
     const performance = await this.getPerformance.execute(userId);
     return { success: true, data: performance };
   }
 
   @Get('analytics')
   @HttpCode(HttpStatus.OK)
-  async analytics(@CurrentUser('id') userId: string) {
+  async analytics(@CurrentUser('id') userId: number) {
     const analytics = await this.getAnalytics.execute(userId);
     return { success: true, data: analytics };
   }
@@ -97,8 +94,8 @@ export class MerchantDashboardController {
   @Post('orders/:id/send-otp')
   @HttpCode(HttpStatus.OK)
   async sendOrderOtp(
-    @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) orderId: string,
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) orderId: number,
   ) {
     return this.sendOtp.execute(userId, orderId);
   }
@@ -106,8 +103,8 @@ export class MerchantDashboardController {
   @Post('orders/:id/verify-otp')
   @HttpCode(HttpStatus.OK)
   async verifyOrderOtp(
-    @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) orderId: string,
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) orderId: number,
     @Body('otp') otp: string,
   ) {
     return this.verifyOtp.execute(userId, orderId, otp);
@@ -116,8 +113,8 @@ export class MerchantDashboardController {
   @Patch('orders/:id/status')
   @HttpCode(HttpStatus.OK)
   async updateStatus(
-    @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateMerchantOrderStatusDto,
   ) {
     await this.orderFacade.updateOrderStatus(

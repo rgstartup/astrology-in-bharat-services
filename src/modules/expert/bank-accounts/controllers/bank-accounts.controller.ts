@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { BankAccountsFacade } from '../bank-accounts.facade';
 import {
@@ -42,7 +42,7 @@ export class BankAccountsController {
   @Get(':id')
   findOne(
     @CurrentExpert() expert: IExpert,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     return this.bankAccountsFacade.findOne(expert.sub, id);
   }
@@ -50,7 +50,7 @@ export class BankAccountsController {
   @Patch(':id')
   async update(
     @CurrentExpert() expert: IExpert,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateBankAccountDto: UpdateBankAccountDto,
   ) {
     await this.bankAccountsFacade.update(expert.sub, id, updateBankAccountDto);
@@ -60,7 +60,7 @@ export class BankAccountsController {
   @Patch(':id/set-primary')
   async setPrimary(
     @CurrentExpert() expert: IExpert,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     await this.bankAccountsFacade.setPrimary(expert.sub, id);
     return { success: true };
@@ -69,7 +69,7 @@ export class BankAccountsController {
   @Delete(':id')
   async remove(
     @CurrentExpert() expert: IExpert,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     await this.bankAccountsFacade.remove(expert.sub, id);
     return { success: true };

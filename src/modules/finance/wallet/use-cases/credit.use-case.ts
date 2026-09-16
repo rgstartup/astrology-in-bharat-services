@@ -52,10 +52,10 @@ export class CreditUseCase {
     private readonly notificationFacade: NotificationFacade,
     private readonly notificationGateway: NotificationGateway,
     private readonly ledgerQueueService: LedgerQueueService,
-  ) { }
+  ) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     walletKey: WalletKey,
     amount: number,
     purpose: TransactionPurpose,

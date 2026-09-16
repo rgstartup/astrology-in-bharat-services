@@ -50,7 +50,7 @@ export class AccountController {
     FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }),
   )
   async updateAccountAvatar(
-    @CurrentClient('id') clientId: string,
+    @CurrentClient('id') clientId: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.accountFacade.updateAccountPicture(clientId, file);

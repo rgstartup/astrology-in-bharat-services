@@ -10,7 +10,7 @@ export class FindAllTodosUseCase {
     private readonly todoRepo: Repository<Todo>,
   ) {}
 
-  async execute(expertAccountId: string) {
+  async execute(expertAccountId: number) {
     return this.todoRepo.find({
       where: { expert: { id: expertAccountId } },
       order: { created_at: 'DESC' },

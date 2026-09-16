@@ -133,7 +133,7 @@ export class LoginWithGoogleUseCase {
     return this.profileCreationResolver.ensureProfile(user, queryRunner);
   }
 
-  private async getTokens(user: User, profileId?: string) {
+  private async getTokens(user: User, profileId?: number) {
     const accessToken = await this.tokenCrypto.createAccessToken<IAccessTokenPayload>({
       sub: user.id,
       role: user.role,

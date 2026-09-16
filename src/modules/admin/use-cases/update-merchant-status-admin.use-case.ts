@@ -9,7 +9,7 @@ export class UpdateMerchantStatusAdminUseCase {
     private readonly merchantFacade: MerchantAccountFacade,
   ) {}
 
-  async execute(id: string, data: { status: string; remarks?: string }) {
+  async execute(id: number, data: { status: string; remarks?: string }) {
     const isVerified = data.status === 'active' || data.status === MerchantStatus.ACTIVE;
     return this.merchantFacade.updateVerification(
       id,

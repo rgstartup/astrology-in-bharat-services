@@ -17,23 +17,23 @@ export class CartFacade {
     private readonly clearCartUseCase: ClearCartUseCase,
   ) {}
 
-  async getCart(clientId: string) {
+  async getCart(clientId: number | string) {
     return this.getCartUseCase.execute(clientId);
   }
 
-  async addToCart(clientId: string, addToCartDto: AddToCartDto) {
+  async addToCart(clientId: number | string, addToCartDto: AddToCartDto) {
     return this.addToCartUseCase.execute(clientId, addToCartDto);
   }
 
-  async updateCartItem(clientId: string, updateCartItemDto: UpdateCartItemDto) {
+  async updateCartItem(clientId: number | string, updateCartItemDto: UpdateCartItemDto) {
     return this.updateCartItemUseCase.execute(clientId, updateCartItemDto);
   }
 
-  async removeCartItem(clientId: string, productId: string) {
+  async removeCartItem(clientId: number | string, productId: number | string) {
     return this.removeCartItemUseCase.execute(clientId, productId);
   }
 
-  async clearCart(clientId: string) {
+  async clearCart(clientId: number | string) {
     return this.clearCartUseCase.execute(clientId);
   }
 }

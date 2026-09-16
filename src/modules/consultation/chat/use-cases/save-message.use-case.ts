@@ -11,8 +11,8 @@ export class SaveMessageUseCase {
   ) {}
 
   async execute(
-    sessionId: string,
-    senderId: string,
+    sessionId: number,
+    senderId: number,
     senderType: 'user' | 'expert',
     content: string,
     type: MessageType = MessageType.TEXT,

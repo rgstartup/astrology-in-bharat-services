@@ -4,14 +4,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ExpertDevotionalRitual } from '@/modules/expert/account/entities/expert-devotional-ritual.entity';
 
 @Entity({ schema: 'devotion', name: 'devotional_rituals' })
 export class DevotionalRitual {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'text' })
   title!: string; // e.g. "Rudrabhishek Puja", "Maha Mrityunjaya Jaap", "Navagraha Shanti Havan"

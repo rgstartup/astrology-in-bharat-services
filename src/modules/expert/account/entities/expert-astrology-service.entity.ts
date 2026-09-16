@@ -6,16 +6,16 @@ import {
   Unique,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { ExpertAccount } from './account.entity';
 import { AstrologyService } from '@/modules/astrology/entities/astrology-service.entity';
 
 @Entity({ schema: 'expert', name: 'expert_astrology_services' })
 @Unique(['expert_id', 'service_id'])
 export class ExpertAstrologyService {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => ExpertAccount, (ea) => ea.astrology_services, {
     onDelete: 'CASCADE',
@@ -23,8 +23,8 @@ export class ExpertAstrologyService {
   @JoinColumn({ name: 'expert_id' })
   expert!: ExpertAccount;
 
-  @Column({ type: 'uuid' })
-  expert_id!: string;
+  @Column({ type: 'int' })
+  expert_id!: number;
 
   @ManyToOne(() => AstrologyService, (s) => s.expert_services, {
     eager: true,
@@ -33,8 +33,8 @@ export class ExpertAstrologyService {
   @JoinColumn({ name: 'service_id' })
   service!: AstrologyService;
 
-  @Column({ type: 'uuid' })
-  service_id!: string;
+  @Column({ type: 'int' })
+  service_id!: number;
 
   @Column({ type: 'float', default: 0 })
   price!: number;

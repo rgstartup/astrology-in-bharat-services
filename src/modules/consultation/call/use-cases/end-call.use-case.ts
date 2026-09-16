@@ -78,7 +78,7 @@ export class EndCallUseCase {
 
     try {
       const session = await queryRunner.manager.findOne(CallSession, {
-        where: { id: sessionId as unknown as string },
+        where: { id: sessionId },
         relations: ['client', 'client.user'],
       });
 
@@ -167,7 +167,7 @@ export class EndCallUseCase {
       const gst = Number((platformFee * (gst_rate / 100)).toFixed(2));
 
       let agent_commission = 0;
-      let agent_id: string | undefined = undefined;
+      let agent_id: number | null = null;
 
       // 1. Seller's Agent Commission (Always paid if referred)
       if (expertUser?.referred_by_id && expert) {
@@ -185,7 +185,7 @@ export class EndCallUseCase {
 
       // 2. Buyer's Agent Commission (If buyer has an agent assigned)
       let buyer_agent_commission = 0;
-      let buyer_agent_id: string | undefined = undefined;
+      let buyer_agent_id: number | null = null;
 
       const buyerUser = session.client?.user as User | null;
       if (buyerUser?.referred_by_id) {
@@ -493,10 +493,10 @@ export class EndCallUseCase {
     manager: EntityManager,
     eventType: CommissionEventType,
     commissionType: CommissionType,
-    profileId: string | null,
+    profileId: number | null,
     role: CommissionAppliesRole,
     grossAmount: number,
-  ): Promise<{ amount: number; ruleId: string | null }> {
+  ): Promise<{ amount: number; ruleId: number | null }> {
     const now = new Date();
 
     const rules = await manager.find(CommissionRule, {
@@ -597,7 +597,7 @@ export class EndCallUseCase {
         ],
         [CommissionType.BUYER_AGENT]: [
           'COMMISION_FOR_BUYER_AGENT',
-          'COMMISION_FOR_BUYER_AGENT',
+          'COMMISSION_FOR_BUYER_AGENT',
         ],
         [CommissionType.GST]: ['GST_PERCENTAGE'],
       },
@@ -660,7 +660,7 @@ export class EndCallUseCase {
 
   private async credit(
     manager: EntityManager,
-    profileId: string,
+    profileId: number,
     walletKey: string,
     amount: number,
     purpose: TransactionPurpose,
@@ -790,7 +790,7 @@ export class EndCallUseCase {
 
   private async debit(
     manager: EntityManager,
-    profileId: string,
+    profileId: number,
     walletKey: string,
     amount: number,
     purpose: TransactionPurpose,
@@ -898,7 +898,7 @@ export class EndCallUseCase {
 
   private async deductFromReserved(
     manager: EntityManager,
-    profileId: string,
+    profileId: number,
     walletKey: string,
     amount: number,
     referenceId: string,
@@ -931,7 +931,7 @@ export class EndCallUseCase {
 
   private async releaseReserved(
     manager: EntityManager,
-    profileId: string,
+    profileId: number,
     walletKey: string,
     amount: number,
     referenceId: string,
@@ -975,11 +975,11 @@ export class EndCallUseCase {
       sellerAgentCommission: number;
       buyerAgentCommission: number;
       providerNet: number;
-      clientProfileId: string | null;
-      providerProfileId: string | null;
-      sellerAgentProfileId: string | null;
-      buyerAgentProfileId: string | null;
-      commissionRuleId: string | null;
+      clientProfileId: number | null;
+      providerProfileId: number | null;
+      sellerAgentProfileId: number | null;
+      buyerAgentProfileId: number | null;
+      commissionRuleId: number | null;
     },
   ): Promise<CommissionSplit> {
     const split = new CommissionSplit();

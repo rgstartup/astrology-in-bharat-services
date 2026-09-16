@@ -1,10 +1,9 @@
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
-import { Column, CreateDateColumn, Entity, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity({ schema: 'consultations', name: 'quotes' })
 export class Quote {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'text' })
   text!: string;

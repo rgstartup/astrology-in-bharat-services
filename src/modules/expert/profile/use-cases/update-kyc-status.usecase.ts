@@ -21,21 +21,21 @@ export class UpdateKycStatusUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(expert_id: string, status: string, reason?: string) {
+  async execute(expert_id: number, status: string, reason?: string) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       const user = await queryRunner.manager.findOne(User, {
-        where: { id: expert_id as unknown as string },
+        where: { id: expert_id },
       });
 
       // Map 'active' (from UI) to 'approved' (for DB)
       const targetStatus = status === 'active' ? 'approved' : status;
 
       let profile = await queryRunner.manager.findOne(ProfileExpert, {
-        where: { user: { id: expert_id as unknown as string } },
+        where: { user: { id: expert_id } },
       });
 
       if (!user || (!profile && targetStatus !== 'approved')) {
@@ -84,8 +84,8 @@ export class UpdateKycStatusUseCase {
       this.eventEmitter.emit(
         'expert.kyc.status-changed',
         new KycStatusChangedEvent(
-          user!.id as unknown as string,
-          profile.id as unknown as string,
+          user!.id,
+          profile.id,
           status,
           reason,
         ),

@@ -13,10 +13,10 @@ export class GetExpertPujasByDateUseCase {
     private readonly pujaRepo: Repository<PujaAppointment>,
   ) {}
 
-  async execute(expert_id: string, startDate: Date, endDate: Date) {
+  async execute(expert_id: number, startDate: Date, endDate: Date) {
     return this.pujaRepo.find({
       where: {
-        expert_id: expert_id as unknown as string,
+        expert_id,
         status: PujaAppointmentStatus.CONFIRMED,
         created_at: Between(startDate, endDate),
       },

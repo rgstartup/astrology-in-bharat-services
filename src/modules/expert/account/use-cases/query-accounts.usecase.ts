@@ -127,7 +127,7 @@ export class QueryExpertAccountsUseCase {
       .getMany();
   }
 
-  async byId(id: string) {
+  async byId(id: number) {
     const account = await this.baseQuery()
       .leftJoin('expert.specializations', 'expert_spec')
       .leftJoin(
@@ -176,7 +176,7 @@ export class QueryExpertAccountsUseCase {
     return account;
   }
 
-  byUserId(accountId: string) {
+  byUserId(accountId: number) {
     return this.accounts.findOne({
       where: { id: accountId },
     });

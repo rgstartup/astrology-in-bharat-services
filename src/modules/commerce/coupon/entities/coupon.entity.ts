@@ -1,5 +1,4 @@
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
-import { Entity, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, CreateDateColumn, UpdateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum CouponType {
   PERCENTAGE = 'percentage',
@@ -14,8 +13,8 @@ export enum CouponStatus {
 
 @Entity({ schema: 'commerce', name: 'coupons' })
 export class Coupon {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'text', unique: true })
   code!: string;
@@ -42,7 +41,7 @@ export class Coupon {
   @Column({ type: 'timestamptz', nullable: true, name: 'expiry_date' })
   expiry_date!: Date | null;
 
-  @Column({ type: 'uuid', nullable: true, name: 'max_usage_limit' })
+  @Column({ type: 'int', nullable: true, name: 'max_usage_limit' })
   max_usage_limit!: number | null;
 
   @Column({ type: 'int', default: 0, name: 'usage_count' })

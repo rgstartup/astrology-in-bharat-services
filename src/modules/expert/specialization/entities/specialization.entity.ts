@@ -1,10 +1,10 @@
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Column,
   CreateDateColumn,
   Entity,
   ManyToMany,
   OneToMany,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ExpertSpecialization } from '@/modules/expert/account/entities/expert-specialization.entity';
@@ -12,8 +12,8 @@ import { Profession } from '@/modules/expert/profession/entities/profession.enti
 
 @Entity({ schema: 'expert', name: 'specializations' })
 export class Specialization {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({
     type: 'text',

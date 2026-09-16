@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { Public } from '@/common/decorators/public.decorator';
 import { DevotionFacade } from '../devotion.facade';
 import { GetDevotionalRitualsDto } from '../dto/get-devotional-rituals.dto';
@@ -18,7 +18,7 @@ export class DevotionalRitualsController {
 
   @Public()
   @Get(':id')
-  async getRitualById(@Param('id') id: string) {
+  async getRitualById(@Param('id', ParseIntPipe) id: number) {
     return this.devotionFacade.getRitualById(id);
   }
 }

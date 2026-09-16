@@ -20,12 +20,12 @@ export class MerchantOrderQueriesUseCase {
     private readonly settingRepo: Repository<SystemSetting>,
   ) {}
 
-  async getMerchantTotalOrders(merchantId: string): Promise<number> {
+  async getMerchantTotalOrders(merchantId: number | string): Promise<number> {
     const totalOrdersQuery = (await this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId })
+      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) })
       .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
       .select('COUNT(DISTINCT oi.order_id)', 'count')
       .getRawOne()) as { count?: string | number };
@@ -33,12 +33,12 @@ export class MerchantOrderQueriesUseCase {
     return Number(totalOrdersQuery?.count) || 0;
   }
 
-  async getMerchantGrossTotalEarnings(merchantId: string): Promise<number> {
+  async getMerchantGrossTotalEarnings(merchantId: number | string): Promise<number> {
     const totalEarningsQuery = (await this.orderItemRepo
       .createQueryBuilder('oi')
       .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId })
+      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) })
       .andWhere('oi.status = :delivered', { delivered: 'delivered' })
       .select('SUM(oi.price * oi.quantity)', 'sum')
       .getRawOne()) as { sum?: string | number };
@@ -47,7 +47,7 @@ export class MerchantOrderQueriesUseCase {
   }
 
   async getMerchantGrossMonthlyEarnings(
-    merchantId: string,
+    merchantId: number | string,
     startOfMonth: Date,
     endDate?: Date,
   ): Promise<number> {
@@ -55,7 +55,7 @@ export class MerchantOrderQueriesUseCase {
       .createQueryBuilder('oi')
       .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId })
+      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) })
       .andWhere('oi.status = :delivered', { delivered: 'delivered' })
       .andWhere('oi.created_at >= :startOfMonth', { startOfMonth })
       .select('SUM(oi.price * oi.quantity)', 'sum');
@@ -71,7 +71,7 @@ export class MerchantOrderQueriesUseCase {
   }
 
   async getMerchantOrders(
-    merchantId: string,
+    merchantId: number | string,
     filters?: Record<string, unknown>,
   ): Promise<OrderItem[]> {
     const query = this.orderItemRepo
@@ -80,7 +80,7 @@ export class MerchantOrderQueriesUseCase {
       .innerJoinAndSelect('order.client', 'client')
       .innerJoinAndSelect('client.user', 'user')
       .innerJoinAndSelect('oi.product', 'product')
-      .where('product.merchant_id = :merchantId', { merchantId });
+      .where('product.merchant_id = :merchantId', { merchantId: Number(merchantId) });
 
     if (filters?.status) {
       query.andWhere('oi.status = :status', { status: filters.status });
@@ -96,18 +96,18 @@ export class MerchantOrderQueriesUseCase {
   }
 
   async getMerchantRecentOrders(
-    merchantId: string,
+    merchantId: number | string,
     limit: number = 5,
   ): Promise<OrderItem[]> {
     return this.getMerchantOrders(merchantId, { limit });
   }
 
   async sendOrderOtp(
-    orderId: string,
-    merchantId: string,
+    orderId: number | string,
+    merchantId: number | string,
   ): Promise<{ order: Order; merchantItems: OrderItem[] }> {
     const order = await this.orderRepo.findOne({
-      where: { id: orderId as unknown as string },
+      where: { id: Number(orderId) },
       relations: ['items', 'items.product', 'client', 'client.user'],
     });
 
@@ -116,7 +116,7 @@ export class MerchantOrderQueriesUseCase {
     }
 
     const merchantItems = order.items.filter(
-      (item) => item.product.merchant_id === merchantId,
+      (item) => item.product?.merchant_id === Number(merchantId),
     );
     if (merchantItems.length === 0) {
       throw new NotFoundException(
@@ -140,12 +140,12 @@ export class MerchantOrderQueriesUseCase {
   }
 
   async verifyOrderOtp(
-    orderId: string,
+    orderId: number | string,
     otp: string,
-    merchantId: string,
+    merchantId: number | string,
   ): Promise<{ netPayout: number }> {
     const order = await this.orderRepo.findOne({
-      where: { id: orderId as unknown as string },
+      where: { id: Number(orderId) },
       relations: ['items', 'items.product'],
     });
 
@@ -154,7 +154,7 @@ export class MerchantOrderQueriesUseCase {
     }
 
     const merchantItems = order.items.filter(
-      (item) => item.product.merchant_id === merchantId,
+      (item) => item.product?.merchant_id === Number(merchantId),
     );
     if (merchantItems.length === 0) {
       throw new NotFoundException(
@@ -195,7 +195,7 @@ export class MerchantOrderQueriesUseCase {
   }
 
   async getMerchantRevenueTimeline(
-    merchantId: string,
+    merchantId: number | string,
   ): Promise<Array<{ date: string; revenue: string }>> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
@@ -214,12 +214,12 @@ export class MerchantOrderQueriesUseCase {
       GROUP BY TO_CHAR(oi.created_at, 'FMMon DD')
       ORDER BY MIN(oi.created_at) ASC
     `,
-      [merchantId, thirtyDaysAgo],
+      [Number(merchantId), thirtyDaysAgo],
     );
   }
 
   async getMerchantTopProducts(
-    merchantId: string,
+    merchantId: number | string,
   ): Promise<
     Array<{ name: string; sales_count: string; total_revenue: string }>
   > {
@@ -236,12 +236,12 @@ export class MerchantOrderQueriesUseCase {
       ORDER BY sales_count DESC
       LIMIT 10
     `,
-      [merchantId],
+      [Number(merchantId)],
     );
   }
 
   async getMerchantOrdersWithStats(
-    merchantId: string,
+    merchantId: number | string,
     page: number,
     limit: number,
     status?: string,
@@ -252,7 +252,7 @@ export class MerchantOrderQueriesUseCase {
       .createQueryBuilder('oi')
       .innerJoin('oi.order', 'o')
       .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId })
+      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) })
       .select('COUNT(oi.id)', 'total')
       .addSelect(
         `SUM(CASE WHEN oi.status IN ('pending', 'paid', 'processing', 'packed') THEN 1 ELSE 0 END)`,
@@ -292,7 +292,7 @@ export class MerchantOrderQueriesUseCase {
       .leftJoinAndSelect('o.client', 'client')
       .leftJoinAndSelect('client.user', 'u')
       .innerJoinAndSelect('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId });
+      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) });
 
     if (status && status.toLowerCase() !== 'all') {
       const searchStatus = status.toLowerCase();

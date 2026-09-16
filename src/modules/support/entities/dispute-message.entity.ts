@@ -4,36 +4,37 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Dispute } from './dispute.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
+
 @Entity({ schema: 'support', name: 'support_dispute_messages' })
 export class DisputeMessage {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => Dispute)
   @JoinColumn({ name: 'dispute_id' })
   dispute!: Dispute;
 
-  @Column({ name: 'dispute_id', type: 'uuid' })
-  dispute_id!: string;
+  @Column({ name: 'dispute_id', type: 'int' })
+  dispute_id!: number;
 
   @ManyToOne(() => ClientAccount, { nullable: true })
   @JoinColumn({ name: 'client_id' })
   client!: ClientAccount | null;
 
-  @Column({ name: 'client_id', type: 'uuid', nullable: true })
-  client_id!: string | null;
+  @Column({ name: 'client_id', type: 'int', nullable: true })
+  client_id!: number | null;
 
   @ManyToOne(() => ProfileExpert, { nullable: true })
   @JoinColumn({ name: 'expert_id' })
   expert!: ProfileExpert | null;
 
-  @Column({ name: 'expert_id', type: 'uuid', nullable: true })
-  expert_id!: string | null;
+  @Column({ name: 'expert_id', type: 'int', nullable: true })
+  expert_id!: number | null;
 
   @Column({
     type: 'enum',

@@ -32,7 +32,7 @@ export class FindExpertSessionsUseCase {
   ) {}
 
   async execute(
-    expertProfileId: string,
+    expertProfileId: number,
     filter: ExpertSessionFilter,
     options: GetExpertChatSessionsDto = {},
   ) {

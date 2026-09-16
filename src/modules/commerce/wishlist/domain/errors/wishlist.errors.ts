@@ -25,13 +25,19 @@ export class ExpertNotInWishlistError extends DomainError {
 }
 
 export class ProductNotFoundError extends DomainError {
+  constructor(productId?: number | string) {
+    super();
+    if (productId) {
+      this.message = `Product with ID ${productId} not found`;
+    }
+  }
   readonly code = 'PRODUCT_NOT_FOUND';
-  readonly message = 'Product not found';
+  readonly message: string = 'Product not found';
   readonly httpStatus = 404;
 }
 
 export class ExpertNotFoundError extends DomainError {
-  constructor(expert_id: string, message?: string) {
+  constructor(expert_id: number | string, message?: string) {
     super();
     this.message = message || `Expert with ID ${expert_id} not found`;
   }
@@ -47,7 +53,7 @@ export class UserNotFoundError extends DomainError {
 }
 
 export class NotAnExpertError extends DomainError {
-  constructor(expert_id: string, roleNames: string) {
+  constructor(expert_id: number | string, roleNames: string) {
     super();
     this.message = `User with ID ${expert_id} is not an expert (Roles: ${roleNames})`;
   }
@@ -87,7 +93,7 @@ export class MerchantNotInWishlistError extends DomainError {
 }
 
 export class MerchantNotFoundError extends DomainError {
-  constructor(merchantId: string, message?: string) {
+  constructor(merchantId: number | string, message?: string) {
     super();
     this.message = message || `Merchant with ID ${merchantId} not found`;
   }

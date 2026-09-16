@@ -10,7 +10,7 @@ export class GetDisputesUseCase {
     private readonly disputeRepo: Repository<Dispute>,
   ) {}
 
-  async execute(profileId: string) {
+  async execute(profileId: number) {
     return this.disputeRepo
       .createQueryBuilder('dispute')
       .where(

@@ -9,7 +9,7 @@ import { ExpertAccount } from '../../account/entities/account.entity';
 import { IExpert } from '@/common/types/access-token.payload';
 
 export interface ExpertJwtPayload {
-  sub: string;
+  sub: number;
   email: string;
 }
 

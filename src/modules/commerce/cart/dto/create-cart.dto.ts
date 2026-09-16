@@ -1,9 +1,11 @@
-import { IsInt, IsNotEmpty, IsPositive, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsPositive } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class AddToCartDto {
   @IsNotEmpty()
-  @IsString()
-  productId!: string;
+  @IsInt()
+  @Type(() => Number)
+  productId!: number;
 
   @IsNotEmpty()
   @IsInt()

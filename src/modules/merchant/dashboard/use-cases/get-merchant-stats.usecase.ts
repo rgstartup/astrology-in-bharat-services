@@ -11,7 +11,7 @@ export class GetMerchantStatsUseCase {
     private readonly calculateEarnings: CalculateMerchantEarningsUseCase,
   ) {}
 
-  async execute(userId: string) {
+  async execute(userId: number) {
     console.log('[DASHBOARD_STATS] Request for userId:', userId);
 
     const [totalOrdersCount, total_products, earnings] = await Promise.all([

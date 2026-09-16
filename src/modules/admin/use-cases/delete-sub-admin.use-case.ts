@@ -20,8 +20,8 @@ export class DeleteSubAdminUseCase {
   ) {}
 
   async execute(
-    targetId: string,
-    deletedByAdminId: string,
+    targetId: number,
+    deletedByAdminId: number,
   ): Promise<{ success: boolean }> {
     const target = await this.userRepo.findOne({
       where: { id: targetId },
@@ -50,7 +50,7 @@ export class DeleteSubAdminUseCase {
         admin_id: deletedByAdminId,
         action: 'DELETE_SUB_ADMIN',
         resource_type: 'SUB_ADMIN',
-        resource_id: targetId,
+        resource_id: String(targetId),
         details: {
           deleted_email: target.email,
           deleted_permissions: target.admin_permissions,

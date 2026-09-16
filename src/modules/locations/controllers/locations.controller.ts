@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Post } from '@nestjs/common';
+import { Controller, Get, Query, Post, ParseIntPipe } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StateEntity } from '../entities/state.entity';
@@ -23,7 +23,9 @@ export class LocationsController {
   }
 
   @Get('districts')
-  async getDistricts(@Query('state_id') stateId: string) {
+  async getDistricts(
+    @Query('state_id', new ParseIntPipe({ optional: true })) stateId?: number,
+  ) {
     if (!stateId) {
       return [];
     }

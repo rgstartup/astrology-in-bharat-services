@@ -43,7 +43,7 @@ export class SupportGateway
   @SubscribeMessage('join_dispute_room')
   async handleJoinDisputeRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { disputeId: string },
+    @MessageBody() payload: { disputeId: number | string },
   ) {
     const roomName = `dispute_${payload.disputeId}`;
     await client.join(roomName);
@@ -55,7 +55,7 @@ export class SupportGateway
   @SubscribeMessage('request_end_chat')
   handleRequestEndChat(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { disputeId: string; userId: string },
+    @MessageBody() payload: { disputeId: number | string; userId: number | string },
   ) {
     const data = { disputeId: payload.disputeId, userId: payload.userId };
     // Notify room
@@ -68,7 +68,7 @@ export class SupportGateway
     return { status: 'requested' };
   }
 
-  notifyNewMessage(disputeId: string, message: unknown) {
+  notifyNewMessage(disputeId: number | string, message: unknown) {
     const roomName = `dispute_${disputeId}`;
     this.logger.log(`Emitting new_message to ${roomName}`);
     this.server.to(roomName).emit('new_message', message);
@@ -77,7 +77,7 @@ export class SupportGateway
     this.server.to('admin_support_room').emit('new_message', message);
   }
 
-  notifyStatusUpdate(disputeId: string, status: string, data: unknown) {
+  notifyStatusUpdate(disputeId: number | string, status: string, data: unknown) {
     const roomName = `dispute_${disputeId}`;
     this.server.to(roomName).emit('dispute_status_updated', {
       disputeId,

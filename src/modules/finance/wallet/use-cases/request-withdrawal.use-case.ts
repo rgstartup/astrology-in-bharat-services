@@ -35,13 +35,14 @@ export class RequestWithdrawalUseCase {
   ) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     walletKey: WalletKey,
     amount: number,
-    bank_account_id?: string | number,
+    bank_account_id?: number,
     idempotencyKey?: string,
     securityMetadata?: { ip?: string; ua?: string },
   ) {
+    const numProfileId = Number(profileId);
     // 1. Idempotency Check (Pre-transaction)
     const currentPayloadHash = crypto
       .createHash('sha256')
@@ -101,7 +102,7 @@ export class RequestWithdrawalUseCase {
       );
 
     // 2.1 KYC / Verification Check
-    const walletOwnerId = profileId;
+    const walletOwnerId = numProfileId;
     let ownerIdField = '';
     const profileType: ProfileType =
       walletKey === 'expert_id'
@@ -116,7 +117,7 @@ export class RequestWithdrawalUseCase {
       const profile_expert = await this.dataSource
         .getRepository(ProfileExpert)
         .findOne({
-          where: { id: profileId },
+          where: { id: numProfileId as any },
         });
       if (!profile_expert)
         throw new BadRequestException('Expert profile not found');
@@ -130,7 +131,7 @@ export class RequestWithdrawalUseCase {
       const profile_merchant = await this.dataSource
         .getRepository(MerchantAccount)
         .findOne({
-          where: { id: profileId },
+          where: { id: numProfileId as any },
         });
       if (!profile_merchant)
         throw new BadRequestException('Merchant profile not found');
@@ -146,7 +147,7 @@ export class RequestWithdrawalUseCase {
     } else if (walletKey === 'agent_id') {
       const agent_profile = await this.dataSource
         .getRepository(ProfileAgent)
-        .findOne({ where: { id: profileId } });
+        .findOne({ where: { id: numProfileId as any } });
       if (!agent_profile)
         throw new BadRequestException('Agent profile not found');
       if (!agent_profile.pan_no || !agent_profile.bank_name) {
@@ -267,7 +268,7 @@ export class RequestWithdrawalUseCase {
               'BankAccount',
               {
                 where: {
-                  id: bank_account_id as string,
+                  id: bank_account_id,
                   expert_id: expertProfile.id,
                 },
               },
@@ -335,9 +336,9 @@ export class RequestWithdrawalUseCase {
 
       // F. Create Withdrawal Record
       const HIGH_VALUE_THRESHOLD = 5000;
-      let dbBankAccountId: string | null = null;
+      let dbBankAccountId: number | null = null;
       if (bank_account_id) {
-        dbBankAccountId = bank_account_id as string;
+        dbBankAccountId = bank_account_id;
       }
 
       const withdrawalData: Record<string, unknown> = {

@@ -4,8 +4,8 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { CommissionRule } from './commission-rule.entity';
 
 export enum SplitReferenceType {
@@ -17,8 +17,8 @@ export enum SplitReferenceType {
 
 @Entity({ schema: 'finance', name: 'commission_splits' })
 export class CommissionSplit {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'text' })
   reference_id!: string;
@@ -47,24 +47,24 @@ export class CommissionSplit {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   platform_net!: number;
 
-  @Column({ type: 'uuid', nullable: true })
-  client_profile_id!: string | null;
+  @Column({ type: 'int', nullable: true })
+  client_profile_id!: number | null;
 
-  @Column({ type: 'uuid', nullable: true })
-  provider_profile_id!: string | null;
+  @Column({ type: 'int', nullable: true })
+  provider_profile_id!: number | null;
 
-  @Column({ type: 'uuid', nullable: true })
-  seller_agent_profile_id!: string | null;
+  @Column({ type: 'int', nullable: true })
+  seller_agent_profile_id!: number | null;
 
-  @Column({ type: 'uuid', nullable: true })
-  buyer_agent_profile_id!: string | null;
+  @Column({ type: 'int', nullable: true })
+  buyer_agent_profile_id!: number | null;
 
   @ManyToOne(() => CommissionRule, { nullable: true, eager: false })
   @JoinColumn({ name: 'commission_rule_id' })
   commission_rule!: CommissionRule | null;
 
-  @Column({ type: 'uuid', nullable: true })
-  commission_rule_id!: string | null;
+  @Column({ type: 'int', nullable: true })
+  commission_rule_id!: number | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

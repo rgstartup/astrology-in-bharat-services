@@ -29,7 +29,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private logger: Logger = new Logger('ExpertGateway');
 
   // Track online experts: userId -> Set of socketIds
-  private expertSockets: Map<string, Set<string>> = new Map();
+  private expertSockets: Map<number, Set<string>> = new Map();
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -57,7 +57,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
           try {
             // Update database status to offline
             const profile = await this.profileRepo.findOne({
-              where: { user: { id: userId.toString() } },
+              where: { user: { id: userId } },
               relations: ['user'],
             });
 
@@ -94,8 +94,8 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('expert_online')
-  async handleExpertOnline(client: Socket, payload: { userId: string }) {
-    const userId = payload.userId;
+  async handleExpertOnline(client: Socket, payload: { userId: number | string }) {
+    const userId = Number(payload.userId);
     if (!userId) return { status: 'error', message: 'Invalid userId' };
 
     if (!this.expertSockets.has(userId)) {
@@ -117,7 +117,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!wasAlreadyOnline) {
       try {
         const profile = await this.profileRepo.findOne({
-          where: { user: { id: userId.toString() } },
+          where: { user: { id: userId } },
           relations: ['user'],
         });
 
@@ -149,8 +149,8 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('expert_offline')
-  async handleExpertOffline(client: Socket, payload: { userId: string }) {
-    const userId = payload.userId;
+  async handleExpertOffline(client: Socket, payload: { userId: number | string }) {
+    const userId = Number(payload.userId);
     if (!userId) return { status: 'error', message: 'Invalid userId' };
 
     const socketIds = this.expertSockets.get(userId);
@@ -161,7 +161,7 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         try {
           const profile = await this.profileRepo.findOne({
-            where: { user: { id: userId.toString() } },
+            where: { user: { id: userId } },
           });
           if (profile) {
             profile.is_available = false;
@@ -195,16 +195,16 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   // Method to manually notify status change (e.g., from ProfileService)
-  notifyStatusChange(userId: string, isAvailable: boolean) {
+  notifyStatusChange(userId: number | string, isAvailable: boolean) {
     this.server.emit('expert_status_changed', {
-      expert_id: userId,
+      expert_id: Number(userId),
       is_available: isAvailable,
       status: isAvailable ? 'online' : 'offline',
       timestamp: new Date().toISOString(),
     });
   }
 
-  notifyKycStatusUpdate(userId: string, status: string, reason?: string) {
+  notifyKycStatusUpdate(userId: number | string, status: string, reason?: string) {
     this.server.to(`expert_${userId}`).emit('kyc_status_updated', {
       status,
       reason,
@@ -212,22 +212,22 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  notifyNewPujaBooking(userId: string, session: any) {
+  notifyNewPujaBooking(userId: number | string, session: any) {
     this.server.to(`expert_${userId}`).emit('new_puja_request', session);
     this.logger.log(`[Socket] 📢 Emitted new_puja_request to expert_${userId}`);
   }
 
   // Method to check if an expert is online
-  isExpertOnline(userId: string): boolean {
-    return this.expertSockets.has(userId);
+  isExpertOnline(userId: number | string): boolean {
+    return this.expertSockets.has(Number(userId));
   }
 
   @OnEvent('user.blocked')
-  async handleUserBlocked(payload: { userId: string }) {
+  async handleUserBlocked(payload: { userId: number | string }) {
     console.log(
       `[ExpertGateway] Received user.blocked event for userId: ${payload.userId}`,
     );
-    const { userId } = payload;
+    const userId = Number(payload.userId);
     this.logger.warn(`[Socket] Force disconnecting blocked user ${userId}`);
 
     // Disconnect socket if connected

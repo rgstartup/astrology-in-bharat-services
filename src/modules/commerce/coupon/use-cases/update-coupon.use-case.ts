@@ -11,8 +11,8 @@ export class UpdateCouponUseCase {
     private readonly couponRepository: Repository<Coupon>,
   ) {}
 
-  async execute(id: string, data: Record<string, unknown>) {
-    const coupon = await this.couponRepository.findOne({ where: { id } });
+  async execute(id: number | string, data: Record<string, unknown>) {
+    const coupon = await this.couponRepository.findOne({ where: { id: Number(id) } });
     if (!coupon) {
       throw new NotFoundException('Coupon not found');
     }

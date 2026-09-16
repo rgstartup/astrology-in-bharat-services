@@ -13,7 +13,7 @@ import {
 import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
 
 export interface CommissionSplitInput {
-  referenceId: string;
+  referenceId: string | number;
   referenceType: SplitReferenceType;
   grossAmount: number;
   platformFee: number;
@@ -21,11 +21,11 @@ export interface CommissionSplitInput {
   sellerAgentCommission: number;
   buyerAgentCommission: number;
   providerNet: number;
-  clientProfileId?: string | null;
-  providerProfileId?: string | null;
-  sellerAgentProfileId?: string | null;
-  buyerAgentProfileId?: string | null;
-  commissionRuleId?: string | null;
+  clientProfileId?: number | string | null;
+  providerProfileId?: number | string | null;
+  sellerAgentProfileId?: number | string | null;
+  buyerAgentProfileId?: number | string | null;
+  commissionRuleId?: number | string | null;
 }
 
 const splitRefTypeToLedgerEventType: Record<
@@ -53,7 +53,7 @@ export class CreateCommissionSplitUseCase {
     qr?: QueryRunner,
   ): Promise<CommissionSplit> {
     const split = new CommissionSplit();
-    split.reference_id = input.referenceId;
+    split.reference_id = String(input.referenceId);
     split.reference_type = input.referenceType;
     split.gross_amount = input.grossAmount;
     split.platform_fee = input.platformFee;
@@ -62,11 +62,11 @@ export class CreateCommissionSplitUseCase {
     split.buyer_agent_commission = input.buyerAgentCommission;
     split.provider_net = input.providerNet;
     split.platform_net = Number((input.platformFee + input.gst).toFixed(2));
-    split.client_profile_id = input.clientProfileId ?? null;
-    split.provider_profile_id = input.providerProfileId ?? null;
-    split.seller_agent_profile_id = input.sellerAgentProfileId ?? null;
-    split.buyer_agent_profile_id = input.buyerAgentProfileId ?? null;
-    split.commission_rule_id = input.commissionRuleId ?? null;
+    split.client_profile_id = input.clientProfileId != null ? Number(input.clientProfileId) : null;
+    split.provider_profile_id = input.providerProfileId != null ? Number(input.providerProfileId) : null;
+    split.seller_agent_profile_id = input.sellerAgentProfileId != null ? Number(input.sellerAgentProfileId) : null;
+    split.buyer_agent_profile_id = input.buyerAgentProfileId != null ? Number(input.buyerAgentProfileId) : null;
+    split.commission_rule_id = input.commissionRuleId != null ? Number(input.commissionRuleId) : null;
 
     const saved = qr
       ? await qr.manager.save(CommissionSplit, split)

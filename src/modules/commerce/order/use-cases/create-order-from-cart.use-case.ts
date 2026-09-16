@@ -45,7 +45,11 @@ export class CreateOrderFromCartUseCase {
     private emailService: NodeMailerService,
   ) {}
 
-  async execute(profileId: string, userId: string, dto: CreateOrderDto) {
+  async execute(
+    profileId: number | string,
+    userId: number | string,
+    dto: CreateOrderDto,
+  ) {
     const shipping_address = dto.shipping_address;
 
     let platformSetting = await this.dataSource
@@ -78,17 +82,17 @@ export class CreateOrderFromCartUseCase {
 
       let totalAmount = 0;
       const itemsToCreate: {
-        product_id: string;
+        product_id: number;
         quantity: number;
         price: number;
-        merchant_id: string | null;
+        merchant_id: number | null;
         shipping_charge: number;
       }[] = [];
 
       if (dto.product_id) {
         // 1. Handle Single Product Order (Buy Now)
         const product = await queryRunner.manager.findOne(Product, {
-          where: { id: dto.product_id },
+          where: { id: Number(dto.product_id) },
         });
 
         if (!product) {
@@ -116,7 +120,7 @@ export class CreateOrderFromCartUseCase {
           product_id: product.id,
           quantity: quantity,
           price: price,
-          merchant_id: product.merchant_id,
+          merchant_id: product.merchant_id ? Number(product.merchant_id) : null,
           shipping_charge: product.is_shipping_chargeable
             ? Number(product.shipping_charge) || 0
             : 0,
@@ -135,7 +139,7 @@ export class CreateOrderFromCartUseCase {
       } else {
         // 2. Handle Cart-based Order
         const cart = await queryRunner.manager.findOne(Cart, {
-          where: { client: { id: profileId } },
+          where: { client: { id: Number(profileId) } },
           relations: ['items', 'items.product'],
         });
         if (!cart || !cart.items || cart.items.length === 0) {
@@ -162,7 +166,9 @@ export class CreateOrderFromCartUseCase {
             product_id: product.id,
             quantity: qty,
             price: price,
-            merchant_id: product.merchant_id,
+            merchant_id: product.merchant_id
+              ? Number(product.merchant_id)
+              : null,
             shipping_charge: product.is_shipping_chargeable
               ? Number(product.shipping_charge) || 0
               : 0,
@@ -260,9 +266,10 @@ export class CreateOrderFromCartUseCase {
 
       for (const item of itemsToCreate) {
         const merchantKey = item.merchant_id || 'platform';
-        const currentMaxShipping = merchantShippingMap.get(merchantKey) || 0;
+        const currentMaxShipping =
+          merchantShippingMap.get(String(merchantKey)) || 0;
         if (item.shipping_charge > currentMaxShipping) {
-          merchantShippingMap.set(merchantKey, item.shipping_charge);
+          merchantShippingMap.set(String(merchantKey), item.shipping_charge);
         }
       }
 
@@ -298,13 +305,13 @@ export class CreateOrderFromCartUseCase {
       if (isWalletPayment) {
         // Full Wallet Payment
         let wallet = await queryRunner.manager.findOne(Wallet, {
-          where: { client_id: profileId },
+          where: { client_id: Number(profileId) },
           lock: { mode: 'pessimistic_write' },
         });
 
         if (!wallet) {
           wallet = queryRunner.manager.create(Wallet, {
-            client_id: profileId,
+            client_id: Number(profileId),
             balance: 0,
             reserved_balance: 0,
           });
@@ -325,7 +332,7 @@ export class CreateOrderFromCartUseCase {
           .createQueryBuilder()
           .update(Wallet)
           .set({ balance: () => `balance - ${finalDebitAmount}` })
-          .where('client_id = :profileId', { profileId })
+          .where('client_id = :profileId', { profileId: Number(profileId) })
           .execute();
 
         const balanceBefore = balance;
@@ -367,7 +374,7 @@ export class CreateOrderFromCartUseCase {
           await queryRunner.manager.save(Coupon, couponEntity);
 
           let userCoupon = await queryRunner.manager.findOne(UserCoupon, {
-            where: { client_id: profileId, coupon_id: couponEntity.id },
+            where: { client_id: Number(profileId), coupon_id: couponEntity.id },
           });
 
           if (userCoupon) {
@@ -375,7 +382,7 @@ export class CreateOrderFromCartUseCase {
             userCoupon.used_at = new Date();
           } else {
             userCoupon = queryRunner.manager.create(UserCoupon, {
-              client_id: profileId,
+              client_id: Number(profileId),
               coupon_id: couponEntity.id,
               is_used: true,
               used_at: new Date(),
@@ -392,13 +399,13 @@ export class CreateOrderFromCartUseCase {
         }
 
         let wallet = await queryRunner.manager.findOne(Wallet, {
-          where: { client_id: profileId },
+          where: { client_id: Number(profileId) },
           lock: { mode: 'pessimistic_write' },
         });
 
         if (!wallet) {
           wallet = queryRunner.manager.create(Wallet, {
-            client_id: profileId,
+            client_id: Number(profileId),
             balance: 0,
             reserved_balance: 0,
           });
@@ -420,7 +427,7 @@ export class CreateOrderFromCartUseCase {
           .createQueryBuilder()
           .update(Wallet)
           .set({ balance: () => `balance - ${walletAmountToUse}` })
-          .where('client_id = :profileId', { profileId })
+          .where('client_id = :profileId', { profileId: Number(profileId) })
           .execute();
 
         const balanceBefore = balance;
@@ -462,7 +469,7 @@ export class CreateOrderFromCartUseCase {
           await queryRunner.manager.save(Coupon, couponEntity);
 
           let userCoupon = await queryRunner.manager.findOne(UserCoupon, {
-            where: { client_id: profileId, coupon_id: couponEntity.id },
+            where: { client_id: Number(profileId), coupon_id: couponEntity.id },
           });
 
           if (userCoupon) {
@@ -470,7 +477,7 @@ export class CreateOrderFromCartUseCase {
             userCoupon.used_at = new Date();
           } else {
             userCoupon = queryRunner.manager.create(UserCoupon, {
-              client_id: profileId,
+              client_id: Number(profileId),
               coupon_id: couponEntity.id,
               is_used: true,
               used_at: new Date(),
@@ -492,7 +499,7 @@ export class CreateOrderFromCartUseCase {
         : totalAmount;
 
       const order = queryRunner.manager.create(Order, {
-        client_id: profileId,
+        client_id: Number(profileId),
         total_amount: totalAmount,
         shipping_address: shipping_address as unknown as
           | Record<string, unknown>
@@ -527,7 +534,7 @@ export class CreateOrderFromCartUseCase {
       // 5. Clear Cart
       if (!dto.product_id) {
         const cartToClear = await queryRunner.manager.findOne(Cart, {
-          where: { client: { id: profileId } },
+          where: { client: { id: Number(profileId) } },
           relations: ['items'],
         });
         if (cartToClear && cartToClear.items.length > 0) {
@@ -544,7 +551,7 @@ export class CreateOrderFromCartUseCase {
       try {
         this.notificationGateway.emitToAdmins('new_order', {
           order_id: savedOrder.id,
-          client_id: profileId,
+          client_id: Number(profileId),
           total_amount: totalAmount,
           created_at: savedOrder.created_at,
         });

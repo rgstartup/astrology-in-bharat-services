@@ -28,7 +28,7 @@ export class AcceptCallUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(expertProfileId: string, sessionId: string) {
+  async execute(expertProfileId: number, sessionId: number) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
       relations: ['client', 'client.user', 'expert', 'expert.user'],

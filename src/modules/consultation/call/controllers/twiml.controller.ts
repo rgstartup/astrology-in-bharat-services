@@ -59,9 +59,12 @@ export class TwimlController {
       let timeLimit = 3600; // Default 1 hour
 
       if (sessionId !== 'DefaultSession') {
-        const session = await this.sessionRepo.findOne({
-          where: { id: sessionId },
-        });
+        const numId = Number(sessionId);
+        const session = numId
+          ? await this.sessionRepo.findOne({
+              where: { id: numId },
+            })
+          : null;
 
         if (session) {
           const balance = await this.walletFacade.getBalance(

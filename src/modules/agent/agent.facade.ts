@@ -58,15 +58,15 @@ export class AgentFacade {
     return this.getAgentListingsUseCase.execute(user, dto);
   }
 
-  async getCommissions(userId: string, pagination: PaginationDto) {
+  async getCommissions(userId: number, pagination: PaginationDto) {
     return this.getAgentCommissionsUseCase.execute(userId, pagination);
   }
 
-  async settleCommissions(userId: string) {
+  async settleCommissions(userId: number) {
     return this.settleAgentCommissionsUseCase.execute(userId);
   }
 
-  async createListing(userId: string, body: Record<string, unknown>) {
+  async createListing(userId: number, body: Record<string, unknown>) {
     return this.createAgentListingUseCase.execute(userId, body);
   }
 
@@ -85,8 +85,8 @@ export class AgentFacade {
   }
 
   async incrementRegistrationsWithQueryRunner(
-    agentId: string,
-    registeredUserId: string,
+    agentId: number,
+    registeredUserId: number,
     isExpert: boolean,
     queryRunner: QueryRunner,
   ) {
@@ -99,7 +99,7 @@ export class AgentFacade {
   }
 
   async updateProfileWithQueryRunner(
-    agentId: string,
+    agentId: number,
     updates: Record<string, unknown>,
     queryRunner: QueryRunner,
   ) {
@@ -122,7 +122,7 @@ export class AgentFacade {
     return this.getAdminListingsUseCase.execute(params);
   }
 
-  async updateAdminListingStatus(id: string, data: { status: string }) {
+  async updateAdminListingStatus(id: number, data: { status: string }) {
     return this.updateAdminListingStatusUseCase.execute(id, data);
   }
 }

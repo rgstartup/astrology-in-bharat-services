@@ -24,7 +24,7 @@ export class GetExpertCallSessionsUseCase {
   ) {}
 
   async execute(
-    expertProfileId: string,
+    expertProfileId: number,
     filter: CallSessionFilter,
     options: GetCallSessionsDto = {},
   ) {

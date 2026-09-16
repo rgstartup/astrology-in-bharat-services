@@ -13,7 +13,7 @@ export class GetExpertSessionsByDateUseCase {
     private readonly sessionRepo: Repository<ChatSession>,
   ) {}
 
-  async execute(expert_id: string, startDate: Date, endDate: Date) {
+  async execute(expert_id: number, startDate: Date, endDate: Date) {
     return this.sessionRepo.find({
       where: {
         expert_id: expert_id,

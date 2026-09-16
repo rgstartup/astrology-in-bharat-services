@@ -16,23 +16,23 @@ export class ExpertEarningsFacade {
     private readonly requestWithdrawalUseCase: RequestWithdrawalUseCase,
   ) {}
 
-  async getStats(expertProfileId: string, dto: GetExpertEarningsStatsDto) {
+  async getStats(expertProfileId: number, dto: GetExpertEarningsStatsDto) {
     return this.getEarningsStatsUseCase.execute(expertProfileId, dto);
   }
 
-  async getWalletBalance(expertProfileId: string) {
+  async getWalletBalance(expertProfileId: number) {
     return this.getWalletBalanceUseCase.execute(expertProfileId);
   }
 
   async getTransactions(
-    expertProfileId: string,
+    expertProfileId: number,
     dto: GetExpertTransactionsDto,
   ) {
     return this.getWalletTransactionsUseCase.execute(expertProfileId, dto);
   }
 
   async requestWithdrawal(
-    expertProfileId: string,
+    expertProfileId: number,
     dto: RequestExpertWithdrawalDto,
     idempotencyKey?: string,
     securityMetadata?: { ip?: string; ua?: string },

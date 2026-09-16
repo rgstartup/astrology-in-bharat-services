@@ -7,6 +7,7 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import { OAuthAccount } from '@/modules/auth/entities/oauth-accounts.entity';
@@ -14,14 +15,13 @@ import { Session } from '@/modules/auth/entities/session.entity';
 import { RoleEnum } from '../enums/Role.enum';
 import { AdminPermission } from '../enums/AdminPermission.enum';
 import { Exclude } from 'class-transformer';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import { PlatformEnum } from '../enums/Platform.enum';
 
 @Entity({ schema: 'public', name: 'users' })
 @Unique('USER_PLATFORM_UNIQ', ['email', 'platform'])
 export class User {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column({ type: 'uuid', nullable: true })
   user_group_id!: string | null;
@@ -58,8 +58,8 @@ export class User {
   is_blocked!: boolean;
 
   // Track kisne block kiya
-  @Column({ type: 'uuid', nullable: true })
-  blocked_by_id!: string | null;
+  @Column({ type: 'int', nullable: true })
+  blocked_by_id!: number | null;
 
   @Column({ type: 'character varying', length: 255, nullable: true })
   blocked_by_name!: string | null;
@@ -100,8 +100,8 @@ export class User {
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at!: Date;
 
-  @Column({ nullable: true, type: 'uuid' })
-  referred_by_id!: string | null;
+  @Column({ nullable: true, type: 'int' })
+  referred_by_id!: number | null;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'referred_by_id' })

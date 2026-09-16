@@ -6,7 +6,7 @@ import {
   Body,
   Param,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { WishlistFacade } from '../wishlist.facade';
 import { AddMerchantWishlistDto } from '../dto/add-merchant-wishlist.dto';
@@ -22,13 +22,13 @@ export class MerchantLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAll(@CurrentProfile() profileId: string) {
+  findAll(@CurrentProfile() profileId: number) {
     return this.wishlistFacade.getMerchantWishlist(profileId);
   }
 
   @Post('add')
   create(
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @Body() dto: AddMerchantWishlistDto,
   ) {
     return this.wishlistFacade.addMerchantToWishlist(profileId, dto.merchantId);
@@ -36,8 +36,8 @@ export class MerchantLikeController {
 
   @Delete('remove/:merchantId')
   async remove(
-    @CurrentProfile() profileId: string,
-    @Param('merchantId', ParseUUIDPipe) merchantId: string,
+    @CurrentProfile() profileId: number,
+    @Param('merchantId', ParseIntPipe) merchantId: number,
   ) {
     const _result = await this.wishlistFacade.removeMerchantFromWishlist(
       profileId,

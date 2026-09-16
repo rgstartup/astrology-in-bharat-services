@@ -21,7 +21,7 @@ export class GetTransactionsUseCase {
   ) {}
 
   async execute(
-    profileId: string,
+    profileId: number,
     walletKey: WalletKey,
     dto: GetTransactionsDto = {},
   ) {
@@ -74,7 +74,9 @@ export class GetTransactionsUseCase {
             );
 
             if (withdrawal) {
-              bank_account = withdrawal.bank_account_id as string;
+              bank_account = withdrawal.bank_account_id
+                ? String(withdrawal.bank_account_id)
+                : null;
               status = withdrawal.status;
               remark = withdrawal.remark || null;
             }
@@ -97,7 +99,9 @@ export class GetTransactionsUseCase {
           if (tx.reference_id && tx.reference_id.startsWith('puja_appt_')) {
             const apptId = tx.reference_id.replace('puja_appt_', '');
             try {
-              const { PujaAppointment } = await import('@/modules/puja-appointment/entities/puja-appointment.entity');
+              const { PujaAppointment } = await import(
+                '@/modules/puja-appointment/entities/puja-appointment.entity'
+              );
               const appt = await this.transactionRepository.manager.findOne(
                 PujaAppointment as unknown as import('typeorm').EntityTarget<
                   import('typeorm').ObjectLiteral
@@ -122,7 +126,12 @@ export class GetTransactionsUseCase {
             if (match) {
               const typeStr = match[1].toLowerCase();
               const uuid = match[2];
-              const typeLabel = typeStr === 'chat' ? 'CHAT' : typeStr === 'video' ? 'VID' : 'CALL';
+              const typeLabel =
+                typeStr === 'chat'
+                  ? 'CHAT'
+                  : typeStr === 'video'
+                    ? 'VID'
+                    : 'CALL';
               const lastPart = uuid.split('-').pop() || '';
               const formattedId = `AIB-${typeLabel}-${lastPart.slice(-6).toUpperCase()}`;
               description = `Refund (${formattedId})`;
@@ -138,7 +147,10 @@ export class GetTransactionsUseCase {
         }
 
         let formatted_transaction_no = tx.transaction_no;
-        if (formatted_transaction_no && formatted_transaction_no.startsWith('AIB-USR-RECH-')) {
+        if (
+          formatted_transaction_no &&
+          formatted_transaction_no.startsWith('AIB-USR-RECH-')
+        ) {
           const parts = formatted_transaction_no.split('-');
           if (parts.length >= 6) {
             const lastPart = parts[parts.length - 1];

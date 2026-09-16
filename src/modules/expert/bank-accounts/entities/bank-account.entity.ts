@@ -5,14 +5,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
-import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'expert', name: 'bank_accounts' })
 export class BankAccount {
-  @UuidPrimaryKeyColumn()
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @ManyToOne(() => ExpertAccount, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'expert_id' })

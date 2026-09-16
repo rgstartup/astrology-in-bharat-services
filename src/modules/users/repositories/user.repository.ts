@@ -49,7 +49,7 @@ export class UserRepository extends BaseService<User> {
   }
 
   async findById(
-    id: string,
+    id: number,
     all: boolean = true,
     queryRunner?: QueryRunner,
   ): Promise<User | null> {
@@ -68,7 +68,7 @@ export class UserRepository extends BaseService<User> {
   }
 
   async update(
-    id: string,
+    id: number,
     data: Partial<User>,
     queryRunner?: QueryRunner,
   ): Promise<User> {
@@ -92,7 +92,7 @@ export class UserRepository extends BaseService<User> {
     return updatedUser;
   }
 
-  async delete(id: string, queryRunner?: QueryRunner): Promise<void> {
+  async delete(id: number, queryRunner?: QueryRunner): Promise<void> {
     const repo = this.getRepo(queryRunner);
     await repo.delete(id);
   }

@@ -5,7 +5,7 @@ import {
   Patch,
   Delete,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Query,
 } from '@nestjs/common';
 import {
@@ -37,7 +37,7 @@ export class NotificationController {
   @Get()
   async getNotifications(
     @CurrentUser() user: IUser,
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
     @Query() dto: GetNotificationsDto,
   ) {
     const profileType = deriveProfileType(user.role);
@@ -74,8 +74,8 @@ export class NotificationController {
   @Patch(':id/read')
   async markAsRead(
     @CurrentUser() user: IUser,
-    @CurrentProfile() profileId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentProfile() profileId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     const profileType = deriveProfileType(user.role);
     const _result = await this.notificationFacade.markAsRead(
@@ -89,7 +89,7 @@ export class NotificationController {
   @Delete('all')
   async clearAll(
     @CurrentUser() user: IUser,
-    @CurrentProfile() profileId: string,
+    @CurrentProfile() profileId: number,
   ) {
     const profileType = deriveProfileType(user.role);
     const _result = await this.notificationFacade.clearAll(

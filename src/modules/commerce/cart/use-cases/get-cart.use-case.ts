@@ -10,9 +10,9 @@ export class GetCartUseCase {
     private cartRepository: Repository<Cart>,
   ) {}
 
-  async execute(clientId: string) {
+  async execute(clientId: number | string) {
     const cart = await this.cartRepository.findOne({
-      where: { client: { id: clientId } },
+      where: { client: { id: Number(clientId) } },
       relations: ['items', 'items.product'],
     });
 

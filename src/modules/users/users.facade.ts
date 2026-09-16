@@ -52,19 +52,19 @@ export class UsersFacade {
     return this.findUserUseCase.findByEmailWithPassword(email, queryRunner);
   }
 
-  findById(id: string, queryRunner?: QueryRunner) {
+  findById(id: number, queryRunner?: QueryRunner) {
     return this.findUserUseCase.findById(id, queryRunner);
   }
 
-  update(id: string, dto: Partial<User>, queryRunner?: QueryRunner) {
+  update(id: number, dto: Partial<User>, queryRunner?: QueryRunner) {
     return this.updateUserUseCase.execute(id, dto, queryRunner);
   }
 
-  delete(id: string, queryRunner?: QueryRunner) {
+  delete(id: number, queryRunner?: QueryRunner) {
     return this.deleteUserUseCase.execute(id, queryRunner);
   }
 
-  assignRole(userId: string, roleName: RoleEnum, queryRunner?: QueryRunner) {
+  assignRole(userId: number, roleName: RoleEnum, queryRunner?: QueryRunner) {
     return this.assignRoleToUserUseCase.execute(userId, roleName, queryRunner);
   }
 
@@ -120,7 +120,7 @@ export class UsersFacade {
     return this.getFilteredUsersUseCase.executeList(filters);
   }
 
-  async getFilteredUsersIds(filters: FilterCriteria) {
+  async getFilteredUsersIds(filters: FilterCriteria): Promise<number[]> {
     return this.getFilteredUsersUseCase.executeIds(filters);
   }
 }

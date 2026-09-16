@@ -23,7 +23,7 @@ export class CreateBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(expertAccountId: string, dto: CreateBankAccountDto) {
+  async execute(expertAccountId: number, dto: CreateBankAccountDto) {
     this.logger.log(
       `Starting bank account creation for expert account ${expertAccountId}`,
     );

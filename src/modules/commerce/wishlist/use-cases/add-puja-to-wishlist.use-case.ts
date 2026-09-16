@@ -18,7 +18,7 @@ export class AddPujaToWishlistUseCase {
     private readonly expertProfileFacade: ExpertProfileFacade,
   ) {}
 
-  async execute(profileId: string, pujaId: string): Promise<BooleanMessage> {
+  async execute(profileId: number, pujaId: number): Promise<BooleanMessage> {
     const puja = await this.expertProfileFacade.getPujaById(pujaId);
 
     if (!puja) {
