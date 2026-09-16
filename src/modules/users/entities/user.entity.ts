@@ -23,6 +23,9 @@ export class User {
   @UuidPrimaryKeyColumn()
   id!: string;
 
+  @Column({ type: 'uuid', nullable: true })
+  user_group_id!: string | null;
+
   @Column({ type: 'character varying', length: 255 })
   email!: string;
 
