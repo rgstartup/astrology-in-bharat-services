@@ -5,18 +5,18 @@ import { Repository } from 'typeorm';
 import { FavoriteItemType } from '../enum/favorite-type.enum';
 
 @Injectable()
-export class AddExpertToFavoritesUseCase {
+export class AddProductToFavoritesUseCase {
   constructor(
     @InjectRepository(Favorites)
     private readonly favoritesRepository: Repository<Favorites>,
   ) {}
 
-  async execute(clientId: number, expertId: number) {
+  async execute(clientId: number, productId: number) {
     const existingFavorite = await this.favoritesRepository.findOne({
       where: {
         client_id: clientId,
-        item_id: expertId,
-        item_type: FavoriteItemType.EXPERT,
+        item_id: productId,
+        item_type: FavoriteItemType.PRODUCT,
       },
     });
 
@@ -26,8 +26,8 @@ export class AddExpertToFavoritesUseCase {
 
     const favorite = new Favorites();
     favorite.client_id = clientId;
-    favorite.item_id = expertId;
-    favorite.item_type = FavoriteItemType.EXPERT;
+    favorite.item_id = productId;
+    favorite.item_type = FavoriteItemType.PRODUCT;
     return this.favoritesRepository.save(favorite);
   }
 }

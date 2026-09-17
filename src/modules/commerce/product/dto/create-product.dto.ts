@@ -5,8 +5,12 @@ import {
   IsBoolean,
   Min,
   IsArray,
+  IsEnum,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
+import { ProductGroup } from '../enum/product-group.enum';
+import { ProductType } from '../enum/product-type.enum';
+import ToBoolean from '@/common/decorators/transform/bool.transform';
 
 export class CreateProductDto {
   @IsString()
@@ -14,6 +18,14 @@ export class CreateProductDto {
 
   @IsString()
   description!: string;
+
+  @IsOptional()
+  @IsEnum(ProductType)
+  type?: ProductType;
+
+  @IsOptional()
+  @IsEnum(ProductGroup)
+  product_group?: ProductGroup;
 
   @IsNumber()
   @Min(0)
@@ -42,7 +54,7 @@ export class CreateProductDto {
 
   @IsBoolean()
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @ToBoolean()
   is_active?: boolean;
 
   @IsString()
@@ -64,7 +76,7 @@ export class CreateProductDto {
 
   @IsBoolean()
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @ToBoolean()
   is_shipping_chargeable?: boolean;
 
   @IsNumber()

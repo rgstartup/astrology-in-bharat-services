@@ -27,6 +27,9 @@ export class ProductMedia {
   @JoinColumn({ name: 'product_id' })
   product!: Product;
 
+  @Column({ name: 'variant_id', nullable: true })
+  variant_id!: number | null;
+
   @ManyToOne(() => ProductVariant, {
     nullable: true,
     onDelete: 'CASCADE',

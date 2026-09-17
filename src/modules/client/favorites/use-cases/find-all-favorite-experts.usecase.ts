@@ -1,18 +1,18 @@
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { FavoriteItemType } from '../enum/favorite-type.enum';
 import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
-import { Injectable } from '@nestjs/common';
-import { FindFavoritesDto } from '../dto/findFavorites.dto';
+import { FindFavoriteExpertsDto } from '../dto/favorite-expert.dto';
 
 @Injectable()
-export class FindAllFavoriteExperts {
+export class FindFavoriteExpertsUseCase {
   constructor(
     @InjectRepository(ExpertAccount)
     private readonly expertRepository: Repository<ExpertAccount>,
   ) {}
 
-  async execute(clientId: number, query?: FindFavoritesDto) {
+  async execute(clientId: number, query?: FindFavoriteExpertsDto) {
     const queryBuilder = this.expertRepository
       .createQueryBuilder('expert')
       .innerJoin(

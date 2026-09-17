@@ -198,12 +198,15 @@ export class ClientSeeder implements Seeder {
         user = await userRepository.save(user);
         console.log(`[ClientSeeder] Created User: ${email}`);
       } else {
+        user.password = hashedPassword;
         user.first_name = data.user.firstName;
         user.last_name = data.user.lastName;
         user.name = data.user.name;
         user.full_name = data.user.fullName;
         if (!user.email_verified_at) user.email_verified_at = new Date();
+        user.is_blocked = false;
         user = await userRepository.save(user);
+        console.log(`[ClientSeeder] Updated User credentials: ${email}`);
       }
 
       // 2. Ensure ClientAccount entity exists

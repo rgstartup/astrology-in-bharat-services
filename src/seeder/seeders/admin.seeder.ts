@@ -18,12 +18,16 @@ export class AdminSeeder implements Seeder {
       },
     });
 
+    const hashedPassword = await argon2.hash(adminPassword, { type: argon2.argon2id });
+
     if (existingAdmin) {
-      console.log(`[AdminSeeder] Super Admin (${adminEmail}) already exists. Skipping.`);
+      existingAdmin.password = hashedPassword;
+      if (!existingAdmin.email_verified_at) existingAdmin.email_verified_at = new Date();
+      existingAdmin.is_blocked = false;
+      await userRepository.save(existingAdmin);
+      console.log(`[AdminSeeder] Updated Super Admin (${adminEmail}) credentials.`);
       return;
     }
-
-    const hashedPassword = await argon2.hash(adminPassword, { type: argon2.argon2id });
 
     const admin = userRepository.create({
       email: adminEmail,

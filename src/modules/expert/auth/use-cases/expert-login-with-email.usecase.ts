@@ -14,6 +14,8 @@ import { ExpertAccount } from '../../account/entities/account.entity';
 import { ExpertLoginDto } from '../dto/expert-login.dto';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';
 
+import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
+
 @Injectable()
 export class ExpertLoginWithEmailUseCase {
   constructor(
@@ -30,6 +32,7 @@ export class ExpertLoginWithEmailUseCase {
       .addSelect(['user.password', 'user.email_verified_at', 'user.is_blocked'])
       .innerJoinAndSelect('expert.user', 'user')
       .where('user.email = :email', { email: dto.email })
+      .andWhere('user.platform = :platform', { platform: PlatformEnum.EXPERT })
       .getOne();
 
     const fallback = await this.hasher.hash('fallbackInvalidPassword');

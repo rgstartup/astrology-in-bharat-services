@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Product } from '../entities/product.entity';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { ProductNotFoundError } from '../errors/product.errors';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
 export class UpdateProductUseCase {
@@ -20,7 +21,7 @@ export class UpdateProductUseCase {
     }
 
     // Build update payload mapping DTO fields to entity columns safely
-    const updatePayload: Partial<Product> = {};
+    const updatePayload: QueryDeepPartialEntity<Product> = {};
 
     if (dto.name !== undefined) updatePayload.name = dto.name;
     if (dto.description !== undefined)

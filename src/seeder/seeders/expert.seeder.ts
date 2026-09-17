@@ -30,6 +30,7 @@ interface ExpertSeedData {
     lastName: string;
     name: string;
     fullName: string;
+    userGroupId: string;
   };
   account: {
     name: string;
@@ -84,7 +85,10 @@ export class ExpertSeeder implements Seeder {
       ExpertDevotionalRitual,
     );
 
-    const defaultPassword = process.env.EXPERT_SEED_PASSWORD || 'Expert@123456';
+    const defaultPassword =
+      process.env.EXPERT_SEED_PASSWORD ||
+      process.env.MERCHANT_SEED_PASSWORD ||
+      'Astro@123456';
     const hashedPassword = await argon2.hash(defaultPassword, {
       type: argon2.argon2id,
     });
@@ -97,6 +101,7 @@ export class ExpertSeeder implements Seeder {
           lastName: 'Sharma',
           name: 'Acharya Rajesh Sharma',
           fullName: 'Acharya Rajesh Sharma',
+          userGroupId: 'a0000000-0000-4000-8000-000000000001',
         },
         account: {
           name: 'Acharya Rajesh Sharma',
@@ -155,6 +160,7 @@ export class ExpertSeeder implements Seeder {
           lastName: 'Shukla',
           name: 'Dr. Priya Shukla',
           fullName: 'Dr. Priya Shukla',
+          userGroupId: 'a0000000-0000-4000-8000-000000000002',
         },
         account: {
           name: 'Dr. Priya Shukla',
@@ -207,6 +213,7 @@ export class ExpertSeeder implements Seeder {
           lastName: 'Joshi',
           name: 'Pandit Suresh Joshi',
           fullName: 'Pandit Suresh Joshi',
+          userGroupId: 'a0000000-0000-4000-8000-000000000003',
         },
         account: {
           name: 'Pandit Suresh Joshi',
@@ -261,6 +268,7 @@ export class ExpertSeeder implements Seeder {
           lastName: 'Iyer',
           name: 'Ananya Iyer',
           fullName: 'Ananya Iyer',
+          userGroupId: 'a0000000-0000-4000-8000-000000000004',
         },
         account: {
           name: 'Ananya Iyer',
@@ -315,6 +323,7 @@ export class ExpertSeeder implements Seeder {
           lastName: 'Dev',
           name: 'Swami Krishnadev',
           fullName: 'Swami Krishnadev',
+          userGroupId: 'a0000000-0000-4000-8000-000000000005',
         },
         account: {
           name: 'Swami Krishnadev',
@@ -385,6 +394,7 @@ export class ExpertSeeder implements Seeder {
           last_name: data.user.lastName,
           name: data.user.name,
           full_name: data.user.fullName,
+          user_group_id: data.user.userGroupId,
           role: RoleEnum.EXPERT,
           platform: PlatformEnum.EXPERT,
           admin_permissions: null,
@@ -394,12 +404,16 @@ export class ExpertSeeder implements Seeder {
         user = await userRepository.save(user);
         console.log(`[ExpertSeeder] Created User for expert: ${email}`);
       } else {
+        user.password = hashedPassword;
         user.first_name = data.user.firstName;
         user.last_name = data.user.lastName;
         user.name = data.user.name;
         user.full_name = data.user.fullName;
+        user.user_group_id = data.user.userGroupId;
         if (!user.email_verified_at) user.email_verified_at = new Date();
+        user.is_blocked = false;
         user = await userRepository.save(user);
+        console.log(`[ExpertSeeder] Updated User credentials for expert: ${email}`);
       }
 
       // 2. Ensure ExpertAccount entity exists

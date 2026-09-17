@@ -17,6 +17,7 @@ interface MerchantSeedData {
     lastName: string;
     name: string;
     fullName: string;
+    userGroupId: string;
   };
   account: {
     name: string;
@@ -51,7 +52,9 @@ export class MerchantSeeder implements Seeder {
     const walletRepository = dataSource.getRepository(Wallet);
 
     const defaultPassword =
-      process.env.MERCHANT_SEED_PASSWORD || 'Merchant@123456';
+      process.env.EXPERT_SEED_PASSWORD ||
+      process.env.MERCHANT_SEED_PASSWORD ||
+      'Astro@123456';
     const hashedPassword = await argon2.hash(defaultPassword, {
       type: argon2.argon2id,
     });
@@ -59,11 +62,94 @@ export class MerchantSeeder implements Seeder {
     const merchants: MerchantSeedData[] = [
       {
         user: {
+          email: 'acharya.rajesh@astrologyinbharat.com',
+          firstName: 'Rajesh',
+          lastName: 'Sharma',
+          name: 'Acharya Rajesh Sharma',
+          fullName: 'Acharya Rajesh Sharma',
+          userGroupId: 'a0000000-0000-4000-8000-000000000001',
+        },
+        account: {
+          name: 'Acharya Rajesh Sharma',
+          email: 'acharya.rajesh@astrologyinbharat.com',
+          phone: '+919876543210',
+          shopName: 'Rajesh Vedic Store & Kendra',
+          managerName: 'Acharya Rajesh Sharma',
+          address: '12, Assi Ghat Road, Dashashwamedh',
+          city: 'Varanasi',
+          pincode: '221001',
+          description:
+            'Authentic Rudraksha beads, energized Yantras, and sacred Puja essentials curated directly by Acharya Rajesh Sharma from Varanasi.',
+          established: '2010',
+          features: [
+            'Energized by Acharya',
+            'Authenticity Guaranteed',
+            'Direct from Varanasi',
+            'Vedic Guidance Included',
+            'Pan India Express Shipping',
+          ],
+          isTrusted: true,
+          rating: 4.9,
+          reviewCount: 380,
+          bankName: 'State Bank of India',
+          accountHolder: 'Acharya Rajesh Sharma',
+          accountNumber: '30010123456789',
+          ifsc: 'SBIN0001234',
+          pan: 'ABCPS1234D',
+          gstin: '09ABCPS1234D1Z5',
+          operationalHours: '08:00 AM - 08:00 PM',
+          trustScore: '99.5',
+        },
+      },
+      {
+        user: {
+          email: 'dr.priya@astrologyinbharat.com',
+          firstName: 'Priya',
+          lastName: 'Shukla',
+          name: 'Dr. Priya Shukla',
+          fullName: 'Dr. Priya Shukla',
+          userGroupId: 'a0000000-0000-4000-8000-000000000002',
+        },
+        account: {
+          name: 'Dr. Priya Shukla',
+          email: 'dr.priya@astrologyinbharat.com',
+          phone: '+919876543211',
+          shopName: 'Priya Astro Gems & Vastu Sanctuary',
+          managerName: 'Dr. Priya Shukla',
+          address: '7, Sarafa Bazar, M.G. Road',
+          city: 'Jaipur',
+          pincode: '302001',
+          description:
+            'Lab-certified Jyotish Gemstones, Vastu Pyramids, and customized planetary talismans curated by Dr. Priya Shukla.',
+          established: '2015',
+          features: [
+            'GIA/IGI Certified Gems',
+            'Astrological Matching',
+            'Energized Crystals',
+            'Pan India Delivery',
+            'Vastu Consult Included',
+          ],
+          isTrusted: true,
+          rating: 4.9,
+          reviewCount: 290,
+          bankName: 'HDFC Bank',
+          accountHolder: 'Dr. Priya Shukla',
+          accountNumber: '50100987654321',
+          ifsc: 'HDFC0004567',
+          pan: 'XYZPS9876E',
+          gstin: '08XYZPS9876E1Z3',
+          operationalHours: '10:00 AM - 07:30 PM',
+          trustScore: '99.4',
+        },
+      },
+      {
+        user: {
           email: 'rudraksha.bazaar@astrologyinbharat.com',
           firstName: 'Ramesh',
           lastName: 'Agarwal',
           name: 'Ramesh Agarwal',
           fullName: 'Ramesh Agarwal',
+          userGroupId: 'a0000000-0000-4000-8000-000000000006',
         },
         account: {
           name: 'Ramesh Agarwal',
@@ -104,6 +190,7 @@ export class MerchantSeeder implements Seeder {
           lastName: 'Singhania',
           name: 'Divya Singhania',
           fullName: 'Divya Singhania',
+          userGroupId: 'a0000000-0000-4000-8000-000000000010',
         },
         account: {
           name: 'Divya Singhania',
@@ -144,6 +231,7 @@ export class MerchantSeeder implements Seeder {
           lastName: 'Tiwari',
           name: 'Mohan Tiwari',
           fullName: 'Mohan Tiwari',
+          userGroupId: 'a0000000-0000-4000-8000-000000000007',
         },
         account: {
           name: 'Mohan Tiwari',
@@ -184,6 +272,7 @@ export class MerchantSeeder implements Seeder {
           lastName: 'Bhatia',
           name: 'Supriya Bhatia',
           fullName: 'Supriya Bhatia',
+          userGroupId: 'a0000000-0000-4000-8000-000000000008',
         },
         account: {
           name: 'Supriya Bhatia',
@@ -224,6 +313,7 @@ export class MerchantSeeder implements Seeder {
           lastName: 'Rao',
           name: 'Govind Rao',
           fullName: 'Govind Rao',
+          userGroupId: 'a0000000-0000-4000-8000-000000000009',
         },
         account: {
           name: 'Govind Rao',
@@ -277,6 +367,7 @@ export class MerchantSeeder implements Seeder {
           last_name: data.user.lastName,
           name: data.user.name,
           full_name: data.user.fullName,
+          user_group_id: data.user.userGroupId,
           role: RoleEnum.MERCHANT,
           platform: PlatformEnum.MERCHANT,
           admin_permissions: null,
@@ -286,12 +377,16 @@ export class MerchantSeeder implements Seeder {
         user = await userRepository.save(user);
         console.log(`[MerchantSeeder] Created User: ${email}`);
       } else {
+        user.password = hashedPassword;
         user.first_name = data.user.firstName;
         user.last_name = data.user.lastName;
         user.name = data.user.name;
         user.full_name = data.user.fullName;
+        user.user_group_id = data.user.userGroupId;
         if (!user.email_verified_at) user.email_verified_at = new Date();
+        user.is_blocked = false;
         user = await userRepository.save(user);
+        console.log(`[MerchantSeeder] Updated User credentials: ${email}`);
       }
 
       // 2. Ensure MerchantAccount entity exists

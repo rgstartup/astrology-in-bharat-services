@@ -8,3 +8,7 @@ export * from './devotional-ritual.seeder';
 export * from './expert.seeder';
 export * from './client.seeder';
 export * from './merchant.seeder';
+export * from './product-category.seeder';
+export * from './product.seeder';
+export * from './expert-product.seeder';
+

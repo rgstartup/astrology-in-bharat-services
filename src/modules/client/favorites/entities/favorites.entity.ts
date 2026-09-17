@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { FavoriteItemType } from '../enum/favorite-type.enum';
 
-@Entity({ schema: 'public', name: 'favorites' })
+@Entity({ schema: 'client', name: 'favorites' })
 export class Favorites {
   @PrimaryGeneratedColumn()
   id!: number;

@@ -11,6 +11,7 @@ import {
 import { ProductCategory } from './category.entity';
 import { ProductVariant } from './variants.entity';
 import { ProductType } from '../enum/product-type.enum';
+import { ProductGroup } from '../enum/product-group.enum';
 import { ProductMedia } from './media.entity';
 
 @Entity({ schema: 'commerce', name: 'products' })
@@ -47,6 +48,14 @@ export class Product {
   })
   type!: ProductType;
 
+  @Column({
+    type: 'enum',
+    enum: ProductGroup,
+    name: 'product_group',
+    default: ProductGroup.ITEM,
+  })
+  product_group!: ProductGroup;
+
   @Column({ name: 'merchant_id', type: 'int', nullable: true })
   merchant_id!: number | null;
 
@@ -55,4 +64,42 @@ export class Product {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updated_at!: Date;
+
+  // ---------- soon to deprecate
+  @Column({ type: 'int', name: 'stock' })
+  stock!: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  price!: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  original_price!: number;
+
+  @Column({ type: 'boolean', default: false })
+  is_shipping_chargeable: boolean;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  shipping_charge!: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  sku: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  image_url: string | null;
+
+  @Column({ type: 'simple-array', nullable: true })
+  gallery: string[] | null;
+
+  @Column({ type: 'boolean', default: false })
+  is_active: boolean;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  short_description: string | null;
+
+  @Column({ type: 'numeric', precision: 5, scale: 2 })
+  percentage_off: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  category: string | null;
+  // ---------- soon to deprecate
 }

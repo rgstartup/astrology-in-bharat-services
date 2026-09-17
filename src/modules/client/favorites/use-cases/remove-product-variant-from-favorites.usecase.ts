@@ -5,17 +5,19 @@ import { Repository } from 'typeorm';
 import { FavoriteItemType } from '../enum/favorite-type.enum';
 
 @Injectable()
-export class RemoveExpertFromFavoritesUseCase {
+export class RemoveProductVariantFromFavoritesUseCase {
   constructor(
     @InjectRepository(Favorites)
     private readonly favoritesRepository: Repository<Favorites>,
   ) {}
 
-  async execute(clientId: number, expertId: number) {
+  async execute(clientId: number, variantId: number) {
     return this.favoritesRepository.delete({
       client_id: clientId,
-      item_id: expertId,
-      item_type: FavoriteItemType.EXPERT,
+      item_id: variantId,
+      item_type: FavoriteItemType.PRODUCT_VARIANT,
     });
   }
 }
+
+export { RemoveProductVariantFromFavoritesUseCase as RemoveProductVariantFromFavorites };

@@ -10,6 +10,7 @@ import {
   CreateMerchantProductDto,
   MerchantProductStatus,
 } from '@/modules/merchant/dashboard/dto/create-merchant-product.dto';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 type ProductStatus = 'active' | 'draft' | 'out_of_stock';
 
@@ -128,7 +129,7 @@ export class MerchantProductsUseCase {
       throw new ForbiddenException('You do not own this product');
     }
 
-    const updates: Partial<Product> = {};
+    const updates: QueryDeepPartialEntity<Product> = {};
     if (dto.name !== undefined) updates.name = dto.name;
     if (dto.description !== undefined) updates.description = dto.description;
     if (dto.category !== undefined) updates.category = dto.category;

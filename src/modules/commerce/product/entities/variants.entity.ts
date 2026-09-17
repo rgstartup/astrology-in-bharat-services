@@ -4,12 +4,19 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
+import { ProductInventory } from './inventory.entity';
+import { ProductFulFillment } from './fulfillment.entity';
+import { ProductVariantPricing } from './pricing.entity';
+import { ProductVariantPromotions } from './promotions.entity';
+import { ProductMedia } from './media.entity';
 
-@Entity('product_variants')
+@Entity({ schema: 'commerce', name: 'product_variants' })
 export class ProductVariant {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id!: string;
@@ -26,7 +33,7 @@ export class ProductVariant {
   @Column({ length: 150 })
   name!: string;
 
-  @Column({ length: 100, nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true })
   sku!: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
@@ -44,9 +51,25 @@ export class ProductVariant {
   @Column({ type: 'int', default: 0 })
   sort_order!: number;
 
+  @OneToOne(() => ProductInventory, (inventory) => inventory.variant)
+  inventory!: ProductInventory;
+
+  @OneToOne(() => ProductFulFillment, (fulfillment) => fulfillment.variant)
+  fulfillment!: ProductFulFillment;
+
+  @OneToMany(() => ProductVariantPricing, (pricing) => pricing.variant)
+  pricing!: ProductVariantPricing[];
+
+  @OneToMany(() => ProductVariantPromotions, (promotion) => promotion.variant)
+  promotions!: ProductVariantPromotions[];
+
+  @OneToMany(() => ProductMedia, (media) => media.variant)
+  media!: ProductMedia[];
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updated_at!: Date;
 }
+

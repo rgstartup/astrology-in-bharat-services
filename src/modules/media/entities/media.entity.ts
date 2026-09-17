@@ -15,16 +15,16 @@ export class Media {
   @Column()
   url!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true })
   mime_type!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   alt_text!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'integer', nullable: true })
   file_size!: number | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   file_name!: string | null;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })

@@ -13,6 +13,9 @@ import {
   ExpertSeeder,
   ClientSeeder,
   MerchantSeeder,
+  ProductCategorySeeder,
+  ProductSeeder,
+  ExpertProductSeeder,
 } from './seeders';
 
 async function bootstrap() {
@@ -27,6 +30,9 @@ async function bootstrap() {
     ExpertSeeder,
     ClientSeeder,
     MerchantSeeder,
+    ProductCategorySeeder,
+    ProductSeeder,
+    ExpertProductSeeder,
   ];
 
   // Optional: support filtering by seeder name (e.g. pnpm run seed AdminSeeder or --name=AdminSeeder)

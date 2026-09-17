@@ -7,6 +7,7 @@ import { ExpertAuthModule } from './auth/auth.module';
 import { ExpertAccountModule } from './account/account.module';
 import { SpecializationModule } from './specialization/specialization.module';
 import { ProfessionModule } from './profession/profession.module';
+import { ExpertProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProfessionModule } from './profession/profession.module';
     ExpertAccountModule,
     SpecializationModule,
     ProfessionModule,
+    ExpertProductsModule,
   ],
   exports: [
     BankAccountsModule,
@@ -28,6 +30,7 @@ import { ProfessionModule } from './profession/profession.module';
     ExpertAccountModule,
     SpecializationModule,
     ProfessionModule,
+    ExpertProductsModule,
   ],
 })
 export class ExpertModule {}
