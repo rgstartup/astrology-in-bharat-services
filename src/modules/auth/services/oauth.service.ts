@@ -5,6 +5,8 @@ import { OAuthAccount } from '../entities/oauth-accounts.entity';
 import { OAuthUserDto } from '@/modules/auth/dto';
 import { User } from '@/modules/users/entities/user.entity';
 import { BaseService } from '@/common/services/transaction.service';
+import { Media } from '@/modules/media/entities/media.entity';
+import { MediaSource } from '@/modules/media/enums/media-source.enum';
 
 @Injectable()
 export class OAuthService extends BaseService<OAuthAccount> {
@@ -50,10 +52,29 @@ export class OAuthService extends BaseService<OAuthAccount> {
       : null;
 
     if (!user) {
+      const avatarUrl =
+        dto.oauthProfile?.photos?.[0]?.value || dto.oauthProfile?.profileUrl;
+      let avatarMediaId: number | null = null;
+
+      if (avatarUrl && queryRunner) {
+        const mediaRepo = queryRunner.manager.getRepository(Media);
+        const media = mediaRepo.create({
+          url: avatarUrl,
+          source: MediaSource.GOOGLE,
+          public_id: null,
+          mime_type: 'image/jpeg',
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+        const savedMedia = await mediaRepo.save(media);
+        avatarMediaId = savedMedia.id;
+      }
+
       const newUser = userRepo.create({
         email: dto.email,
         name: dto.name,
-        avatar: dto.oauthProfile?.photos?.[0]?.value,
+        avatar: avatarUrl,
+        avatar_id: avatarMediaId,
         role: dto.role,
       });
 

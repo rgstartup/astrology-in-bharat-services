@@ -38,9 +38,17 @@ class UserDto {
   @IsEnum(PlatformEnum)
   platform: PlatformEnum;
 
+  /**
+   * @deprecated Use `avatar_id` instead to link to the Media entity.
+   */
   @IsString()
   @IsOptional()
   avatar?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  avatar_id?: number | null;
 
   @IsOptional()
   @Type(() => Number)

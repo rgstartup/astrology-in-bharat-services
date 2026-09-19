@@ -31,6 +31,7 @@ export class ClientAuthProfileCreationStrategy
       name: user.full_name || user.name,
       email: user.email,
       avatar: user.avatar,
+      avatar_id: user.avatar_id,
     });
 
     return clientAccountRepo.save(account);

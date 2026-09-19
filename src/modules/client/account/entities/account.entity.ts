@@ -14,6 +14,7 @@ import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { UserStatusEnum } from '@/common/enums/user-status.enum';
 import { ConsultationTopicPreference } from '@/modules/consultation/consultation/entities/consultation_topic_preference.entity';
+import { Media } from '@/modules/media/entities/media.entity';
 
 export type GENDER = 'male' | 'female' | 'other';
 
@@ -45,8 +46,18 @@ export class ClientAccount {
   @Column({ type: 'character varying', length: 255 })
   email!: string;
 
+  /**
+   * @deprecated Use `avatar_id` and `avatar_media` relation instead.
+   */
   @Column({ type: 'text', nullable: true })
   avatar!: string | null;
+
+  @Column({ type: 'int', nullable: true, name: 'avatar_id' })
+  avatar_id!: number | null;
+
+  @OneToOne(() => Media, { nullable: true, onDelete: 'SET NULL', eager: true })
+  @JoinColumn({ name: 'avatar_id' })
+  avatar_media!: Media | null;
 
   @Column({ type: 'text', nullable: true })
   username!: string | null;

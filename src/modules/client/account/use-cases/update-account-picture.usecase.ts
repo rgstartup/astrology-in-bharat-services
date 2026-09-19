@@ -28,6 +28,7 @@ export class UpdateAccountPictureUseCase {
     try {
       const result = await this.imageUploadService.uploadImage(file);
       const pictureUrl = result.secure_url;
+      const mediaId = result.media?.id ?? null;
 
       if (!pictureUrl) {
         throw new InternalServerErrorException(
@@ -40,9 +41,11 @@ export class UpdateAccountPictureUseCase {
           select: {
             id: true,
             avatar: true,
+            avatar_id: true,
             user: {
               id: true,
               avatar: true,
+              avatar_id: true,
             },
           },
           where: { id: Number(clientId) },
@@ -56,10 +59,16 @@ export class UpdateAccountPictureUseCase {
         const updatedClient = new ClientAccount();
         updatedClient.id = account.id;
         updatedClient.avatar = pictureUrl || account.avatar;
+        if (mediaId !== null) {
+          updatedClient.avatar_id = mediaId;
+        }
 
         const updatedUser = new User();
         updatedUser.id = account.user.id;
         updatedUser.avatar = pictureUrl || account.avatar;
+        if (mediaId !== null) {
+          updatedUser.avatar_id = mediaId;
+        }
 
         return Promise.all([
           queryRunner.manager.save(ClientAccount, updatedClient),
@@ -71,6 +80,8 @@ export class UpdateAccountPictureUseCase {
         success: true,
         message: 'Picture uploaded successfully',
         avatar: pictureUrl,
+        avatar_id: mediaId,
+        avatar_media: result.media ?? null,
       };
     } catch (error: unknown) {
       console.log(error);

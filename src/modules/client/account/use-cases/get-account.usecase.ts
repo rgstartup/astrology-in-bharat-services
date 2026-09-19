@@ -20,10 +20,8 @@ export class GetAccountUseCase {
 
     const data = await repo.findOne({
       where: { id: Number(client.id) },
-      // relations: ['addresses'],
+      relations: ['user', 'avatar_media', 'addresses'],
     });
-
-    console.log(data);
 
     return data;
   }

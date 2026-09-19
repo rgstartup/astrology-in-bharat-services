@@ -4,6 +4,7 @@ import {
   IsArray,
   IsDateString,
   IsEnum,
+  IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
@@ -59,9 +60,17 @@ export class ClientAccountDto {
   @IsString()
   language_preference?: string;
 
+  /**
+   * @deprecated Use `avatar_id` instead to link to the Media entity.
+   */
   @IsOptional()
   @IsString()
   avatar?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  avatar_id?: number | null;
 
   @IsOptional()
   @IsArray()

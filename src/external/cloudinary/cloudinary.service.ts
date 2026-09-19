@@ -22,6 +22,13 @@ export class CloudinaryService {
     return this.imageUploadService.uploadImage(file);
   }
 
+  async updateImage(
+    file: Express.Multer.File,
+    publicId: string,
+  ): Promise<UploadApiResponse> {
+    return this.imageUploadService.updateImage(file, publicId);
+  }
+
   async uploadBase64(
     base64String: string,
     folder?: string,

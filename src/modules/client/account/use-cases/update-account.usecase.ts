@@ -46,16 +46,21 @@ export class UpdateAccountUseCase {
         }
       }
 
-      // Sync avatar in User table if provided
+      // Sync avatar and avatar_id in User table if provided
       const fields = scalarFields as Record<string, unknown>;
+      const userUpdates: Record<string, unknown> = {};
       if (fields.avatar !== undefined) {
-        if (account.user?.id) {
-          await queryRunner.manager.update(
-            User,
-            { id: account.user.id },
-            { avatar: fields.avatar as string },
-          );
-        }
+        userUpdates.avatar = fields.avatar as string;
+      }
+      if (fields.avatar_id !== undefined) {
+        userUpdates.avatar_id = fields.avatar_id as number;
+      }
+      if (Object.keys(userUpdates).length > 0 && account.user?.id) {
+        await queryRunner.manager.update(
+          User,
+          { id: account.user.id },
+          userUpdates,
+        );
       }
 
       // Apply scalar fields to the account

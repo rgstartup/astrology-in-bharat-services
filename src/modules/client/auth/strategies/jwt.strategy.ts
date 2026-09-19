@@ -30,6 +30,18 @@ export class ClientJwtStrategy extends PassportStrategy(
       where: {
         id: Number(payload.sub),
       },
+      select: {
+        id: true,
+        email: true,
+        is_blocked: true,
+        user: {
+          id: true,
+        },
+        avatar_media: {
+          id: true,
+        },
+      },
+      relations: ['user', 'avatar_media'],
     });
 
     if (!client || client.is_blocked) {

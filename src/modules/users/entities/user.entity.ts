@@ -6,12 +6,14 @@ import {
   UpdateDateColumn,
   OneToMany,
   ManyToOne,
+  OneToOne,
   JoinColumn,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import { OAuthAccount } from '@/modules/auth/entities/oauth-accounts.entity';
 import { Session } from '@/modules/auth/entities/session.entity';
+import { Media } from '@/modules/media/entities/media.entity';
 import { RoleEnum } from '../enums/Role.enum';
 import { AdminPermission } from '../enums/AdminPermission.enum';
 import { Exclude } from 'class-transformer';
@@ -51,8 +53,18 @@ export class User {
   @Column({ type: 'character varying', length: 255, nullable: true })
   full_name!: string | null;
 
+  /**
+   * @deprecated Use `avatar_id` and `avatar_media` relation instead.
+   */
   @Column({ type: 'text', nullable: true })
   avatar!: string | null;
+
+  @Column({ type: 'int', nullable: true, name: 'avatar_id' })
+  avatar_id!: number | null;
+
+  @OneToOne(() => Media, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'avatar_id' })
+  avatar_media!: Media | null;
 
   @Column({ type: 'boolean', default: false })
   is_blocked!: boolean;

@@ -10,6 +10,8 @@ import { OAuthUserDto } from '../dto';
 import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { IAccessTokenPayload } from '@/common/types/access-token.payload';
 import { Session } from '../entities/session.entity';
+import { Media } from '@/modules/media/entities/media.entity';
+import { MediaSource } from '@/modules/media/enums/media-source.enum';
 
 @Injectable()
 export class LoginWithGoogleUseCase {
@@ -104,12 +106,30 @@ export class LoginWithGoogleUseCase {
       : null;
 
     if (!user) {
+      const avatarUrl =
+        dto.oauthProfile?.profileUrl ||
+        dto.oauthProfile?.photos?.[0]?.value;
+      let avatarMediaId: number | null = null;
+
+      if (avatarUrl) {
+        const mediaRepo = queryRunner.manager.getRepository(Media);
+        const media = mediaRepo.create({
+          url: avatarUrl,
+          source: MediaSource.GOOGLE,
+          public_id: null,
+          mime_type: 'image/jpeg',
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+        const savedMedia = await mediaRepo.save(media);
+        avatarMediaId = savedMedia.id;
+      }
+
       const newUser = userRepo.create({
         email: dto.email,
         name: dto.name,
-        avatar:
-          dto.oauthProfile?.profileUrl ||
-          dto.oauthProfile?.photos?.[0]?.value,
+        avatar: avatarUrl,
+        avatar_id: avatarMediaId,
         role: dto.role,
       });
 

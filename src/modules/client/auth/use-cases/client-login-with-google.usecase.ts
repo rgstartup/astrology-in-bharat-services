@@ -14,6 +14,8 @@ import { Session } from '@/modules/auth/entities/session.entity';
 import { ClientOAuthDto } from '../dto/client-oauth-user.dto';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { OAuthAccount } from '@/modules/auth/entities/oauth-accounts.entity';
+import { Media } from '@/modules/media/entities/media.entity';
+import { MediaSource } from '@/modules/media/enums/media-source.enum';
 import crypto from 'node:crypto';
 
 @Injectable()
@@ -95,12 +97,30 @@ export class ClientLoginWithGoogleUseCase {
       : null;
 
     if (!user) {
+      const avatarUrl =
+        dto.oauthProfile?.photos?.[0]?.value || dto.oauthProfile?.profileUrl;
+      let avatarMediaId: number | null = null;
+
+      if (avatarUrl) {
+        const mediaRepo = queryRunner.manager.getRepository(Media);
+        const media = mediaRepo.create({
+          url: avatarUrl,
+          source: MediaSource.GOOGLE,
+          public_id: null,
+          mime_type: 'image/jpeg',
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+        const savedMedia = await mediaRepo.save(media);
+        avatarMediaId = savedMedia.id;
+      }
+
       const newUser = userRepo.create({
         email: dto.email,
         full_name: dto.full_name,
         name: dto.full_name,
-        avatar:
-          dto.oauthProfile?.photos?.[0]?.value || dto.oauthProfile?.profileUrl,
+        avatar: avatarUrl,
+        avatar_id: avatarMediaId,
       });
 
       newUser.markEmailAsVerified();
@@ -140,6 +160,7 @@ export class ClientLoginWithGoogleUseCase {
       uid: `AIB-USR-${suffix}`,
       name: user.full_name || user.name,
       avatar: user.avatar,
+      avatar_id: user.avatar_id,
       email: user.email,
     });
 
