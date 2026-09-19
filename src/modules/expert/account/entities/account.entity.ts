@@ -12,7 +12,6 @@ import {
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { User } from '@/modules/users/entities/user.entity';
 import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
-import { ConsultationTopicPreference } from '@/modules/consultation/consultation/entities/consultation_topic_preference.entity';
 import { ExpertSpecialization } from './expert-specialization.entity';
 import { ExpertConsultationPricing } from './expert-consultation-pricing.entity';
 import { ExpertProfession } from '../../profession/entities/expert-profession.entity';
@@ -160,12 +159,6 @@ export class ExpertAccount {
 
   @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
   agent_commission_rate!: number | null;
-
-  @OneToMany(
-    () => ConsultationTopicPreference,
-    (preference) => preference.expert,
-  )
-  consultation_topic_preferences!: ConsultationTopicPreference[];
 
   @OneToMany(
     () => ExpertSpecialization,

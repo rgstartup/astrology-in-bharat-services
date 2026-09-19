@@ -2,11 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ConsultationTopicPreference } from './consultation_topic_preference.entity';
 
 @Entity({ schema: 'consultations', name: 'consultation_topic' })
 export class ConsultationTopic {
@@ -40,12 +38,6 @@ export class ConsultationTopic {
     default: 0,
   })
   sort_order!: number;
-
-  @OneToMany(
-    () => ConsultationTopicPreference,
-    (preference) => preference.topic,
-  )
-  preferences!: ConsultationTopicPreference[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

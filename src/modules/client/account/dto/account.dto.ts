@@ -2,6 +2,7 @@ import { AddressDto } from '@/common/address/address.dto';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsNumber,
@@ -10,6 +11,36 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+
+export class ClientPreferencesDto {
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  languages?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  topics?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  specializations?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  professions?: number[];
+
+  @IsOptional()
+  @IsEnum(['chat', 'call', 'both'])
+  communication_channel?: 'chat' | 'call' | 'both';
+
+  @IsOptional()
+  @IsBoolean()
+  receive_daily_panchang?: boolean;
+}
 
 export class ClientAccountDto {
   @IsOptional()
@@ -53,8 +84,9 @@ export class ClientAccountDto {
   about_me?: string;
 
   @IsOptional()
-  @IsString()
-  preferences?: string;
+  @ValidateNested()
+  @Type(() => ClientPreferencesDto)
+  preferences?: ClientPreferencesDto;
 
   @IsOptional()
   @IsString()

@@ -8,7 +8,6 @@ import { ChatSession } from './chat/entities/chat-session.entity';
 import { CallSession } from './call/entities/call-session.entity';
 import { Review } from '@/modules/consultation/reviews/entities/review.entity';
 import { ConsultationTopic } from './consultation/entities/consultation_topic.entity';
-import { ConsultationTopicPreference } from './consultation/entities/consultation_topic_preference.entity';
 import { CallModule } from './call/call.module';
 import { ChatModule } from './chat/chat.module';
 import { ReviewsModule } from './reviews/reviews.module';
@@ -20,7 +19,6 @@ import { ReviewsModule } from './reviews/reviews.module';
       CallSession,
       Review,
       ConsultationTopic,
-      ConsultationTopicPreference,
     ]),
     forwardRef(() => ChatModule),
     forwardRef(() => CallModule),

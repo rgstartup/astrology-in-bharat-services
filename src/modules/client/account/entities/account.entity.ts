@@ -16,10 +16,19 @@ import { nanoid } from 'nanoid';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { UserStatusEnum } from '@/common/enums/user-status.enum';
-import { ConsultationTopicPreference } from '@/modules/consultation/consultation/entities/consultation_topic_preference.entity';
 import { Media } from '@/modules/media/entities/media.entity';
 
 export type GENDER = 'male' | 'female' | 'other';
+
+export interface ClientPreferences {
+  languages?: string[];
+  topics?: number[];
+  specializations?: number[];
+  professions?: number[];
+  communication_channel?: 'chat' | 'call' | 'both';
+  receive_daily_panchang?: boolean;
+  [key: string]: unknown;
+}
 
 @Entity({ schema: 'client', name: 'account' })
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -94,8 +103,8 @@ export class ClientAccount {
   })
   phone_verified_at!: Date | null;
 
-  @Column({ type: 'text', nullable: true })
-  preferences!: string | null;
+  @Column({ type: 'jsonb', nullable: true, default: () => "'{}'" })
+  preferences!: ClientPreferences | null;
 
   @Column({ type: 'text', nullable: true })
   language_preference!: string | null;
@@ -120,12 +129,6 @@ export class ClientAccount {
     eager: true,
   })
   addresses!: Address[];
-
-  @OneToMany(
-    () => ConsultationTopicPreference,
-    (preference) => preference.client,
-  )
-  consultation_topic_preferences!: ConsultationTopicPreference[];
 
   @Column({
     type: 'decimal',

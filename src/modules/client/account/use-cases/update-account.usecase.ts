@@ -63,6 +63,15 @@ export class UpdateAccountUseCase {
         );
       }
 
+      // Merge preferences if provided
+      if (scalarFields.preferences !== undefined) {
+        account.preferences = {
+          ...(account.preferences || {}),
+          ...(scalarFields.preferences as object),
+        };
+        delete scalarFields.preferences;
+      }
+
       // Apply scalar fields to the account
       Object.assign(account, scalarFields);
 
