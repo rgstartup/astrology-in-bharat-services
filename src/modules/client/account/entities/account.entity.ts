@@ -106,6 +106,9 @@ export class ClientAccount {
   @Column({ type: 'jsonb', nullable: true, default: () => "'{}'" })
   preferences!: ClientPreferences | null;
 
+  /**
+   * @deprecated Use `preferences` instead.
+   */
   @Column({ type: 'text', nullable: true })
   language_preference!: string | null;
 
