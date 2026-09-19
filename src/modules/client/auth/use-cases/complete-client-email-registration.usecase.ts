@@ -18,6 +18,7 @@ import {
   OtpPurposeEnum,
 } from '@/modules/auth/entities/otp.entity';
 import { createHash } from 'crypto';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class CompleteClientEmailRegistrationUseCase {
@@ -166,6 +167,7 @@ export class CompleteClientEmailRegistrationUseCase {
 
     const newAccount = clientAccountRepo.create({
       user,
+      public_id: nanoid(12),
       email: user.email,
       first_name: firstName,
       last_name: lastName,

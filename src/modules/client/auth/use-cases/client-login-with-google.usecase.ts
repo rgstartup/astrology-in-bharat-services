@@ -16,7 +16,7 @@ import { ClientAccount } from '@/modules/client/account/entities/account.entity'
 import { OAuthAccount } from '@/modules/auth/entities/oauth-accounts.entity';
 import { Media } from '@/modules/media/entities/media.entity';
 import { MediaSource } from '@/modules/media/enums/media-source.enum';
-import crypto from 'node:crypto';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class ClientLoginWithGoogleUseCase {
@@ -147,17 +147,11 @@ export class ClientLoginWithGoogleUseCase {
 
     if (existingAccount) return existingAccount;
 
-    const suffix = crypto
-      .randomBytes(4)
-      .toString('hex')
-      .toUpperCase()
-      .slice(0, 6);
-
     const newAccount = clientAccountRepo.create({
       user: {
         id: user.id,
       },
-      uid: `AIB-USR-${suffix}`,
+      public_id: nanoid(12),
       name: user.full_name || user.name,
       avatar: user.avatar,
       avatar_id: user.avatar_id,

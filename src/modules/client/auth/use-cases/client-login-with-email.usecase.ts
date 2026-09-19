@@ -21,6 +21,7 @@ import {
 } from '@/modules/auth/entities/otp.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomInt, createHash } from 'crypto';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class ClientLoginWithEmailUseCase {
@@ -88,6 +89,7 @@ export class ClientLoginWithEmailUseCase {
       account = await this.clientAccountRepo.save(
         this.clientAccountRepo.create({
           user,
+          public_id: nanoid(12),
           email: user.email,
           first_name: firstName,
           last_name: lastName,

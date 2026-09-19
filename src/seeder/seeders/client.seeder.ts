@@ -6,6 +6,7 @@ import { RoleEnum } from '@/modules/users/enums/Role.enum';
 import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { Wallet } from '@/modules/finance/wallet/entities/wallet.entity';
+import { nanoid } from 'nanoid';
 
 interface ClientSeedData {
   user: {
@@ -218,6 +219,7 @@ export class ClientSeeder implements Seeder {
       if (!account) {
         account = accountRepository.create({
           user,
+          public_id: nanoid(12),
           email,
           first_name: data.account.firstName,
           last_name: data.account.lastName,

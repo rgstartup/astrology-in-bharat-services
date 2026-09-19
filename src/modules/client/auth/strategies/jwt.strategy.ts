@@ -26,23 +26,15 @@ export class ClientJwtStrategy extends PassportStrategy(
   }
 
   async validate(payload: ClientJwtPayload): Promise<ClientAccount> {
-    const client = await this.clientRepository.findOne({
-      where: {
+    const client = await this.clientRepository
+      .createQueryBuilder('client')
+      .leftJoin('client.user', 'user')
+      .leftJoinAndSelect('client.avatar_media', 'avatar_media')
+      .addSelect('user.id')
+      .where('client.id = :id', {
         id: Number(payload.sub),
-      },
-      select: {
-        id: true,
-        email: true,
-        is_blocked: true,
-        user: {
-          id: true,
-        },
-        avatar_media: {
-          id: true,
-        },
-      },
-      relations: ['user', 'avatar_media'],
-    });
+      })
+      .getOne();
 
     if (!client || client.is_blocked) {
       throw new UnauthorizedException();

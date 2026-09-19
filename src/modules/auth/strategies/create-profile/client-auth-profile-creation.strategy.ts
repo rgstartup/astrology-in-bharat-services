@@ -4,7 +4,7 @@ import { User } from '@/modules/users/entities/user.entity';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
 import { RoleEnum } from '@/modules/users/enums/Role.enum';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import crypto from 'node:crypto';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class ClientAuthProfileCreationStrategy
@@ -19,15 +19,9 @@ export class ClientAuthProfileCreationStrategy
     });
     if (existingAccount) return existingAccount;
 
-    const suffix = crypto
-      .randomBytes(4)
-      .toString('hex')
-      .toUpperCase()
-      .slice(0, 6);
-
     const account = clientAccountRepo.create({
       user,
-      uid: `AIB-USR-${suffix}`,
+      public_id: nanoid(12),
       name: user.full_name || user.name,
       email: user.email,
       avatar: user.avatar,

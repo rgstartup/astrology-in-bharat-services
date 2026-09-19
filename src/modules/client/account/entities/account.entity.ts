@@ -1,15 +1,18 @@
 import { User } from '@/modules/users/entities/user.entity';
 import {
+  BeforeInsert,
   Check,
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { nanoid } from 'nanoid';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { UserStatusEnum } from '@/common/enums/user-status.enum';
@@ -28,8 +31,16 @@ export class ClientAccount {
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @Column({ type: 'text', unique: true, nullable: true })
-  uid!: string | null;
+  @Index({ unique: true })
+  @Column({ type: 'varchar', length: 12, unique: true })
+  public_id!: string;
+
+  @BeforeInsert()
+  generatePublicId() {
+    if (!this.public_id) {
+      this.public_id = nanoid(12);
+    }
+  }
 
   @Column({ type: 'bool', default: false })
   is_blocked!: boolean;
