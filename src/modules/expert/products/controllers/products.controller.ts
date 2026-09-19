@@ -16,23 +16,20 @@ import { IExpert } from '@/common/types/access-token.payload';
   path: 'expert/products',
   version: '1',
 })
-@UseGuards(ExpertJwtAuthGuard)
+// @UseGuards(ExpertJwtAuthGuard)
 export class ExpertProductsController {
   constructor(private readonly productsFacade: ExpertProductsFacade) {}
 
   @Get()
-  async getExpertProducts(
-    @CurrentExpert() expert: IExpert,
-    @Query() dto: GetExpertProductsDto,
-  ) {
-    return this.productsFacade.findExpertProducts(expert.sub, dto);
+  async getExpertProducts(@Query() dto: GetExpertProductsDto) {
+    return this.productsFacade.findExpertProducts(dto);
   }
 
-  @Get(':id')
+  @Get('/:expert_id/:id')
   async getExpertProductById(
-    @CurrentExpert() expert: IExpert,
+    @Param('expert_id', ParseIntPipe) expert_id: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.productsFacade.findExpertProductById(expert.sub, id);
+    return this.productsFacade.findExpertProductById(expert_id, id);
   }
 }

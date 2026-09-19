@@ -149,6 +149,8 @@ export class QueryExpertAccountsUseCase {
           targetAudience: PricingTargetAudience.ALL,
         },
       )
+      .leftJoin('expert.professions', 'expert_professions')
+      .leftJoin('expert_professions.profession', 'profession')
       .select([
         'expert.id',
         'expert.about',
@@ -164,6 +166,10 @@ export class QueryExpertAccountsUseCase {
         'specialization.id',
         'specialization.title',
         'specialization.slug',
+        'expert_professions.id',
+        'profession.id',
+        'profession.title',
+        'profession.slug',
         'pricing.id',
         'pricing.call_price',
         'pricing.video_call_price',

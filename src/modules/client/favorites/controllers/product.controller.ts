@@ -33,10 +33,10 @@ export class FavoriteProductController {
     return this.favoritesFacade.findFavoriteProducts(clientId, query);
   }
 
-  @Post()
+  @Post(':id')
   addProductToFavorites(
     @CurrentClient('id') clientId: number,
-    @Body('id', ParseIntPipe) productId: number,
+    @Param('id', ParseIntPipe) productId: number,
   ) {
     return this.favoritesFacade.addProductToFavorites(clientId, productId);
   }

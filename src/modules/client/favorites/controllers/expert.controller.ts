@@ -32,10 +32,10 @@ export class FavoriteExpertController {
     return this.favoritesFacade.findFavoriteExperts(clientId, query);
   }
 
-  @Post()
+  @Post(':id')
   addExpertToFavorites(
     @CurrentClient('id') clientId: number,
-    @Body('id', ParseIntPipe) expertId: number,
+    @Param('id', ParseIntPipe) expertId: number,
   ) {
     return this.favoritesFacade.addExpertToFavorites(clientId, expertId);
   }

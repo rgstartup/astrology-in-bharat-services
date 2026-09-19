@@ -12,7 +12,7 @@ export class FindExpertProductsUseCase {
     private readonly expertProductRepository: Repository<ExpertProducts>,
   ) {}
 
-  async execute(expertId: number, dto: GetExpertProductsDto) {
+  async execute(dto: GetExpertProductsDto) {
     const query = this.expertProductRepository
       .createQueryBuilder('ep')
       .innerJoin('ep.product', 'product')
@@ -24,7 +24,7 @@ export class FindExpertProductsUseCase {
       .leftJoin('variant.promotions', 'promotion')
       .leftJoin('product.media', 'product_media')
       .leftJoin('product_media.media', 'media')
-      .where('ep.expert_id = :expertId', { expertId });
+      .where('ep.expert_id = :expertId', { expertId: dto.expert_id });
 
     // Explicitly select only non-deprecated product fields and variant sub-entities
     query.select([
@@ -163,7 +163,9 @@ export class FindExpertProductsUseCase {
     }
 
     const sortBy = dto.sort_by || 'created_at';
-    const orderDirection = (dto.order || 'DESC').toUpperCase() as 'ASC' | 'DESC';
+    const orderDirection = (dto.order || 'DESC').toUpperCase() as
+      | 'ASC'
+      | 'DESC';
 
     if (sortBy === 'name') {
       query.orderBy('product.name', orderDirection);

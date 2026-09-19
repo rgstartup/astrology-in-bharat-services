@@ -1,6 +1,12 @@
 import { PickType } from '@nestjs/mapped-types';
 import { PaginationDto } from '@/common/dto/pagination.dto';
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import TrimString from '@/common/decorators/transform/trim.transform';
 import ToBoolean from '@/common/decorators/transform/bool.transform';
 import { ProductType } from '@/modules/commerce/product/enum/product-type.enum';
@@ -47,4 +53,7 @@ export class GetExpertProductsDto extends PickType(PaginationDto, [
   @IsOptional()
   @IsString()
   order?: 'ASC' | 'DESC' | 'asc' | 'desc';
+
+  @IsNumber({}, { message: 'Expert ID must be a number' })
+  expert_id: number;
 }

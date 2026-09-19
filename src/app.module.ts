@@ -43,7 +43,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       load: configs,
     }),
     UsersModule,
-    CoreModule,
     ClientModule,
     CommerceModule,
     ExpertModule,
@@ -66,6 +65,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     MerchantModule,
     ConsultationModule,
     EmailWorkerModule,
+    CoreModule,
   ],
   providers: [
     {

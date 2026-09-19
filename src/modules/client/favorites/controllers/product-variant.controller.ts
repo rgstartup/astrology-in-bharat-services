@@ -33,10 +33,10 @@ export class FavoriteProductVariantController {
     return this.favoritesFacade.findFavoriteProductVariants(clientId, query);
   }
 
-  @Post()
+  @Post(':id')
   addProductVariantToFavorites(
     @CurrentClient('id') clientId: number,
-    @Body('id', ParseIntPipe) variantId: number,
+    @Param('id', ParseIntPipe) variantId: number,
   ) {
     return this.favoritesFacade.addProductVariantToFavorites(
       clientId,

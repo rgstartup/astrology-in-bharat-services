@@ -10,8 +10,8 @@ export class ExpertProductsFacade {
     private readonly findExpertProductByIdUseCase: FindExpertProductByIdUseCase,
   ) {}
 
-  async findExpertProducts(expertId: number, dto: GetExpertProductsDto) {
-    return this.findExpertProductsUseCase.execute(expertId, dto);
+  async findExpertProducts(dto: GetExpertProductsDto) {
+    return this.findExpertProductsUseCase.execute(dto);
   }
 
   async findExpertProductById(expertId: number, id: number) {
