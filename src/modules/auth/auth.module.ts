@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
 import { MerchantAuthController } from './controllers/merchant-auth.controller';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -106,6 +107,7 @@ const handlers = [
       SystemSetting,
       Otp,
     ]),
+    PassportModule,
     DatabaseModule,
     ExternalModule,
     ExpertProfileModule,

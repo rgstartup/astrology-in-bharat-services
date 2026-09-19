@@ -42,6 +42,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       envFilePath: '.env',
       load: configs,
     }),
+    AuthModule,
     UsersModule,
     ClientModule,
     CommerceModule,
