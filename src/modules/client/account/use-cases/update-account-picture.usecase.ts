@@ -84,8 +84,6 @@ export class UpdateAccountPictureUseCase {
         avatar_media: result.media ?? null,
       };
     } catch (error: unknown) {
-      console.log(error);
-
       const err = error as Error;
       this.logger.error(
         `Failed to update profile picture for user ${clientId}: ${err.message}`,

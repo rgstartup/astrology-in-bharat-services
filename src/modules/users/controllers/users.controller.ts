@@ -52,7 +52,7 @@ export class UsersController {
     @Body() updateUserDto: Partial<CreateUserDto>,
   ) {
     // TODO: Handle role updates properly or separate them
-    const _result = await this.usersFacade.update(
+    await this.usersFacade.update(
       id,
       updateUserDto as unknown as Partial<User>,
     );
