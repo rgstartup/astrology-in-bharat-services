@@ -4,7 +4,7 @@ import { GetConsultationTopicsUseCase } from '../use-cases/get-consultation-topi
 import { GetConsultationTopicsDto } from '../dto/get-consultation-topics.dto';
 
 @Controller({
-  path: 'consultation-topics',
+  path: 'consultations/topics',
   version: '1',
 })
 export class ConsultationTopicController {
