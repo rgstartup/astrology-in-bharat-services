@@ -26,7 +26,7 @@ export class ClientAuthController {
   constructor(private readonly clientAuthFacade: ClientAuthFacade) {}
 
   @Post('email/register/initiate')
-  async initiateEmailRegistration(@Body() dto: InitiateClientRegisterDto) {
+  initiateEmailRegistration(@Body() dto: InitiateClientRegisterDto) {
     return this.clientAuthFacade.initiateEmailRegistration(dto);
   }
 
@@ -99,7 +99,6 @@ export class ClientAuthController {
       req.ip,
       req.get('user-agent'),
     );
-
     this.setCookies(res, tokens);
     return tokens;
   }
