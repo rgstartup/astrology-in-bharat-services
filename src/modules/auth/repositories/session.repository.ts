@@ -19,7 +19,7 @@ export class SessionRepository extends BaseService<Session> {
     return repo.save(session);
   }
 
-  revoke(userId: number | string, sessionId?: number | string, queryRunner?: QueryRunner) {
+  revoke(userId: number | string, sessionId?: string, queryRunner?: QueryRunner) {
     const repo = this.getRepo(queryRunner);
 
     const options: FindOptionsWhere<Session> = {
@@ -27,16 +27,16 @@ export class SessionRepository extends BaseService<Session> {
     };
 
     if (sessionId) {
-      options.id = Number(sessionId);
+      options.id = sessionId;
     }
 
     return repo.update(options, { revoked: true });
   }
 
-  findUnRevokedRefreshToken(sessionId: number | string) {
+  findUnRevokedRefreshToken(sessionId: string) {
     return this.sessionsRepo.findOne({
       where: {
-        id: Number(sessionId),
+        id: sessionId,
         type: 'refresh_token',
         revoked: false,
       },

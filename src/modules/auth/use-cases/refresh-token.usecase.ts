@@ -5,6 +5,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { Session } from '../entities/session.entity';
 import { RefreshTokenPolicy } from '../domain/policies/refresh-token.policy';
+import { isUUID } from 'class-validator';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class RefreshTokenUseCase {
   async execute(refreshToken: string) {
     const [sessionId, refreshTokenRaw] = refreshToken.split('.');
 
-    if (!sessionId || !refreshTokenRaw) {
+    if (!isUUID(sessionId, '7') || !refreshTokenRaw) {
       throw new InvalidRefreshTokenError();
     }
 

@@ -45,6 +45,14 @@ export class ClientPreferencesDto {
 export class ClientAccountDto {
   @IsOptional()
   @IsString()
+  first_name?: string;
+
+  @IsOptional()
+  @IsString()
+  last_name?: string;
+
+  @IsOptional()
+  @IsString()
   full_name?: string;
 
   @IsOptional()

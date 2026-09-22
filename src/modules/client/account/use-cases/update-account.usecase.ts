@@ -46,6 +46,14 @@ export class UpdateAccountUseCase {
         }
       }
 
+      if (dto.first_name) {
+        account.first_name = dto.first_name;
+      }
+
+      if (dto.last_name) {
+        account.last_name = dto.last_name;
+      }
+
       // Sync avatar and avatar_id in User table if provided
       const fields = scalarFields as Record<string, unknown>;
       const userUpdates: Record<string, unknown> = {};

@@ -4,17 +4,17 @@ import {
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
-  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({
   schema: 'auth',
   name: 'sessions',
 })
 export class Session {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @UuidPrimaryKeyColumn()
+  id!: string;
 
   // hashed refresh token (or session secret)
   @Column({ type: 'text' })

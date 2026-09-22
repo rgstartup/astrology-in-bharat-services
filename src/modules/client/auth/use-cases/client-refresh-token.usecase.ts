@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { isUUID } from 'class-validator';
 import { DatabaseService } from '@/core/database/database.service';
 import { Session } from '@/modules/auth/entities/session.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
@@ -29,7 +30,7 @@ export class ClientRefreshTokenUseCase {
   async execute(refreshToken: string, ip?: string, userAgent?: string) {
     const [sessionId, refreshTokenRaw] = (refreshToken || '').split('.');
 
-    if (!sessionId || !refreshTokenRaw) {
+    if (!isUUID(sessionId, '7') || !refreshTokenRaw) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -44,7 +45,7 @@ export class ClientRefreshTokenUseCase {
         },
       },
       where: {
-        id: Number(sessionId),
+        id: sessionId,
         type: 'refresh_token',
         revoked: false,
       },

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { isUUID } from 'class-validator';
 import { DatabaseService } from '@/core/database/database.service';
 import { IHasher, IHasherToken } from '@/common/contracts/hasher.contract';
 import { Session } from '@/modules/auth/entities/session.entity';
@@ -25,11 +26,11 @@ export class ExpertRefreshTokenUseCase {
 
   async execute(refreshToken: string, ip?: string, userAgent?: string) {
     const [sessionId, raw] = (refreshToken || '').split('.');
-    if (!sessionId || !raw) {
+    if (!isUUID(sessionId, '7') || !raw) {
       throw new UnauthorizedException('Invalid refresh token');
     }
     const session = await this.sessions.findOne({
-      where: { id: Number(sessionId), type: 'refresh_token', revoked: false },
+      where: { id: sessionId, type: 'refresh_token', revoked: false },
       relations: { user: true },
     });
     if (!session || !session.isActive()) {
