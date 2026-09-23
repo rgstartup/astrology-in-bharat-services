@@ -41,7 +41,7 @@ import { RazorpayPayoutService } from './gateways/razorpay-payout.service';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts.module';
 import { CommissionsModule } from '@/modules/finance/commissions/commissions.module';
-import { GeneralLedgerEntry } from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
+import { GeneralLedgerEntry } from '@/modules/finance/ledger/entities/general-ledger-entry.entity';
 import { QueueModule } from '@/core/queue/queue.module';
 import WalletRepository from './repositories/wallet.repository';
 

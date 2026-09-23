@@ -29,7 +29,7 @@ import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
+} from '@/modules/finance/ledger/entities/general-ledger-entry.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 import {
   Notification,
@@ -254,7 +254,9 @@ export class EndChatUseCase {
 
           // 💰 Credit Seller's Agent
           if (agent_commission > 0 && agent_id) {
-            const { ProfileAgent } = await import('../../../agent/entities/profile-agent.entity');
+            const { ProfileAgent } = await import(
+              '../../../agent/entities/profile-agent.entity'
+            );
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {
@@ -280,7 +282,9 @@ export class EndChatUseCase {
 
           // 💰 Credit Buyer's Agent
           if (buyer_agent_commission > 0 && buyer_agent_id) {
-            const { ProfileAgent } = await import('../../../agent/entities/profile-agent.entity');
+            const { ProfileAgent } = await import(
+              '../../../agent/entities/profile-agent.entity'
+            );
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {

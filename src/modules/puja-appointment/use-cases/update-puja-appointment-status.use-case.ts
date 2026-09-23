@@ -31,7 +31,7 @@ import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
+} from '@/modules/finance/ledger/entities/general-ledger-entry.entity';
 import { Todo } from '@/modules/expert/todos/entities/todo.entity';
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import { ProfileAgent } from '@/modules/agent/entities/profile-agent.entity';

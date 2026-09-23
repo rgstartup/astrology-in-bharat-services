@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseModule } from '@/core/database/database.module';
-import { GeneralLedgerEntry } from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
+import { GeneralLedgerEntry } from '@/modules/finance/ledger/entities/general-ledger-entry.entity';
 import { LedgerProcessor } from './application/ledger.processor';
 import { QueueModule } from '@/core/queue/queue.module';
 import configs from '@/config';
@@ -19,4 +19,4 @@ import configs from '@/config';
   ],
   providers: [LedgerProcessor],
 })
-export class LedgerWorkerModule { }
+export class LedgerWorkerModule {}

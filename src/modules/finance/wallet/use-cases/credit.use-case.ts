@@ -19,7 +19,7 @@ import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
+} from '@/modules/finance/ledger/entities/general-ledger-entry.entity';
 import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
 
 const purposeToLedgerEventType: Record<

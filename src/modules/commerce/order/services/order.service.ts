@@ -42,7 +42,7 @@ import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
+} from '@/modules/finance/ledger/entities/general-ledger-entry.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
 import { IUser } from '@/common/types/access-token.payload';
 
@@ -82,7 +82,9 @@ export class OrderService {
     }
 
     const targetItems = merchantId
-      ? order.items.filter((item) => item.product?.merchant_id === Number(merchantId))
+      ? order.items.filter(
+          (item) => item.product?.merchant_id === Number(merchantId),
+        )
       : order.items;
 
     if (targetItems.length === 0) {
@@ -176,7 +178,9 @@ export class OrderService {
         { id: Number(id) },
         {
           status,
-          ...(cancellationReason ? { cancellation_reason: cancellationReason } : {}),
+          ...(cancellationReason
+            ? { cancellation_reason: cancellationReason }
+            : {}),
           status_history: () =>
             `jsonb_build_array(coalesce(status_history, '[]'::jsonb), '${JSON.stringify(newHistoryEntry)}'::jsonb)`,
         },
@@ -387,7 +391,9 @@ export class OrderService {
                 }
 
                 if (agent_commission > 0 && agent_id) {
-                  const { ProfileAgent } = await import('@/modules/agent/entities/profile-agent.entity');
+                  const { ProfileAgent } = await import(
+                    '@/modules/agent/entities/profile-agent.entity'
+                  );
                   const agentProfile = await qr.manager.findOne(ProfileAgent, {
                     where: { user_id: agent_id },
                     select: ['id'],
@@ -405,7 +411,9 @@ export class OrderService {
                 }
 
                 if (buyer_agent_commission > 0 && buyer_agent_id) {
-                  const { ProfileAgent } = await import('@/modules/agent/entities/profile-agent.entity');
+                  const { ProfileAgent } = await import(
+                    '@/modules/agent/entities/profile-agent.entity'
+                  );
                   const agentProfile = await qr.manager.findOne(ProfileAgent, {
                     where: { user_id: buyer_agent_id },
                     select: ['id'],

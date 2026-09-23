@@ -9,7 +9,7 @@ import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/modules/finance/general-ledger/entities/general-ledger-entry.entity';
+} from '@/modules/finance/ledger/entities/general-ledger-entry.entity';
 import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
 
 export interface CommissionSplitInput {
@@ -46,7 +46,7 @@ export class CreateCommissionSplitUseCase {
     @InjectRepository(CommissionSplit)
     private readonly splitRepo: Repository<CommissionSplit>,
     private readonly ledgerQueueService: LedgerQueueService,
-  ) { }
+  ) {}
 
   async execute(
     input: CommissionSplitInput,
@@ -62,11 +62,20 @@ export class CreateCommissionSplitUseCase {
     split.buyer_agent_commission = input.buyerAgentCommission;
     split.provider_net = input.providerNet;
     split.platform_net = Number((input.platformFee + input.gst).toFixed(2));
-    split.client_profile_id = input.clientProfileId != null ? Number(input.clientProfileId) : null;
-    split.provider_profile_id = input.providerProfileId != null ? Number(input.providerProfileId) : null;
-    split.seller_agent_profile_id = input.sellerAgentProfileId != null ? Number(input.sellerAgentProfileId) : null;
-    split.buyer_agent_profile_id = input.buyerAgentProfileId != null ? Number(input.buyerAgentProfileId) : null;
-    split.commission_rule_id = input.commissionRuleId != null ? Number(input.commissionRuleId) : null;
+    split.client_profile_id =
+      input.clientProfileId != null ? Number(input.clientProfileId) : null;
+    split.provider_profile_id =
+      input.providerProfileId != null ? Number(input.providerProfileId) : null;
+    split.seller_agent_profile_id =
+      input.sellerAgentProfileId != null
+        ? Number(input.sellerAgentProfileId)
+        : null;
+    split.buyer_agent_profile_id =
+      input.buyerAgentProfileId != null
+        ? Number(input.buyerAgentProfileId)
+        : null;
+    split.commission_rule_id =
+      input.commissionRuleId != null ? Number(input.commissionRuleId) : null;
 
     const saved = qr
       ? await qr.manager.save(CommissionSplit, split)
