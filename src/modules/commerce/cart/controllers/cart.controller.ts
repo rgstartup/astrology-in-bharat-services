@@ -13,7 +13,7 @@ import { CartFacade } from '../cart.facade';
 import { AddToCartDto } from '../dto/create-cart.dto';
 import { UpdateCartItemDto } from '../dto/update-cart.dto';
 import { ClientJwtAuthGuard } from '@/modules/client/auth/guards/auth.guard';
-import { CurrentClient } from '@/common/decorators/current-client.decorator';
+import { CurrentClient } from '@/modules/client/auth/decorators/current-client.decorator';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 
 @Controller({

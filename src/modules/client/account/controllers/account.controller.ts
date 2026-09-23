@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ClientJwtAuthGuard } from '@/modules/client/auth/guards/auth.guard';
-import { CurrentClient } from '@/common/decorators/current-client.decorator';
+import { CurrentClient } from '@/modules/client/auth/decorators/current-client.decorator';
 import { AccountFacade } from '../account.facade';
 import {
   CreateClientAccountDto,

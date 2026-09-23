@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ClientNotificationFacade } from '../notification.facade';
 import { ClientJwtAuthGuard } from '@/modules/client/auth/guards/auth.guard';
-import { CurrentClient } from '@/common/decorators/current-client.decorator';
+import { CurrentClient } from '@/modules/client/auth/decorators/current-client.decorator';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { GetNotificationsDto } from '@/modules/notification/dto/get-notifications.dto';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
@@ -23,7 +23,7 @@ import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 export class ClientNotificationController {
   constructor(
     private readonly clientNotificationFacade: ClientNotificationFacade,
-  ) { }
+  ) {}
 
   @Get()
   async getNotifications(
@@ -55,12 +55,12 @@ export class ClientNotificationController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     await this.clientNotificationFacade.markAsRead(id, client.id);
-    return new BooleanMessage(true, "Notification marked as read");
+    return new BooleanMessage(true, 'Notification marked as read');
   }
 
   @Delete()
   async clear(@CurrentClient() client: ClientAccount) {
     await this.clientNotificationFacade.clear(client.id);
-    return new BooleanMessage(true, "All notifications cleared");
+    return new BooleanMessage(true, 'All notifications cleared');
   }
 }

@@ -10,16 +10,7 @@ import {
 } from 'typeorm';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { OrderItem } from './order-item.entity';
-
-export enum OrderStatus {
-  PENDING = 'pending',
-  PAID = 'paid',
-  PROCESSING = 'processing',
-  PACKED = 'packed',
-  SHIPPED = 'shipped',
-  DELIVERED = 'delivered',
-  CANCELLED = 'cancelled',
-}
+import { OrderStatus } from '../enums/order-status.enum';
 
 @Entity({ schema: 'commerce', name: 'product_orders' })
 export class Order {
@@ -115,7 +106,12 @@ export class Order {
   items!: OrderItem[];
 
   @Column({ name: 'status_history', type: 'jsonb', default: [] })
-  status_history!: Array<{ status: string; updated_by: string; updated_at: string; role: string }>;
+  status_history!: Array<{
+    status: string;
+    updated_by: string;
+    updated_at: string;
+    role: string;
+  }>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;

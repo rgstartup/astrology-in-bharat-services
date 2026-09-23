@@ -12,7 +12,7 @@ import {
 import { FavoritesFacade } from '../favorites.facade';
 import { ClientJwtAuthGuard } from '@/modules/client/auth/guards/auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { CurrentClient } from '@/common/decorators/current-client.decorator';
+import { CurrentClient } from '@/modules/client/auth/decorators/current-client.decorator';
 import { FindFavoriteExpertsDto } from '../dto/favorite-expert.dto';
 @ApiTags('Favorites')
 @ApiBearerAuth('JWT-auth')
