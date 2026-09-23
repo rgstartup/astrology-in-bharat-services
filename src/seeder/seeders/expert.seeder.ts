@@ -19,8 +19,6 @@ import { Profession } from '@/modules/expert/profession/entities/profession.enti
 import { ExpertProfession } from '@/modules/expert/profession/entities/expert-profession.entity';
 import { AstrologyService } from '@/modules/astrology/entities/astrology-service.entity';
 import { ExpertAstrologyService } from '@/modules/expert/account/entities/expert-astrology-service.entity';
-import { DevotionalRitual } from '@/modules/devotion/entities/devotional-ritual.entity';
-import { ExpertDevotionalRitual } from '@/modules/expert/account/entities/expert-devotional-ritual.entity';
 
 interface ExpertSeedData {
   user: {
@@ -51,7 +49,7 @@ interface ExpertSeedData {
   professionSlugs: string[];
   specializationSlugs: string[];
   astrologyServiceSlugs: string[];
-  devotionalRitualSlugs: string[];
+  devotionalRitualSlugs?: string[];
   pricing: {
     chatPrice: number;
     callPrice: number;
@@ -78,11 +76,6 @@ export class ExpertSeeder implements Seeder {
       dataSource.getRepository(AstrologyService);
     const expertAstrologyServiceRepository = dataSource.getRepository(
       ExpertAstrologyService,
-    );
-    const devotionalRitualRepository =
-      dataSource.getRepository(DevotionalRitual);
-    const expertDevotionalRitualRepository = dataSource.getRepository(
-      ExpertDevotionalRitual,
     );
 
     const defaultPassword =
@@ -663,41 +656,7 @@ export class ExpertSeeder implements Seeder {
         }
       }
 
-      // 9. Link Devotional Rituals
-      if (data.devotionalRitualSlugs && data.devotionalRitualSlugs.length > 0) {
-        const matchedRituals = await devotionalRitualRepository.find({
-          where: { slug: In(data.devotionalRitualSlugs) },
-        });
 
-        for (const r of matchedRituals) {
-          const existingRitualLink =
-            await expertDevotionalRitualRepository.findOne({
-              where: {
-                expert_id: account.id,
-                ritual_id: r.id,
-              },
-            });
-
-          if (!existingRitualLink) {
-            const ritualLink = expertDevotionalRitualRepository.create({
-              expert_id: account.id,
-              ritual_id: r.id,
-              online_price: 2100,
-              home_visit_without_samagri_price: 3100,
-              home_visit_with_samagri_price: 5100,
-              serviceable_districts: [
-                'Varanasi',
-                'Lucknow',
-                'Delhi NCR',
-                'Mumbai',
-              ],
-              languages: ['Hindi', 'Sanskrit', 'English'],
-              is_enabled: true,
-            });
-            await expertDevotionalRitualRepository.save(ritualLink);
-          }
-        }
-      }
 
       seededCount++;
     }
