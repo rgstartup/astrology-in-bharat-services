@@ -231,7 +231,8 @@ export class CreateReviewUseCase {
       }
 
       const hasMerchantProduct = order.items.some(
-        (item: { product?: { merchant_id: number | null } }) =>
+        (item) =>
+          item.merchant_id === merchant.id ||
           item.product?.merchant_id === merchant.user_id ||
           item.product?.merchant_id === merchant.id,
       );

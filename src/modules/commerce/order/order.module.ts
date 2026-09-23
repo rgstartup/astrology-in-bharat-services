@@ -2,6 +2,11 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
+import { OrderShipment } from './entities/order-shipment.entity';
+import { OrderPayment } from './entities/order-payment.entity';
+import { OrderRefund } from './entities/order-refund.entity';
+import { OrderAddress } from './entities/order-address.entity';
+import { OrderStatusHistory } from './entities/order-status-history.entity';
 import { QueueModule } from '@/core/queue/queue.module';
 //import by me
 import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
@@ -39,7 +44,17 @@ import { OrderService } from './services/order.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, Product, SystemSetting]),
+    TypeOrmModule.forFeature([
+      Order,
+      OrderItem,
+      OrderShipment,
+      OrderPayment,
+      OrderRefund,
+      OrderAddress,
+      OrderStatusHistory,
+      Product,
+      SystemSetting,
+    ]),
     forwardRef(() => AccountModule),
     forwardRef(() => PujaAppointmentModule),
     forwardRef(() => CartModule),

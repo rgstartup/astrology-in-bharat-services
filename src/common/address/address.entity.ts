@@ -2,7 +2,8 @@ import { Entity, Column, ManyToOne, JoinColumn, Unique, PrimaryGeneratedColumn }
 import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
 import { ClientAccount } from '@/modules/client/account/entities/account.entity';
 import { AddressTag } from '../enums/address-tag.enum';
-export { AddressTag };
+import { AddressType } from '../enums/address-type.enum';
+export { AddressTag, AddressType };
 
 @Entity({ schema: 'public', name: 'addresses' })
 @Unique(['profile_expert', 'tag'])
@@ -10,6 +11,13 @@ export { AddressTag };
 export class Address {
   @PrimaryGeneratedColumn()
   id!: number;
+
+  @Column({
+    type: 'enum',
+    enum: AddressType,
+    default: AddressType.SHIPPING,
+  })
+  type!: AddressType;
 
   // Map property "line1" to DB column "street"
   @Column({ name: 'street', type: 'varchar', length: 255 })

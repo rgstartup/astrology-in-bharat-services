@@ -7,13 +7,17 @@ import {
   IsNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { AddressTag } from './address.entity';
+import { AddressTag, AddressType } from './address.entity';
 
 export class AddressDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   id?: number;
+
+  @IsOptional()
+  @IsEnum(AddressType)
+  type?: AddressType;
 
   @IsString()
   line1: string;

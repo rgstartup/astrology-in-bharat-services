@@ -1,11 +1,11 @@
-export enum OrderStatus {
+export enum OrderItemStatus {
   PENDING = 'pending',
   PAID = 'paid',
   PROCESSING = 'processing',
-  PARTIALLY_SHIPPED = 'partially_shipped',
   PACKED = 'packed',
   SHIPPED = 'shipped',
   DELIVERED = 'delivered',
   CANCELLED = 'cancelled',
-  REFUNDED = 'refunded',
+  RETURN_REQUESTED = 'return_requested',
+  RETURNED = 'returned',
 }
