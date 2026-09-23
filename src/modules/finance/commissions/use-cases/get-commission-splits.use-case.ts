@@ -11,11 +11,10 @@ export { QueryCommissionSplitsDto, QueryCommissionSplitsSummaryDto };
 
 export interface CommissionSplitsSummary {
   total_gross: number;
-  total_platform_fee: number;
   total_gst: number;
-  total_platform_net: number;
   total_seller_agent_commission: number;
   total_buyer_agent_commission: number;
+  total_referral_commission: number;
   total_provider_net: number;
   count: number;
 }
@@ -95,9 +94,7 @@ export class GetCommissionSplitsUseCase {
     const raw = await qb
       .select('COUNT(*)', 'count')
       .addSelect('SUM(split.gross_amount)', 'total_gross')
-      .addSelect('SUM(split.platform_fee)', 'total_platform_fee')
       .addSelect('SUM(split.gst)', 'total_gst')
-      .addSelect('SUM(split.platform_net)', 'total_platform_net')
       .addSelect(
         'SUM(split.seller_agent_commission)',
         'total_seller_agent_commission',
@@ -106,20 +103,25 @@ export class GetCommissionSplitsUseCase {
         'SUM(split.buyer_agent_commission)',
         'total_buyer_agent_commission',
       )
+      .addSelect(
+        'SUM(split.referral_commission)',
+        'total_referral_commission',
+      )
       .addSelect('SUM(split.provider_net)', 'total_provider_net')
       .getRawOne<Record<string, string>>();
 
     return {
       count: Number(raw?.count ?? 0),
       total_gross: Number(raw?.total_gross ?? 0),
-      total_platform_fee: Number(raw?.total_platform_fee ?? 0),
       total_gst: Number(raw?.total_gst ?? 0),
-      total_platform_net: Number(raw?.total_platform_net ?? 0),
       total_seller_agent_commission: Number(
         raw?.total_seller_agent_commission ?? 0,
       ),
       total_buyer_agent_commission: Number(
         raw?.total_buyer_agent_commission ?? 0,
+      ),
+      total_referral_commission: Number(
+        raw?.total_referral_commission ?? 0,
       ),
       total_provider_net: Number(raw?.total_provider_net ?? 0),
     };

@@ -30,9 +30,6 @@ export class CommissionSplit {
   gross_amount!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  platform_fee!: number;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   gst!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
@@ -41,11 +38,11 @@ export class CommissionSplit {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   buyer_agent_commission!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  provider_net!: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  referral_commission!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  platform_net!: number;
+  provider_net!: number;
 
   @Column({ type: 'int', nullable: true })
   client_profile_id!: number | null;
@@ -58,6 +55,9 @@ export class CommissionSplit {
 
   @Column({ type: 'int', nullable: true })
   buyer_agent_profile_id!: number | null;
+
+  @Column({ type: 'int', nullable: true })
+  beneficiary_user_id!: number | null;
 
   @ManyToOne(() => CommissionRule, { nullable: true, eager: false })
   @JoinColumn({ name: 'commission_rule_id' })

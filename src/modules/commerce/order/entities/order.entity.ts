@@ -15,7 +15,6 @@ import { PaymentStatus } from '../enums/payment-status.enum';
 import { OrderShipment } from './order-shipment.entity';
 import { OrderPayment } from './order-payment.entity';
 import { OrderAddress } from './order-address.entity';
-import { OrderStatusHistory } from './order-status-history.entity';
 
 export { OrderStatus } from '../enums/order-status.enum';
 export { PaymentStatus } from '../enums/payment-status.enum';
@@ -159,11 +158,6 @@ export class Order {
     cascade: true,
   })
   addresses!: OrderAddress[];
-
-  @OneToMany(() => OrderStatusHistory, (history: OrderStatusHistory) => history.order, {
-    cascade: true,
-  })
-  status_history_entries!: OrderStatusHistory[];
 
   @Column({ name: 'status_history', type: 'jsonb', default: [] })
   status_history!: Array<{

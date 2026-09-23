@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CartItem } from '../entities/cart-item.entity';
+import { CartItem } from '@/modules/commerce/cart/entities/cart-item.entity';
 import { UpdateCartItemDto } from '../dto/update-cart.dto';
 
 @Injectable()
@@ -11,7 +11,10 @@ export class UpdateCartItemUseCase {
     private cartItemRepository: Repository<CartItem>,
   ) {}
 
-  async execute(clientId: number | string, updateCartItemDto: UpdateCartItemDto) {
+  async execute(
+    clientId: number | string,
+    updateCartItemDto: UpdateCartItemDto,
+  ) {
     const { productId, quantity } = updateCartItemDto;
 
     const cartItem = await this.cartItemRepository
@@ -19,7 +22,9 @@ export class UpdateCartItemUseCase {
       .innerJoin('cartItem.cart', 'cart')
       .innerJoin('cart.client', 'client')
       .where('client.id = :clientId', { clientId: Number(clientId) })
-      .andWhere('cartItem.product_id = :productId', { productId: Number(productId) })
+      .andWhere('cartItem.product_id = :productId', {
+        productId: Number(productId),
+      })
       .getOne();
 
     if (!cartItem) {

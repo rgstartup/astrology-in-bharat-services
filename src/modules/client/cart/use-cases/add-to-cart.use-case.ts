@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
-import { Cart } from '../entities/cart.entity';
-import { CartItem } from '../entities/cart-item.entity';
+import { Cart } from '@/modules/commerce/cart/entities/cart.entity';
+import { CartItem } from '@/modules/commerce/cart/entities/cart-item.entity';
+import { Product } from '@/modules/commerce/product/entities/product.entity';
 import { AddToCartDto } from '../dto/create-cart.dto';
-import { Product } from '../../product/entities/product.entity';
 import { DatabaseService } from '@/core/database/database.service';
 
 @Injectable()
@@ -60,7 +60,10 @@ export class AddToCartUseCase {
     const cartItemRepo = queryRunner.manager.getRepository(CartItem);
 
     const existingCartItem = await cartItemRepo.findOne({
-      where: { cart: { id: Number(cartId) }, product: { id: Number(productId) } },
+      where: {
+        cart: { id: Number(cartId) },
+        product: { id: Number(productId) },
+      },
     });
 
     if (existingCartItem) {

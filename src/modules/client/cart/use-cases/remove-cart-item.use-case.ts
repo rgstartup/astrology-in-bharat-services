@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CartItem } from '../entities/cart-item.entity';
+import { CartItem } from '@/modules/commerce/cart/entities/cart-item.entity';
 
 @Injectable()
 export class RemoveCartItemUseCase {
@@ -16,7 +16,9 @@ export class RemoveCartItemUseCase {
       .innerJoin('cartItem.cart', 'cart')
       .innerJoin('cart.client', 'client')
       .where('client.id = :clientId', { clientId: Number(clientId) })
-      .andWhere('cartItem.product_id = :productId', { productId: Number(productId) })
+      .andWhere('cartItem.product_id = :productId', {
+        productId: Number(productId),
+      })
       .getOne();
 
     if (!cartItem) {

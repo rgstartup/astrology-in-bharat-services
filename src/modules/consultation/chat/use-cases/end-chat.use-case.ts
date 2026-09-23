@@ -913,12 +913,10 @@ export class EndChatUseCase {
     split.reference_id = input.referenceId;
     split.reference_type = input.referenceType;
     split.gross_amount = input.grossAmount;
-    split.platform_fee = input.platformFee;
-    split.gst = input.gst;
-    split.seller_agent_commission = input.sellerAgentCommission;
-    split.buyer_agent_commission = input.buyerAgentCommission;
+    split.gst = input.gst ?? 0;
+    split.seller_agent_commission = input.sellerAgentCommission ?? 0;
+    split.buyer_agent_commission = input.buyerAgentCommission ?? 0;
     split.provider_net = input.providerNet;
-    split.platform_net = Number((input.platformFee + input.gst).toFixed(2));
     split.client_profile_id = input.clientProfileId ?? null;
     split.provider_profile_id = input.providerProfileId ?? null;
     split.seller_agent_profile_id = input.sellerAgentProfileId ?? null;
@@ -926,29 +924,6 @@ export class EndChatUseCase {
     split.commission_rule_id = input.commissionRuleId ?? null;
 
     const saved = await manager.save(CommissionSplit, split);
-
-    const splitRefTypeToLedgerEventType: Record<
-      SplitReferenceType,
-      GeneralLedgerEventType
-    > = {
-      [SplitReferenceType.CHAT]: GeneralLedgerEventType.CONSULTATION,
-      [SplitReferenceType.CALL]: GeneralLedgerEventType.CONSULTATION,
-      [SplitReferenceType.PUJA]: GeneralLedgerEventType.PUJA,
-      [SplitReferenceType.ORDER]: GeneralLedgerEventType.PRODUCT_ORDER,
-    };
-
-    if (saved.platform_net > 0) {
-      void this.ledgerQueueService.enqueue({
-        event_id: saved.reference_id,
-        event_type: splitRefTypeToLedgerEventType[saved.reference_type],
-        entry_type: GeneralLedgerEntryType.CREDIT,
-        party_type: GeneralLedgerPartyType.PLATFORM,
-        party_id: null,
-        amount: saved.platform_net,
-        note: `platform_fee=${saved.platform_fee} gst=${saved.gst}`,
-      });
-    }
-
     return saved;
   }
 }

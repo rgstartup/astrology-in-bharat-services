@@ -25,7 +25,10 @@ export class CartFacade {
     return this.addToCartUseCase.execute(clientId, addToCartDto);
   }
 
-  async updateCartItem(clientId: number | string, updateCartItemDto: UpdateCartItemDto) {
+  async updateCartItem(
+    clientId: number | string,
+    updateCartItemDto: UpdateCartItemDto,
+  ) {
     return this.updateCartItemUseCase.execute(clientId, updateCartItemDto);
   }
 

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Cart } from './entities/cart.entity';
-import { CartItem } from './entities/cart-item.entity';
+import { Cart } from '@/modules/commerce/cart/entities/cart.entity';
+import { CartItem } from '@/modules/commerce/cart/entities/cart-item.entity';
 import { CartController } from './controllers/cart.controller';
 import { CartFacade } from './cart.facade';
 import { GetCartUseCase } from './use-cases/get-cart.use-case';

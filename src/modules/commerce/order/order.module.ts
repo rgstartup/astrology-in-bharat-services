@@ -6,7 +6,6 @@ import { OrderShipment } from './entities/order-shipment.entity';
 import { OrderPayment } from './entities/order-payment.entity';
 import { OrderRefund } from './entities/order-refund.entity';
 import { OrderAddress } from './entities/order-address.entity';
-import { OrderStatusHistory } from './entities/order-status-history.entity';
 import { QueueModule } from '@/core/queue/queue.module';
 //import by me
 import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
@@ -28,7 +27,7 @@ import { GetOrderEarningsUseCase } from './use-cases/get-order-earnings.use-case
 import { MerchantOrderQueriesUseCase } from './use-cases/merchant-order-queries.use-case';
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
-import { CartModule } from '@/modules/commerce/cart/cart.module';
+import { CartModule } from '@/modules/client/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { Product } from '@/modules/commerce/product/entities/product.entity';
@@ -51,7 +50,6 @@ import { OrderService } from './services/order.service';
       OrderPayment,
       OrderRefund,
       OrderAddress,
-      OrderStatusHistory,
       Product,
       SystemSetting,
     ]),

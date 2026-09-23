@@ -16,15 +16,17 @@ export interface CommissionSplitInput {
   referenceId: string | number;
   referenceType: SplitReferenceType;
   grossAmount: number;
-  platformFee: number;
-  gst: number;
-  sellerAgentCommission: number;
-  buyerAgentCommission: number;
+  platformFee?: number;
+  gst?: number;
+  sellerAgentCommission?: number;
+  buyerAgentCommission?: number;
+  referralCommission?: number;
   providerNet: number;
   clientProfileId?: number | string | null;
   providerProfileId?: number | string | null;
   sellerAgentProfileId?: number | string | null;
   buyerAgentProfileId?: number | string | null;
+  beneficiaryUserId?: number | string | null;
   commissionRuleId?: number | string | null;
 }
 
@@ -56,12 +58,11 @@ export class CreateCommissionSplitUseCase {
     split.reference_id = String(input.referenceId);
     split.reference_type = input.referenceType;
     split.gross_amount = input.grossAmount;
-    split.platform_fee = input.platformFee;
-    split.gst = input.gst;
-    split.seller_agent_commission = input.sellerAgentCommission;
-    split.buyer_agent_commission = input.buyerAgentCommission;
+    split.gst = input.gst ?? 0;
+    split.seller_agent_commission = input.sellerAgentCommission ?? 0;
+    split.buyer_agent_commission = input.buyerAgentCommission ?? 0;
+    split.referral_commission = input.referralCommission ?? 0;
     split.provider_net = input.providerNet;
-    split.platform_net = Number((input.platformFee + input.gst).toFixed(2));
     split.client_profile_id =
       input.clientProfileId != null ? Number(input.clientProfileId) : null;
     split.provider_profile_id =
@@ -74,6 +75,8 @@ export class CreateCommissionSplitUseCase {
       input.buyerAgentProfileId != null
         ? Number(input.buyerAgentProfileId)
         : null;
+    split.beneficiary_user_id =
+      input.beneficiaryUserId != null ? Number(input.beneficiaryUserId) : null;
     split.commission_rule_id =
       input.commissionRuleId != null ? Number(input.commissionRuleId) : null;
 
@@ -81,16 +84,28 @@ export class CreateCommissionSplitUseCase {
       ? await qr.manager.save(CommissionSplit, split)
       : await this.splitRepo.save(split);
 
-    // Enqueue platform revenue entry — fire-and-forget
-    if (saved.platform_net > 0) {
+    // Enqueue agent commission entries if applicable
+    if (saved.seller_agent_commission > 0 && saved.seller_agent_profile_id) {
       void this.ledgerQueueService.enqueue({
         event_id: saved.reference_id,
         event_type: splitRefTypeToLedgerEventType[saved.reference_type],
         entry_type: GeneralLedgerEntryType.CREDIT,
-        party_type: GeneralLedgerPartyType.PLATFORM,
-        party_id: null,
-        amount: saved.platform_net,
-        note: `platform_fee=${saved.platform_fee} gst=${saved.gst}`,
+        party_type: GeneralLedgerPartyType.AGENT,
+        party_id: saved.seller_agent_profile_id,
+        amount: saved.seller_agent_commission,
+        note: `seller_agent_commission for ${saved.reference_type} #${saved.reference_id}`,
+      });
+    }
+
+    if (saved.buyer_agent_commission > 0 && saved.buyer_agent_profile_id) {
+      void this.ledgerQueueService.enqueue({
+        event_id: saved.reference_id,
+        event_type: splitRefTypeToLedgerEventType[saved.reference_type],
+        entry_type: GeneralLedgerEntryType.CREDIT,
+        party_type: GeneralLedgerPartyType.AGENT,
+        party_id: saved.buyer_agent_profile_id,
+        amount: saved.buyer_agent_commission,
+        note: `buyer_agent_commission for ${saved.reference_type} #${saved.reference_id}`,
       });
     }
 
