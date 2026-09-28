@@ -6,6 +6,7 @@ allowBuilds:
   '@scarf/scarf': true
   '@swc/core': true
   argon2: true
+  esbuild: set this to true or false
   msgpackr-extract: true
   sharp: true
 
