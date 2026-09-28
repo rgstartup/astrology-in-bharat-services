@@ -25,7 +25,7 @@ import { PujaAppointmentModule } from '@/internal/puja-appointment/puja-appointm
 import { CommerceModule } from '@/internal/commerce/commerce.module';
 import { MerchantModule } from '@/internal/domains/merchant/merchant.module';
 import { ConsultationModule } from './internal/consultation/consultation.module';
-import { EmailWorkerModule } from './workers/email/email-worker.module';
+import { EmailWorkerModule } from './workers/email/worker.module';
 import { APP_GUARD } from '@nestjs/core';
 import { BlockStatusGuard } from '@/shared/guards/block-status.guard';
 

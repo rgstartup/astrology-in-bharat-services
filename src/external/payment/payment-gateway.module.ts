@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RazorpayProvider } from './razorpay/providers/razorpay.provider';
 import { PAYMENT_GATEWAY } from './payment-gateway.interface';
-import { PaymentWebhookGuard } from './razorpay/guards/payment-webhook.guard';
+import { PaymentWebhookGuard } from './guards/payment-webhook.guard';
 
 @Module({
   providers: [

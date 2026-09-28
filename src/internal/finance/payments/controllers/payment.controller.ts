@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
 import { VerifyPaymentDto } from '../dto/verify-payment.dto';
 
 @Controller({
-  path: 'payment',
+  path: 'payments',
   version: '1',
 })
 export class PaymentController {
