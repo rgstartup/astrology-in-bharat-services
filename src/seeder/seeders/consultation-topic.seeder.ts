@@ -1,6 +1,6 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { ConsultationTopic } from '@/modules/consultation/consultation/entities/consultation_topic.entity';
+import { ConsultationTopic } from '@/internal/consultation/consultation/entities/consultation_topic.entity';
 
 export class ConsultationTopicSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {

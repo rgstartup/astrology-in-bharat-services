@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { getErrorMessage } from './common/utils/get-error-message.util';
+import { getErrorMessage } from './shared/utils/get-error-message.util';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);

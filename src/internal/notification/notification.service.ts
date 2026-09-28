@@ -1,0 +1,65 @@
+import { Injectable } from '@nestjs/common';
+import { CreateNotificationUseCase } from './use-cases/create-notification.use-case';
+import { GetNotificationsUseCase } from './use-cases/get-notifications.use-case';
+import { MarkAsReadUseCase } from './use-cases/mark-as-read.use-case';
+import { ClearAllNotificationsUseCase } from './use-cases/clear-all-notifications.use-case';
+import {
+  NotificationType,
+  ProfileType,
+} from './entities/notification.entity';
+
+import { GetNotificationsDto } from './dto/get-notifications.dto';
+
+export type { ProfileType };
+
+@Injectable()
+export class NotificationService {
+  constructor(
+    private readonly createNotificationUseCase: CreateNotificationUseCase,
+    private readonly getNotificationsUseCase: GetNotificationsUseCase,
+    private readonly markAsReadUseCase: MarkAsReadUseCase,
+    private readonly clearAllNotificationsUseCase: ClearAllNotificationsUseCase,
+  ) {}
+
+  async create(
+    profileId: number,
+    profileType: ProfileType,
+    type: NotificationType,
+    title: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+  ) {
+    return this.createNotificationUseCase.execute(
+      profileId,
+      profileType,
+      type,
+      title,
+      message,
+      metadata,
+    );
+  }
+
+  async getUserNotifications(
+    profileId: number,
+    profileType: ProfileType,
+    dto: GetNotificationsDto,
+  ) {
+    return this.getNotificationsUseCase.execute(
+      profileId,
+      profileType,
+      dto,
+    );
+  }
+
+  async markAsRead(id: number, profileId?: number, profileType?: ProfileType) {
+    return this.markAsReadUseCase.execute(id, profileId, profileType);
+  }
+
+  async getUnreadCount(profileId: number, profileType: ProfileType) {
+    return this.getNotificationsUseCase.getUnreadCount(profileId, profileType);
+  }
+
+  async clearAll(profileId: number, profileType: ProfileType) {
+    return this.clearAllNotificationsUseCase.execute(profileId, profileType);
+  }
+}

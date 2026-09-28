@@ -1,0 +1,65 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { OrderService } from '@/internal/commerce/order/order.service';
+import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+
+@Injectable()
+export class GetRecentOrdersUseCase {
+  constructor(
+    private readonly orderService: OrderService,
+    @InjectRepository(MerchantAccount)
+    private readonly profileRepo: Repository<MerchantAccount>,
+  ) {}
+
+  async execute(userId: number) {
+    const merchantId = userId;
+
+    console.log('[RECENT_ORDERS] Request for userId:', userId);
+    const recentOrderItems = await this.orderService.getMerchantRecentOrders(
+      merchantId,
+      10,
+    );
+
+    const groupedOrdersMap = new Map<string, any>();
+
+    try {
+      for (const item of recentOrderItems) {
+        const orderIdStr = String(item.order?.id ?? item.order_id);
+        if (!groupedOrdersMap.has(orderIdStr)) {
+          groupedOrdersMap.set(orderIdStr, {
+            id: orderIdStr,
+            short_id: orderIdStr.slice(-8).toUpperCase(),
+            orderNumber: `AIB-ORD-${orderIdStr}`,
+            customerName:
+              (
+                item.order as unknown as {
+                  client?: { user?: { name?: string } };
+                }
+              )?.client?.user?.name || 'Guest',
+            amount: 0,
+            status: item.status || item.order?.status || 'pending',
+            date: item.order?.created_at
+              ? new Date(item.order.created_at).toISOString()
+              : new Date().toISOString(),
+            productName: item.product?.name || 'Unknown Product',
+          });
+        }
+
+        const group = groupedOrdersMap.get(orderIdStr);
+        group.amount += Number(item.price || 0) * (item.quantity || 1);
+
+        if (
+          group.productName !== item.product?.name &&
+          !group.productName.includes('+')
+        ) {
+          group.productName = `${group.productName} + more`;
+        }
+      }
+    } catch (err) {
+      console.error('Error grouping recent orders:', err);
+    }
+
+    return Array.from(groupedOrdersMap.values());
+  }
+}

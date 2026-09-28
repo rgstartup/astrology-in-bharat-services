@@ -1,14 +1,14 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import * as argon2 from 'argon2';
-import { User } from '@/modules/users/entities/user.entity';
-import { RoleEnum } from '@/modules/users/enums/Role.enum';
-import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
+import { User } from '@/internal/users/entities/user.entity';
+import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
 import {
   MerchantAccount,
   MerchantStatus,
-} from '@/modules/merchant/account/entities/account.entity';
-import { Wallet } from '@/modules/finance/wallet/entities/wallet.entity';
+} from '@/internal/domains/merchant/account/entities/account.entity';
+import { Wallet } from '@/internal/finance/wallet/entities/wallet.entity';
 
 interface MerchantSeedData {
   user: {
@@ -324,8 +324,7 @@ export class MerchantSeeder implements Seeder {
           address: '5, Chamiers Road, R.A. Puram',
           city: 'Chennai',
           pincode: '600028',
-          description:
-            `Vedic Books Emporium is South India's largest repository of Vedic scriptures, Jyotish texts, and Sanskrit manuscripts. We stock original editions and high-quality reprints of rare astrological classics in multiple Indian languages.`,
+          description: `Vedic Books Emporium is South India's largest repository of Vedic scriptures, Jyotish texts, and Sanskrit manuscripts. We stock original editions and high-quality reprints of rare astrological classics in multiple Indian languages.`,
           established: '1998',
           features: [
             'Rare Manuscript Prints',

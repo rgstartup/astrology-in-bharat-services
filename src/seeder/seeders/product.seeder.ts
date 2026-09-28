@@ -1,28 +1,30 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource, In } from 'typeorm';
-import { Product } from '@/modules/commerce/product/entities/product.entity';
-import { ProductCategory } from '@/modules/commerce/product/entities/category.entity';
-import { ProductVariant } from '@/modules/commerce/product/entities/variants.entity';
-import { ProductFulFillment } from '@/modules/commerce/product/entities/fulfillment.entity';
-import { ProductInventory } from '@/modules/commerce/product/entities/inventory.entity';
-import { ProductVariantPricing } from '@/modules/commerce/product/entities/pricing.entity';
-import { ProductVariantPromotions } from '@/modules/commerce/product/entities/promotions.entity';
-import { ProductMedia } from '@/modules/commerce/product/entities/media.entity';
-import { Media } from '@/modules/media/entities/media.entity';
-import { MerchantAccount } from '@/modules/merchant/account/entities/account.entity';
-import { ProductType } from '@/modules/commerce/product/enum/product-type.enum';
-import { ProductGroup } from '@/modules/commerce/product/enum/product-group.enum';
-import { FulfillmentType } from '@/modules/commerce/product/enum/fulfillment-type.enum';
-import { DeliveryType } from '@/modules/commerce/product/enum/delivery-type.enum';
-import { DiscountType } from '@/modules/commerce/product/enum/discount-type.enum';
-import { MediaRole } from '@/modules/commerce/product/enum/media-role.enum';
+import { Product } from '@/internal/commerce/product/entities/product.entity';
+import { ProductCategory } from '@/internal/commerce/product/entities/category.entity';
+import { ProductVariant } from '@/internal/commerce/product/entities/variants.entity';
+import { ProductFulFillment } from '@/internal/commerce/product/entities/fulfillment.entity';
+import { ProductInventory } from '@/internal/commerce/product/entities/inventory.entity';
+import { ProductVariantPricing } from '@/internal/commerce/product/entities/pricing.entity';
+import { ProductVariantPromotions } from '@/internal/commerce/product/entities/promotions.entity';
+import { ProductMedia } from '@/internal/commerce/product/entities/media.entity';
+import { Media } from '@/internal/media/entities/media.entity';
+import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import {
+  ProductType,
+  ProductGroup,
+  FulfillmentType,
+  DeliveryType,
+  DiscountType,
+  MediaRole,
+} from '@/internal/commerce/product/enum';
 import {
   PricingStatus,
   PricingTargetAudience,
-} from '@/modules/expert/shared/enums/pricing.enum';
-import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
-import { ExpertProducts } from '@/modules/expert/products/entities/expert-product.entity';
-import { ExpertProductRelationType } from '@/modules/expert/products/enum/expert-product-relation-type.enum';
+} from '@/internal/domains/expert/shared/enums/pricing.enum';
+import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
+import { ExpertProducts } from '@/internal/domains/expert/products/entities/expert-product.entity';
+import { ExpertProductRelationType } from '@/internal/domains/expert/products/enum/expert-product-relation-type.enum';
 
 interface VariantSeedData {
   name: string;
@@ -78,7 +80,9 @@ export class ProductSeeder implements Seeder {
     const fulfillmentRepository = dataSource.getRepository(ProductFulFillment);
     const inventoryRepository = dataSource.getRepository(ProductInventory);
     const pricingRepository = dataSource.getRepository(ProductVariantPricing);
-    const promotionsRepository = dataSource.getRepository(ProductVariantPromotions);
+    const promotionsRepository = dataSource.getRepository(
+      ProductVariantPromotions,
+    );
     const productMediaRepository = dataSource.getRepository(ProductMedia);
     const mediaRepository = dataSource.getRepository(Media);
     const merchantRepository = dataSource.getRepository(MerchantAccount);
@@ -97,7 +101,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.ITEM,
         description:
           'Sacred 5 Mukhi Rudraksha Mala sourced directly from the Himalayan foothills of Nepal. Energized with Vedic Shiva mantras, this 108-bead mala bestows inner calm, health, and spiritual alignment.',
-        shortDescription: 'Authentic 108-bead energized Nepali 5 Mukhi Rudraksha Mala.',
+        shortDescription:
+          'Authentic 108-bead energized Nepali 5 Mukhi Rudraksha Mala.',
         categorySlugs: ['rudraksha'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         variants: [
@@ -106,8 +111,14 @@ export class ProductSeeder implements Seeder {
             sku: 'RUD-5M-108-8MM',
             isDefault: true,
             sortOrder: 1,
-            attributes: { beads: 108, size_mm: 8, origin: 'Nepal', energized: true },
-            description: 'Standard 8mm beads crafted in auspicious red silk thread with traditional tassel.',
+            attributes: {
+              beads: 108,
+              size_mm: 8,
+              origin: 'Nepal',
+              energized: true,
+            },
+            description:
+              'Standard 8mm beads crafted in auspicious red silk thread with traditional tassel.',
             fulfillment: {
               fulfillmentType: FulfillmentType.PHYSICAL,
               deliveryType: DeliveryType.SHIPPING,
@@ -117,7 +128,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 7,
             },
             inventory: { stock: 65, reservedStock: 2 },
-            pricing: { amount: 1499.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 1499.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Shiva Auspicious Offer 15% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -129,8 +144,15 @@ export class ProductSeeder implements Seeder {
             sku: 'RUD-5M-108-10MM',
             isDefault: false,
             sortOrder: 2,
-            attributes: { beads: 108, size_mm: 10, origin: 'Nepal', silver_capped: true, energized: true },
-            description: 'Large 10mm beads with 925 sterling silver caps on every bead for supreme durability.',
+            attributes: {
+              beads: 108,
+              size_mm: 10,
+              origin: 'Nepal',
+              silver_capped: true,
+              energized: true,
+            },
+            description:
+              'Large 10mm beads with 925 sterling silver caps on every bead for supreme durability.',
             fulfillment: {
               fulfillmentType: FulfillmentType.PHYSICAL,
               deliveryType: DeliveryType.SHIPPING,
@@ -140,7 +162,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 7,
             },
             inventory: { stock: 40, reservedStock: 0 },
-            pricing: { amount: 2499.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 2499.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Silver Cap Special ₹300 OFF',
               discountType: DiscountType.FIXED,
@@ -155,7 +181,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.ITEM,
         description:
           'The revered Siddha Mala contains 1 to 14 Mukhi Rudraksha beads alongside Gauri Shankar and Ganesh Rudraksha strung in pure silver wire. Bestows complete planetary harmony and spiritual mastery.',
-        shortDescription: 'Master 1-14 Mukhi Rudraksha Collector Mala in pure silver wire.',
+        shortDescription:
+          'Master 1-14 Mukhi Rudraksha Collector Mala in pure silver wire.',
         categorySlugs: ['rudraksha'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         variants: [
@@ -170,7 +197,8 @@ export class ProductSeeder implements Seeder {
               certification: 'IGL Certified',
               origin: 'Nepal/Java',
             },
-            description: 'Lab-certified rare mukhi beads assembled in handcrafted silver wire loop by master artisans.',
+            description:
+              'Lab-certified rare mukhi beads assembled in handcrafted silver wire loop by master artisans.',
             fulfillment: {
               fulfillmentType: FulfillmentType.PHYSICAL,
               deliveryType: DeliveryType.SHIPPING,
@@ -180,7 +208,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 5,
             },
             inventory: { stock: 10, reservedStock: 1 },
-            pricing: { amount: 45000.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 45000.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Devotee Privilege 10% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -222,7 +254,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 5,
             },
             inventory: { stock: 15, reservedStock: 1 },
-            pricing: { amount: 18500.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 18500.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
           {
             name: '5.50 Carat (6.1 Ratti) Premium Royal Blue Sapphire',
@@ -246,7 +282,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 5,
             },
             inventory: { stock: 8, reservedStock: 0 },
-            pricing: { amount: 42000.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 42000.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -256,7 +296,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.ITEM,
         description:
           'High-clarity, eye-clean Zambian Emerald certified for Jyotish remedies of Mercury (Budha). Enhances intellect, eloquence, trade fortunes, and nervous balance.',
-        shortDescription: 'Natural eye-clean Zambian Emerald (Panna) for Budha.',
+        shortDescription:
+          'Natural eye-clean Zambian Emerald (Panna) for Budha.',
         categorySlugs: ['gemstone'],
         merchantEmail: 'dr.priya@astrologyinbharat.com',
         variants: [
@@ -282,7 +323,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 5,
             },
             inventory: { stock: 20, reservedStock: 2 },
-            pricing: { amount: 14000.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 14000.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Budha Planetary Blessing 10% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -299,7 +344,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.ITEM,
         description:
           'Hand-engraved Sacred Shree Sampurna Maha Lakshmi Yantra featuring 13 auspicious wealth yantras in one sacred geometric plate. Activated with Vedic rituals by priests in Varanasi.',
-        shortDescription: '24K Gold/Copper energized Shree Sampurna Maha Lakshmi Yantra.',
+        shortDescription:
+          '24K Gold/Copper energized Shree Sampurna Maha Lakshmi Yantra.',
         categorySlugs: ['yantra'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         variants: [
@@ -323,7 +369,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 6,
             },
             inventory: { stock: 50, reservedStock: 3 },
-            pricing: { amount: 1299.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 1299.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Maha Lakshmi Kripa 20% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -350,7 +400,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 6,
             },
             inventory: { stock: 35, reservedStock: 0 },
-            pricing: { amount: 1899.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 1899.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -384,7 +438,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 6,
             },
             inventory: { stock: 45, reservedStock: 1 },
-            pricing: { amount: 999.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 999.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -396,7 +454,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.BOOK,
         description:
           'The foundational master text of Vedic Astrology (Jyotisha) by Sage Parashara. Complete Sanskrit shlokas with exhaustive Hindi & English commentaries covering all classical yogas, dashas, and remedies.',
-        shortDescription: 'The supreme encyclopedia of Vedic astrology in 2 deluxe volumes.',
+        shortDescription:
+          'The supreme encyclopedia of Vedic astrology in 2 deluxe volumes.',
         categorySlugs: ['book'],
         merchantEmail: 'vedic.books.emporium@astrologyinbharat.com',
         variants: [
@@ -420,7 +479,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 7,
             },
             inventory: { stock: 30, reservedStock: 0 },
-            pricing: { amount: 1450.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 1450.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
           {
             name: 'Deluxe English Commentary Edition (2 Volumes)',
@@ -442,7 +505,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 7,
             },
             inventory: { stock: 25, reservedStock: 1 },
-            pricing: { amount: 1850.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 1850.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -452,7 +519,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.BOOK,
         description:
           'A comprehensive and easy-to-implement handbook on Lal Kitab remedies for health, finances, career obstacles, and evil-eye removal.',
-        shortDescription: 'Classic practical Lal Kitab astrological remedies guide.',
+        shortDescription:
+          'Classic practical Lal Kitab astrological remedies guide.',
         categorySlugs: ['book'],
         merchantEmail: 'vedic.books.emporium@astrologyinbharat.com',
         variants: [
@@ -476,7 +544,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMax: 6,
             },
             inventory: { stock: 80, reservedStock: 5 },
-            pricing: { amount: 399.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 399.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Book Lover Special 15% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -497,7 +569,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.REPORT,
         description:
           'In-depth personalized astrological dossier analyzing planetary placements, Vimshottari Mahadasha/Antardasha, divisional charts, career outlook, wealth potentials, and recommended gemstones.',
-        shortDescription: 'Exhaustive personalized life prediction report delivered via Email.',
+        shortDescription:
+          'Exhaustive personalized life prediction report delivered via Email.',
         categorySlugs: ['kundli-report'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         expertEmails: ['acharya.rajesh@astrologyinbharat.com'],
@@ -521,7 +594,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 1,
               estimatedDeliveryMax: 2,
             },
-            pricing: { amount: 499.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 499.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Introductory Special ₹100 OFF',
               discountType: DiscountType.FIXED,
@@ -548,7 +625,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 1,
               estimatedDeliveryMax: 2,
             },
-            pricing: { amount: 799.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 799.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -583,7 +664,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 199.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 199.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
           {
             name: 'Taurus (Vrishabha) 2026 Yearly Transit Forecast PDF',
@@ -605,7 +690,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 199.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 199.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -641,7 +730,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 1,
               estimatedDeliveryMax: 2,
             },
-            pricing: { amount: 1499.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 1499.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Home Harmony 15% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -666,7 +759,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 1,
               estimatedDeliveryMax: 2,
             },
-            pricing: { amount: 2499.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 2499.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -678,7 +775,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.REPORT,
         description:
           'High precision mathematical chart calculations including Lagna Chart (D1), Navamsa (D9), Shodashvarga, Ashtakavarga matrices, planetary degrees, and Nakshatra placements.',
-        shortDescription: 'High-precision mathematical Janam Kundali & divisional charts.',
+        shortDescription:
+          'High-precision mathematical Janam Kundali & divisional charts.',
         categorySlugs: ['birth-chart'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         expertEmails: ['acharya.rajesh@astrologyinbharat.com'],
@@ -702,7 +800,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 249.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 249.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
           {
             name: 'Detailed 16-Varga Divisional Chart Breakdown with Ashtakavarga',
@@ -722,7 +824,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 1,
               estimatedDeliveryMax: 1,
             },
-            pricing: { amount: 499.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 499.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -734,7 +840,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.REPORT,
         description:
           'Targeted diagnostic analysis checking for 12 types of Kaal Sarp Dosh, Manglik (Kuja) Dosh, and Pitra Dosh with severity scoring and verified Vedic pariharas.',
-        shortDescription: 'Specific dosh intensity calculations and remedies report.',
+        shortDescription:
+          'Specific dosh intensity calculations and remedies report.',
         categorySlugs: ['dosh'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         expertEmails: ['acharya.rajesh@astrologyinbharat.com'],
@@ -758,7 +865,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 1,
               estimatedDeliveryMax: 2,
             },
-            pricing: { amount: 399.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 399.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Dosh Parihara Special 20% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -783,7 +894,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 1,
               estimatedDeliveryMax: 2,
             },
-            pricing: { amount: 499.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 499.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -795,7 +910,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.REPORT,
         description:
           'Identifies over 32 auspicious Vedic yogas including Gajakesari, Budhaditya, Pancha Mahapurusha, and Dhana Yogas in your birth chart, along with their exact activation timelines.',
-        shortDescription: 'Auspicious yog identification and wealth activation timing report.',
+        shortDescription:
+          'Auspicious yog identification and wealth activation timing report.',
         categorySlugs: ['yog'],
         merchantEmail: 'dr.priya@astrologyinbharat.com',
         expertEmails: ['dr.priya@astrologyinbharat.com'],
@@ -818,7 +934,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 1,
               estimatedDeliveryMax: 2,
             },
-            pricing: { amount: 449.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 449.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Auspicious Yog Insight 10% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -842,7 +962,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 1,
               estimatedDeliveryMax: 2,
             },
-            pricing: { amount: 599.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 599.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -858,7 +982,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.RITUAL,
         description:
           'Sacred Satyanarayan Puja conducted on Purnima or auspicious dates to invoke Lord Vishnu’s blessings for family peace, abundance, and hurdle removal. Performed by experienced Vedic pandits.',
-        shortDescription: 'Complete Vedic Satyanarayan Puja with sankalp and katha.',
+        shortDescription:
+          'Complete Vedic Satyanarayan Puja with sankalp and katha.',
         categorySlugs: ['puja'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         variants: [
@@ -882,7 +1007,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 2100.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 2100.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Festival Blessing ₹200 OFF',
               discountType: DiscountType.FIXED,
@@ -908,7 +1037,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 5100.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 5100.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -918,7 +1051,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.RITUAL,
         description:
           'Powerful Rudrabhishek ritual performed by certified priests in Varanasi chanting the Sri Rudram. Devotee names and gotra are taken in special sankalp.',
-        shortDescription: 'Authentic Kashi Rudrabhishek with personalized sankalp.',
+        shortDescription:
+          'Authentic Kashi Rudrabhishek with personalized sankalp.',
         categorySlugs: ['puja'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         variants: [
@@ -941,7 +1075,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 3100.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 3100.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Maha Shivaratri Special 10% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -958,7 +1096,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.RITUAL,
         description:
           'Sacred fire ritual offering oblations with Maha Mrityunjaya Mantra for protection against critical illnesses, unexpected hazards, and severe longevity doshas.',
-        shortDescription: 'Vedic fire ceremony with 1008/11000 Maha Mrityunjaya ahutis.',
+        shortDescription:
+          'Vedic fire ceremony with 1008/11000 Maha Mrityunjaya ahutis.',
         categorySlugs: ['havan'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         variants: [
@@ -981,7 +1120,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 4500.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 4500.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'Health & Long Life 15% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -1007,7 +1150,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 15000.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 15000.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -1040,7 +1187,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 3500.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 3500.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -1052,7 +1203,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.RITUAL,
         description:
           'Sacred Vedic naming ritual determining the most auspicious first-letter syllable according to the newborn’s Janam Nakshatra and Pada, invoking longevity and virtue.',
-        shortDescription: 'Traditional Vedic baby naming ceremony and nakshatra determination.',
+        shortDescription:
+          'Traditional Vedic baby naming ceremony and nakshatra determination.',
         categorySlugs: ['sanskar'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         variants: [
@@ -1075,7 +1227,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 2100.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 2100.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
           {
             name: 'Traditional In-Home Namkaran Sanskar Ceremony',
@@ -1096,7 +1252,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 4500.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 4500.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -1106,7 +1266,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.RITUAL,
         description:
           'Complete 7-Phera Vedic Vivah Sanskar solemnized by scholarly priests following authentic Grihya Sutra traditions including Kanyadaan, Saptapadi, and Havan.',
-        shortDescription: 'Full-day Vedic wedding solemnization with scholarly pandits.',
+        shortDescription:
+          'Full-day Vedic wedding solemnization with scholarly pandits.',
         categorySlugs: ['sanskar'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         variants: [
@@ -1129,7 +1290,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 25000.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 25000.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -1141,7 +1306,8 @@ export class ProductSeeder implements Seeder {
         productGroup: ProductGroup.SESSION,
         description:
           'Immediate one-on-one live consultation with verified Vedic Astrologers and Tarot Readers. Ask burning life questions on career, relationship compatibility, health, or remedies.',
-        shortDescription: 'Connect instantly with verified astrologers on Audio or Video call.',
+        shortDescription:
+          'Connect instantly with verified astrologers on Audio or Video call.',
         categorySlugs: ['kundli-report', 'puja'],
         merchantEmail: 'acharya.rajesh@astrologyinbharat.com',
         expertEmails: [
@@ -1154,7 +1320,11 @@ export class ProductSeeder implements Seeder {
             sku: 'CONS-AUD-15M',
             isDefault: true,
             sortOrder: 1,
-            attributes: { channel: 'audio_call', duration_mins: 15, call_type: 'voip' },
+            attributes: {
+              channel: 'audio_call',
+              duration_mins: 15,
+              call_type: 'voip',
+            },
             fulfillment: {
               fulfillmentType: FulfillmentType.SERVICE,
               deliveryType: DeliveryType.INSTANT,
@@ -1163,7 +1333,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 450.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 450.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
             promotion: {
               name: 'First Call Special 15% OFF',
               discountType: DiscountType.PERCENTAGE,
@@ -1175,7 +1349,11 @@ export class ProductSeeder implements Seeder {
             sku: 'CONS-VID-30M',
             isDefault: false,
             sortOrder: 2,
-            attributes: { channel: 'video_call', duration_mins: 30, call_type: 'webrtc' },
+            attributes: {
+              channel: 'video_call',
+              duration_mins: 30,
+              call_type: 'webrtc',
+            },
             fulfillment: {
               fulfillmentType: FulfillmentType.SERVICE,
               deliveryType: DeliveryType.INSTANT,
@@ -1184,7 +1362,11 @@ export class ProductSeeder implements Seeder {
               estimatedDeliveryMin: 0,
               estimatedDeliveryMax: 0,
             },
-            pricing: { amount: 900.0, currency: 'INR', targetAudience: PricingTargetAudience.ALL },
+            pricing: {
+              amount: 900.0,
+              currency: 'INR',
+              targetAudience: PricingTargetAudience.ALL,
+            },
           },
         ],
       },
@@ -1248,7 +1430,9 @@ export class ProductSeeder implements Seeder {
           category: pData.categorySlugs[0] || null,
         });
         product = await productRepository.save(product);
-        console.log(`[ProductSeeder] Created Product: ${product.name} (${product.id})`);
+        console.log(
+          `[ProductSeeder] Created Product: ${product.name} (${product.id})`,
+        );
       } else {
         product.type = pData.type;
         product.product_group = pData.productGroup || ProductGroup.ITEM;
@@ -1280,10 +1464,7 @@ export class ProductSeeder implements Seeder {
 
       for (const expertEmail of targetExpertEmails) {
         const expert = await expertAccountRepository.findOne({
-          where: [
-            { email: expertEmail },
-            { user: { email: expertEmail } },
-          ],
+          where: [{ email: expertEmail }, { user: { email: expertEmail } }],
         });
 
         if (expert) {
@@ -1330,7 +1511,9 @@ export class ProductSeeder implements Seeder {
             sort_order: vData.sortOrder || 0,
           });
           variant = await variantRepository.save(variant);
-          console.log(`  [ProductSeeder] Created Variant: ${variant.name} (${variant.sku})`);
+          console.log(
+            `  [ProductSeeder] Created Variant: ${variant.name} (${variant.sku})`,
+          );
         } else {
           variant.product = product;
           variant.product_id = String(product.id);
@@ -1368,8 +1551,10 @@ export class ProductSeeder implements Seeder {
           fulfillment.delivery_type = vData.fulfillment.deliveryType;
           fulfillment.shipping_fee = vData.fulfillment.shippingFee || 0.0;
           fulfillment.processing_time = vData.fulfillment.processingTime || 0;
-          fulfillment.estimated_delivery_min = vData.fulfillment.estimatedDeliveryMin || 0;
-          fulfillment.estimated_delivery_max = vData.fulfillment.estimatedDeliveryMax || 0;
+          fulfillment.estimated_delivery_min =
+            vData.fulfillment.estimatedDeliveryMin || 0;
+          fulfillment.estimated_delivery_max =
+            vData.fulfillment.estimatedDeliveryMax || 0;
           fulfillment.is_active = true;
           await fulfillmentRepository.save(fulfillment);
         }

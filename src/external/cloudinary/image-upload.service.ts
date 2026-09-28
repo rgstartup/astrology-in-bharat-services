@@ -9,8 +9,8 @@ import { Repository } from 'typeorm';
 import { UploadApiOptions, UploadApiResponse, v2 } from 'cloudinary';
 import * as streamifier from 'streamifier';
 import { CLOUDINARY } from './cloudinary.provider';
-import { Media } from '@/modules/media/entities/media.entity';
-import { MediaSource } from '@/modules/media/enums/media-source.enum';
+import { Media } from '@/internal/media/entities/media.entity';
+import { MediaSource } from '@/internal/media/enum';
 
 /**
  * Result returned after a successful image upload or update operation.
@@ -262,5 +262,3 @@ export class ImageUploadService {
     return this.mediaRepository.save(media);
   }
 }
-
-

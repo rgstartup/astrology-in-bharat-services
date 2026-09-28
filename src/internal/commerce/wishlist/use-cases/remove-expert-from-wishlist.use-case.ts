@@ -1,0 +1,78 @@
+import { Injectable } from '@nestjs/common';
+import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Wishlist } from '../entities/wishlist.entity';
+import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
+import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
+import {
+  ExpertNotInWishlistError,
+  UserNotFoundError,
+} from '../domain/errors/wishlist.errors';
+import { DataSource } from 'typeorm';
+
+@Injectable()
+export class RemoveExpertFromWishlistUseCase {
+  constructor(
+    @InjectRepository(Wishlist)
+    private readonly wishlistRepository: Repository<Wishlist>,
+    private readonly expertProfileService: ExpertProfileService,
+    private readonly dataSource: DataSource,
+  ) {}
+
+  async execute(
+    profileId: number,
+    expert_id: number,
+  ): Promise<{ message: string }> {
+    if (!profileId) {
+      throw new UserNotFoundError();
+    }
+
+    let profileExpert =
+      await this.expertProfileService.getExpertByUserId(expert_id);
+    if (!profileExpert) {
+      profileExpert = (await this.expertProfileService.getExpertById(
+        expert_id,
+      )) as unknown as ProfileExpert;
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const result = await queryRunner.manager.delete(Wishlist, {
+        client_id: profileId,
+        expert_id: expert_id,
+      });
+
+      if (result.affected === 0) {
+        throw new ExpertNotInWishlistError();
+      }
+
+      if (profileExpert) {
+        const currentLikes = profileExpert.total_likes || 0;
+        if (currentLikes > 0) {
+          await queryRunner.manager.update(
+            ProfileExpert,
+            { id: profileExpert.id },
+            { total_likes: currentLikes - 1 },
+          );
+        }
+      }
+
+      await queryRunner.commitTransaction();
+      return new BooleanMessage();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      if (!(err instanceof ExpertNotInWishlistError)) {
+        console.error(
+          'Failed to remove expert from wishlist and decrement likes:',
+          err,
+        );
+      }
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+}

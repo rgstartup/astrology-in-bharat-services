@@ -1,0 +1,64 @@
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CallSession } from '../entities/call-session.entity';
+import { CallSessionStatus } from '../enum';
+import { CallGateway } from '../call.gateway';
+import { WalletService } from '@/internal/finance/wallet/wallet.service';
+
+@Injectable()
+export class RejectCallUseCase {
+  constructor(
+    @InjectRepository(CallSession)
+    private readonly sessionRepo: Repository<CallSession>,
+    @Inject(forwardRef(() => CallGateway))
+    private readonly callGateway: CallGateway,
+    @Inject(forwardRef(() => WalletService))
+    private readonly walletService: WalletService,
+  ) {}
+
+  async execute(sessionId: number) {
+    console.log(`[RejectCallUseCase] Rejecting sessionId: ${sessionId}`);
+    const session = await this.sessionRepo.findOne({
+      where: { id: sessionId },
+    });
+
+    if (!session) {
+      throw new Error('Call session not found');
+    }
+
+    if (session.status !== CallSessionStatus.PENDING) {
+      return session;
+    }
+
+    session.status = CallSessionStatus.REJECTED;
+    session.terminated_by = 'EXPERT';
+    session.terminated_reason = 'Rejection';
+    await this.sessionRepo.save(session);
+
+    // Notify expert dashboard and user
+    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', {
+      sessionId,
+      status: 'rejected',
+    });
+
+    // Release reserved wallet funds
+    const referenceId = `call_${sessionId}`;
+    const reservedAmount = session.price_per_minute * 5;
+    try {
+      await this.walletService.releaseReserved(
+        session.client_id,
+        'client_id',
+        reservedAmount,
+        referenceId,
+      );
+    } catch (e) {
+      console.error(
+        `Failed to release funds for rejected call session ${sessionId}:`,
+        e,
+      );
+    }
+
+    return session;
+  }
+}

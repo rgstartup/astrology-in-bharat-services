@@ -3,32 +3,31 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 
 import configs from './config';
-import { UsersModule } from '@/modules/users/users.module';
+import { UsersModule } from '@/internal/users/users.module';
 import { CoreModule } from '@/core/core.module';
-import { AuthModule } from '@/modules/auth/auth.module';
-import { ClientModule } from '@/modules/client/client.module';
-import { ExpertModule } from '@/modules/expert/expert.module';
+import { AuthModule } from '@/internal/auth/auth.module';
+import { ClientModule } from '@/internal/domains/client/client.module';
+import { ExpertModule } from '@/internal/domains/expert/expert.module';
 import { ExternalModule } from './external/external.module';
-import { FinanceModule } from '@/modules/finance/finance.module';
-import { NotificationModule } from '@/modules/notification/notification.module';
-import { PaymentModule } from '@/modules/payment/payment.module';
-import { FestivalModule } from '@/modules/festival/festival.module';
-import { MatchmakingModule } from '@/modules/matchmaking/matchmaking.module';
-import { QuotesModule } from '@/modules/quotes/quotes.module';
-import { AdminModule } from '@/modules/admin/admin.module';
-import { SupportModule } from '@/modules/support/support.module';
-import { AgentModule } from '@/modules/agent/agent.module';
-import { AstrologyModule } from '@/modules/astrology/astrology.module';
-import { CalendarModule } from '@/modules/calendar/calendar.module';
-import { PlacesModule } from '@/modules/places/places.module';
-import { LocationsModule } from '@/modules/locations/locations.module';
-import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
-import { CommerceModule } from '@/modules/commerce/commerce.module';
-import { MerchantModule } from './modules/merchant/merchant.module';
-import { ConsultationModule } from './modules/consultation/consultation.module';
+import { FinanceModule } from '@/internal/finance/finance.module';
+import { NotificationModule } from '@/internal/notification/notification.module';
+import { FestivalModule } from '@/internal/festival/festival.module';
+import { MatchmakingModule } from '@/internal/matchmaking/matchmaking.module';
+import { QuotesModule } from '@/internal/quotes/quotes.module';
+import { AdminModule } from '@/internal/admin/admin.module';
+import { SupportModule } from '@/internal/support/support.module';
+import { AgentModule } from '@/internal/domains/agent/agent.module';
+import { AstrologyModule } from '@/internal/astrology/astrology.module';
+import { CalendarModule } from '@/internal/calendar/calendar.module';
+import { PlacesModule } from '@/internal/places/places.module';
+import { LocationsModule } from '@/internal/locations/locations.module';
+import { PujaAppointmentModule } from '@/internal/puja-appointment/puja-appointment.module';
+import { CommerceModule } from '@/internal/commerce/commerce.module';
+import { MerchantModule } from '@/internal/domains/merchant/merchant.module';
+import { ConsultationModule } from './internal/consultation/consultation.module';
 import { EmailWorkerModule } from './workers/email/email-worker.module';
 import { APP_GUARD } from '@nestjs/core';
-import { BlockStatusGuard } from '@/common/guards/block-status.guard';
+import { BlockStatusGuard } from '@/shared/guards/block-status.guard';
 
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
@@ -49,7 +48,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     ExternalModule,
     FinanceModule,
     NotificationModule,
-    PaymentModule,
     FestivalModule,
     MatchmakingModule,
     QuotesModule,

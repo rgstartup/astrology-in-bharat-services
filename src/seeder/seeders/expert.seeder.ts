@@ -1,24 +1,24 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource, In } from 'typeorm';
-import * as argon2 from 'argon2';
-import { User } from '@/modules/users/entities/user.entity';
-import { RoleEnum } from '@/modules/users/enums/Role.enum';
-import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
-import { ExpertAccount } from '@/modules/expert/account/entities/account.entity';
-import { Specialization } from '@/modules/expert/specialization/entities/specialization.entity';
-import { ExpertSpecialization } from '@/modules/expert/account/entities/expert-specialization.entity';
-import { ExpertConsultationPricing } from '@/modules/expert/account/entities/expert-consultation-pricing.entity';
+import { hash, argon2id } from 'argon2';
+import { User } from '@/internal/users/entities/user.entity';
+import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
+import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
+import { Specialization } from '@/internal/domains/expert/specialization/entities/specialization.entity';
+import { ExpertSpecialization } from '@/internal/domains/expert/account/entities/expert-specialization.entity';
+import { ExpertConsultationPricing } from '@/internal/domains/expert/account/entities/expert-consultation-pricing.entity';
 import {
   PricingStatus,
   PricingTargetAudience,
-} from '@/modules/expert/shared/enums/pricing.enum';
-import { ExpertKycStatus } from '@/modules/expert/shared/enums/kyc-status.enum';
-import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
-import { Wallet } from '@/modules/finance/wallet/entities/wallet.entity';
-import { Profession } from '@/modules/expert/profession/entities/profession.entity';
-import { ExpertProfession } from '@/modules/expert/profession/entities/expert-profession.entity';
-import { AstrologyService } from '@/modules/astrology/entities/astrology-service.entity';
-import { ExpertAstrologyService } from '@/modules/expert/account/entities/expert-astrology-service.entity';
+} from '@/internal/domains/expert/shared/enums/pricing.enum';
+import { ExpertKycStatus } from '@/internal/domains/expert/shared/enums/kyc-status.enum';
+import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
+import { Wallet } from '@/internal/finance/wallet/entities/wallet.entity';
+import { Profession } from '@/internal/domains/expert/profession/entities/profession.entity';
+import { ExpertProfession } from '@/internal/domains/expert/profession/entities/expert-profession.entity';
+import { AstrologyService } from '@/internal/astrology/entities/astrology-service.entity';
+import { ExpertAstrologyService } from '@/internal/domains/expert/account/entities/expert-astrology-service.entity';
 
 interface ExpertSeedData {
   user: {
@@ -67,7 +67,9 @@ export class ExpertSeeder implements Seeder {
     const profileRepository = dataSource.getRepository(ProfileExpert);
     const specializationRepository = dataSource.getRepository(Specialization);
     const expertSpecRepository = dataSource.getRepository(ExpertSpecialization);
-    const pricingRepository = dataSource.getRepository(ExpertConsultationPricing);
+    const pricingRepository = dataSource.getRepository(
+      ExpertConsultationPricing,
+    );
     const walletRepository = dataSource.getRepository(Wallet);
     const professionRepository = dataSource.getRepository(Profession);
     const expertProfessionRepository =
@@ -82,8 +84,8 @@ export class ExpertSeeder implements Seeder {
       process.env.EXPERT_SEED_PASSWORD ||
       process.env.MERCHANT_SEED_PASSWORD ||
       'Astro@123456';
-    const hashedPassword = await argon2.hash(defaultPassword, {
-      type: argon2.argon2id,
+    const hashedPassword = await hash(defaultPassword, {
+      type: argon2id,
     });
 
     const experts: ExpertSeedData[] = [
@@ -186,10 +188,7 @@ export class ExpertSeeder implements Seeder {
           'gemstone-recommendation',
           'vastu-video-consultation',
         ],
-        devotionalRitualSlugs: [
-          'lakshmi-kuber-havan',
-          'pitra-dosh-shanti',
-        ],
+        devotionalRitualSlugs: ['lakshmi-kuber-havan', 'pitra-dosh-shanti'],
         pricing: {
           chatPrice: 20.0,
           callPrice: 25.0,
@@ -406,7 +405,9 @@ export class ExpertSeeder implements Seeder {
         if (!user.email_verified_at) user.email_verified_at = new Date();
         user.is_blocked = false;
         user = await userRepository.save(user);
-        console.log(`[ExpertSeeder] Updated User credentials for expert: ${email}`);
+        console.log(
+          `[ExpertSeeder] Updated User credentials for expert: ${email}`,
+        );
       }
 
       // 2. Ensure ExpertAccount entity exists
@@ -655,8 +656,6 @@ export class ExpertSeeder implements Seeder {
           }
         }
       }
-
-
 
       seededCount++;
     }

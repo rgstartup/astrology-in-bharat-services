@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Media } from '@/modules/media/entities/media.entity';
+import { Media } from '@/internal/media/entities/media.entity';
 import { CloudinaryProvider } from './cloudinary.provider';
 import { CloudinaryService } from './cloudinary.service';
 import { ImageUploadService } from './image-upload.service';

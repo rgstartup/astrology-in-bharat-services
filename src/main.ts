@@ -5,9 +5,9 @@ import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
-import { UnknownExceptionFilter } from './common/filters/unknown-exception.filter';
+import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
+import { DomainExceptionFilter } from './shared/filters/domain-exception.filter';
+import { UnknownExceptionFilter } from './shared/filters/unknown-exception.filter';
 import * as express from 'express';
 
 async function bootstrap() {

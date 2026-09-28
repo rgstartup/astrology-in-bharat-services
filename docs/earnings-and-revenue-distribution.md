@@ -2,9 +2,9 @@
 
 ## 1. Executive Summary & Overview
 
-The **Unified Earnings Module** (`src/modules/finance/earnings/`) serves as the central revenue engine for **Astrology in Bharat**. It unifies and replaces the previously fragmented `commissions` and `platform-earnings` tables into a coherent, policy-driven financial subsystem.
+The **Unified Earnings Module** (`src/modules/finance/earnings/`) serves as the core transaction revenue engine for **Astrology in Bharat**. It unifies and replaces the previously fragmented `commissions` and `platform-earnings` tables into a coherent, policy-driven financial subsystem.
 
-Whether a transaction originates from an **Astrology Consultation (Call/Chat)**, a **Puja / Ritual Booking**, an **E-Commerce Order**, or an **Affiliate Referral Bounty**, the unified earnings engine guarantees accurate mathematical fee splitting, ledger compliance, tax tracking, and automated wallet credits.
+Whether a transaction originates from an **Astrology Consultation (Call/Chat)**, a **Puja / Ritual Booking**, or an **E-Commerce Order**, the unified earnings engine guarantees accurate mathematical fee splitting, ledger compliance, tax tracking, dedicated marketer agent commissions, and automated wallet payouts.
 
 ```mermaid
 graph TD
@@ -13,15 +13,21 @@ graph TD
     C -->|Specific Expert Override| D[Apply Provider Custom Policy]
     C -->|Volume Tier Match| E[Apply EarningTier Slab]
     C -->|Default Global| F[Apply Global Event Policy]
-    D --> G[Computed Split: Platform + Provider + Agents + GST]
+    D --> G[Computed Split: Platform + Provider + Dedicated Agents + GST]
     E --> G
     F --> G
     G --> H[EarningsFacade.distributeEarnings]
     H --> I[(earning_splits Table)]
     H --> J[Wallet Credit: Provider]
-    H --> K[Wallet Credit: Agent/Affiliate]
+    H --> K[Wallet Credit: Dedicated Agent]
     H --> L[LedgerQueue: GeneralLedgerEntry Platform Revenue]
 ```
+
+> [!NOTE]
+> **Peer Referrals & Signup Bounties Separation**:
+> Peer-to-peer user invitation bounties (Client-to-Client, Expert-to-Peer) are managed exclusively by the **Referral Module** (`src/modules/finance/referrals/`), documented separately in [referral-system-design.md](file:///home/rgstartup/AIB/project/astrology-in-bharat-services/docs/referral-system-design.md).
+>
+> The Earnings Module deals strictly with **per-transaction splits** involving the Platform, Service Providers, and Dedicated Marketers (`RoleEnum.AGENT`).
 
 ---
 
@@ -44,54 +50,56 @@ Stores commission and fee rules configured by Admin or assigned per provider.
 
 | Column | Type | Nullable | Description |
 | :--- | :--- | :--- | :--- |
-| `id` | `UUID` | No | Primary Key |
-| `name` | `VARCHAR(120)` | No | Friendly policy name (e.g. "Default Call Policy") |
-| `event_type` | `ENUM` | No | `CALL`, `CHAT`, `PUJA`, `PRODUCT_ORDER`, `USER_SIGNUP` |
+| `id` | `INT (PK)` | No | Primary Key |
+| `name` | `VARCHAR(150)` | No | Friendly policy name (e.g. "Default Call Policy") |
+| `event_type` | `ENUM` | No | `CALL`, `CHAT`, `PUJA`, `PRODUCT_ORDER` |
 | `platform_cut_type` | `ENUM` | No | `FIXED` (flat rupee/unit) or `PERCENTAGE` (%) |
 | `platform_cut_value` | `DECIMAL(10,2)` | No | Rate value (e.g. ₹2.00/min or 10.00%) |
+| `buyer_platform_fee` | `DECIMAL(10,2)` | No | Buyer convenience fee (if applicable) |
 | `gst_rate_percent` | `DECIMAL(5,2)` | No | GST percentage on platform fee (default 18.00%) |
-| `seller_agent_rate` | `DECIMAL(5,2)` | No | Affiliate cut for bringing seller/expert (%) |
-| `buyer_agent_rate` | `DECIMAL(5,2)` | No | Affiliate cut for bringing customer (%) |
-| `referral_reward_amount` | `DECIMAL(10,2)` | No | Flat signup bounty (e.g. ₹50.00) |
-| `min_amount` | `DECIMAL(10,2)` | Yes | Minimum gross transaction value |
+| `seller_agent_rate` | `DECIMAL(6,4)` | No | Dedicated agent cut for onboarding provider (%) |
+| `buyer_agent_rate` | `DECIMAL(6,4)` | No | Dedicated agent cut for onboarding client (%) |
+| `min_amount` | `DECIMAL(10,2)` | No | Minimum gross transaction value (default: 0.00) |
 | `max_cap` | `DECIMAL(10,2)` | Yes | Maximum platform cut cap |
 | `priority` | `INT` | No | Rule priority (higher numbers match first) |
+| `applies_to_role` | `ENUM` | No | `ALL`, `EXPERT`, `MERCHANT`, `CLIENT` |
 | `applies_to_user_id` | `INT` | Yes | Specific user/expert ID override |
 | `is_active` | `BOOLEAN` | No | Active toggle |
-| `effective_from` | `TIMESTAMP` | No | Valid starting date |
-| `effective_to` | `TIMESTAMP` | Yes | Expiry date |
+| `effective_from` | `TIMESTAMPTZ` | No | Valid starting date |
+| `effective_to` | `TIMESTAMPTZ` | Yes | Expiry date |
 
 #### 2. `earning_tiers`
 Defines slab-based incentives and reduced platform cut for high-volume transactions.
 
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `id` | `UUID` | Primary Key |
-| `policy_id` | `UUID` | Foreign key referencing `earning_policies.id` |
+| `id` | `INT (PK)` | Primary Key |
+| `policy_id` | `INT` | Foreign key referencing `earning_policies.id` |
 | `min_threshold` | `DECIMAL(10,2)` | Minimum amount for slab |
 | `max_threshold` | `DECIMAL(10,2)` | Maximum amount (null for unbounded) |
 | `platform_rate` | `DECIMAL(10,2)` | Platform rate for this slab |
+| `agent_rate` | `DECIMAL(10,2)` | Agent rate for this slab |
 
 #### 3. `earning_splits`
 Immutable audit log recording exact split breakdown for every transaction.
 
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `id` | `UUID` | Primary Key |
-| `reference_id` | `VARCHAR(120)` | `call_123`, `chat_456`, `order_789`, `puja_101` |
-| `reference_type` | `ENUM` | `CALL`, `CHAT`, `PUJA`, `PRODUCT_ORDER`, `USER_SIGNUP` |
-| `gross_amount` | `DECIMAL(10,2)` | Total customer charge |
-| `platform_earning` | `DECIMAL(10,2)` | Platform revenue |
-| `gst_on_platform_fee` | `DECIMAL(10,2)` | Embedded GST component |
-| `provider_earning` | `DECIMAL(10,2)` | Net credited to Expert/Merchant/Priest |
-| `seller_agent_earning` | `DECIMAL(10,2)` | Affiliate share for onboarded provider |
-| `buyer_agent_earning` | `DECIMAL(10,2)` | Affiliate share for customer |
-| `referral_earning` | `DECIMAL(10,2)` | One-time referral bounty |
+| `id` | `BIGINT (PK)` | Primary Key |
+| `reference_id` | `VARCHAR(100)` | `call_123`, `chat_456`, `order_789`, `puja_101` |
+| `reference_type` | `ENUM` | `CALL`, `CHAT`, `PUJA`, `PRODUCT_ORDER` |
+| `gross_amount` | `DECIMAL(12,2)` | Total customer charge |
+| `platform_earning` | `DECIMAL(12,2)` | Platform gross revenue |
+| `gst_on_platform_fee` | `DECIMAL(12,2)` | Embedded GST component |
+| `provider_earning` | `DECIMAL(12,2)` | Net credited to Expert/Merchant/Priest |
+| `seller_agent_earning` | `DECIMAL(12,2)` | Commission for agent who onboarded provider |
+| `buyer_agent_earning` | `DECIMAL(12,2)` | Commission for agent who onboarded customer |
 | `client_profile_id` | `INT` | Client ID |
 | `provider_profile_id` | `INT` | Expert / Merchant / Priest profile ID |
-| `seller_agent_profile_id` | `INT` | Agent profile ID |
-| `policy_id` | `UUID` | Policy ID used for calculation |
-| `created_at` | `TIMESTAMP` | Timestamp |
+| `seller_agent_profile_id` | `INT` | Seller Agent profile ID |
+| `buyer_agent_profile_id` | `INT` | Buyer Agent profile ID |
+| `policy_id` | `INT` | Policy ID used for calculation |
+| `created_at` | `TIMESTAMPTZ` | Timestamp |
 
 ---
 
@@ -131,11 +139,11 @@ Immutable audit log recording exact split breakdown for every transaction.
 
 ---
 
-### Scenario 2: Consultation with Affiliate / Agent Referral Commission
+### Scenario 2: Consultation with Dedicated Agent Revenue Sharing
 
 **Business Model**:
-- The Astrologer was onboarded by Agent A (Seller Agent, 2% commission).
-- The Client was referred by Agent B (Buyer Agent, 1% commission).
+- The Astrologer was onboarded by **Agent A** (Dedicated Seller Agent, 2% commission rate).
+- The Client was onboarded by **Agent B** (Dedicated Marketer Agent, 1% commission rate).
 - Call duration: 15 minutes at ₹30/minute.
 
 #### Math Walkthrough:
@@ -145,10 +153,10 @@ Immutable audit log recording exact split breakdown for every transaction.
 4. **Buyer Agent Commission (1%)**: `₹450.00 * 0.01 = ₹4.50`
 5. **Astrologer Net Earning**: `₹450.00 - (₹45.00 + ₹9.00 + ₹4.50) = ₹391.50`
 6. **Wallet Disbursements**:
-   - Astrologer Wallet: Credited ₹391.50
-   - Agent A (Seller Agent): Credited ₹9.00
-   - Agent B (Buyer Agent): Credited ₹4.50
-   - Platform Revenue Ledger: Credited ₹45.00
+   - Astrologer Wallet: Credited **₹391.50**
+   - Agent A (Seller Agent): Credited **₹9.00**
+   - Agent B (Buyer Agent): Credited **₹4.50**
+   - Platform Revenue Ledger: Credited **₹45.00**
 
 ---
 
@@ -303,7 +311,7 @@ export class OrderFulfillmentService {
 
 ## 6. Summary of Architectural Advantages
 
-1. **Single Source of Financial Truth**: No conflicting commission rules or fragmented ledgers.
+1. **Clean Separation of Concerns**: Transaction splits and ongoing agent revenue sharing are strictly isolated from one-time growth referral bounties.
 2. **Granular Multi-Party Revenue Sharing**: Supports Platform + Provider + Seller Agent + Buyer Agent + Tax in a single transaction.
 3. **High Extensibility**: Adding new services (e.g. Courses, Workshops, Horoscope Reports) only requires adding a new `EarningEventType` enum value and policy.
 4. **Audit Trail**: Every rupee disbursed is linked directly to an immutable `earning_splits` record and verified against `general_ledger_entries`.

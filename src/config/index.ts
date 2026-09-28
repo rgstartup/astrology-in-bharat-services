@@ -3,6 +3,7 @@ import authConfig from './auth.config';
 import databaseConfig from './db.config';
 import cloudinaryConfig from './cloudinary.config';
 import redisConfig from './redis.config';
+import razorpayConfig from './razorpay.config';
 
 export default [
   databaseConfig,
@@ -10,4 +11,6 @@ export default [
   emailConfig,
   cloudinaryConfig,
   redisConfig,
+  razorpayConfig,
 ];
+

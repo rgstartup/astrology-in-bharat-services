@@ -1,6 +1,6 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { SystemSetting } from '@/modules/admin/entities/system-setting.entity';
+import { SystemSetting } from '@/internal/admin/entities/system-setting.entity';
 
 export class SystemSettingSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {

@@ -1,11 +1,11 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import * as argon2 from 'argon2';
-import { User } from '@/modules/users/entities/user.entity';
-import { RoleEnum } from '@/modules/users/enums/Role.enum';
-import { PlatformEnum } from '@/modules/users/enums/Platform.enum';
-import { ClientAccount } from '@/modules/client/account/entities/account.entity';
-import { Wallet } from '@/modules/finance/wallet/entities/wallet.entity';
+import { User } from '@/internal/users/entities/user.entity';
+import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
+import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientWallet } from '@/internal/domains/client/wallet/entities/client-wallet.entity';
 import { nanoid } from 'nanoid';
 
 interface ClientSeedData {
@@ -37,7 +37,7 @@ export class ClientSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {
     const userRepository = dataSource.getRepository(User);
     const accountRepository = dataSource.getRepository(ClientAccount);
-    const walletRepository = dataSource.getRepository(Wallet);
+    const walletRepository = dataSource.getRepository(ClientWallet);
 
     const defaultPassword = process.env.CLIENT_SEED_PASSWORD || 'Client@123456';
     const hashedPassword = await argon2.hash(defaultPassword, {

@@ -1,0 +1,32 @@
+import { Injectable } from '@nestjs/common';
+import { FindAllTodosUseCase } from './use-cases/find-all-todos.use-case';
+import { CreateTodoUseCase } from './use-cases/create-todo.use-case';
+import { UpdateTodoUseCase } from './use-cases/update-todo.use-case';
+import { RemoveTodoUseCase } from './use-cases/remove-todo.use-case';
+import { CreateTodoDto, UpdateTodoDto } from './dto/todo.dto';
+
+@Injectable()
+export class TodosService {
+  constructor(
+    private readonly findAllTodosUseCase: FindAllTodosUseCase,
+    private readonly createTodoUseCase: CreateTodoUseCase,
+    private readonly updateTodoUseCase: UpdateTodoUseCase,
+    private readonly removeTodoUseCase: RemoveTodoUseCase,
+  ) {}
+
+  async findAll(expertProfileId: number) {
+    return this.findAllTodosUseCase.execute(expertProfileId);
+  }
+
+  async create(expertProfileId: number, dto: CreateTodoDto) {
+    return this.createTodoUseCase.execute(expertProfileId, dto);
+  }
+
+  async update(expertProfileId: number, id: number, dto: UpdateTodoDto) {
+    return this.updateTodoUseCase.execute(expertProfileId, id, dto);
+  }
+
+  async remove(expertProfileId: number, id: number) {
+    return this.removeTodoUseCase.execute(expertProfileId, id);
+  }
+}

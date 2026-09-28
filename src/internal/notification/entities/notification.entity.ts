@@ -1,0 +1,84 @@
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
+import { RoleEnum } from '@/internal/users/enums/Role.enum';
+
+export type ProfileType = Exclude<RoleEnum, RoleEnum.ADMIN>;
+
+export enum NotificationType {
+  ORDER_CREATED = 'order_created',
+  ORDER_PLACED = 'order_placed',
+  ORDER_PACKED = 'order_packed',
+  ORDER_SHIPPED = 'order_shipped',
+  ORDER_DELIVERED = 'order_delivered',
+  ORDER_CANCELLED = 'order_cancelled',
+  WALLET_RECHARGE = 'wallet_recharge',
+  PUJA_BOOKING = 'puja_booking',
+  GENERAL = 'general',
+}
+
+@Entity({ schema: 'support', name: 'notifications' })
+export class Notification {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column({ name: 'client_id', type: 'int', nullable: true })
+  client_id!: number | null;
+
+  @ManyToOne(() => ClientAccount, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'client_id' })
+  client!: ClientAccount | null;
+
+  @Column({ name: 'expert_id', type: 'int', nullable: true })
+  expert_id!: number | null;
+
+  @ManyToOne(() => ProfileExpert, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'expert_id' })
+  expert!: ProfileExpert | null;
+
+  @Column({ name: 'merchant_id', type: 'int', nullable: true })
+  merchant_id!: number | null;
+
+  @ManyToOne(() => MerchantAccount, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'merchant_id' })
+  merchant!: MerchantAccount | null;
+
+  @Column({ name: 'agent_id', type: 'int', nullable: true })
+  agent_id!: number | null;
+
+  @ManyToOne(() => ProfileAgent, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'agent_id' })
+  agent!: ProfileAgent | null;
+
+  @Column({
+    type: 'enum',
+    enum: NotificationType,
+    default: NotificationType.GENERAL,
+    nullable: true,
+  })
+  type!: NotificationType | null;
+
+  @Column({ type: 'character varying', length: 255 })
+  title!: string;
+
+  @Column({ type: 'text' })
+  message!: string;
+
+  @Column({ name: 'is_read', default: false })
+  is_read!: boolean;
+
+  @Column({ type: 'json', nullable: true })
+  metadata?: Record<string, unknown>; // orderId, etc.
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
+}
