@@ -11,10 +11,11 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { users } from './users.schema';
+import { users } from '../users/users.schema';
 import { UserStatusEnum } from '@/shared/enums/user-status.enum';
+import { clientFavorites } from './client-favorites.schema';
 
-export const clientSchema = pgSchema('client');
+const clientSchema = pgSchema('client');
 
 export const userStatusEnum = pgEnum('user_status', UserStatusEnum);
 
@@ -31,18 +32,6 @@ export interface ClientPreferences {
 /**
  * Drizzle mirror of `ClientAccount` (`client.account` TypeORM entity).
  * Source: src/internal/domains/client/account/entities/account.entity.ts
- *
- * Keys are snake_case end-to-end (JS keys match DB columns).
- *
- * Notes for gradual migration:
- * - `user_id` is OneToOne in TypeORM (unique). Kept unique here.
- * - `public_id` was generated with `nanoid(12)` in `@BeforeInsert()`.
- *   Generate it in the application layer before insert.
- * - `avatar_id` intentionally has NO FK yet (`media` not migrated).
- * - `addresses` (shared Address entity) not migrated yet — no relation here.
- * - `gender` is `text` + CHECK in Postgres, kept as text to avoid migration.
- * - `total_spending` is numeric; Drizzle returns string. Convert in app layer
- *   (same role as the old ColumnNumericTransformer).
  */
 export const clientAccounts = clientSchema.table('account', {
   id: serial('id').primaryKey(),
@@ -86,12 +75,16 @@ export const clientAccounts = clientSchema.table('account', {
     .defaultNow(),
 });
 
-export const clientAccountsRelations = relations(clientAccounts, ({ one }) => ({
-  user: one(users, {
-    fields: [clientAccounts.user_id],
-    references: [users.id],
+export const clientAccountsRelations = relations(
+  clientAccounts,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [clientAccounts.user_id],
+      references: [users.id],
+    }),
+    favorites: many(clientFavorites),
   }),
-}));
+);
 
 export type ClientAccountRow = typeof clientAccounts.$inferSelect;
 export type NewClientAccountRow = typeof clientAccounts.$inferInsert;

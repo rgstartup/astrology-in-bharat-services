@@ -49,6 +49,9 @@ export class FavoriteProductVariantController {
     @CurrentClient('id') clientId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.favoritesService.removeProductVariantFromFavorites(clientId, id);
+    return this.favoritesService.removeProductVariantFromFavorites(
+      clientId,
+      id,
+    );
   }
 }

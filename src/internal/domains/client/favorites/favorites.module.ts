@@ -1,9 +1,4 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Favorites } from './entities/favorites.entity';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
-import { Product } from '@/internal/commerce/product/entities/product.entity';
-import { ProductVariant } from '@/internal/commerce/product/entities/variants.entity';
 import { FavoriteExpertController } from './controllers/expert.controller';
 import { FavoriteProductController } from './controllers/product.controller';
 import { FavoriteProductVariantController } from './controllers/product-variant.controller';
@@ -31,14 +26,7 @@ const usecases = [
 ];
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Favorites,
-      ExpertAccount,
-      Product,
-      ProductVariant,
-    ]),
-  ],
+  imports: [],
   controllers: [
     FavoriteExpertController,
     FavoriteProductController,

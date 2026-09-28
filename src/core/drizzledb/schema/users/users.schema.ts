@@ -24,14 +24,6 @@ export const adminPermissionEnum = pgEnum('admin_permission', AdminPermission);
 /**
  * Drizzle mirror of `User` (`public.users` TypeORM entity).
  * Source: src/internal/users/entities/user.entity.ts
- *
- * Keys are snake_case end-to-end (JS keys match DB columns).
- *
- * Notes for gradual migration:
- * - `password` was `select: false` in TypeORM. With Drizzle, exclude it
- *   explicitly in queries (omit column or use a whitelisted select).
- * - `avatar_id` intentionally has NO FK yet. `media` is not migrated;
- *   keep it a plain integer until the media schema lands in Drizzle.
  */
 export const users = pgTable(
   'users',

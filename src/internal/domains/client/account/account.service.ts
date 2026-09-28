@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { QueryRunner } from 'typeorm';
 import { GetAccountUseCase } from './use-cases/get-account.usecase';
 import { CreateAccountUseCase } from './use-cases/create-account.usecase';
 import { UpdateAccountUseCase } from './use-cases/update-account.usecase';
@@ -26,19 +25,12 @@ export class AccountService {
     private readonly verifyPhoneOtpUseCase: VerifyPhoneOtpUseCase,
   ) {}
 
-  async getAccount(
-    client: ClientAccount | { id: number | string },
-    queryRunner?: QueryRunner,
-  ): Promise<ClientAccount | null> {
-    return this.getAccountUseCase.execute(client, queryRunner);
+  async getAccount(client: ClientAccount | { id: number | string }) {
+    return this.getAccountUseCase.execute(client);
   }
 
-  async createAccount(
-    userId: number | string,
-    dto: CreateClientAccountDto,
-    queryRunner?: QueryRunner,
-  ): Promise<ClientAccount> {
-    return this.createAccountUseCase.execute(userId, dto, queryRunner);
+  async createAccount(userId: number | string, dto: CreateClientAccountDto) {
+    return this.createAccountUseCase.execute(userId, dto);
   }
 
   async updateAccount(
@@ -48,7 +40,10 @@ export class AccountService {
     return this.updateAccountUseCase.execute(client, dto);
   }
 
-  async updateAccountPicture(clientId: number | string, file: Express.Multer.File) {
+  async updateAccountPicture(
+    clientId: number | string,
+    file: Express.Multer.File,
+  ) {
     return this.updateAccountPictureUseCase.execute(clientId, file);
   }
 

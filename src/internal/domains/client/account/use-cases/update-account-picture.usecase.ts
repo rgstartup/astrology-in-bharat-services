@@ -1,15 +1,17 @@
 import {
-  Injectable,
-  Logger,
   BadRequestException,
   HttpException,
+  Inject,
+  Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientAccounts, users } from '@/core/drizzledb/schema';
 import { ImageUploadService } from '@/external/cloudinary';
-import { ClientAccount } from '../entities/account.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { DatabaseService } from '@/core/database/database.service';
 
 @Injectable()
 export class UpdateAccountPictureUseCase {
@@ -17,7 +19,7 @@ export class UpdateAccountPictureUseCase {
 
   constructor(
     private readonly imageUploadService: ImageUploadService,
-    private readonly db: DatabaseService,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
   async execute(clientId: number | string, file: Express.Multer.File) {
@@ -36,43 +38,46 @@ export class UpdateAccountPictureUseCase {
         );
       }
 
-      await this.db.transaction(async (queryRunner) => {
-        const account = await queryRunner.manager.findOne(ClientAccount, {
-          select: {
-            id: true,
-            avatar: true,
-            avatar_id: true,
-            user: {
-              id: true,
-              avatar: true,
-              avatar_id: true,
-            },
-          },
-          where: { id: Number(clientId) },
-          relations: ['user'],
-        });
+      await this.db.transaction(async (tx) => {
+        const [account] = await tx
+          .select({
+            id: clientAccounts.id,
+            user_id: clientAccounts.user_id,
+            avatar: clientAccounts.avatar,
+          })
+          .from(clientAccounts)
+          .where(eq(clientAccounts.id, Number(clientId)))
+          .limit(1);
 
         if (!account) {
           throw new NotFoundException('Client not found');
         }
 
-        const updatedClient = new ClientAccount();
-        updatedClient.id = account.id;
-        updatedClient.avatar = pictureUrl || account.avatar;
+        const avatar = pictureUrl || account.avatar;
+        const updated_at = new Date();
+
+        const accountPatch: Partial<typeof clientAccounts.$inferInsert> = {
+          avatar,
+          updated_at,
+        };
         if (mediaId !== null) {
-          updatedClient.avatar_id = mediaId;
+          accountPatch.avatar_id = mediaId;
         }
 
-        const updatedUser = new User();
-        updatedUser.id = account.user.id;
-        updatedUser.avatar = pictureUrl || account.avatar;
+        const userPatch: Partial<typeof users.$inferInsert> = {
+          avatar,
+          updated_at,
+        };
         if (mediaId !== null) {
-          updatedUser.avatar_id = mediaId;
+          userPatch.avatar_id = mediaId;
         }
 
-        return Promise.all([
-          queryRunner.manager.save(ClientAccount, updatedClient),
-          queryRunner.manager.save(User, updatedUser),
+        await Promise.all([
+          tx
+            .update(clientAccounts)
+            .set(accountPatch)
+            .where(eq(clientAccounts.id, account.id)),
+          tx.update(users).set(userPatch).where(eq(users.id, account.user_id)),
         ]);
       });
 

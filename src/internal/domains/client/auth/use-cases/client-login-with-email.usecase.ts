@@ -20,7 +20,7 @@ import {
 } from '@/core/drizzledb/schema';
 import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
 import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { OtpPurposeEnum } from '@/internal/auth/entities/otp.entity';
+import { OtpPurposeEnum } from '@/internal/auth/enums/otp-purpose.enum';
 import { ClientLoginDto } from '../dto/client-login.dto';
 import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
 import { IAccessTokenPayloadClient } from '@/shared/types/access-token.payload';

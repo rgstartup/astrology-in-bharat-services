@@ -1,41 +1,48 @@
-import { Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Inject, Injectable } from '@nestjs/common';
+import { and, eq, getTableColumns, ilike, or, type SQL } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientFavorites, expertAccounts } from '@/core/drizzledb/schema';
 import { FavoriteItemType } from '../enum';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
 import { FindFavoriteExpertsDto } from '../dto/favorite-expert.dto';
 
 @Injectable()
 export class FindFavoriteExpertsUseCase {
-  constructor(
-    @InjectRepository(ExpertAccount)
-    private readonly expertRepository: Repository<ExpertAccount>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(clientId: number, query?: FindFavoriteExpertsDto) {
-    const queryBuilder = this.expertRepository
-      .createQueryBuilder('expert')
-      .innerJoin(
-        'favorites',
-        'fav',
-        'fav.item_id = expert.id AND fav.client_id = :clientId AND fav.item_type = :itemType',
-        { clientId, itemType: FavoriteItemType.EXPERT },
-      );
+    const whereConditions: SQL[] = [
+      eq(clientFavorites.client_id, clientId),
+      eq(clientFavorites.item_type, FavoriteItemType.EXPERT),
+    ];
 
     if (query?.search) {
-      queryBuilder.andWhere(
-        '(expert.name ILIKE :search OR expert.email ILIKE :search)',
-        { search: `%${query.search}%` },
+      const searchPattern = `%${query.search}%`;
+      const searchCondition = or(
+        ilike(expertAccounts.name, searchPattern),
+        ilike(expertAccounts.email, searchPattern),
       );
+      if (searchCondition) {
+        whereConditions.push(searchCondition);
+      }
     }
+
+    let q = this.db
+      .select(getTableColumns(expertAccounts))
+      .from(expertAccounts)
+      .innerJoin(
+        clientFavorites,
+        eq(clientFavorites.item_id, expertAccounts.id),
+      )
+      .where(and(...whereConditions));
 
     if (query?.limit) {
-      queryBuilder.take(query.limit);
+      q = q.limit(query.limit) as typeof q;
     }
     if (query?.offset) {
-      queryBuilder.skip(query.offset);
+      q = q.offset(query.offset) as typeof q;
     }
 
-    return queryBuilder.getMany();
+    return await q;
   }
 }

@@ -1,11 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
-import { ClientAccount } from '../account/entities/account.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { OAuthAccount } from '@/internal/auth/entities/oauth-accounts.entity';
-import { Session } from '@/internal/auth/entities/session.entity';
-import { Otp } from '@/internal/auth/entities/otp.entity';
 import { DatabaseModule } from '@/core/database/database.module';
 import { ExternalModule } from '@/external/external.module';
 import { QueueModule } from '@/core/queue/queue.module';
@@ -38,7 +32,6 @@ const useCases = [
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ClientAccount, User, OAuthAccount, Session, Otp]),
     PassportModule,
     DatabaseModule,
     ExternalModule,
@@ -67,7 +60,6 @@ const useCases = [
     ClientJwtAuthGuard,
     ClientGoogleAuthGuard,
     ClientJwtRefreshAuthGuard,
-    TypeOrmModule,
   ],
 })
 export class AuthModule {}

@@ -1,8 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { eq, or } from 'drizzle-orm';
 import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
-import { Repository } from 'typeorm';
-import { ClientAccount } from '../entities/account.entity';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientAccounts } from '@/core/drizzledb/schema';
 import twilio from 'twilio';
 import { VerifyPhoneOtpDto } from '../dto/phone-otp.dto';
 
@@ -10,10 +11,7 @@ import { VerifyPhoneOtpDto } from '../dto/phone-otp.dto';
 export class VerifyPhoneOtpUseCase {
   private twilioClient!: twilio.Twilio;
 
-  constructor(
-    @InjectRepository(ClientAccount)
-    private readonly accountRepo: Repository<ClientAccount>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     userId: number | string,
@@ -31,16 +29,7 @@ export class VerifyPhoneOtpUseCase {
     if (!serviceSid) {
       if (process.env.NODE_ENV === 'development') {
         if (code === '123456') {
-          const account = await this.accountRepo.findOne({
-            where: [{ id: Number(userId) }, { user: { id: Number(userId) } }],
-          });
-          if (!account) {
-            throw new BadRequestException('Account not found.');
-          }
-
-          account.phone = phone;
-          account.phone_verified_at = new Date();
-          await this.accountRepo.save(account);
+          await this.markPhoneVerified(Number(userId), phone);
 
           return new BooleanMessage(
             true,
@@ -70,16 +59,7 @@ export class VerifyPhoneOtpUseCase {
         .verificationChecks.create({ to: formattedPhone, code });
 
       if (verificationCheck.status === 'approved') {
-        const account = await this.accountRepo.findOne({
-          where: [{ id: Number(userId) }, { user: { id: Number(userId) } }],
-        });
-        if (!account) {
-          throw new BadRequestException('Account not found.');
-        }
-
-        account.phone = phone;
-        account.phone_verified_at = new Date();
-        await this.accountRepo.save(account);
+        await this.markPhoneVerified(Number(userId), phone);
 
         return new BooleanMessage(true, 'Phone number verified successfully');
       } else {
@@ -89,5 +69,24 @@ export class VerifyPhoneOtpUseCase {
       const err = error as Error;
       throw new BadRequestException(`Verification failed: ${err.message}`);
     }
+  }
+
+  private async markPhoneVerified(userId: number, phone: string) {
+    const [account] = await this.db
+      .select({ id: clientAccounts.id })
+      .from(clientAccounts)
+      .where(
+        or(eq(clientAccounts.id, userId), eq(clientAccounts.user_id, userId)),
+      )
+      .limit(1);
+
+    if (!account) {
+      throw new BadRequestException('Account not found.');
+    }
+
+    await this.db
+      .update(clientAccounts)
+      .set({ phone, phone_verified_at: new Date(), updated_at: new Date() })
+      .where(eq(clientAccounts.id, account.id));
   }
 }

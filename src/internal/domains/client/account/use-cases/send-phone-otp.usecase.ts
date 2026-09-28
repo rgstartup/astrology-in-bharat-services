@@ -1,21 +1,19 @@
 import twilio from 'twilio';
-import { Repository } from 'typeorm';
+import { eq } from 'drizzle-orm';
 
-import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientAccounts } from '@/core/drizzledb/schema';
 
-import { ClientAccount } from '../entities/account.entity';
 import { SendPhoneOtpDto } from '../dto/phone-otp.dto';
 
 @Injectable()
 export class SendPhoneOtpUseCase {
   private twilioClient!: twilio.Twilio;
 
-  constructor(
-    @InjectRepository(ClientAccount)
-    private readonly accountRepo: Repository<ClientAccount>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     userId: number | string,
@@ -51,14 +49,19 @@ export class SendPhoneOtpUseCase {
       this.twilioClient = twilio(accountSid, authToken);
     }
 
-    const existingAccount = await this.accountRepo.findOne({
-      where: { phone },
-      relations: ['user'],
-    });
+    const [existingAccount] = await this.db
+      .select({
+        id: clientAccounts.id,
+        user_id: clientAccounts.user_id,
+        phone_verified_at: clientAccounts.phone_verified_at,
+      })
+      .from(clientAccounts)
+      .where(eq(clientAccounts.phone, phone))
+      .limit(1);
 
     if (
       existingAccount &&
-      existingAccount.user?.id !== Number(userId) &&
+      existingAccount.user_id !== Number(userId) &&
       existingAccount.id !== Number(userId) &&
       existingAccount.phone_verified_at
     ) {

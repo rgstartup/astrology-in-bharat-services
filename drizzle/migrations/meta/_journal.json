@@ -8,6 +8,20 @@
       "when": 1790595445044,
       "tag": "0000_tearful_zaran",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790600321398,
+      "tag": "0001_faulty_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790601944157,
+      "tag": "0002_remarkable_inhumans",
+      "breakpoints": true
     }
   ]
 }

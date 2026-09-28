@@ -19,7 +19,7 @@ import {
   type UserRow,
 } from '@/core/drizzledb/schema';
 import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
-import { OtpPurposeEnum } from '@/internal/auth/entities/otp.entity';
+import { OtpPurposeEnum } from '@/internal/auth/enums/otp-purpose.enum';
 import { CompleteClientRegisterDto } from '../dto/client-register.dto';
 import { TokenCryptoService } from '../services/token-crypto.service';
 import { IAccessTokenPayloadClient } from '@/shared/types/access-token.payload';

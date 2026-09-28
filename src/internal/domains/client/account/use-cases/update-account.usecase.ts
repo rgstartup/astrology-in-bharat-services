@@ -1,117 +1,189 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
+import {
+  addresses,
+  clientAccounts,
+  users,
+  type ClientAccountRow,
+} from '@/core/drizzledb/schema';
+import { AddressTag } from '@/shared/enums/address-tag.enum';
+import { AddressType } from '@/shared/enums/address-type.enum';
 import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
-import { User } from '@/internal/users/entities/user.entity';
-import { Address, AddressTag } from '@/shared/address/address.entity';
-
-import { ClientAccount } from '../entities/account.entity';
 import { UpdateClientAccountDto } from '../dto/account.dto';
-import { DatabaseService } from '@/core/database/database.service';
+import type { ClientAccount } from '../entities/account.entity';
+
+type AddressInput = {
+  line1?: string;
+  line2?: string;
+  house_no?: string;
+  city?: string;
+  district?: string;
+  state?: string;
+  country?: string;
+  zip_code?: string;
+  pincode?: string;
+  is_primary?: boolean;
+  tag?: AddressTag;
+  type?: AddressType;
+};
 
 @Injectable()
 export class UpdateAccountUseCase {
   private readonly logger = new Logger(UpdateAccountUseCase.name);
 
-  constructor(private readonly db: DatabaseService) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     client: ClientAccount | { id: number | string },
     dto: UpdateClientAccountDto,
   ) {
-    await this.db.transaction(async (queryRunner) => {
-      const account = await queryRunner.manager.findOne(ClientAccount, {
-        where: { id: Number(client.id) },
-        relations: ['user', 'addresses'],
-      });
+    await this.db.transaction(async (tx) => {
+      const account = await this.findAccount(tx, Number(client.id));
 
       if (!account) {
         throw new NotFoundException('Client account not found');
       }
 
-      const { full_name, addresses, ...scalarFields } =
-        dto as UpdateClientAccountDto & {
-          full_name?: string;
-          addresses?: Record<string, unknown>[];
-        };
+      const {
+        full_name,
+        addresses: addressInputs,
+        ...scalarFields
+      } = dto as UpdateClientAccountDto & {
+        full_name?: string;
+        addresses?: AddressInput[];
+      };
 
-      // Sync name in User table if provided
+      const accountPatch: Partial<typeof clientAccounts.$inferInsert> = {};
+      const userPatch: Partial<typeof users.$inferInsert> = {};
+
+      // Sync name in users table if provided
       if (full_name !== undefined) {
-        account.name = full_name;
-        if (account.user?.id) {
-          await queryRunner.manager.update(
-            User,
-            { id: account.user.id },
-            { full_name, name: full_name },
-          );
-        }
+        accountPatch.name = full_name;
+        userPatch.full_name = full_name;
+        userPatch.name = full_name;
       }
 
       if (dto.first_name) {
-        account.first_name = dto.first_name;
+        accountPatch.first_name = dto.first_name;
       }
 
       if (dto.last_name) {
-        account.last_name = dto.last_name;
+        accountPatch.last_name = dto.last_name;
       }
 
-      // Sync avatar and avatar_id in User table if provided
-      const fields = scalarFields as Record<string, unknown>;
-      const userUpdates: Record<string, unknown> = {};
-      if (fields.avatar !== undefined) {
-        userUpdates.avatar = fields.avatar as string;
+      // Sync avatar and avatar_id in users table if provided
+      if (scalarFields.avatar !== undefined) {
+        accountPatch.avatar = scalarFields.avatar ?? null;
+        userPatch.avatar = scalarFields.avatar ?? null;
       }
-      if (fields.avatar_id !== undefined) {
-        userUpdates.avatar_id = fields.avatar_id as number;
-      }
-      if (Object.keys(userUpdates).length > 0 && account.user?.id) {
-        await queryRunner.manager.update(
-          User,
-          { id: account.user.id },
-          userUpdates,
-        );
+      if (scalarFields.avatar_id !== undefined) {
+        accountPatch.avatar_id = scalarFields.avatar_id ?? null;
+        userPatch.avatar_id = scalarFields.avatar_id ?? null;
       }
 
-      // Merge preferences if provided
+      // Merge preferences instead of overwriting
       if (scalarFields.preferences !== undefined) {
-        account.preferences = {
-          ...(account.preferences || {}),
-          ...(scalarFields.preferences as object),
+        accountPatch.preferences = {
+          ...((account.preferences as Record<string, unknown> | null) ?? {}),
+          ...(scalarFields.preferences as Record<string, unknown>),
         };
-        delete scalarFields.preferences;
       }
 
-      // Apply scalar fields to the account
-      Object.assign(account, scalarFields);
+      // Apply remaining scalar fields (whitelisted to real columns)
+      const scalarPatch = this.pickScalarFields(scalarFields);
+      Object.assign(accountPatch, scalarPatch);
 
-      // Handle addresses update (cascade)
-      if (addresses !== undefined && Array.isArray(addresses)) {
-        if (account.addresses && account.addresses.length > 0) {
-          await queryRunner.manager.remove(Address, account.addresses);
+      if (Object.keys(userPatch).length > 0) {
+        await tx
+          .update(users)
+          .set(userPatch)
+          .where(eq(users.id, account.user_id));
+      }
+
+      if (Object.keys(accountPatch).length > 0) {
+        accountPatch.updated_at = new Date();
+        await tx
+          .update(clientAccounts)
+          .set(accountPatch)
+          .where(eq(clientAccounts.id, account.id));
+      }
+
+      // Replace addresses (cascade)
+      if (addressInputs !== undefined && Array.isArray(addressInputs)) {
+        await tx
+          .delete(addresses)
+          .where(eq(addresses.client_account_id, account.id));
+
+        if (addressInputs.length > 0) {
+          await tx.insert(addresses).values(
+            addressInputs.map((addr) => ({
+              street:
+                [addr.line1, addr.line2].filter(Boolean).join(', ') ||
+                addr.house_no ||
+                '',
+              house_no: addr.house_no,
+              city: addr.city,
+              district: addr.district,
+              state: addr.state,
+              country: addr.country,
+              zip_code: addr.zip_code || addr.pincode || null,
+              pincode: addr.pincode,
+              is_primary: addr.is_primary ?? false,
+              tag: addr.tag || AddressTag.OTHER,
+              type: addr.type || AddressType.SHIPPING,
+              client_account_id: account.id,
+            })),
+          );
         }
-        account.addresses = addresses.map((addr) => {
-          const addrData: Partial<Address> = {
-            line1:
-              [addr.line1, addr.line2].filter(Boolean).join(', ') ||
-              (addr.house_no as string) ||
-              '',
-            house_no: addr.house_no,
-            city: addr.city,
-            district: addr.district,
-            state: addr.state,
-            country: addr.country,
-            zip_code: addr.zip_code || addr.pincode || '',
-            pincode: addr.pincode,
-            is_primary: addr.is_primary ?? false,
-            tag: addr.tag || AddressTag.OTHER,
-            client_account: account,
-          };
-          return queryRunner.manager.create(Address, addrData);
-        });
       }
-
-      await queryRunner.manager.save(ClientAccount, account);
     });
 
     return new BooleanMessage(true, 'Account updated successfully');
+  }
+
+  private async findAccount(
+    tx: DrizzleTx,
+    id: number,
+  ): Promise<ClientAccountRow | null> {
+    const [account] = await tx
+      .select()
+      .from(clientAccounts)
+      .where(eq(clientAccounts.id, id))
+      .limit(1);
+
+    return account ?? null;
+  }
+
+  /**
+   * Whitelist of DTO scalar fields mapped 1:1 to `client.account` columns.
+   * Handled elsewhere (and excluded here): full_name, preferences,
+   * avatar, avatar_id, addresses.
+   */
+  private pickScalarFields(
+    dto: Omit<UpdateClientAccountDto, 'preferences' | 'avatar' | 'avatar_id'>,
+  ): Partial<typeof clientAccounts.$inferInsert> {
+    const patch: Partial<typeof clientAccounts.$inferInsert> = {};
+
+    if (dto.username !== undefined) patch.username = dto.username ?? null;
+    if (dto.date_of_birth !== undefined)
+      patch.date_of_birth = dto.date_of_birth
+        ? new Date(dto.date_of_birth)
+        : null;
+    if (dto.time_of_birth !== undefined)
+      patch.time_of_birth = dto.time_of_birth ?? null;
+    if (dto.place_of_birth !== undefined)
+      patch.place_of_birth = dto.place_of_birth ?? null;
+    if (dto.gender !== undefined) patch.gender = dto.gender ?? 'other';
+    if (dto.phone !== undefined) patch.phone = dto.phone ?? null;
+    if (dto.marital_status !== undefined)
+      patch.marital_status = dto.marital_status ?? null;
+    if (dto.occupation !== undefined) patch.occupation = dto.occupation ?? null;
+    if (dto.about_me !== undefined) patch.about_me = dto.about_me ?? null;
+    if (dto.language_preference !== undefined)
+      patch.language_preference = dto.language_preference ?? null;
+
+    return patch;
   }
 }

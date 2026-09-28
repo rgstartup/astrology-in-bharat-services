@@ -1,10 +1,13 @@
 import { ClientAccount } from '../../account/entities/account.entity';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientAccounts, media, users } from '@/core/drizzledb/schema';
+import { toClientAccountResponse } from '../../account/account.mapper';
 import { createJwtStrategyOptions } from '@/internal/auth/strategies/abstract/jwt.options';
 
 export interface ClientJwtPayload {
@@ -19,27 +22,47 @@ export class ClientJwtStrategy extends PassportStrategy(
 ) {
   constructor(
     config: ConfigService,
-    @InjectRepository(ClientAccount)
-    private readonly clientRepository: Repository<ClientAccount>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {
     super(createJwtStrategyOptions(config));
   }
 
   async validate(payload: ClientJwtPayload): Promise<ClientAccount> {
-    const client = await this.clientRepository
-      .createQueryBuilder('client')
-      .leftJoin('client.user', 'user')
-      .leftJoinAndSelect('client.avatar_media', 'avatar_media')
-      .addSelect('user.id')
-      .where('client.id = :id', {
-        id: Number(payload.sub),
-      })
-      .getOne();
+    const [account] = await this.db
+      .select()
+      .from(clientAccounts)
+      .where(eq(clientAccounts.id, Number(payload.sub)))
+      .limit(1);
 
-    if (!client || client.is_blocked) {
+    if (!account || account.is_blocked) {
       throw new UnauthorizedException();
     }
 
-    return client;
+    // Mirrors the legacy query: account columns + only `user.id` +
+    // the `avatar_media` relation. No addresses (never loaded here).
+    const [[user], [avatar_media]] = await Promise.all([
+      this.db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, account.user_id))
+        .limit(1),
+      account.avatar_id
+        ? this.db
+            .select()
+            .from(media)
+            .where(eq(media.id, account.avatar_id))
+            .limit(1)
+            .then(([row]) => [row ?? null])
+        : Promise.resolve([null]),
+    ]);
+
+    // Boundary cast: the legacy `ClientAccount` entity type is kept until
+    // downstream `req.user` consumers migrate to Drizzle row types.
+    // Runtime shape matches the old TypeORM result key-for-key.
+    return {
+      ...toClientAccountResponse(account),
+      user: user ?? null,
+      avatar_media: avatar_media ?? null,
+    } as unknown as ClientAccount;
   }
 }

@@ -10,7 +10,7 @@ import { and, eq } from 'drizzle-orm';
 import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
 import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
 import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { OtpPurposeEnum } from '@/internal/auth/entities/otp.entity';
+import { OtpPurposeEnum } from '@/internal/auth/enums/otp-purpose.enum';
 
 @Injectable()
 export class InitiateClientEmailRegistrationUseCase {

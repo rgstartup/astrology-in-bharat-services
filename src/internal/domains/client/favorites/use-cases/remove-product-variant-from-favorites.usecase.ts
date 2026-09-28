@@ -1,22 +1,27 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Favorites } from '../entities/favorites.entity';
-import { Repository } from 'typeorm';
+import { Inject, Injectable } from '@nestjs/common';
+import { and, eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientFavorites } from '@/core/drizzledb/schema';
 import { FavoriteItemType } from '../enum';
 
 @Injectable()
 export class RemoveProductVariantFromFavoritesUseCase {
-  constructor(
-    @InjectRepository(Favorites)
-    private readonly favoritesRepository: Repository<Favorites>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(clientId: number, variantId: number) {
-    return this.favoritesRepository.delete({
-      client_id: clientId,
-      item_id: variantId,
-      item_type: FavoriteItemType.PRODUCT_VARIANT,
-    });
+    const deleted = await this.db
+      .delete(clientFavorites)
+      .where(
+        and(
+          eq(clientFavorites.client_id, clientId),
+          eq(clientFavorites.item_id, variantId),
+          eq(clientFavorites.item_type, FavoriteItemType.PRODUCT_VARIANT),
+        ),
+      )
+      .returning();
+
+    return { affected: deleted.length };
   }
 }
 
