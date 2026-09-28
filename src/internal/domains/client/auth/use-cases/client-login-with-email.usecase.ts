@@ -224,7 +224,7 @@ export class ClientLoginWithEmailUseCase {
         secret_hash: refreshTokenHash,
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       })
-      .returning();
+      .returning({ id: sessions.id });
 
     return session;
   }
