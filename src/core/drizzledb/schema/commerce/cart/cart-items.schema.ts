@@ -7,8 +7,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { carts } from './carts.schema';
-import { products } from './products.schema';
-import { productVariants } from './product-variants.schema';
+import { products } from '../product/products.schema';
+import { productVariants } from '../product/product-variants.schema';
 
 const commerceSchema = pgSchema('commerce');
 

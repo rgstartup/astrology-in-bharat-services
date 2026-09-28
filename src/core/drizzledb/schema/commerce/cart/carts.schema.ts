@@ -1,6 +1,6 @@
 import { integer, pgSchema, serial, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { clientAccounts } from '../client/client-account.schema';
+import { clientAccounts } from '../../client/client-account.schema';
 import { cartItems } from './cart-items.schema';
 
 const commerceSchema = pgSchema('commerce');
