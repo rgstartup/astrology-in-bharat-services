@@ -3,5 +3,5 @@ export class VerifyEmailEvent {
     public readonly email: string,
     public readonly verification_token: string,
     public readonly role: string,
-  ) { }
+  ) {}
 }

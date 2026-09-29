@@ -18,7 +18,9 @@ export class EmailProcessor extends WorkerHost {
   }
 
   async process(job: Job<SendEmailPayload, unknown, string>): Promise<void> {
-    this.logger.log(`[EmailProcessor] Processing email job ${job.id} for ${job.data.to}...`);
+    this.logger.log(
+      `[EmailProcessor] Processing email job ${job.id} for ${job.data.to}...`,
+    );
 
     try {
       await this.mailerService.sendEmail(
@@ -26,9 +28,14 @@ export class EmailProcessor extends WorkerHost {
         job.data.subject,
         job.data.html,
       );
-      this.logger.log(`[EmailProcessor] Email job ${job.id} completed successfully for ${job.data.to}.`);
+      this.logger.log(
+        `[EmailProcessor] Email job ${job.id} completed successfully for ${job.data.to}.`,
+      );
     } catch (error) {
-      this.logger.error(`[EmailProcessor] Failed to send email for job ${job.id} to ${job.data.to}:`, error);
+      this.logger.error(
+        `[EmailProcessor] Failed to send email for job ${job.id} to ${job.data.to}:`,
+        error,
+      );
       throw error; // This will trigger BullMQ's retry mechanism
     }
   }

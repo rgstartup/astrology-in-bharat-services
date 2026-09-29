@@ -19,7 +19,8 @@ export class ActivateSessionUseCase {
     private sessionRepo: Repository<ChatSession>,
     @InjectRepository(ChatMessage)
     private messageRepo: Repository<ChatMessage>,
-    @Inject(forwardRef(() => WalletService)) private walletService: WalletService,
+    @Inject(forwardRef(() => WalletService))
+    private walletService: WalletService,
   ) {}
 
   async execute(

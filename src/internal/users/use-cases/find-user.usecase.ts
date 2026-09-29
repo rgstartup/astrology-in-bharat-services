@@ -35,7 +35,10 @@ export class FindUserUseCase {
     return this.userRepository.getExpertsForRevenue(queryRunner);
   }
 
-  async getUsersCountByRole(role: RoleEnum, queryRunner?: QueryRunner): Promise<number> {
+  async getUsersCountByRole(
+    role: RoleEnum,
+    queryRunner?: QueryRunner,
+  ): Promise<number> {
     return this.userRepository.getUsersCountByRole(role, queryRunner);
   }
 

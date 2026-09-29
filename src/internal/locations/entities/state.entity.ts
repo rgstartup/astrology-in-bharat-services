@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { DistrictEntity } from './district.entity';
 
 @Entity('states')
@@ -12,7 +19,7 @@ export class StateEntity {
   @Column({ type: 'varchar', length: 10, nullable: true })
   code: string;
 
-  @OneToMany(() => DistrictEntity, district => district.state)
+  @OneToMany(() => DistrictEntity, (district) => district.state)
   districts: DistrictEntity[];
 
   @CreateDateColumn()

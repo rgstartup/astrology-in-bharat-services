@@ -44,7 +44,11 @@ export class NotificationGateway {
     this.logger.log(`Emitted ${event} to profile ${profileId}`);
   }
 
-  emitToClient<T extends object>(id: string | number, event: NotificationType, data: T) {
+  emitToClient<T extends object>(
+    id: string | number,
+    event: NotificationType,
+    data: T,
+  ) {
     if (!this.server) {
       this.logger.warn(
         `Cannot emit event ${event} because WebSocketServer is not initialized.`,

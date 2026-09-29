@@ -20,9 +20,13 @@ export class RefreshPlaceSearchCacheUseCase {
     this.logger.log('Starting weekly Places search cache cleanup...');
     try {
       await this.placeRepository.clear(); // Truncates the table to clear all cached places
-      this.logger.log('Successfully cleared all cached places to fetch fresh data on next search.');
+      this.logger.log(
+        'Successfully cleared all cached places to fetch fresh data on next search.',
+      );
     } catch (error) {
-      this.logger.error(`Failed to clear places cache: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to clear places cache: ${(error as Error).message}`,
+      );
     }
   }
 }

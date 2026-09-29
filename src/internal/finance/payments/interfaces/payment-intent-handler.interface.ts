@@ -4,6 +4,12 @@ import { GatewayIntent } from '../enums/gateway-intent.enum';
 
 export interface IPaymentIntentHandler {
   readonly intent: GatewayIntent;
-  handleSuccess(transaction: GatewayTransaction, qr: QueryRunner): Promise<void>;
-  handleFailure?(transaction: GatewayTransaction, qr: QueryRunner): Promise<void>;
+  handleSuccess(
+    transaction: GatewayTransaction,
+    qr: QueryRunner,
+  ): Promise<void>;
+  handleFailure?(
+    transaction: GatewayTransaction,
+    qr: QueryRunner,
+  ): Promise<void>;
 }

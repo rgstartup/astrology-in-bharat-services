@@ -8,10 +8,14 @@ import { nanoid } from 'nanoid';
 
 @Injectable()
 export class ClientAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy<ClientAccount> {
+  implements AuthProfileCreationStrategy<ClientAccount>
+{
   readonly role = RoleEnum.CLIENT;
 
-  async ensureProfile(user: User, queryRunner: QueryRunner): Promise<ClientAccount> {
+  async ensureProfile(
+    user: User,
+    queryRunner: QueryRunner,
+  ): Promise<ClientAccount> {
     const clientAccountRepo = queryRunner.manager.getRepository(ClientAccount);
 
     const existingAccount = await clientAccountRepo.findOne({

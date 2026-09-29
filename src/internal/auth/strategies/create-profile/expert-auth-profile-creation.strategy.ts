@@ -7,14 +7,19 @@ import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profil
 
 @Injectable()
 export class ExpertAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy<ProfileExpert> {
+  implements AuthProfileCreationStrategy<ProfileExpert>
+{
   readonly role = RoleEnum.EXPERT;
 
-  async ensureProfile(user: User, queryRunner: QueryRunner): Promise<ProfileExpert> {
+  async ensureProfile(
+    user: User,
+    queryRunner: QueryRunner,
+  ): Promise<ProfileExpert> {
+    const profileExpertRepo = queryRunner.manager.getRepository(ProfileExpert);
 
-    const profileExpertRepo = queryRunner.manager.getRepository(ProfileExpert)
-
-    const profile = await profileExpertRepo.findOne({ where: { user_id: user.id } });
+    const profile = await profileExpertRepo.findOne({
+      where: { user_id: user.id },
+    });
 
     if (profile) return profile;
 
@@ -22,7 +27,7 @@ export class ExpertAuthProfileCreationStrategy
       user: user,
       name: user.name,
       avatar: user.avatar,
-    })
+    });
 
     return profileExpertRepo.save(newExpertProfile);
   }

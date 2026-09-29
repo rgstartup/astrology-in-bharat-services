@@ -5,20 +5,25 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { QueryRunner } from 'typeorm';
-import { DatabaseService } from '@/core/database/database.service';
+import { and, eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
+import {
+  expertAccounts,
+  sessions,
+  users,
+  type ExpertAccountRow,
+  type UserRow,
+} from '@/core/drizzledb/schema';
+import { PlatformEnum } from '@/core/enums';
 import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
-import { Session } from '@/internal/auth/entities/session.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
-import { ExpertAccount } from '../../account/entities/account.entity';
 import { CompleteExpertRegisterDto } from '../dto/expert-register.dto';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';
 
 @Injectable()
 export class CompleteExpertEmailRegistrationUseCase {
   constructor(
-    private readonly db: DatabaseService,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly tokenCrypto: ExpertTokenCryptoService,
     @Inject(IHasherToken) private readonly hasher: IHasher,
   ) {}
@@ -29,33 +34,51 @@ export class CompleteExpertEmailRegistrationUseCase {
     userAgent?: string,
   ) {
     await this.verifyToken(dto.token, dto.email);
-    return this.db.transaction(async (qr) => {
-      const user = await this.getPendingExpert(qr, dto.email);
-      user.full_name = dto.name;
-      user.name = dto.name;
-      user.password = await this.hasher.hash(dto.password);
-      user.email_verified_at = new Date();
-      await qr.manager.save(User, user);
+    return this.db.transaction(async (tx) => {
+      const user = await this.getPendingExpert(tx, dto.email);
+      const hashedPassword = await this.hasher.hash(dto.password);
+      const emailVerifiedAt = new Date();
 
-      const account = await this.createOrUpdateAccount(qr, user, dto);
+      await tx
+        .update(users)
+        .set({
+          full_name: dto.name,
+          name: dto.name,
+          password: hashedPassword,
+          email_verified_at: emailVerifiedAt,
+          updated_at: new Date(),
+        })
+        .where(eq(users.id, user.id));
+
+      const updatedUser: UserRow = {
+        ...user,
+        full_name: dto.name,
+        name: dto.name,
+        password: hashedPassword,
+        email_verified_at: emailVerifiedAt,
+      };
+
+      const account = await this.createOrUpdateAccount(tx, updatedUser, dto);
       const [accessToken, refresh] = await Promise.all([
         this.tokenCrypto.createAccessToken({
           sub: account.id,
-          email: account.email,
+          email: account.email ?? updatedUser.email,
         }),
         this.tokenCrypto.createRefreshToken(),
       ]);
-      const session = await qr.manager.save(
-        Session,
-        qr.manager.create(Session, {
-          user,
+
+      const [session] = await tx
+        .insert(sessions)
+        .values({
+          user_id: user.id,
           ip_address: ip,
           user_agent: userAgent,
           type: 'refresh_token',
           secret_hash: refresh.hash,
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        }),
-      );
+        })
+        .returning();
+
       return { accessToken, refreshToken: `${session.id}.${refresh.raw}` };
     });
   }
@@ -75,36 +98,72 @@ export class CompleteExpertEmailRegistrationUseCase {
     }
   }
 
-  private async getPendingExpert(qr: QueryRunner, email: string) {
-    const user = await qr.manager.findOne(User, {
-      where: { email, platform: PlatformEnum.EXPERT },
-    });
+  private async getPendingExpert(
+    tx: DrizzleTx,
+    email: string,
+  ): Promise<UserRow> {
+    const [user] = await tx
+      .select()
+      .from(users)
+      .where(
+        and(eq(users.email, email), eq(users.platform, PlatformEnum.EXPERT)),
+      )
+      .limit(1);
+
     if (!user) throw new UnauthorizedException('Expert not found');
-    if (user.isVerified()) {
+    if (user.email_verified_at) {
       throw new ConflictException('Expert is already registered');
     }
     return user;
   }
 
   private async createOrUpdateAccount(
-    qr: QueryRunner,
-    user: User,
+    tx: DrizzleTx,
+    user: UserRow,
     dto: CompleteExpertRegisterDto,
-  ) {
-    const repository = qr.manager.getRepository(ExpertAccount);
-    const account =
-      (await repository.findOne({ where: { user: { id: user.id } } })) ??
-      repository.create({ user, email: user.email });
-    account.name = dto.name;
-    account.email = user.email;
-    account.avatar = user.avatar;
-    account.phone = dto.phone ?? account.phone;
-    account.gender = dto.gender ?? account.gender;
-    account.specialization = dto.specialization ?? account.specialization;
-    account.languages = dto.languages ?? account.languages;
-    account.experience_in_years =
-      dto.experience_in_years ?? account.experience_in_years;
-    account.about_me = dto.aboutMe ?? account.about_me;
-    return repository.save(account);
+  ): Promise<ExpertAccountRow> {
+    const [existingAccount] = await tx
+      .select()
+      .from(expertAccounts)
+      .where(eq(expertAccounts.user_id, user.id))
+      .limit(1);
+
+    if (existingAccount) {
+      const [updated] = await tx
+        .update(expertAccounts)
+        .set({
+          name: dto.name,
+          email: user.email,
+          avatar: user.avatar,
+          phone: dto.phone ?? existingAccount.phone,
+          gender: dto.gender ?? existingAccount.gender,
+          specialization: dto.specialization ?? existingAccount.specialization,
+          languages: dto.languages ?? existingAccount.languages,
+          experience_in_years:
+            dto.experience_in_years ?? existingAccount.experience_in_years,
+          about_me: dto.aboutMe ?? existingAccount.about_me,
+          updated_at: new Date(),
+        })
+        .where(eq(expertAccounts.id, existingAccount.id))
+        .returning();
+      return updated;
+    }
+
+    const [created] = await tx
+      .insert(expertAccounts)
+      .values({
+        user_id: user.id,
+        name: dto.name,
+        email: user.email,
+        avatar: user.avatar,
+        phone: dto.phone,
+        gender: dto.gender ?? 'other',
+        specialization: dto.specialization,
+        languages: dto.languages,
+        experience_in_years: dto.experience_in_years ?? 0,
+        about_me: dto.aboutMe,
+      })
+      .returning();
+    return created;
   }
 }

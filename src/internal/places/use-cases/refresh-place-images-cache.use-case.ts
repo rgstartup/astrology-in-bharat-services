@@ -20,9 +20,13 @@ export class RefreshPlaceImagesCacheUseCase {
     this.logger.log('Starting weekly Places image cache cleanup...');
     try {
       await this.imageRepository.clear(); // Truncates the table to clear all cached images
-      this.logger.log('Successfully cleared all cached images to fetch fresh data on next search.');
+      this.logger.log(
+        'Successfully cleared all cached images to fetch fresh data on next search.',
+      );
     } catch (error) {
-      this.logger.error(`Failed to clear image cache: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to clear image cache: ${(error as Error).message}`,
+      );
     }
   }
 }

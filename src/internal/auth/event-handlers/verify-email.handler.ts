@@ -10,7 +10,7 @@ export class VerifyEmailHandler {
   constructor(
     private readonly nodeMailerService: NodeMailerService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   @OnEvent('auth.email.verify', { async: true })
   async handle(event: VerifyEmailEvent) {

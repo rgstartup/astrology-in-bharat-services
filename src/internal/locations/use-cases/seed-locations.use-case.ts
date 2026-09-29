@@ -45,9 +45,12 @@ export class SeedLocationsUseCase {
 
         // Seed districts
         for (const districtName of stateData.districts) {
-          const districtExists = await queryRunner.manager.findOne(DistrictEntity, {
-            where: { name: districtName, state_id: state.id },
-          });
+          const districtExists = await queryRunner.manager.findOne(
+            DistrictEntity,
+            {
+              where: { name: districtName, state_id: state.id },
+            },
+          );
 
           if (!districtExists) {
             const district = queryRunner.manager.create(DistrictEntity, {

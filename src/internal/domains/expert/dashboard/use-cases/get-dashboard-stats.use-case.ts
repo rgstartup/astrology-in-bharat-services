@@ -30,18 +30,14 @@ export class GetDashboardStatsUseCase {
     const reviewStats = await this.reviewsService.getReviewsStats(expert_id);
 
     if (type === 'today') {
-      const todayChatAppointments = await this.chatService.getExpertSessionCount(
-        expert_id,
-        {
+      const todayChatAppointments =
+        await this.chatService.getExpertSessionCount(expert_id, {
           startDate: startOfToday,
-        },
-      );
-      const todayCallAppointments = await this.callService.getExpertSessionCount(
-        expert_id,
-        {
+        });
+      const todayCallAppointments =
+        await this.callService.getExpertSessionCount(expert_id, {
           startDate: startOfToday,
-        },
-      );
+        });
 
       const completedToday = await this.chatService.getExpertSessionCount(
         expert_id,

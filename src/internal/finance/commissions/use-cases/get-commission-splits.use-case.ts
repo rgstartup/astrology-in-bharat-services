@@ -103,10 +103,7 @@ export class GetCommissionSplitsUseCase {
         'SUM(split.buyer_agent_commission)',
         'total_buyer_agent_commission',
       )
-      .addSelect(
-        'SUM(split.referral_commission)',
-        'total_referral_commission',
-      )
+      .addSelect('SUM(split.referral_commission)', 'total_referral_commission')
       .addSelect('SUM(split.provider_net)', 'total_provider_net')
       .getRawOne<Record<string, string>>();
 
@@ -120,9 +117,7 @@ export class GetCommissionSplitsUseCase {
       total_buyer_agent_commission: Number(
         raw?.total_buyer_agent_commission ?? 0,
       ),
-      total_referral_commission: Number(
-        raw?.total_referral_commission ?? 0,
-      ),
+      total_referral_commission: Number(raw?.total_referral_commission ?? 0),
       total_provider_net: Number(raw?.total_provider_net ?? 0),
     };
   }

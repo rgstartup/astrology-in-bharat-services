@@ -14,7 +14,8 @@ export class MarkMessagesAsReadUseCase {
   ) {}
 
   async execute(profileId: number, disputeId: number) {
-    const query = this.disputeRepo.createQueryBuilder('dispute')
+    const query = this.disputeRepo
+      .createQueryBuilder('dispute')
       .where('dispute.id = :disputeId', { disputeId })
       .andWhere(
         '(dispute.client_id = :profileId OR dispute.expert_id = :profileId)',

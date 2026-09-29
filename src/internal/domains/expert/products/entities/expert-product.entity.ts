@@ -1,4 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { ExpertAccount } from '../../account/entities/account.entity';
 import { Product } from '@/internal/commerce/product/entities/product.entity';
 import { ExpertProductRelationType } from '../enum/expert-product-relation-type.enum';

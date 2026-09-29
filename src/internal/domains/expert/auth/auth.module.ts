@@ -1,10 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
-import { ExpertAccount } from '../account/entities/account.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { Session } from '@/internal/auth/entities/session.entity';
-import { DatabaseModule } from '@/core/database/database.module';
 import { QueueModule } from '@/core/queue/queue.module';
 import { JwtModule } from '@/core/jwt/jwt.module';
 import { IHasherToken } from '@/shared/contracts/hasher.contract';
@@ -23,13 +18,7 @@ import { ExpertLoginWithEmailUseCase } from './use-cases/expert-login-with-email
 import { ExpertRefreshTokenUseCase } from './use-cases/expert-refresh-token.usecase';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ExpertAccount, User, Session]),
-    PassportModule,
-    DatabaseModule,
-    QueueModule,
-    JwtModule,
-  ],
+  imports: [PassportModule, QueueModule, JwtModule],
   controllers: [ExpertAuthController],
   providers: [
     ExpertAuthService,

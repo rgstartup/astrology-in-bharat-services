@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  Notification,
-  ProfileType,
-} from '../entities/notification.entity';
+import { Notification, ProfileType } from '../entities/notification.entity';
 import { FindOptionsWhere } from 'typeorm';
 import { RoleEnum } from '@/internal/users/enums/Role.enum';
 import { GetNotificationsDto } from '../dto/get-notifications.dto';

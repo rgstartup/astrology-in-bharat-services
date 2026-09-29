@@ -31,7 +31,10 @@ export class MerchantLikeController {
     @CurrentProfile() profileId: number,
     @Body() dto: AddMerchantWishlistDto,
   ) {
-    return this.wishlistService.addMerchantToWishlist(profileId, dto.merchantId);
+    return this.wishlistService.addMerchantToWishlist(
+      profileId,
+      dto.merchantId,
+    );
   }
 
   @Delete('remove/:merchantId')

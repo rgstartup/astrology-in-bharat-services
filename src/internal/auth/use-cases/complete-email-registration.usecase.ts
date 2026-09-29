@@ -103,7 +103,7 @@ export class CompleteEmailRegistrationUseCase {
 
         // Cast needed: TypeORM's QueryDeepPartialEntity cannot handle complex nested
         // JSON column types like `custom_services: Record<string, unknown>[]`
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         await queryRunner.manager.update(
           ProfileExpert,
           { user_id: user.id },

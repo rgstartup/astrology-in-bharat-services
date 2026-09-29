@@ -36,7 +36,7 @@ export class GoogleAuthGuard extends AuthGuard('google') {
         JSON.stringify({
           redirect_uri,
           referral_code,
-          role
+          role,
         }),
       ),
     };

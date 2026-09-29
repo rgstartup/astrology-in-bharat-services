@@ -24,4 +24,3 @@ export class MerchantFindProfileStrategy implements IFindProfileStrategy {
     return profile?.id ?? null;
   }
 }
-

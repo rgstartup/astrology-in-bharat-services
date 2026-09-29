@@ -15,7 +15,8 @@ export class ConvertToPaidUseCase {
   constructor(
     @InjectRepository(CallSession)
     private sessionRepo: Repository<CallSession>,
-    @Inject(forwardRef(() => WalletService)) private walletService: WalletService,
+    @Inject(forwardRef(() => WalletService))
+    private walletService: WalletService,
   ) {}
 
   async execute(sessionId: number) {

@@ -94,7 +94,10 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('expert_online')
-  async handleExpertOnline(client: Socket, payload: { userId: number | string }) {
+  async handleExpertOnline(
+    client: Socket,
+    payload: { userId: number | string },
+  ) {
     const userId = Number(payload.userId);
     if (!userId) return { status: 'error', message: 'Invalid userId' };
 
@@ -149,7 +152,10 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('expert_offline')
-  async handleExpertOffline(client: Socket, payload: { userId: number | string }) {
+  async handleExpertOffline(
+    client: Socket,
+    payload: { userId: number | string },
+  ) {
     const userId = Number(payload.userId);
     if (!userId) return { status: 'error', message: 'Invalid userId' };
 
@@ -204,7 +210,11 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  notifyKycStatusUpdate(userId: number | string, status: string, reason?: string) {
+  notifyKycStatusUpdate(
+    userId: number | string,
+    status: string,
+    reason?: string,
+  ) {
     this.server.to(`expert_${userId}`).emit('kyc_status_updated', {
       status,
       reason,

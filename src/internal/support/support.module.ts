@@ -18,7 +18,11 @@ import { WalletModule } from '../finance/wallet/wallet.module';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage]), forwardRef(() => WalletModule), NotificationModule],
+  imports: [
+    TypeOrmModule.forFeature([Dispute, DisputeMessage]),
+    forwardRef(() => WalletModule),
+    NotificationModule,
+  ],
   providers: [
     SupportService,
     SupportGateway,

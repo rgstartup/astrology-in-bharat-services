@@ -10,10 +10,14 @@ export class ResolveAppointmentDetailsUseCase {
     private readonly pujaAppointmentRepo: Repository<PujaAppointment>,
   ) {}
 
-  async execute(appointmentIds: (string | number)[]): Promise<Record<string, { expertName: string, type: string }>> {
+  async execute(
+    appointmentIds: (string | number)[],
+  ): Promise<Record<string, { expertName: string; type: string }>> {
     if (!appointmentIds || appointmentIds.length === 0) return {};
-    
-    const numericIds = appointmentIds.map((id) => Number(id)).filter((id) => !isNaN(id));
+
+    const numericIds = appointmentIds
+      .map((id) => Number(id))
+      .filter((id) => !isNaN(id));
     if (numericIds.length === 0) return {};
 
     const appointments = await this.pujaAppointmentRepo.find({
@@ -21,7 +25,7 @@ export class ResolveAppointmentDetailsUseCase {
       relations: ['expert', 'expert.user'],
     });
 
-    const result: Record<string, { expertName: string, type: string }> = {};
+    const result: Record<string, { expertName: string; type: string }> = {};
     for (const app of appointments) {
       result[app.id] = {
         expertName: app.expert?.user?.name || 'Expert',

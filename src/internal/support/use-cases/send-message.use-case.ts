@@ -23,7 +23,8 @@ export class SendDisputeMessageUseCase {
     dto: SendDisputeMessageDto,
     isAdmin = false,
   ) {
-    const query = this.disputeRepo.createQueryBuilder('dispute')
+    const query = this.disputeRepo
+      .createQueryBuilder('dispute')
       .where('dispute.id = :disputeId', { disputeId });
 
     if (!isAdmin) {

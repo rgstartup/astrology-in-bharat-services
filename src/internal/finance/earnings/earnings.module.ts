@@ -25,4 +25,3 @@ import { QueueModule } from '@/core/queue/queue.module';
   exports: [EarningsService, TypeOrmModule],
 })
 export class EarningsModule {}
-

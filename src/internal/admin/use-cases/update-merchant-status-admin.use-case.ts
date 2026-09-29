@@ -10,7 +10,8 @@ export class UpdateMerchantStatusAdminUseCase {
   ) {}
 
   async execute(id: number, data: { status: string; remarks?: string }) {
-    const isVerified = data.status === 'active' || data.status === MerchantStatus.ACTIVE;
+    const isVerified =
+      data.status === 'active' || data.status === MerchantStatus.ACTIVE;
     return this.merchantService.updateVerification(
       id,
       data.status as MerchantStatus,
@@ -18,4 +19,3 @@ export class UpdateMerchantStatusAdminUseCase {
     );
   }
 }
-

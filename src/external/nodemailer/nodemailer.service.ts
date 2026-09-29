@@ -16,14 +16,18 @@ export class NodeMailerService {
       const fromEmail = this.configService.get<string>('email.from');
       const authUser = this.configService.get<string>('email.user');
 
-      console.log(`[NodeMailer] Attempting to send email to ${to} (Subject: ${subject})`);
+      console.log(
+        `[NodeMailer] Attempting to send email to ${to} (Subject: ${subject})`,
+      );
       const info = await this.transporter.sendMail({
         from: fromEmail ? `"Astrology in Bharat" <${fromEmail}>` : authUser,
         to,
         subject,
         html,
       });
-      console.log(`[NodeMailer] Successfully sent email to ${to}. MessageId: ${info.messageId}`);
+      console.log(
+        `[NodeMailer] Successfully sent email to ${to}. MessageId: ${info.messageId}`,
+      );
       return info as Record<string, unknown>;
     } catch (error: unknown) {
       const errorMessage =

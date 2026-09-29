@@ -109,7 +109,9 @@ export class ProkeralaService {
 
     const cached = await this.cacheRepo.findOne({ where: { cacheKey } });
     if (cached) {
-      console.log(`[ProkeralaService] Returning DB cached horoscope for ${cacheKey}`);
+      console.log(
+        `[ProkeralaService] Returning DB cached horoscope for ${cacheKey}`,
+      );
       return cached.data;
     }
 
@@ -165,9 +167,14 @@ export class ProkeralaService {
     }
 
     try {
-      await this.cacheRepo.save(this.cacheRepo.create({ cacheKey, data: result }));
+      await this.cacheRepo.save(
+        this.cacheRepo.create({ cacheKey, data: result }),
+      );
     } catch (e) {
-      console.error(`[ProkeralaService] Failed to save cache for ${cacheKey}`, e);
+      console.error(
+        `[ProkeralaService] Failed to save cache for ${cacheKey}`,
+        e,
+      );
     }
     return result;
   }
@@ -250,10 +257,12 @@ export class ProkeralaService {
   }) {
     const dateStr = params.datetime.split('T')[0];
     const cacheKey = `panchang-${dateStr}-${params.lat}-${params.lon}-${params.lang || 'en'}`;
-    
+
     const cached = await this.cacheRepo.findOne({ where: { cacheKey } });
     if (cached) {
-      console.log(`[ProkeralaService] Returning DB cached panchang for ${cacheKey}`);
+      console.log(
+        `[ProkeralaService] Returning DB cached panchang for ${cacheKey}`,
+      );
       return cached.data;
     }
 
@@ -278,9 +287,14 @@ export class ProkeralaService {
 
     const result = await this.handleResponse(response);
     try {
-      await this.cacheRepo.save(this.cacheRepo.create({ cacheKey, data: result }));
+      await this.cacheRepo.save(
+        this.cacheRepo.create({ cacheKey, data: result }),
+      );
     } catch (e) {
-      console.error(`[ProkeralaService] Failed to save cache for ${cacheKey}`, e);
+      console.error(
+        `[ProkeralaService] Failed to save cache for ${cacheKey}`,
+        e,
+      );
     }
     return result;
   }
@@ -293,10 +307,12 @@ export class ProkeralaService {
   }) {
     const dateStr = params.datetime.split('T')[0];
     const cacheKey = `planets-${dateStr}-${params.lat}-${params.lon}-${params.lang || 'en'}`;
-    
+
     const cached = await this.cacheRepo.findOne({ where: { cacheKey } });
     if (cached) {
-      console.log(`[ProkeralaService] Returning DB cached planetary positions for ${cacheKey}`);
+      console.log(
+        `[ProkeralaService] Returning DB cached planetary positions for ${cacheKey}`,
+      );
       return cached.data;
     }
 
@@ -321,9 +337,14 @@ export class ProkeralaService {
 
     const result = await this.handleResponse(response);
     try {
-      await this.cacheRepo.save(this.cacheRepo.create({ cacheKey, data: result }));
+      await this.cacheRepo.save(
+        this.cacheRepo.create({ cacheKey, data: result }),
+      );
     } catch (e) {
-      console.error(`[ProkeralaService] Failed to save cache for ${cacheKey}`, e);
+      console.error(
+        `[ProkeralaService] Failed to save cache for ${cacheKey}`,
+        e,
+      );
     }
     return result;
   }

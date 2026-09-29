@@ -55,7 +55,8 @@ export class SupportGateway
   @SubscribeMessage('request_end_chat')
   handleRequestEndChat(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { disputeId: number | string; userId: number | string },
+    @MessageBody()
+    payload: { disputeId: number | string; userId: number | string },
   ) {
     const data = { disputeId: payload.disputeId, userId: payload.userId };
     // Notify room
@@ -77,7 +78,11 @@ export class SupportGateway
     this.server.to('admin_support_room').emit('new_message', message);
   }
 
-  notifyStatusUpdate(disputeId: number | string, status: string, data: unknown) {
+  notifyStatusUpdate(
+    disputeId: number | string,
+    status: string,
+    data: unknown,
+  ) {
     const roomName = `dispute_${disputeId}`;
     this.server.to(roomName).emit('dispute_status_updated', {
       disputeId,

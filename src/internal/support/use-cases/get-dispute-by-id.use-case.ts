@@ -29,13 +29,13 @@ export class GetDisputeByIdUseCase {
         'product.merchant',
         MerchantAccount,
         'merchant',
-        'merchant.user_id = product.merchant_id'
+        'merchant.user_id = product.merchant_id',
       )
       .leftJoinAndMapOne(
         'merchant.user',
         User,
         'merchantUser',
-        'merchantUser.id = merchant.user_id'
+        'merchantUser.id = merchant.user_id',
       )
       .leftJoinAndSelect('dispute.puja', 'puja')
       .leftJoinAndSelect('puja.expert', 'pujaExpert')

@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { InitiateMerchantRegisterDto, CompleteMerchantRegisterDto } from './dto/merchant-register.dto';
+import {
+  InitiateMerchantRegisterDto,
+  CompleteMerchantRegisterDto,
+} from './dto/merchant-register.dto';
 import { MerchantLoginDto } from './dto/merchant-login.dto';
 import { InitiateMerchantEmailRegistrationUseCase } from './use-cases/initiate-merchant-email-registration.usecase';
 import { CompleteMerchantEmailRegistrationUseCase } from './use-cases/complete-merchant-email-registration.usecase';

@@ -13,7 +13,6 @@ export class GetExpertStatsUseCase {
   ) {}
 
   async execute() {
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -31,12 +30,12 @@ export class GetExpertStatsUseCase {
       .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
       .setParameters({
         role: RoleEnum.EXPERT,
-        approved: "approved",
-        pending: "pending",
-        rejected: "rejected",
-        today
+        approved: 'approved',
+        pending: 'pending',
+        rejected: 'rejected',
+        today,
       })
-      .getRawOne()
+      .getRawOne();
 
     return {
       totalExperts: Number(result.total_experts),

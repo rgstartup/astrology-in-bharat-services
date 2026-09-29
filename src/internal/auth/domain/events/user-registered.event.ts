@@ -7,7 +7,7 @@ export class UserRegisteredEvent {
     public readonly name: string,
     public readonly role: RoleEnum,
     public readonly verification_token: string,
-  ) { }
+  ) {}
 }
 
 export class ClientRegisteredEvent {
@@ -16,6 +16,5 @@ export class ClientRegisteredEvent {
     public readonly email: string,
     public readonly name: string,
     public readonly verification_token: string,
-  ) { }
+  ) {}
 }
-

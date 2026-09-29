@@ -21,7 +21,10 @@ export class ResolveSessionDetailsUseCase {
       relations: ['expert', 'expert.user'],
     });
 
-    const result: Record<string | number, { expertName: string; type: string }> = {};
+    const result: Record<
+      string | number,
+      { expertName: string; type: string }
+    > = {};
     for (const session of sessions) {
       result[session.id] = {
         expertName: session.expert?.user?.name || 'Expert',

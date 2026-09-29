@@ -21,7 +21,7 @@ export class VerifyEmailUseCase {
     private readonly usedTokenService: UsedTokensService,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly authTokenService: AuthTokenService,
-  ) { }
+  ) {}
 
   async execute(token: string) {
     const payload = await this.verifyTokenOrFail(token);
@@ -45,7 +45,11 @@ export class VerifyEmailUseCase {
 
     await this.db.transaction(async (qr) => {
       return Promise.all([
-        qr.manager.update(User, { id: user.id }, { email_verified_at: new Date() }),
+        qr.manager.update(
+          User,
+          { id: user.id },
+          { email_verified_at: new Date() },
+        ),
         this.usedTokenService.markTokenAsUsed(
           token,
           user.id,

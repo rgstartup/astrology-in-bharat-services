@@ -30,7 +30,9 @@ export class HandleWebhookUseCase {
 
     if (event.eventType === 'payment.success') {
       if (!event.providerOrderId || !event.providerPaymentId) {
-        this.logger.warn('Webhook payload missing providerOrderId or providerPaymentId');
+        this.logger.warn(
+          'Webhook payload missing providerOrderId or providerPaymentId',
+        );
         return { received: true };
       }
 
@@ -39,7 +41,10 @@ export class HandleWebhookUseCase {
         where: { gateway_order_id: event.providerOrderId },
       });
 
-      if (!existingTx || existingTx.status !== GatewayTransactionStatus.SUCCESS) {
+      if (
+        !existingTx ||
+        existingTx.status !== GatewayTransactionStatus.SUCCESS
+      ) {
         await this.verifyPaymentUseCase.execute({
           razorpay_order_id: event.providerOrderId,
           razorpay_payment_id: event.providerPaymentId,

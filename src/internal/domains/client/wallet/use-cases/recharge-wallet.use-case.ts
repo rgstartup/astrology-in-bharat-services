@@ -91,8 +91,7 @@ export class RechargeWalletUseCase {
       status: ClientRechargeStatus.SUCCESS,
       payment_gateway: metadata?.gateway_name || 'razorpay',
       gateway_order_id: metadata?.gateway_order_id || null,
-      gateway_payment_id:
-        metadata?.gateway_payment_id || referenceId || null,
+      gateway_payment_id: metadata?.gateway_payment_id || referenceId || null,
       gateway_signature: metadata?.gateway_signature || null,
       wallet_transaction_id: savedTx.id,
       metadata: metadata ?? null,

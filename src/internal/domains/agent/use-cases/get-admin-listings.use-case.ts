@@ -149,12 +149,18 @@ export class GetAdminListingsUseCase {
         listing_name: u.name,
         listing_location: isExpert
           ? u.profile_expert?.city || '—'
-          : (u.profile_merchant?.address || u.profile_merchant?.city || u.profile_merchant?.shop_name || '—'),
+          : u.profile_merchant?.address ||
+            u.profile_merchant?.city ||
+            u.profile_merchant?.shop_name ||
+            '—',
         status: 'active',
         name: u.name,
         location: isExpert
           ? u.profile_expert?.city || '—'
-          : (u.profile_merchant?.address || u.profile_merchant?.city || u.profile_merchant?.shop_name || '—'),
+          : u.profile_merchant?.address ||
+            u.profile_merchant?.city ||
+            u.profile_merchant?.shop_name ||
+            '—',
         phone:
           u.profile_expert?.phone_number || u.profile_merchant?.phone || '—',
         agent_id: u.referred_by?.uid || u.referred_by_id?.toString(),

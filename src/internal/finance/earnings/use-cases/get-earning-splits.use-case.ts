@@ -49,7 +49,9 @@ export class GetEarningSplitsUseCase {
       });
     }
     if (filters.from_date) {
-      qb.andWhere('s.created_at >= :from', { from: new Date(filters.from_date) });
+      qb.andWhere('s.created_at >= :from', {
+        from: new Date(filters.from_date),
+      });
     }
     if (filters.to_date) {
       qb.andWhere('s.created_at <= :to', { to: new Date(filters.to_date) });
@@ -75,7 +77,9 @@ export class GetEarningSplitsUseCase {
       });
     }
     if (filters.from_date) {
-      qb.andWhere('s.created_at >= :from', { from: new Date(filters.from_date) });
+      qb.andWhere('s.created_at >= :from', {
+        from: new Date(filters.from_date),
+      });
     }
     if (filters.to_date) {
       qb.andWhere('s.created_at <= :to', { to: new Date(filters.to_date) });

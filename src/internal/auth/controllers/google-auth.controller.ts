@@ -5,7 +5,6 @@ import { GoogleAuthGuard } from '../guards/google-auth-v2.guard';
 import { GoogleLoginQueryGuard } from '../guards/google-login-query.guard';
 import { User } from '@/internal/users/entities/user.entity';
 
-
 interface UserWithTokens {
   user: User;
   accessToken: string;
@@ -76,7 +75,6 @@ export class GoogleAuthController {
     //   );
     //   return;
     // }
-
 
     // console.log(req);
     const authData = req.user as UserWithTokens;
@@ -192,7 +190,7 @@ export class GoogleAuthController {
     //   `[GoogleCallback] Redirecting to set-tokens: ${setTokensUrl.replace(/accessToken=[^&]+/, 'accessToken=REDACTED').replace(/refreshToken=[^&]+/, 'refreshToken=REDACTED')}`,
     // );
 
-    return res.redirect(authData?.redirect_uri!);
+    return res.redirect(authData?.redirect_uri);
   }
 
   private setCookies(

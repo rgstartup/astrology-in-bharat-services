@@ -13,4 +13,3 @@ import { ExpertAuthModule } from '../auth/auth.module';
   exports: [SpecializationService, GetSpecializationsUseCase, TypeOrmModule],
 })
 export class SpecializationModule {}
-

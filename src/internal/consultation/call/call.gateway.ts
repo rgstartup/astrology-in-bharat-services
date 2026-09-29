@@ -191,7 +191,8 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const timer = setInterval(async () => {
-      const currentSession = await this.callService.getSession(numericSessionId);
+      const currentSession =
+        await this.callService.getSession(numericSessionId);
       if (
         !currentSession ||
         currentSession.status !== CallSessionStatus.ACTIVE

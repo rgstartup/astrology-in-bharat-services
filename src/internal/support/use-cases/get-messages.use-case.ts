@@ -14,7 +14,8 @@ export class GetDisputeMessagesUseCase {
   ) {}
 
   async execute(profileId: number, disputeId: number, isAdmin = false) {
-    const query = this.disputeRepo.createQueryBuilder('dispute')
+    const query = this.disputeRepo
+      .createQueryBuilder('dispute')
       .where('dispute.id = :disputeId', { disputeId });
 
     if (!isAdmin) {

@@ -6,7 +6,7 @@ import { RoleEnum } from '../enums/Role.enum';
 
 @Injectable()
 export class AssignRoleToUserUseCase {
-  constructor(private readonly userRepository: UserRepository) { }
+  constructor(private readonly userRepository: UserRepository) {}
 
   async execute(
     userId: number,

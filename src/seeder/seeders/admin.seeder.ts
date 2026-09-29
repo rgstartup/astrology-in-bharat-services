@@ -8,7 +8,11 @@ import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
 export class AdminSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {
     const userRepository = dataSource.getRepository(User);
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@astrologyinbharat.com').toLowerCase().trim();
+    const adminEmail = (
+      process.env.ADMIN_EMAIL || 'admin@astrologyinbharat.com'
+    )
+      .toLowerCase()
+      .trim();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456';
 
     const existingAdmin = await userRepository.findOne({
@@ -18,14 +22,19 @@ export class AdminSeeder implements Seeder {
       },
     });
 
-    const hashedPassword = await argon2.hash(adminPassword, { type: argon2.argon2id });
+    const hashedPassword = await argon2.hash(adminPassword, {
+      type: argon2.argon2id,
+    });
 
     if (existingAdmin) {
       existingAdmin.password = hashedPassword;
-      if (!existingAdmin.email_verified_at) existingAdmin.email_verified_at = new Date();
+      if (!existingAdmin.email_verified_at)
+        existingAdmin.email_verified_at = new Date();
       existingAdmin.is_blocked = false;
       await userRepository.save(existingAdmin);
-      console.log(`[AdminSeeder] Updated Super Admin (${adminEmail}) credentials.`);
+      console.log(
+        `[AdminSeeder] Updated Super Admin (${adminEmail}) credentials.`,
+      );
       return;
     }
 
@@ -44,6 +53,8 @@ export class AdminSeeder implements Seeder {
     });
 
     await userRepository.save(admin);
-    console.log(`[AdminSeeder] Successfully seeded Super Admin user: ${adminEmail}`);
+    console.log(
+      `[AdminSeeder] Successfully seeded Super Admin user: ${adminEmail}`,
+    );
   }
 }

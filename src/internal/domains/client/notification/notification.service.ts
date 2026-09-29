@@ -12,7 +12,7 @@ export class ClientNotificationService {
     private readonly getClientUnreadCountUseCase: GetClientUnreadCountUseCase,
     private readonly markClientNotificationAsReadUseCase: MarkClientNotificationAsReadUseCase,
     private readonly clearClientNotificationsUseCase: ClearClientNotificationsUseCase,
-  ) { }
+  ) {}
 
   async getNotifications(clientId: number, dto: GetNotificationsDto) {
     return this.getClientNotificationsUseCase.execute(clientId, dto);

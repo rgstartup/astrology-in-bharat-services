@@ -1,10 +1,5 @@
 import { Type } from 'class-transformer';
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsNumber,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
 
 export class CreateDisputeDto {
   @IsNotEmpty()

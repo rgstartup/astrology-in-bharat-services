@@ -56,4 +56,4 @@ class UserDto {
   referred_by_id?: number | null;
 }
 
-export class CreateUserDto extends UserDto { }
+export class CreateUserDto extends UserDto {}

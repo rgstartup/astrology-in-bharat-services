@@ -10,7 +10,8 @@ export class ExpireSessionUseCase {
   constructor(
     @InjectRepository(ChatSession)
     private sessionRepo: Repository<ChatSession>,
-    @Inject(forwardRef(() => WalletService)) private walletService: WalletService,
+    @Inject(forwardRef(() => WalletService))
+    private walletService: WalletService,
   ) {}
 
   async execute(sessionId: number) {

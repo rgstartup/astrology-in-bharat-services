@@ -16,7 +16,6 @@ interface RequestUser {
   redirect_uri: string;
 }
 
-
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   private readonly logger = new Logger(GoogleStrategy.name);
@@ -50,7 +49,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
     done: VerifyCallback,
   ) {
-
     const email = profile.emails?.[0]?.value;
     if (req._strategy_validated) {
       return done(null, req.user);
@@ -76,8 +74,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       role: state?.role,
     });
 
-    const userWithTokens = { ...user, ...tokens, redirect_uri: state?.redirect_uri };
-
+    const userWithTokens = {
+      ...user,
+      ...tokens,
+      redirect_uri: state?.redirect_uri,
+    };
 
     return done(null, userWithTokens);
   }

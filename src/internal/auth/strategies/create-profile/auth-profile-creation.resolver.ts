@@ -17,7 +17,7 @@ export class AuthProfileCreationResolver {
   constructor(
     @Inject(AUTH_PROFILE_CREATION_STRATEGIES)
     private readonly strategies: AuthProfileCreationStrategy[],
-  ) { }
+  ) {}
 
   async ensureProfile<R extends RoleEnum = RoleEnum>(
     user: User & { role?: R },
@@ -25,12 +25,14 @@ export class AuthProfileCreationResolver {
   ): Promise<RoleProfileMap[R]> {
     const userRole = user.role || RoleEnum.CLIENT;
     const strategy = this.resolve(userRole);
-    return strategy.ensureProfile(user, queryRunner) as Promise<RoleProfileMap[R]>;
+    return strategy.ensureProfile(user, queryRunner) as Promise<
+      RoleProfileMap[R]
+    >;
   }
 
   private resolve(userRole: RoleEnum): AuthProfileCreationStrategy {
-    const matched = this.strategies.find((strategy) =>
-      userRole === strategy.role,
+    const matched = this.strategies.find(
+      (strategy) => userRole === strategy.role,
     );
 
     if (matched) {

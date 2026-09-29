@@ -20,7 +20,6 @@ export class LoginDto {
 }
 
 export class GoogleLoginQueryDto {
-
   @IsUrl({
     require_tld: false,
   })

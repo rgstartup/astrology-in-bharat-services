@@ -25,7 +25,11 @@ export class CouponService {
     return this.applyCouponUseCase.execute({ code, amount });
   }
 
-  async markCouponAsUsed(profileId: number | string, code: string, manager?: unknown) {
+  async markCouponAsUsed(
+    profileId: number | string,
+    code: string,
+    manager?: unknown,
+  ) {
     return this.markCouponAsUsedUseCase.execute(
       profileId,
       code,

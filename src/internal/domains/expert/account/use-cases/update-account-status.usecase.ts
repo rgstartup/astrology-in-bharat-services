@@ -1,38 +1,57 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { expertAccounts } from '@/core/drizzledb/schema';
 import { IExpert } from '@/shared/types/access-token.payload';
 import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
-import { ExpertAccount } from '../entities/account.entity';
+import { toExpertAccountResponse } from '../account.mapper';
 
 @Injectable()
 export class UpdateExpertAccountStatusUseCase {
-  constructor(
-    @InjectRepository(ExpertAccount)
-    private readonly accounts: Repository<ExpertAccount>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(expert: IExpert, isAvailable: boolean) {
-    const account = await this.accounts.findOneBy({ id: expert.sub });
+    const [account] = await this.db
+      .select()
+      .from(expertAccounts)
+      .where(eq(expertAccounts.id, Number(expert.sub)))
+      .limit(1);
     if (!account) throw new NotFoundException('Expert account not found');
     if (isAvailable && account.kyc_status !== ExpertKycStatus.APPROVED) {
       throw new ForbiddenException(
         'Your account is inactive. You cannot go online.',
       );
     }
-    account.is_available = isAvailable;
-    return this.accounts.save(account);
+    const [updated] = await this.db
+      .update(expertAccounts)
+      .set({ is_available: isAvailable, updated_at: new Date() })
+      .where(eq(expertAccounts.id, account.id))
+      .returning();
+    return toExpertAccountResponse(updated);
   }
 
   async updateKyc(id: number, status: ExpertKycStatus, reason?: string) {
-    const account = await this.accounts.findOneBy({ id });
+    const [account] = await this.db
+      .select({ id: expertAccounts.id })
+      .from(expertAccounts)
+      .where(eq(expertAccounts.id, Number(id)))
+      .limit(1);
     if (!account) throw new NotFoundException('Expert account not found');
-    account.kyc_status = status;
-    account.rejection_reason = reason ?? null;
-    return this.accounts.save(account);
+    const [updated] = await this.db
+      .update(expertAccounts)
+      .set({
+        kyc_status: status,
+        rejection_reason: reason ?? null,
+        updated_at: new Date(),
+      })
+      .where(eq(expertAccounts.id, Number(id)))
+      .returning();
+    return toExpertAccountResponse(updated);
   }
 }

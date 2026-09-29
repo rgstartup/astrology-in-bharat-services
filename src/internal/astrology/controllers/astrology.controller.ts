@@ -87,7 +87,10 @@ export class AstrologyController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: GenerateKundliReportDto,
   ): Promise<unknown> {
-    return this.astrologyService.generateAndSaveKundliReport(user.profile, body);
+    return this.astrologyService.generateAndSaveKundliReport(
+      user.profile,
+      body,
+    );
   }
 
   @Get('my-kundli-reports')

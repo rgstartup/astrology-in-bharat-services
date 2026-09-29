@@ -64,11 +64,16 @@ export class ExpertProductSeeder implements Seeder {
 
     for (const pair of pairings) {
       const expert = await expertAccountRepository.findOne({
-        where: [{ email: pair.expertEmail }, { user: { email: pair.expertEmail } }],
+        where: [
+          { email: pair.expertEmail },
+          { user: { email: pair.expertEmail } },
+        ],
       });
 
       if (!expert) {
-        console.warn(`[ExpertProductSeeder] Expert not found: ${pair.expertEmail}`);
+        console.warn(
+          `[ExpertProductSeeder] Expert not found: ${pair.expertEmail}`,
+        );
         continue;
       }
 
@@ -78,7 +83,9 @@ export class ExpertProductSeeder implements Seeder {
         });
 
         if (!product) {
-          console.warn(`[ExpertProductSeeder] Product not found: ${productName}`);
+          console.warn(
+            `[ExpertProductSeeder] Product not found: ${productName}`,
+          );
           continue;
         }
 
@@ -108,6 +115,8 @@ export class ExpertProductSeeder implements Seeder {
       }
     }
 
-    console.log(`[ExpertProductSeeder] Finished seeding ${linkedCount} expert_products relations.`);
+    console.log(
+      `[ExpertProductSeeder] Finished seeding ${linkedCount} expert_products relations.`,
+    );
   }
 }

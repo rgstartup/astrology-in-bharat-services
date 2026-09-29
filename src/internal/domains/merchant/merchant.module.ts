@@ -4,16 +4,7 @@ import { MerchantAccountModule } from './account/account.module';
 import { MerchantAuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [
-    MerchantAccountModule,
-    MerchantAuthModule,
-    MerchantDashboardModule,
-  ],
-  exports: [
-    MerchantAccountModule,
-    MerchantAuthModule,
-    MerchantDashboardModule,
-  ],
+  imports: [MerchantAccountModule, MerchantAuthModule, MerchantDashboardModule],
+  exports: [MerchantAccountModule, MerchantAuthModule, MerchantDashboardModule],
 })
 export class MerchantModule {}
-

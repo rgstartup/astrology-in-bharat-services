@@ -1,4 +1,10 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { CommissionRule } from './commission-rule.entity';
 
 @Entity({ schema: 'finance', name: 'commission_tiers' })

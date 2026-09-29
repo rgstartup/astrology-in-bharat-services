@@ -7,7 +7,7 @@ import { UserRepository } from '../repositories/user.repository';
 
 @Injectable()
 export class CreateUserUseCase {
-  constructor(private readonly userRepository: UserRepository) { }
+  constructor(private readonly userRepository: UserRepository) {}
 
   async execute(dto: CreateUserDto, queryRunner?: QueryRunner): Promise<User> {
     const user = new User();

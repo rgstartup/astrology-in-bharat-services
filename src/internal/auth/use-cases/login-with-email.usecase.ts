@@ -13,7 +13,7 @@ export class LoginWithEmailUseCase {
     private readonly userRepository: Repository<User>,
     private readonly authTokenService: AuthTokenService,
     private readonly authPolicy: AuthPolicy,
-  ) { }
+  ) {}
 
   async execute(dto: LoginDto, ip?: string, userAgent?: string) {
     const user = await this.userRepository.findOne({

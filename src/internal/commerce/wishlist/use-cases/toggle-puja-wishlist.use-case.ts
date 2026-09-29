@@ -36,7 +36,12 @@ export class TogglePujaWishlistUseCase {
     try {
       if (existing) {
         await queryRunner.manager.remove(Wishlist, existing);
-        await queryRunner.manager.decrement(ExpertPuja, { id: pujaId }, 'total_likes', 1);
+        await queryRunner.manager.decrement(
+          ExpertPuja,
+          { id: pujaId },
+          'total_likes',
+          1,
+        );
         currentTotalLikes = Math.max(0, currentTotalLikes - 1);
         liked = false;
       } else {
@@ -45,7 +50,12 @@ export class TogglePujaWishlistUseCase {
           puja,
         });
         await queryRunner.manager.save(Wishlist, wishlist);
-        await queryRunner.manager.increment(ExpertPuja, { id: pujaId }, 'total_likes', 1);
+        await queryRunner.manager.increment(
+          ExpertPuja,
+          { id: pujaId },
+          'total_likes',
+          1,
+        );
         currentTotalLikes = currentTotalLikes + 1;
         liked = true;
       }

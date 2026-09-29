@@ -14,7 +14,7 @@ export class ResendVerificationEmailUseCase {
     private readonly userRepository: Repository<User>,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(email: string) {
     const existingUser = await this.userRepository.findOne({

@@ -45,7 +45,9 @@ export class ClientNotificationController {
 
   @Get('unread-count')
   async getUnreadCount(@CurrentClient() client: ClientAccount) {
-    const count = await this.clientNotificationService.getUnreadCount(client.id);
+    const count = await this.clientNotificationService.getUnreadCount(
+      client.id,
+    );
     return { count };
   }
 

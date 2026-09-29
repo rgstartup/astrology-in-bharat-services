@@ -60,81 +60,81 @@ export class UpdateProfileUseCase {
 
       this.logger.log(`Updating profile for user ${user.id}`);
 
-      if (dto.gender !== undefined) profile!.gender = dto.gender;
+      if (dto.gender !== undefined) profile.gender = dto.gender;
       if (dto.date_of_birth !== undefined) {
-        profile!.date_of_birth = dto.date_of_birth
+        profile.date_of_birth = dto.date_of_birth
           ? new Date(dto.date_of_birth)
           : null;
       }
       if (dto.specialization !== undefined)
-        profile!.specialization = dto.specialization;
-      if (dto.bio !== undefined) profile!.bio = dto.bio;
-      if (dto.about !== undefined) profile!.about = dto.about;
+        profile.specialization = dto.specialization;
+      if (dto.bio !== undefined) profile.bio = dto.bio;
+      if (dto.about !== undefined) profile.about = dto.about;
       if (dto.experience_in_years !== undefined)
-        profile!.experience_in_years = dto.experience_in_years;
+        profile.experience_in_years = dto.experience_in_years;
 
       if (dto.price !== undefined) {
         this.logger.log(`Updating price to ${dto.price}`);
-        profile!.price = dto.price;
+        profile.price = dto.price;
       }
       if (dto.chat_price !== undefined) {
         this.logger.log(`Updating chat_price to ${dto.chat_price}`);
-        profile!.chat_price = dto.chat_price;
+        profile.chat_price = dto.chat_price;
       }
       if (dto.call_price !== undefined) {
         this.logger.log(`Updating call_price to ${dto.call_price}`);
-        profile!.call_price = dto.call_price;
+        profile.call_price = dto.call_price;
       }
       if (dto.video_call_price !== undefined) {
         this.logger.log(`Updating video_call_price to ${dto.video_call_price}`);
-        profile!.video_call_price = dto.video_call_price;
+        profile.video_call_price = dto.video_call_price;
       }
       if (dto.report_price !== undefined) {
         this.logger.log(`Updating report_price to ${dto.report_price}`);
-        profile!.report_price = dto.report_price;
+        profile.report_price = dto.report_price;
       }
       if (dto.horoscope_price !== undefined) {
         this.logger.log(`Updating horoscope_price to ${dto.horoscope_price}`);
-        profile!.horoscope_price = dto.horoscope_price;
+        profile.horoscope_price = dto.horoscope_price;
       }
       if (dto.custom_services !== undefined) {
         this.logger.log(
           `Updating custom_services: ${JSON.stringify(dto.custom_services)}`,
         );
-        profile!.custom_services = dto.custom_services as unknown as Record<
+        profile.custom_services = dto.custom_services as unknown as Record<
           string,
           unknown
         >[];
       }
       if (dto.bank_details !== undefined)
-        profile!.bank_details = dto.bank_details;
+        profile.bank_details = dto.bank_details;
 
       if (dto.documents !== undefined) {
         if (
-          profile!.kyc_status === 'approved' ||
-          profile!.kyc_status === 'active'
+          profile.kyc_status === 'approved' ||
+          profile.kyc_status === 'active'
         ) {
           throw new ForbiddenException(
             'Your account is verified. You cannot modify your verified documents. Please contact Admin.',
           );
         }
-        profile!.documents = dto.documents as unknown as Record<
+        profile.documents = dto.documents as unknown as Record<
           string,
           unknown
         >[];
       }
-      if (dto.gallery !== undefined) profile!.gallery = dto.gallery;
-      if (dto.videos !== undefined) profile!.videos = dto.videos;
-      if (dto.video !== undefined) profile!.video = dto.video;
+      if (dto.gallery !== undefined) profile.gallery = dto.gallery;
+      if (dto.videos !== undefined) profile.videos = dto.videos;
+      if (dto.video !== undefined) profile.video = dto.video;
       if (dto.certificates !== undefined)
-        profile!.certificates = dto.certificates;
+        profile.certificates = dto.certificates;
 
       if (dto.detailed_experience !== undefined)
-        profile!.detailed_experience =
+        profile.detailed_experience =
           dto.detailed_experience as unknown as Record<string, unknown>[];
 
       if ((dto as unknown as { languages: string[] }).languages) {
-        profile!.languages = (
+        profile.languages = (
           dto as unknown as { languages: string[] }
         ).languages.join(',');
       }
@@ -142,16 +142,16 @@ export class UpdateProfileUseCase {
       if (
         (dto as unknown as { phone_number?: string }).phone_number !== undefined
       ) {
-        profile!.phone_number = (dto as unknown as { phone_number?: string })
+        profile.phone_number = (dto as unknown as { phone_number?: string })
           .phone_number as string;
       }
 
       if (dto.addresses) {
-        if (profile!.addresses && profile!.addresses.length > 0) {
-          await queryRunner.manager.remove(Address, profile!.addresses);
+        if (profile.addresses && profile.addresses.length > 0) {
+          await queryRunner.manager.remove(Address, profile.addresses);
         }
 
-        profile!.addresses = dto.addresses.map((addr: Partial<Address>) =>
+        profile.addresses = dto.addresses.map((addr: Partial<Address>) =>
           queryRunner.manager.create(Address, {
             line1: addr.line1 || '',
             house_no: addr.house_no,
@@ -185,8 +185,8 @@ export class UpdateProfileUseCase {
 
         if (currentNameStr !== newNameStr && currentNameStr !== '') {
           if (
-            profile!.kyc_status === 'approved' ||
-            profile!.kyc_status === 'active'
+            profile.kyc_status === 'approved' ||
+            profile.kyc_status === 'active'
           ) {
             throw new ForbiddenException(
               'Your account is verified. You cannot change your name. Please contact Admin.',
@@ -205,7 +205,7 @@ export class UpdateProfileUseCase {
 
       const savedProfile = await queryRunner.manager.save(
         ProfileExpert,
-        profile!,
+        profile,
       );
 
       await queryRunner.commitTransaction();

@@ -16,7 +16,7 @@ export class InitiateEmailRegistrationUseCase {
     private readonly userRepository: Repository<User>,
     private readonly eventEmitter: EventEmitter2,
     private readonly tokenCrypto: TokenCryptoService,
-  ) { }
+  ) {}
 
   async execute(email: string, role: RoleEnum) {
     let user = await this.userRepository.findOne({ where: { email } });

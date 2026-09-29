@@ -10,7 +10,11 @@ export class SetOrderRazorpayIdUseCase {
     private readonly orderRepo: Repository<Order>,
   ) {}
 
-  async execute(orderId: number, razorpayOrderId: string, queryRunner?: QueryRunner) {
+  async execute(
+    orderId: number,
+    razorpayOrderId: string,
+    queryRunner?: QueryRunner,
+  ) {
     if (queryRunner) {
       await queryRunner.manager.update(Order, orderId, {
         razorpay_order_id: razorpayOrderId,

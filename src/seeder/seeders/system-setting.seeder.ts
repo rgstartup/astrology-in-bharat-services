@@ -6,7 +6,11 @@ export class SystemSettingSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {
     const systemSettingRepository = dataSource.getRepository(SystemSetting);
 
-    const defaultSettings: Array<{ key: string; value: string; description: string }> = [
+    const defaultSettings: Array<{
+      key: string;
+      value: string;
+      description: string;
+    }> = [
       {
         key: 'APP_NAME',
         value: 'Astrology In Bharat',

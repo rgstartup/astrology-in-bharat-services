@@ -62,7 +62,10 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: number,
     @Body() dto: CreateMerchantProductDto,
   ) {
-    const product = await this.productService.createMerchantProduct(userId, dto);
+    const product = await this.productService.createMerchantProduct(
+      userId,
+      dto,
+    );
     return { success: true, data: product };
   }
 

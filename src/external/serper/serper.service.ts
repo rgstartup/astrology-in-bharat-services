@@ -11,9 +11,8 @@ export class SerperService {
       'd8af18e43b74b92ebc1bd50f76849a84241133e7';
     try {
       // Serper /places does not support a 'location' field — append it to query
-      const fullQuery = location && location !== 'India'
-        ? `${query} in ${location}`
-        : query;
+      const fullQuery =
+        location && location !== 'India' ? `${query} in ${location}` : query;
 
       const requestBody = {
         q: fullQuery,
@@ -33,10 +32,15 @@ export class SerperService {
       if (!response.ok) {
         const errorText = await response.text();
         // If no credits, return empty gracefully instead of crashing
-        if (response.status === 400 && errorText.includes('Not enough credits')) {
+        if (
+          response.status === 400 &&
+          errorText.includes('Not enough credits')
+        ) {
           return { places: [] };
         }
-        throw new Error(`Serper API error: ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `Serper API error: ${response.statusText} - ${errorText}`,
+        );
       }
 
       return (await response.json()) as Record<string, unknown>;

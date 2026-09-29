@@ -12,6 +12,11 @@ export class GetAdminWithdrawalsUseCase {
   async execute(dto: GetWithdrawalsDto) {
     const { page, limit, status, role } = dto;
     const offset = (page - 1) * limit;
-    return this.walletService.getPendingWithdrawals(limit, offset, status, role);
+    return this.walletService.getPendingWithdrawals(
+      limit,
+      offset,
+      status,
+      role,
+    );
   }
 }

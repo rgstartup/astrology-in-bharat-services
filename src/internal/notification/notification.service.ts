@@ -3,10 +3,7 @@ import { CreateNotificationUseCase } from './use-cases/create-notification.use-c
 import { GetNotificationsUseCase } from './use-cases/get-notifications.use-case';
 import { MarkAsReadUseCase } from './use-cases/mark-as-read.use-case';
 import { ClearAllNotificationsUseCase } from './use-cases/clear-all-notifications.use-case';
-import {
-  NotificationType,
-  ProfileType,
-} from './entities/notification.entity';
+import { NotificationType, ProfileType } from './entities/notification.entity';
 
 import { GetNotificationsDto } from './dto/get-notifications.dto';
 
@@ -44,11 +41,7 @@ export class NotificationService {
     profileType: ProfileType,
     dto: GetNotificationsDto,
   ) {
-    return this.getNotificationsUseCase.execute(
-      profileId,
-      profileType,
-      dto,
-    );
+    return this.getNotificationsUseCase.execute(profileId, profileType, dto);
   }
 
   async markAsRead(id: number, profileId?: number, profileType?: ProfileType) {

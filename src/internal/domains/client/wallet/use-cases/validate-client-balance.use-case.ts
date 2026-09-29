@@ -3,7 +3,9 @@ import { GetClientBalanceUseCase } from './get-client-balance.use-case';
 
 @Injectable()
 export class ValidateClientBalanceUseCase {
-  constructor(private readonly getClientBalanceUseCase: GetClientBalanceUseCase) {}
+  constructor(
+    private readonly getClientBalanceUseCase: GetClientBalanceUseCase,
+  ) {}
 
   async execute(
     clientId: string | number,

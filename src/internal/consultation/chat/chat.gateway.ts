@@ -135,7 +135,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     if (this.disconnectTimers.has(expert_id)) {
-      clearTimeout(this.disconnectTimers.get(expert_id)!);
+      clearTimeout(this.disconnectTimers.get(expert_id));
       this.disconnectTimers.delete(expert_id);
       this.logger.log(
         `Expert ${expert_id} reconnected. Cancelled disconnect timer.`,

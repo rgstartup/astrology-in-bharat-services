@@ -44,7 +44,9 @@ export class ProductCategorySeeder implements Seeder {
           slug: cat.slug,
         });
         await categoryRepository.save(existing);
-        console.log(`[ProductCategorySeeder] Created Category: ${cat.name} (${cat.slug})`);
+        console.log(
+          `[ProductCategorySeeder] Created Category: ${cat.name} (${cat.slug})`,
+        );
       } else {
         existing.name = cat.name;
         await categoryRepository.save(existing);
@@ -52,6 +54,8 @@ export class ProductCategorySeeder implements Seeder {
       seededCount++;
     }
 
-    console.log(`[ProductCategorySeeder] Successfully seeded ${seededCount} product categories.`);
+    console.log(
+      `[ProductCategorySeeder] Successfully seeded ${seededCount} product categories.`,
+    );
   }
 }

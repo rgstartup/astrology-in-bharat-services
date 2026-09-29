@@ -34,13 +34,17 @@ export class GetExpertPujaAppointmentsUseCase {
     };
   }
 
-  async getAllExpertsRevenueAndCount(): Promise<Record<string, { total: number; count: number }>> {
+  async getAllExpertsRevenueAndCount(): Promise<
+    Record<string, { total: number; count: number }>
+  > {
     const stats = await this.pujaAppointmentRepository
       .createQueryBuilder('puja')
       .select('puja.expert_id', 'expert_id')
       .addSelect('SUM(puja.price)', 'total')
       .addSelect('COUNT(puja.id)', 'count')
-      .where('puja.status IN (:...statuses)', { statuses: ['accepted', 'confirmed'] })
+      .where('puja.status IN (:...statuses)', {
+        statuses: ['accepted', 'confirmed'],
+      })
       .groupBy('puja.expert_id')
       .getRawMany();
 

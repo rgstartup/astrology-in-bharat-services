@@ -11,7 +11,7 @@ export class UserRegisteredHandler {
   constructor(
     private readonly emailQueueService: EmailQueueService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   @OnEvent('auth.user.registered', { async: true })
   async handle(event: UserRegisteredEvent) {
@@ -27,7 +27,6 @@ export class UserRegisteredHandler {
     const role = event.role;
     const isExpert = hasRoles(role, 'EXPERT');
     const isMerchant = hasRoles(role, 'MERCHANT');
-
 
     const configKey = isExpert
       ? 'email.expertFrontendUrl'

@@ -38,4 +38,3 @@ export interface IMerchant {
   sub: number;
   email: string;
 }
-
