@@ -6,12 +6,8 @@ import {
   eq,
   exists,
   gte,
-  gt,
   ilike,
   inArray,
-  isNull,
-  lte,
-  or,
   sql,
   type SQL,
 } from 'drizzle-orm';
@@ -26,45 +22,135 @@ import {
   specializations,
 } from '@/core/drizzledb/schema';
 import { QueryExpertDto } from '../dto/request/query-expert.dto';
-import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
 import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
 import {
+  ExpertKycStatus,
   PricingStatus,
   PricingTargetAudience,
-} from '../../shared/enums/pricing.enum';
+} from '@/core/enums';
 import {
   toExpertAccountResponse,
   toExpertPricingResponse,
 } from '../account.mapper';
 
+type PricingSubqueryResult = {
+  id: number;
+  call_price: string | null;
+  video_call_price: string | null;
+  chat_price: string | null;
+  currency: string;
+  effective_from: string;
+};
+
+type SpecializationSubqueryResult = {
+  id: number;
+  title: string;
+  slug: string;
+};
+
+type ProfessionSubqueryResult = {
+  id: number;
+  title: string;
+  slug: string;
+};
+
 @Injectable()
 export class QueryExpertAccountsUseCase {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
+  private get specializationsSubquery() {
+    return sql<SpecializationSubqueryResult[]>`COALESCE(
+      (
+        SELECT json_agg(
+          json_build_object(
+            'id', ${expertSpecializations.id},
+            'title', ${specializations.title},
+            'slug', ${specializations.slug}
+          )
+        )
+        FROM ${expertSpecializations}
+        INNER JOIN ${specializations} ON ${expertSpecializations.specialization_id} = ${specializations.id}
+        WHERE ${expertSpecializations.expert_id} = ${expertAccounts.id}
+          AND ${specializations.is_active} = true
+      ),
+      '[]'::json
+    )`;
+  }
+
+  private get pricingSubquery() {
+    return sql<PricingSubqueryResult | null>`(
+      SELECT json_build_object(
+        'id', ${expertConsultationPricing.id},
+        'call_price', ${expertConsultationPricing.call_price},
+        'video_call_price', ${expertConsultationPricing.video_call_price},
+        'chat_price', ${expertConsultationPricing.chat_price},
+        'currency', ${expertConsultationPricing.currency},
+        'effective_from', ${expertConsultationPricing.effective_from}
+      )
+      FROM ${expertConsultationPricing}
+      WHERE ${expertConsultationPricing.expert_id} = ${expertAccounts.id}
+        AND ${expertConsultationPricing.is_active} = true
+        AND ${expertConsultationPricing.status} = ${PricingStatus.ACTIVE}
+        AND ${expertConsultationPricing.target_audience} = ${PricingTargetAudience.ALL}
+        AND ${expertConsultationPricing.effective_from} <= CURRENT_TIMESTAMP
+        AND (
+          ${expertConsultationPricing.effective_to} IS NULL
+          OR ${expertConsultationPricing.effective_to} > CURRENT_TIMESTAMP
+        )
+      ORDER BY ${expertConsultationPricing.effective_from} DESC
+      LIMIT 1
+    )`;
+  }
+
+  private get professionsSubquery() {
+    return sql<ProfessionSubqueryResult[]>`COALESCE(
+      (
+        SELECT json_agg(
+          json_build_object(
+            'id', ${expertProfessions.id},
+            'title', ${professions.title},
+            'slug', ${professions.slug}
+          )
+        )
+        FROM ${expertProfessions}
+        INNER JOIN ${professions} ON ${expertProfessions.profession_id} = ${professions.id}
+        WHERE ${expertProfessions.expert_id} = ${expertAccounts.id}
+      ),
+      '[]'::json
+    )`;
+  }
+
   async list(query: QueryExpertDto) {
     const where = this.listWhere(query);
 
-    const experts = await this.db
-      .select({
-        id: expertAccounts.id,
-        about: expertAccounts.about,
-        languages: expertAccounts.languages,
-        name: expertAccounts.name,
-        avatar: expertAccounts.avatar,
-        experience_in_years: expertAccounts.experience_in_years,
-        rating: expertAccounts.rating,
-      })
-      .from(expertAccounts)
-      .where(where)
-      .limit(query.limit)
-      .offset(query.offset);
+    const [experts, [{ value: total }]] = await Promise.all([
+      this.db
+        .select({
+          id: expertAccounts.id,
+          about: expertAccounts.about,
+          languages: expertAccounts.languages,
+          name: expertAccounts.name,
+          avatar: expertAccounts.avatar,
+          experience_in_years: expertAccounts.experience_in_years,
+          rating: expertAccounts.rating,
+          specializations: this.specializationsSubquery,
+          pricing: this.pricingSubquery,
+        })
+        .from(expertAccounts)
+        .where(where)
+        .limit(query.limit)
+        .offset(query.offset),
+      this.db
+        .select({ value: count() })
+        .from(expertAccounts)
+        .where(where),
+    ]);
 
-    const [{ value: total }] = await this.db
-      .select({ value: count() })
-      .from(expertAccounts)
-      .where(where);
+    const data = experts.map((expert) => ({
+      ...expert,
+      pricing: expert.pricing ? toExpertPricingResponse(expert.pricing) : null,
+    }));
 
-    const data = await this.withSpecializationsAndPricing(experts);
     return new PaginatedResponseDto(data, total, query.page, query.limit);
   }
 
@@ -78,13 +164,18 @@ export class QueryExpertAccountsUseCase {
         avatar: expertAccounts.avatar,
         experience_in_years: expertAccounts.experience_in_years,
         rating: expertAccounts.rating,
+        specializations: this.specializationsSubquery,
+        pricing: this.pricingSubquery,
       })
       .from(expertAccounts)
       .where(eq(expertAccounts.kyc_status, ExpertKycStatus.APPROVED))
       .orderBy(desc(expertAccounts.rating))
       .limit(limit);
 
-    return this.withSpecializationsAndPricing(experts);
+    return experts.map((expert) => ({
+      ...expert,
+      pricing: expert.pricing ? toExpertPricingResponse(expert.pricing) : null,
+    }));
   }
 
   async byId(id: number) {
@@ -100,6 +191,9 @@ export class QueryExpertAccountsUseCase {
         total_reviews: expertAccounts.total_reviews,
         total_likes: expertAccounts.total_likes,
         is_available: expertAccounts.is_available,
+        professions: this.professionsSubquery,
+        specializations: this.specializationsSubquery,
+        pricing: this.pricingSubquery,
       })
       .from(expertAccounts)
       .where(
@@ -109,26 +203,14 @@ export class QueryExpertAccountsUseCase {
         ),
       )
       .limit(1);
+
     if (!account) throw new NotFoundException('Expert account not found');
 
-    const professionRows = await this.db
-      .select({
-        id: expertProfessions.id,
-        title: professions.title,
-        slug: professions.slug,
-      })
-      .from(expertProfessions)
-      .innerJoin(
-        professions,
-        eq(expertProfessions.profession_id, professions.id),
-      )
-      .where(eq(expertProfessions.expert_id, account.id));
-
-    const [withRelations] = await this.withSpecializationsAndPricing([account]);
     return {
-      ...withRelations,
-      expert_professions: professionRows,
-      professions: professionRows,
+      ...account,
+      expert_professions: account.professions,
+      professions: account.professions,
+      pricing: account.pricing ? toExpertPricingResponse(account.pricing) : null,
     };
   }
 
@@ -183,86 +265,5 @@ export class QueryExpertAccountsUseCase {
     }
 
     return and(...conditions)!;
-  }
-
-  private async withSpecializationsAndPricing<T extends { id: number }>(
-    experts: T[],
-  ) {
-    if (experts.length === 0) return [];
-    const ids = experts.map((e) => e.id);
-
-    const specRows = await this.db
-      .select({
-        expert_id: expertSpecializations.expert_id,
-        id: expertSpecializations.id,
-        title: specializations.title,
-        slug: specializations.slug,
-      })
-      .from(expertSpecializations)
-      .innerJoin(
-        specializations,
-        eq(expertSpecializations.specialization_id, specializations.id),
-      )
-      .where(
-        and(
-          inArray(expertSpecializations.expert_id, ids),
-          eq(specializations.is_active, true),
-        ),
-      );
-
-    const pricingRows = await this.db
-      .select({
-        expert_id: expertConsultationPricing.expert_id,
-        id: expertConsultationPricing.id,
-        call_price: expertConsultationPricing.call_price,
-        video_call_price: expertConsultationPricing.video_call_price,
-        chat_price: expertConsultationPricing.chat_price,
-        currency: expertConsultationPricing.currency,
-        effective_from: expertConsultationPricing.effective_from,
-      })
-      .from(expertConsultationPricing)
-      .where(
-        and(
-          inArray(expertConsultationPricing.expert_id, ids),
-          eq(expertConsultationPricing.is_active, true),
-          eq(expertConsultationPricing.status, PricingStatus.ACTIVE),
-          eq(
-            expertConsultationPricing.target_audience,
-            PricingTargetAudience.ALL,
-          ),
-          lte(expertConsultationPricing.effective_from, sql`CURRENT_TIMESTAMP`),
-          or(
-            isNull(expertConsultationPricing.effective_to),
-            gt(expertConsultationPricing.effective_to, sql`CURRENT_TIMESTAMP`),
-          ),
-        ),
-      )
-      .orderBy(desc(expertConsultationPricing.effective_from));
-
-    const specsByExpert = new Map<number, typeof specRows>();
-    for (const row of specRows) {
-      const list = specsByExpert.get(row.expert_id) ?? [];
-      list.push(row);
-      specsByExpert.set(row.expert_id, list);
-    }
-
-    // Rows come back ordered by `effective_from` DESC, so the first row per
-    // expert is the latest active pricing (mirrors `leftJoinAndMapOne` +
-    // `addOrderBy('pricing.effective_from', 'DESC')`).
-    const pricingByExpert = new Map<number, (typeof pricingRows)[number]>();
-    for (const row of pricingRows) {
-      if (!pricingByExpert.has(row.expert_id)) {
-        pricingByExpert.set(row.expert_id, row);
-      }
-    }
-
-    return experts.map((expert) => {
-      const pricing = pricingByExpert.get(expert.id) ?? null;
-      return {
-        ...expert,
-        specializations: specsByExpert.get(expert.id) ?? [],
-        pricing: pricing ? toExpertPricingResponse(pricing) : null,
-      };
-    });
   }
 }

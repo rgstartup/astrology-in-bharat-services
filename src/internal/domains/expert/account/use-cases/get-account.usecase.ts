@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, gt, isNull, lte, or, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import {
@@ -11,10 +11,7 @@ import {
   specializations,
 } from '@/core/drizzledb/schema';
 import { IExpert } from '@/shared/types/access-token.payload';
-import {
-  PricingStatus,
-  PricingTargetAudience,
-} from '../../shared/enums/pricing.enum';
+import { PricingStatus, PricingTargetAudience } from '@/core/enums';
 import { ExpertAccountResponseDto } from '../dto/response/expert-account-response.dto';
 import { toExpertPricingResponse } from '../account.mapper';
 
@@ -31,6 +28,80 @@ export class GetExpertAccountUseCase {
         name: expertAccounts.name,
         avatar: expertAccounts.avatar,
         experience_in_years: expertAccounts.experience_in_years,
+        professions: sql<
+          Array<{
+            id: number;
+            profession_id: number;
+            is_primary: boolean;
+            title: string;
+            slug: string;
+            icon: string | null;
+          }>
+        >`COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', ${expertProfessions.id},
+                'profession_id', ${expertProfessions.profession_id},
+                'is_primary', ${expertProfessions.is_primary},
+                'title', ${professions.title},
+                'slug', ${professions.slug},
+                'icon', ${professions.icon}
+              )
+            )
+            FROM ${expertProfessions}
+            INNER JOIN ${professions} ON ${expertProfessions.profession_id} = ${professions.id}
+            WHERE ${expertProfessions.expert_id} = ${expertAccounts.id}
+          ),
+          '[]'::json
+        )`,
+        specializations: sql<
+          Array<{
+            id: number;
+            title: string;
+            slug: string;
+          }>
+        >`COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', ${expertSpecializations.id},
+                'title', ${specializations.title},
+                'slug', ${specializations.slug}
+              )
+            )
+            FROM ${expertSpecializations}
+            INNER JOIN ${specializations} ON ${expertSpecializations.specialization_id} = ${specializations.id}
+            WHERE ${expertSpecializations.expert_id} = ${expertAccounts.id}
+              AND ${specializations.is_active} = true
+          ),
+          '[]'::json
+        )`,
+        pricing: sql<{
+          id: number;
+          call_price: string | null;
+          video_call_price: string | null;
+          chat_price: string | null;
+        } | null>`(
+          SELECT json_build_object(
+            'id', ${expertConsultationPricing.id},
+            'call_price', ${expertConsultationPricing.call_price},
+            'video_call_price', ${expertConsultationPricing.video_call_price},
+            'chat_price', ${expertConsultationPricing.chat_price}
+          )
+          FROM ${expertConsultationPricing}
+          WHERE ${expertConsultationPricing.expert_id} = ${expertAccounts.id}
+            AND ${expertConsultationPricing.is_active} = true
+            AND ${expertConsultationPricing.status} = ${PricingStatus.ACTIVE}
+            AND ${expertConsultationPricing.target_audience} = ${PricingTargetAudience.ALL}
+            AND ${expertConsultationPricing.effective_from} <= CURRENT_TIMESTAMP
+            AND (
+              ${expertConsultationPricing.effective_to} IS NULL
+              OR ${expertConsultationPricing.effective_to} > CURRENT_TIMESTAMP
+            )
+          ORDER BY ${expertConsultationPricing.effective_from} DESC
+          LIMIT 1
+        )`,
       })
       .from(expertAccounts)
       .where(eq(expertAccounts.id, Number(expert.sub)))
@@ -40,72 +111,11 @@ export class GetExpertAccountUseCase {
       return null;
     }
 
-    const professionRows = await this.db
-      .select({
-        id: expertProfessions.id,
-        profession_id: expertProfessions.profession_id,
-        is_primary: expertProfessions.is_primary,
-        title: professions.title,
-        slug: professions.slug,
-        icon: professions.icon,
-      })
-      .from(expertProfessions)
-      .innerJoin(
-        professions,
-        eq(expertProfessions.profession_id, professions.id),
-      )
-      .where(eq(expertProfessions.expert_id, account.id));
-
-    const specializationRows = await this.db
-      .select({
-        id: expertSpecializations.id,
-        title: specializations.title,
-        slug: specializations.slug,
-      })
-      .from(expertSpecializations)
-      .innerJoin(
-        specializations,
-        eq(expertSpecializations.specialization_id, specializations.id),
-      )
-      .where(
-        and(
-          eq(expertSpecializations.expert_id, account.id),
-          eq(specializations.is_active, true),
-        ),
-      );
-
-    const [pricing] = await this.db
-      .select({
-        id: expertConsultationPricing.id,
-        call_price: expertConsultationPricing.call_price,
-        video_call_price: expertConsultationPricing.video_call_price,
-        chat_price: expertConsultationPricing.chat_price,
-      })
-      .from(expertConsultationPricing)
-      .where(
-        and(
-          eq(expertConsultationPricing.expert_id, account.id),
-          eq(expertConsultationPricing.is_active, true),
-          eq(expertConsultationPricing.status, PricingStatus.ACTIVE),
-          eq(
-            expertConsultationPricing.target_audience,
-            PricingTargetAudience.ALL,
-          ),
-          lte(expertConsultationPricing.effective_from, sql`CURRENT_TIMESTAMP`),
-          or(
-            isNull(expertConsultationPricing.effective_to),
-            gt(expertConsultationPricing.effective_to, sql`CURRENT_TIMESTAMP`),
-          ),
-        ),
-      )
-      .orderBy(desc(expertConsultationPricing.effective_from))
-      .limit(1);
-
     return ExpertAccountResponseDto.from({
       ...account,
-      professions: professionRows,
-      specializations: specializationRows,
-      pricing: pricing ? toExpertPricingResponse(pricing) : null,
+      pricing: account.pricing
+        ? toExpertPricingResponse(account.pricing)
+        : null,
     });
   }
 }

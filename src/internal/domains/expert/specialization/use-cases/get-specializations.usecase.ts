@@ -1,91 +1,224 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Specialization } from '../entities/specialization.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  exists,
+  ilike,
+  inArray,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import {
+  expertProfessions,
+  professionSpecializations,
+  professions,
+  specializations,
+} from '@/core/drizzledb/schema';
 import { GetSpecializationsDto } from '../dto/request/get-specializations.dto';
 import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
 
+const sortColumns = {
+  sort_order: specializations.sort_order,
+  title: specializations.title,
+  slug: specializations.slug,
+  created_at: specializations.created_at,
+} as const;
+
 @Injectable()
 export class GetSpecializationsUseCase {
-  constructor(
-    @InjectRepository(Specialization)
-    private readonly specializationRepo: Repository<Specialization>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(dto: GetSpecializationsDto) {
-    const query = this.specializationRepo
-      .createQueryBuilder('spec')
-      .leftJoinAndSelect('spec.professions', 'professions');
+    const where = this.listWhere(dto);
+
+    const sortCol =
+      sortColumns[dto.sort_by ?? 'sort_order'] ?? specializations.sort_order;
+    const direction =
+      (dto.order ?? 'ASC').toUpperCase() === 'DESC' ? desc : asc;
+    const orderBy =
+      sortCol === specializations.sort_order
+        ? [direction(sortCol)]
+        : [direction(sortCol), asc(specializations.sort_order)];
+
+    const items = await this.db
+      .select()
+      .from(specializations)
+      .where(where)
+      .orderBy(...orderBy)
+      .limit(dto.limit)
+      .offset(dto.offset);
+
+    const [{ value: total }] = await this.db
+      .select({ value: count() })
+      .from(specializations)
+      .where(where);
+
+    const data = await this.withProfessions(items);
+    return PaginatedResponseDto.from(data, total, dto);
+  }
+
+  async getAvailableForExpert(expertId: number) {
+    return this.db
+      .select()
+      .from(specializations)
+      .where(
+        and(
+          eq(specializations.is_active, true),
+          exists(
+            this.db
+              .select({ one: sql`1` })
+              .from(professionSpecializations)
+              .innerJoin(
+                expertProfessions,
+                eq(
+                  expertProfessions.profession_id,
+                  professionSpecializations.profession_id,
+                ),
+              )
+              .where(
+                and(
+                  eq(
+                    professionSpecializations.specialization_id,
+                    specializations.id,
+                  ),
+                  eq(expertProfessions.expert_id, Number(expertId)),
+                ),
+              ),
+          ),
+        ),
+      )
+      .orderBy(asc(specializations.sort_order));
+  }
+
+  private listWhere(dto: GetSpecializationsDto): SQL {
+    const conditions: SQL[] = [];
 
     // Default to active specializations for public listing unless explicitly requested
     if (dto.is_active !== undefined) {
-      query.andWhere('spec.is_active = :isActive', {
-        isActive: dto.is_active,
-      });
+      conditions.push(eq(specializations.is_active, dto.is_active));
     } else {
-      query.andWhere('spec.is_active = true');
+      conditions.push(eq(specializations.is_active, true));
     }
 
     if (dto.profession_id) {
-      query.innerJoin(
-        'spec.professions',
-        'filter_prof',
-        'filter_prof.id = :professionId',
-        { professionId: dto.profession_id },
+      conditions.push(
+        exists(
+          this.db
+            .select({ one: sql`1` })
+            .from(professionSpecializations)
+            .where(
+              and(
+                eq(
+                  professionSpecializations.specialization_id,
+                  specializations.id,
+                ),
+                eq(
+                  professionSpecializations.profession_id,
+                  Number(dto.profession_id),
+                ),
+              ),
+            ),
+        ),
       );
     } else if (dto.profession_slug) {
-      query.innerJoin(
-        'spec.professions',
-        'filter_prof',
-        'filter_prof.slug = :professionSlug',
-        { professionSlug: dto.profession_slug },
+      conditions.push(
+        exists(
+          this.db
+            .select({ one: sql`1` })
+            .from(professionSpecializations)
+            .innerJoin(
+              professions,
+              eq(professions.id, professionSpecializations.profession_id),
+            )
+            .where(
+              and(
+                eq(
+                  professionSpecializations.specialization_id,
+                  specializations.id,
+                ),
+                eq(professions.slug, dto.profession_slug),
+              ),
+            ),
+        ),
       );
     } else if (dto.profession_ids && dto.profession_ids.length > 0) {
-      query.innerJoin(
-        'spec.professions',
-        'filter_prof',
-        'filter_prof.id IN (:...professionIds)',
-        { professionIds: dto.profession_ids },
+      conditions.push(
+        exists(
+          this.db
+            .select({ one: sql`1` })
+            .from(professionSpecializations)
+            .where(
+              and(
+                eq(
+                  professionSpecializations.specialization_id,
+                  specializations.id,
+                ),
+                inArray(
+                  professionSpecializations.profession_id,
+                  dto.profession_ids.map(Number),
+                ),
+              ),
+            ),
+        ),
       );
     }
 
     if (dto.search && dto.search.trim()) {
-      const searchPattern = `%${dto.search.trim().toLowerCase()}%`;
-      query.andWhere(
-        '(LOWER(spec.title) LIKE :search OR LOWER(spec.description) LIKE :search OR LOWER(spec.slug) LIKE :search)',
-        { search: searchPattern },
+      const searchPattern = `%${dto.search.trim()}%`;
+      conditions.push(
+        or(
+          ilike(specializations.title, searchPattern),
+          ilike(specializations.description, searchPattern),
+          ilike(specializations.slug, searchPattern),
+        )!,
       );
     }
 
-    const sortBy = dto.sort_by || 'sort_order';
-    const orderDirection = (dto.order || 'ASC').toUpperCase() as 'ASC' | 'DESC';
-
-    query.orderBy(`spec.${sortBy}`, orderDirection);
-    if (sortBy !== 'sort_order') {
-      query.addOrderBy('spec.sort_order', 'ASC');
-    }
-
-    query.skip(dto.offset).take(dto.limit);
-
-    const [items, total] = await query.getManyAndCount();
-
-    return PaginatedResponseDto.from(items, total, dto);
+    return and(...conditions)!;
   }
 
-  async getAvailableForExpert(expertId: number) {
-    const query = this.specializationRepo
-      .createQueryBuilder('spec')
-      .innerJoin('spec.professions', 'prof')
-      .innerJoin(
-        'expert.expert_professions',
-        'ep',
-        'ep.profession_id = prof.id AND ep.expert_id = :expertId',
-        { expertId },
-      )
-      .where('spec.is_active = true')
-      .orderBy('spec.sort_order', 'ASC');
+  private async withProfessions<T extends { id: number }>(specs: T[]) {
+    if (specs.length === 0) return [];
+    const ids = specs.map((s) => s.id);
 
-    const items = await query.getMany();
-    return items;
+    const rows = await this.db
+      .select({
+        specialization_id: professionSpecializations.specialization_id,
+        id: professions.id,
+        title: professions.title,
+        slug: professions.slug,
+        description: professions.description,
+        icon: professions.icon,
+        is_active: professions.is_active,
+        sort_order: professions.sort_order,
+        created_at: professions.created_at,
+        updated_at: professions.updated_at,
+      })
+      .from(professionSpecializations)
+      .innerJoin(
+        professions,
+        eq(professions.id, professionSpecializations.profession_id),
+      )
+      .where(inArray(professionSpecializations.specialization_id, ids));
+
+    const bySpec = new Map<number, typeof rows>();
+    for (const row of rows) {
+      const list = bySpec.get(row.specialization_id) ?? [];
+      list.push(row);
+      bySpec.set(row.specialization_id, list);
+    }
+
+    return specs.map((spec) => ({
+      ...spec,
+      professions: (bySpec.get(spec.id) ?? []).map(
+        ({ specialization_id: _sid, ...profession }) => profession,
+      ),
+    }));
   }
 }
