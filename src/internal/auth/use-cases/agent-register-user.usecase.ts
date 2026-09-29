@@ -17,7 +17,7 @@ import {
   type IHasher,
 } from '../../../shared/contracts/hasher.contract';
 import { User } from '../../users/entities/user.entity';
-import { SystemSetting } from '../../admin/entities/system-setting.entity';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

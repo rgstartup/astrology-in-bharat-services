@@ -1,6 +1,6 @@
-import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { OrderService } from '../../commerce/order/order.service';
+import { OrderService } from '@/internal/commerce/order/order.service';
 
 @Injectable()
 export class GetAdminMerchantSalesOverviewUseCase {

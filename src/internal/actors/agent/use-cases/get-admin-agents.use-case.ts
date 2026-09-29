@@ -1,6 +1,6 @@
 import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { AdminService } from '../../../admin/admin.service';
+import { AdminService } from '@/internal/actors/admin/admin.service';
 import { UsersService } from '../../../users/users.service';
 import { AgentService } from '../agent.service';
 import { RoleEnum } from '../../../users/enums/Role.enum';

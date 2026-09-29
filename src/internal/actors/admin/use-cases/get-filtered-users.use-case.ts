@@ -1,7 +1,7 @@
-import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { UsersService } from '../../users/users.service';
-import { FilterCriteria } from '../../users/use-cases/get-filtered-users.use-case';
+import { UsersService } from '@/internal/users/users.service';
+import { FilterCriteria } from '@/internal/users/use-cases/get-filtered-users.use-case';
 
 export { type FilterCriteria };
 

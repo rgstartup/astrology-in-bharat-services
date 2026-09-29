@@ -19,22 +19,22 @@ import { UpdateListingStatusAdminUseCase } from './use-cases/update-listing-stat
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
 
-import { UsersModule } from '../users/users.module';
-import { WalletModule } from '../finance/wallet/wallet.module';
+import { UsersModule } from '@/internal/users/users.module';
+import { WalletModule } from '@/internal/finance/wallet/wallet.module';
 // import { ChatModule } from '@/modules/chat/chat.module';
-import { ProfileModule } from '../actors/expert/profile/profile.module';
+import { ProfileModule } from '@/internal/actors/expert/profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminAuditLog } from './entities/admin-audit-log.entity';
-import { CouponModule } from '../commerce/coupon/coupon.module';
-import { ChatSession } from '../consultation/chat/entities/chat-session.entity';
-import { ExternalModule } from '../../external/external.module';
-import { User } from '../users/entities/user.entity';
-import { Transaction } from '../finance/wallet/entities/transaction.entity';
-import { SupportModule } from '../support/support.module';
-import { ProfileExpert } from '../actors/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '../actors/client/account/entities/account.entity';
-import { MerchantModule } from '../actors/merchant/merchant.module';
-import { AgentModule } from '../actors/agent/agent.module';
+import { CouponModule } from '@/internal/commerce/coupon/coupon.module';
+import { ChatSession } from '@/internal/consultation/chat/entities/chat-session.entity';
+import { ExternalModule } from '@/external/external.module';
+import { User } from '@/internal/users/entities/user.entity';
+import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { SupportModule } from '@/internal/support/support.module';
+import { ProfileExpert } from '@/internal/actors/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '@/internal/actors/client/account/entities/account.entity';
+import { MerchantModule } from '@/internal/actors/merchant/merchant.module';
+import { AgentModule } from '@/internal/actors/agent/agent.module';
 
 import { SystemSetting } from './entities/system-setting.entity';
 import { SettingsController } from './controllers/settings.controller';
@@ -42,14 +42,14 @@ import { PublicStatsController } from './controllers/public-stats.controller';
 import { GetSupportSettingsUseCase } from './use-cases/get-support-settings.usecase';
 import { GetSystemSettingsUseCase } from './use-cases/get-system-settings.use-case';
 import { UpdateSystemSettingUseCase } from './use-cases/update-system-setting.use-case';
-import { CommissionsModule } from '../finance/commissions/commissions.module';
-import { ConsultationModule } from '../consultation/consultation.module';
-import { PujaAppointmentModule } from '../puja-appointment/puja-appointment.module';
-import { OrderModule } from '../commerce/order/order.module';
+import { CommissionsModule } from '@/internal/finance/commissions/commissions.module';
+import { ConsultationModule } from '@/internal/consultation/consultation.module';
+import { PujaAppointmentModule } from '@/internal/puja-appointment/puja-appointment.module';
+import { OrderModule } from '@/internal/commerce/order/order.module';
 
 import { PublicSettingsController } from './controllers/public-settings.controller';
-import { IHasherToken } from '../../shared/contracts/hasher.contract';
-import { Argon2PasswordHasher } from '../auth/hashing/argon2-password.hasher';
+import { IHasherToken } from '@/shared/contracts/hasher.contract';
+import { Argon2PasswordHasher } from '@/internal/auth/hashing/argon2-password.hasher';
 
 // New Use Cases
 import { GetAdminClientsUseCase } from './use-cases/get-admin-clients.use-case';

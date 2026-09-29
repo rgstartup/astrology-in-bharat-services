@@ -1,7 +1,7 @@
-import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { MerchantAccountService } from '../../actors/merchant/account/account.service';
-import { MerchantStatus } from '../../actors/merchant/account/entities/account.entity';
+import { MerchantAccountService } from '@/internal/actors/merchant/account/account.service';
+import { MerchantStatus } from '@/internal/actors/merchant/account/entities/account.entity';
 
 @Injectable()
 export class UpdateMerchantStatusAdminUseCase {

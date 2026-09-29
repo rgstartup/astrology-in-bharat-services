@@ -18,7 +18,7 @@ import { Product } from '../../product/entities/product.entity';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { ClientWalletService } from '../../../actors/client/wallet/wallet.service';
 import { ClientTransactionPurpose } from '../../../actors/client/wallet/enum';
-import { SystemSetting } from '../../../admin/entities/system-setting.entity';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {

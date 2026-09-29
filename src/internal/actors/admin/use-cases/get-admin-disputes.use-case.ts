@@ -1,6 +1,6 @@
-import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { SupportService } from '../../support/support.service';
+import { SupportService } from '@/internal/support/support.service';
 import { GetDisputesDto } from '../dto/get-disputes.dto';
 
 @Injectable()

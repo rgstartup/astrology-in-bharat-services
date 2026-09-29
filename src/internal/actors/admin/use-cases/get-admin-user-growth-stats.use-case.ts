@@ -1,6 +1,6 @@
-import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { UsersService } from '../../users/users.service';
+import { UsersService } from '@/internal/users/users.service';
 
 @Injectable()
 export class GetAdminUserGrowthStatsUseCase {

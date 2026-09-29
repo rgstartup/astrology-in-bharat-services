@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsUUID } from 'class-validator';
-import { PaginationDto } from '../../../../shared/dto/pagination.dto';
+import { PaginationDto } from '@/shared/dto/pagination.dto';
 
 export class GetProductsDto extends PaginationDto {
   @IsOptional()

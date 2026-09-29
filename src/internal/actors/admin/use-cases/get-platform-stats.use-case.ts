@@ -1,5 +1,5 @@
-import { OrderStatus } from '../../commerce/order/enum';
-import { User } from '../../users/entities/user.entity';
+import { OrderStatus } from '@/internal/commerce/order/enum';
+import { User } from '@/internal/users/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

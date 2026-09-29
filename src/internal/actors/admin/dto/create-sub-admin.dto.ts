@@ -7,7 +7,7 @@ import {
   ArrayMinSize,
   IsEnum,
 } from 'class-validator';
-import { AdminPermission } from '../../users/enums/AdminPermission.enum';
+import { AdminPermission } from '@/internal/users/enums/AdminPermission.enum';
 
 export class CreateSubAdminDto {
   @IsString()

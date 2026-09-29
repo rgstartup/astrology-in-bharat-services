@@ -9,7 +9,7 @@ import { OAuthAccount } from './entities/oauth-accounts.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { DatabaseModule } from '../../core/database/database.module';
 import { User } from '../users/entities/user.entity';
-import { SystemSetting } from '../admin/entities/system-setting.entity';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
 import { ProfileAgent } from '../actors/agent/entities/profile-agent.entity';
 import { MerchantAccountModule } from '../actors/merchant/account/account.module';
 import { QueueModule } from '../../core/queue/queue.module';

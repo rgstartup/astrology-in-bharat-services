@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProductGroup, ProductType } from '../enum';
-import ToBoolean from '../../../../shared/decorators/transform/bool.transform';
+import ToBoolean from '@/shared/decorators/transform/bool.transform';
 
 export class CreateProductDto {
   @IsString()

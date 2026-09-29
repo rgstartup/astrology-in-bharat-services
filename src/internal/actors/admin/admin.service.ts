@@ -1,4 +1,4 @@
-import type { DeferredDependency } from '../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { GetAdminDashboardStatsUseCase } from './use-cases/get-admin-dashboard-stats.use-case';
 import { GetAdminUserGrowthStatsUseCase } from './use-cases/get-admin-user-growth-stats.use-case';
@@ -21,9 +21,9 @@ import { UpdateListingStatusAdminUseCase } from './use-cases/update-listing-stat
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
 import { CreateAgentDto } from './dto/create-agent.dto';
-import { WalletService } from '../finance/wallet/wallet.service';
-import { SupportService } from '../support/support.service';
-import { RoleEnum } from '../users/enums/Role.enum';
+import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { SupportService } from '@/internal/support/support.service';
+import { RoleEnum } from '@/internal/users/enums/Role.enum';
 import { GetSystemSettingsUseCase } from './use-cases/get-system-settings.use-case';
 
 // New DTO imports

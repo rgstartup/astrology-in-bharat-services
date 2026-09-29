@@ -13,11 +13,11 @@ import {
   ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../auth/guards/auth.guard';
-import { RolesGuard } from '../../auth/guards/role.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
-import { type IUser } from '../../../shared/types/access-token.payload';
+import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
+import { RolesGuard } from '@/internal/auth/guards/role.guard';
+import { Roles } from '@/shared/decorators/roles.decorator';
+import { CurrentUser } from '@/shared/decorators/current-user.decorator';
+import { type IUser } from '@/shared/types/access-token.payload';
 import { CreateSubAdminDto } from '../dto/create-sub-admin.dto';
 import { UpdateSubAdminDto } from '../dto/update-sub-admin.dto';
 import { CreateSubAdminUseCase } from '../use-cases/create-sub-admin.use-case';

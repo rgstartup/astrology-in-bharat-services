@@ -1,5 +1,5 @@
-import { PaginationDto } from '../../../shared/dto/pagination.dto';
-import { MerchantStatus } from '../../actors/merchant/account/entities/account.entity';
+import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { MerchantStatus } from '@/internal/actors/merchant/account/entities/account.entity';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class GetAdminMerchantsDto extends PaginationDto {

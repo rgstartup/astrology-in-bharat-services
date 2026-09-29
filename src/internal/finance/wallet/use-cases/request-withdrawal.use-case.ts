@@ -11,16 +11,16 @@ import { Transaction } from '../entities/transaction.entity';
 import { TransactionType, TransactionPurpose } from '../enum';
 import { Wallet, WalletKey } from '../entities/wallet.entity';
 import { Idempotency } from '../entities/idempotency.entity';
-import { NotificationService } from '../../../notification/notification.service';
+import { NotificationService } from '@/internal/notification/notification.service';
 import {
   NotificationType,
   ProfileType,
-} from '../../../notification/entities/notification.entity';
-import { RoleEnum } from '../../../users/enums/Role.enum';
-import { SystemSetting } from '../../../admin/entities/system-setting.entity';
-import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
-import { ProfileAgent } from '../../../actors/agent/entities/profile-agent.entity';
+} from '@/internal/notification/entities/notification.entity';
+import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
+import { ProfileExpert } from '@/internal/actors/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '@/internal/actors/merchant/account/entities/account.entity';
+import { ProfileAgent } from '@/internal/actors/agent/entities/profile-agent.entity';
 
 @Injectable()
 export class RequestWithdrawalUseCase {

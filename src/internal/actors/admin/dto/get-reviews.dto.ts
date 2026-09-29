@@ -1,4 +1,4 @@
-import { PaginationDto } from '../../../shared/dto/pagination.dto';
+import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { PickType } from '@nestjs/mapped-types';
 
 export class GetReviewsDTO extends PickType(PaginationDto, [

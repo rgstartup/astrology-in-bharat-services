@@ -3,7 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
+import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Withdrawal } from '../entities/withdrawal.entity';
@@ -11,17 +11,17 @@ import { WithdrawalStatus } from '../enum';
 import { Transaction } from '../entities/transaction.entity';
 import { TransactionType, TransactionPurpose } from '../enum';
 import { RazorpayPayoutService } from '../gateways/razorpay-payout.service';
-import { NotificationService } from '../../../notification/notification.service';
-import { AdminAuditLog } from '../../../admin/entities/admin-audit-log.entity';
+import { NotificationService } from '@/internal/notification/notification.service';
+import { AdminAuditLog } from '@/internal/actors/admin/entities/admin-audit-log.entity';
 import {
   NotificationType,
   ProfileType,
-} from '../../../notification/entities/notification.entity';
-import { RoleEnum } from '../../../users/enums/Role.enum';
-import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
-import { ProfileAgent } from '../../../actors/agent/entities/profile-agent.entity';
-import { User } from '../../../users/entities/user.entity';
+} from '@/internal/notification/entities/notification.entity';
+import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { ProfileExpert } from '@/internal/actors/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '@/internal/actors/merchant/account/entities/account.entity';
+import { ProfileAgent } from '@/internal/actors/agent/entities/profile-agent.entity';
+import { User } from '@/internal/users/entities/user.entity';
 
 @Injectable()
 export class UpdateWithdrawalStatusUseCase {

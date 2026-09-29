@@ -7,7 +7,7 @@ import { OrderPayment } from './entities/order-payment.entity';
 import { OrderRefund } from './entities/order-refund.entity';
 import { OrderAddress } from './entities/order-address.entity';
 import { QueueModule } from '../../../core/queue/queue.module';
-import { SystemSetting } from '../../admin/entities/system-setting.entity';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
 
 import {
   OrderController,
@@ -34,7 +34,7 @@ import { WalletModule } from '../../finance/wallet/wallet.module';
 import { CouponModule } from '../coupon/coupon.module';
 import { ProductModule } from '../product/product.module';
 import { NodemailerModule } from '../../../external/nodemailer/nodemailer.module';
-import { AdminModule } from '../../admin/admin.module';
+import { AdminModule } from '@/internal/actors/admin/admin.module';
 import { PujaAppointmentModule } from '../../puja-appointment/puja-appointment.module';
 import { AccountModule } from '../../actors/client/account/account.module';
 import { MerchantAccountModule } from '../../actors/merchant/account/account.module';

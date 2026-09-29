@@ -9,7 +9,7 @@ import {
   TransactionPurpose,
 } from '../../../finance/wallet/enum';
 import { Wallet } from '../../../finance/wallet/entities/wallet.entity';
-import { SystemSetting } from '../../../admin/entities/system-setting.entity';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
 import {
   CommissionRule,
   CommissionType,

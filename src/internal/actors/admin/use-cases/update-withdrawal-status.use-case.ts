@@ -1,6 +1,6 @@
-import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { WalletService } from '../../finance/wallet/wallet.service';
+import { WalletService } from '@/internal/finance/wallet/wallet.service';
 import { UpdateWithdrawalStatusDto } from '../dto/update-withdrawal-status.dto';
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { DisputeStatus } from '../../support/entities/dispute.entity';
+import { DisputeStatus } from '@/internal/support/entities/dispute.entity';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateDisputeStatusDto {

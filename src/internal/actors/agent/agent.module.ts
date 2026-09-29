@@ -2,19 +2,19 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileAgent } from './entities/profile-agent.entity';
 import { AgentListing } from './entities/agent-listing.entity';
-import { User } from '../../users/entities/user.entity';
-import { Transaction } from '../../finance/wallet/entities/transaction.entity';
+import { User } from '@/internal/users/entities/user.entity';
+import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
 import { AgentController } from './controllers/agent.controller';
-import { DatabaseModule } from '../../../core/database/database.module';
-import { WalletModule } from '../../finance/wallet/wallet.module';
-import { ConsultationModule } from '../../consultation/consultation.module';
-import { PujaAppointmentModule } from '../../puja-appointment/puja-appointment.module';
-import { NotificationModule } from '../../notification/notification.module';
-import { CommissionsModule } from '../../finance/commissions/commissions.module';
+import { DatabaseModule } from '@/core/database/database.module';
+import { WalletModule } from '@/internal/finance/wallet/wallet.module';
+import { ConsultationModule } from '@/internal/consultation/consultation.module';
+import { PujaAppointmentModule } from '@/internal/puja-appointment/puja-appointment.module';
+import { NotificationModule } from '@/internal/notification/notification.module';
+import { CommissionsModule } from '@/internal/finance/commissions/commissions.module';
 
 import { AgentService } from './agent.service';
-import { ProfileModule as ExpertProfileModule } from '../expert/profile/profile.module';
-import { MerchantAccountModule } from '../merchant/account/account.module';
+import { ProfileModule as ExpertProfileModule } from '@/internal/actors/expert/profile/profile.module';
+import { MerchantAccountModule } from '@/internal/actors/merchant/account/account.module';
 import { GetAgentProfileUseCase } from './use-cases/get-agent-profile.use-case';
 import { UpdateAgentProfileUseCase } from './use-cases/update-agent-profile.use-case';
 import { GetAgentStatsUseCase } from './use-cases/get-agent-stats.use-case';
@@ -29,8 +29,8 @@ import { GetAdminAgentStatsUseCase } from './use-cases/get-admin-agent-stats.use
 import { GetAdminListingsUseCase } from './use-cases/get-admin-listings.use-case';
 import { UpdateAdminListingStatusUseCase } from './use-cases/update-admin-listing-status.use-case';
 import { RequestAgentWithdrawalUseCase } from './use-cases/request-agent-withdrawal.use-case';
-import { UsersModule } from '../../users/users.module';
-import { AdminModule } from '../../admin/admin.module';
+import { UsersModule } from '@/internal/users/users.module';
+import { AdminModule } from '@/internal/actors/admin/admin.module';
 
 @Module({
   imports: [

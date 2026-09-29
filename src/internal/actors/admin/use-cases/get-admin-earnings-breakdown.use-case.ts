@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction } from '../../finance/wallet/entities/transaction.entity';
-import { TransactionPurpose } from '../../finance/wallet/enum';
+import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { TransactionPurpose } from '@/internal/finance/wallet/enum';
 
 @Injectable()
 export class GetAdminEarningsBreakdownUseCase {

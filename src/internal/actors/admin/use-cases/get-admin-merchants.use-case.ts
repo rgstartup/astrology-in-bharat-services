@@ -11,7 +11,7 @@ export class GetAdminMerchantsUseCase {
   ) {}
 
   async execute(dto: GetAdminMerchantsDto) {
-    const { search, status, page = 1, limit = 10 } = dto;
+    const { search, status, page, limit } = dto;
     return this.merchantService.listAccounts({
       q: search,
       status: status ? status : undefined,

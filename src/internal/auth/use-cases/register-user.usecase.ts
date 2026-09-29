@@ -9,7 +9,7 @@ import { UserRegisteredEvent } from '../domain/events/user-registered.event';
 import { User } from '../../users/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { ProfileExpert } from '../../actors/expert/profile/entities/profile-expert.entity';
-import { SystemSetting } from '../../admin/entities/system-setting.entity';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
 import { hasRoles } from '../../users/enums/Role.enum';
 import {
   IHasherToken,

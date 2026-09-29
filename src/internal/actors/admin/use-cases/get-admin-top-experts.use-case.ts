@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction } from '../../finance/wallet/entities/transaction.entity';
+import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
 
 interface TopExpertRawRow {
   name: string;
