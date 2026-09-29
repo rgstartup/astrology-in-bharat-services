@@ -9,11 +9,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ColumnNumericTransformer } from '../../../../shared/transformers/numeric.transformer';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 import {
   PricingStatus,
   PricingTargetAudience,
-} from '../../../domains/expert/shared/enums/pricing.enum';
+} from '../../../actors/expert/shared/enums/pricing.enum';
 import { ProductVariant } from './variants.entity';
 
 @Entity({ schema: 'commerce', name: 'product_variant_pricing' })

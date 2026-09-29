@@ -4,9 +4,7 @@ import { WebhookValidationRequest } from '@/external/payment/payment-gateway.int
 
 @Injectable()
 export class PaymentsService {
-  constructor(
-    private readonly handleWebhookUseCase: HandleWebhookUseCase,
-  ) {}
+  constructor(private readonly handleWebhookUseCase: HandleWebhookUseCase) {}
 
   async handleWebhook(request: WebhookValidationRequest) {
     return this.handleWebhookUseCase.execute(request);

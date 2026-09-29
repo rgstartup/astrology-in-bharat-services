@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
+import { ProfileAgent } from '../../../actors/agent/entities/profile-agent.entity';
 import { RoleEnum } from '../../../users/enums/Role.enum';
 import { IFindProfileStrategy } from './find-profile.strategy';
 

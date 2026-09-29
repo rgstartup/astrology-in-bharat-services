@@ -9,7 +9,10 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { CouponStatus, CouponType } from '../../../../../internal/commerce/coupon/enum';
+import {
+  CouponStatus,
+  CouponType,
+} from '../../../../../internal/commerce/coupon/enum';
 import { userCoupons } from './user-coupon.schema';
 
 const commerceSchema = pgSchema('commerce');

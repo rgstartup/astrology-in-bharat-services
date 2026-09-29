@@ -8,7 +8,7 @@ import { CallSessionStatus, CallType } from '../../call/enum';
 import { Review } from '../../reviews/entities/review.entity';
 import { ConsultationHistoryDto } from '../dto/consultation-history.dto';
 import { ConsultationType, ConsultationStatus } from '../enum';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 
 import { GetUnifiedHistoryDto } from '../dto/get-unified-history.dto';
 

@@ -15,11 +15,11 @@ import {
 import { memoryStorage } from 'multer';
 import { ProductService } from '../product.service';
 import { UpdateProductDto, GetProductsDto } from '../dto';
-import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
-import { RolesGuard } from '../../../auth/guards/role.guard';
-import { Roles } from '../../../../shared/decorators/roles.decorator';
+import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
+import { RolesGuard } from '@/internal/auth/guards/role.guard';
+import { Roles } from '@/shared/decorators/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImageUploadService } from '../../../../external/cloudinary';
+import { ImageUploadService } from '@/external/cloudinary';
 import { UploadApiResponse } from 'cloudinary';
 
 @Controller({
@@ -80,7 +80,7 @@ export class ProductController {
         );
       }
     }
-    const _result = await this.productService.update(id, updateProductDto);
+    await this.productService.update(id, updateProductDto);
     return { success: true };
   }
 
@@ -88,7 +88,7 @@ export class ProductController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async remove(@Param('id', ParseIntPipe) id: number) {
-    const _result = await this.productService.remove(id);
+    await this.productService.remove(id);
     return { success: true };
   }
 }

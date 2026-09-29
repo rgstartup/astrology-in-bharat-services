@@ -9,7 +9,7 @@ import { ProductVariantPricing } from '../../internal/commerce/product/entities/
 import { ProductVariantPromotions } from '../../internal/commerce/product/entities/promotions.entity';
 import { ProductMedia } from '../../internal/commerce/product/entities/media.entity';
 import { Media } from '../../internal/media/entities/media.entity';
-import { MerchantAccount } from '../../internal/domains/merchant/account/entities/account.entity';
+import { MerchantAccount } from '../../internal/actors/merchant/account/entities/account.entity';
 import {
   ProductType,
   ProductGroup,
@@ -21,10 +21,10 @@ import {
 import {
   PricingStatus,
   PricingTargetAudience,
-} from '../../internal/domains/expert/shared/enums/pricing.enum';
-import { ExpertAccount } from '../../internal/domains/expert/account/entities/account.entity';
-import { ExpertProducts } from '../../internal/domains/expert/products/entities/expert-product.entity';
-import { ExpertProductRelationType } from '../../internal/domains/expert/products/enum/expert-product-relation-type.enum';
+} from '../../internal/actors/expert/shared/enums/pricing.enum';
+import { ExpertAccount } from '../../internal/actors/expert/account/entities/account.entity';
+import { ExpertProducts } from '../../internal/actors/expert/products/entities/expert-product.entity';
+import { ExpertProductRelationType } from '../../internal/actors/expert/products/enum/expert-product-relation-type.enum';
 
 interface VariantSeedData {
   name: string;

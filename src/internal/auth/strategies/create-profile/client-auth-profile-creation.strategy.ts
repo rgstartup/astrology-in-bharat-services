@@ -3,13 +3,11 @@ import { QueryRunner } from 'typeorm';
 import { User } from '../../../users/entities/user.entity';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
 import { RoleEnum } from '../../../users/enums/Role.enum';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 import { nanoid } from 'nanoid';
 
 @Injectable()
-export class ClientAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy<ClientAccount>
-{
+export class ClientAuthProfileCreationStrategy implements AuthProfileCreationStrategy<ClientAccount> {
   readonly role = RoleEnum.CLIENT;
 
   async ensureProfile(

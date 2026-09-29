@@ -7,8 +7,8 @@ import {
   Unique,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ProfileExpert } from '../../internal/domains/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '../../internal/domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../internal/actors/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../internal/actors/client/account/entities/account.entity';
 import { AddressTag } from '../enums/address-tag.enum';
 import { AddressType } from '../enums/address-type.enum';
 export { AddressTag, AddressType };

@@ -15,11 +15,11 @@ import {
   PujaMode,
 } from '../entities/puja-appointment.entity';
 import { CreatePujaAppointmentDto } from '../dtos/create-puja-appointment.dto';
-import { ExpertProfileService } from '../../domains/expert/profile/profile.service';
-import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { ExpertProfileService } from '../../actors/expert/profile/profile.service';
+import { ClientAccount } from '../../actors/client/account/entities/account.entity';
 import { NotificationService } from '../../notification/notification.service';
 import { NotificationType } from '../../notification/entities/notification.entity';
-import { ExpertGateway } from '../../domains/expert/profile/gateways/expert.gateway';
+import { ExpertGateway } from '../../actors/expert/profile/gateways/expert.gateway';
 import { IUser } from '../../../shared/types/access-token.payload';
 
 @Injectable()

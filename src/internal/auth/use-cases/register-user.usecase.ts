@@ -8,10 +8,13 @@ import { AuthTokenService } from '../services/auth-token.service';
 import { UserRegisteredEvent } from '../domain/events/user-registered.event';
 import { User } from '../../users/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
-import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
+import { ProfileExpert } from '../../actors/expert/profile/entities/profile-expert.entity';
 import { SystemSetting } from '../../admin/entities/system-setting.entity';
 import { hasRoles } from '../../users/enums/Role.enum';
-import { IHasherToken, type IHasher } from '../../../shared/contracts/hasher.contract';
+import {
+  IHasherToken,
+  type IHasher,
+} from '../../../shared/contracts/hasher.contract';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

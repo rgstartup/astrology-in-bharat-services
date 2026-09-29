@@ -1,22 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Order } from '../entities/order.entity';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { orders } from '@/core/drizzledb/schema';
+import type { Order } from '@/internal/commerce/order/entities/order.entity';
 
 @Injectable()
 export class GetOrderByIdUseCase {
-  constructor(
-    @InjectRepository(Order)
-    private orderRepo: Repository<Order>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(id: number, profileId: number) {
-    const order = await this.orderRepo.findOne({
-      where: { id, client_id: profileId },
-      relations: ['items', 'items.product', 'client', 'client.user'],
+    const order = await this.db.query.orders.findFirst({
+      where: and(
+        eq(orders.id, Number(id)),
+        eq(orders.client_id, Number(profileId)),
+      ),
+      with: {
+        items: { with: { product: true } },
+        client: { with: { user: true } },
+      },
     });
 
     if (!order) throw new NotFoundException('Order not found');
-    return order;
+    return order as unknown as Order;
   }
 }

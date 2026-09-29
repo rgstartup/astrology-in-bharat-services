@@ -6,7 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ExpertAstrologyService } from '../../domains/expert/account/entities/expert-astrology-service.entity';
+import { ExpertAstrologyService } from '../../actors/expert/account/entities/expert-astrology-service.entity';
 
 @Entity({ schema: 'astrology', name: 'astrology_services' })
 export class AstrologyService {

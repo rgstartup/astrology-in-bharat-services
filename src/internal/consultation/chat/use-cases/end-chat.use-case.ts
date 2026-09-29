@@ -21,7 +21,7 @@ import {
   CommissionSplit,
   SplitReferenceType,
 } from '../../../finance/commissions/entities/commission-split.entity';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
 import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
 import {
   GeneralLedgerEntryType,
@@ -252,9 +252,8 @@ export class EndChatUseCase {
 
           // 💰 Credit Seller's Agent
           if (agent_commission > 0 && agent_id) {
-            const { ProfileAgent } = await import(
-              '../../../domains/agent/entities/profile-agent.entity'
-            );
+            const { ProfileAgent } =
+              await import('../../../actors/agent/entities/profile-agent.entity');
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {
@@ -280,9 +279,8 @@ export class EndChatUseCase {
 
           // 💰 Credit Buyer's Agent
           if (buyer_agent_commission > 0 && buyer_agent_id) {
-            const { ProfileAgent } = await import(
-              '../../../domains/agent/entities/profile-agent.entity'
-            );
+            const { ProfileAgent } =
+              await import('../../../actors/agent/entities/profile-agent.entity');
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {

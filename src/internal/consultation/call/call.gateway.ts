@@ -180,7 +180,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // Start timer if session is already active (e.g. on rejoin)
-    void this.startSessionTimer(payload.sessionId);
+    this.startSessionTimer(payload.sessionId);
 
     return { status: 'joined' };
   }

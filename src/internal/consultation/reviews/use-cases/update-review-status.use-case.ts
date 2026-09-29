@@ -3,8 +3,8 @@ import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Review } from '../entities/review.entity';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
 
 @Injectable()
 export class UpdateReviewStatusUseCase {

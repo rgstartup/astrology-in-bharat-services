@@ -11,19 +11,16 @@ export interface AuthConfig {
   clientGoogleCallbackUrl: string;
 }
 
-export default registerAs(
-  'auth',
-  (): AuthConfig => ({
-    jwtSecret: process.env.JWT_SECRET || 'supersecret',
-    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
-    googleClientId: process.env.GOOGLE_CLIENT_ID || '',
-    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    googleCallbackUrl:
-      process.env.GOOGLE_CALLBACK_URL ||
-      'http://localhost:4000/api/v1/auth/google/callback',
-    clientGoogleCallbackUrl:
-      process.env.CLIENT_GOOGLE_CALLBACK_URL ||
-      'http://localhost:6543/api/v1/auth/client/google/callback',
-  }),
-);
+export default registerAs('auth', (): AuthConfig => ({
+  jwtSecret: process.env.JWT_SECRET || 'supersecret',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
+  refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+  googleCallbackUrl:
+    process.env.GOOGLE_CALLBACK_URL ||
+    'http://localhost:4000/api/v1/auth/google/callback',
+  clientGoogleCallbackUrl:
+    process.env.CLIENT_GOOGLE_CALLBACK_URL ||
+    'http://localhost:6543/api/v1/auth/client/google/callback',
+}));

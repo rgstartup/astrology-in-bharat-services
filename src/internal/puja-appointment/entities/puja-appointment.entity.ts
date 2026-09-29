@@ -8,9 +8,9 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
-import { ExpertPuja } from '../../domains/expert/profile/entities/expert-puja.entity';
-import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../actors/expert/profile/entities/profile-expert.entity';
+import { ExpertPuja } from '../../actors/expert/profile/entities/expert-puja.entity';
+import { ClientAccount } from '../../actors/client/account/entities/account.entity';
 
 export enum PujaAppointmentStatus {
   PENDING = 'pending',

@@ -1,29 +1,24 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Product } from '../entities/product.entity';
-import { ProductNotFoundError } from '../errors/product.errors';
+import { Inject, Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { products } from '@/core/drizzledb/schema';
+import { ProductNotFoundError } from '@/internal/commerce/product/errors/product.errors';
+import { toProductDetails } from '@/internal/commerce/product/product.mapper';
 
 @Injectable()
 export class FindProductUseCase {
-  constructor(
-    @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(id: number): Promise<any> {
-    const product = await this.productRepository.findOneBy({ id });
+    const [product] = await this.db
+      .select()
+      .from(products)
+      .where(eq(products.id, Number(id)))
+      .limit(1);
     if (!product) {
       throw new ProductNotFoundError(id);
     }
-    return {
-      ...product,
-      price: Number(product.price),
-      original_price: product.original_price
-        ? Number(product.original_price)
-        : Number(product.price),
-      image_url: product.image_url ?? '',
-      percentage_off: product.percentage_off ?? 0,
-    };
+    return toProductDetails(product);
   }
 }

@@ -7,14 +7,6 @@ import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '../../../config/auth.config';
 import { LoginWithGoogleUseCase } from '../use-cases/login-with-google.usecase';
 import { GoogleLoginQueryDto } from '../dto/login.dto';
-import { User } from '../../users/entities/user.entity';
-
-interface RequestUser {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
-  redirect_uri: string;
-}
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -90,7 +82,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     try {
       return JSON.parse(decodeURIComponent(rawState)) as GoogleLoginQueryDto;
-    } catch (err) {
+    } catch {
       return undefined;
     }
   }

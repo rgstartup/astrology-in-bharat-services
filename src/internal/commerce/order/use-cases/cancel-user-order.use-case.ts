@@ -1,21 +1,23 @@
 import {
+  ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Order } from '../entities/order.entity';
-import { OrderService } from '../services/order.service';
-import { IUser } from '../../../../shared/types/access-token.payload';
-import { OrderStatus } from '../enum';
+import { and, eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { orders } from '@/core/drizzledb/schema';
+import { OrderService } from '@/internal/commerce/order/services/order.service';
+import type { IUser } from '@/shared/types/access-token.payload';
+import { OrderStatus } from '@/internal/commerce/order/enum';
+import type { OrderItem } from '@/internal/commerce/order/entities/order-item.entity';
 
 @Injectable()
 export class CancelUserOrderUseCase {
   constructor(
-    @InjectRepository(Order)
-    private orderRepo: Repository<Order>,
-    private orderService: OrderService,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
+    private readonly orderService: OrderService,
   ) {}
 
   async execute(
@@ -24,9 +26,12 @@ export class CancelUserOrderUseCase {
     cancellationReason: string,
     user: IUser,
   ) {
-    const order = await this.orderRepo.findOne({
-      where: { id: Number(orderId), client_id: Number(profileId) },
-      relations: ['items'],
+    const order = await this.db.query.orders.findFirst({
+      where: and(
+        eq(orders.id, Number(orderId)),
+        eq(orders.client_id, Number(profileId)),
+      ),
+      with: { items: true },
     });
 
     if (!order) {
@@ -46,7 +51,10 @@ export class CancelUserOrderUseCase {
       );
     }
 
-    const allInvalid = order.items.every(
+    // Legacy `OrderItem.status` is typed `OrderItemStatus | OrderStatus | string`;
+    // widen the Drizzle-narrowed rows to the same contract for the guards below.
+    const items = order.items as unknown as OrderItem[];
+    const allInvalid = items.every(
       (item) =>
         item.status === OrderStatus.DELIVERED ||
         item.status === OrderStatus.CANCELLED ||

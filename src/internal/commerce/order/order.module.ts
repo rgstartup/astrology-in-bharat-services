@@ -26,7 +26,7 @@ import { GetOrderEarningsUseCase } from './use-cases/get-order-earnings.use-case
 import { MerchantOrderQueriesUseCase } from './use-cases/merchant-order-queries.use-case';
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
-import { CartModule } from '../../domains/client/cart/cart.module';
+import { CartModule } from '../../actors/client/cart/cart.module';
 import { NotificationModule } from '../../notification/notification.module';
 import { UsersModule } from '../../users/users.module';
 import { Product } from '../product/entities/product.entity';
@@ -36,10 +36,10 @@ import { ProductModule } from '../product/product.module';
 import { NodemailerModule } from '../../../external/nodemailer/nodemailer.module';
 import { AdminModule } from '../../admin/admin.module';
 import { PujaAppointmentModule } from '../../puja-appointment/puja-appointment.module';
-import { AccountModule } from '../../domains/client/account/account.module';
-import { MerchantAccountModule } from '../../domains/merchant/account/account.module';
+import { AccountModule } from '../../actors/client/account/account.module';
+import { MerchantAccountModule } from '../../actors/merchant/account/account.module';
 import { OrderService as OrderDomainService } from './services/order.service';
-import { WalletModule as ClientWalletModule } from '../../domains/client/wallet/wallet.module';
+import { WalletModule as ClientWalletModule } from '../../actors/client/wallet/wallet.module';
 import { PaymentGatewayModule } from '../../finance/payments/payments.module';
 import { ProductPurchaseIntentHandler } from './handlers/product-purchase-intent.handler';
 

@@ -3,7 +3,7 @@ import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../entities/wishlist.entity';
-import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
 import {
   PujaAlreadyInWishlistError,
   PujaNotFoundError,

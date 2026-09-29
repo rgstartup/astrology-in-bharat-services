@@ -3,15 +3,15 @@ import { PassportModule } from '@nestjs/passport';
 import { MerchantAuthController } from './controllers/merchant-auth.controller';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProfileModule as ExpertProfileModule } from '../domains/expert/profile/profile.module';
+import { ProfileModule as ExpertProfileModule } from '../actors/expert/profile/profile.module';
 import { Session } from './entities/session.entity';
 import { OAuthAccount } from './entities/oauth-accounts.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { DatabaseModule } from '../../core/database/database.module';
 import { User } from '../users/entities/user.entity';
 import { SystemSetting } from '../admin/entities/system-setting.entity';
-import { ProfileAgent } from '../domains/agent/entities/profile-agent.entity';
-import { MerchantAccountModule } from '../domains/merchant/account/account.module';
+import { ProfileAgent } from '../actors/agent/entities/profile-agent.entity';
+import { MerchantAccountModule } from '../actors/merchant/account/account.module';
 import { QueueModule } from '../../core/queue/queue.module';
 
 import { UsedTokens } from './entities/used-tokens.entity';
@@ -61,9 +61,9 @@ import { AgentFindProfileStrategy } from './strategies/find-profile/agent-find-p
 import { MerchantFindProfileStrategy } from './strategies/find-profile/merchant-find-profile.strategy';
 import { FindProfileResolver } from './strategies/find-profile/find-profile.resolver';
 import { FIND_PROFILE_STRATEGIES } from './strategies/find-profile/find-profile.strategy';
-import { MerchantAccount } from '../domains/merchant/account/entities/account.entity';
-import { ProfileExpert } from '../domains/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '../domains/client/account/entities/account.entity';
+import { MerchantAccount } from '../actors/merchant/account/entities/account.entity';
+import { ProfileExpert } from '../actors/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../actors/client/account/entities/account.entity';
 import { AuthTokenService } from './services/auth-token.service';
 
 const useCases = [

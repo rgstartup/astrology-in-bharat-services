@@ -4,49 +4,49 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
+import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order } from '../entities/order.entity';
 import { OrderStatus } from '../enum';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
-import { Product } from '../../product/entities/product.entity';
+import { ClientAccount } from '@/internal/actors/client/account/entities/account.entity';
+import { Product } from '@/internal/commerce/product/entities/product.entity';
 import {
   Notification,
   NotificationType,
-} from '../../../notification/entities/notification.entity';
-import { NotificationGateway } from '../../../notification/gateways/notification.gateway';
-import { NodeMailerService } from '../../../../external/nodemailer/nodemailer.service';
-import { User } from '../../../users/entities/user.entity';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+} from '@/internal/notification/entities/notification.entity';
+import { NotificationGateway } from '@/internal/notification/gateways/notification.gateway';
+import { NodeMailerService } from '@/internal/../external/nodemailer/nodemailer.service';
+import { User } from '@/internal/users/entities/user.entity';
+import { ProfileExpert } from '@/internal/actors/expert/profile/entities/profile-expert.entity';
 
-import { Transaction } from '../../../finance/wallet/entities/transaction.entity';
+import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
 import {
   TransactionType,
   TransactionPurpose,
-} from '../../../finance/wallet/enum';
-import { Wallet } from '../../../finance/wallet/entities/wallet.entity';
-import { SystemSetting } from '../../../admin/entities/system-setting.entity';
+} from '@/internal/finance/wallet/enum';
+import { Wallet } from '@/internal/finance/wallet/entities/wallet.entity';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
 import {
   CommissionRule,
   CommissionType,
   CommissionEventType,
   CommissionAppliesRole,
   CommissionRateType,
-} from '../../../finance/commissions/entities/commission-rule.entity';
+} from '@/internal/finance/commissions/entities/commission-rule.entity';
 import {
   CommissionSplit,
   SplitReferenceType,
-} from '../../../finance/commissions/entities/commission-split.entity';
-import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
+} from '@/internal/finance/commissions/entities/commission-split.entity';
+import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '../../../finance/ledger/entities/general-ledger-entry.entity';
-import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
-import { IUser } from '../../../../shared/types/access-token.payload';
-import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
+import { generateTransactionNo } from '@/shared/utils/transaction-no.util';
+import { IUser } from '@/shared/types/access-token.payload';
+import { MerchantAccount } from '@/internal/actors/merchant/account/entities/account.entity';
 
 @Injectable()
 export class OrderService {
@@ -390,9 +390,8 @@ export class OrderService {
                 }
 
                 if (agent_commission > 0 && agent_id) {
-                  const { ProfileAgent } = await import(
-                    '../../../domains/agent/entities/profile-agent.entity'
-                  );
+                  const { ProfileAgent } =
+                    await import('../../../actors/agent/entities/profile-agent.entity');
                   const agentProfile = await qr.manager.findOne(ProfileAgent, {
                     where: { user_id: agent_id },
                     select: ['id'],
@@ -410,9 +409,8 @@ export class OrderService {
                 }
 
                 if (buyer_agent_commission > 0 && buyer_agent_id) {
-                  const { ProfileAgent } = await import(
-                    '../../../domains/agent/entities/profile-agent.entity'
-                  );
+                  const { ProfileAgent } =
+                    await import('../../../actors/agent/entities/profile-agent.entity');
                   const agentProfile = await qr.manager.findOne(ProfileAgent, {
                     where: { user_id: buyer_agent_id },
                     select: ['id'],
@@ -455,7 +453,7 @@ export class OrderService {
             }
           }
           await qr.commitTransaction();
-        } catch (err: unknown) {
+        } catch {
           await qr.rollbackTransaction();
         } finally {
           await qr.release();

@@ -18,9 +18,9 @@ import {
   ProfileType,
 } from '../../../notification/entities/notification.entity';
 import { RoleEnum } from '../../../users/enums/Role.enum';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
-import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
+import { ProfileAgent } from '../../../actors/agent/entities/profile-agent.entity';
 import { User } from '../../../users/entities/user.entity';
 
 @Injectable()
@@ -301,9 +301,8 @@ export class UpdateWithdrawalStatusUseCase {
           await queryRunner.manager.save('Wallet', wallet);
 
           // Create refund transaction (Ledger)
-          const { generateTransactionNo } = await import(
-            '../../../../shared/utils/transaction-no.util'
-          );
+          const { generateTransactionNo } =
+            await import('../../../../shared/utils/transaction-no.util');
           const transaction = queryRunner.manager.create(Transaction, {
             wallet_id: wallet.id as number,
             amount: amountToRefund,

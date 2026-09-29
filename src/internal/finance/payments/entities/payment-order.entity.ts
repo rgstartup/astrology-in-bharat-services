@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 
 export enum PaymentStatus {
   PENDING = 'pending',

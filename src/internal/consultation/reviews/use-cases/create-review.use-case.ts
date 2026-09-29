@@ -11,8 +11,8 @@ import { Order } from '../../../commerce/order/entities/order.entity';
 import { OrderStatus } from '../../../commerce/order/enum';
 import { ChatSession } from '../../chat/entities/chat-session.entity';
 import { CallSession } from '../../call/entities/call-session.entity';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
 import { CreateReviewDto } from '../dto/create-review.dto';
 
 @Injectable()

@@ -11,7 +11,10 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { productVariants } from './product-variants.schema';
-import { ProductGroup, ProductType } from '../../../../../internal/commerce/product/enum';
+import {
+  ProductGroup,
+  ProductType,
+} from '../../../../../internal/commerce/product/enum';
 
 const commerceSchema = pgSchema('commerce');
 

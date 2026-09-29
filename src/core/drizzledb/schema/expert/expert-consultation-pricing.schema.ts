@@ -16,7 +16,7 @@ import { clientAccounts } from '../client/client-account.schema';
 import {
   PricingStatus,
   PricingTargetAudience,
-} from '../../../../internal/domains/expert/shared/enums/pricing.enum';
+} from '../../../../internal/actors/expert/shared/enums/pricing.enum';
 
 const expertSchema = pgSchema('expert');
 

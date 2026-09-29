@@ -11,7 +11,7 @@ import { CurrentProfile } from '../../../../shared/decorators/current-profile.de
 import { WalletService } from '../../../finance/wallet/wallet.service';
 import { ChatService } from '../chat.service';
 import { TransactionPurpose } from '../../../finance/wallet/enum';
-import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
 import { CouponService } from '../../../commerce/coupon/coupon.service';
 import { ConsultationBookDto } from '../dto/consultation-book.dto';
 

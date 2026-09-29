@@ -1,51 +1,93 @@
 import {
+  BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OrderItem } from '../entities/order-item.entity';
-import { Order } from '../entities/order.entity';
-import { SystemSetting } from '../../../admin/entities/system-setting.entity';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import {
+  clientAccounts,
+  orderItems,
+  orders,
+  products,
+  users,
+  type ClientAccountRow,
+  type OrderItemRow,
+  type OrderRow,
+  type ProductRow,
+  type UserRow,
+} from '@/core/drizzledb/schema';
+import type { OrderItem } from '@/internal/commerce/order/entities/order-item.entity';
+import type { Order } from '@/internal/commerce/order/entities/order.entity';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
+import { OrderItemStatus, OrderStatus } from '@/internal/commerce/order/enum';
+import type { MerchantOrderItem } from '@/internal/commerce/order/order.mapper';
 
 @Injectable()
 export class MerchantOrderQueriesUseCase {
   constructor(
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepo: Repository<OrderItem>,
-    @InjectRepository(Order)
-    private readonly orderRepo: Repository<Order>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
+    // Retained legacy read: no Drizzle mirror for `admin.system_settings` yet.
+    // Migrates with the admin/system-settings module.
     @InjectRepository(SystemSetting)
     private readonly settingRepo: Repository<SystemSetting>,
   ) {}
 
   async getMerchantTotalOrders(merchantId: number | string): Promise<number> {
-    const totalOrdersQuery = (await this.orderItemRepo
-      .createQueryBuilder('oi')
-      .innerJoin('oi.order', 'o')
-      .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) })
-      .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
-      .select('COUNT(DISTINCT oi.order_id)', 'count')
-      .getRawOne()) as { count?: string | number };
+    const [row] = await this.db
+      .select({
+        count: sql<string | number>`COUNT(DISTINCT ${orderItems.order_id})`,
+      })
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.order_id, orders.id))
+      .innerJoin(products, eq(orderItems.product_id, products.id))
+      .where(
+        and(
+          eq(products.merchant_id, Number(merchantId)),
+          ne(orders.status, OrderStatus.CANCELLED),
+        ),
+      );
 
-    return Number(totalOrdersQuery?.count) || 0;
+    return Number(row?.count) || 0;
   }
 
   async getMerchantGrossTotalEarnings(
     merchantId: number | string,
   ): Promise<number> {
-    const totalEarningsQuery = (await this.orderItemRepo
-      .createQueryBuilder('oi')
-      .innerJoin('oi.order', 'o')
-      .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) })
-      .andWhere('oi.status = :delivered', { delivered: 'delivered' })
-      .select('SUM(oi.price * oi.quantity)', 'sum')
-      .getRawOne()) as { sum?: string | number };
+    const [row] = await this.db
+      .select({
+        sum: sql<
+          string | number
+        >`SUM(${orderItems.price} * ${orderItems.quantity})`,
+      })
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.order_id, orders.id))
+      .innerJoin(products, eq(orderItems.product_id, products.id))
+      .where(
+        and(
+          eq(products.merchant_id, Number(merchantId)),
+          eq(orderItems.status, OrderItemStatus.DELIVERED),
+        ),
+      );
 
-    return Number(totalEarningsQuery?.sum) || 0;
+    return Number(row?.sum) || 0;
   }
 
   async getMerchantGrossMonthlyEarnings(
@@ -53,50 +95,64 @@ export class MerchantOrderQueriesUseCase {
     startOfMonth: Date,
     endDate?: Date,
   ): Promise<number> {
-    const qb = this.orderItemRepo
-      .createQueryBuilder('oi')
-      .innerJoin('oi.order', 'o')
-      .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) })
-      .andWhere('oi.status = :delivered', { delivered: 'delivered' })
-      .andWhere('oi.created_at >= :startOfMonth', { startOfMonth })
-      .select('SUM(oi.price * oi.quantity)', 'sum');
-
+    const conditions = [
+      eq(products.merchant_id, Number(merchantId)),
+      eq(orderItems.status, OrderItemStatus.DELIVERED),
+      gte(orderItems.created_at, startOfMonth),
+    ];
     if (endDate) {
-      qb.andWhere('oi.created_at <= :endDate', { endDate });
+      conditions.push(lte(orderItems.created_at, endDate));
     }
 
-    const monthlyEarningsQuery = (await qb.getRawOne()) as {
-      sum?: string | number;
-    };
-    return Number(monthlyEarningsQuery?.sum) || 0;
+    const [row] = await this.db
+      .select({
+        sum: sql<
+          string | number
+        >`SUM(${orderItems.price} * ${orderItems.quantity})`,
+      })
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.order_id, orders.id))
+      .innerJoin(products, eq(orderItems.product_id, products.id))
+      .where(and(...conditions));
+
+    return Number(row?.sum) || 0;
   }
 
   async getMerchantOrders(
     merchantId: number | string,
     filters?: Record<string, unknown>,
   ): Promise<OrderItem[]> {
-    const query = this.orderItemRepo
-      .createQueryBuilder('oi')
-      .innerJoinAndSelect('oi.order', 'order')
-      .innerJoinAndSelect('order.client', 'client')
-      .innerJoinAndSelect('client.user', 'user')
-      .innerJoinAndSelect('oi.product', 'product')
-      .where('product.merchant_id = :merchantId', {
-        merchantId: Number(merchantId),
-      });
+    const conditions = [eq(products.merchant_id, Number(merchantId))];
 
     if (filters?.status) {
-      query.andWhere('oi.status = :status', { status: filters.status });
+      conditions.push(eq(orderItems.status, filters.status as OrderItemStatus));
     }
 
-    query.orderBy('order.created_at', 'DESC');
+    let query = this.db
+      .select({
+        item: orderItems,
+        order: orders,
+        client: clientAccounts,
+        user: users,
+        product: products,
+      })
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.order_id, orders.id))
+      .innerJoin(clientAccounts, eq(orders.client_id, clientAccounts.id))
+      .innerJoin(users, eq(clientAccounts.user_id, users.id))
+      .innerJoin(products, eq(orderItems.product_id, products.id))
+      .where(and(...conditions))
+      .orderBy(desc(orders.created_at))
+      .$dynamic();
 
     if (filters?.limit) {
-      query.take(filters.limit as number);
+      query = query.limit(filters.limit as number);
     }
 
-    return query.getMany();
+    const rows = await query;
+    return rows.map((r) =>
+      this.toNestedItem(r.item, r.order, r.client, r.user, r.product),
+    ) as unknown as OrderItem[];
   }
 
   async getMerchantRecentOrders(
@@ -110,9 +166,12 @@ export class MerchantOrderQueriesUseCase {
     orderId: number | string,
     merchantId: number | string,
   ): Promise<{ order: Order; merchantItems: OrderItem[] }> {
-    const order = await this.orderRepo.findOne({
-      where: { id: Number(orderId) },
-      relations: ['items', 'items.product', 'client', 'client.user'],
+    const order = await this.db.query.orders.findFirst({
+      where: eq(orders.id, Number(orderId)),
+      with: {
+        items: { with: { product: true } },
+        client: { with: { user: true } },
+      },
     });
 
     if (!order) {
@@ -133,14 +192,20 @@ export class MerchantOrderQueriesUseCase {
     if (!currentOtp) {
       currentOtp = Math.floor(100000 + Math.random() * 900000).toString();
       for (const item of merchantItems) {
+        await this.db
+          .update(orderItems)
+          .set({ delivery_otp: currentOtp })
+          .where(eq(orderItems.id, item.id));
         item.delivery_otp = currentOtp;
-        await this.orderItemRepo.save(item);
       }
     }
 
     // OTP logic is handled via NotificationService or similar usually, but for now we just return the order client info
     // so the merchant module can send it.
-    return { order, merchantItems };
+    return {
+      order: order as unknown as Order,
+      merchantItems: merchantItems as unknown as OrderItem[],
+    };
   }
 
   async verifyOrderOtp(
@@ -148,9 +213,9 @@ export class MerchantOrderQueriesUseCase {
     otp: string,
     merchantId: number | string,
   ): Promise<{ netPayout: number }> {
-    const order = await this.orderRepo.findOne({
-      where: { id: Number(orderId) },
-      relations: ['items', 'items.product'],
+    const order = await this.db.query.orders.findFirst({
+      where: eq(orders.id, Number(orderId)),
+      with: { items: { with: { product: true } } },
     });
 
     if (!order) {
@@ -205,21 +270,25 @@ export class MerchantOrderQueriesUseCase {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    return await this.orderItemRepo.query(
-      `
-      SELECT 
-        TO_CHAR(oi.created_at, 'FMMon DD') as date,
-        SUM(oi.price * oi.quantity) as revenue
-      FROM commerce.order_items oi
-      INNER JOIN commerce.products p ON p.id = oi.product_id
-      WHERE p.merchant_id = $1
-      AND oi.created_at >= $2
-      AND oi.status = 'delivered'
-      GROUP BY TO_CHAR(oi.created_at, 'FMMon DD')
-      ORDER BY MIN(oi.created_at) ASC
-    `,
-      [Number(merchantId), thirtyDaysAgo],
-    );
+    const day = sql<string>`TO_CHAR(${orderItems.created_at}, 'FMMon DD')`;
+    const rows = await this.db
+      .select({
+        date: day,
+        revenue: sql<string>`SUM(${orderItems.price} * ${orderItems.quantity})`,
+      })
+      .from(orderItems)
+      .innerJoin(products, eq(orderItems.product_id, products.id))
+      .where(
+        and(
+          eq(products.merchant_id, Number(merchantId)),
+          gte(orderItems.created_at, thirtyDaysAgo),
+          eq(orderItems.status, OrderItemStatus.DELIVERED),
+        ),
+      )
+      .groupBy(day)
+      .orderBy(asc(sql`MIN(${orderItems.created_at})`));
+
+    return rows;
   }
 
   async getMerchantTopProducts(
@@ -227,21 +296,24 @@ export class MerchantOrderQueriesUseCase {
   ): Promise<
     Array<{ name: string; sales_count: string; total_revenue: string }>
   > {
-    return await this.orderItemRepo.query(
-      `
-      SELECT 
-        p.name as "name",
-        SUM(oi.quantity) as "sales_count",
-        SUM(oi.price * oi.quantity) as "total_revenue"
-      FROM commerce.order_items oi
-      INNER JOIN commerce.products p ON p.id = oi.product_id
-      WHERE p.merchant_id = $1
-      GROUP BY p.name
-      ORDER BY sales_count DESC
-      LIMIT 10
-    `,
-      [Number(merchantId)],
-    );
+    const rows = await this.db
+      .select({
+        name: products.name,
+        sales_count: sql<string>`SUM(${orderItems.quantity})`,
+        total_revenue: sql<string>`SUM(${orderItems.price} * ${orderItems.quantity})`,
+      })
+      .from(orderItems)
+      .innerJoin(products, eq(orderItems.product_id, products.id))
+      .where(eq(products.merchant_id, Number(merchantId)))
+      .groupBy(products.name)
+      .orderBy(desc(sql`SUM(${orderItems.quantity})`))
+      .limit(10);
+
+    return rows.map((r) => ({
+      name: r.name ?? '',
+      sales_count: String(r.sales_count),
+      total_revenue: String(r.total_revenue),
+    }));
   }
 
   async getMerchantOrdersWithStats(
@@ -251,79 +323,119 @@ export class MerchantOrderQueriesUseCase {
     status?: string,
     search?: string,
   ) {
+    const mId = Number(merchantId);
+
     // 1. Calculate Summary Statistics
-    const statsResult = (await this.orderItemRepo
-      .createQueryBuilder('oi')
-      .innerJoin('oi.order', 'o')
-      .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) })
-      .select('COUNT(oi.id)', 'total')
-      .addSelect(
-        `SUM(CASE WHEN oi.status IN ('pending', 'paid', 'processing', 'packed') THEN 1 ELSE 0 END)`,
-        'pending',
-      )
-      .addSelect(
-        `SUM(CASE WHEN oi.status = 'shipped' THEN 1 ELSE 0 END)`,
-        'shipped',
-      )
-      .addSelect(
-        `SUM(CASE WHEN oi.status = 'delivered' THEN 1 ELSE 0 END)`,
-        'delivered',
-      )
-      .addSelect(
-        `SUM(CASE WHEN oi.status = 'cancelled' THEN 1 ELSE 0 END)`,
-        'cancelled',
-      )
-      .addSelect(
-        `SUM(CASE WHEN oi.status = 'delivered' THEN oi.price * oi.quantity ELSE 0 END)`,
-        'revenue',
-      )
-      .getRawOne()) as Record<string, string | number>;
+    const [statsRow] = await this.db
+      .select({
+        total: count(orderItems.id),
+        pending: sql<
+          string | number
+        >`SUM(CASE WHEN ${orderItems.status} IN ('pending', 'paid', 'processing', 'packed') THEN 1 ELSE 0 END)`,
+        shipped: sql<
+          string | number
+        >`SUM(CASE WHEN ${orderItems.status} = 'shipped' THEN 1 ELSE 0 END)`,
+        delivered: sql<
+          string | number
+        >`SUM(CASE WHEN ${orderItems.status} = 'delivered' THEN 1 ELSE 0 END)`,
+        cancelled: sql<
+          string | number
+        >`SUM(CASE WHEN ${orderItems.status} = 'cancelled' THEN 1 ELSE 0 END)`,
+        revenue: sql<
+          string | number
+        >`SUM(CASE WHEN ${orderItems.status} = 'delivered' THEN ${orderItems.price} * ${orderItems.quantity} ELSE 0 END)`,
+      })
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.order_id, orders.id))
+      .innerJoin(products, eq(orderItems.product_id, products.id))
+      .where(eq(products.merchant_id, mId));
 
     const stats = {
-      total: Number(statsResult.total) || 0,
-      pending: Number(statsResult.pending) || 0,
-      shipped: Number(statsResult.shipped) || 0,
-      delivered: Number(statsResult.delivered) || 0,
-      cancelled: Number(statsResult.cancelled) || 0,
-      revenue: Number(statsResult.revenue) || 0,
+      total: Number(statsRow?.total) || 0,
+      pending: Number(statsRow?.pending) || 0,
+      shipped: Number(statsRow?.shipped) || 0,
+      delivered: Number(statsRow?.delivered) || 0,
+      cancelled: Number(statsRow?.cancelled) || 0,
+      revenue: Number(statsRow?.revenue) || 0,
     };
 
     // 2. Fetch Paginated & Filtered Orders
-    const query = this.orderItemRepo
-      .createQueryBuilder('oi')
-      .innerJoinAndSelect('oi.order', 'o')
-      .leftJoinAndSelect('o.client', 'client')
-      .leftJoinAndSelect('client.user', 'u')
-      .innerJoinAndSelect('oi.product', 'p')
-      .where('p.merchant_id = :merchantId', { merchantId: Number(merchantId) });
+    const conditions = [eq(products.merchant_id, mId)];
 
     if (status && status.toLowerCase() !== 'all') {
       const searchStatus = status.toLowerCase();
       if (searchStatus === 'pending') {
-        query.andWhere('oi.status IN (:...statuses)', {
-          statuses: ['pending', 'paid'],
-        });
+        conditions.push(
+          inArray(orderItems.status, [
+            OrderItemStatus.PENDING,
+            OrderItemStatus.PAID,
+          ]),
+        );
       } else {
-        query.andWhere('oi.status = :status', { status: searchStatus });
+        conditions.push(eq(orderItems.status, searchStatus as OrderItemStatus));
       }
     }
 
     if (search) {
-      query.andWhere(
-        '(u.name ILIKE :searchTerm OR p.name ILIKE :searchTerm OR CAST(o.id AS TEXT) ILIKE :searchTerm)',
-        {
-          searchTerm: `%${search}%`,
-        },
+      const searchTerm = `%${search}%`;
+      conditions.push(
+        or(
+          ilike(users.name, searchTerm),
+          ilike(products.name, searchTerm),
+          sql`CAST(${orders.id} AS TEXT) ILIKE ${searchTerm}`,
+        )!,
       );
     }
 
-    const [items, totalCount] = await query
-      .orderBy('oi.created_at', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+    const where = and(...conditions);
 
-    return { stats, items, totalCount };
+    const itemQuery = this.db
+      .select({
+        item: orderItems,
+        order: orders,
+        client: clientAccounts,
+        user: users,
+        product: products,
+      })
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.order_id, orders.id))
+      .leftJoin(clientAccounts, eq(orders.client_id, clientAccounts.id))
+      .leftJoin(users, eq(clientAccounts.user_id, users.id))
+      .innerJoin(products, eq(orderItems.product_id, products.id))
+      .where(where)
+      .orderBy(desc(orderItems.created_at))
+      .offset((page - 1) * limit)
+      .limit(limit);
+
+    const countQuery = this.db
+      .select({ total: count() })
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.order_id, orders.id))
+      .leftJoin(clientAccounts, eq(orders.client_id, clientAccounts.id))
+      .leftJoin(users, eq(clientAccounts.user_id, users.id))
+      .innerJoin(products, eq(orderItems.product_id, products.id))
+      .where(where);
+
+    const [itemRows, countRows] = await Promise.all([itemQuery, countQuery]);
+
+    const items = itemRows.map((r) =>
+      this.toNestedItem(r.item, r.order, r.client, r.user, r.product),
+    ) as unknown as OrderItem[];
+
+    return { stats, items, totalCount: Number(countRows[0]?.total ?? 0) };
+  }
+
+  private toNestedItem(
+    item: OrderItemRow,
+    order: OrderRow,
+    client: ClientAccountRow | null,
+    user: UserRow | null,
+    product: ProductRow,
+  ): MerchantOrderItem {
+    return {
+      ...item,
+      order: { ...order, client: client ? { ...client, user } : null },
+      product,
+    };
   }
 }

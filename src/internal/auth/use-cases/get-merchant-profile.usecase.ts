@@ -4,7 +4,7 @@ import { hasRoles, RoleEnum } from '../../users/enums/Role.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
+import { MerchantAccount } from '../../actors/merchant/account/entities/account.entity';
 
 @Injectable()
 export class GetMerchantProfileUseCase {

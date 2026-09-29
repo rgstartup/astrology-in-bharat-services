@@ -7,7 +7,7 @@ import { PlatformEnum } from '../../internal/users/enums/Platform.enum';
 import {
   MerchantAccount,
   MerchantStatus,
-} from '../../internal/domains/merchant/account/entities/account.entity';
+} from '../../internal/actors/merchant/account/entities/account.entity';
 import { Wallet } from '../../internal/finance/wallet/entities/wallet.entity';
 
 interface MerchantSeedData {

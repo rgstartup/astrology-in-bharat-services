@@ -10,7 +10,10 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { CallSessionStatus, CallType } from '../../../../../internal/consultation/call/enum';
+import {
+  CallSessionStatus,
+  CallType,
+} from '../../../../../internal/consultation/call/enum';
 import { clientAccounts } from '../../client/client-account.schema';
 
 const consultationsSchema = pgSchema('consultations');

@@ -54,4 +54,3 @@ const getDataSourceOptions = (): DataSourceOptions => {
 };
 
 export const dataSource = new DataSource(getDataSourceOptions());
-

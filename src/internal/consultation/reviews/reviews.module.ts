@@ -21,8 +21,8 @@ import { SendReviewResponseUseCase } from './use-cases/send-review-response.use-
 import { GetApprovedPlatformReviewsUseCase } from './use-cases/get-approved-platform-reviews.use-case';
 import { GetExpertReviewsByDateUseCase } from './use-cases/get-expert-reviews-by-date.use-case';
 
-import { ProfileModule as ExpertProfileModule } from '../../domains/expert/profile/profile.module';
-import { MerchantAccountModule } from '../../domains/merchant/account/account.module';
+import { ProfileModule as ExpertProfileModule } from '../../actors/expert/profile/profile.module';
+import { MerchantAccountModule } from '../../actors/merchant/account/account.module';
 import { OrderModule } from '../../commerce/order/order.module';
 
 @Module({

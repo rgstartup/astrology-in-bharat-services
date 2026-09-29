@@ -1,54 +1,30 @@
 import {
-  Injectable,
   ForbiddenException,
+  Inject,
+  Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { Product } from '../entities/product.entity';
-import { CreateMerchantProductDto } from '../../../domains/merchant/dashboard/dto/create-merchant-product.dto';
-import { MerchantProductStatus } from '../../../domains/merchant/dashboard/enum';
-import { QueryDeepPartialEntity } from 'typeorm';
-
-type ProductStatus = 'active' | 'draft' | 'out_of_stock';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  or,
+  sql,
+} from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { products } from '@/core/drizzledb/schema';
+import { CreateMerchantProductDto } from '@/internal/actors/merchant/dashboard/dto/create-merchant-product.dto';
+import { MerchantProductStatus } from '@/internal/actors/merchant/dashboard/enum';
+import { toMerchantProductResponse } from '@/internal/commerce/product/product.mapper';
 
 @Injectable()
 export class MerchantProductsUseCase {
-  constructor(
-    @InjectRepository(Product)
-    private readonly productRepo: Repository<Product>,
-  ) {}
-
-  // Helper: map DB fields to API response shape
-  private toResponse(p: Product) {
-    let status: ProductStatus = 'draft';
-    if (p.stock === 0) {
-      status = 'out_of_stock';
-    } else if (p.is_active) {
-      status = 'active';
-    }
-
-    return {
-      id: p.id,
-      short_id: String(p.id).slice(-8).toUpperCase(),
-      name: p.name,
-      productName: p.name,
-      category: p.category ?? 'General',
-      sku: p.sku ?? undefined,
-      price: Number(p.price),
-      stock: p.stock,
-      status,
-      image_url: p.image_url ?? '',
-      imageUrl: p.image_url ?? '',
-      productImage: p.image_url ?? '',
-      gallery: p.gallery ?? [],
-      description: p.description,
-      original_price: Number(p.original_price ?? p.price),
-      created_at: p.created_at,
-      is_shipping_chargeable: p.is_shipping_chargeable ?? false,
-      shipping_charge: Number(p.shipping_charge ?? 0),
-    };
-  }
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   // 1. LIST with filters + pagination
   async findAll(
@@ -56,61 +32,79 @@ export class MerchantProductsUseCase {
     opts: { status?: string; search?: string; page?: number; limit?: number },
   ) {
     const { status, search, page = 1, limit = 20 } = opts;
+    const mId = Number(merchantId);
 
-    const qb = this.productRepo
-      .createQueryBuilder('p')
-      .where('p.merchant_id = :merchantId', { merchantId })
-      .orderBy('p.created_at', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit);
+    const conditions = [eq(products.merchant_id, mId)];
 
     if (search) {
-      qb.andWhere(
-        '(LOWER(p.name) LIKE :search OR CAST(p.id AS text) LIKE :search OR LOWER(p.sku) LIKE :search)',
-        {
-          search: `%${search.toLowerCase()}%`,
-        },
+      const pattern = `%${search}%`;
+      conditions.push(
+        or(
+          ilike(products.name, pattern),
+          sql`CAST(${products.id} AS text) LIKE ${pattern}`,
+          ilike(products.sku, pattern),
+        )!,
       );
     }
 
     if (status) {
       if (status === 'out_of_stock') {
-        qb.andWhere('p.stock = 0');
+        conditions.push(eq(products.stock, 0));
       } else if (status === 'active') {
-        qb.andWhere('p.is_active = true AND p.stock > 0');
+        conditions.push(eq(products.is_active, true));
+        conditions.push(sql`${products.stock} > 0`);
       } else if (status === 'draft') {
-        qb.andWhere('p.is_active = false AND p.stock > 0');
+        conditions.push(eq(products.is_active, false));
+        conditions.push(sql`${products.stock} > 0`);
       }
     }
 
-    const [products, total] = await qb.getManyAndCount();
+    const where = and(...conditions);
+
+    const [rows, totalRows] = await Promise.all([
+      this.db
+        .select()
+        .from(products)
+        .where(where)
+        .orderBy(desc(products.created_at))
+        .offset((page - 1) * limit)
+        .limit(limit),
+      this.db.select({ total: count() }).from(products).where(where),
+    ]);
+
     return {
-      products: products.map((p: Product) => this.toResponse(p)),
-      total,
+      products: rows.map((p) => toMerchantProductResponse(p)),
+      total: Number(totalRows[0]?.total ?? 0),
     };
   }
 
   // 2. CREATE
   async create(merchantId: number, dto: CreateMerchantProductDto) {
     const isActive = dto.status === MerchantProductStatus.ACTIVE;
-    const product = this.productRepo.create({
-      ...dto,
-      name: dto.name,
-      description: dto.description,
-      category: dto.category,
-      sku: dto.sku,
-      price: dto.price,
-      original_price: dto.original_price,
-      image_url: dto.image_url ?? (dto as any).imageUrl,
-      gallery: dto.gallery ?? [],
-      stock: dto.stock ?? 0,
-      is_active: isActive,
-      merchant_id: merchantId,
-      is_shipping_chargeable: dto.is_shipping_chargeable ?? false,
-      shipping_charge: dto.shipping_charge ?? 0,
-    });
-    const saved = await this.productRepo.save(product);
-    return this.toResponse(saved);
+    const [saved] = await this.db
+      .insert(products)
+      .values({
+        name: dto.name,
+        description: dto.description,
+        category: dto.category,
+        sku: dto.sku ?? null,
+        price: String(dto.price),
+        original_price:
+          dto.original_price != null
+            ? String(dto.original_price)
+            : String(dto.price),
+        image_url: dto.image_url ?? dto.imageUrl ?? null,
+        gallery: dto.gallery ? dto.gallery.join(',') : null,
+        stock: dto.stock ?? 0,
+        is_active: isActive,
+        merchant_id: Number(merchantId),
+        is_shipping_chargeable: dto.is_shipping_chargeable ?? false,
+        shipping_charge:
+          dto.shipping_charge != null ? String(dto.shipping_charge) : '0',
+        percentage_off: '0',
+      })
+      .returning();
+    return toMerchantProductResponse(saved);
   }
 
   // 3. UPDATE
@@ -119,26 +113,28 @@ export class MerchantProductsUseCase {
     productId: number,
     dto: Partial<CreateMerchantProductDto>,
   ) {
-    const existing = await this.productRepo.findOneBy({
-      id: productId,
-    });
+    const [existing] = await this.db
+      .select()
+      .from(products)
+      .where(eq(products.id, Number(productId)))
+      .limit(1);
     if (!existing) throw new NotFoundException('Product not found');
-    if (existing.merchant_id !== merchantId) {
+    if (existing.merchant_id !== Number(merchantId)) {
       throw new ForbiddenException('You do not own this product');
     }
 
-    const updates: QueryDeepPartialEntity<Product> = {};
+    const updates: Partial<typeof products.$inferInsert> = {};
     if (dto.name !== undefined) updates.name = dto.name;
     if (dto.description !== undefined) updates.description = dto.description;
     if (dto.category !== undefined) updates.category = dto.category;
     if (dto.sku !== undefined) updates.sku = dto.sku;
-    if (dto.price !== undefined) updates.price = dto.price;
+    if (dto.price !== undefined) updates.price = String(dto.price);
     if (dto.original_price !== undefined)
-      updates.original_price = dto.original_price;
+      updates.original_price = String(dto.original_price);
     if (dto.image_url !== undefined) updates.image_url = dto.image_url;
-    else if ((dto as any).imageUrl !== undefined)
-      updates.image_url = (dto as any).imageUrl;
-    if (dto.gallery !== undefined) updates.gallery = dto.gallery;
+    else if ((dto as { imageUrl?: string }).imageUrl !== undefined)
+      updates.image_url = (dto as { imageUrl?: string }).imageUrl;
+    if (dto.gallery !== undefined) updates.gallery = dto.gallery.join(',');
     if (dto.stock !== undefined) updates.stock = dto.stock;
     if (dto.status !== undefined) {
       updates.is_active = dto.status === MerchantProductStatus.ACTIVE;
@@ -146,25 +142,32 @@ export class MerchantProductsUseCase {
     if (dto.is_shipping_chargeable !== undefined)
       updates.is_shipping_chargeable = dto.is_shipping_chargeable;
     if (dto.shipping_charge !== undefined)
-      updates.shipping_charge = dto.shipping_charge;
+      updates.shipping_charge = String(dto.shipping_charge);
 
-    await this.productRepo.update(productId, updates);
-    const updated = await this.productRepo.findOneBy({
-      id: productId,
-    });
-    return this.toResponse(updated!);
+    await this.db
+      .update(products)
+      .set({ ...updates, updated_at: new Date() })
+      .where(eq(products.id, Number(productId)));
+    const [updated] = await this.db
+      .select()
+      .from(products)
+      .where(eq(products.id, Number(productId)))
+      .limit(1);
+    return toMerchantProductResponse(updated!);
   }
 
   // 4. DELETE
   async remove(merchantId: number, productId: number) {
-    const existing = await this.productRepo.findOneBy({
-      id: productId,
-    });
+    const [existing] = await this.db
+      .select()
+      .from(products)
+      .where(eq(products.id, Number(productId)))
+      .limit(1);
     if (!existing) throw new NotFoundException('Product not found');
-    if (existing.merchant_id !== merchantId) {
+    if (existing.merchant_id !== Number(merchantId)) {
       throw new ForbiddenException('You do not own this product');
     }
-    await this.productRepo.delete(productId);
+    await this.db.delete(products).where(eq(products.id, Number(productId)));
     return { success: true, message: 'Product deleted successfully' };
   }
 
@@ -175,15 +178,24 @@ export class MerchantProductsUseCase {
     status: MerchantProductStatus,
   ) {
     // Ensure all products belong to the merchant
-    const count = await this.productRepo.count({
-      where: { id: In(ids), merchant_id: merchantId },
-    });
-    if (count !== ids.length) {
+    const [row] = await this.db
+      .select({ total: count() })
+      .from(products)
+      .where(
+        and(
+          inArray(products.id, ids.map(Number)),
+          eq(products.merchant_id, Number(merchantId)),
+        ),
+      );
+    if (Number(row?.total ?? 0) !== ids.length) {
       throw new ForbiddenException('Some products do not belong to you');
     }
 
     const isActive = status === MerchantProductStatus.ACTIVE;
-    await this.productRepo.update({ id: In(ids) }, { is_active: isActive });
+    await this.db
+      .update(products)
+      .set({ is_active: isActive, updated_at: new Date() })
+      .where(inArray(products.id, ids.map(Number)));
 
     return {
       success: true,
@@ -193,29 +205,26 @@ export class MerchantProductsUseCase {
 
   // 6. FIND ONE
   async findOne(merchantId: number, productId: number) {
-    const p = await this.productRepo.findOneBy({
-      id: productId,
-    });
+    const [p] = await this.db
+      .select()
+      .from(products)
+      .where(eq(products.id, Number(productId)))
+      .limit(1);
     if (!p) throw new NotFoundException('Product not found');
-    if (p.merchant_id !== merchantId) {
+    if (p.merchant_id !== Number(merchantId)) {
       throw new ForbiddenException('You do not own this product');
     }
-    return this.toResponse(p);
+    return toMerchantProductResponse(p);
   }
 
   // 7. STOCK LEVELS
   async getMerchantStockLevels(merchantId: number) {
-    const stockResult: Array<{ name: string; stock: string }> =
-      await this.productRepo.query(
-        `
-        SELECT name, stock 
-        FROM commerce.products 
-        WHERE merchant_id = $1
-        ORDER BY stock ASC
-        LIMIT 10
-    `,
-        [merchantId],
-      );
+    const stockResult = await this.db
+      .select({ name: products.name, stock: products.stock })
+      .from(products)
+      .where(eq(products.merchant_id, Number(merchantId)))
+      .orderBy(asc(products.stock))
+      .limit(10);
 
     return stockResult.map((p) => ({
       name: p.name,

@@ -77,7 +77,7 @@ export class GetFestivalDetailsUseCase {
                 }
               }
             }
-          } catch (_fullError) {
+          } catch {
             this.logger.warn(
               `Failed to fetch full extract for ${name}, falling back to summary.`,
             );

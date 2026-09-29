@@ -9,11 +9,7 @@ import {
   StandardWebhookEvent,
   WebhookValidationRequest,
 } from '@/external/payment/payment-gateway.interface';
-import {
-  GatewayTransactionStatus,
-  GatewayIntent,
-  GatewayName,
-} from '../enums';
+import { GatewayTransactionStatus, GatewayIntent, GatewayName } from '../enums';
 import { GatewayTransaction } from '../entities/gateway-transaction.entity';
 import { PaymentOrder, PaymentStatus } from '../entities/payment-order.entity';
 import { PaymentIntentDispatcher } from '../services/payment-intent-dispatcher.service';
@@ -32,7 +28,9 @@ export class HandleWebhookUseCase {
     private readonly db: DatabaseService,
   ) {}
 
-  async execute(request: WebhookValidationRequest): Promise<{ received: boolean; ignored?: boolean }> {
+  async execute(
+    request: WebhookValidationRequest,
+  ): Promise<{ received: boolean; ignored?: boolean }> {
     const event = this.paymentGateway.parseWebhook(request);
     this.logger.log(
       `[${this.paymentGateway.providerName.toUpperCase()}_WEBHOOK] Received event: ${event.eventType} for order: ${event.providerOrderId}`,
@@ -61,7 +59,9 @@ export class HandleWebhookUseCase {
   // Event Handlers
   // ---------------------------------------------------------------------------
 
-  private async handlePaymentSuccess(event: StandardWebhookEvent): Promise<void> {
+  private async handlePaymentSuccess(
+    event: StandardWebhookEvent,
+  ): Promise<void> {
     const { providerOrderId, providerPaymentId } = event;
 
     if (!providerOrderId || !providerPaymentId) {
@@ -70,9 +70,12 @@ export class HandleWebhookUseCase {
     }
 
     // Fast-path idempotency check via Drizzle read
-    const isAlreadySuccess = await this.isTransactionAlreadySuccess(providerOrderId);
+    const isAlreadySuccess =
+      await this.isTransactionAlreadySuccess(providerOrderId);
     if (isAlreadySuccess) {
-      this.logger.log(`Order ${providerOrderId} already processed as SUCCESS. Skipping.`);
+      this.logger.log(
+        `Order ${providerOrderId} already processed as SUCCESS. Skipping.`,
+      );
       return;
     }
 
@@ -108,7 +111,9 @@ export class HandleWebhookUseCase {
           status: GatewayTransactionStatus.PENDING,
           intent,
           gateway_order_id: providerOrderId,
-          reference_id: legacyOrder.client_id ? legacyOrder.client_id.toString() : null,
+          reference_id: legacyOrder.client_id
+            ? legacyOrder.client_id.toString()
+            : null,
           metadata: legacyOrder.notes,
         });
       }
@@ -127,12 +132,17 @@ export class HandleWebhookUseCase {
 
       // Dispatch success to corresponding domain handler
       if (gatewayTx) {
-        await this.paymentIntentDispatcher.dispatchSuccess(gatewayTx, queryRunner);
+        await this.paymentIntentDispatcher.dispatchSuccess(
+          gatewayTx,
+          queryRunner,
+        );
       }
     });
   }
 
-  private async handlePaymentFailed(event: StandardWebhookEvent): Promise<void> {
+  private async handlePaymentFailed(
+    event: StandardWebhookEvent,
+  ): Promise<void> {
     const { providerOrderId, failureReason } = event;
 
     if (!providerOrderId) {
@@ -174,7 +184,10 @@ export class HandleWebhookUseCase {
   ): GatewayIntent {
     const merged = { ...notes, ...metadata };
 
-    if (merged.intent && Object.values(GatewayIntent).includes(merged.intent as GatewayIntent)) {
+    if (
+      merged.intent &&
+      Object.values(GatewayIntent).includes(merged.intent as GatewayIntent)
+    ) {
       return merged.intent as GatewayIntent;
     }
 

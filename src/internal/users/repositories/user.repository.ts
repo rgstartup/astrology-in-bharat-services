@@ -4,8 +4,8 @@ import { Repository, QueryRunner } from 'typeorm';
 import { BaseService } from '../../../shared/services/transaction.service';
 import { User } from '../entities/user.entity';
 import { RoleEnum } from '../enums/Role.enum';
-import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../actors/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../actors/client/account/entities/account.entity';
 
 @Injectable()
 export class UserRepository extends BaseService<User> {

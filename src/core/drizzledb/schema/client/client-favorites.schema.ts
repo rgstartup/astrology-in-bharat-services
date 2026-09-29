@@ -7,7 +7,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { clientAccounts } from './client-account.schema';
-import { FavoriteItemType } from '../../../../internal/domains/client/favorites/enum';
+import { FavoriteItemType } from '../../../../internal/actors/client/favorites/enum';
 
 const clientSchema = pgSchema('client');
 

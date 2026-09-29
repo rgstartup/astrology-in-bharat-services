@@ -22,11 +22,7 @@ import { earningTiers } from './earning-tiers.schema';
 import { earningSplits } from './earning-splits.schema';
 import { users } from '../../users/users.schema';
 
-export {
-  earningAppliesRoleEnum,
-  earningEventTypeEnum,
-  earningRateTypeEnum,
-};
+export { earningAppliesRoleEnum, earningEventTypeEnum, earningRateTypeEnum };
 
 const financeSchema = pgSchema('finance');
 

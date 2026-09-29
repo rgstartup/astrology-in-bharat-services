@@ -8,11 +8,11 @@ import {
   Column,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
 import { Product } from '../../product/entities/product.entity';
-import { ExpertPuja } from '../../../domains/expert/profile/entities/expert-puja.entity';
-import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ExpertPuja } from '../../../actors/expert/profile/entities/expert-puja.entity';
+import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
 
 @Entity({ schema: 'commerce', name: 'wishlists' })
 @Unique(['client', 'product'])

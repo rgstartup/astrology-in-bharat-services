@@ -79,9 +79,8 @@ export class MerchantAuthController {
 
       this.setCookies(res, tokens);
 
-      const { MerchantAccount } = await import(
-        '../../domains/merchant/account/entities/account.entity'
-      );
+      const { MerchantAccount } =
+        await import('../../actors/merchant/account/entities/account.entity');
       const merchantProfile = await this.dataSource
         .getRepository(MerchantAccount)
         .findOne({

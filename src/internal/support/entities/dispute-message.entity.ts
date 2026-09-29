@@ -8,8 +8,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Dispute } from './dispute.entity';
-import { ClientAccount } from '../../domains/client/account/entities/account.entity';
-import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../actors/client/account/entities/account.entity';
+import { ProfileExpert } from '../../actors/expert/profile/entities/profile-expert.entity';
 
 @Entity({ schema: 'support', name: 'support_dispute_messages' })
 export class DisputeMessage {

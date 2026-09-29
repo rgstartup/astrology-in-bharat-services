@@ -16,10 +16,7 @@ import { NotificationService } from '../../notification/notification.service';
 import { NotificationType } from '../../notification/entities/notification.entity';
 import { Wallet } from '../../finance/wallet/entities/wallet.entity';
 import { Transaction } from '../../finance/wallet/entities/transaction.entity';
-import {
-  TransactionType,
-  TransactionPurpose,
-} from '../../finance/wallet/enum';
+import { TransactionType, TransactionPurpose } from '../../finance/wallet/enum';
 import { SystemSetting } from '../../admin/entities/system-setting.entity';
 import {
   CommissionSplit,
@@ -32,9 +29,9 @@ import {
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
 } from '../../finance/ledger/entities/general-ledger-entry.entity';
-import { Todo } from '../../domains/expert/todos/entities/todo.entity';
-import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
-import { ProfileAgent } from '../../domains/agent/entities/profile-agent.entity';
+import { Todo } from '../../actors/expert/todos/entities/todo.entity';
+import { ProfileExpert } from '../../actors/expert/profile/entities/profile-expert.entity';
+import { ProfileAgent } from '../../actors/agent/entities/profile-agent.entity';
 import { User } from '../../users/entities/user.entity';
 
 // Resolved commission interface

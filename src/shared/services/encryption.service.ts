@@ -58,7 +58,7 @@ export class EncryptionService {
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       return decrypted;
-    } catch (_error) {
+    } catch {
       // If it looks like encrypted data but fail to decrypt, it might be a different key
       // or malformed. We log and return original string to be safe.
       this.logger.warn(

@@ -2,7 +2,7 @@ import type { DeferredDependency } from '../../../../shared/types/deferred-depen
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
 import { Review } from '../entities/review.entity';
 
 @Injectable()

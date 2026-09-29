@@ -6,10 +6,10 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '../../domains/client/account/entities/account.entity';
-import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
-import { ProfileAgent } from '../../domains/agent/entities/profile-agent.entity';
+import { ClientAccount } from '../../actors/client/account/entities/account.entity';
+import { ProfileExpert } from '../../actors/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../actors/merchant/account/entities/account.entity';
+import { ProfileAgent } from '../../actors/agent/entities/profile-agent.entity';
 import { RoleEnum } from '../../users/enums/Role.enum';
 
 export type ProfileType = Exclude<RoleEnum, RoleEnum.ADMIN>;

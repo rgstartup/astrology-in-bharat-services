@@ -447,44 +447,42 @@ export class ChatController {
   async getMySessionsAsClient(@CurrentProfile() clientId: number) {
     const sessions = await this.chatService.getClientSessions(clientId);
 
-    return Promise.all(
-      sessions.map((session) => {
-        // Calculate precise duration string
-        let durationString = '0s';
-        if (session.start_time && session.end_time) {
-          const start = new Date(session.start_time);
-          const end = new Date(session.end_time);
-          const diffMs = end.getTime() - start.getTime();
-          const totalSeconds = Math.floor(diffMs / 1000);
-          const mins = Math.floor(totalSeconds / 60);
-          const secs = totalSeconds % 60;
-          durationString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-        }
+    return sessions.map((session) => {
+      // Calculate precise duration string
+      let durationString = '0s';
+      if (session.start_time && session.end_time) {
+        const start = new Date(session.start_time);
+        const end = new Date(session.end_time);
+        const diffMs = end.getTime() - start.getTime();
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        durationString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+      }
 
-        // Return optimized lean object
-        return {
-          id: session.id,
-          created_at: session.created_at,
-          start_time: session.start_time,
-          end_time: session.end_time,
-          status: session.status,
-          total_cost: session.total_cost,
-          session_type: session.session_type,
-          is_free: session.is_free,
-          terminated_by: session.terminated_by,
-          durationString,
-          expert: {
-            id: session.expert?.id,
-            specialization: session.expert?.specialization,
-            rating: session.expert?.rating,
-            user: {
-              name: session.expert?.user?.name,
-              avatar: session.expert?.user?.avatar,
-            },
+      // Return optimized lean object
+      return {
+        id: session.id,
+        created_at: session.created_at,
+        start_time: session.start_time,
+        end_time: session.end_time,
+        status: session.status,
+        total_cost: session.total_cost,
+        session_type: session.session_type,
+        is_free: session.is_free,
+        terminated_by: session.terminated_by,
+        durationString,
+        expert: {
+          id: session.expert?.id,
+          specialization: session.expert?.specialization,
+          rating: session.expert?.rating,
+          user: {
+            name: session.expert?.user?.name,
+            avatar: session.expert?.user?.avatar,
           },
-        };
-      }),
-    );
+        },
+      };
+    });
   }
 
   @Get('sessions/active-client')

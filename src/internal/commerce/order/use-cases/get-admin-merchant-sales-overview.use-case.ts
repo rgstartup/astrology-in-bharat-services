@@ -1,18 +1,18 @@
-import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { OrderItem } from '../entities/order-item.entity';
-import { OrderStatus } from '../enum';
-import { MerchantAccountService } from '../../../domains/merchant/account/account.service';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { eq, notInArray, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { orderItems, orders, products } from '@/core/drizzledb/schema';
+import { OrderStatus } from '@/internal/commerce/order/enum';
+import { MerchantAccountService } from '@/internal/actors/merchant/account/account.service';
 
 @Injectable()
 export class GetAdminMerchantSalesOverviewUseCase {
   constructor(
     @Inject(forwardRef(() => MerchantAccountService))
     private readonly merchantService: DeferredDependency<MerchantAccountService>,
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepository: Repository<OrderItem>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
   async execute() {
@@ -21,25 +21,26 @@ export class GetAdminMerchantSalesOverviewUseCase {
       const merchants = await this.merchantService.getRawAccounts();
 
       // 2. Aggregate sales data per merchant (grouped by user_id)
-      const sales_data: Array<{
-        userId: string;
-        totalRevenue: string;
-        totalOrders: string;
-      }> = await this.orderItemRepository
-        .createQueryBuilder('item')
-        .leftJoin('item.product', 'product')
-        .leftJoin('item.order', 'order')
-        .select('product.merchant_id', 'userId')
-        .addSelect(
-          'SUM(CAST(item.quantity AS FLOAT) * CAST(item.price AS FLOAT))',
-          'totalRevenue',
-        )
-        .addSelect('COUNT(DISTINCT item.order_id)', 'totalOrders')
-        .where('order.status NOT IN (:...invalidStatuses)', {
-          invalidStatuses: [OrderStatus.CANCELLED, OrderStatus.PENDING],
+      const sales_data = await this.db
+        .select({
+          userId: products.merchant_id,
+          totalRevenue: sql<
+            string | number
+          >`SUM(CAST(${orderItems.quantity} AS FLOAT) * CAST(${orderItems.price} AS FLOAT))`,
+          totalOrders: sql<
+            string | number
+          >`COUNT(DISTINCT ${orderItems.order_id})`,
         })
-        .groupBy('product.merchant_id')
-        .getRawMany();
+        .from(orderItems)
+        .leftJoin(products, eq(products.id, orderItems.product_id))
+        .leftJoin(orders, eq(orders.id, orderItems.order_id))
+        .where(
+          notInArray(orders.status, [
+            OrderStatus.CANCELLED,
+            OrderStatus.PENDING,
+          ]),
+        )
+        .groupBy(products.merchant_id);
 
       // 3. Map aggregation to merchant cards
       const revenueByMerchantMap = sales_data.reduce(
@@ -48,10 +49,15 @@ export class GetAdminMerchantSalesOverviewUseCase {
             string,
             { totalRevenue: number; totalOrders: number; userId: string }
           >,
-          row: { userId: string; totalRevenue: string; totalOrders: string },
+          row: {
+            userId: number | null;
+            totalRevenue: string | number | null;
+            totalOrders: string | number | null;
+          },
         ) => {
-          acc[row.userId] = {
-            userId: row.userId,
+          const key = String(row.userId);
+          acc[key] = {
+            userId: key,
             totalRevenue: Number(row.totalRevenue) || 0,
             totalOrders: Number(row.totalOrders) || 0,
           };

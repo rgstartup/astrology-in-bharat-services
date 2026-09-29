@@ -25,21 +25,21 @@ Yeh ek simple key-value store tha. Problems:
 
 Ek rule = ek row.
 
-| Column | Kya hai |
-|---|---|
-| `name` | Human-readable label — "Standard Platform Fee" |
-| `event_type` | `chat / call / puja / product_order` |
+| Column            | Kya hai                                           |
+| ----------------- | ------------------------------------------------- |
+| `name`            | Human-readable label — "Standard Platform Fee"    |
+| `event_type`      | `chat / call / puja / product_order`              |
 | `commission_type` | `platform_fee / seller_agent / buyer_agent / gst` |
-| `rate` | Percentage (3.00 = 3%) ya fixed ₹ amount |
-| `rate_type` | `percentage` ya `fixed` |
-| `min_cap` | Minimum ₹ commission (null = no floor) |
-| `max_cap` | Maximum ₹ commission (null = no ceiling) |
-| `applies_to_role` | `all / expert / merchant / client / agent` |
-| `applies_to_id` | Specific profile UUID (null = sab pe laagu) |
-| `priority` | Higher = pehle match hoga |
-| `is_active` | Soft disable (delete mat karo) |
-| `effective_from` | Kab se active |
-| `effective_until` | Kab tak active (null = kabhi expire nahi) |
+| `rate`            | Percentage (3.00 = 3%) ya fixed ₹ amount          |
+| `rate_type`       | `percentage` ya `fixed`                           |
+| `min_cap`         | Minimum ₹ commission (null = no floor)            |
+| `max_cap`         | Maximum ₹ commission (null = no ceiling)          |
+| `applies_to_role` | `all / expert / merchant / client / agent`        |
+| `applies_to_id`   | Specific profile UUID (null = sab pe laagu)       |
+| `priority`        | Higher = pehle match hoga                         |
+| `is_active`       | Soft disable (delete mat karo)                    |
+| `effective_from`  | Kab se active                                     |
+| `effective_until` | Kab tak active (null = kabhi expire nahi)         |
 
 ---
 
@@ -47,13 +47,13 @@ Ek rule = ek row.
 
 Ek rule ke andar multiple bands. Gross amount ke hisaab se rate change hota hai.
 
-| Column | Kya hai |
-|---|---|
-| `rule_id` | Kaunse rule ka tier hai |
-| `from_amount` | Band ka lower limit |
-| `to_amount` | Band ka upper limit (null = unbounded) |
-| `rate` | Is band ka rate |
-| `min_cap / max_cap` | Optional override caps for this tier |
+| Column              | Kya hai                                |
+| ------------------- | -------------------------------------- |
+| `rule_id`           | Kaunse rule ka tier hai                |
+| `from_amount`       | Band ka lower limit                    |
+| `to_amount`         | Band ka upper limit (null = unbounded) |
+| `rate`              | Is band ka rate                        |
+| `min_cap / max_cap` | Optional override caps for this tier   |
 
 ---
 
@@ -61,19 +61,20 @@ Ek rule ke andar multiple bands. Gross amount ke hisaab se rate change hota hai.
 
 Har settlement ke baad ek row. Platform ka audit trail.
 
-| Column | Kya hai |
-|---|---|
-| `reference_id` | `chat_abc123`, `puja_appt_xyz`, `order_item_uvw` |
-| `reference_type` | `chat / call / puja / order` |
-| `gross_amount` | Client ne kitna diya |
-| `platform_fee` | Platform ka cut (before GST) |
-| `gst` | GST on platform fee |
-| `seller_agent_commission` | Agent jo expert/merchant laya |
-| `buyer_agent_commission` | Agent jo client laya |
-| `provider_net` | Expert/Merchant ko kitna mila |
-| `platform_net` | `platform_fee + gst` — platform ka actual revenue |
+| Column                    | Kya hai                                           |
+| ------------------------- | ------------------------------------------------- |
+| `reference_id`            | `chat_abc123`, `puja_appt_xyz`, `order_item_uvw`  |
+| `reference_type`          | `chat / call / puja / order`                      |
+| `gross_amount`            | Client ne kitna diya                              |
+| `platform_fee`            | Platform ka cut (before GST)                      |
+| `gst`                     | GST on platform fee                               |
+| `seller_agent_commission` | Agent jo expert/merchant laya                     |
+| `buyer_agent_commission`  | Agent jo client laya                              |
+| `provider_net`            | Expert/Merchant ko kitna mila                     |
+| `platform_net`            | `platform_fee + gst` — platform ka actual revenue |
 
 **Invariant:**
+
 ```
 gross = provider_net + platform_fee + gst + seller_agent + buyer_agent
 ```
@@ -110,18 +111,21 @@ Detail mein:
 ## Examples — Real Scenarios
 
 ### Basic global rate
+
 ```
 Rule: chat, platform_fee, 3%, all
 ₹100 session → ₹3 platform fee
 ```
 
 ### Cap lagana
+
 ```
 Rule: chat, platform_fee, 3%, max_cap=₹500
 ₹20,000 session → raw=₹600 → capped at ₹500
 ```
 
 ### Ek expert ke liye special deal
+
 ```
 Rule A: chat, seller_agent, 2%, applies_to_id=<expert_XYZ>, priority=10
 Rule B: chat, seller_agent, 5%, all, priority=0
@@ -129,6 +133,7 @@ Expert XYZ ke sessions → agent ko 2% milega, baaki sabko 5%
 ```
 
 ### Volume tiers (merchant orders)
+
 ```
 Rule: product_order, platform_fee
 Tiers:
@@ -141,6 +146,7 @@ Order ₹8,000 → 2% tier → ₹160 platform fee
 ```
 
 ### Festive discount (time-bounded)
+
 ```
 Rule: chat, platform_fee, 1%
 effective_from: 2026-07-01

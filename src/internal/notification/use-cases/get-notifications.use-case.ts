@@ -18,7 +18,7 @@ export class GetNotificationsUseCase {
     profileType: ProfileType,
     dto: GetNotificationsDto,
   ) {
-    const { limit = 20, offset = 0 } = dto;
+    const { limit, offset } = dto;
     const where = this.buildWhere(profileId, profileType);
     const [data, totalCount] = await this.notificationRepo.findAndCount({
       where,

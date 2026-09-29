@@ -3,12 +3,10 @@ import { QueryRunner } from 'typeorm';
 import { User } from '../../../users/entities/user.entity';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
 import { RoleEnum } from '../../../users/enums/Role.enum';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
 
 @Injectable()
-export class ExpertAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy<ProfileExpert>
-{
+export class ExpertAuthProfileCreationStrategy implements AuthProfileCreationStrategy<ProfileExpert> {
   readonly role = RoleEnum.EXPERT;
 
   async ensureProfile(

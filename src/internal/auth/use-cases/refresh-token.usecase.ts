@@ -6,7 +6,10 @@ import { DatabaseService } from '../../../core/database/database.service';
 import { Session } from '../entities/session.entity';
 import { RefreshTokenPolicy } from '../domain/policies/refresh-token.policy';
 import { isUUID } from 'class-validator';
-import { type IHasher, IHasherToken } from '../../../shared/contracts/hasher.contract';
+import {
+  type IHasher,
+  IHasherToken,
+} from '../../../shared/contracts/hasher.contract';
 
 @Injectable()
 export class RefreshTokenUseCase {

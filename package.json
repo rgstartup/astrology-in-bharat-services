@@ -9,7 +9,8 @@
   "scripts": {
     "build": "nest build",
     "deploy": "nest deploy",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "oxfmt \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "oxfmt --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -105,6 +106,7 @@
     "fork-ts-checker-webpack-plugin": "^9.1.0",
     "globals": "^17.12.0",
     "jest": "^30.5.2",
+    "oxfmt": "^0.71.0",
     "oxlint": "^1.86.0",
     "oxlint-tsgolint": "^7.0.2003",
     "prettier": "^3.9.9",

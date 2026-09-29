@@ -9,7 +9,7 @@ import {
   NotificationType,
   ProfileType,
 } from '../../../notification/entities/notification.entity';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
 import { RoleEnum } from '../../../users/enums/Role.enum';
 import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
 import {

@@ -2,12 +2,12 @@
 
 ## Kaun Kaun Hai System Mein?
 
-| Role | Wallet Key | Table |
-|---|---|---|
-| Client | `client_id` | `client.profile` |
-| Expert (Astrologer) | `expert_id` | `expert.profile` |
-| Agent | `agent_id` | `agent.profile` |
-| Merchant | `merchant_id` | `merchant.profile` |
+| Role                | Wallet Key    | Table              |
+| ------------------- | ------------- | ------------------ |
+| Client              | `client_id`   | `client.profile`   |
+| Expert (Astrologer) | `expert_id`   | `expert.profile`   |
+| Agent               | `agent_id`    | `agent.profile`    |
+| Merchant            | `merchant_id` | `merchant.profile` |
 
 > Platform ka apna wallet **nahi** hai. Platform ka paisa = jo client ne diya - jo baaki logon ko mila. Yeh `finance.ledger_entries` mein track hota hai.
 
@@ -15,16 +15,16 @@
 
 ## Kaunse Tables Matter Karte Hain?
 
-| Table | Kya karta hai |
-|---|---|
-| `finance.wallets` | Har participant ka balance |
-| `finance.transactions` | Har credit/debit ka record |
-| `finance.ledger_entries` | Ek settlement ka poora split (audit ke liye) |
-| `finance.commission_rules` | Commission rates, caps, tiers ka config |
-| `finance.commission_tiers` | Volume-based tiered rates |
-| `finance.payment_orders` | Razorpay payments |
-| `finance.withdrawals` | Payout requests |
-| `admin.system_settings` | Old key-value rates (fallback only) |
+| Table                      | Kya karta hai                                |
+| -------------------------- | -------------------------------------------- |
+| `finance.wallets`          | Har participant ka balance                   |
+| `finance.transactions`     | Har credit/debit ka record                   |
+| `finance.ledger_entries`   | Ek settlement ka poora split (audit ke liye) |
+| `finance.commission_rules` | Commission rates, caps, tiers ka config      |
+| `finance.commission_tiers` | Volume-based tiered rates                    |
+| `finance.payment_orders`   | Razorpay payments                            |
+| `finance.withdrawals`      | Payout requests                              |
+| `admin.system_settings`    | Old key-value rates (fallback only)          |
 
 ---
 
@@ -44,6 +44,7 @@ Client → Razorpay → Webhook verify
 ### 2. Chat Consultation
 
 **Shuru hone pe (paise hold)**
+
 ```
 InitiateChatUseCase
   → 5 minutes ka paisa HOLD ho jaata hai client ke wallet se
@@ -51,6 +52,7 @@ InitiateChatUseCase
 ```
 
 **Khatam hone pe (settle)**
+
 ```
 EndChatUseCase
   ├── Billable = (actual_mins - free_mins) × price_per_min

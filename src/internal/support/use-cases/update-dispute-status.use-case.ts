@@ -15,7 +15,7 @@ import { WalletService } from '../../finance/wallet/wallet.service';
 import { TransactionPurpose } from '../../finance/wallet/enum';
 import { OrderItem } from '../../commerce/order/entities/order-item.entity';
 import { OrderStatus } from '../../commerce/order/enum';
-import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
+import { MerchantAccount } from '../../actors/merchant/account/entities/account.entity';
 import { NotificationService } from '../../notification/notification.service';
 import { RoleEnum } from '../../users/enums/Role.enum';
 import { NotificationType } from '../../notification/entities/notification.entity';

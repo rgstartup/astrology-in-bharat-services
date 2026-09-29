@@ -8,13 +8,13 @@ This document outlines the domain schema, entity responsibilities, and fulfillme
 
 The platform handles products across three core archetypes: **Physical Goods**, **Digital Assets/Reports**, and **Live/Scheduled Services**.
 
-| Variant Name | Product Type (`ProductType`) | Fulfillment Type (`FulfillmentType`) | Delivery Type (`DeliveryType`) | Shipping Fee | Inventory Tracking | Fulfillment Flow |
-| :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **Rudraksha Mala** | `GOODS` | `PHYSICAL` (`physical`) | `SHIPPING` (`shipping`) | ₹50.00 | **Yes** (Warehouse / Merchant Stock) | Physical courier / logistics dispatch to customer address. |
-| **Kundli Report** | `DIGITAL` | `DIGITAL` (`digital`) | `EMAIL` (`email`) | ₹0.00 | **No** (Infinite / On-demand generation) | Automated / manual generation, PDF emailed to customer. |
-| **Kundli PDF** | `DIGITAL` | `DIGITAL` (`digital`) | `DOWNLOAD` (`download`) | ₹0.00 | **No** (Infinite / Static or dynamic) | Instant secure signed download link provided in app / web. |
-| **Satyanarayan Puja** | `SERVICE` | `SERVICE` (`service`) | `SCHEDULED` (`scheduled`) | ₹0.00 | **Slot/Calendar** (Pandit capacity) | Slot booking, sankalp details captured, executed at scheduled time. |
-| **Astrology Consultation** | `SERVICE` | `SERVICE` (`service`) | `INSTANT` (`instant`) | ₹0.00 | **Live Presence** (Astrologer online/busy state) | Immediate connection via Agora Audio/Video call or chat session. |
+| Variant Name               | Product Type (`ProductType`) | Fulfillment Type (`FulfillmentType`) | Delivery Type (`DeliveryType`) | Shipping Fee |                Inventory Tracking                | Fulfillment Flow                                                    |
+| :------------------------- | :--------------------------- | :----------------------------------- | :----------------------------- | :----------: | :----------------------------------------------: | :------------------------------------------------------------------ |
+| **Rudraksha Mala**         | `GOODS`                      | `PHYSICAL` (`physical`)              | `SHIPPING` (`shipping`)        |    ₹50.00    |       **Yes** (Warehouse / Merchant Stock)       | Physical courier / logistics dispatch to customer address.          |
+| **Kundli Report**          | `DIGITAL`                    | `DIGITAL` (`digital`)                | `EMAIL` (`email`)              |    ₹0.00     |     **No** (Infinite / On-demand generation)     | Automated / manual generation, PDF emailed to customer.             |
+| **Kundli PDF**             | `DIGITAL`                    | `DIGITAL` (`digital`)                | `DOWNLOAD` (`download`)        |    ₹0.00     |      **No** (Infinite / Static or dynamic)       | Instant secure signed download link provided in app / web.          |
+| **Satyanarayan Puja**      | `SERVICE`                    | `SERVICE` (`service`)                | `SCHEDULED` (`scheduled`)      |    ₹0.00     |       **Slot/Calendar** (Pandit capacity)        | Slot booking, sankalp details captured, executed at scheduled time. |
+| **Astrology Consultation** | `SERVICE`                    | `SERVICE` (`service`)                | `INSTANT` (`instant`)          |    ₹0.00     | **Live Presence** (Astrologer online/busy state) | Immediate connection via Agora Audio/Video call or chat session.    |
 
 ---
 
@@ -39,109 +39,116 @@ The commerce schema is normalized around a **Variant-Centric** modular model und
 ---
 
 ### 2.1. `Product` (`commerce.products`)
-* **Role**: The high-level catalog entity. Acts as the parent container for grouping variants, marketing descriptions, category taxonomy, and merchant ownership.
-* **Fields**:
-  * `id`: `number` (PK)
-  * `name`: `string` (e.g., "Rudraksha Collection", "Complete Vedic Kundli", "Personal Astrology Consultation")
-  * `type`: `ProductType` (`GOODS`, `SERVICE`, `DIGITAL`)
-  * `description`: `text` (Rich HTML/Markdown description)
-  * `merchant_id`: `number | null` (Owner/Seller/Vendor ID, if multi-merchant)
-  * `categories`: `ProductCategory[]` (ManyToMany relation)
-  * `variants`: `ProductVariant[]` (OneToMany relation)
-  * `media`: `ProductMedia[]` (OneToMany relation)
-* **What belongs here**: Top-level display information common across all sub-variations.
+
+- **Role**: The high-level catalog entity. Acts as the parent container for grouping variants, marketing descriptions, category taxonomy, and merchant ownership.
+- **Fields**:
+  - `id`: `number` (PK)
+  - `name`: `string` (e.g., "Rudraksha Collection", "Complete Vedic Kundli", "Personal Astrology Consultation")
+  - `type`: `ProductType` (`GOODS`, `SERVICE`, `DIGITAL`)
+  - `description`: `text` (Rich HTML/Markdown description)
+  - `merchant_id`: `number | null` (Owner/Seller/Vendor ID, if multi-merchant)
+  - `categories`: `ProductCategory[]` (ManyToMany relation)
+  - `variants`: `ProductVariant[]` (OneToMany relation)
+  - `media`: `ProductMedia[]` (OneToMany relation)
+- **What belongs here**: Top-level display information common across all sub-variations.
 
 ---
 
 ### 2.2. `ProductVariant` (`commerce.product_variants`)
-* **Role**: The actual atomic purchasable item added to carts, orders, and checkouts. Every product has at least one default variant (`is_default = true`).
-* **Fields**:
-  * `id`: `bigint` (PK)
-  * `product_id`: `bigint` (FK -> `products.id`)
-  * `name`: `string` (e.g., "5 Mukhi - Nepal Origin", "50-Page Comprehensive Hindi Report", "15-Min Audio Call")
-  * `sku`: `string | null` (Unique SKU code, e.g., `RUD-5M-001`, `KUN-REP-HI-50`)
-  * `attributes`: `jsonb` (Key-value specific metadata, e.g., `{"size": "8mm", "beads": 108}` or `{"pages": 50, "language": "hi"}`)
-  * `description`: `text | null` (Variant-specific notes or inclusions)
-  * `is_default`: `boolean` (Default selected variant on product page)
-  * `is_active`: `boolean` (Allows enabling/disabling individual variants)
-  * `sort_order`: `number` (Display precedence)
-* **What belongs here**: Variant identifiers, dimension/spec attributes, and individual SKU configuration.
+
+- **Role**: The actual atomic purchasable item added to carts, orders, and checkouts. Every product has at least one default variant (`is_default = true`).
+- **Fields**:
+  - `id`: `bigint` (PK)
+  - `product_id`: `bigint` (FK -> `products.id`)
+  - `name`: `string` (e.g., "5 Mukhi - Nepal Origin", "50-Page Comprehensive Hindi Report", "15-Min Audio Call")
+  - `sku`: `string | null` (Unique SKU code, e.g., `RUD-5M-001`, `KUN-REP-HI-50`)
+  - `attributes`: `jsonb` (Key-value specific metadata, e.g., `{"size": "8mm", "beads": 108}` or `{"pages": 50, "language": "hi"}`)
+  - `description`: `text | null` (Variant-specific notes or inclusions)
+  - `is_default`: `boolean` (Default selected variant on product page)
+  - `is_active`: `boolean` (Allows enabling/disabling individual variants)
+  - `sort_order`: `number` (Display precedence)
+- **What belongs here**: Variant identifiers, dimension/spec attributes, and individual SKU configuration.
 
 ---
 
 ### 2.3. `ProductFulFillment` (`commerce.product_variant_fulfillment`)
-* **Role**: Defines **how** the customer receives the variant once ordered, shipping fees, preparation times, and SLA timelines.
-* **Fields**:
-  * `id`: `number` (PK)
-  * `variant_id`: `number` (OneToOne FK -> `product_variants.id`)
-  * `fulfillment_type`: `FulfillmentType` (`PHYSICAL`, `DIGITAL`, `SERVICE`)
-  * `delivery_type`: `DeliveryType` (`SHIPPING`, `DOWNLOAD`, `EMAIL`, `INSTANT`, `SCHEDULED`)
-  * `shipping_fee`: `decimal(10,2)` (Courier/freight fee, `0.00` for digital/services)
-  * `processing_time`: `integer` (Preparation/generation time in minutes or hours)
-  * `estimated_delivery_min`: `integer` (Minimum delivery window, e.g., 3 days for shipping)
-  * `estimated_delivery_max`: `integer` (Maximum delivery window, e.g., 7 days for shipping)
-  * `is_active`: `boolean`
-* **What belongs here**: All delivery instructions, logistics rules, SLA bounds, and shipping charge configurations.
+
+- **Role**: Defines **how** the customer receives the variant once ordered, shipping fees, preparation times, and SLA timelines.
+- **Fields**:
+  - `id`: `number` (PK)
+  - `variant_id`: `number` (OneToOne FK -> `product_variants.id`)
+  - `fulfillment_type`: `FulfillmentType` (`PHYSICAL`, `DIGITAL`, `SERVICE`)
+  - `delivery_type`: `DeliveryType` (`SHIPPING`, `DOWNLOAD`, `EMAIL`, `INSTANT`, `SCHEDULED`)
+  - `shipping_fee`: `decimal(10,2)` (Courier/freight fee, `0.00` for digital/services)
+  - `processing_time`: `integer` (Preparation/generation time in minutes or hours)
+  - `estimated_delivery_min`: `integer` (Minimum delivery window, e.g., 3 days for shipping)
+  - `estimated_delivery_max`: `integer` (Maximum delivery window, e.g., 7 days for shipping)
+  - `is_active`: `boolean`
+- **What belongs here**: All delivery instructions, logistics rules, SLA bounds, and shipping charge configurations.
 
 ---
 
 ### 2.4. `ProductInventory` (`commerce.product_variant_inventory`)
-* **Role**: Manages stock quantity, safety margins, and temporary checkout holds (reserved stock).
-* **Fields**:
-  * `id`: `number` (PK)
-  * `variant_id`: `number` (OneToOne FK -> `product_variants.id`)
-  * `stock`: `number` (Physical units on hand)
-  * `reserved_stock`: `number` (Units temporarily locked during pending checkout/payment)
-  * `available_stock`: `getter` (`Math.max(0, stock - reserved_stock)`)
-* **What belongs here**: Real-time inventory tracking for physical goods. For purely unlimited digital assets or services, inventory rows can either be omitted, set to a high sentinel value, or managed via external booking engines.
+
+- **Role**: Manages stock quantity, safety margins, and temporary checkout holds (reserved stock).
+- **Fields**:
+  - `id`: `number` (PK)
+  - `variant_id`: `number` (OneToOne FK -> `product_variants.id`)
+  - `stock`: `number` (Physical units on hand)
+  - `reserved_stock`: `number` (Units temporarily locked during pending checkout/payment)
+  - `available_stock`: `getter` (`Math.max(0, stock - reserved_stock)`)
+- **What belongs here**: Real-time inventory tracking for physical goods. For purely unlimited digital assets or services, inventory rows can either be omitted, set to a high sentinel value, or managed via external booking engines.
 
 ---
 
 ### 2.5. `ProductVariantPricing` (`commerce.product_variant_pricing`)
-* **Role**: Configures dynamic, audience-targeted, and time-bounded pricing for each variant.
-* **Fields**:
-  * `id`: `number` (PK)
-  * `variant_id`: `number` (FK -> `product_variants.id`)
-  * `amount`: `numeric(12,2)` (Base selling price, e.g., `1500.00`)
-  * `currency`: `varchar(10)` (Default `INR`)
-  * `target_audience`: `PricingTargetAudience` (`ALL`, `NEW_USER`, `PREMIUM_USER`, `VIP`, `B2B`, etc.)
-  * `client_id`: `number | null` (Specific client-customized pricing override if applicable)
-  * `status`: `PricingStatus` (`ACTIVE`, `INACTIVE`, `DRAFT`, `EXPIRED`)
-  * `effective_from`: `timestamptz` (When this price starts)
-  * `effective_to`: `timestamptz | null` (Price expiration / validity end)
-  * `change_reason`: `text | null` (Audit trail log)
-  * `changed_by`: `number | null` (Admin / merchant user ID who changed pricing)
-* **What belongs here**: Base selling prices, customer segment pricing rules, currency, and pricing history.
+
+- **Role**: Configures dynamic, audience-targeted, and time-bounded pricing for each variant.
+- **Fields**:
+  - `id`: `number` (PK)
+  - `variant_id`: `number` (FK -> `product_variants.id`)
+  - `amount`: `numeric(12,2)` (Base selling price, e.g., `1500.00`)
+  - `currency`: `varchar(10)` (Default `INR`)
+  - `target_audience`: `PricingTargetAudience` (`ALL`, `NEW_USER`, `PREMIUM_USER`, `VIP`, `B2B`, etc.)
+  - `client_id`: `number | null` (Specific client-customized pricing override if applicable)
+  - `status`: `PricingStatus` (`ACTIVE`, `INACTIVE`, `DRAFT`, `EXPIRED`)
+  - `effective_from`: `timestamptz` (When this price starts)
+  - `effective_to`: `timestamptz | null` (Price expiration / validity end)
+  - `change_reason`: `text | null` (Audit trail log)
+  - `changed_by`: `number | null` (Admin / merchant user ID who changed pricing)
+- **What belongs here**: Base selling prices, customer segment pricing rules, currency, and pricing history.
 
 ---
 
 ### 2.6. `ProductVariantPromotions` (`commerce.product_variant_promotions`)
-* **Role**: Promotional rules, sales discounts, and festival offers applied on top of base pricing.
-* **Fields**:
-  * `id`: `number` (PK)
-  * `variant_id`: `number` (FK -> `product_variants.id`)
-  * `name`: `string` (e.g., "Diwali Special 20% OFF")
-  * `discount_type`: `DiscountType` (`PERCENTAGE`, `FIXED`)
-  * `discount_value`: `number` (e.g., `20` for 20% or `200` for ₹200 fixed off)
-  * `target_audience`: `PricingTargetAudience` (`ALL`, `NEW_USER`, etc.)
-  * `effective_from`: `timestamptz`
-  * `effective_to`: `timestamptz | null`
-  * `is_active`: `boolean`
-* **What belongs here**: Timed discount campaigns, slash pricing, coupon-less automatic promotions.
+
+- **Role**: Promotional rules, sales discounts, and festival offers applied on top of base pricing.
+- **Fields**:
+  - `id`: `number` (PK)
+  - `variant_id`: `number` (FK -> `product_variants.id`)
+  - `name`: `string` (e.g., "Diwali Special 20% OFF")
+  - `discount_type`: `DiscountType` (`PERCENTAGE`, `FIXED`)
+  - `discount_value`: `number` (e.g., `20` for 20% or `200` for ₹200 fixed off)
+  - `target_audience`: `PricingTargetAudience` (`ALL`, `NEW_USER`, etc.)
+  - `effective_from`: `timestamptz`
+  - `effective_to`: `timestamptz | null`
+  - `is_active`: `boolean`
+- **What belongs here**: Timed discount campaigns, slash pricing, coupon-less automatic promotions.
 
 ---
 
 ### 2.7. `ProductMedia` (`commerce.product_variant_media`)
-* **Role**: Associates images, videos, or 3D models from the media repository to a product or a specific variant.
-* **Fields**:
-  * `id`: `number` (PK)
-  * `product_id`: `number` (FK -> `products.id`)
-  * `variant_id`: `number | null` (FK -> `product_variants.id`, nullable if product-wide)
-  * `media_id`: `number` (FK -> `media.id`)
-  * `media_role`: `MediaRole` (`COVER`, `THUMBNAIL`, `GALLERY`, `BANNER`, `PREVIEW_SAMPLE`)
-  * `is_primary`: `boolean`
-  * `sort_order`: `number`
-* **What belongs here**: Visual media linked to general product catalog or color/design-specific variants.
+
+- **Role**: Associates images, videos, or 3D models from the media repository to a product or a specific variant.
+- **Fields**:
+  - `id`: `number` (PK)
+  - `product_id`: `number` (FK -> `products.id`)
+  - `variant_id`: `number | null` (FK -> `product_variants.id`, nullable if product-wide)
+  - `media_id`: `number` (FK -> `media.id`)
+  - `media_role`: `MediaRole` (`COVER`, `THUMBNAIL`, `GALLERY`, `BANNER`, `PREVIEW_SAMPLE`)
+  - `is_primary`: `boolean`
+  - `sort_order`: `number`
+- **What belongs here**: Visual media linked to general product catalog or color/design-specific variants.
 
 ---
 
@@ -184,17 +191,17 @@ classDiagram
     ProductVariant --> ProductVariantPricing
 ```
 
-* **Storage Mapping**:
+- **Storage Mapping**:
   1. `products`: `name = "Nepali 5 Mukhi Rudraksha Mala"`, `type = ProductType.GOODS`
   2. `product_variants`: `name = "108 Beads - 8mm"`, `sku = "RUD-5M-108-8MM"`, `attributes = {"beads": 108, "size_mm": 8, "origin": "Nepal", "energized": true}`
   3. `product_variant_fulfillment`: `fulfillment_type = FulfillmentType.PHYSICAL`, `delivery_type = DeliveryType.SHIPPING`, `shipping_fee = 50.00`, `processing_time = 24`, `estimated_delivery_min = 3`, `estimated_delivery_max = 7`
   4. `product_variant_inventory`: `stock = 50`, `reserved_stock = 2`
   5. `product_variant_pricing`: `amount = 1499.00`, `currency = "INR"`, `target_audience = ALL`
-* **Order & Checkout Behavior**:
-  * Requires buyer delivery address, pin code serviceability check.
-  * Adds ₹50 shipping fee to the order subtotal.
-  * Decrements `stock` upon dispatch, holds `reserved_stock` during checkout.
-  * Dispatches via third-party logistics (e.g., Shiprocket, Delhivery) with tracking AWB.
+- **Order & Checkout Behavior**:
+  - Requires buyer delivery address, pin code serviceability check.
+  - Adds ₹50 shipping fee to the order subtotal.
+  - Decrements `stock` upon dispatch, holds `reserved_stock` during checkout.
+  - Dispatches via third-party logistics (e.g., Shiprocket, Delhivery) with tracking AWB.
 
 ---
 
@@ -230,17 +237,17 @@ classDiagram
     ProductVariant --> ProductVariantPricing
 ```
 
-* **Storage Mapping**:
+- **Storage Mapping**:
   1. `products`: `name = "Vedic Astrology Life Report"`, `type = ProductType.DIGITAL`
   2. `product_variants`: `name = "50-Page Comprehensive Hindi Horoscope"`, `sku = "KUN-REP-HI-50"`, `attributes = {"pages": 50, "language": "hi", "delivery_channel": "email"}`
   3. `product_variant_fulfillment`: `fulfillment_type = FulfillmentType.DIGITAL`, `delivery_type = DeliveryType.EMAIL`, `shipping_fee = 0.00`, `processing_time = 1440`, `estimated_delivery_min = 1`, `estimated_delivery_max = 2`
   4. `product_variant_inventory`: Not required or stock unlimited.
   5. `product_variant_pricing`: `amount = 499.00`, `currency = "INR"`, `target_audience = ALL`
-* **Order & Checkout Behavior**:
-  * Requires birth details form (Date of Birth, Time, Place of Birth, Name, Gender, Recipient Email).
-  * No shipping address requested.
-  * Triggers an asynchronous generation worker/queue job.
-  * Sends finalized PDF document via email attachment or secure link upon completion.
+- **Order & Checkout Behavior**:
+  - Requires birth details form (Date of Birth, Time, Place of Birth, Name, Gender, Recipient Email).
+  - No shipping address requested.
+  - Triggers an asynchronous generation worker/queue job.
+  - Sends finalized PDF document via email attachment or secure link upon completion.
 
 ---
 
@@ -276,15 +283,15 @@ classDiagram
     ProductVariant --> ProductVariantPricing
 ```
 
-* **Storage Mapping**:
+- **Storage Mapping**:
   1. `products`: `name = "Instant 2026 Yearly Planetary Transit PDF"`, `type = ProductType.DIGITAL`
   2. `product_variants`: `name = "Aries (Mesha) 2026 Transit Forecast"`, `sku = "TRN-2026-ARIES"`, `attributes = {"zodiac_sign": "aries", "year": 2026, "file_format": "PDF"}`
   3. `product_variant_fulfillment`: `fulfillment_type = FulfillmentType.DIGITAL`, `delivery_type = DeliveryType.DOWNLOAD`, `shipping_fee = 0.00`, `processing_time = 0`, `estimated_delivery_min = 0`, `estimated_delivery_max = 0`
   4. `product_variant_inventory`: Not required.
   5. `product_variant_pricing`: `amount = 199.00`, `currency = "INR"`, `target_audience = ALL`
-* **Order & Checkout Behavior**:
-  * No shipping address required.
-  * Payment success immediately returns an S3 presigned time-limited secure download URL on the order summary page and order history.
+- **Order & Checkout Behavior**:
+  - No shipping address required.
+  - Payment success immediately returns an S3 presigned time-limited secure download URL on the order summary page and order history.
 
 ---
 
@@ -320,16 +327,16 @@ classDiagram
     ProductVariant --> ProductVariantPricing
 ```
 
-* **Storage Mapping**:
+- **Storage Mapping**:
   1. `products`: `name = "Sri Satyanarayan Maha Puja"`, `type = ProductType.SERVICE`
   2. `product_variants`: `name = "Online Video Sankalp Puja with Panditji"`, `sku = "PUJA-SAT-ONLINE"`, `attributes = {"duration_mins": 120, "mode": "video_live", "samagri_provided": true, "pandit_count": 1}`
   3. `product_variant_fulfillment`: `fulfillment_type = FulfillmentType.SERVICE`, `delivery_type = DeliveryType.SCHEDULED`, `shipping_fee = 0.00`, `processing_time = 0`
   4. `product_variant_inventory`: Tied to Pandit slot availability / booking calendar engine.
   5. `product_variant_pricing`: `amount = 2100.00`, `currency = "INR"`
-* **Order & Checkout Behavior**:
-  * Requires user to select date & auspicious time slot (Muhurat).
-  * Collects Sankalp information (Gotra, Family members' names, Nakshatra, Purpose/Intention).
-  * Generates appointment booking with calendar invite and video link.
+- **Order & Checkout Behavior**:
+  - Requires user to select date & auspicious time slot (Muhurat).
+  - Collects Sankalp information (Gotra, Family members' names, Nakshatra, Purpose/Intention).
+  - Generates appointment booking with calendar invite and video link.
 
 ---
 
@@ -365,15 +372,15 @@ classDiagram
     ProductVariant --> ProductVariantPricing
 ```
 
-* **Storage Mapping**:
+- **Storage Mapping**:
   1. `products`: `name = "Live Astrologer Consultation"`, `type = ProductType.SERVICE`
   2. `product_variants`: `name = "15-Min Instant Audio Consultation"`, `sku = "CONS-AUD-15M"`, `attributes = {"channel": "audio_call", "duration_mins": 15, "call_type": "voip"}`
   3. `product_variant_fulfillment`: `fulfillment_type = FulfillmentType.SERVICE`, `delivery_type = DeliveryType.INSTANT`, `shipping_fee = 0.00`, `processing_time = 0`
   4. `product_variant_inventory`: Handled by real-time presence / queue status of the expert.
   5. `product_variant_pricing`: `amount = 450.00`, `currency = "INR"`, `target_audience = ALL` (or per-minute rate).
-* **Order & Checkout Behavior**:
-  * Validates astrologer online status or wallet balance.
-  * Initiates instant WebRTC / VoIP room or chat session immediately upon transaction completion.
+- **Order & Checkout Behavior**:
+  - Validates astrologer online status or wallet balance.
+  - Initiates instant WebRTC / VoIP room or chat session immediately upon transaction completion.
 
 ---
 
@@ -384,7 +391,7 @@ erDiagram
     products ||--|{ product_variants : "has variants"
     products }|--|{ product_category : "categorized under"
     products ||--o{ product_variant_media : "has product media"
-    
+
     product_variants ||--o| product_variant_fulfillment : "1:1 fulfillment rules"
     product_variants ||--o| product_variant_inventory : "1:1 stock tracking"
     product_variants ||--o{ product_variant_pricing : "1:N price history / tiers"

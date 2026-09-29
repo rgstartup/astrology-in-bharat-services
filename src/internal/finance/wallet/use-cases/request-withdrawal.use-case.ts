@@ -18,9 +18,9 @@ import {
 } from '../../../notification/entities/notification.entity';
 import { RoleEnum } from '../../../users/enums/Role.enum';
 import { SystemSetting } from '../../../admin/entities/system-setting.entity';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
-import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
+import { ProfileAgent } from '../../../actors/agent/entities/profile-agent.entity';
 
 @Injectable()
 export class RequestWithdrawalUseCase {
@@ -359,9 +359,8 @@ export class RequestWithdrawalUseCase {
 
       // G. Generate Custom IDs (transaction_no and withdrawal_no)
       try {
-        const { generateTransactionNo } = await import(
-          '../../../../shared/utils/transaction-no.util'
-        );
+        const { generateTransactionNo } =
+          await import('../../../../shared/utils/transaction-no.util');
         const rolePrefix =
           walletKey === 'expert_id'
             ? 'EXPERT'

@@ -4,7 +4,10 @@ import {
   RequiredRoleMissingError,
 } from '../errors/email-not-verified.error';
 import { RoleEnum } from '../../../users/enums/Role.enum';
-import { type IHasher, IHasherToken } from '../../../../shared/contracts/hasher.contract';
+import {
+  type IHasher,
+  IHasherToken,
+} from '../../../../shared/contracts/hasher.contract';
 import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()

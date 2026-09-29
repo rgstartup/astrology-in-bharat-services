@@ -27,7 +27,7 @@ export class UnknownExceptionFilter implements ExceptionFilter {
           ((exception as Error)?.stack || '') +
           '\n\n',
       );
-    } catch (e) {}
+    } catch {}
 
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,

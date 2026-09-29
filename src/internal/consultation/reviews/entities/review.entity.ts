@@ -7,9 +7,9 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
 import { ChatSession } from '../../chat/entities/chat-session.entity';
 import { CallSession } from '../../call/entities/call-session.entity';
 import { Order } from '../../../commerce/order/entities/order.entity';

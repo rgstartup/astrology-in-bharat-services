@@ -3,7 +3,7 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
-import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
 import { WalletService } from '../../../finance/wallet/wallet.service';
 import { ChatSessionStatus } from '../enum';
 

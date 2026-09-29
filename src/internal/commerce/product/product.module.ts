@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductController } from './controllers/product.controller';
 import { CloudinaryModule } from '../../../external/cloudinary/cloudinary.module';
-import { MerchantAccountModule } from '../../domains/merchant/account/account.module';
+import { MerchantAccountModule } from '../../actors/merchant/account/account.module';
 import { ProductService } from './product.service';
 import { CreateProductUseCase } from './use-cases/create-product.use-case';
 import { FindAllProductsUseCase } from './use-cases/find-all-products.use-case';
@@ -44,6 +44,6 @@ import {
     RemoveProductUseCase,
     MerchantProductsUseCase,
   ],
-  exports: [FindProductUseCase, TypeOrmModule, ProductService],
+  exports: [FindProductUseCase, ProductService],
 })
 export class ProductModule {}

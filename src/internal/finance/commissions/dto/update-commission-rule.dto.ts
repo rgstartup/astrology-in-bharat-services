@@ -4,7 +4,6 @@ import {
   IsNumber,
   IsOptional,
   IsBoolean,
-  IsUUID,
   IsDateString,
   IsArray,
   ValidateNested,

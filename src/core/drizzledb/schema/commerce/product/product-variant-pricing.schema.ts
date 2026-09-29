@@ -14,7 +14,7 @@ import { relations } from 'drizzle-orm';
 import {
   PricingStatus,
   PricingTargetAudience,
-} from '../../../../../internal/domains/expert/shared/enums/pricing.enum';
+} from '../../../../../internal/actors/expert/shared/enums/pricing.enum';
 import { productVariants } from './product-variants.schema';
 import { clientAccounts } from '../../client/client-account.schema';
 

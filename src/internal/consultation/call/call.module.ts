@@ -4,7 +4,7 @@ import { CallSession } from './entities/call-session.entity';
 import { TwilioService } from './services/twilio.service';
 import { WalletModule } from '../../finance/wallet/wallet.module';
 import { NotificationModule } from '../../notification/notification.module';
-import { ProfileModule as ExpertProfileModule } from '../../domains/expert/profile/profile.module';
+import { ProfileModule as ExpertProfileModule } from '../../actors/expert/profile/profile.module';
 import { QueueModule } from '../../../core/queue/queue.module';
 import { InitiateCallUseCase } from './use-cases/initiate-call.use-case';
 import { AcceptCallUseCase } from './use-cases/accept-call.use-case';

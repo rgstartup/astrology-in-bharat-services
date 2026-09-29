@@ -16,8 +16,8 @@ import { CouponStatus, CouponType } from '../../coupon/enum';
 import { UserCoupon } from '../../coupon/entities/user-coupon.entity';
 import { Product } from '../../product/entities/product.entity';
 import { CreateOrderDto } from '../dto/create-order.dto';
-import { ClientWalletService } from '../../../domains/client/wallet/wallet.service';
-import { ClientTransactionPurpose } from '../../../domains/client/wallet/enum';
+import { ClientWalletService } from '../../../actors/client/wallet/wallet.service';
+import { ClientTransactionPurpose } from '../../../actors/client/wallet/enum';
 import { SystemSetting } from '../../../admin/entities/system-setting.entity';
 
 @Injectable()
@@ -442,7 +442,7 @@ export class CreateOrderFromCartUseCase {
           total_amount: totalAmount,
           created_at: savedOrder.created_at,
         });
-      } catch (_error: unknown) {
+      } catch {
         /* ignore socket errors */
       }
 

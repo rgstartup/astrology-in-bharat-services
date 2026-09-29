@@ -5,13 +5,11 @@ import { QueryRunner } from 'typeorm';
 import {
   MerchantAccount,
   MerchantStatus,
-} from '../../../domains/merchant/account/entities/account.entity';
+} from '../../../actors/merchant/account/entities/account.entity';
 import { RoleEnum } from '../../../users/enums/Role.enum';
 
 @Injectable()
-export class MerchantAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy<MerchantAccount>
-{
+export class MerchantAuthProfileCreationStrategy implements AuthProfileCreationStrategy<MerchantAccount> {
   private readonly logger = new Logger(
     MerchantAuthProfileCreationStrategy.name,
   );

@@ -8,8 +8,11 @@ import { UserRegisteredEvent } from '../domain/events/user-registered.event';
 import { User } from '../../users/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { RoleEnum } from '../../users/enums/Role.enum';
-import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
-import { IHasherToken, type IHasher } from '../../../shared/contracts/hasher.contract';
+import { MerchantAccount } from '../../actors/merchant/account/entities/account.entity';
+import {
+  IHasherToken,
+  type IHasher,
+} from '../../../shared/contracts/hasher.contract';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

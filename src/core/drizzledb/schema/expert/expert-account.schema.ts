@@ -13,7 +13,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from '../users/users.schema';
-import { ExpertKycStatus } from '../../../../internal/domains/expert/shared/enums/kyc-status.enum';
+import { ExpertKycStatus } from '../../../../internal/actors/expert/shared/enums/kyc-status.enum';
 
 const expertSchema = pgSchema('expert');
 

@@ -32,7 +32,7 @@ import { ResolveSessionDetailsUseCase } from './use-cases/resolve-session-detail
 import { WalletModule } from '../../finance/wallet/wallet.module';
 import { NotificationModule } from '../../notification/notification.module';
 import { CouponModule } from '../../commerce/coupon/coupon.module';
-import { ProfileModule as ExpertProfileModule } from '../../domains/expert/profile/profile.module';
+import { ProfileModule as ExpertProfileModule } from '../../actors/expert/profile/profile.module';
 import { QueueModule } from '../../../core/queue/queue.module';
 
 @Module({

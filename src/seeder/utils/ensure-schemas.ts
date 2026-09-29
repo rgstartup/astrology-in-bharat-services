@@ -45,7 +45,7 @@ export async function ensurePostgresSchemasExist(): Promise<void> {
   } catch (error) {
     logger.warn(
       `Could not automatically verify schemas via raw pg client: ${
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : String(error)
       }`,
     );
   } finally {

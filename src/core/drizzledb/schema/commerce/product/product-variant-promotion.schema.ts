@@ -12,7 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { DiscountType } from '../../../../../internal/commerce/product/enum';
-import { PricingTargetAudience } from '../../../../../internal/domains/expert/shared/enums/pricing.enum';
+import { PricingTargetAudience } from '../../../../../internal/actors/expert/shared/enums/pricing.enum';
 import { productVariants } from './product-variants.schema';
 
 const commerceSchema = pgSchema('commerce');

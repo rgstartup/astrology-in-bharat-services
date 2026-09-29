@@ -5,14 +5,17 @@ import { RegistrationPolicy } from '../domain/policies/registration.policy';
 import * as crypto from 'crypto';
 import { NodeMailerService } from '../../../external/nodemailer/nodemailer.service';
 import { AgentRegisterUserDto } from '../dto';
-import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
-import { ClientAccount } from '../../domains/client/account/entities/account.entity';
-import { ProfileAgent } from '../../domains/agent/entities/profile-agent.entity';
+import { ProfileExpert } from '../../actors/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../actors/merchant/account/entities/account.entity';
+import { ClientAccount } from '../../actors/client/account/entities/account.entity';
+import { ProfileAgent } from '../../actors/agent/entities/profile-agent.entity';
 import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { ConfigService } from '@nestjs/config';
 import { hasRoles } from '../../users/enums/Role.enum';
-import { IHasherToken, type IHasher } from '../../../shared/contracts/hasher.contract';
+import {
+  IHasherToken,
+  type IHasher,
+} from '../../../shared/contracts/hasher.contract';
 import { User } from '../../users/entities/user.entity';
 import { SystemSetting } from '../../admin/entities/system-setting.entity';
 import { InjectRepository } from '@nestjs/typeorm';

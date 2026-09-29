@@ -3,7 +3,7 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../entities/review.entity';
-import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
 import { GetReviewsDto } from '../dto/get-reviews.dto';
 
 @Injectable()

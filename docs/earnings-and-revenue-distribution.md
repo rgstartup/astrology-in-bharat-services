@@ -46,60 +46,63 @@ erDiagram
 ### 2.2 Table Schemas
 
 #### 1. `earning_policies`
+
 Stores commission and fee rules configured by Admin or assigned per provider.
 
-| Column | Type | Nullable | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | `INT (PK)` | No | Primary Key |
-| `name` | `VARCHAR(150)` | No | Friendly policy name (e.g. "Default Call Policy") |
-| `event_type` | `ENUM` | No | `CALL`, `CHAT`, `PUJA`, `PRODUCT_ORDER` |
-| `platform_cut_type` | `ENUM` | No | `FIXED` (flat rupee/unit) or `PERCENTAGE` (%) |
-| `platform_cut_value` | `DECIMAL(10,2)` | No | Rate value (e.g. ₹2.00/min or 10.00%) |
-| `buyer_platform_fee` | `DECIMAL(10,2)` | No | Buyer convenience fee (if applicable) |
-| `gst_rate_percent` | `DECIMAL(5,2)` | No | GST percentage on platform fee (default 18.00%) |
-| `seller_agent_rate` | `DECIMAL(6,4)` | No | Dedicated agent cut for onboarding provider (%) |
-| `buyer_agent_rate` | `DECIMAL(6,4)` | No | Dedicated agent cut for onboarding client (%) |
-| `min_amount` | `DECIMAL(10,2)` | No | Minimum gross transaction value (default: 0.00) |
-| `max_cap` | `DECIMAL(10,2)` | Yes | Maximum platform cut cap |
-| `priority` | `INT` | No | Rule priority (higher numbers match first) |
-| `applies_to_role` | `ENUM` | No | `ALL`, `EXPERT`, `MERCHANT`, `CLIENT` |
-| `applies_to_user_id` | `INT` | Yes | Specific user/expert ID override |
-| `is_active` | `BOOLEAN` | No | Active toggle |
-| `effective_from` | `TIMESTAMPTZ` | No | Valid starting date |
-| `effective_to` | `TIMESTAMPTZ` | Yes | Expiry date |
+| Column               | Type            | Nullable | Description                                       |
+| :------------------- | :-------------- | :------- | :------------------------------------------------ |
+| `id`                 | `INT (PK)`      | No       | Primary Key                                       |
+| `name`               | `VARCHAR(150)`  | No       | Friendly policy name (e.g. "Default Call Policy") |
+| `event_type`         | `ENUM`          | No       | `CALL`, `CHAT`, `PUJA`, `PRODUCT_ORDER`           |
+| `platform_cut_type`  | `ENUM`          | No       | `FIXED` (flat rupee/unit) or `PERCENTAGE` (%)     |
+| `platform_cut_value` | `DECIMAL(10,2)` | No       | Rate value (e.g. ₹2.00/min or 10.00%)             |
+| `buyer_platform_fee` | `DECIMAL(10,2)` | No       | Buyer convenience fee (if applicable)             |
+| `gst_rate_percent`   | `DECIMAL(5,2)`  | No       | GST percentage on platform fee (default 18.00%)   |
+| `seller_agent_rate`  | `DECIMAL(6,4)`  | No       | Dedicated agent cut for onboarding provider (%)   |
+| `buyer_agent_rate`   | `DECIMAL(6,4)`  | No       | Dedicated agent cut for onboarding client (%)     |
+| `min_amount`         | `DECIMAL(10,2)` | No       | Minimum gross transaction value (default: 0.00)   |
+| `max_cap`            | `DECIMAL(10,2)` | Yes      | Maximum platform cut cap                          |
+| `priority`           | `INT`           | No       | Rule priority (higher numbers match first)        |
+| `applies_to_role`    | `ENUM`          | No       | `ALL`, `EXPERT`, `MERCHANT`, `CLIENT`             |
+| `applies_to_user_id` | `INT`           | Yes      | Specific user/expert ID override                  |
+| `is_active`          | `BOOLEAN`       | No       | Active toggle                                     |
+| `effective_from`     | `TIMESTAMPTZ`   | No       | Valid starting date                               |
+| `effective_to`       | `TIMESTAMPTZ`   | Yes      | Expiry date                                       |
 
 #### 2. `earning_tiers`
+
 Defines slab-based incentives and reduced platform cut for high-volume transactions.
 
-| Column | Type | Description |
-| :--- | :--- | :--- |
-| `id` | `INT (PK)` | Primary Key |
-| `policy_id` | `INT` | Foreign key referencing `earning_policies.id` |
-| `min_threshold` | `DECIMAL(10,2)` | Minimum amount for slab |
-| `max_threshold` | `DECIMAL(10,2)` | Maximum amount (null for unbounded) |
-| `platform_rate` | `DECIMAL(10,2)` | Platform rate for this slab |
-| `agent_rate` | `DECIMAL(10,2)` | Agent rate for this slab |
+| Column          | Type            | Description                                   |
+| :-------------- | :-------------- | :-------------------------------------------- |
+| `id`            | `INT (PK)`      | Primary Key                                   |
+| `policy_id`     | `INT`           | Foreign key referencing `earning_policies.id` |
+| `min_threshold` | `DECIMAL(10,2)` | Minimum amount for slab                       |
+| `max_threshold` | `DECIMAL(10,2)` | Maximum amount (null for unbounded)           |
+| `platform_rate` | `DECIMAL(10,2)` | Platform rate for this slab                   |
+| `agent_rate`    | `DECIMAL(10,2)` | Agent rate for this slab                      |
 
 #### 3. `earning_splits`
+
 Immutable audit log recording exact split breakdown for every transaction.
 
-| Column | Type | Description |
-| :--- | :--- | :--- |
-| `id` | `BIGINT (PK)` | Primary Key |
-| `reference_id` | `VARCHAR(100)` | `call_123`, `chat_456`, `order_789`, `puja_101` |
-| `reference_type` | `ENUM` | `CALL`, `CHAT`, `PUJA`, `PRODUCT_ORDER` |
-| `gross_amount` | `DECIMAL(12,2)` | Total customer charge |
-| `platform_earning` | `DECIMAL(12,2)` | Platform gross revenue |
-| `gst_on_platform_fee` | `DECIMAL(12,2)` | Embedded GST component |
-| `provider_earning` | `DECIMAL(12,2)` | Net credited to Expert/Merchant/Priest |
-| `seller_agent_earning` | `DECIMAL(12,2)` | Commission for agent who onboarded provider |
-| `buyer_agent_earning` | `DECIMAL(12,2)` | Commission for agent who onboarded customer |
-| `client_profile_id` | `INT` | Client ID |
-| `provider_profile_id` | `INT` | Expert / Merchant / Priest profile ID |
-| `seller_agent_profile_id` | `INT` | Seller Agent profile ID |
-| `buyer_agent_profile_id` | `INT` | Buyer Agent profile ID |
-| `policy_id` | `INT` | Policy ID used for calculation |
-| `created_at` | `TIMESTAMPTZ` | Timestamp |
+| Column                    | Type            | Description                                     |
+| :------------------------ | :-------------- | :---------------------------------------------- |
+| `id`                      | `BIGINT (PK)`   | Primary Key                                     |
+| `reference_id`            | `VARCHAR(100)`  | `call_123`, `chat_456`, `order_789`, `puja_101` |
+| `reference_type`          | `ENUM`          | `CALL`, `CHAT`, `PUJA`, `PRODUCT_ORDER`         |
+| `gross_amount`            | `DECIMAL(12,2)` | Total customer charge                           |
+| `platform_earning`        | `DECIMAL(12,2)` | Platform gross revenue                          |
+| `gst_on_platform_fee`     | `DECIMAL(12,2)` | Embedded GST component                          |
+| `provider_earning`        | `DECIMAL(12,2)` | Net credited to Expert/Merchant/Priest          |
+| `seller_agent_earning`    | `DECIMAL(12,2)` | Commission for agent who onboarded provider     |
+| `buyer_agent_earning`     | `DECIMAL(12,2)` | Commission for agent who onboarded customer     |
+| `client_profile_id`       | `INT`           | Client ID                                       |
+| `provider_profile_id`     | `INT`           | Expert / Merchant / Priest profile ID           |
+| `seller_agent_profile_id` | `INT`           | Seller Agent profile ID                         |
+| `buyer_agent_profile_id`  | `INT`           | Buyer Agent profile ID                          |
+| `policy_id`               | `INT`           | Policy ID used for calculation                  |
+| `created_at`              | `TIMESTAMPTZ`   | Timestamp                                       |
 
 ---
 
@@ -108,11 +111,13 @@ Immutable audit log recording exact split breakdown for every transaction.
 ### Scenario 1: Astrologer Call / Chat Consultation (Per-Minute Platform Cut)
 
 **Business Model**:
+
 - Astrologers list their consultation fee inclusive of platform charges (e.g., ₹24/minute).
 - Platform fee is configured as a fixed ₹2/minute cut.
 - GST (18%) is embedded within the platform revenue.
 
 #### Math Walkthrough:
+
 1. Astrologer rate: ₹24.00 / minute.
 2. Call duration: 10 minutes (600 seconds).
 3. **Gross Transaction Value**: `10 min * ₹24.00 = ₹240.00`
@@ -128,12 +133,12 @@ Immutable audit log recording exact split breakdown for every transaction.
 ```json
 {
   "referenceId": "call_9876",
-  "grossAmount": 240.00,
-  "platformEarning": 20.00,
+  "grossAmount": 240.0,
+  "platformEarning": 20.0,
   "gstOnPlatformFee": 3.05,
-  "providerEarning": 220.00,
-  "sellerAgentEarning": 0.00,
-  "buyerAgentEarning": 0.00
+  "providerEarning": 220.0,
+  "sellerAgentEarning": 0.0,
+  "buyerAgentEarning": 0.0
 }
 ```
 
@@ -142,11 +147,13 @@ Immutable audit log recording exact split breakdown for every transaction.
 ### Scenario 2: Consultation with Dedicated Agent Revenue Sharing
 
 **Business Model**:
+
 - The Astrologer was onboarded by **Agent A** (Dedicated Seller Agent, 2% commission rate).
 - The Client was onboarded by **Agent B** (Dedicated Marketer Agent, 1% commission rate).
 - Call duration: 15 minutes at ₹30/minute.
 
 #### Math Walkthrough:
+
 1. **Gross Transaction Value**: `15 min * ₹30.00 = ₹450.00`
 2. **Platform Cut (₹3/min)**: `15 min * ₹3.00 = ₹45.00`
 3. **Seller Agent Commission (2%)**: `₹450.00 * 0.02 = ₹9.00`
@@ -163,11 +170,13 @@ Immutable audit log recording exact split breakdown for every transaction.
 ### Scenario 3: E-Commerce Product Order (Multi-Vendor Marketplace Take-Rate)
 
 **Business Model**:
+
 - Customer purchases a Brass Idol from a verified Merchant for ₹2,000.
 - Platform Policy for `PRODUCT_ORDER`: 10% Marketplace Take-Rate (`PERCENTAGE`).
 - Buyer Platform Convenience Fee: ₹5.00.
 
 #### Math Walkthrough:
+
 1. Product Item Total: ₹2,000.00
 2. Platform Convenience Fee: ₹5.00
 3. **Total Customer Paid**: ₹2,005.00
@@ -182,10 +191,12 @@ Immutable audit log recording exact split breakdown for every transaction.
 ### Scenario 4: Puja / Ritual Booking (Priest & Temple Fulfillment)
 
 **Business Model**:
+
 - Customer books a Maha Mrityunjaya Jaap for ₹5,100.
 - Platform Policy for `PUJA`: 15% Platform Commission.
 
 #### Math Walkthrough:
+
 1. **Gross Booking Amount**: ₹5,100.00
 2. **Platform Earning (15%)**: `₹5,100.00 * 0.15 = ₹765.00`
 3. **Priest / Temple Net Earning**: `₹5,100.00 - ₹765.00 = ₹4,335.00`
@@ -198,12 +209,14 @@ Immutable audit log recording exact split breakdown for every transaction.
 ### Scenario 5: High-Volume Tiered Astrologer Slab Incentive
 
 **Business Model**:
+
 - Premium Astrologer conducts large monthly volume.
 - Tier 1: ₹0 – ₹10,000 gross -> Platform cut = ₹3.00/min
 - Tier 2: ₹10,001 – ₹50,000 gross -> Platform cut = ₹2.00/min
 - Tier 3: > ₹50,000 gross -> Platform cut = ₹1.00/min
 
 #### Math Walkthrough:
+
 - When the astrologer reaches Tier 3, a 10-minute consultation (at ₹50/min, ₹500 gross) only incurs `10 * ₹1.00 = ₹10.00` platform cut.
 - Astrologer receives `₹490.00` (98% net retention), automatically incentivizing top performers.
 
@@ -229,6 +242,7 @@ Immutable audit log recording exact split breakdown for every transaction.
 The `EarningsController` exposes administrative controls at `/api/v1/admin/finance/earnings`:
 
 ### 4.1 Create Earning Policy
+
 ```http
 POST /api/v1/admin/finance/earnings/policies
 Authorization: Bearer <ADMIN_JWT>
@@ -248,6 +262,7 @@ Content-Type: application/json
 ```
 
 ### 4.2 Calculation Preview Simulator
+
 ```http
 POST /api/v1/admin/finance/earnings/calculate-preview
 Authorization: Bearer <ADMIN_JWT>
@@ -262,18 +277,20 @@ Content-Type: application/json
 ```
 
 ### 4.3 Get Earnings Summary & Reports
+
 ```http
 GET /api/v1/admin/finance/earnings/summary?from=2026-09-01&to=2026-09-30&eventType=CALL
 Authorization: Bearer <ADMIN_JWT>
 ```
 
 **Response**:
+
 ```json
 {
-  "totalGross": 1540000.00,
-  "totalPlatformEarnings": 128333.00,
-  "totalProviderEarnings": 1380000.00,
-  "totalAgentCommissions": 31667.00,
+  "totalGross": 1540000.0,
+  "totalPlatformEarnings": 128333.0,
+  "totalProviderEarnings": 1380000.0,
+  "totalAgentCommissions": 31667.0,
   "totalTransactions": 6420
 }
 ```
@@ -294,13 +311,16 @@ export class OrderFulfillmentService {
   constructor(private readonly earningsFacade: EarningsFacade) {}
 
   async finalizeOrderPayout(order: Order, qr?: QueryRunner) {
-    const split = await this.earningsFacade.distributeEarnings({
-      referenceId: order.order_number,
-      eventType: EarningEventType.PRODUCT_ORDER,
-      grossAmount: Number(order.total_amount),
-      providerProfileId: order.merchant_id,
-      clientProfileId: order.client_id,
-    }, qr);
+    const split = await this.earningsFacade.distributeEarnings(
+      {
+        referenceId: order.order_number,
+        eventType: EarningEventType.PRODUCT_ORDER,
+        grossAmount: Number(order.total_amount),
+        providerProfileId: order.merchant_id,
+        clientProfileId: order.client_id,
+      },
+      qr,
+    );
 
     return split;
   }

@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 import { Coupon } from './coupon.entity';
 
 @Entity({ schema: 'commerce', name: 'user_coupons' })

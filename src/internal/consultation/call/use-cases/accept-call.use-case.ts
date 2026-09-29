@@ -96,7 +96,7 @@ export class AcceptCallUseCase {
       .emit('call_accepted', result);
 
     // Start the duration/balance timer
-    void this.callGateway.startSessionTimer(sessionId);
+    this.callGateway.startSessionTimer(sessionId);
 
     // Also notify expert dashboard (any open tab)
     this.callGateway.notifyExpertStatusUpdate(

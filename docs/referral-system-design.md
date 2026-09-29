@@ -28,12 +28,12 @@ graph TD
 
 Any non-agent participant can refer another non-agent participant. Each pair can have its own customized reward rule:
 
-| Referrer Role | Referee Role | Common Use Case | Typical Reward Trigger |
-| :--- | :--- | :--- | :--- |
-| **`CLIENT`** | **`CLIENT`** | Friend invites friend for astrology consultations | Referee completes 1st consultation or recharge |
-| **`EXPERT`** | **`CLIENT`** | Astrologer brings their private followers to the app | Referee completes 1st consultation |
-| **`EXPERT`** | **`EXPERT`** | Astrologer refers a peer astrologer to the platform | Referee completes KYC and 1st consultation |
-| **`MERCHANT`** | **`MERCHANT`** | Vendor brings peer Puja Samagri seller | Referee lists items and fulfills 1st order |
+| Referrer Role  | Referee Role   | Common Use Case                                      | Typical Reward Trigger                         |
+| :------------- | :------------- | :--------------------------------------------------- | :--------------------------------------------- |
+| **`CLIENT`**   | **`CLIENT`**   | Friend invites friend for astrology consultations    | Referee completes 1st consultation or recharge |
+| **`EXPERT`**   | **`CLIENT`**   | Astrologer brings their private followers to the app | Referee completes 1st consultation             |
+| **`EXPERT`**   | **`EXPERT`**   | Astrologer refers a peer astrologer to the platform  | Referee completes KYC and 1st consultation     |
+| **`MERCHANT`** | **`MERCHANT`** | Vendor brings peer Puja Samagri seller               | Referee lists items and fulfills 1st order     |
 
 ---
 
@@ -42,13 +42,14 @@ Any non-agent participant can refer another non-agent participant. Each pair can
 The system supports two core calculation models configured per policy:
 
 ### 3.1 Model 1: Fixed Bonus (Guaranteed Flat Reward)
+
 A predefined flat rupee amount credited when the qualification criteria are met.
 
-* **Configuration**:
+- **Configuration**:
   - `reward_type`: `FIXED`
   - `reward_value`: `50.00` (₹50 flat)
   - `min_transaction_amount`: `100.00`
-* **Calculation Walkthrough**:
+- **Calculation Walkthrough**:
   - Referee completes a ₹150 consultation call.
   - Requirement: ₹150 $\ge$ ₹100 threshold $\rightarrow$ **Qualified**.
   - Referrer receives: **₹50.00** flat credit.
@@ -56,14 +57,15 @@ A predefined flat rupee amount credited when the qualification criteria are met.
 ---
 
 ### 3.2 Model 2: Varying Bonus (Percentage with Cap)
+
 A dynamic percentage of the referee's initial transaction, capped to control maximum customer acquisition cost.
 
-* **Configuration**:
+- **Configuration**:
   - `reward_type`: `PERCENTAGE`
   - `reward_value`: `10.00` (10%)
   - `max_cap`: `50.00` (₹50 maximum payout)
   - `min_transaction_amount`: `50.00`
-* **Calculation Walkthroughs**:
+- **Calculation Walkthroughs**:
   - **Scenario A (Under Cap)**:
     - Referee's 1st order amount: ₹200.00
     - Raw Calculation: $200.00 \times 10\% = ₹20.00$
@@ -76,6 +78,7 @@ A dynamic percentage of the referee's initial transaction, capped to control max
 ---
 
 ### 3.3 Dual-Benefit / Two-Sided Rewards
+
 Policies can simultaneously define rewards for both parties to encourage viral adoption:
 
 ```mermaid
@@ -102,14 +105,14 @@ stateDiagram-v2
     PENDING --> FRAUD_REJECTED: Suspicious IP / Self-referral detected
 ```
 
-| Milestone Enum | Description | Typical Beneficiary |
-| :--- | :--- | :--- |
-| `SIGNUP` | Referee creates and verifies their account | Referee (Welcome bonus) |
-| `FIRST_RECHARGE` | Referee adds wallet funds for the first time | Referrer + Referee |
-| `FIRST_CONSULTATION` | Referee finishes their first Call/Chat with an Expert | Referrer |
-| `FIRST_PRODUCT_ORDER`| Referee completes delivery of first E-commerce order | Referrer |
-| `FIRST_PUJA_ORDER` | Referee completes their first Puja ceremony booking | Referrer |
-| `EXPERT_VERIFIED` | Referee (Astrologer) completes KYC and is verified by Admin | Referrer (Peer Expert) |
+| Milestone Enum        | Description                                                 | Typical Beneficiary     |
+| :-------------------- | :---------------------------------------------------------- | :---------------------- |
+| `SIGNUP`              | Referee creates and verifies their account                  | Referee (Welcome bonus) |
+| `FIRST_RECHARGE`      | Referee adds wallet funds for the first time                | Referrer + Referee      |
+| `FIRST_CONSULTATION`  | Referee finishes their first Call/Chat with an Expert       | Referrer                |
+| `FIRST_PRODUCT_ORDER` | Referee completes delivery of first E-commerce order        | Referrer                |
+| `FIRST_PUJA_ORDER`    | Referee completes their first Puja ceremony booking         | Referrer                |
+| `EXPERT_VERIFIED`     | Referee (Astrologer) completes KYC and is verified by Admin | Referrer (Peer Expert)  |
 
 ---
 
@@ -126,59 +129,62 @@ erDiagram
 ```
 
 ### 5.1 `finance.referral_policies`
+
 Stores the active referral reward configurations.
 
-| Column | Type | Nullable | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | `INT (PK)` | No | Auto-increment ID |
-| `name` | `VARCHAR(150)` | No | E.g. "Client-to-Client 10% First Order Bounty" |
-| `referrer_role` | `ENUM` | No | `CLIENT`, `EXPERT`, `MERCHANT`, `ALL` |
-| `referee_role` | `ENUM` | No | `CLIENT`, `EXPERT`, `MERCHANT`, `ALL` |
-| `reward_type` | `ENUM` | No | `FIXED`, `PERCENTAGE` |
-| `reward_value` | `DECIMAL(10,2)` | No | Flat amount (e.g. 50.00) or percentage (e.g. 10.00) |
-| `max_cap` | `DECIMAL(10,2)` | Yes | Maximum limit for percentage rewards |
-| `min_transaction_amount` | `DECIMAL(10,2)` | No | Minimum qualifying transaction (default: 0.00) |
-| `trigger_milestone` | `ENUM` | No | `SIGNUP`, `FIRST_RECHARGE`, `FIRST_CONSULTATION`, etc. |
-| `referee_reward_amount` | `DECIMAL(10,2)` | No | Welcome bonus for the referee (default: 0.00) |
-| `validity_days` | `INT` | No | Days referee has to qualify (default: 30 days) |
-| `is_active` | `BOOLEAN` | No | Active toggle |
-| `effective_from` | `TIMESTAMPTZ` | No | Start date |
-| `effective_to` | `TIMESTAMPTZ` | Yes | Expiration date |
+| Column                   | Type            | Nullable | Description                                            |
+| :----------------------- | :-------------- | :------- | :----------------------------------------------------- |
+| `id`                     | `INT (PK)`      | No       | Auto-increment ID                                      |
+| `name`                   | `VARCHAR(150)`  | No       | E.g. "Client-to-Client 10% First Order Bounty"         |
+| `referrer_role`          | `ENUM`          | No       | `CLIENT`, `EXPERT`, `MERCHANT`, `ALL`                  |
+| `referee_role`           | `ENUM`          | No       | `CLIENT`, `EXPERT`, `MERCHANT`, `ALL`                  |
+| `reward_type`            | `ENUM`          | No       | `FIXED`, `PERCENTAGE`                                  |
+| `reward_value`           | `DECIMAL(10,2)` | No       | Flat amount (e.g. 50.00) or percentage (e.g. 10.00)    |
+| `max_cap`                | `DECIMAL(10,2)` | Yes      | Maximum limit for percentage rewards                   |
+| `min_transaction_amount` | `DECIMAL(10,2)` | No       | Minimum qualifying transaction (default: 0.00)         |
+| `trigger_milestone`      | `ENUM`          | No       | `SIGNUP`, `FIRST_RECHARGE`, `FIRST_CONSULTATION`, etc. |
+| `referee_reward_amount`  | `DECIMAL(10,2)` | No       | Welcome bonus for the referee (default: 0.00)          |
+| `validity_days`          | `INT`           | No       | Days referee has to qualify (default: 30 days)         |
+| `is_active`              | `BOOLEAN`       | No       | Active toggle                                          |
+| `effective_from`         | `TIMESTAMPTZ`   | No       | Start date                                             |
+| `effective_to`           | `TIMESTAMPTZ`   | Yes      | Expiration date                                        |
 
 ---
 
 ### 5.2 `finance.user_referrals`
+
 Tracks the invitation relationship between two specific users.
 
-| Column | Type | Nullable | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | `UUID (PK)` | No | Unique tracking ID |
-| `referrer_user_id` | `INT` | No | FK referencing `users.id` (Who invited) |
-| `referee_user_id` | `INT` | No | FK referencing `users.id` (Who was invited) |
-| `referral_code_used`| `VARCHAR(50)` | No | Code used at signup |
-| `policy_id` | `INT` | Yes | Matched policy ID |
-| `status` | `ENUM` | No | `PENDING`, `QUALIFIED`, `REWARDED`, `EXPIRED`, `REJECTED` |
-| `qualified_at` | `TIMESTAMPTZ` | Yes | Timestamp when qualifying transaction occurred |
-| `expires_at` | `TIMESTAMPTZ` | No | Expiration timestamp |
-| `created_at` | `TIMESTAMPTZ` | No | Signup date |
+| Column               | Type          | Nullable | Description                                               |
+| :------------------- | :------------ | :------- | :-------------------------------------------------------- |
+| `id`                 | `UUID (PK)`   | No       | Unique tracking ID                                        |
+| `referrer_user_id`   | `INT`         | No       | FK referencing `users.id` (Who invited)                   |
+| `referee_user_id`    | `INT`         | No       | FK referencing `users.id` (Who was invited)               |
+| `referral_code_used` | `VARCHAR(50)` | No       | Code used at signup                                       |
+| `policy_id`          | `INT`         | Yes      | Matched policy ID                                         |
+| `status`             | `ENUM`        | No       | `PENDING`, `QUALIFIED`, `REWARDED`, `EXPIRED`, `REJECTED` |
+| `qualified_at`       | `TIMESTAMPTZ` | Yes      | Timestamp when qualifying transaction occurred            |
+| `expires_at`         | `TIMESTAMPTZ` | No       | Expiration timestamp                                      |
+| `created_at`         | `TIMESTAMPTZ` | No       | Signup date                                               |
 
 ---
 
 ### 5.3 `finance.referral_rewards`
+
 Immutable ledger of all disbursed referral bonuses.
 
-| Column | Type | Nullable | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | `UUID (PK)` | No | Primary Key |
-| `user_referral_id` | `UUID` | No | FK referencing `finance.user_referrals.id` |
-| `beneficiary_user_id`| `INT` | No | User receiving the reward |
-| `beneficiary_type` | `ENUM` | No | `REFERRER`, `REFEREE` |
-| `reward_type` | `ENUM` | No | `FIXED`, `PERCENTAGE` |
-| `amount` | `DECIMAL(10,2)` | No | Final amount credited (e.g. ₹50.00) |
-| `reference_event_id`| `VARCHAR(120)` | Yes | `call_123`, `order_456`, `recharge_789` |
-| `reference_event_type`| `VARCHAR(50)` | Yes | `CALL`, `ORDER`, `RECHARGE` |
-| `wallet_transaction_id`| `UUID` | Yes | FK referencing `finance.wallet_transactions.id` |
-| `created_at` | `TIMESTAMPTZ` | No | Disbursement timestamp |
+| Column                  | Type            | Nullable | Description                                     |
+| :---------------------- | :-------------- | :------- | :---------------------------------------------- |
+| `id`                    | `UUID (PK)`     | No       | Primary Key                                     |
+| `user_referral_id`      | `UUID`          | No       | FK referencing `finance.user_referrals.id`      |
+| `beneficiary_user_id`   | `INT`           | No       | User receiving the reward                       |
+| `beneficiary_type`      | `ENUM`          | No       | `REFERRER`, `REFEREE`                           |
+| `reward_type`           | `ENUM`          | No       | `FIXED`, `PERCENTAGE`                           |
+| `amount`                | `DECIMAL(10,2)` | No       | Final amount credited (e.g. ₹50.00)             |
+| `reference_event_id`    | `VARCHAR(120)`  | Yes      | `call_123`, `order_456`, `recharge_789`         |
+| `reference_event_type`  | `VARCHAR(50)`   | Yes      | `CALL`, `ORDER`, `RECHARGE`                     |
+| `wallet_transaction_id` | `UUID`          | Yes      | FK referencing `finance.wallet_transactions.id` |
+| `created_at`            | `TIMESTAMPTZ`   | No       | Disbursement timestamp                          |
 
 ---
 
@@ -197,7 +203,7 @@ sequenceDiagram
 
     Referee->>Astrologer: Completes ₹200 Consultation Call
     Note over Referee,Astrologer: EarningsModule splits ₹200: Astrologer ₹180, Platform ₹20
-    
+
     Referee->>ReferralFacade: triggerMilestone(FIRST_CONSULTATION, amount=200)
     ReferralFacade->>ReferralFacade: Evaluate Policy: 10% upto ₹50 = ₹20.00
     ReferralFacade->>Wallet: Credit ₹20.00 to Referrer Wallet

@@ -27,7 +27,6 @@ export class ConvertToPaidUseCase {
     if (!session) throw new NotFoundException('Session not found');
 
     const callPrice = session.price_per_minute || 0;
-    const minMins = 1; // Wait, for chat it was 5 mins, let's reserve 5 mins for call continuation too
     const minBalanceRequired = callPrice * 5;
 
     const hasBalance = await this.walletService.validateBalance(

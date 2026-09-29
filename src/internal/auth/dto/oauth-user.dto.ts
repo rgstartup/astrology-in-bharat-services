@@ -1,6 +1,5 @@
 import { RoleEnum } from '../../users/enums/Role.enum';
 import {
-  IsArray,
   IsEmail,
   IsEnum,
   IsOptional,

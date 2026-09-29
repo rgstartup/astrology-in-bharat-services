@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { Order } from '../entities/order.entity';
 import { OrderStatus } from '../enum';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 import { WalletService } from '../../../finance/wallet/wallet.service';
 import { Coupon } from '../../coupon/entities/coupon.entity';
 import { CouponStatus } from '../../coupon/enum';

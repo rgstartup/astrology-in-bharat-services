@@ -97,7 +97,7 @@ export class GoogleAuthGuard extends AuthGuard('google') {
             string,
             unknown
           >;
-        } catch (_e) {
+        } catch {
           /* ignore */
         }
       }

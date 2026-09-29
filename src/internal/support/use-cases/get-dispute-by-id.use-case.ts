@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Dispute } from '../entities/dispute.entity';
-import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
+import { MerchantAccount } from '../../actors/merchant/account/entities/account.entity';
 import { User } from '../../users/entities/user.entity';
 
 @Injectable()

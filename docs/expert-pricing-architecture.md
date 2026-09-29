@@ -3,6 +3,7 @@
 ## 1. Overview & Objectives
 
 In the Astrology in Bharat platform, astrologers and experts may revise their rates over time (e.g., increasing per-minute chat rates from ₹20 to ₹35). Furthermore, platforms require dynamic pricing capabilities such as:
+
 - **First-time introductory consultation rates** (e.g., promotional ₹1/min or free trial for new clients).
 - **Targeted or negotiated rates** (e.g., custom price locked for a specific VIP client).
 - **Audit integrity & historical immutability**: Previous consultations, invoices, and financial payouts must permanently reference the exact rate applicable at the time of the consultation, unaffected by subsequent price revisions.
@@ -49,6 +50,7 @@ erDiagram
 ## 3. Enums & Status Transitions
 
 ### 3.1 `PricingTargetAudience`
+
 - **`all`**: Base standard rate for all users.
 - **`first_time`**: Introductory promotional rate for a client's first session with this expert.
 - **`repeat`**: Special rate for returning clients.
@@ -85,6 +87,7 @@ Step 3: Base Standard Rate
 ```
 
 ### SQL Resolution Query:
+
 ```sql
 SELECT *
 FROM expert.expert_pricing
@@ -98,7 +101,7 @@ WHERE expert_id = :expertId
     OR (target_audience = 'first_time' AND :isFirstTime = true)
     OR (target_audience = 'all')
   )
-ORDER BY 
+ORDER BY
   CASE target_audience
     WHEN 'specific_client' THEN 1
     WHEN 'first_time' THEN 2
@@ -134,6 +137,7 @@ When an expert or admin updates consultation rates:
 ## 6. Consultation & Financial Snapshotting
 
 When a session starts:
+
 - The session entity (`ChatSession` / `CallSession` / `ConsultationOrder`) records:
   - `pricing_id`: Foreign key pointing to the exact `ExpertPricing` row.
   - `rate_per_minute`: Snapshot of the rate at the start of the session.

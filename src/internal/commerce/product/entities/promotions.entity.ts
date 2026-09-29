@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { DiscountType } from '../enum';
 import { ProductVariant } from './variants.entity';
-import { PricingTargetAudience } from '../../../domains/expert/shared/enums/pricing.enum';
+import { PricingTargetAudience } from '../../../actors/expert/shared/enums/pricing.enum';
 
 @Entity({ schema: 'commerce', name: 'product_variant_promotions' })
 @Index('IDX_product_variant_promotions_lookup', [

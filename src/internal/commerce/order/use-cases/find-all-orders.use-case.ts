@@ -1,24 +1,24 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { Order } from '../entities/order.entity';
-import { OrderStatus } from '../enum';
-import { OrderItem } from '../entities/order-item.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { count, desc, inArray } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { orders } from '@/core/drizzledb/schema';
+import { OrderStatus } from '@/internal/commerce/order/enum';
+import type { Order } from '@/internal/commerce/order/entities/order.entity';
 
 @Injectable()
 export class FindAllOrdersUseCase {
-  constructor(
-    @InjectRepository(Order)
-    private orderRepo: Repository<Order>,
-    @InjectRepository(OrderItem)
-    private orderItemRepo: Repository<OrderItem>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute() {
-    return this.orderRepo.find({
-      relations: ['items', 'items.product', 'client', 'client.user'],
-      order: { created_at: 'DESC' },
+    const rows = await this.db.query.orders.findMany({
+      orderBy: desc(orders.created_at),
+      with: {
+        items: { with: { product: true } },
+        client: { with: { user: true } },
+      },
     });
+    return rows as unknown as Order[];
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -32,16 +32,18 @@ export class FindAllOrdersUseCase {
   }
 
   async getSuccessfulOrdersCount(): Promise<number> {
-    return this.orderRepo.count({
-      where: {
-        status: In([
+    const [row] = await this.db
+      .select({ total: count() })
+      .from(orders)
+      .where(
+        inArray(orders.status, [
           OrderStatus.DELIVERED,
           OrderStatus.PAID,
           OrderStatus.SHIPPED,
           OrderStatus.PROCESSING,
           OrderStatus.PACKED,
         ]),
-      },
-    });
+      );
+    return Number(row?.total ?? 0);
   }
 }

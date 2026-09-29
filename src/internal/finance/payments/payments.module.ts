@@ -14,16 +14,8 @@ import { PaymentGatewayModule as ExternalPaymentGatewayModule } from '@/external
     ExternalPaymentGatewayModule,
   ],
   controllers: [WebhookController],
-  providers: [
-    PaymentsService,
-    HandleWebhookUseCase,
-    PaymentIntentDispatcher,
-  ],
-  exports: [
-    PaymentsService,
-    PaymentIntentDispatcher,
-    TypeOrmModule,
-  ],
+  providers: [PaymentsService, HandleWebhookUseCase, PaymentIntentDispatcher],
+  exports: [PaymentsService, PaymentIntentDispatcher, TypeOrmModule],
 })
 export class PaymentsModule {}
 

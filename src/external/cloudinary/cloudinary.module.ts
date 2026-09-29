@@ -25,4 +25,3 @@ import { Base64UploadService } from './base64-upload.service';
   ],
 })
 export class CloudinaryModule {}
-

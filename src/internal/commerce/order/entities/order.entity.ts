@@ -9,7 +9,7 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 import { OrderItem } from './order-item.entity';
 import { OrderStatus, PaymentStatus } from '../enum';
 import { OrderShipment } from './order-shipment.entity';

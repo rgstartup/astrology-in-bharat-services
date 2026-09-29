@@ -71,7 +71,7 @@ export class ConsultationController {
         await this.callService.reject(sessionId);
         return { success: true, message: 'Call rejected' };
       }
-    } catch (_e) {
+    } catch {
       console.debug('Not a call session');
     }
 
@@ -81,7 +81,7 @@ export class ConsultationController {
         await this.chatService.rejectSession(sessionId);
         return { success: true, message: 'Chat rejected' };
       }
-    } catch (_e) {
+    } catch {
       console.debug('Not a chat session');
     }
 

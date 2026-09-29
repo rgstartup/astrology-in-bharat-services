@@ -96,9 +96,8 @@ export class GetTransactionsUseCase {
           if (tx.reference_id && tx.reference_id.startsWith('puja_appt_')) {
             const apptId = tx.reference_id.replace('puja_appt_', '');
             try {
-              const { PujaAppointment } = await import(
-                '../../../puja-appointment/entities/puja-appointment.entity'
-              );
+              const { PujaAppointment } =
+                await import('../../../puja-appointment/entities/puja-appointment.entity');
               const appt = await this.transactionRepository.manager.findOne(
                 PujaAppointment as unknown as import('typeorm').EntityTarget<
                   import('typeorm').ObjectLiteral
@@ -118,7 +117,7 @@ export class GetTransactionsUseCase {
         } else if (tx.purpose === TransactionPurpose.REFUND) {
           description = 'Refund Issued';
           if (tx.reference_id) {
-            const regex = /^(chat|call|video)_([a-f0-9\-]{36})$/i;
+            const regex = /^(chat|call|video)_([a-f0-9-]{36})$/i;
             const match = tx.reference_id.match(regex);
             if (match) {
               const typeStr = match[1].toLowerCase();

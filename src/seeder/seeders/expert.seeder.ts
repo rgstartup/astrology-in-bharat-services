@@ -4,21 +4,21 @@ import { hash, argon2id } from 'argon2';
 import { User } from '../../internal/users/entities/user.entity';
 import { RoleEnum } from '../../internal/users/enums/Role.enum';
 import { PlatformEnum } from '../../internal/users/enums/Platform.enum';
-import { ExpertAccount } from '../../internal/domains/expert/account/entities/account.entity';
-import { Specialization } from '../../internal/domains/expert/specialization/entities/specialization.entity';
-import { ExpertSpecialization } from '../../internal/domains/expert/account/entities/expert-specialization.entity';
-import { ExpertConsultationPricing } from '../../internal/domains/expert/account/entities/expert-consultation-pricing.entity';
+import { ExpertAccount } from '../../internal/actors/expert/account/entities/account.entity';
+import { Specialization } from '../../internal/actors/expert/specialization/entities/specialization.entity';
+import { ExpertSpecialization } from '../../internal/actors/expert/account/entities/expert-specialization.entity';
+import { ExpertConsultationPricing } from '../../internal/actors/expert/account/entities/expert-consultation-pricing.entity';
 import {
   PricingStatus,
   PricingTargetAudience,
-} from '../../internal/domains/expert/shared/enums/pricing.enum';
-import { ExpertKycStatus } from '../../internal/domains/expert/shared/enums/kyc-status.enum';
-import { ProfileExpert } from '../../internal/domains/expert/profile/entities/profile-expert.entity';
+} from '../../internal/actors/expert/shared/enums/pricing.enum';
+import { ExpertKycStatus } from '../../internal/actors/expert/shared/enums/kyc-status.enum';
+import { ProfileExpert } from '../../internal/actors/expert/profile/entities/profile-expert.entity';
 import { Wallet } from '../../internal/finance/wallet/entities/wallet.entity';
-import { Profession } from '../../internal/domains/expert/profession/entities/profession.entity';
-import { ExpertProfession } from '../../internal/domains/expert/profession/entities/expert-profession.entity';
+import { Profession } from '../../internal/actors/expert/profession/entities/profession.entity';
+import { ExpertProfession } from '../../internal/actors/expert/profession/entities/expert-profession.entity';
 import { AstrologyService } from '../../internal/astrology/entities/astrology-service.entity';
-import { ExpertAstrologyService } from '../../internal/domains/expert/account/entities/expert-astrology-service.entity';
+import { ExpertAstrologyService } from '../../internal/actors/expert/account/entities/expert-astrology-service.entity';
 
 interface ExpertSeedData {
   user: {

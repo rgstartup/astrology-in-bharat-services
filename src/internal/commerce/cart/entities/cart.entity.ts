@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 import { CartItem } from './cart-item.entity';
 
 @Entity({ schema: 'commerce', name: 'carts' })

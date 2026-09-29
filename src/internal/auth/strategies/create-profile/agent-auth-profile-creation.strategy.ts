@@ -2,13 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { User } from '../../../users/entities/user.entity';
 import { QueryRunner } from 'typeorm';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
-import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
+import { ProfileAgent } from '../../../actors/agent/entities/profile-agent.entity';
 import { RoleEnum } from '../../../users/enums/Role.enum';
 
 @Injectable()
-export class AgentAuthProfileCreationStrategy
-  implements AuthProfileCreationStrategy<ProfileAgent>
-{
+export class AgentAuthProfileCreationStrategy implements AuthProfileCreationStrategy<ProfileAgent> {
   readonly role = RoleEnum.AGENT;
 
   async ensureProfile(

@@ -9,15 +9,18 @@ import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { AuthTokenService } from '../services/auth-token.service';
 import { CompleteRegisterDto } from '../dto/email-register.dto';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
-import { ClientAccount } from '../../domains/client/account/entities/account.entity';
-import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../actors/client/account/entities/account.entity';
+import { ProfileExpert } from '../../actors/expert/profile/entities/profile-expert.entity';
 import { Address } from '../../../shared/address/address.entity';
 import { RoleEnum } from '../../users/enums/Role.enum';
-import { IHasherToken, type IHasher } from '../../../shared/contracts/hasher.contract';
+import {
+  IHasherToken,
+  type IHasher,
+} from '../../../shared/contracts/hasher.contract';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
+import { MerchantAccount } from '../../actors/merchant/account/entities/account.entity';
 
 @Injectable()
 export class CompleteEmailRegistrationUseCase {
@@ -39,7 +42,7 @@ export class CompleteEmailRegistrationUseCase {
         userId: string;
         email: string;
       }>(dto.token);
-    } catch (_e) {
+    } catch {
       throw new BadRequestException('Invalid or expired token');
     }
 
@@ -122,9 +125,8 @@ export class CompleteEmailRegistrationUseCase {
           }
         }
       } else if ([RoleEnum.MERCHANT].includes(updatedUser!.role)) {
-        const { MerchantAccount } = await import(
-          '../../domains/merchant/account/entities/account.entity'
-        );
+        const { MerchantAccount } =
+          await import('../../actors/merchant/account/entities/account.entity');
         let merchantProfile = await queryRunner.manager.findOne(
           MerchantAccount,
           {

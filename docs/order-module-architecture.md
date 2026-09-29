@@ -32,6 +32,7 @@ This specification defines the modernized entity model, data integrity rules, mu
 ```
 
 ### Key Considerations for Orders:
+
 1. **Atomic Unit of Sale**: Carts and Orders must reference `ProductVariant` instead of the top-level `Product`.
 2. **Pricing & Promotions Snapshot**: The price at purchase time is resolved from `ProductVariantPricing` + `ProductVariantPromotions` and must be frozen immutably onto the order item.
 3. **Fulfillment Metadata**: Shipping SLAs, courier weights, and delivery fees come from `ProductFulFillment`.
@@ -40,15 +41,15 @@ This specification defines the modernized entity model, data integrity rules, mu
 
 ## 3. Current Order Gaps vs. Desired Architecture
 
-| Domain Dimension | Current Implementation | Target Redesign |
-| :--- | :--- | :--- |
-| **Catalog Reference** | `OrderItem.product_id` -> `Product` | `OrderItem.variant_id` -> `ProductVariant` (with fallback `product_id`) |
-| **Data Immutability** | Joins live product data dynamically | Freezes snapshot: title, variant name, SKU, thumbnail, attributes, unit MRP, unit selling price, tax rate |
-| **Multi-Vendor Fulfillment** | In-memory grouping in use cases; single order status | Dedicated `OrderShipment` (Sub-Order) per merchant with independent status, courier, OTP, and tracking |
-| **Payment Ledger** | Single string `payment_method` & `razorpay_order_id` | Dedicated `OrderPayment` supporting Multi-Payment, Split Payment (Wallet + Gateway), and Gateway signatures |
-| **Refunds & Returns** | String `cancellation_reason` | Structured `OrderRefund` tracking destination (Wallet vs Source), gateway refund IDs, and approval status |
-| **Address Snapshot** | Generic `json` on `Order` | Dedicated `OrderAddress` (Shipping & Billing) with strict schema validation |
-| **Audit & Timeline** | Generic `jsonb` array on `Order` | `OrderStatusHistory` capturing timestamp, previous/new status, actor ID, and actor role |
+| Domain Dimension             | Current Implementation                               | Target Redesign                                                                                             |
+| :--------------------------- | :--------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| **Catalog Reference**        | `OrderItem.product_id` -> `Product`                  | `OrderItem.variant_id` -> `ProductVariant` (with fallback `product_id`)                                     |
+| **Data Immutability**        | Joins live product data dynamically                  | Freezes snapshot: title, variant name, SKU, thumbnail, attributes, unit MRP, unit selling price, tax rate   |
+| **Multi-Vendor Fulfillment** | In-memory grouping in use cases; single order status | Dedicated `OrderShipment` (Sub-Order) per merchant with independent status, courier, OTP, and tracking      |
+| **Payment Ledger**           | Single string `payment_method` & `razorpay_order_id` | Dedicated `OrderPayment` supporting Multi-Payment, Split Payment (Wallet + Gateway), and Gateway signatures |
+| **Refunds & Returns**        | String `cancellation_reason`                         | Structured `OrderRefund` tracking destination (Wallet vs Source), gateway refund IDs, and approval status   |
+| **Address Snapshot**         | Generic `json` on `Order`                            | Dedicated `OrderAddress` (Shipping & Billing) with strict schema validation                                 |
+| **Audit & Timeline**         | Generic `jsonb` array on `Order`                     | `OrderStatusHistory` capturing timestamp, previous/new status, actor ID, and actor role                     |
 
 ---
 
@@ -72,6 +73,7 @@ erDiagram
 ## 5. Detailed Entity Specifications
 
 ### 5.1. `Order` (`commerce.orders` / `commerce.product_orders`)
+
 The top-level root entity representing the customer's purchase transaction and master financial ledger.
 
 ```typescript
@@ -106,29 +108,70 @@ export class Order {
   payment_status!: PaymentStatus;
 
   // Financial Ledger Breakdown
-  @Column({ name: 'subtotal_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'subtotal_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   subtotal_amount!: number;
 
-  @Column({ name: 'discount_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'discount_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   discount_amount!: number;
 
-  @Column({ name: 'shipping_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'shipping_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   shipping_amount!: number;
 
-  @Column({ name: 'tax_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'tax_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   tax_amount!: number;
 
-  @Column({ name: 'platform_fee', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'platform_fee',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   platform_fee!: number;
 
-  @Column({ name: 'total_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'total_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   total_amount!: number; // = subtotal - discount + shipping + tax + platform_fee
 
   @Column({ name: 'coupon_code', type: 'varchar', length: 100, nullable: true })
   coupon_code!: string | null;
 
   // --- Referral & Commission Attribution (Unique User Referral ID) ---
-  @Column({ name: 'referral_code', type: 'varchar', length: 50, nullable: true })
+  @Column({
+    name: 'referral_code',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   referral_code!: string | null; // The referral ID of the referring user/expert/merchant
 
   @Column({ name: 'referrer_id', type: 'int', nullable: true })
@@ -141,7 +184,9 @@ export class Order {
   cancellation_reason!: string | null;
 
   // Navigation Relations
-  @OneToMany(() => OrderShipment, (shipment) => shipment.order, { cascade: true })
+  @OneToMany(() => OrderShipment, (shipment) => shipment.order, {
+    cascade: true,
+  })
   shipments!: OrderShipment[];
 
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
@@ -172,6 +217,7 @@ export class Order {
 ---
 
 ### 5.2. `OrderShipment` (`commerce.order_shipments`)
+
 Enables independent lifecycle management per merchant / warehouse fulfillment package.
 
 ```typescript
@@ -200,14 +246,31 @@ export class OrderShipment {
   })
   status!: ShipmentStatus;
 
-  @Column({ name: 'subtotal_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'subtotal_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   subtotal_amount!: number;
 
-  @Column({ name: 'shipping_fee', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'shipping_fee',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   shipping_fee!: number;
 
   // Logistics & Tracking
-  @Column({ name: 'courier_partner', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'courier_partner',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   courier_partner!: string | null; // e.g. "Delhivery", "Shiprocket", "Blue Dart"
 
   @Column({ name: 'awb_code', type: 'varchar', length: 100, nullable: true })
@@ -219,7 +282,11 @@ export class OrderShipment {
   @Column({ name: 'delivery_otp', type: 'varchar', length: 10, nullable: true })
   delivery_otp!: string | null;
 
-  @Column({ name: 'estimated_delivery_date', type: 'timestamptz', nullable: true })
+  @Column({
+    name: 'estimated_delivery_date',
+    type: 'timestamptz',
+    nullable: true,
+  })
   estimated_delivery_date!: Date | null;
 
   @Column({ name: 'shipped_at', type: 'timestamptz', nullable: true })
@@ -242,6 +309,7 @@ export class OrderShipment {
 ---
 
 ### 5.3. `OrderItem` (`commerce.order_items`)
+
 Variant-aware, immutable item records capturing complete financial and attribute snapshots.
 
 ```typescript
@@ -260,7 +328,9 @@ export class OrderItem {
   @Column({ name: 'shipment_id', type: 'bigint', nullable: true })
   shipment_id!: string | null;
 
-  @ManyToOne(() => OrderShipment, (shipment) => shipment.items, { onDelete: 'SET NULL' })
+  @ManyToOne(() => OrderShipment, (shipment) => shipment.items, {
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'shipment_id' })
   shipment!: OrderShipment | null;
 
@@ -285,7 +355,12 @@ export class OrderItem {
   @Column({ name: 'product_name', type: 'varchar', length: 255 })
   product_name!: string;
 
-  @Column({ name: 'variant_name', type: 'varchar', length: 150, nullable: true })
+  @Column({
+    name: 'variant_name',
+    type: 'varchar',
+    length: 150,
+    nullable: true,
+  })
   variant_name!: string | null;
 
   @Column({ name: 'sku', type: 'varchar', length: 100, nullable: true })
@@ -307,13 +382,31 @@ export class OrderItem {
   @Column({ name: 'unit_price', type: 'decimal', precision: 12, scale: 2 })
   unit_price!: number;
 
-  @Column({ name: 'discount_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'discount_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   discount_amount!: number;
 
-  @Column({ name: 'tax_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'tax_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   tax_amount!: number;
 
-  @Column({ name: 'tax_rate_percent', type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({
+    name: 'tax_rate_percent',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    default: 0,
+  })
   tax_rate_percent!: number;
 
   @Column({ name: 'hsn_code', type: 'varchar', length: 50, nullable: true })
@@ -340,6 +433,7 @@ export class OrderItem {
 ---
 
 ### 5.4. `OrderPayment` (`commerce.order_payments`)
+
 Tracks multi-payment methods, split wallet + gateway transactions, and webhook responses.
 
 ```typescript
@@ -371,10 +465,20 @@ export class OrderPayment {
   })
   status!: PaymentTransactionStatus;
 
-  @Column({ name: 'gateway_order_id', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'gateway_order_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   gateway_order_id!: string | null;
 
-  @Column({ name: 'gateway_payment_id', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'gateway_payment_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   gateway_payment_id!: string | null;
 
   @Column({ name: 'gateway_signature', type: 'text', nullable: true })
@@ -394,6 +498,7 @@ export class OrderPayment {
 ---
 
 ### 5.5. `OrderRefund` (`commerce.order_refunds`)
+
 Auditable ledger for partial/full refunds, cancellations, and returns.
 
 ```typescript
@@ -429,7 +534,12 @@ export class OrderRefund {
   })
   destination!: RefundDestination; // 'wallet' | 'source'
 
-  @Column({ name: 'gateway_refund_id', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'gateway_refund_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   gateway_refund_id!: string | null;
 
   @Column({
@@ -450,6 +560,7 @@ export class OrderRefund {
 ---
 
 ### 5.6. `OrderAddress` (`commerce.order_addresses`)
+
 Structured shipping and billing address snapshots at checkout.
 
 ```typescript
@@ -479,13 +590,23 @@ export class OrderAddress {
   @Column({ name: 'phone', type: 'varchar', length: 20 })
   phone!: string;
 
-  @Column({ name: 'alternate_phone', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'alternate_phone',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   alternate_phone!: string | null;
 
   @Column({ name: 'address_line_1', type: 'varchar', length: 255 })
   address_line_1!: string;
 
-  @Column({ name: 'address_line_2', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'address_line_2',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   address_line_2!: string | null;
 
   @Column({ name: 'landmark', type: 'varchar', length: 255, nullable: true })
@@ -508,6 +629,7 @@ export class OrderAddress {
 ---
 
 ### 5.7. `OrderStatusHistory` (`commerce.order_status_history`)
+
 Auditable event log tracking state transitions and actors.
 
 ```typescript
@@ -519,14 +641,21 @@ export class OrderStatusHistory {
   @Column({ name: 'order_id', type: 'bigint' })
   order_id!: string;
 
-  @ManyToOne(() => Order, (order) => order.status_history, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Order, (order) => order.status_history, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'order_id' })
   order!: Order;
 
   @Column({ name: 'shipment_id', type: 'bigint', nullable: true })
   shipment_id!: string | null;
 
-  @Column({ name: 'previous_status', type: 'varchar', length: 50, nullable: true })
+  @Column({
+    name: 'previous_status',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   previous_status!: string | null;
 
   @Column({ name: 'new_status', type: 'varchar', length: 50 })
@@ -538,7 +667,12 @@ export class OrderStatusHistory {
   @Column({ name: 'actor_id', type: 'int', nullable: true })
   actor_id!: number | null;
 
-  @Column({ name: 'actor_role', type: 'varchar', length: 50, default: 'system' })
+  @Column({
+    name: 'actor_role',
+    type: 'varchar',
+    length: 50,
+    default: 'system',
+  })
   actor_role!: string; // 'client' | 'merchant' | 'admin' | 'system'
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
@@ -645,6 +779,7 @@ export enum AddressType {
 ## 8. Financial Domain Alignment: Platform Earnings vs. Referral Commissions
 
 ### 8.1. Separation of Responsibilities
+
 To maintain clean domain boundaries and prevent pollution between first-party revenues and third-party payouts:
 
 1. **Platform Earnings (Revenue)**:
@@ -654,4 +789,3 @@ To maintain clean domain boundaries and prevent pollution between first-party re
 2. **User Referral Commissions (Expense / Payout)**:
    - In the initial platform phase, complex link redirection/affiliate tracker systems are avoided in favor of a **Unique User Referral ID** assigned to every Client, Expert, and Merchant.
    - When an order or appointment is placed with a `referral_code` (or `referrer_id`), commissions are attributed directly to the referrer's wallet.
-

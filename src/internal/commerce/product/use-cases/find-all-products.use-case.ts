@@ -1,117 +1,75 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Product } from '../entities/product.entity';
-import { GetProductsDto } from '../dto/get-products.dto';
+import { Inject, Injectable } from '@nestjs/common';
+import { and, count, desc, eq, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { products } from '@/core/drizzledb/schema';
+import { GetProductsDto } from '@/internal/commerce/product/dto/get-products.dto';
+import {
+  ProductWithLikesRaw,
+  toProductListItem,
+  type PaginatedProductsResponse,
+} from '@/internal/commerce/product/product.mapper';
+import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
 
-export interface ProductWithLikesRaw {
-  id: number;
-  name: string;
-  sku: string | null;
-  category: string | null;
-  description: string;
-  short_description: string | null;
-  price: number;
-  original_price: number;
-  image_url: string;
-  product_image: string;
-  gallery: string[] | null;
-  stock: number;
-  merchant_id: string | null;
-  is_shipping_chargeable: boolean;
-  shipping_charge: number;
-  is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
-  percentage_off: number;
-  likes_count: number;
-}
-
-export interface PaginatedProductsResponse {
-  success: boolean;
-  data: ProductWithLikesRaw[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    total_pages: number;
-  };
-}
+export type {
+  ProductWithLikesRaw,
+  PaginatedProductsResponse,
+} from '@/internal/commerce/product/product.mapper';
 
 @Injectable()
 export class FindAllProductsUseCase {
-  constructor(
-    @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(dto: GetProductsDto): Promise<PaginatedProductsResponse> {
-    const { merchantId, page = 1, limit = 10 } = dto;
-    const skip = (page - 1) * limit;
+    const { merchantId, limit, skip } = dto;
 
-    const query = this.productRepository
-      .createQueryBuilder('product')
-      .where('product.is_active = :isActive', { isActive: true });
+    const conditions = [eq(products.is_active, true)];
 
     if (merchantId) {
-      query.andWhere('product.merchant_id = :merchantId', {
-        merchantId,
-      });
+      const merchantIdNum = Number(merchantId);
+      if (!Number.isFinite(merchantIdNum)) {
+        return PaginatedResponseDto.from([] as ProductWithLikesRaw[], 0, dto);
+      }
+      conditions.push(eq(products.merchant_id, merchantIdNum));
     }
 
-    // Select all fields directly and compute likes_count & percentage_off in the query
-    query
-      .select([
-        'product.id AS id',
-        'product.name AS name',
-        'product.sku AS sku',
-        'product.category AS category',
-        'product.description AS description',
-        'product.short_description AS short_description',
-        'product.price::float AS price',
-        'COALESCE(product.original_price, product.price)::float AS original_price',
-        "COALESCE(product.image_url, '') AS image_url",
-        "COALESCE(product.image_url, '') AS product_image",
-        'product.gallery AS gallery',
-        'product.stock AS stock',
-        'product.merchant_id AS merchant_id',
-        'product.is_shipping_chargeable AS is_shipping_chargeable',
-        'product.shipping_charge::float AS shipping_charge',
-        'product.is_active AS is_active',
-        'product.created_at AS created_at',
-        'product.updated_at AS updated_at',
-      ])
-      .addSelect(
-        `CASE 
-          WHEN product.original_price IS NOT NULL AND product.original_price > product.price 
-          THEN ROUND(((product.original_price - product.price) / product.original_price) * 100)::int 
-          ELSE 0 
-        END`,
-        'percentage_off',
-      )
-      .addSelect(
-        `(SELECT COALESCE(COUNT(w.id), 0)::int FROM commerce.wishlists w WHERE w.product_id = product.id)`,
-        'likes_count',
-      );
+    const where = and(...conditions);
 
-    const [products, total] = await Promise.all([
-      query
-        .orderBy('product.created_at', 'DESC')
-        .skip(skip)
-        .take(limit)
-        .getRawMany<ProductWithLikesRaw>(),
-      query.getCount(),
+    // Compute percentage_off + likes_count in the query (mirrors legacy raw select)
+    const [rows, totalRows] = await Promise.all([
+      this.db
+        .select({
+          product: products,
+          percentage_off: sql<string | number>`
+            CASE
+              WHEN ${products.original_price} IS NOT NULL AND ${products.original_price} > ${products.price}
+              THEN ROUND(((${products.original_price} - ${products.price}) / ${products.original_price}) * 100)::int
+              ELSE 0
+            END
+          `,
+          likes_count: sql<string | number>`
+            (SELECT COALESCE(COUNT(w.id), 0)::int FROM commerce.wishlists w WHERE w.product_id = ${products.id})
+          `,
+        })
+        .from(products)
+        .where(where)
+        .orderBy(desc(products.created_at))
+        .offset(skip)
+        .limit(limit),
+      this.db.select({ total: count() }).from(products).where(where),
     ]);
 
-    return {
-      success: true,
-      data: products,
-      meta: {
-        total,
-        page,
-        limit,
-        total_pages: Math.ceil(total / limit),
-      },
-    };
+    const total = Number(totalRows[0]?.total ?? 0);
+
+    return PaginatedResponseDto.from(
+      rows.map((r) =>
+        toProductListItem(r.product, {
+          percentage_off: r.percentage_off,
+          likes_count: r.likes_count,
+        }),
+      ),
+      total,
+      dto,
+    );
   }
 }

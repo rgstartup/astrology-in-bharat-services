@@ -9,11 +9,13 @@ Wallet ek folder mein tha, ab `finance/` ke andar hai. Commission engine naya ba
 ## Folder Structure Badla
 
 **Pehle:**
+
 ```
 src/modules/wallet/
 ```
 
 **Ab:**
+
 ```
 src/modules/finance/
   ├── wallet/          ← same wallet, naye location pe
@@ -32,6 +34,7 @@ src/modules/finance/
 `src/modules/finance/commissions/` — ek poora naya subdomain.
 
 Isme hai:
+
 - **`CommissionRule` entity** — flexible rule config (rate, caps, tiers, party override)
 - **`CommissionTier` entity** — tiered rate bands
 - **`LedgerEntry` entity** — har settlement ka financial journal
@@ -81,28 +84,28 @@ commissionsFacade.getLedgerSummary(query)
 
 ### Settlement Use-Cases (actual money move hota hai)
 
-| Use-Case | Kya badla |
-|---|---|
-| `end-chat` | `system_settings` direct read → `commissionsFacade.resolveCommission()` |
-| `end-call` | Same |
-| `update-puja-appointment-status` | Same |
-| `update-order-status` | Same |
+| Use-Case                         | Kya badla                                                               |
+| -------------------------------- | ----------------------------------------------------------------------- |
+| `end-chat`                       | `system_settings` direct read → `commissionsFacade.resolveCommission()` |
+| `end-call`                       | Same                                                                    |
+| `update-puja-appointment-status` | Same                                                                    |
+| `update-order-status`            | Same                                                                    |
 
 Yeh sab ab `CommissionsFacade` ke through commission lete hain — rules engine full apply hota hai.
 
 ### Agent Module
 
-| Use-Case | Kya badla |
-|---|---|
+| Use-Case                   | Kya badla                                                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `settle-agent-commissions` | `SystemSetting` repo inject → `CommissionsFacade` inject. Calculation async hai ab — har user ke liye `resolveCommission()` call hoti hai. |
-| `get-agent-stats` | Commission rates display ke liye `resolveCommission(100)` call hoti hai (100 units pe resolve = effective rate% directly milta hai) |
+| `get-agent-stats`          | Commission rates display ke liye `resolveCommission(100)` call hoti hai (100 units pe resolve = effective rate% directly milta hai)        |
 
 ### Merchant Dashboard
 
-| Use-Case | Kya badla |
-|---|---|
-| `get-merchant-stats` | `walletFacade.getAdminCommissionFromSetting()` → `commissionsFacade.resolveCommission()` |
-| `get-merchant-finance-stats` | Same, plus merchant-specific profileId pass hota hai (individual rule match possible) |
+| Use-Case                     | Kya badla                                                                                |
+| ---------------------------- | ---------------------------------------------------------------------------------------- |
+| `get-merchant-stats`         | `walletFacade.getAdminCommissionFromSetting()` → `commissionsFacade.resolveCommission()` |
+| `get-merchant-finance-stats` | Same, plus merchant-specific profileId pass hota hai (individual rule match possible)    |
 
 ---
 
@@ -123,8 +126,12 @@ import { CommissionsModule } from '@/modules/finance/commissions/commissions.mod
 ### Step 2 — Facade Inject Karo
 
 ```typescript
-import { CommissionsFacade, CommissionEventType, CommissionType, CommissionAppliesRole } from
-  '@/modules/finance/commissions/application/commissions.facade';
+import {
+  CommissionsFacade,
+  CommissionEventType,
+  CommissionType,
+  CommissionAppliesRole,
+} from '@/modules/finance/commissions/application/commissions.facade';
 
 @Injectable()
 export class MyUseCase {
@@ -172,7 +179,7 @@ const { amount: ratePercent } = await commissionsFacade.resolveCommission(
   CommissionType.SELLER_AGENT,
   null,
   CommissionAppliesRole.EXPERT,
-  100,   // ← 100 units
+  100, // ← 100 units
 );
 // ratePercent = 3 means 3% (kyunki 3% of 100 = 3)
 ```

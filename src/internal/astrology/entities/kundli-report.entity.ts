@@ -7,7 +7,7 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../actors/client/account/entities/account.entity';
 
 @Entity({ schema: 'astrology', name: 'kundli_reports' })
 export class KundliReport {

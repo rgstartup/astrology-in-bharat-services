@@ -4,7 +4,7 @@ import { Wallet, WalletKey } from '../entities/wallet.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { TransactionType, TransactionPurpose } from '../enum';
 import { InsufficientBalanceError } from '../domain/errors/insufficient-balance.error';
-import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
 import {
   GeneralLedgerEntryType,

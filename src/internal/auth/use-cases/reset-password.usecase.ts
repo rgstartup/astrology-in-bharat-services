@@ -3,7 +3,10 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { UsedTokensService } from '../services/used-tokens.service';
 import { User } from '../../users/entities/user.entity';
 import { TokenAlreadyUsedError } from '../domain/errors/token-already-used.error';
-import { type IHasher, IHasherToken } from '../../../shared/contracts/hasher.contract';
+import {
+  type IHasher,
+  IHasherToken,
+} from '../../../shared/contracts/hasher.contract';
 import { DatabaseService } from '../../../core/database/database.service';
 import { QueryRunner } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';

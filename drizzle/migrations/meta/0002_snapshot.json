@@ -147,10 +147,7 @@
         "USER_PLATFORM_UNIQ": {
           "name": "USER_PLATFORM_UNIQ",
           "nullsNotDistinct": false,
-          "columns": [
-            "email",
-            "platform"
-          ]
+          "columns": ["email", "platform"]
         }
       },
       "policies": {},
@@ -198,12 +195,8 @@
           "name": "oauth_accounts_user_id_users_id_fk",
           "tableFrom": "oauth_accounts",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -292,12 +285,8 @@
           "name": "otp_user_id_users_id_fk",
           "tableFrom": "otp",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -376,12 +365,8 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -434,12 +419,8 @@
           "name": "used_tokens_user_id_users_id_fk",
           "tableFrom": "used_tokens",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -449,10 +430,7 @@
         "used_tokens_user_id_token_unique": {
           "name": "used_tokens_user_id_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "token"
-          ]
+          "columns": ["user_id", "token"]
         }
       },
       "policies": {},
@@ -633,12 +611,8 @@
           "name": "account_user_id_users_id_fk",
           "tableFrom": "account",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -648,16 +622,12 @@
         "account_user_id_unique": {
           "name": "account_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         "account_public_id_unique": {
           "name": "account_public_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "public_id"
-          ]
+          "columns": ["public_id"]
         }
       },
       "policies": {},
@@ -845,12 +815,8 @@
           "tableFrom": "addresses",
           "tableTo": "account",
           "schemaTo": "client",
-          "columnsFrom": [
-            "client_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["client_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -860,18 +826,12 @@
         "addresses_profile_expert_tag_unique": {
           "name": "addresses_profile_expert_tag_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "profile_expert_id",
-            "tag"
-          ]
+          "columns": ["profile_expert_id", "tag"]
         },
         "addresses_client_account_tag_unique": {
           "name": "addresses_client_account_tag_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "client_account_id",
-            "tag"
-          ]
+          "columns": ["client_account_id", "tag"]
         }
       },
       "policies": {},
@@ -935,12 +895,8 @@
           "tableFrom": "cart_items",
           "tableTo": "carts",
           "schemaTo": "commerce",
-          "columnsFrom": [
-            "cart_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cart_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -949,12 +905,8 @@
           "tableFrom": "cart_items",
           "tableTo": "products",
           "schemaTo": "commerce",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1003,12 +955,8 @@
           "tableFrom": "carts",
           "tableTo": "account",
           "schemaTo": "client",
-          "columnsFrom": [
-            "client_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["client_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1018,9 +966,7 @@
         "carts_client_id_unique": {
           "name": "carts_client_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "client_id"
-          ]
+          "columns": ["client_id"]
         }
       },
       "policies": {},
@@ -1277,13 +1223,7 @@
     "public.platform": {
       "name": "platform",
       "schema": "public",
-      "values": [
-        "client",
-        "expert",
-        "merchant",
-        "agent",
-        "admin"
-      ]
+      "values": ["client", "expert", "merchant", "agent", "admin"]
     },
     "public.role": {
       "name": "role",
@@ -1301,61 +1241,32 @@
     "public.user_status": {
       "name": "user_status",
       "schema": "public",
-      "values": [
-        "PENDING_REGISTRATION",
-        "ACTIVE",
-        "BLOCKED",
-        "SUSPENDED"
-      ]
+      "values": ["PENDING_REGISTRATION", "ACTIVE", "BLOCKED", "SUSPENDED"]
     },
     "content.media_source_enum": {
       "name": "media_source_enum",
       "schema": "content",
-      "values": [
-        "cloudinary",
-        "google",
-        "local",
-        "external"
-      ]
+      "values": ["cloudinary", "google", "local", "external"]
     },
     "public.addresses_tag_enum": {
       "name": "addresses_tag_enum",
       "schema": "public",
-      "values": [
-        "home",
-        "office",
-        "billing",
-        "shipping",
-        "other"
-      ]
+      "values": ["home", "office", "billing", "shipping", "other"]
     },
     "public.addresses_type_enum": {
       "name": "addresses_type_enum",
       "schema": "public",
-      "values": [
-        "shipping",
-        "billing"
-      ]
+      "values": ["shipping", "billing"]
     },
     "commerce.products_product_group_enum": {
       "name": "products_product_group_enum",
       "schema": "commerce",
-      "values": [
-        "book",
-        "report",
-        "item",
-        "ritual",
-        "session"
-      ]
+      "values": ["book", "report", "item", "ritual", "session"]
     },
     "commerce.products_type_enum": {
       "name": "products_type_enum",
       "schema": "commerce",
-      "values": [
-        "GOODS",
-        "SERVICE",
-        "DIGITAL"
-      ]
+      "values": ["GOODS", "SERVICE", "DIGITAL"]
     }
   },
   "schemas": {

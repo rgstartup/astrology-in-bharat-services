@@ -1,23 +1,30 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Order } from '../entities/order.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { and, gte, inArray, sum } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { orders } from '@/core/drizzledb/schema';
+import { OrderStatus } from '@/internal/commerce/order/enum';
 
 @Injectable()
 export class GetOrderEarningsUseCase {
-  constructor(
-    @InjectRepository(Order)
-    private readonly orderRepository: Repository<Order>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(dateLimit: Date): Promise<number> {
-    const productStats = (await this.orderRepository
-      .createQueryBuilder('order')
-      .select('SUM(order.total_amount)', 'total')
-      .where('order.created_at >= :date', { date: dateLimit })
-      .andWhere("order.status IN ('paid', 'packed', 'shipped', 'delivered')")
-      .getRawOne<{ total: string | null }>()) ?? { total: null };
+    const [row] = await this.db
+      .select({ total: sum(orders.total_amount) })
+      .from(orders)
+      .where(
+        and(
+          gte(orders.created_at, dateLimit),
+          inArray(orders.status, [
+            OrderStatus.PAID,
+            OrderStatus.PACKED,
+            OrderStatus.SHIPPED,
+            OrderStatus.DELIVERED,
+          ]),
+        ),
+      );
 
-    return parseFloat(productStats.total ?? '0') || 0;
+    return parseFloat(row?.total ?? '0') || 0;
   }
 }

@@ -19,7 +19,7 @@ import {
   TransactionPurpose,
 } from '../../../finance/wallet/enum';
 import { Wallet } from '../../../finance/wallet/entities/wallet.entity';
-import { SystemSetting } from '../../../admin/entities/system-setting.entity';
+import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
 import {
   CommissionRule,
   CommissionType,
@@ -33,7 +33,7 @@ import {
 } from '../../../finance/commissions/entities/commission-split.entity';
 import { CommissionTier } from '../../../finance/commissions/entities/commission-tier.entity';
 
-import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
 import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
 import {
   GeneralLedgerEntryType,
@@ -41,7 +41,7 @@ import {
   GeneralLedgerPartyType,
 } from '../../../finance/ledger/entities/general-ledger-entry.entity';
 import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
-import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
 import {
   Notification,
   NotificationType,
@@ -297,9 +297,8 @@ export class EndCallUseCase {
 
           // 💰 Credit Seller's Agent
           if (agent_commission > 0 && agent_id) {
-            const { ProfileAgent } = await import(
-              '../../../domains/agent/entities/profile-agent.entity'
-            );
+            const { ProfileAgent } =
+              await import('../../../actors/agent/entities/profile-agent.entity');
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {
@@ -325,9 +324,8 @@ export class EndCallUseCase {
 
           // 💰 Credit Buyer's Agent
           if (buyer_agent_commission > 0 && buyer_agent_id) {
-            const { ProfileAgent } = await import(
-              '../../../domains/agent/entities/profile-agent.entity'
-            );
+            const { ProfileAgent } =
+              await import('../../../actors/agent/entities/profile-agent.entity');
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {
