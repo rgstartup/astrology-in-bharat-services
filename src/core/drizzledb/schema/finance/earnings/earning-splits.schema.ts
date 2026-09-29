@@ -8,7 +8,10 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { EarningEventType } from '@/internal/finance/earnings/enum';
-import { earningEventTypeEnum, earningPolicies } from './earning-policies.schema';
+import {
+  earningEventTypeEnum,
+  earningPolicies,
+} from './earning-policies.schema';
 
 const financeSchema = pgSchema('finance');
 
@@ -26,7 +29,10 @@ export const earningSplits = financeSchema.table('earning_splits', {
   platform_earning: numeric('platform_earning', { precision: 12, scale: 2 })
     .notNull()
     .default('0'),
-  gst_on_platform_fee: numeric('gst_on_platform_fee', { precision: 12, scale: 2 })
+  gst_on_platform_fee: numeric('gst_on_platform_fee', {
+    precision: 12,
+    scale: 2,
+  })
     .notNull()
     .default('0'),
   provider_earning: numeric('provider_earning', {

@@ -1,9 +1,4 @@
-import {
-  integer,
-  numeric,
-  pgSchema,
-  serial,
-} from 'drizzle-orm/pg-core';
+import { integer, numeric, pgSchema, serial } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { earningPolicies } from './earning-policies.schema';
 
@@ -18,9 +13,15 @@ export const earningTiers = financeSchema.table('earning_tiers', {
   policy_id: integer('policy_id')
     .notNull()
     .references(() => earningPolicies.id, { onDelete: 'cascade' }),
-  min_threshold: numeric('min_threshold', { precision: 10, scale: 2 }).notNull(),
+  min_threshold: numeric('min_threshold', {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   max_threshold: numeric('max_threshold', { precision: 10, scale: 2 }),
-  platform_rate: numeric('platform_rate', { precision: 10, scale: 2 }).notNull(),
+  platform_rate: numeric('platform_rate', {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   agent_rate: numeric('agent_rate', { precision: 10, scale: 2 })
     .notNull()
     .default('0'),

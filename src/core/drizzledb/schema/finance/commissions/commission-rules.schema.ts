@@ -14,7 +14,7 @@ import {
   CommissionEventType,
   CommissionRateType,
   CommissionType,
-} from '@/internal/finance/commissions/entities/commission-rule.entity';
+} from '../../../../enums';
 import { commissionTiers } from './commission-tiers.schema';
 import { commissionSplits } from './commission-splits.schema';
 

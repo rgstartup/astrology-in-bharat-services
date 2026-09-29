@@ -19,10 +19,7 @@ import {
 
 const financeSchema = pgSchema('finance');
 
-export const gatewayNameEnum = pgEnum(
-  'finance_gateway_name_enum',
-  GatewayName,
-);
+export const gatewayNameEnum = pgEnum('finance_gateway_name_enum', GatewayName);
 
 export const gatewayTransactionStatusEnum = pgEnum(
   'finance_gateway_transaction_status_enum',

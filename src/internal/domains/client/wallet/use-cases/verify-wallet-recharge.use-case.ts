@@ -1,8 +1,9 @@
-import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable, Logger } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientWallets } from '@/core/drizzledb/schema';
 import { PaymentsService } from '@/internal/finance/payments/payments.service';
-import { ClientWallet } from '../entities/client-wallet.entity';
 import { VerifyRechargeDto } from '../dto/verify-recharge.dto';
 
 @Injectable()
@@ -11,8 +12,7 @@ export class VerifyWalletRechargeUseCase {
 
   constructor(
     private readonly paymentsService: PaymentsService,
-    @InjectRepository(ClientWallet)
-    private readonly clientWalletRepo: Repository<ClientWallet>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
   async execute(clientId: number, dto: VerifyRechargeDto) {
@@ -26,18 +26,19 @@ export class VerifyWalletRechargeUseCase {
       razorpay_signature: dto.razorpay_signature,
     });
 
-    const wallet = await this.clientWalletRepo.findOne({
-      where: { client_id: clientId },
-      select: {
-        id: true,
-        balance: true,
-      },
-    });
+    const [wallet] = await this.db
+      .select({
+        id: clientWallets.id,
+        balance: clientWallets.balance,
+      })
+      .from(clientWallets)
+      .where(eq(clientWallets.client_id, Number(clientId)))
+      .limit(1);
 
     return {
       success: true,
       message: 'Wallet recharged successfully',
-      balance: wallet?.balance || 0,
+      balance: wallet ? Number(wallet.balance) : 0,
     };
   }
 }

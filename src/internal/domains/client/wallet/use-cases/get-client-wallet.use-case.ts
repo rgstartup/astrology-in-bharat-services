@@ -1,30 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientWallets } from '@/core/drizzledb/schema';
 import { ClientWallet } from '../entities/client-wallet.entity';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
+import { toClientWalletResponse } from '../wallet.mapper';
 
 @Injectable()
 export class GetClientWalletUseCase {
-  constructor(
-    @InjectRepository(ClientWallet)
-    private readonly clientWalletRepo: Repository<ClientWallet>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(clientId: number): Promise<ClientWallet> {
-    const existingWallet = await this.clientWalletRepo.findOne({
-      where: { client_id: clientId },
-    });
+    const [existingWallet] = await this.db
+      .select()
+      .from(clientWallets)
+      .where(eq(clientWallets.client_id, Number(clientId)))
+      .limit(1);
 
     if (existingWallet) {
-      return existingWallet;
+      return toClientWalletResponse(existingWallet) as ClientWallet;
     }
 
-    const newWallet = this.clientWalletRepo.create({
-      client_id: clientId,
-      balance: 0,
-      reserved_balance: 0,
-    });
+    const [newWallet] = await this.db
+      .insert(clientWallets)
+      .values({
+        client_id: Number(clientId),
+        balance: '0',
+        reserved_balance: '0',
+      })
+      .returning();
 
-    return this.clientWalletRepo.save(newWallet);
+    return toClientWalletResponse(newWallet) as ClientWallet;
   }
 }

@@ -1,6 +1,1 @@
-export enum UserStatusEnum {
-  PENDING_REGISTRATION = 'PENDING_REGISTRATION',
-  ACTIVE = 'ACTIVE',
-  BLOCKED = 'BLOCKED',
-  SUSPENDED = 'SUSPENDED',
-}
+export { UserStatusEnum } from '@/core/enums';

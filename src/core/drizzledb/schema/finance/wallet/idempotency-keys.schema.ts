@@ -28,9 +28,10 @@ export const idempotencyKeys = financeSchema.table('idempotency_keys', {
   merchant_id: integer('merchant_id'),
   agent_id: integer('agent_id'),
   payload_hash: text('payload_hash'),
-  response_payload: jsonb('response_payload').$type<
-    Record<string, unknown> | null
-  >(),
+  response_payload: jsonb('response_payload').$type<Record<
+    string,
+    unknown
+  > | null>(),
   created_at: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

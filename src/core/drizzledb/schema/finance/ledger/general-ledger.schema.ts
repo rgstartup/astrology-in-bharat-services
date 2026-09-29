@@ -11,7 +11,7 @@ import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
+} from '../../../../enums';
 
 const financeSchema = pgSchema('finance');
 

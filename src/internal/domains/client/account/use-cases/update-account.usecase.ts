@@ -8,11 +8,10 @@ import {
   users,
   type ClientAccountRow,
 } from '@/core/drizzledb/schema';
-import { AddressTag } from '@/shared/enums/address-tag.enum';
-import { AddressType } from '@/shared/enums/address-type.enum';
 import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
 import { UpdateClientAccountDto } from '../dto/account.dto';
 import type { ClientAccount } from '../entities/account.entity';
+import { AddressType, AddressTag } from '@/core/enums';
 
 type AddressInput = {
   line1?: string;

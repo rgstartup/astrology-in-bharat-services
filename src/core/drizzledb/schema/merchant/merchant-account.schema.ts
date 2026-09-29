@@ -13,24 +13,11 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from '../users/users.schema';
+import { MerchantStatus } from '../../../enums/merchant-status.enum';
 
 const merchantSchema = pgSchema('merchant');
 
-/**
- * Mirrors `MerchantStatus` from
- * `src/internal/domains/merchant/account/entities/account.entity.ts`.
- *
- * Declared here (not imported from the entity file) so `drizzle-kit
- * generate` never loads the TypeORM entity graph. Follow-up: extract the
- * entity's enum to a plain `src/internal/domains/merchant/account/enums/`
- * module (as was done for `OtpPurposeEnum`) and import it here instead.
- */
-export enum MerchantStatus {
-  PENDING_VERIFICATION = 'pending_verification',
-  ACTIVE = 'active',
-  SUSPENDED = 'suspended',
-}
-
+export { MerchantStatus };
 export const merchantStatusEnum = pgEnum('account_status_enum', MerchantStatus);
 
 /**

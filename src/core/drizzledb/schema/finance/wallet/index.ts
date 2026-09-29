@@ -1,12 +1,5 @@
-export {
-  wallets,
-  walletsRelations,
-} from './wallets.schema';
-export type {
-  WalletRow,
-  NewWalletRow,
-  WalletKey,
-} from './wallets.schema';
+export { wallets, walletsRelations } from './wallets.schema';
+export type { WalletRow, NewWalletRow, WalletKey } from './wallets.schema';
 
 export {
   transactions,
@@ -14,20 +7,14 @@ export {
   financeTransactionTypeEnum,
   financeTransactionPurposeEnum,
 } from './transactions.schema';
-export type {
-  TransactionRow,
-  NewTransactionRow,
-} from './transactions.schema';
+export type { TransactionRow, NewTransactionRow } from './transactions.schema';
 
 export {
   withdrawals,
   withdrawalsRelations,
   withdrawalStatusEnum,
 } from './withdrawals.schema';
-export type {
-  WithdrawalRow,
-  NewWithdrawalRow,
-} from './withdrawals.schema';
+export type { WithdrawalRow, NewWithdrawalRow } from './withdrawals.schema';
 
 export {
   idempotencyKeys,

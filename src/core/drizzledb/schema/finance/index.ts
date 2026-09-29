@@ -93,7 +93,4 @@ export {
   generalLedgerPartyTypeEnum,
   generalLedgerEventTypeEnum,
 } from './ledger';
-export type {
-  GeneralLedgerEntryRow,
-  NewGeneralLedgerEntryRow,
-} from './ledger';
+export type { GeneralLedgerEntryRow, NewGeneralLedgerEntryRow } from './ledger';

@@ -1,12 +1,8 @@
 export { otps, otpsRelations } from './otps.schema';
 export type { OtpRow, NewOtpRow } from './otps.schema';
 
-export {
-  sessions,
-  sessionsRelations,
-  sessionTypeEnumValues,
-} from './sessions.schema';
-export type { SessionRow, NewSessionRow, SessionType } from './sessions.schema';
+export { sessions, sessionsRelations } from './sessions.schema';
+export type { SessionRow, NewSessionRow } from './sessions.schema';
 
 export { oauthAccounts, oauthAccountsRelations } from './oauth-accounts.schema';
 export type {

@@ -10,15 +10,9 @@ import {
 import { relations } from 'drizzle-orm';
 import { uuidv7 } from 'uuidv7';
 import { users } from '../users/users.schema';
+import { SessionType, sessionTypeEnumValues } from '@/core/enums';
 
 const authSchema = pgSchema('auth');
-
-export const sessionTypeEnumValues = [
-  'refresh_token',
-  'api_key',
-  'device_session',
-] as const;
-export type SessionType = (typeof sessionTypeEnumValues)[number];
 
 /**
  * Drizzle mirror of `Session` (`auth.sessions` TypeORM entity).
@@ -29,7 +23,10 @@ export const sessions = authSchema.table('sessions', {
     .primaryKey()
     .$defaultFn(() => uuidv7()),
   secret_hash: text('secret_hash').notNull(),
-  type: text('type').notNull().default('refresh_token').$type<SessionType>(),
+  type: text('type')
+    .notNull()
+    .default(sessionTypeEnumValues[0])
+    .$type<SessionType>(),
   user_id: integer('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),

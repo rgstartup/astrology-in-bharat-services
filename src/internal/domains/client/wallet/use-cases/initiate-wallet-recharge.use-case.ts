@@ -27,7 +27,6 @@ export class InitiateWalletRechargeUseCase {
   constructor(
     @Inject(PAYMENT_GATEWAY)
     private readonly paymentGateway: IPaymentGateway,
-    private readonly configService: ConfigService,
     private readonly db: DatabaseService,
   ) {}
 

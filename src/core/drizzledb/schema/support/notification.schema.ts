@@ -12,29 +12,11 @@ import {
 import { relations } from 'drizzle-orm';
 import { clientAccounts } from '../client/client-account.schema';
 
+import { NotificationType } from '../../../enums/notification-type.enum';
+
 const supportSchema = pgSchema('support');
 
-/**
- * Mirrors `NotificationType` from
- * `src/internal/notification/entities/notification.entity.ts`.
- *
- * Declared here (not imported from the entity file) so `drizzle-kit
- * generate` never loads the TypeORM entity graph. Follow-up: extract the
- * entity's enum to a plain `src/internal/notification/enums/` module (as was
- * done for `OtpPurposeEnum`) and import it here instead.
- */
-export enum NotificationType {
-  ORDER_CREATED = 'order_created',
-  ORDER_PLACED = 'order_placed',
-  ORDER_PACKED = 'order_packed',
-  ORDER_SHIPPED = 'order_shipped',
-  ORDER_DELIVERED = 'order_delivered',
-  ORDER_CANCELLED = 'order_cancelled',
-  WALLET_RECHARGE = 'wallet_recharge',
-  PUJA_BOOKING = 'puja_booking',
-  GENERAL = 'general',
-}
-
+export { NotificationType };
 export const notificationTypeEnum = pgEnum(
   'notifications_type_enum',
   NotificationType,

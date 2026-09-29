@@ -18,7 +18,15 @@ export class UnknownExceptionFilter implements ExceptionFilter {
     // 🔴 Log aggressively (replace with Winston/Sentry/etc)
     console.error('Unhandled exception:', exception);
     try {
-      fs.appendFileSync('unhandled-errors.log', new Date().toISOString() + '\n' + String(exception) + '\n' + ((exception as Error)?.stack || '') + '\n\n');
+      fs.appendFileSync(
+        '../../../logs/unhandled-errors.log',
+        new Date().toISOString() +
+          '\n' +
+          String(exception) +
+          '\n' +
+          ((exception as Error)?.stack || '') +
+          '\n\n',
+      );
     } catch (e) {}
 
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({

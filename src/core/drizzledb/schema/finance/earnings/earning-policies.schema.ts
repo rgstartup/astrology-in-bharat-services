@@ -66,10 +66,9 @@ export const earningPolicies = financeSchema.table('earning_policies', {
   applies_to_role: earningAppliesRoleEnum('applies_to_role')
     .notNull()
     .default(EarningAppliesRole.ALL),
-  applies_to_user_id: integer('applies_to_user_id').references(
-    () => users.id,
-    { onDelete: 'set null' },
-  ),
+  applies_to_user_id: integer('applies_to_user_id').references(() => users.id, {
+    onDelete: 'set null',
+  }),
   min_amount: numeric('min_amount', { precision: 10, scale: 2 })
     .notNull()
     .default('0'),

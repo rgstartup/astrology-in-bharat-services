@@ -8,7 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from '../users/users.schema';
-import { OtpPurposeEnum } from '@/internal/auth/enums/otp-purpose.enum';
+import { OtpPurposeEnum } from '@/core/enums';
 
 const authSchema = pgSchema('auth');
 

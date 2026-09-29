@@ -1,9 +1,4 @@
-import {
-  integer,
-  numeric,
-  pgSchema,
-  serial,
-} from 'drizzle-orm/pg-core';
+import { integer, numeric, pgSchema, serial } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { commissionRules } from './commission-rules.schema';
 

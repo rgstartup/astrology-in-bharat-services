@@ -1,21 +1,24 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Notification } from '@/internal/notification/entities/notification.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { and, count, eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { notifications } from '@/core/drizzledb/schema';
 
 @Injectable()
 export class GetClientUnreadCountUseCase {
-  constructor(
-    @InjectRepository(Notification)
-    private readonly notificationRepo: Repository<Notification>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(clientId: number): Promise<number> {
-    return this.notificationRepo.count({
-      where: {
-        client_id: clientId,
-        is_read: false,
-      },
-    });
+    const [{ value }] = await this.db
+      .select({ value: count() })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.client_id, Number(clientId)),
+          eq(notifications.is_read, false),
+        ),
+      );
+
+    return value;
   }
 }

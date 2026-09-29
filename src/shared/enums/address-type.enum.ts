@@ -1,4 +1,1 @@
-export enum AddressType {
-  SHIPPING = 'shipping',
-  BILLING = 'billing',
-}
+export { AddressType } from '@/core/enums';
