@@ -3,15 +3,19 @@ import {
   type IPaymentGateway,
   PAYMENT_GATEWAY,
 } from '@/external/payment/payment-gateway.interface';
-import { PaymentOrder, PaymentStatus } from '../entities/payment-order.entity';
-import { GatewayTransaction } from '../entities/gateway-transaction.entity';
-import { GatewayTransactionStatus, GatewayIntent, GatewayName } from '../enums';
-import { VerifyPaymentDto } from '../dto/verify-payment.dto';
-import { PaymentIntentDispatcher } from '../services/payment-intent-dispatcher.service';
-import { PaymentPolicy } from '../domain/policies/payment.policy';
+import { PaymentOrder, PaymentStatus } from '@/internal/finance/payments/entities/payment-order.entity';
+import { GatewayTransaction } from '@/internal/finance/payments/entities/gateway-transaction.entity';
+import {
+  GatewayTransactionStatus,
+  GatewayIntent,
+  GatewayName,
+} from '@/internal/finance/payments/enums';
+import { PaymentIntentDispatcher } from '@/internal/finance/payments/services/payment-intent-dispatcher.service';
+import { PaymentPolicy } from '@/internal/finance/payments/domain/policies/payment.policy';
 import { DatabaseService } from '@/core/database/database.service';
 import { DomainError } from '@/shared/types/domain.error';
-import { PaymentVerificationFailedError } from '../domain/errors/payment.errors';
+import { PaymentVerificationFailedError } from '@/internal/finance/payments/domain/errors/payment.errors';
+import { VerifyPaymentDto } from '../dto/verify-payment.dto';
 
 @Injectable()
 export class VerifyPaymentUseCase {

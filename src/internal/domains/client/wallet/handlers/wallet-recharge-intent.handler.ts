@@ -1,9 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { IPaymentIntentHandler } from '../../../../finance/payments/interfaces/payment-intent-handler.interface';
-import { GatewayIntent } from '../../../../finance/payments/enums/gateway-intent.enum';
-import { GatewayTransaction } from '../../../../finance/payments/entities/gateway-transaction.entity';
-import { PaymentIntentDispatcher } from '../../../../finance/payments/services/payment-intent-dispatcher.service';
+import { IPaymentIntentHandler } from '@/internal/finance/payments/interfaces/payment-intent-handler.interface';
+import { GatewayIntent } from '@/internal/finance/payments/enums/gateway-intent.enum';
+import { GatewayTransaction } from '@/internal/finance/payments/entities/gateway-transaction.entity';
+import { PaymentIntentDispatcher } from '@/internal/finance/payments/services/payment-intent-dispatcher.service';
 import { ClientWalletService } from '../wallet.service';
 
 @Injectable()
@@ -20,6 +20,15 @@ export class WalletRechargeIntentHandler
 
   onModuleInit() {
     this.dispatcher.registerHandler(this);
+  }
+
+  async handleOrderCreated(
+    transaction: GatewayTransaction,
+    _qr: QueryRunner,
+  ): Promise<void> {
+    this.logger.log(
+      `Wallet recharge order created for client ${transaction.client_id}, gateway order ${transaction.gateway_order_id}`,
+    );
   }
 
   async handleSuccess(
@@ -44,7 +53,7 @@ export class WalletRechargeIntentHandler
       `gateway_${transaction.gateway_payment_id || transaction.id}`,
       'gateway_recharge',
       {
-        ...(transaction.metadata || {}),
+        ...transaction.metadata,
         gateway_name: transaction.gateway_name,
         gateway_order_id: transaction.gateway_order_id,
         gateway_payment_id: transaction.gateway_payment_id,

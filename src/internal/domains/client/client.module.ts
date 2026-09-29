@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { ClientNotificationModule } from './notification/notification.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { WalletModule } from './wallet/wallet.module';
+import { ClientPaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { WalletModule } from './wallet/wallet.module';
     ClientNotificationModule,
     FavoritesModule,
     WalletModule,
+    ClientPaymentsModule,
   ],
   exports: [
     AccountModule,
@@ -19,6 +21,7 @@ import { WalletModule } from './wallet/wallet.module';
     ClientNotificationModule,
     FavoritesModule,
     WalletModule,
+    ClientPaymentsModule,
   ],
 })
 export class ClientModule {}

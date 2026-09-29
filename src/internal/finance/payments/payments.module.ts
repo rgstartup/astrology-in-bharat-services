@@ -1,33 +1,29 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PaymentOrder } from './entities/payment-order.entity';
-import { GatewayTransaction } from './entities/gateway-transaction.entity';
-import { PaymentController } from './controllers/payment.controller';
-import { WebhookController } from './controllers/webhook.controller';
-import { PaymentsService } from './payments.service';
-// import { CreatePaymentOrderUseCase } from './use-cases/create-payment-order.use-case';
-import { VerifyPaymentUseCase } from './use-cases/verify-payment.use-case';
-import { HandleWebhookUseCase } from './use-cases/handle-webhook.use-case';
-import { PaymentIntentDispatcher } from './services/payment-intent-dispatcher.service';
-import { PaymentGatewayModule as ExternalPaymentGatewayModule } from '../../../external/payment/payment-gateway.module';
-import { OrderModule } from '../../commerce/order/order.module';
+import { PaymentOrder } from '@/internal/finance/payments/entities/payment-order.entity';
+import { GatewayTransaction } from '@/internal/finance/payments/entities/gateway-transaction.entity';
+import { WebhookController } from '@/internal/finance/payments/controllers/webhook.controller';
+import { PaymentsService } from '@/internal/finance/payments/payments.service';
+import { HandleWebhookUseCase } from '@/internal/finance/payments/use-cases/handle-webhook.use-case';
+import { PaymentIntentDispatcher } from '@/internal/finance/payments/services/payment-intent-dispatcher.service';
+import { PaymentGatewayModule as ExternalPaymentGatewayModule } from '@/external/payment/payment-gateway.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PaymentOrder, GatewayTransaction]),
     ExternalPaymentGatewayModule,
-    forwardRef(() => OrderModule),
   ],
-  controllers: [PaymentController, WebhookController],
-
+  controllers: [WebhookController],
   providers: [
     PaymentsService,
-    // CreatePaymentOrderUseCase,
-    VerifyPaymentUseCase,
     HandleWebhookUseCase,
     PaymentIntentDispatcher,
   ],
-  exports: [PaymentsService, PaymentIntentDispatcher],
+  exports: [
+    PaymentsService,
+    PaymentIntentDispatcher,
+    TypeOrmModule,
+  ],
 })
 export class PaymentsModule {}
 

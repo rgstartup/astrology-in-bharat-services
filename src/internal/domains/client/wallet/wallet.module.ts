@@ -4,12 +4,13 @@ import { ClientWallet } from './entities/client-wallet.entity';
 import { ClientTransaction } from './entities/client-transaction.entity';
 import { ClientWalletRecharge } from './entities/client-wallet-recharge.entity';
 import { ClientAccount } from '../account/entities/account.entity';
-import { NotificationModule } from '../../../notification/notification.module';
-import { QueueModule } from '../../../../core/queue/queue.module';
-import { PaymentGatewayModule as ExternalPaymentGatewayModule } from '../../../../external/payment/payment-gateway.module';
-import { PaymentOrder } from '../../../finance/payments/entities/payment-order.entity';
-import { GatewayTransaction } from '../../../finance/payments/entities/gateway-transaction.entity';
-import { PaymentsModule } from '../../../finance/payments/payments.module';
+import { NotificationModule } from '@/internal/notification/notification.module';
+import { QueueModule } from '@/core/queue/queue.module';
+import { PaymentGatewayModule as ExternalPaymentGatewayModule } from '@/external/payment/payment-gateway.module';
+import { PaymentOrder } from '@/internal/finance/payments/entities/payment-order.entity';
+import { GatewayTransaction } from '@/internal/finance/payments/entities/gateway-transaction.entity';
+import { PaymentsModule as FinancePaymentsModule } from '@/internal/finance/payments/payments.module';
+import { ClientPaymentsModule } from '@/internal/domains/client/payments/payments.module';
 import { ClientWalletService } from './wallet.service';
 import { ClientWalletController } from './controllers/wallet.controller';
 import { GetClientWalletUseCase } from './use-cases/get-client-wallet.use-case';
@@ -38,7 +39,8 @@ import { WalletRechargeIntentHandler } from './handlers/wallet-recharge-intent.h
     NotificationModule,
     QueueModule,
     ExternalPaymentGatewayModule,
-    PaymentsModule,
+    FinancePaymentsModule,
+    ClientPaymentsModule,
   ],
   controllers: [ClientWalletController],
   providers: [

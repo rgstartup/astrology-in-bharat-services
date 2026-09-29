@@ -1,5 +1,4 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import {
   type IPaymentGateway,
   PAYMENT_GATEWAY,
