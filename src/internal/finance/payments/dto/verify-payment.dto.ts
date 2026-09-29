@@ -1,4 +1,4 @@
-import { AddressDto } from '@/shared/address/address.dto';
+import { AddressDto } from '../../../../shared/address/address.dto';
 import { Type } from 'class-transformer';
 import { IsOptional, IsString, ValidateNested } from 'class-validator';
 

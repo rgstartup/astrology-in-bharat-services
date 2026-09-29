@@ -1,9 +1,9 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { eq, or } from 'drizzle-orm';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { clientAccounts } from '@/core/drizzledb/schema';
+import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { clientAccounts } from '../../../../../core/drizzledb/schema';
 import twilio from 'twilio';
 import { VerifyPhoneOtpDto } from '../dto/phone-otp.dto';
 

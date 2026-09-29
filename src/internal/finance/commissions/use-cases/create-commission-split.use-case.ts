@@ -9,8 +9,8 @@ import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
-import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
+} from '../../ledger/entities/general-ledger-entry.entity';
+import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
 
 export interface CommissionSplitInput {
   referenceId: string | number;

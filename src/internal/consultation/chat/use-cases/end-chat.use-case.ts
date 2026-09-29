@@ -3,36 +3,36 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
 import { ChatSessionStatus } from '../enum';
-import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { Transaction } from '../../../finance/wallet/entities/transaction.entity';
 import {
   TransactionType,
   TransactionPurpose,
-} from '@/internal/finance/wallet/enum';
-import { Wallet } from '@/internal/finance/wallet/entities/wallet.entity';
-import { SystemSetting } from '@/internal/admin/entities/system-setting.entity';
+} from '../../../finance/wallet/enum';
+import { Wallet } from '../../../finance/wallet/entities/wallet.entity';
+import { SystemSetting } from '../../../admin/entities/system-setting.entity';
 import {
   CommissionRule,
   CommissionType,
   CommissionEventType,
   CommissionAppliesRole,
   CommissionRateType,
-} from '@/internal/finance/commissions/entities/commission-rule.entity';
+} from '../../../finance/commissions/entities/commission-rule.entity';
 import {
   CommissionSplit,
   SplitReferenceType,
-} from '@/internal/finance/commissions/entities/commission-split.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
+} from '../../../finance/commissions/entities/commission-split.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
-import { generateTransactionNo } from '@/shared/utils/transaction-no.util';
+} from '../../../finance/ledger/entities/general-ledger-entry.entity';
+import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
 import {
   Notification,
   NotificationType,
-} from '@/internal/notification/entities/notification.entity';
+} from '../../../notification/entities/notification.entity';
 
 @Injectable()
 export class EndChatUseCase {

@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
-import { Session } from '@/internal/auth/entities/session.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
+import { type IHasher, IHasherToken } from '../../../../../shared/contracts/hasher.contract';
+import { Session } from '../../../../auth/entities/session.entity';
+import { User } from '../../../../users/entities/user.entity';
+import { PlatformEnum } from '../../../../users/enums/Platform.enum';
 import { MerchantAccount } from '../../account/entities/account.entity';
 import { MerchantLoginDto } from '../dto/merchant-login.dto';
 import { MerchantTokenCryptoService } from '../services/token-crypto.service';

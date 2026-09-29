@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   ProkeralaService,
   ProkeralaPersonParam,
-} from '@/external/prokerala/prokerala.service';
+} from '../../../external/prokerala/prokerala.service';
 import { GetKundliMatchingDto } from '../dto/get-kundli-matching.dto';
 
 @Injectable()

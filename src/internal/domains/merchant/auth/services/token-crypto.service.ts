@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
 import { StringValue } from 'ms';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
-import { AuthConfig } from '@/config/auth.config';
+import { type IHasher, IHasherToken } from '../../../../../shared/contracts/hasher.contract';
+import { AuthConfig } from '../../../../../config/auth.config';
 
 @Injectable()
 export class MerchantTokenCryptoService {

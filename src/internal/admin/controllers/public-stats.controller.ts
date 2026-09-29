@@ -1,9 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
-import { Public } from '@/shared/decorators/public.decorator';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { UsersService } from '@/internal/users/users.service';
-import { OrderService } from '@/internal/commerce/order/order.service';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
+import { Public } from '../../../shared/decorators/public.decorator';
+import { RoleEnum } from '../../users/enums/Role.enum';
+import { UsersService } from '../../users/users.service';
+import { OrderService } from '../../commerce/order/order.service';
+import { ChatService } from '../../consultation/chat/chat.service';
 import { AdminService } from '../admin.service';
 
 @Controller({

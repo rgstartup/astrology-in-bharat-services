@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 import { forwardRef } from '@nestjs/common';
-import { WalletModule } from '@/internal/finance/wallet/wallet.module';
-import { UsersModule } from '@/internal/users/users.module';
-import { AccountModule } from '@/internal/domains/client/account/account.module';
+import { WalletModule } from '../../../finance/wallet/wallet.module';
+import { UsersModule } from '../../../users/users.module';
+import { AccountModule } from '../../client/account/account.module';
 
 import { ProfileExpert } from './entities/profile-expert.entity';
-import { Address } from '@/shared/address/address.entity';
+import { Address } from '../../../../shared/address/address.entity';
 import { ProfileController } from './controllers/profile.controller';
 import { ExpertGateway } from './gateways/expert.gateway';
-import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
-import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
-import { ConsultationModule } from '@/internal/consultation/consultation.module';
+import { NodemailerModule } from '../../../../external/nodemailer/nodemailer.module';
+import { CloudinaryModule } from '../../../../external/cloudinary/cloudinary.module';
+import { ConsultationModule } from '../../../consultation/consultation.module';
 
 import { ExpertProfileService } from './profile.service';
 import { GetProfileUseCase } from './use-cases/get-profile.usecase';

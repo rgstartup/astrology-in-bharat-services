@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -7,8 +8,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Dispute } from './dispute.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
 
 @Entity({ schema: 'support', name: 'support_dispute_messages' })
 export class DisputeMessage {
@@ -17,7 +18,7 @@ export class DisputeMessage {
 
   @ManyToOne(() => Dispute)
   @JoinColumn({ name: 'dispute_id' })
-  dispute!: Dispute;
+  dispute!: Relation<Dispute>;
 
   @Column({ name: 'dispute_id', type: 'int' })
   dispute_id!: number;

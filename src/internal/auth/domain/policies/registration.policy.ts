@@ -1,4 +1,4 @@
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 import { EmailAlreadyExistsError } from '../errors/email-already-exists.error';
 
 export class RegistrationPolicy {

@@ -1,11 +1,12 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AgentListing } from '@/internal/domains/agent/entities/agent-listing.entity';
+import { AgentListing } from '../entities/agent-listing.entity';
 
-import { UsersService } from '@/internal/users/users.service';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
-import { MerchantAccountService } from '@/internal/domains/merchant/account/account.service';
+import { UsersService } from '../../../users/users.service';
+import { ExpertProfileService } from '../../expert/profile/profile.service';
+import { MerchantAccountService } from '../../merchant/account/account.service';
 
 @Injectable()
 export class GetAdminListingsUseCase {
@@ -14,9 +15,9 @@ export class GetAdminListingsUseCase {
     private readonly listingRepository: Repository<AgentListing>,
     private readonly usersService: UsersService,
     @Inject(forwardRef(() => ExpertProfileService))
-    private readonly expertService: ExpertProfileService,
+    private readonly expertService: DeferredDependency<ExpertProfileService>,
     @Inject(forwardRef(() => MerchantAccountService))
-    private readonly merchantService: MerchantAccountService,
+    private readonly merchantService: DeferredDependency<MerchantAccountService>,
   ) {}
 
   async execute(params?: {

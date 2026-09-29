@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { PlacesService } from '../places.service';
-import { Public } from '@/shared/decorators/public.decorator';
+import { Public } from '../../../shared/decorators/public.decorator';
 
 @Controller('places')
 export class PlacesController {

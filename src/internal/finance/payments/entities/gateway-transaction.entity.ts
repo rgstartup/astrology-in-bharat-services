@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -8,8 +9,8 @@ import {
   PrimaryGeneratedColumn,
   Index,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ColumnNumericTransformer } from '../../../../shared/transformers/numeric.transformer';
 import { GatewayName, GatewayTransactionStatus, GatewayIntent } from '../enums';
 
 @Entity({ schema: 'finance', name: 'gateway_transactions' })
@@ -31,7 +32,7 @@ export class GatewayTransaction {
 
   @ManyToOne(() => ClientAccount, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({
     type: 'decimal',

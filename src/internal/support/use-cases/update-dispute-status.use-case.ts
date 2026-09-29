@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
 import {
   Injectable,
   NotFoundException,
@@ -5,19 +6,19 @@ import {
   forwardRef,
   BadRequestException,
 } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Dispute, DisputeStatus } from '../entities/dispute.entity';
 import { SupportGateway } from '../gateways/support.gateway';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
-import { TransactionPurpose } from '@/internal/finance/wallet/enum';
-import { OrderItem } from '@/internal/commerce/order/entities/order-item.entity';
-import { OrderStatus } from '@/internal/commerce/order/enum';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { NotificationService } from '@/internal/notification/notification.service';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { NotificationType } from '@/internal/notification/entities/notification.entity';
+import { WalletService } from '../../finance/wallet/wallet.service';
+import { TransactionPurpose } from '../../finance/wallet/enum';
+import { OrderItem } from '../../commerce/order/entities/order-item.entity';
+import { OrderStatus } from '../../commerce/order/enum';
+import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
+import { NotificationService } from '../../notification/notification.service';
+import { RoleEnum } from '../../users/enums/Role.enum';
+import { NotificationType } from '../../notification/entities/notification.entity';
 
 @Injectable()
 export class UpdateDisputeStatusUseCase {
@@ -26,7 +27,7 @@ export class UpdateDisputeStatusUseCase {
     private readonly disputeRepo: Repository<Dispute>,
     private readonly supportGateway: SupportGateway,
     @Inject(forwardRef(() => WalletService))
-    private readonly walletService: WalletService,
+    private readonly walletService: DeferredDependency<WalletService>,
     private readonly dataSource: DataSource,
     private readonly notificationService: NotificationService,
   ) {}

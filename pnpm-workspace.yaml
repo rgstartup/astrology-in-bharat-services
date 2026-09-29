@@ -3,21 +3,11 @@ packages:
 
 allowBuilds:
   '@nestjs/core': true
+  '@parcel/watcher': true
   '@scarf/scarf': true
   '@swc/core': true
   argon2: true
-  esbuild: set this to true or false
+  esbuild: true
   msgpackr-extract: true
   sharp: true
-
-ignoredBuiltDependencies:
-  - '@scarf/scarf'
-
-onlyBuiltDependencies:
-  - '@nestjs/core'
-  - '@scarf/scarf'
-  - '@swc/core'
-  - argon2
-  - msgpackr-extract
-  - sharp
-  - esbuild
+  unrs-resolver: true

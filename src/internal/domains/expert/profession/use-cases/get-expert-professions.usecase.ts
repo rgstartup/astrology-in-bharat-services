@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExpertProfession } from '../entities/expert-profession.entity';
 import { ExpertProfessionResponseDto } from '../dto/response/profession-response.dto';
-import { IExpert } from '@/shared/types/access-token.payload';
+import { IExpert } from '../../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class GetExpertProfessionsUseCase {

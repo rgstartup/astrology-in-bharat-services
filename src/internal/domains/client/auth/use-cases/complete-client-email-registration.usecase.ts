@@ -8,8 +8,8 @@ import {
 import { and, desc, eq } from 'drizzle-orm';
 import { createHash } from 'crypto';
 import { nanoid } from 'nanoid';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '../../../../../core/drizzledb/drizzle.types';
 import {
   clientAccounts,
   otps,
@@ -17,12 +17,12 @@ import {
   users,
   type ClientAccountRow,
   type UserRow,
-} from '@/core/drizzledb/schema';
-import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
-import { OtpPurposeEnum } from '@/internal/auth/enums/otp-purpose.enum';
+} from '../../../../../core/drizzledb/schema';
+import { PlatformEnum } from '../../../../users/enums/Platform.enum';
+import { OtpPurposeEnum } from '../../../../auth/enums/otp-purpose.enum';
 import { CompleteClientRegisterDto } from '../dto/client-register.dto';
 import { TokenCryptoService } from '../services/token-crypto.service';
-import { IAccessTokenPayloadClient } from '@/shared/types/access-token.payload';
+import { IAccessTokenPayloadClient } from '../../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class CompleteClientEmailRegistrationUseCase {

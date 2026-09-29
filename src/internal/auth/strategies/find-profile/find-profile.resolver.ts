@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 import {
   IFindProfileStrategy,
   FIND_PROFILE_STRATEGIES,

@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -16,7 +17,7 @@ export class ChatMessage {
 
   @ManyToOne(() => ChatSession)
   @JoinColumn({ name: 'session_id' })
-  session!: ChatSession;
+  session!: Relation<ChatSession>;
 
   @Column({ type: 'int', name: 'session_id' })
   session_id!: number;

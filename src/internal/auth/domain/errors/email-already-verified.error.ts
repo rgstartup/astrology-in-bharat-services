@@ -1,4 +1,4 @@
-import { DomainError } from '@/shared/types/domain.error';
+import { DomainError } from '../../../../shared/types/domain.error';
 import { HttpStatus } from '@nestjs/common';
 
 export class EmailAlreadyVerifiedError extends DomainError {

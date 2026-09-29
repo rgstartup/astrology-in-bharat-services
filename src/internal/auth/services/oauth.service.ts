@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { OAuthAccount } from '../entities/oauth-accounts.entity';
-import { OAuthUserDto } from '@/internal/auth/dto';
-import { User } from '@/internal/users/entities/user.entity';
-import { BaseService } from '@/shared/services/transaction.service';
-import { Media } from '@/internal/media/entities/media.entity';
-import { MediaSource } from '@/internal/media/enum';
+import { OAuthUserDto } from '../dto';
+import { User } from '../../users/entities/user.entity';
+import { BaseService } from '../../../shared/services/transaction.service';
+import { Media } from '../../media/entities/media.entity';
+import { MediaSource } from '../../media/enum';
 
 @Injectable()
 export class OAuthService extends BaseService<OAuthAccount> {

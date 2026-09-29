@@ -7,8 +7,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ExpertSpecialization } from '@/internal/domains/expert/account/entities/expert-specialization.entity';
-import { Profession } from '@/internal/domains/expert/profession/entities/profession.entity';
+import { ExpertSpecialization } from '../../account/entities/expert-specialization.entity';
+import { Profession } from '../../profession/entities/profession.entity';
 
 @Entity({ schema: 'expert', name: 'specializations' })
 export class Specialization {

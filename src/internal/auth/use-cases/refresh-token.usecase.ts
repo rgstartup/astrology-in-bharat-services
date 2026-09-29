@@ -2,11 +2,11 @@ import { SessionRepository } from '../repositories/session.repository';
 import { AuthTokenService } from '../services/auth-token.service';
 import { InvalidRefreshTokenError } from '../domain/errors/invalid-token.error';
 import { Inject, Injectable } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../core/database/database.service';
 import { Session } from '../entities/session.entity';
 import { RefreshTokenPolicy } from '../domain/policies/refresh-token.policy';
 import { isUUID } from 'class-validator';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
+import { type IHasher, IHasherToken } from '../../../shared/contracts/hasher.contract';
 
 @Injectable()
 export class RefreshTokenUseCase {

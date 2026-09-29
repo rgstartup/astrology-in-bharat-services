@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -8,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
 import { Coupon } from './coupon.entity';
 
 @Entity({ schema: 'commerce', name: 'user_coupons' })
@@ -19,14 +20,14 @@ export class UserCoupon {
 
   @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({ name: 'client_id', type: 'int' })
   client_id!: number;
 
   @ManyToOne(() => Coupon)
   @JoinColumn({ name: 'coupon_id' })
-  coupon!: Coupon;
+  coupon!: Relation<Coupon>;
 
   @Column({ name: 'coupon_id', type: 'int' })
   coupon_id!: number;

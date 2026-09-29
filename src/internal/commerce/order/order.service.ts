@@ -100,7 +100,7 @@ export class OrderService {
     orderId: number,
     profileId: number,
     cancellationReason: string,
-    user: import('@/shared/types/access-token.payload').IUser,
+    user: import('../../../shared/types/access-token.payload').IUser,
   ) {
     return this.cancelUserOrderUseCase.execute(
       orderId,

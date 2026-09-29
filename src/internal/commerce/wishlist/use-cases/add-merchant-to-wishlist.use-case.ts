@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../entities/wishlist.entity';
-import { MerchantAccountService } from '@/internal/domains/merchant/account/account.service';
+import { MerchantAccountService } from '../../../domains/merchant/account/account.service';
 import {
   MerchantAlreadyInWishlistError,
   MerchantNotFoundError,

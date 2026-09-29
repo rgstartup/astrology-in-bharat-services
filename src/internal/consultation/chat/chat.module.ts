@@ -29,11 +29,11 @@ import { GetExpertSessionsByDateUseCase } from './use-cases/get-expert-sessions-
 import { CheckChatEligibilityUseCase } from './use-cases/check-chat-eligibility.use-case';
 import { ResolveSessionDetailsUseCase } from './use-cases/resolve-session-details.use-case';
 
-import { WalletModule } from '@/internal/finance/wallet/wallet.module';
-import { NotificationModule } from '@/internal/notification/notification.module';
-import { CouponModule } from '@/internal/commerce/coupon/coupon.module';
-import { ProfileModule as ExpertProfileModule } from '@/internal/domains/expert/profile/profile.module';
-import { QueueModule } from '@/core/queue/queue.module';
+import { WalletModule } from '../../finance/wallet/wallet.module';
+import { NotificationModule } from '../../notification/notification.module';
+import { CouponModule } from '../../commerce/coupon/coupon.module';
+import { ProfileModule as ExpertProfileModule } from '../../domains/expert/profile/profile.module';
+import { QueueModule } from '../../../core/queue/queue.module';
 
 @Module({
   imports: [

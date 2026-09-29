@@ -3,16 +3,16 @@ import { PassportModule } from '@nestjs/passport';
 import { MerchantAuthController } from './controllers/merchant-auth.controller';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProfileModule as ExpertProfileModule } from '@/internal/domains/expert/profile/profile.module';
+import { ProfileModule as ExpertProfileModule } from '../domains/expert/profile/profile.module';
 import { Session } from './entities/session.entity';
 import { OAuthAccount } from './entities/oauth-accounts.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { DatabaseModule } from '@/core/database/database.module';
-import { User } from '@/internal/users/entities/user.entity';
-import { SystemSetting } from '@/internal/admin/entities/system-setting.entity';
+import { DatabaseModule } from '../../core/database/database.module';
+import { User } from '../users/entities/user.entity';
+import { SystemSetting } from '../admin/entities/system-setting.entity';
 import { ProfileAgent } from '../domains/agent/entities/profile-agent.entity';
-import { MerchantAccountModule } from '@/internal/domains/merchant/account/account.module';
-import { QueueModule } from '@/core/queue/queue.module';
+import { MerchantAccountModule } from '../domains/merchant/account/account.module';
+import { QueueModule } from '../../core/queue/queue.module';
 
 import { UsedTokens } from './entities/used-tokens.entity';
 import { Otp } from './entities/otp.entity';
@@ -46,14 +46,14 @@ import { LoginWithMagicLinkUseCase } from './use-cases/login-with-magic-link.use
 import { GetMerchantProfileUseCase } from './use-cases/get-merchant-profile.usecase';
 import { InitiateEmailRegistrationUseCase } from './use-cases/initiate-email-registration.usecase';
 import { CompleteEmailRegistrationUseCase } from './use-cases/complete-email-registration.usecase';
-import { ExternalModule } from '@/external/external.module';
+import { ExternalModule } from '../../external/external.module';
 import { AUTH_PROFILE_CREATION_STRATEGIES } from './strategies/create-profile/auth-profile-creation.strategy';
 import { ClientAuthProfileCreationStrategy } from './strategies/create-profile/client-auth-profile-creation.strategy';
 import { ExpertAuthProfileCreationStrategy } from './strategies/create-profile/expert-auth-profile-creation.strategy';
 import { AgentAuthProfileCreationStrategy } from './strategies/create-profile/agent-auth-profile-creation.strategy';
 import { MerchantAuthProfileCreationStrategy } from './strategies/create-profile/merchant-auth-profile-creation.strategy';
 import { AuthProfileCreationResolver } from './strategies/create-profile/auth-profile-creation.resolver';
-import { IHasherToken } from '@/shared/contracts/hasher.contract';
+import { IHasherToken } from '../../shared/contracts/hasher.contract';
 import { AuthPolicy } from './domain/policies/auth.policy';
 import { ClientFindProfileStrategy } from './strategies/find-profile/client-find-profile.strategy';
 import { ExpertFindProfileStrategy } from './strategies/find-profile/expert-find-profile.strategy';
@@ -61,9 +61,9 @@ import { AgentFindProfileStrategy } from './strategies/find-profile/agent-find-p
 import { MerchantFindProfileStrategy } from './strategies/find-profile/merchant-find-profile.strategy';
 import { FindProfileResolver } from './strategies/find-profile/find-profile.resolver';
 import { FIND_PROFILE_STRATEGIES } from './strategies/find-profile/find-profile.strategy';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { MerchantAccount } from '../domains/merchant/account/entities/account.entity';
+import { ProfileExpert } from '../domains/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../domains/client/account/entities/account.entity';
 import { AuthTokenService } from './services/auth-token.service';
 
 const useCases = [

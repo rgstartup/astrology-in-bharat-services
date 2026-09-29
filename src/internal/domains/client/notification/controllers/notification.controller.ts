@@ -9,11 +9,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { ClientNotificationService } from '../notification.service';
-import { ClientJwtAuthGuard } from '@/internal/domains/client/auth/guards/auth.guard';
-import { CurrentClient } from '@/internal/domains/client/auth/decorators/current-client.decorator';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { GetNotificationsDto } from '@/internal/notification/dto/get-notifications.dto';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { ClientJwtAuthGuard } from '../../auth/guards/auth.guard';
+import { CurrentClient } from '../../auth/decorators/current-client.decorator';
+import { ClientAccount } from '../../account/entities/account.entity';
+import { GetNotificationsDto } from '../../../../notification/dto/get-notifications.dto';
+import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
 
 @Controller({
   path: 'client/notifications',

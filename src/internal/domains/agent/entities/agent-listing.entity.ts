@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -7,7 +8,7 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 
 @Entity({ schema: 'agent', name: 'listings' })
 export class AgentListing {
@@ -37,7 +38,7 @@ export class AgentListing {
 
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({ name: 'agent_id' })
-  agent!: User;
+  agent!: Relation<User>;
 
   @Column({ type: 'int' })
   agent_id!: number;

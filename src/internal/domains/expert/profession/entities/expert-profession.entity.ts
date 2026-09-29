@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -7,7 +8,7 @@ import {
   CreateDateColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
+import { ExpertAccount } from '../../account/entities/account.entity';
 import { Profession } from './profession.entity';
 
 @Entity({ schema: 'expert', name: 'expert_professions' })
@@ -18,7 +19,7 @@ export class ExpertProfession {
 
   @ManyToOne(() => ExpertAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'expert_id' })
-  expert!: ExpertAccount;
+  expert!: Relation<ExpertAccount>;
 
   @Column({ type: 'int' })
   expert_id!: number;
@@ -28,7 +29,7 @@ export class ExpertProfession {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'profession_id' })
-  profession!: Profession;
+  profession!: Relation<Profession>;
 
   @Column({ type: 'int' })
   profession_id!: number;

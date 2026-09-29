@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -8,7 +9,7 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
 import { OrderItem } from './order-item.entity';
 import { OrderStatus, PaymentStatus } from '../enum';
 import { OrderShipment } from './order-shipment.entity';
@@ -25,7 +26,7 @@ export class Order {
 
   @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({ type: 'int', name: 'client_id' })
   client_id!: number;

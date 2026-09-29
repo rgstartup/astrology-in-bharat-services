@@ -1,14 +1,15 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
 import { Review } from '../entities/review.entity';
 
 @Injectable()
 export class GetReviewsStatsUseCase {
   constructor(
     @Inject(forwardRef(() => ExpertProfileService))
-    private readonly expertProfileService: ExpertProfileService,
+    private readonly expertProfileService: DeferredDependency<ExpertProfileService>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
   ) {}
@@ -46,7 +47,7 @@ export class GetReviewsStatsUseCase {
       const ratingKey = row.rating.toString();
       if (Object.prototype.hasOwnProperty.call(counts, ratingKey)) {
         const count = parseInt(row.count, 10);
-        counts[ratingKey] = count;
+        counts[ratingKey as keyof typeof counts] = count;
         calculatedTotalReviews += count;
         sumRatings += parseInt(ratingKey, 10) * count;
       }

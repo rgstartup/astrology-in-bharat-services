@@ -4,20 +4,20 @@ import {
   UnauthorizedException,
   Inject,
 } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../core/database/database.service';
 import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { AuthTokenService } from '../services/auth-token.service';
 import { CompleteRegisterDto } from '../dto/email-register.dto';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { Address } from '@/shared/address/address.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { IHasherToken, IHasher } from '@/shared/contracts/hasher.contract';
+import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
+import { Address } from '../../../shared/address/address.entity';
+import { RoleEnum } from '../../users/enums/Role.enum';
+import { IHasherToken, type IHasher } from '../../../shared/contracts/hasher.contract';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { User } from '../../users/entities/user.entity';
+import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
 
 @Injectable()
 export class CompleteEmailRegistrationUseCase {
@@ -123,7 +123,7 @@ export class CompleteEmailRegistrationUseCase {
         }
       } else if ([RoleEnum.MERCHANT].includes(updatedUser!.role)) {
         const { MerchantAccount } = await import(
-          '@/internal/domains/merchant/account/entities/account.entity'
+          '../../domains/merchant/account/entities/account.entity'
         );
         let merchantProfile = await queryRunner.manager.findOne(
           MerchantAccount,

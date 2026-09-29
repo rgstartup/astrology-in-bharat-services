@@ -1,7 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '@/internal/users/entities/user.entity';
-import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
+import { User } from '../../../users/entities/user.entity';
+import { CloudinaryModule } from '../../../../external/cloudinary/cloudinary.module';
 import { MerchantAuthModule } from '../auth/auth.module';
 import { MerchantAccount } from './entities/account.entity';
 import { MerchantAccountController } from './controllers/account.controller';

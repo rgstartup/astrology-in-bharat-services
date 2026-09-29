@@ -1,34 +1,35 @@
+import type { DeferredDependency } from '../../../../../shared/types/deferred-dependency.type';
 import {
   Injectable,
   NotFoundException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import { UsersService } from '@/internal/users/users.service';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { UsersService } from '../../../../users/users.service';
+import { WalletService } from '../../../../finance/wallet/wallet.service';
 
-import { ChatService } from '@/internal/consultation/chat/chat.service';
+import { ChatService } from '../../../../consultation/chat/chat.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSessionStatus } from '@/internal/consultation/call/enum';
-import { ChatSessionStatus } from '@/internal/consultation/chat/enum';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { AccountService } from '@/internal/domains/client/account/account.service';
-import { CallService } from '@/internal/consultation/call/call.service';
+import { CallSessionStatus } from '../../../../consultation/call/enum';
+import { ChatSessionStatus } from '../../../../consultation/chat/enum';
+import { ProfileExpert } from '../entities/profile-expert.entity';
+import { AccountService } from '../../../client/account/account.service';
+import { CallService } from '../../../../consultation/call/call.service';
 
 @Injectable()
 export class GetExpertDetailUseCase {
   constructor(
     @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
+    private readonly usersService: DeferredDependency<UsersService>,
     @Inject(forwardRef(() => WalletService))
-    private readonly walletService: WalletService,
+    private readonly walletService: DeferredDependency<WalletService>,
     @Inject(forwardRef(() => ChatService))
-    private readonly chatService: ChatService,
+    private readonly chatService: DeferredDependency<ChatService>,
     @Inject(forwardRef(() => CallService))
-    private readonly callService: CallService,
+    private readonly callService: DeferredDependency<CallService>,
     @Inject(forwardRef(() => AccountService))
-    private readonly accountService: AccountService,
+    private readonly accountService: DeferredDependency<AccountService>,
     @InjectRepository(ProfileExpert)
     private readonly profileExpertRepo: Repository<ProfileExpert>,
   ) {}

@@ -8,7 +8,7 @@ import { GetPlaceImagesUseCase } from './use-cases/get-place-images.use-case';
 import { RefreshPlaceSearchCacheUseCase } from './use-cases/refresh-place-search-cache.use-case';
 import { RefreshPlaceImagesCacheUseCase } from './use-cases/refresh-place-images-cache.use-case';
 import { Place, PlaceImage } from './entities/place.entity';
-import { SerperModule } from '@/external/serper/serper.module';
+import { SerperModule } from '../../external/serper/serper.module';
 import { PlacesMapper } from './places.mapper';
 
 @Module({

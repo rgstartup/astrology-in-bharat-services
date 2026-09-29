@@ -9,8 +9,8 @@ import { Profession } from '../entities/profession.entity';
 import { ExpertProfession } from '../entities/expert-profession.entity';
 import { SyncExpertProfessionsDto } from '../dto/request/profession.dto';
 import { ExpertProfessionResponseDto } from '../dto/response/profession-response.dto';
-import { IExpert } from '@/shared/types/access-token.payload';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
+import { IExpert } from '../../../../../shared/types/access-token.payload';
+import { ExpertAccount } from '../../account/entities/account.entity';
 
 @Injectable()
 export class SyncExpertProfessionsUseCase {

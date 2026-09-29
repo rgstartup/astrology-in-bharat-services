@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { FestivalService } from '../festival.service';
 import { CreateFestivalDto, UpdateFestivalDto } from '../dto/festival.dto';
-import { Public } from '@/shared/decorators/public.decorator';
+import { Public } from '../../../shared/decorators/public.decorator';
 
 import { GetFestivalsDto } from '../dto/get-festivals.dto';
 

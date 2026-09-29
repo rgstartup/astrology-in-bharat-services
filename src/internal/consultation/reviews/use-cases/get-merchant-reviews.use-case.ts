@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Review } from '../entities/review.entity';
 import { GetReviewsDto } from '../dto/get-reviews.dto';
 
-import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../../../shared/dto/paginated-response.dto';
 
 @Injectable()
 export class GetMerchantReviewsUseCase {

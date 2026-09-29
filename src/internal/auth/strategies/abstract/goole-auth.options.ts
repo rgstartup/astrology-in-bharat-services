@@ -1,4 +1,4 @@
-import { AuthConfig } from '@/config/auth.config';
+import { AuthConfig } from '../../../../config/auth.config';
 import type { ConfigService } from '@nestjs/config';
 import type { StrategyOptionsWithRequest } from 'passport-google-oauth20';
 

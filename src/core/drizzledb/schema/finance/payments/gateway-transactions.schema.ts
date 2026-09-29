@@ -15,7 +15,7 @@ import {
   GatewayIntent,
   GatewayName,
   GatewayTransactionStatus,
-} from '@/internal/finance/payments/enums';
+} from '../../../../../internal/finance/payments/enums';
 
 const financeSchema = pgSchema('finance');
 

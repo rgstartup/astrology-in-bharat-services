@@ -3,7 +3,7 @@ import { UsedTokens } from '../entities/used-tokens.entity';
 import { QueryRunner, Repository } from 'typeorm';
 import { createHash } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { BaseService } from '@/shared/services/transaction.service';
+import { BaseService } from '../../../shared/services/transaction.service';
 
 @Injectable()
 export class UsedTokensService extends BaseService<UsedTokens> {

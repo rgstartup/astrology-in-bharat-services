@@ -11,7 +11,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { ClientRechargeStatus } from '@/internal/domains/client/wallet/enum';
+import { ClientRechargeStatus } from '../../../../internal/domains/client/wallet/enum';
 import { clientWallets } from './client-wallet.schema';
 
 const clientSchema = pgSchema('client');

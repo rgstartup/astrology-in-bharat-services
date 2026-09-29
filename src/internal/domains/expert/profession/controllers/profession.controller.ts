@@ -8,9 +8,9 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Public } from '@/shared/decorators/public.decorator';
-import { CurrentExpert } from '@/internal/domains/expert/auth/decorators/current-expert.decorator';
-import { IExpert } from '@/shared/types/access-token.payload';
+import { Public } from '../../../../../shared/decorators/public.decorator';
+import { CurrentExpert } from '../../auth/decorators/current-expert.decorator';
+import { type IExpert } from '../../../../../shared/types/access-token.payload';
 import { ExpertJwtAuthGuard } from '../../auth/guards/auth.guard';
 import { ProfessionService } from '../profession.service';
 import {

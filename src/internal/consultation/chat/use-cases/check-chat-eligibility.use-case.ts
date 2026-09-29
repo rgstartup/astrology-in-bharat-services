@@ -1,9 +1,10 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
+import { WalletService } from '../../../finance/wallet/wallet.service';
 import { ChatSessionStatus } from '../enum';
 
 @Injectable()
@@ -12,9 +13,9 @@ export class CheckChatEligibilityUseCase {
     @InjectRepository(ChatSession)
     private sessionRepo: Repository<ChatSession>,
     @Inject(forwardRef(() => ExpertProfileService))
-    private expertProfileService: ExpertProfileService,
+    private expertProfileService: DeferredDependency<ExpertProfileService>,
     @Inject(forwardRef(() => WalletService))
-    private walletService: WalletService,
+    private walletService: DeferredDependency<WalletService>,
   ) {}
 
   async execute(clientId: number, expertId: number) {

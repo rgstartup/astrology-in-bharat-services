@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
 import {
   addresses,
   clientAccounts,
   media,
   users,
-} from '@/core/drizzledb/schema';
+} from '../../../../../core/drizzledb/schema';
 import {
   toClientAccountResponse,
   type ClientAccountDetails,

@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { ClientWalletService } from '../wallet.service';
-import { ClientJwtAuthGuard } from '@/internal/domains/client/auth/guards/auth.guard';
-import { CurrentClient } from '@/internal/domains/client/auth/decorators/current-client.decorator';
+import { ClientJwtAuthGuard } from '../../auth/guards/auth.guard';
+import { CurrentClient } from '../../auth/decorators/current-client.decorator';
 import { GetClientTransactionsDto } from '../dto/get-client-transactions.dto';
 import { InitiateRechargeDto } from '../dto/initiate-recharge.dto';
 import { VerifyRechargeDto } from '../dto/verify-recharge.dto';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../account/entities/account.entity';
 
 @Controller({
   path: 'client/wallet',

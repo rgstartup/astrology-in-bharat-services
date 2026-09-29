@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import { Controller, Get, Logger, Req, Res, UseGuards } from '@nestjs/common';
-import { CookieOptions, Request, Response } from 'express';
+import { CookieOptions, type Request, type Response } from 'express';
 import { GoogleAuthGuard } from '../guards/google-auth-v2.guard';
 import { GoogleLoginQueryGuard } from '../guards/google-login-query.guard';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 interface UserWithTokens {
   user: User;

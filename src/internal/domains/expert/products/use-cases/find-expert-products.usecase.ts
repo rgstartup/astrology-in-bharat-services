@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExpertProducts } from '../entities/expert-product.entity';
 import { GetExpertProductsDto } from '../dto/get-expert-products.dto';
-import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../../../../shared/dto/paginated-response.dto';
 
 @Injectable()
 export class FindExpertProductsUseCase {

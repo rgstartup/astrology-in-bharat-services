@@ -1,11 +1,11 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import * as argon2 from 'argon2';
-import { User } from '@/internal/users/entities/user.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ClientWallet } from '@/internal/domains/client/wallet/entities/client-wallet.entity';
+import { User } from '../../internal/users/entities/user.entity';
+import { RoleEnum } from '../../internal/users/enums/Role.enum';
+import { PlatformEnum } from '../../internal/users/enums/Platform.enum';
+import { ClientAccount } from '../../internal/domains/client/account/entities/account.entity';
+import { ClientWallet } from '../../internal/domains/client/wallet/entities/client-wallet.entity';
 import { nanoid } from 'nanoid';
 
 interface ClientSeedData {

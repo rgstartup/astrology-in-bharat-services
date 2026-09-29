@@ -1,4 +1,4 @@
-import { BaseDto } from '@/shared/dto/base.dto';
+import { BaseDto } from '../../../../../../shared/dto/base.dto';
 import { MerchantStatus } from '../../entities/account.entity';
 
 export class MerchantAccountResponseDto extends BaseDto {

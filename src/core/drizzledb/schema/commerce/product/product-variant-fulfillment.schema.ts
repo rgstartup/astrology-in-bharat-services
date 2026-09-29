@@ -12,7 +12,7 @@ import { relations } from 'drizzle-orm';
 import {
   DeliveryType,
   FulfillmentType,
-} from '@/internal/commerce/product/enum';
+} from '../../../../../internal/commerce/product/enum';
 import { productVariants } from './product-variants.schema';
 
 const commerceSchema = pgSchema('commerce');

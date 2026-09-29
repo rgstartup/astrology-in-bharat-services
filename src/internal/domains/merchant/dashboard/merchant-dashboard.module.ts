@@ -13,15 +13,15 @@ import { SendOrderOtpUseCase } from './use-cases/send-order-otp.usecase';
 import { CalculateMerchantEarningsUseCase } from './use-cases/calculate-merchant-earnings.usecase';
 import { MerchantProductsController } from './controllers/merchant-products.controller';
 import { MerchantFinanceController } from './controllers/merchant-finance.controller';
-import { WalletModule } from '@/internal/finance/wallet/wallet.module';
-import { CommissionsModule } from '@/internal/finance/commissions/commissions.module';
-import { OrderModule } from '@/internal/commerce/order/order.module';
-import { ProductModule } from '@/internal/commerce/product/product.module';
-import { ConsultationModule } from '@/internal/consultation/consultation.module';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { WalletModule } from '../../../finance/wallet/wallet.module';
+import { CommissionsModule } from '../../../finance/commissions/commissions.module';
+import { OrderModule } from '../../../commerce/order/order.module';
+import { ProductModule } from '../../../commerce/product/product.module';
+import { ConsultationModule } from '../../../consultation/consultation.module';
+import { MerchantAccount } from '../account/entities/account.entity';
 import { MerchantAccountModule } from '../account/account.module';
-import { NotificationModule } from '@/internal/notification/notification.module';
-import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
+import { NotificationModule } from '../../../notification/notification.module';
+import { NodemailerModule } from '../../../../external/nodemailer/nodemailer.module';
 
 @Module({
   imports: [

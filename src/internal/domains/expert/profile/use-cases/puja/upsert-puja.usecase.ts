@@ -8,9 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ExpertPuja } from '../../entities/expert-puja.entity';
 import { ProfileExpert } from '../../entities/profile-expert.entity';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../../../shared/types/access-token.payload';
 import { ExpertPujaDto } from '../../dto/expert-puja.dto';
-import { Base64UploadService } from '@/external/cloudinary';
+import { Base64UploadService } from '../../../../../../external/cloudinary';
 import { ExpertGateway } from '../../gateways/expert.gateway';
 import sharp from 'sharp';
 
@@ -146,21 +146,17 @@ export class UpsertPujaUseCase {
 
     try {
       if (Array.isArray(plain.pujas)) {
-        plain.pujas = (plain.pujas as unknown[]).map(
-          (p: Record<string, unknown>) => {
-            const { expert: _expert, ...rest } = p;
-            return rest;
-          },
-        );
+        plain.pujas = profile.pujas.map((p) => {
+          const { expert: _expert, ...rest } = p;
+          return rest;
+        });
       }
 
       if (Array.isArray(plain.addresses)) {
-        plain.addresses = (plain.addresses as unknown[]).map(
-          (a: Record<string, unknown>) => {
-            const { profile_expert: _pe, profile_client: _pc, ...rest } = a;
-            return rest;
-          },
-        );
+        plain.addresses = profile.addresses.map((a) => {
+          const { profile_expert: _pe, ...rest } = a;
+          return rest;
+        });
       }
 
       plain.languages = profile.languages

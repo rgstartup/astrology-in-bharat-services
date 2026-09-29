@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   Entity,
@@ -6,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ExpertAccount } from '../../account/entities/account.entity';
-import { Product } from '@/internal/commerce/product/entities/product.entity';
+import { Product } from '../../../../commerce/product/entities/product.entity';
 import { ExpertProductRelationType } from '../enum/expert-product-relation-type.enum';
 
 @Entity({ schema: 'expert', name: 'expert_products' })
@@ -19,14 +20,14 @@ export class ExpertProducts {
 
   @ManyToOne(() => ExpertAccount)
   @JoinColumn({ name: 'expert_id' })
-  expert!: ExpertAccount;
+  expert!: Relation<ExpertAccount>;
 
   @Column({ name: 'product_id' })
   product_id: number;
 
   @ManyToOne(() => Product)
   @JoinColumn({ name: 'product_id' })
-  product!: Product;
+  product!: Relation<Product>;
 
   @Column({
     name: 'relation_type',

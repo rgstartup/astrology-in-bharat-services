@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { KundliReport } from '../entities/kundli-report.entity';
-import { ProkeralaService } from '@/external/prokerala/prokerala.service';
+import { ProkeralaService } from '../../../external/prokerala/prokerala.service';
 import { GenerateKundliReportDto } from '../dto/generate-kundli-report.dto';
 
 export interface KundliPersonDetails {

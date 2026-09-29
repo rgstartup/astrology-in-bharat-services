@@ -10,14 +10,14 @@ import {
   Headers,
   BadRequestException,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { RolesGuard } from '@/internal/auth/guards/role.guard';
-import { Roles } from '@/shared/decorators/roles.decorator';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { IUser } from '@/shared/types/access-token.payload';
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { RolesGuard } from '../../../auth/guards/role.guard';
+import { Roles } from '../../../../shared/decorators/roles.decorator';
+import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
+import { type IUser } from '../../../../shared/types/access-token.payload';
+import { PaginationDto } from '../../../../shared/dto/pagination.dto';
 import { AgentService } from '../agent.service';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../../finance/wallet/wallet.service';
 
 // New DTO imports
 import { GetAgentStatsDto } from '../dto/get-agent-stats.dto';

@@ -8,12 +8,12 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { RolesGuard } from '@/internal/auth/guards/role.guard';
-import { Roles } from '@/shared/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { RolesGuard } from '../../../auth/guards/role.guard';
+import { Roles } from '../../../../shared/decorators/roles.decorator';
 import { EarningsService } from '../earnings.service';
 import {
-  CalculateEarningsInput,
+  type CalculateEarningsInput,
   CreateEarningPolicyDto,
   QueryEarningSplitsDto,
 } from '../dto';

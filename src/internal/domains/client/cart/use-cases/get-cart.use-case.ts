@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { carts } from '@/core/drizzledb/schema';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { carts } from '../../../../../core/drizzledb/schema';
 import { toCartDetails } from '../cart.mapper';
 
 @Injectable()

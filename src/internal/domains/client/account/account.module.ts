@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientAccount } from './entities/account.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { Address } from '@/shared/address/address.entity';
-import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
+import { User } from '../../../users/entities/user.entity';
+import { Address } from '../../../../shared/address/address.entity';
+import { CloudinaryModule } from '../../../../external/cloudinary/cloudinary.module';
 import { AccountController } from './controllers/account.controller';
 import { AccountService } from './account.service';
 import { GetAccountUseCase } from './use-cases/get-account.usecase';

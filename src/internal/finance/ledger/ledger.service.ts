@@ -13,7 +13,7 @@ export {
   GeneralLedgerEventType,
   GeneralLedgerEntryType,
   GeneralLedgerPartyType,
-  QueryGeneralLedgerDto,
+  type QueryGeneralLedgerDto,
 };
 
 @Injectable()

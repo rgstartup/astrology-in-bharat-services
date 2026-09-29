@@ -14,10 +14,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImageUploadService, VideoUploadService } from '@/external/cloudinary';
-import { CurrentExpert } from '@/internal/domains/expert/auth/decorators/current-expert.decorator';
-import { IExpert } from '@/shared/types/access-token.payload';
-import { Public } from '@/shared/decorators/public.decorator';
+import { ImageUploadService, VideoUploadService } from '../../../../../external/cloudinary';
+import { CurrentExpert } from '../../auth/decorators/current-expert.decorator';
+import { type IExpert } from '../../../../../shared/types/access-token.payload';
+import { Public } from '../../../../../shared/decorators/public.decorator';
 import { ExpertJwtAuthGuard } from '../../auth/guards/auth.guard';
 import { ExpertAccountService } from '../account.service';
 import { UpdateExpertAccountDto } from '../dto/request/account.dto';

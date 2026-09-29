@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 import { QueryRunner } from 'typeorm';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
-import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 
 @Injectable()
 export class AgentAuthProfileCreationStrategy

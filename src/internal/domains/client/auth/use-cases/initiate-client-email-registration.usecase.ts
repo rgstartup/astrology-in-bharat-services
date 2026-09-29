@@ -1,16 +1,16 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { createHash, randomInt } from 'crypto';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
-import { otps, users, type UserRow } from '@/core/drizzledb/schema';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '../../../../../core/drizzledb/drizzle.types';
+import { otps, users, type UserRow } from '../../../../../core/drizzledb/schema';
+import { type IHasher, IHasherToken } from '../../../../../shared/contracts/hasher.contract';
 import { InitiateClientRegisterDto } from '../dto/client-register.dto';
 import { and, eq } from 'drizzle-orm';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
-import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { OtpPurposeEnum } from '@/internal/auth/enums/otp-purpose.enum';
+import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
+import { PlatformEnum } from '../../../../users/enums/Platform.enum';
+import { RoleEnum } from '../../../../users/enums/Role.enum';
+import { OtpPurposeEnum } from '../../../../auth/enums/otp-purpose.enum';
 
 @Injectable()
 export class InitiateClientEmailRegistrationUseCase {

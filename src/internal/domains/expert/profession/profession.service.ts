@@ -6,7 +6,7 @@ import {
   GetProfessionsDto,
   SyncExpertProfessionsDto,
 } from './dto/request/profession.dto';
-import { IExpert } from '@/shared/types/access-token.payload';
+import { IExpert } from '../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class ProfessionService {

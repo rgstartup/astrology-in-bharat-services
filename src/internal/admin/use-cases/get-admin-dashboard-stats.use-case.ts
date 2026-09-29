@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ChatSession } from '@/internal/consultation/chat/entities/chat-session.entity';
-import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { User } from '../../users/entities/user.entity';
+import { RoleEnum } from '../../users/enums/Role.enum';
+import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { ChatSession } from '../../consultation/chat/entities/chat-session.entity';
+import { Transaction } from '../../finance/wallet/entities/transaction.entity';
 import {
   TransactionType,
   TransactionPurpose,
-} from '@/internal/finance/wallet/enum';
+} from '../../finance/wallet/enum';
 
 @Injectable()
 export class GetAdminDashboardStatsUseCase {

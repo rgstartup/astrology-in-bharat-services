@@ -8,17 +8,17 @@ import { DataSource } from 'typeorm';
 import { Order } from '../entities/order.entity';
 import { OrderStatus } from '../enum';
 import { OrderItem } from '../entities/order-item.entity';
-import { Cart } from '@/internal/commerce/cart/entities/cart.entity';
-import { CartItem } from '@/internal/commerce/cart/entities/cart-item.entity';
-import { NotificationGateway } from '@/internal/notification/gateways/notification.gateway';
-import { Coupon } from '@/internal/commerce/coupon/entities/coupon.entity';
+import { Cart } from '../../cart/entities/cart.entity';
+import { CartItem } from '../../cart/entities/cart-item.entity';
+import { NotificationGateway } from '../../../notification/gateways/notification.gateway';
+import { Coupon } from '../../coupon/entities/coupon.entity';
 import { CouponStatus, CouponType } from '../../coupon/enum';
-import { UserCoupon } from '@/internal/commerce/coupon/entities/user-coupon.entity';
-import { Product } from '@/internal/commerce/product/entities/product.entity';
+import { UserCoupon } from '../../coupon/entities/user-coupon.entity';
+import { Product } from '../../product/entities/product.entity';
 import { CreateOrderDto } from '../dto/create-order.dto';
-import { ClientWalletService } from '@/internal/domains/client/wallet/wallet.service';
-import { ClientTransactionPurpose } from '@/internal/domains/client/wallet/enum';
-import { SystemSetting } from '@/internal/admin/entities/system-setting.entity';
+import { ClientWalletService } from '../../../domains/client/wallet/wallet.service';
+import { ClientTransactionPurpose } from '../../../domains/client/wallet/enum';
+import { SystemSetting } from '../../../admin/entities/system-setting.entity';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {

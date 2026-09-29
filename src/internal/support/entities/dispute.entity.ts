@@ -7,8 +7,8 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
 
 export enum DisputeStatus {
   OPEN = 'open',

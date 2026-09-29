@@ -14,23 +14,23 @@ import {
   ParseIntPipe,
   BadRequestException,
 } from '@nestjs/common';
-import { UsersService } from '@/internal/users/users.service';
+import { UsersService } from '../../users/users.service';
 import { AdminService } from '../admin.service';
-import { Roles } from '@/shared/decorators/roles.decorator';
-import { RolesGuard } from '@/internal/auth/guards/role.guard';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { AdminPermissionGuard } from '@/shared/guards/admin-permission.guard';
-import { RequirePermissions } from '@/shared/decorators/permissions.decorator';
-import { AdminPermission } from '@/internal/users/enums/AdminPermission.enum';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
-import { CouponService } from '@/internal/commerce/coupon/coupon.service';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { IUser } from '@/shared/types/access-token.payload';
+import { Roles } from '../../../shared/decorators/roles.decorator';
+import { RolesGuard } from '../../auth/guards/role.guard';
+import { JwtAuthGuard } from '../../auth/guards/auth.guard';
+import { AdminPermissionGuard } from '../../../shared/guards/admin-permission.guard';
+import { RequirePermissions } from '../../../shared/decorators/permissions.decorator';
+import { AdminPermission } from '../../users/enums/AdminPermission.enum';
+import { ChatService } from '../../consultation/chat/chat.service';
+import { CouponService } from '../../commerce/coupon/coupon.service';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { type IUser } from '../../../shared/types/access-token.payload';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
-import { ReviewsService } from '@/internal/consultation/reviews/reviews.service';
-import { RoleEnum, RolePipe } from '@/internal/users/enums/Role.enum';
-import { MerchantStatus } from '@/internal/domains/merchant/account/entities/account.entity';
+import { ReviewsService } from '../../consultation/reviews/reviews.service';
+import { RoleEnum, RolePipe } from '../../users/enums/Role.enum';
+import { MerchantStatus } from '../../domains/merchant/account/entities/account.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { GetReviewsDTO } from '../dto/get-reviews.dto';
 import { CreateAgentDto } from '../dto/create-agent.dto';

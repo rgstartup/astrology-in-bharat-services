@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileAgent } from '../entities/profile-agent.entity';
 import {
   Notification,
   NotificationType,
-} from '@/internal/notification/entities/notification.entity';
-import { NotificationGateway } from '@/internal/notification/gateways/notification.gateway';
-import { DatabaseService } from '@/core/database/database.service';
-import { IUser } from '@/shared/types/access-token.payload';
+} from '../../../notification/entities/notification.entity';
+import { NotificationGateway } from '../../../notification/gateways/notification.gateway';
+import { DatabaseService } from '../../../../core/database/database.service';
+import { IUser } from '../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class UpdateAgentProfileUseCase {

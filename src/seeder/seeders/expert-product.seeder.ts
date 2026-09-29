@@ -1,9 +1,9 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
-import { Product } from '@/internal/commerce/product/entities/product.entity';
-import { ExpertProducts } from '@/internal/domains/expert/products/entities/expert-product.entity';
-import { ExpertProductRelationType } from '@/internal/domains/expert/products/enum/expert-product-relation-type.enum';
+import { ExpertAccount } from '../../internal/domains/expert/account/entities/account.entity';
+import { Product } from '../../internal/commerce/product/entities/product.entity';
+import { ExpertProducts } from '../../internal/domains/expert/products/entities/expert-product.entity';
+import { ExpertProductRelationType } from '../../internal/domains/expert/products/enum/expert-product-relation-type.enum';
 
 interface ExpertProductSeedPair {
   expertEmail: string;

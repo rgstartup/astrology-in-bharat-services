@@ -4,12 +4,12 @@ import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'node:crypto';
 import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { Session } from '../entities/session.entity';
 import { ConfigService } from '@nestjs/config';
-import { AuthConfig } from '@/config/auth.config';
-import { BaseService } from '@/shared/services/transaction.service';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
+import { AuthConfig } from '../../../config/auth.config';
+import { BaseService } from '../../../shared/services/transaction.service';
+import { type IHasher, IHasherToken } from '../../../shared/contracts/hasher.contract';
 
 @Injectable()
 export class TokenService extends BaseService<Session> {

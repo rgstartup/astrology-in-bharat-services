@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../entities/product.entity';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { ProductNotFoundError } from '../errors/product.errors';
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { QueryDeepPartialEntity } from 'typeorm';
 
 @Injectable()
 export class UpdateProductUseCase {

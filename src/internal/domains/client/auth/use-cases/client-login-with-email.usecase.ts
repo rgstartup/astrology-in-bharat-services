@@ -9,21 +9,21 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { and, eq } from 'drizzle-orm';
 import { createHash, randomInt } from 'crypto';
 import { nanoid } from 'nanoid';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
 import {
   clientAccounts,
   otps,
   sessions,
   users,
   type ClientAccountRow,
-} from '@/core/drizzledb/schema';
-import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { OtpPurposeEnum } from '@/internal/auth/enums/otp-purpose.enum';
+} from '../../../../../core/drizzledb/schema';
+import { PlatformEnum } from '../../../../users/enums/Platform.enum';
+import { RoleEnum } from '../../../../users/enums/Role.enum';
+import { OtpPurposeEnum } from '../../../../auth/enums/otp-purpose.enum';
 import { ClientLoginDto } from '../dto/client-login.dto';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
-import { IAccessTokenPayloadClient } from '@/shared/types/access-token.payload';
+import { type IHasher, IHasherToken } from '../../../../../shared/contracts/hasher.contract';
+import { IAccessTokenPayloadClient } from '../../../../../shared/types/access-token.payload';
 import { TokenCryptoService } from '../services/token-crypto.service';
 
 type LoginUserRow = {

@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
-import { AuthConfig } from '@/config/auth.config';
+import { AuthConfig } from '../../../config/auth.config';
 import { ConfigService } from '@nestjs/config';
-import { IHasherToken, IHasher } from '@/shared/contracts/hasher.contract';
+import { IHasherToken, type IHasher } from '../../../shared/contracts/hasher.contract';
 import { StringValue } from 'ms';
 
 @Injectable()

@@ -9,8 +9,8 @@ import {
   Param,
   ParseIntPipe,
 } from '@nestjs/common';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../auth/guards/auth.guard';
 import { AstrologyService } from '../astrology.service';
 
 // DTO imports

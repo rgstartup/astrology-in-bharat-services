@@ -8,8 +8,8 @@ import { MerchantProductsUseCase } from './use-cases/merchant-products.usecase';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { GetProductsDto } from './dto/get-products.dto';
-import { CreateMerchantProductDto } from '@/internal/domains/merchant/dashboard/dto/create-merchant-product.dto';
-import { MerchantProductStatus } from '@/internal/domains/merchant/dashboard/enum';
+import { CreateMerchantProductDto } from '../../domains/merchant/dashboard/dto/create-merchant-product.dto';
+import { MerchantProductStatus } from '../../domains/merchant/dashboard/enum';
 
 @Injectable()
 export class ProductService {

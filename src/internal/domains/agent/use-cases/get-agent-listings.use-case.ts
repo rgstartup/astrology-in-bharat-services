@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../../core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileAgent } from '../entities/profile-agent.entity';
 import { AgentListing } from '../entities/agent-listing.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { User } from '../../../users/entities/user.entity';
+import { ProfileExpert } from '../../expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../client/account/entities/account.entity';
+import { MerchantAccount } from '../../merchant/account/entities/account.entity';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 import { GetAgentListingsDto } from '../dto/get-agent-listings.dto';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class GetAgentListingsUseCase {

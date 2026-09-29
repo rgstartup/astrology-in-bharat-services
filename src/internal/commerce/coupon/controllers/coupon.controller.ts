@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
 import { GetMyRewardsUseCase } from '../use-cases/get-my-rewards.use-case';
 import { ApplyCouponUseCase } from '../use-cases/apply-coupon.use-case';
 import { ApplyCouponDto } from '../dto/apply-coupon.dto';

@@ -1,4 +1,4 @@
-import { DomainError } from '@/shared/types/domain.error';
+import { DomainError } from '../../../../../shared/types/domain.error';
 
 export class ProductAlreadyInWishlistError extends DomainError {
   readonly code = 'PRODUCT_ALREADY_IN_WISHLIST';

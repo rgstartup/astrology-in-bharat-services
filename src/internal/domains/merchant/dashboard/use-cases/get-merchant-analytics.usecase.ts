@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OrderService } from '@/internal/commerce/order/order.service';
-import { ProductService } from '@/internal/commerce/product/product.service';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { OrderService } from '../../../../commerce/order/order.service';
+import { ProductService } from '../../../../commerce/product/product.service';
+import { MerchantAccount } from '../../account/entities/account.entity';
 
 @Injectable()
 export class GetMerchantAnalyticsUseCase {

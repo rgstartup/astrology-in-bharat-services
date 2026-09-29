@@ -1,4 +1,4 @@
-import emailConfig from '@/config/email.config';
+import emailConfig from '../../config/email.config';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { NodemailerProvider } from './nodemailer.provider';

@@ -3,8 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AuthConfig } from '@/config/auth.config';
-import { createGoogleStrategyOptions } from '@/internal/auth/strategies/abstract/goole-auth.options';
+import { AuthConfig } from '../../../../../config/auth.config';
+import { createGoogleStrategyOptions } from '../../../../auth/strategies/abstract/goole-auth.options';
 import { ClientAuthService } from '../auth.service';
 
 export interface ClientGoogleAuthResult {

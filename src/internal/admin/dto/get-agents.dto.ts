@@ -1,12 +1,12 @@
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { PaginationDto } from '../../../shared/dto/pagination.dto';
 import { IsOptional, IsString } from 'class-validator';
 
 export class GetAgentsDto extends PaginationDto {
   @IsOptional()
   @IsString()
-  override search?: string;
+  declare search?: string;
 
   @IsOptional()
   @IsString()
-  override status?: string;
+  declare status?: string;
 }

@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import {
   Injectable,
   NotFoundException,
@@ -16,7 +17,7 @@ export class AdminTerminateSessionUseCase {
     @InjectRepository(ChatSession)
     private sessionRepo: Repository<ChatSession>,
     @Inject(forwardRef(() => ChatGateway))
-    private chatGateway: ChatGateway,
+    private chatGateway: DeferredDependency<ChatGateway>,
   ) {}
 
   async execute(

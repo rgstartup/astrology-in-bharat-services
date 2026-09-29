@@ -7,11 +7,11 @@ import {
   UpdateDateColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ExpertAccount } from '../../../domains/expert/account/entities/account.entity';
+import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
+import { ColumnNumericTransformer } from '../../../../shared/transformers/numeric.transformer';
 
 export type WalletKey = 'client_id' | 'expert_id' | 'merchant_id' | 'agent_id';
 

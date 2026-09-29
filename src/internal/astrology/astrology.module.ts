@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AstrologyController } from './controllers/astrology.controller';
-import { ProkeralaModule } from '@/external/prokerala/prokerala.module';
+import { ProkeralaModule } from '../../external/prokerala/prokerala.module';
 import { AstrologyService } from './astrology.service';
 import { GetGunaMilanUseCase } from './use-cases/get-guna-milan.use-case';
 import { GetDailyHoroscopeUseCase } from './use-cases/get-daily-horoscope.use-case';

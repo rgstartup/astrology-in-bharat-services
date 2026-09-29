@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -7,12 +8,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ColumnNumericTransformer } from '../../../../shared/transformers/numeric.transformer';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
 import {
   PricingStatus,
   PricingTargetAudience,
-} from '@/internal/domains/expert/shared/enums/pricing.enum';
+} from '../../../domains/expert/shared/enums/pricing.enum';
 import { ProductVariant } from './variants.entity';
 
 @Entity({ schema: 'commerce', name: 'product_variant_pricing' })
@@ -35,7 +36,7 @@ export class ProductVariantPricing {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'variant_id' })
-  variant!: ProductVariant;
+  variant!: Relation<ProductVariant>;
 
   @Column({ type: 'int', nullable: true, name: 'client_id' })
   client_id!: number | null;

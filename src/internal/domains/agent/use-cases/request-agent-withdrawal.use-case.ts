@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import {
   Injectable,
   BadRequestException,
@@ -7,9 +8,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileAgent } from '../entities/profile-agent.entity';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../../finance/wallet/wallet.service';
 import { RequestAgentWithdrawalDto } from '../dto/request-agent-withdrawal.dto';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class RequestAgentWithdrawalUseCase {
@@ -17,7 +18,7 @@ export class RequestAgentWithdrawalUseCase {
     @InjectRepository(ProfileAgent)
     private readonly profileAgentRepo: Repository<ProfileAgent>,
     @Inject(forwardRef(() => WalletService))
-    private readonly walletService: WalletService,
+    private readonly walletService: DeferredDependency<WalletService>,
   ) {}
 
   async execute(

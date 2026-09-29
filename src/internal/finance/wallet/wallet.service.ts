@@ -21,11 +21,11 @@ import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-sta
 import { GetAdminWithdrawalStatsUseCase } from './use-cases/get-admin-withdrawal-stats.use-case';
 import { GetMerchantTransactionsUseCase } from './use-cases/get-merchant-transactions.use-case';
 import { GetAdminRevenueTrendUseCase } from './use-cases/get-admin-revenue-trend.use-case';
-import { ResolveCommissionUseCase } from '@/internal/finance/commissions/use-cases/resolve-commission.use-case';
+import { ResolveCommissionUseCase } from '../commissions/use-cases/resolve-commission.use-case';
 import {
   CreateCommissionSplitUseCase,
   CommissionSplitInput,
-} from '@/internal/finance/commissions/use-cases/create-commission-split.use-case';
+} from '../commissions/use-cases/create-commission-split.use-case';
 import { TransactionPurpose } from './enum';
 import { WalletKey } from './entities/wallet.entity';
 import { WithdrawalStatus } from './enum';
@@ -33,14 +33,14 @@ import {
   CommissionAppliesRole,
   CommissionEventType,
   CommissionType,
-} from '@/internal/finance/commissions/entities/commission-rule.entity';
-import { SystemSetting } from '@/internal/admin/entities/system-setting.entity';
+} from '../commissions/entities/commission-rule.entity';
+import { SystemSetting } from '../../admin/entities/system-setting.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 
 export { CommissionEventType, CommissionType, CommissionAppliesRole };
-export { WalletKey };
+export { type WalletKey };
 
 @Injectable()
 export class WalletService {

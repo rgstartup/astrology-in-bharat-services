@@ -1,4 +1,4 @@
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
 import { CallSession } from '../entities/call-session.entity';
 import { CallSessionStatus } from '../enum';
 import {

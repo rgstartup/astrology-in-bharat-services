@@ -13,11 +13,11 @@ import {
   HttpStatus,
   ParseIntPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { RolesGuard } from '@/internal/auth/guards/role.guard';
-import { Roles } from '@/shared/decorators/roles.decorator';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { ProductService } from '@/internal/commerce/product/product.service';
+import { JwtAuthGuard } from '../../../../auth/guards/auth.guard';
+import { RolesGuard } from '../../../../auth/guards/role.guard';
+import { Roles } from '../../../../../shared/decorators/roles.decorator';
+import { CurrentUser } from '../../../../../shared/decorators/current-user.decorator';
+import { ProductService } from '../../../../commerce/product/product.service';
 import { CreateMerchantProductDto } from '../dto/create-merchant-product.dto';
 import { BulkUpdateStatusDto } from '../dto/bulk-update-status.dto';
 import { GetMerchantProductsDto } from '../dto/get-merchant-products.dto';

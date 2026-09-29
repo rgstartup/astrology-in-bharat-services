@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, DataSource } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
-import { ChatSession } from '@/internal/consultation/chat/entities/chat-session.entity';
-import { ChatSessionStatus } from '@/internal/consultation/chat/enum';
-import { Order } from '@/internal/commerce/order/entities/order.entity';
-import { OrderStatus } from '@/internal/commerce/order/enum';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { User } from '../entities/user.entity';
+import { ChatSession } from '../../consultation/chat/entities/chat-session.entity';
+import { ChatSessionStatus } from '../../consultation/chat/enum';
+import { Order } from '../../commerce/order/entities/order.entity';
+import { OrderStatus } from '../../commerce/order/enum';
+import { RoleEnum } from '../enums/Role.enum';
 
 export interface FilterCriteria {
   minSpending?: number;

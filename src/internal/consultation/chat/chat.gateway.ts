@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -14,7 +15,7 @@ import { Repository } from 'typeorm';
 import { ChatService } from './chat.service';
 import { MessageType, ChatSessionStatus } from './enum';
 import { ChatSession } from './entities/chat-session.entity';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../finance/wallet/wallet.service';
 
 @WebSocketGateway({
   cors: {
@@ -35,9 +36,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     @Inject(forwardRef(() => ChatService))
-    private readonly chatService: ChatService,
+    private readonly chatService: DeferredDependency<ChatService>,
     @Inject(forwardRef(() => WalletService))
-    private readonly walletService: WalletService,
+    private readonly walletService: DeferredDependency<WalletService>,
     @InjectRepository(ChatSession)
     private readonly sessionRepo: Repository<ChatSession>,
   ) {}

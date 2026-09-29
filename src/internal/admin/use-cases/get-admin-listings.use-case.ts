@@ -1,12 +1,13 @@
+import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { AgentService } from '@/internal/domains/agent/agent.service';
+import { AgentService } from '../../domains/agent/agent.service';
 import { GetAdminListingsDto } from '../dto/get-listings.dto';
 
 @Injectable()
 export class GetAdminListingsUseCase {
   constructor(
     @Inject(forwardRef(() => AgentService))
-    private readonly agentService: AgentService,
+    private readonly agentService: DeferredDependency<AgentService>,
   ) {}
 
   async execute(dto?: GetAdminListingsDto) {

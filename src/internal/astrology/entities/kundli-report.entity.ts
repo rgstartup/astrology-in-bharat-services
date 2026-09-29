@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -6,7 +7,7 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../domains/client/account/entities/account.entity';
 
 @Entity({ schema: 'astrology', name: 'kundli_reports' })
 export class KundliReport {
@@ -18,7 +19,7 @@ export class KundliReport {
 
   @ManyToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({ type: 'json' })
   boy_details!: Record<string, any>;

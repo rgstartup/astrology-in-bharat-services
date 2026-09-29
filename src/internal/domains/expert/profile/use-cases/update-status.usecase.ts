@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../../../shared/types/deferred-dependency.type';
 import {
   Injectable,
   Logger,
@@ -5,17 +6,17 @@ import {
   forwardRef,
   ForbiddenException,
 } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../../shared/types/access-token.payload';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../domain/policies/profile.policy';
 import { ExpertStatusChangedEvent } from '../domain/events/profile-events';
 import { ActiveSessionOfflineError } from '../domain/errors/active-session-offline.error';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
-import { ChatSessionStatus } from '@/internal/consultation/chat/enum';
+import { ChatService } from '../../../../consultation/chat/chat.service';
+import { ChatSessionStatus } from '../../../../consultation/chat/enum';
 
 @Injectable()
 export class UpdateStatusUseCase {
@@ -26,7 +27,7 @@ export class UpdateStatusUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly eventEmitter: EventEmitter2,
     @Inject(forwardRef(() => ChatService))
-    private readonly chatService: ChatService,
+    private readonly chatService: DeferredDependency<ChatService>,
   ) {}
 
   async execute(user: IUser, isAvailable: boolean) {

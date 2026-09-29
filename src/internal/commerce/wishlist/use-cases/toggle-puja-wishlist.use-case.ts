@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../entities/wishlist.entity';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
 import { DataSource } from 'typeorm';
-import { ExpertPuja } from '@/internal/domains/expert/profile/entities/expert-puja.entity';
+import { ExpertPuja } from '../../../domains/expert/profile/entities/expert-puja.entity';
 
 @Injectable()
 export class TogglePujaWishlistUseCase {

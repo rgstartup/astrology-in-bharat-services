@@ -1,7 +1,7 @@
 import { Controller, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
+import { type Request } from 'express';
 import { PaymentsService } from '../payments.service';
-import { VerifyPaymentWebhook } from '@/external/payment/decorators/verify-payment-webhook.decorator';
+import { VerifyPaymentWebhook } from '../../../../external/payment/decorators/verify-payment-webhook.decorator';
 
 @Controller({
   path: 'payments/webhook',

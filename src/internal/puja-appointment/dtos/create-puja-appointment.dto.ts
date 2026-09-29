@@ -7,7 +7,7 @@ import {
   IsUUID,
 } from 'class-validator';
 import { PujaMode } from '../entities/puja-appointment.entity';
-import { AddressDto } from '@/shared/address/address.dto';
+import { AddressDto } from '../../../shared/address/address.dto';
 import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
 

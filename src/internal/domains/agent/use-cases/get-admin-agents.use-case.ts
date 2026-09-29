@@ -1,17 +1,18 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { AdminService } from '@/internal/admin/admin.service';
-import { UsersService } from '@/internal/users/users.service';
+import { AdminService } from '../../../admin/admin.service';
+import { UsersService } from '../../../users/users.service';
 import { AgentService } from '../agent.service';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 
 @Injectable()
 export class GetAdminAgentsUseCase {
   constructor(
     private readonly usersService: UsersService,
     @Inject(forwardRef(() => AdminService))
-    private readonly adminService: AdminService,
+    private readonly adminService: DeferredDependency<AdminService>,
     @Inject(forwardRef(() => AgentService))
-    private readonly agentService: AgentService,
+    private readonly agentService: DeferredDependency<AgentService>,
   ) {}
 
   async execute(params: {

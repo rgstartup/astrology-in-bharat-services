@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IMerchant } from '@/shared/types/access-token.payload';
+import { IMerchant } from '../../../../../shared/types/access-token.payload';
 import { MerchantAccount, MerchantStatus } from '../entities/account.entity';
 import { MerchantAccountResponseDto } from '../dto/response/merchant-account-response.dto';
 

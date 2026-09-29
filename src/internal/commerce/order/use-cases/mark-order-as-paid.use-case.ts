@@ -1,17 +1,18 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { Order } from '../entities/order.entity';
 import { OrderStatus } from '../enum';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
-import { Coupon } from '@/internal/commerce/coupon/entities/coupon.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { WalletService } from '../../../finance/wallet/wallet.service';
+import { Coupon } from '../../coupon/entities/coupon.entity';
 import { CouponStatus } from '../../coupon/enum';
-import { UserCoupon } from '@/internal/commerce/coupon/entities/user-coupon.entity';
+import { UserCoupon } from '../../coupon/entities/user-coupon.entity';
 import {
   Notification,
   NotificationType,
-} from '@/internal/notification/entities/notification.entity';
+} from '../../../notification/entities/notification.entity';
 
 @Injectable()
 export class MarkOrderAsPaidUseCase {
@@ -19,7 +20,7 @@ export class MarkOrderAsPaidUseCase {
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
     @Inject(forwardRef(() => WalletService))
-    private walletService: WalletService,
+    private walletService: DeferredDependency<WalletService>,
     private dataSource: DataSource,
   ) {}
 

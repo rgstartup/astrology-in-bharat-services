@@ -9,11 +9,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { NotificationService, ProfileType } from '../notification.service';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
-import { IUser } from '@/shared/types/access-token.payload';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { JwtAuthGuard } from '../../auth/guards/auth.guard';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { CurrentProfile } from '../../../shared/decorators/current-profile.decorator';
+import { type IUser } from '../../../shared/types/access-token.payload';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { GetNotificationsDto } from '../dto/get-notifications.dto';
 
 function deriveProfileType(role: RoleEnum): ProfileType {

@@ -1,15 +1,16 @@
+import type { DeferredDependency } from '../../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { WalletService } from '../../../../finance/wallet/wallet.service';
+import { MerchantAccount } from '../../account/entities/account.entity';
 import { CalculateMerchantEarningsUseCase } from './calculate-merchant-earnings.usecase';
 
 @Injectable()
 export class GetMerchantFinanceStatsUseCase {
   constructor(
     @Inject(forwardRef(() => WalletService))
-    private readonly walletService: WalletService,
+    private readonly walletService: DeferredDependency<WalletService>,
     @InjectRepository(MerchantAccount)
     private readonly merchantRepo: Repository<MerchantAccount>,
     private readonly calculateEarnings: CalculateMerchantEarningsUseCase,

@@ -3,7 +3,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { IExpert } from '@/shared/types/access-token.payload';
+import { IExpert } from '../../../../../shared/types/access-token.payload';
 
 export const CurrentExpert = createParamDecorator(
   <T extends keyof IExpert | undefined>(

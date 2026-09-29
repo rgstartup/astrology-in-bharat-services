@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -9,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ExpertAccount } from './account.entity';
-import { AstrologyService } from '@/internal/astrology/entities/astrology-service.entity';
+import { AstrologyService } from '../../../../astrology/entities/astrology-service.entity';
 
 @Entity({ schema: 'expert', name: 'expert_astrology_services' })
 @Unique(['expert_id', 'service_id'])
@@ -21,7 +22,7 @@ export class ExpertAstrologyService {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'expert_id' })
-  expert!: ExpertAccount;
+  expert!: Relation<ExpertAccount>;
 
   @Column({ type: 'int' })
   expert_id!: number;
@@ -31,7 +32,7 @@ export class ExpertAstrologyService {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'service_id' })
-  service!: AstrologyService;
+  service!: Relation<AstrologyService>;
 
   @Column({ type: 'int' })
   service_id!: number;

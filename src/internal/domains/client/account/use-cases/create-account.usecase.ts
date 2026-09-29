@@ -1,9 +1,9 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { clientAccounts, users } from '@/core/drizzledb/schema';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { clientAccounts, users } from '../../../../../core/drizzledb/schema';
 import { toClientAccountResponse } from '../account.mapper';
 import { CreateClientAccountDto } from '../dto/account.dto';
 

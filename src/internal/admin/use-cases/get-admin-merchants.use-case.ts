@@ -1,13 +1,14 @@
+import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { MerchantAccountService } from '@/internal/domains/merchant/account/account.service';
+import { MerchantAccountService } from '../../domains/merchant/account/account.service';
 import { GetAdminMerchantsDto } from '../dto/get-merchants.dto';
-import { MerchantStatus } from '@/internal/domains/merchant/account/entities/account.entity';
+import { MerchantStatus } from '../../domains/merchant/account/entities/account.entity';
 
 @Injectable()
 export class GetAdminMerchantsUseCase {
   constructor(
     @Inject(forwardRef(() => MerchantAccountService))
-    private readonly merchantService: MerchantAccountService,
+    private readonly merchantService: DeferredDependency<MerchantAccountService>,
   ) {}
 
   async execute(dto: GetAdminMerchantsDto) {

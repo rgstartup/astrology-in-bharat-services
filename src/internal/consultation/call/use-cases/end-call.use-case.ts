@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import {
   Injectable,
   Inject,
@@ -12,40 +13,40 @@ import { CallGateway } from '../call.gateway';
 import { CallPolicy } from '../policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallEndedEvent } from '../events/call.events';
-import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { Transaction } from '../../../finance/wallet/entities/transaction.entity';
 import {
   TransactionType,
   TransactionPurpose,
-} from '@/internal/finance/wallet/enum';
-import { Wallet } from '@/internal/finance/wallet/entities/wallet.entity';
-import { SystemSetting } from '@/internal/admin/entities/system-setting.entity';
+} from '../../../finance/wallet/enum';
+import { Wallet } from '../../../finance/wallet/entities/wallet.entity';
+import { SystemSetting } from '../../../admin/entities/system-setting.entity';
 import {
   CommissionRule,
   CommissionType,
   CommissionEventType,
   CommissionAppliesRole,
   CommissionRateType,
-} from '@/internal/finance/commissions/entities/commission-rule.entity';
+} from '../../../finance/commissions/entities/commission-rule.entity';
 import {
   CommissionSplit,
   SplitReferenceType,
-} from '@/internal/finance/commissions/entities/commission-split.entity';
-import { CommissionTier } from '@/internal/finance/commissions/entities/commission-tier.entity';
+} from '../../../finance/commissions/entities/commission-split.entity';
+import { CommissionTier } from '../../../finance/commissions/entities/commission-tier.entity';
 
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
-import { generateTransactionNo } from '@/shared/utils/transaction-no.util';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
+} from '../../../finance/ledger/entities/general-ledger-entry.entity';
+import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
+import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
 import {
   Notification,
   NotificationType,
-} from '@/internal/notification/entities/notification.entity';
-import { User } from '@/internal/users/entities/user.entity';
+} from '../../../notification/entities/notification.entity';
+import { User } from '../../../users/entities/user.entity';
 
 import { EndCallDto } from '../dto/end-call.dto';
 
@@ -55,9 +56,9 @@ export class EndCallUseCase {
     @InjectRepository(CallSession)
     private readonly sessionRepo: Repository<CallSession>,
     @Inject(forwardRef(() => ExpertProfileService))
-    private readonly expertProfileService: ExpertProfileService,
+    private readonly expertProfileService: DeferredDependency<ExpertProfileService>,
     @Inject(forwardRef(() => CallGateway))
-    private readonly callGateway: CallGateway,
+    private readonly callGateway: DeferredDependency<CallGateway>,
     private readonly ledgerQueueService: LedgerQueueService,
     private readonly dataSource: DataSource,
     private readonly eventEmitter: EventEmitter2,

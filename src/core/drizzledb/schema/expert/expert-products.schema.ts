@@ -2,7 +2,7 @@ import { integer, pgEnum, pgSchema, serial } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { expertAccounts } from './expert-account.schema';
 import { products } from '../commerce/product/products.schema';
-import { ExpertProductRelationType } from '@/internal/domains/expert/products/enum/expert-product-relation-type.enum';
+import { ExpertProductRelationType } from '../../../../internal/domains/expert/products/enum/expert-product-relation-type.enum';
 
 const expertSchema = pgSchema('expert');
 

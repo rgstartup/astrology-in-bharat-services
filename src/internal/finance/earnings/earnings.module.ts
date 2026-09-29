@@ -7,7 +7,7 @@ import { GetEarningSplitsUseCase } from './use-cases/get-earning-splits.use-case
 import { ManageEarningPoliciesUseCase } from './use-cases/manage-earning-policies.use-case';
 import { EarningsService } from './earnings.service';
 import { EarningsController } from './controllers/earnings.controller';
-import { QueueModule } from '@/core/queue/queue.module';
+import { QueueModule } from '../../../core/queue/queue.module';
 
 @Module({
   imports: [

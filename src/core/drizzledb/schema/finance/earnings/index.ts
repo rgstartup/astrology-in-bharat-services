@@ -1,9 +1,12 @@
 export {
-  earningPolicies,
-  earningPoliciesRelations,
   earningEventTypeEnum,
   earningRateTypeEnum,
   earningAppliesRoleEnum,
+} from './earning-enums.schema';
+
+export {
+  earningPolicies,
+  earningPoliciesRelations,
 } from './earning-policies.schema';
 export type {
   EarningPolicyRow,

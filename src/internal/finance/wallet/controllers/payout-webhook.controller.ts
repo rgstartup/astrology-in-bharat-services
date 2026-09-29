@@ -12,7 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import { WalletService } from '../wallet.service';
 import { WithdrawalStatus } from '../enum';
 import { createHmac } from 'crypto';
-import { RazorpayConfig } from '@/config/razorpay.config';
+import { RazorpayConfig } from '../../../../config/razorpay.config';
 
 @Controller('wallet/webhooks/payouts')
 export class PayoutWebhookController {

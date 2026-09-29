@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../../shared/types/access-token.payload';
 import { ExpertGateway } from '../gateways/expert.gateway';
 
 @Injectable()
@@ -49,22 +49,18 @@ export class GetProfileUseCase {
       // Remove circular references from relations to avoid JSON serialization errors
       if (Array.isArray(plain.pujas)) {
         this.logger.log(`Processing ${plain.pujas.length} pujas`);
-        plain.pujas = (plain.pujas as unknown[]).map(
-          (p: Record<string, unknown>) => {
-            const { expert: _expert, ...rest } = p;
-            return rest;
-          },
-        );
+        plain.pujas = profile.pujas.map((p) => {
+          const { expert: _expert, ...rest } = p;
+          return rest;
+        });
       }
 
       if (Array.isArray(plain.addresses)) {
         this.logger.log(`Processing ${plain.addresses.length} addresses`);
-        plain.addresses = (plain.addresses as unknown[]).map(
-          (a: Record<string, unknown>) => {
-            const { profile_expert: _pe, profile_client: _pc, ...rest } = a;
-            return rest;
-          },
-        );
+        plain.addresses = profile.addresses.map((a) => {
+          const { profile_expert: _pe, ...rest } = a;
+          return rest;
+        });
       }
 
       plain.languages = profile.languages

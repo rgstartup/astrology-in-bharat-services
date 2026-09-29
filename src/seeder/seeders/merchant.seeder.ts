@@ -1,14 +1,14 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import * as argon2 from 'argon2';
-import { User } from '@/internal/users/entities/user.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
+import { User } from '../../internal/users/entities/user.entity';
+import { RoleEnum } from '../../internal/users/enums/Role.enum';
+import { PlatformEnum } from '../../internal/users/enums/Platform.enum';
 import {
   MerchantAccount,
   MerchantStatus,
-} from '@/internal/domains/merchant/account/entities/account.entity';
-import { Wallet } from '@/internal/finance/wallet/entities/wallet.entity';
+} from '../../internal/domains/merchant/account/entities/account.entity';
+import { Wallet } from '../../internal/finance/wallet/entities/wallet.entity';
 
 interface MerchantSeedData {
   user: {

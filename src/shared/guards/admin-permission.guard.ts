@@ -11,9 +11,9 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PERMISSIONS_KEY } from '@/shared/decorators/permissions.decorator';
-import { AdminPermission } from '@/internal/users/enums/AdminPermission.enum';
-import { hasRoles, RoleEnum } from '@/internal/users/enums/Role.enum';
+import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
+import { AdminPermission } from '../../internal/users/enums/AdminPermission.enum';
+import { hasRoles, RoleEnum } from '../../internal/users/enums/Role.enum';
 
 interface JwtUser {
   id: string;

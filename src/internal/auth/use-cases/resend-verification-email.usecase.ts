@@ -3,7 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { VerifyEmailEvent } from '../domain/events/verify-email.event';
 import { EmailVerificationPolicy } from '../domain/policies/email-verification.policy';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

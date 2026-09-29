@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AstrologyService } from '../entities/astrology-service.entity';
 import { GetAstrologyServicesDto } from '../dto/get-astrology-services.dto';
-import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../../shared/dto/paginated-response.dto';
 
 @Injectable()
 export class GetAstrologyServicesUseCase {

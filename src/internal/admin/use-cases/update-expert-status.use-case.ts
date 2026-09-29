@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../domains/expert/profile/profile.service';
 import { UpdateExpertStatusDto } from '../dto/update-expert-status.dto';
 
 @Injectable()

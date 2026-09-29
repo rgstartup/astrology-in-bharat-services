@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { Public } from '@/shared/decorators/public.decorator';
+import { Public } from '../../../../shared/decorators/public.decorator';
 import { GetConsultationTopicsUseCase } from '../use-cases/get-consultation-topics.use-case';
 import { GetConsultationTopicsDto } from '../dto/get-consultation-topics.dto';
 

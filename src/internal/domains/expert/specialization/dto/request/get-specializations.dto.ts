@@ -1,6 +1,6 @@
-import ToBoolean from '@/shared/decorators/transform/bool.transform';
-import TrimString from '@/shared/decorators/transform/trim.transform';
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import ToBoolean from '../../../../../../shared/decorators/transform/bool.transform';
+import TrimString from '../../../../../../shared/decorators/transform/trim.transform';
+import { PaginationDto } from '../../../../../../shared/dto/pagination.dto';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -15,7 +15,7 @@ export class GetSpecializationsDto extends PaginationDto {
   @IsOptional()
   @IsString()
   @TrimString()
-  search?: string;
+  declare search?: string;
 
   @IsOptional()
   @Type(() => Number)

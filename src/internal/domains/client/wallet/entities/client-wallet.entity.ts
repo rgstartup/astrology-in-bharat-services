@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -8,8 +9,8 @@ import {
   PrimaryGeneratedColumn,
   Index,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
+import { ClientAccount } from '../../account/entities/account.entity';
+import { ColumnNumericTransformer } from '../../../../../shared/transformers/numeric.transformer';
 
 @Entity({ schema: 'client', name: 'wallets' })
 export class ClientWallet {
@@ -18,7 +19,7 @@ export class ClientWallet {
 
   @OneToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Index({ unique: true })
   @Column({ name: 'client_id', type: 'int', unique: true })

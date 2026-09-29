@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import {
   Injectable,
   Inject,
@@ -9,14 +10,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
 import { ChatSessionStatus } from '../enum';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
-import { Wallet } from '@/internal/finance/wallet/entities/wallet.entity';
-import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
+import { Wallet } from '../../../finance/wallet/entities/wallet.entity';
+import { Transaction } from '../../../finance/wallet/entities/transaction.entity';
 import {
   TransactionType,
   TransactionPurpose,
-} from '@/internal/finance/wallet/enum';
-import { generateTransactionNo } from '@/shared/utils/transaction-no.util';
+} from '../../../finance/wallet/enum';
+import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
 
 @Injectable()
 export class InitiateChatUseCase {
@@ -24,7 +25,7 @@ export class InitiateChatUseCase {
     @InjectRepository(ChatSession)
     private sessionRepo: Repository<ChatSession>,
     @Inject(forwardRef(() => ExpertProfileService))
-    private expertProfileService: ExpertProfileService,
+    private expertProfileService: DeferredDependency<ExpertProfileService>,
     private readonly dataSource: DataSource,
   ) {}
 

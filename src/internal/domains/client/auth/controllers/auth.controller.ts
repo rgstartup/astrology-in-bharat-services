@@ -1,4 +1,4 @@
-import { CookieOptions, Request, Response } from 'express';
+import { CookieOptions, type Request, type Response } from 'express';
 import {
   Controller,
   Post,

@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../internal/users/entities/user.entity';
 
 export const OptionalUser = createParamDecorator(
   <T extends keyof User | undefined>(

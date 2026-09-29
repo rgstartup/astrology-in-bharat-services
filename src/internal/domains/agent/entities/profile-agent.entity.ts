@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -7,7 +8,7 @@ import {
   UpdateDateColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 
 @Entity({ schema: 'agent', name: 'profile' })
 export class ProfileAgent {
@@ -73,7 +74,7 @@ export class ProfileAgent {
 
   @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'int' })
   user_id!: number;

@@ -1,4 +1,5 @@
-import { User } from '@/internal/users/entities/user.entity';
+import type { Relation } from 'typeorm';
+import { User } from '../../../../users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -22,7 +23,7 @@ export class MerchantAccount {
 
   @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ name: 'user_id', type: 'int', unique: true, nullable: true })
   user_id!: number;

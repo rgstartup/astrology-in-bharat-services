@@ -7,9 +7,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
-import { DatabaseService } from '@/core/database/database.service';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
-import { Session } from '@/internal/auth/entities/session.entity';
+import { DatabaseService } from '../../../../../core/database/database.service';
+import { type IHasher, IHasherToken } from '../../../../../shared/contracts/hasher.contract';
+import { Session } from '../../../../auth/entities/session.entity';
 import { MerchantAccount } from '../../account/entities/account.entity';
 import { MerchantTokenCryptoService } from '../services/token-crypto.service';
 

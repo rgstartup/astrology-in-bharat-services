@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -9,7 +10,7 @@ import {
 } from 'typeorm';
 import { ProductVariant } from './variants.entity';
 import { FulfillmentType, DeliveryType } from '../enum';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
+import { ColumnNumericTransformer } from '../../../../shared/transformers/numeric.transformer';
 
 @Entity({ schema: 'commerce', name: 'product_variant_fulfillment' })
 export class ProductFulFillment {
@@ -21,7 +22,7 @@ export class ProductFulFillment {
 
   @OneToOne(() => ProductVariant)
   @JoinColumn({ name: 'variant_id' })
-  variant!: ProductVariant;
+  variant!: Relation<ProductVariant>;
 
   @Column({ type: 'enum', enum: FulfillmentType, name: 'fulfillment_type' })
   fulfillment_type!: FulfillmentType;

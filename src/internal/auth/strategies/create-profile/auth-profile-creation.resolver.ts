@@ -4,13 +4,13 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 import {
   AUTH_PROFILE_CREATION_STRATEGIES,
   AuthProfileCreationStrategy,
   RoleProfileMap,
 } from './auth-profile-creation.strategy';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 
 @Injectable()
 export class AuthProfileCreationResolver {

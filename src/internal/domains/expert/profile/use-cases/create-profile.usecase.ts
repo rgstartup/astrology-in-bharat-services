@@ -2,10 +2,10 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { IUser } from '@/shared/types/access-token.payload';
+import { User } from '../../../../users/entities/user.entity';
+import { IUser } from '../../../../../shared/types/access-token.payload';
 import { CreateProfileExpertDto } from '../dto/profile-expert.dto';
-import { Address } from '@/shared/address/address.entity';
+import { Address } from '../../../../../shared/address/address.entity';
 import { ExpertGateway } from '../gateways/expert.gateway';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
@@ -148,21 +148,17 @@ export class CreateProfileUseCase {
 
     try {
       if (Array.isArray(plain.pujas)) {
-        plain.pujas = (plain.pujas as unknown[]).map(
-          (p: Record<string, unknown>) => {
-            const { expert: _expert, ...rest } = p;
-            return rest;
-          },
-        );
+        plain.pujas = profile.pujas.map((p) => {
+          const { expert: _expert, ...rest } = p;
+          return rest;
+        });
       }
 
       if (Array.isArray(plain.addresses)) {
-        plain.addresses = (plain.addresses as unknown[]).map(
-          (a: Record<string, unknown>) => {
-            const { profile_expert: _pe, profile_client: _pc, ...rest } = a;
-            return rest;
-          },
-        );
+        plain.addresses = profile.addresses.map((a) => {
+          const { profile_expert: _pe, ...rest } = a;
+          return rest;
+        });
       }
 
       plain.languages = profile.languages

@@ -1,19 +1,19 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import {
-  IPaymentGateway,
+  type IPaymentGateway,
   PAYMENT_GATEWAY,
-} from '@/external/payment/payment-gateway.interface';
+} from '../../../../external/payment/payment-gateway.interface';
 import { PaymentOrder, PaymentStatus } from '../entities/payment-order.entity';
 import { GatewayTransaction } from '../entities/gateway-transaction.entity';
 import { GatewayIntent, GatewayName, GatewayTransactionStatus } from '../enums';
 import { CreateOrderDto } from '../dto/create-order.dto';
-import { OrderService } from '@/internal/commerce/order/order.service';
+import { OrderService } from '../../../commerce/order/order.service';
 import { ConfigService } from '@nestjs/config';
-import { RazorpayConfig } from '@/config/razorpay.config';
-import { DatabaseService } from '@/core/database/database.service';
-import { DomainError } from '@/shared/types/domain.error';
+import { RazorpayConfig } from '../../../../config/razorpay.config';
+import { DatabaseService } from '../../../../core/database/database.service';
+import { DomainError } from '../../../../shared/types/domain.error';
 import { PaymentOrderCreationFailedError } from '../domain/errors/payment.errors';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class CreatePaymentOrderUseCase {

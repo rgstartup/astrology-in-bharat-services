@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -18,7 +19,7 @@ export class ExpertPuja {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'expert_id' })
-  expert!: ProfileExpert;
+  expert!: Relation<ProfileExpert>;
 
   @Column({ name: 'expert_id', type: 'int' })
   expert_id!: number;

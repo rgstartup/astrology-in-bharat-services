@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 import { QueryRunner } from 'typeorm';
 import {
   MerchantAccount,
   MerchantStatus,
-} from '@/internal/domains/merchant/account/entities/account.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+} from '../../../domains/merchant/account/entities/account.entity';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 
 @Injectable()
 export class MerchantAuthProfileCreationStrategy

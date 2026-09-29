@@ -8,7 +8,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { AddressTag, AddressType } from '@/core/enums';
+import { AddressTag, AddressType } from '../../../enums';
 import { clientAccounts } from '../client/client-account.schema';
 
 /**

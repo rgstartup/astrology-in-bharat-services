@@ -9,12 +9,12 @@ import { UpdatePujaAppointmentStatusUseCase } from './use-cases/update-puja-appo
 import { GetPujaEarningsUseCase } from './use-cases/get-puja-earnings.use-case';
 import { GetExpertPujasByDateUseCase } from './use-cases/get-expert-pujas-by-date.use-case';
 import { ResolveAppointmentDetailsUseCase } from './use-cases/resolve-appointment-details.use-case';
-import { ProfileModule as ExpertProfileModule } from '@/internal/domains/expert/profile/profile.module';
-import { NotificationModule } from '@/internal/notification/notification.module';
-import { WalletModule } from '@/internal/finance/wallet/wallet.module';
-import { TodosModule } from '@/internal/domains/expert/todos/todos.module';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { QueueModule } from '@/core/queue/queue.module';
+import { ProfileModule as ExpertProfileModule } from '../domains/expert/profile/profile.module';
+import { NotificationModule } from '../notification/notification.module';
+import { WalletModule } from '../finance/wallet/wallet.module';
+import { TodosModule } from '../domains/expert/todos/todos.module';
+import { ClientAccount } from '../domains/client/account/entities/account.entity';
+import { QueueModule } from '../../core/queue/queue.module';
 
 import { PujaAppointmentService } from './puja-appointment.service';
 

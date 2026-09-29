@@ -4,7 +4,7 @@ import { AuthPolicy } from '../domain/policies/auth.policy';
 import { AuthTokenService } from '../services/auth-token.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class LoginWithEmailUseCase {

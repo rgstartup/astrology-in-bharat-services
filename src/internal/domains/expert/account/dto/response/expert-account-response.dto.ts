@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { BaseDto } from '@/shared/dto/base.dto';
+import { BaseDto } from '../../../../../../shared/dto/base.dto';
 
 export class ExpertSpecializationResponseDto extends BaseDto {
   id!: string;

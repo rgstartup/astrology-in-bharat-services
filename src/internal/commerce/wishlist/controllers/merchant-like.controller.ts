@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { WishlistService } from '../wishlist.service';
 import { AddMerchantWishlistDto } from '../dto/add-merchant-wishlist.dto';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
 
 @Controller({
   path: 'merchant-like',

@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -16,7 +17,7 @@ export class Transaction {
 
   @ManyToOne(() => Wallet)
   @JoinColumn({ name: 'wallet_id' })
-  wallet!: Wallet;
+  wallet!: Relation<Wallet>;
 
   @Column({ name: 'wallet_id', type: 'int' })
   wallet_id!: number;

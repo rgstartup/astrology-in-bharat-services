@@ -2,10 +2,10 @@ import twilio from 'twilio';
 import { eq } from 'drizzle-orm';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { clientAccounts } from '@/core/drizzledb/schema';
+import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { clientAccounts } from '../../../../../core/drizzledb/schema';
 
 import { SendPhoneOtpDto } from '../dto/phone-otp.dto';
 

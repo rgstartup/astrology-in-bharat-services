@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { User } from '../../users/entities/user.entity';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { AuthTokenService } from '../services/auth-token.service';
 
 @Injectable()

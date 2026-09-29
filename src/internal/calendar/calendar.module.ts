@@ -8,7 +8,7 @@ import { GetYearlyFestivalsUseCase } from './use-cases/get-yearly-festivals.usec
 import { GetFestivalDetailsUseCase } from './use-cases/get-festival-details.usecase';
 import { PanchangamService } from './services/panchangam.service';
 import { CalendarCache } from './entities/calendar-cache.entity';
-import { ProkeralaModule } from '@/external/prokerala/prokerala.module';
+import { ProkeralaModule } from '../../external/prokerala/prokerala.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CalendarCache]), ProkeralaModule],

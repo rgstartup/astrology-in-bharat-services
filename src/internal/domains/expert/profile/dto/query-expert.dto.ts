@@ -1,5 +1,5 @@
-import TrimString from '@/shared/decorators/transform/trim.transform';
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import TrimString from '../../../../../shared/decorators/transform/trim.transform';
+import { PaginationDto } from '../../../../../shared/dto/pagination.dto';
 import { Type } from 'class-transformer';
 import {
   IsIn,

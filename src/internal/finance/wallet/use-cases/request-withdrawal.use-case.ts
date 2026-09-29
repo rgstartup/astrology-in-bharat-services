@@ -11,16 +11,16 @@ import { Transaction } from '../entities/transaction.entity';
 import { TransactionType, TransactionPurpose } from '../enum';
 import { Wallet, WalletKey } from '../entities/wallet.entity';
 import { Idempotency } from '../entities/idempotency.entity';
-import { NotificationService } from '@/internal/notification/notification.service';
+import { NotificationService } from '../../../notification/notification.service';
 import {
   NotificationType,
   ProfileType,
-} from '@/internal/notification/entities/notification.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { SystemSetting } from '@/internal/admin/entities/system-setting.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
+} from '../../../notification/entities/notification.entity';
+import { RoleEnum } from '../../../users/enums/Role.enum';
+import { SystemSetting } from '../../../admin/entities/system-setting.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
 
 @Injectable()
 export class RequestWithdrawalUseCase {
@@ -360,7 +360,7 @@ export class RequestWithdrawalUseCase {
       // G. Generate Custom IDs (transaction_no and withdrawal_no)
       try {
         const { generateTransactionNo } = await import(
-          '@/shared/utils/transaction-no.util'
+          '../../../../shared/utils/transaction-no.util'
         );
         const rolePrefix =
           walletKey === 'expert_id'

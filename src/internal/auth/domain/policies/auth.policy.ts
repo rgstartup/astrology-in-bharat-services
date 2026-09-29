@@ -1,10 +1,10 @@
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../../users/entities/user.entity';
 import {
   EmailNotVerifiedError,
   RequiredRoleMissingError,
 } from '../errors/email-not-verified.error';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
+import { RoleEnum } from '../../../users/enums/Role.enum';
+import { type IHasher, IHasherToken } from '../../../../shared/contracts/hasher.contract';
 import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()

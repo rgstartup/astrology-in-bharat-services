@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification, ProfileType } from '../entities/notification.entity';
 import { FindOptionsWhere } from 'typeorm';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { GetNotificationsDto } from '../dto/get-notifications.dto';
 
 @Injectable()

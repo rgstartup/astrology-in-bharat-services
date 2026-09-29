@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -9,7 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
-import { Media } from '@/internal/media/entities/media.entity';
+import { Media } from '../../../media/entities/media.entity';
 import { MediaRole } from '../enum';
 import { ProductVariant } from './variants.entity';
 
@@ -25,7 +26,7 @@ export class ProductMedia {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'product_id' })
-  product!: Product;
+  product!: Relation<Product>;
 
   @Column({ name: 'variant_id', nullable: true })
   variant_id!: number | null;
@@ -42,7 +43,7 @@ export class ProductMedia {
 
   @OneToOne(() => Media)
   @JoinColumn({ name: 'media_id' })
-  media!: Media;
+  media!: Relation<Media>;
 
   @Column({ type: 'enum', enum: MediaRole, nullable: true })
   media_role!: MediaRole | null;

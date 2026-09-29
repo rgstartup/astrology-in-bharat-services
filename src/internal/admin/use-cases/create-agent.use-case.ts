@@ -1,12 +1,12 @@
 import { Injectable, ConflictException, Inject } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { randomBytes } from 'crypto';
-import { User } from '@/internal/users/entities/user.entity';
-import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { User } from '../../users/entities/user.entity';
+import { ProfileAgent } from '../../domains/agent/entities/profile-agent.entity';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { CreateAgentDto } from '../dto/create-agent.dto';
-import { ImageUploadService } from '@/external/cloudinary';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
+import { ImageUploadService } from '../../../external/cloudinary';
+import { type IHasher, IHasherToken } from '../../../shared/contracts/hasher.contract';
 
 @Injectable()
 export class CreateAgentUseCase {

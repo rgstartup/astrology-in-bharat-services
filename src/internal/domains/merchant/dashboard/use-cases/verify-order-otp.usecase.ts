@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OrderService } from '@/internal/commerce/order/order.service';
-import { OrderStatus } from '@/internal/commerce/order/enum';
+import { OrderService } from '../../../../commerce/order/order.service';
+import { OrderStatus } from '../../../../commerce/order/enum';
 
 @Injectable()
 export class VerifyOrderOtpUseCase {

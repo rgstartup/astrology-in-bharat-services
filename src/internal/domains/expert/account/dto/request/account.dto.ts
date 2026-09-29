@@ -9,7 +9,7 @@ export class ExpertAccountDto extends CreateProfileExpertDto {
 
   @IsOptional()
   @IsString()
-  avatar?: string;
+  declare avatar?: string;
 
   @IsOptional()
   @IsString()

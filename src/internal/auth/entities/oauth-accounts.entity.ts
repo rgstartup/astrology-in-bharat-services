@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -5,7 +6,7 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity({
   schema: 'auth',
@@ -26,5 +27,5 @@ export class OAuthAccount {
 
   @ManyToOne(() => User, (u) => u.oauth_accounts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 }

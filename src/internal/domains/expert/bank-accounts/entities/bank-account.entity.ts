@@ -7,7 +7,7 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
+import { ExpertAccount } from '../../account/entities/account.entity';
 
 @Entity({ schema: 'expert', name: 'bank_accounts' })
 export class BankAccount {

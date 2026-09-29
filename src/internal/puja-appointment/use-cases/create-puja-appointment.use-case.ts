@@ -1,4 +1,5 @@
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import {
   Injectable,
   NotFoundException,
@@ -14,12 +15,12 @@ import {
   PujaMode,
 } from '../entities/puja-appointment.entity';
 import { CreatePujaAppointmentDto } from '../dtos/create-puja-appointment.dto';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { NotificationService } from '@/internal/notification/notification.service';
-import { NotificationType } from '@/internal/notification/entities/notification.entity';
-import { ExpertGateway } from '@/internal/domains/expert/profile/gateways/expert.gateway';
-import { IUser } from '@/shared/types/access-token.payload';
+import { ExpertProfileService } from '../../domains/expert/profile/profile.service';
+import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { NotificationService } from '../../notification/notification.service';
+import { NotificationType } from '../../notification/entities/notification.entity';
+import { ExpertGateway } from '../../domains/expert/profile/gateways/expert.gateway';
+import { IUser } from '../../../shared/types/access-token.payload';
 
 @Injectable()
 export class CreatePujaAppointmentUseCase {
@@ -29,7 +30,7 @@ export class CreatePujaAppointmentUseCase {
     @InjectRepository(ClientAccount)
     private readonly clientAccountRepo: Repository<ClientAccount>,
     @Inject(forwardRef(() => ExpertProfileService))
-    private readonly expertProfileService: ExpertProfileService,
+    private readonly expertProfileService: DeferredDependency<ExpertProfileService>,
     private readonly notificationService: NotificationService,
     private readonly expertGateway: ExpertGateway,
   ) {}

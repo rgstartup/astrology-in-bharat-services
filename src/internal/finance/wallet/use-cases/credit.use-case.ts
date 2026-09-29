@@ -3,21 +3,21 @@ import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet, WalletKey } from '../entities/wallet.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { TransactionType, TransactionPurpose } from '../enum';
-import { NotificationService } from '@/internal/notification/notification.service';
-import { NotificationGateway } from '@/internal/notification/gateways/notification.gateway';
+import { NotificationService } from '../../../notification/notification.service';
+import { NotificationGateway } from '../../../notification/gateways/notification.gateway';
 import {
   NotificationType,
   ProfileType,
-} from '@/internal/notification/entities/notification.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { generateTransactionNo } from '@/shared/utils/transaction-no.util';
+} from '../../../notification/entities/notification.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { RoleEnum } from '../../../users/enums/Role.enum';
+import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
-import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
+} from '../../ledger/entities/general-ledger-entry.entity';
+import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
 
 const purposeToLedgerEventType: Record<
   TransactionPurpose,

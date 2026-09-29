@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IMerchant } from '@/shared/types/access-token.payload';
+import { IMerchant } from '../../../../shared/types/access-token.payload';
 import { UpdateMerchantAccountDto } from './dto/request/account.dto';
 import { QueryMerchantDto } from './dto/request/query-merchant.dto';
 import { GetMerchantAccountUseCase } from './use-cases/get-account.usecase';

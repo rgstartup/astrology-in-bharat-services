@@ -10,7 +10,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { PaymentTransactionStatus } from '@/internal/commerce/order/enum';
+import { PaymentTransactionStatus } from '../../../../../internal/commerce/order/enum';
 import { orders } from './order.schema';
 import { orderRefunds } from './order-refund.schema';
 

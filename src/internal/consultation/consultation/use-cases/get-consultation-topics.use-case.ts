@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConsultationTopic } from '../entities/consultation_topic.entity';
 import { GetConsultationTopicsDto } from '../dto/get-consultation-topics.dto';
-import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../../../shared/dto/paginated-response.dto';
 
 @Injectable()
 export class GetConsultationTopicsUseCase {

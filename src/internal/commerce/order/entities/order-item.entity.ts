@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -7,8 +8,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Order } from './order.entity';
-import { Product } from '@/internal/commerce/product/entities/product.entity';
-import { ProductVariant } from '@/internal/commerce/product/entities/variants.entity';
+import { Product } from '../../product/entities/product.entity';
+import { ProductVariant } from '../../product/entities/variants.entity';
 import { OrderShipment } from './order-shipment.entity';
 import { OrderItemStatus, OrderStatus } from '../enum';
 
@@ -19,7 +20,7 @@ export class OrderItem {
 
   @ManyToOne(() => Order, (order) => order.items, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'order_id' })
-  order!: Order;
+  order!: Relation<Order>;
 
   @Column({ name: 'order_id', type: 'int' })
   order_id!: number;

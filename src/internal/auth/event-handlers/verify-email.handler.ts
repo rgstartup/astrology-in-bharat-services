@@ -1,7 +1,7 @@
 ﻿import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
+import { NodeMailerService } from '../../../external/nodemailer/nodemailer.service';
 import { VerifyEmailEvent } from '../domain/events/verify-email.event';
 
 @Injectable()

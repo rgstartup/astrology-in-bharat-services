@@ -6,17 +6,17 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '../../../../../core/drizzledb/drizzle.types';
 import {
   expertAccounts,
   sessions,
   users,
   type ExpertAccountRow,
   type UserRow,
-} from '@/core/drizzledb/schema';
-import { PlatformEnum } from '@/core/enums';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
+} from '../../../../../core/drizzledb/schema';
+import { PlatformEnum } from '../../../../../core/enums';
+import { type IHasher, IHasherToken } from '../../../../../shared/contracts/hasher.contract';
 import { CompleteExpertRegisterDto } from '../dto/expert-register.dto';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';
 

@@ -7,13 +7,13 @@ import { GetEarningsStatsUseCase } from './use-cases/get-earnings-stats.use-case
 import { GetWalletBalanceUseCase } from './use-cases/get-wallet-balance.use-case';
 import { GetWalletTransactionsUseCase } from './use-cases/get-wallet-transactions.use-case';
 import { RequestWithdrawalUseCase } from './use-cases/request-withdrawal.use-case';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
+import { ExpertAccount } from '../account/entities/account.entity';
 import { ExpertAuthModule } from '../auth/auth.module';
-import { WalletModule } from '@/internal/finance/wallet/wallet.module';
+import { WalletModule } from '../../../finance/wallet/wallet.module';
 
-import { ConsultationModule } from '@/internal/consultation/consultation.module';
-import { OrderModule } from '@/internal/commerce/order/order.module';
-import { PujaAppointmentModule } from '@/internal/puja-appointment/puja-appointment.module';
+import { ConsultationModule } from '../../../consultation/consultation.module';
+import { OrderModule } from '../../../commerce/order/order.module';
+import { PujaAppointmentModule } from '../../../puja-appointment/puja-appointment.module';
 
 @Module({
   imports: [

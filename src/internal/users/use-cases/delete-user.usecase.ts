@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../shared/dto/boolean-message.dto';
 import { QueryRunner } from 'typeorm';
 import { UserRepository } from '../repositories/user.repository';
 

@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { DatabaseModule } from '@/core/database/database.module';
-import { ExternalModule } from '@/external/external.module';
-import { QueueModule } from '@/core/queue/queue.module';
-import { JwtModule } from '@/core/jwt/jwt.module';
-import { IHasherToken } from '@/shared/contracts/hasher.contract';
-import { Argon2PasswordHasher } from '@/internal/auth/hashing/argon2-password.hasher';
+import { DatabaseModule } from '../../../../core/database/database.module';
+import { ExternalModule } from '../../../../external/external.module';
+import { QueueModule } from '../../../../core/queue/queue.module';
+import { JwtModule } from '../../../../core/jwt/jwt.module';
+import { IHasherToken } from '../../../../shared/contracts/hasher.contract';
+import { Argon2PasswordHasher } from '../../../auth/hashing/argon2-password.hasher';
 import { ClientAuthController } from './controllers/auth.controller';
 import { ClientAuthService } from './auth.service';
 import { InitiateClientEmailRegistrationUseCase } from './use-cases/initiate-client-email-registration.usecase';

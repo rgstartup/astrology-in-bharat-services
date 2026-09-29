@@ -1,17 +1,17 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../../core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { ProfileAgent } from '../entities/profile-agent.entity';
 import { AgentListing } from '../entities/agent-listing.entity';
 import { GetAgentStatsDto } from '../dto/get-agent-stats.dto';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../shared/types/access-token.payload';
 import {
   CommissionsService,
   CommissionEventType,
   CommissionType,
   CommissionAppliesRole,
-} from '@/internal/finance/commissions/commissions.service';
+} from '../../../finance/commissions/commissions.service';
 
 interface UserStatsRawRow {
   count: string | number;

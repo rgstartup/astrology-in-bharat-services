@@ -31,13 +31,13 @@ export {
   CommissionEventType,
   CommissionType,
   CommissionAppliesRole,
-  CommissionSplitInput,
+  type CommissionSplitInput,
   CreateCommissionRuleDto,
   UpdateCommissionRuleDto,
   QueryCommissionRulesDto,
   QueryCommissionSplitsDto,
   QueryCommissionSplitsSummaryDto,
-  CommissionSplitsSummary,
+  type CommissionSplitsSummary,
 };
 
 @Injectable()

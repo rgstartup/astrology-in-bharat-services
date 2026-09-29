@@ -1,4 +1,4 @@
-import { DomainError } from '@/shared/types/domain.error';
+import { DomainError } from '../../../../shared/types/domain.error';
 
 export class QuoteNotFoundError extends DomainError {
   constructor(id: number | string) {

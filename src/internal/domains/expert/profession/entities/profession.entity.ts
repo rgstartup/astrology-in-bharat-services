@@ -8,7 +8,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Specialization } from '@/internal/domains/expert/specialization/entities/specialization.entity';
+import { Specialization } from '../../specialization/entities/specialization.entity';
 import { ExpertProfession } from './expert-profession.entity';
 
 @Entity({ schema: 'expert', name: 'professions' })

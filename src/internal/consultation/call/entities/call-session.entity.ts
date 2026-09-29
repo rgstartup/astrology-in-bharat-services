@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -7,9 +8,9 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { ColumnNumericTransformer } from '../../../../shared/transformers/numeric.transformer';
 import { CallSessionStatus, CallType } from '../enum';
 
 @Entity({ schema: 'consultations', name: 'call_sessions' })
@@ -19,14 +20,14 @@ export class CallSession {
 
   @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({ type: 'int', name: 'client_id' })
   client_id!: number;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
-  expert!: ProfileExpert;
+  expert!: Relation<ProfileExpert>;
 
   @Column({ type: 'int', name: 'expert_id' })
   expert_id!: number;

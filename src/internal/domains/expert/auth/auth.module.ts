@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { QueueModule } from '@/core/queue/queue.module';
-import { JwtModule } from '@/core/jwt/jwt.module';
-import { IHasherToken } from '@/shared/contracts/hasher.contract';
-import { Argon2PasswordHasher } from '@/internal/auth/hashing/argon2-password.hasher';
+import { QueueModule } from '../../../../core/queue/queue.module';
+import { JwtModule } from '../../../../core/jwt/jwt.module';
+import { IHasherToken } from '../../../../shared/contracts/hasher.contract';
+import { Argon2PasswordHasher } from '../../../auth/hashing/argon2-password.hasher';
 import { ExpertAuthController } from './controllers/auth.controller';
 import { ExpertAuthService } from './auth.service';
 import { ExpertJwtAuthGuard } from './guards/auth.guard';

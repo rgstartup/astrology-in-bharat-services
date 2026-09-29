@@ -7,7 +7,7 @@ import { GetDisputeMessagesUseCase } from './use-cases/get-messages.use-case';
 import { MarkMessagesAsReadUseCase } from './use-cases/mark-as-read.use-case';
 import { CreateDisputeDto } from './dto/create-dispute.dto';
 import { SendDisputeMessageDto } from './dto/send-dispute-message.dto';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../shared/types/access-token.payload';
 import { GetAllDisputesUseCase } from './use-cases/get-all-disputes.use-case';
 import { UpdateDisputeStatusUseCase } from './use-cases/update-dispute-status.use-case';
 

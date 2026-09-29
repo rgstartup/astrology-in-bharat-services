@@ -19,20 +19,20 @@ import { UpdateListingStatusAdminUseCase } from './use-cases/update-listing-stat
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
 
-import { UsersModule } from '@/internal/users/users.module';
-import { WalletModule } from '@/internal/finance/wallet/wallet.module';
+import { UsersModule } from '../users/users.module';
+import { WalletModule } from '../finance/wallet/wallet.module';
 // import { ChatModule } from '@/modules/chat/chat.module';
-import { ProfileModule } from '@/internal/domains/expert/profile/profile.module';
+import { ProfileModule } from '../domains/expert/profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminAuditLog } from './entities/admin-audit-log.entity';
-import { CouponModule } from '@/internal/commerce/coupon/coupon.module';
+import { CouponModule } from '../commerce/coupon/coupon.module';
 import { ChatSession } from '../consultation/chat/entities/chat-session.entity';
-import { ExternalModule } from '@/external/external.module';
+import { ExternalModule } from '../../external/external.module';
 import { User } from '../users/entities/user.entity';
-import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { Transaction } from '../finance/wallet/entities/transaction.entity';
 import { SupportModule } from '../support/support.module';
 import { ProfileExpert } from '../domains/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../domains/client/account/entities/account.entity';
 import { MerchantModule } from '../domains/merchant/merchant.module';
 import { AgentModule } from '../domains/agent/agent.module';
 
@@ -42,13 +42,13 @@ import { PublicStatsController } from './controllers/public-stats.controller';
 import { GetSupportSettingsUseCase } from './use-cases/get-support-settings.usecase';
 import { GetSystemSettingsUseCase } from './use-cases/get-system-settings.use-case';
 import { UpdateSystemSettingUseCase } from './use-cases/update-system-setting.use-case';
-import { CommissionsModule } from '@/internal/finance/commissions/commissions.module';
+import { CommissionsModule } from '../finance/commissions/commissions.module';
 import { ConsultationModule } from '../consultation/consultation.module';
-import { PujaAppointmentModule } from '@/internal/puja-appointment/puja-appointment.module';
-import { OrderModule } from '@/internal/commerce/order/order.module';
+import { PujaAppointmentModule } from '../puja-appointment/puja-appointment.module';
+import { OrderModule } from '../commerce/order/order.module';
 
 import { PublicSettingsController } from './controllers/public-settings.controller';
-import { IHasherToken } from '@/shared/contracts/hasher.contract';
+import { IHasherToken } from '../../shared/contracts/hasher.contract';
 import { Argon2PasswordHasher } from '../auth/hashing/argon2-password.hasher';
 
 // New Use Cases

@@ -1,4 +1,4 @@
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../internal/users/entities/user.entity';
 
 export interface UserWithTokens {
   user: User;

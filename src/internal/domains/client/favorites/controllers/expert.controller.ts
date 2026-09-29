@@ -10,9 +10,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { FavoritesService } from '../favorites.service';
-import { ClientJwtAuthGuard } from '@/internal/domains/client/auth/guards/auth.guard';
+import { ClientJwtAuthGuard } from '../../auth/guards/auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { CurrentClient } from '@/internal/domains/client/auth/decorators/current-client.decorator';
+import { CurrentClient } from '../../auth/decorators/current-client.decorator';
 import { FindFavoriteExpertsDto } from '../dto/favorite-expert.dto';
 @ApiTags('Favorites')
 @ApiBearerAuth('JWT-auth')

@@ -15,9 +15,9 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImageUploadService, VideoUploadService } from '@/external/cloudinary';
-import { Roles } from '@/shared/decorators/roles.decorator';
-import { RolesGuard } from '@/internal/auth/guards/role.guard';
+import { ImageUploadService, VideoUploadService } from '../../../../../external/cloudinary';
+import { Roles } from '../../../../../shared/decorators/roles.decorator';
+import { RolesGuard } from '../../../../auth/guards/role.guard';
 import { ExpertProfileService } from '../profile.service';
 import {
   CreateProfileExpertDto,
@@ -32,11 +32,11 @@ import { UpdateCertificatesExpertDto } from '../dto/update-certificates-expert.d
 import { UpdateDocumentsExpertDto } from '../dto/expert-document.dto';
 import { UpdateExperienceExpertDto } from '../dto/detailed-experience.dto';
 import { QueryExpertDto } from '../dto/query-expert.dto';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { IUser } from '@/shared/types/access-token.payload';
-import { Public } from '@/shared/decorators/public.decorator';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { getErrorMessage } from '@/shared/utils/get-error-message.util';
+import { CurrentUser } from '../../../../../shared/decorators/current-user.decorator';
+import { type IUser } from '../../../../../shared/types/access-token.payload';
+import { Public } from '../../../../../shared/decorators/public.decorator';
+import { JwtAuthGuard } from '../../../../auth/guards/auth.guard';
+import { getErrorMessage } from '../../../../../shared/utils/get-error-message.util';
 
 @Controller({
   path: 'expert',

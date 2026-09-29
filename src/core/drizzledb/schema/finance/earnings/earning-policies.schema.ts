@@ -2,7 +2,6 @@ import {
   boolean,
   integer,
   numeric,
-  pgEnum,
   pgSchema,
   serial,
   timestamp,
@@ -13,27 +12,23 @@ import {
   EarningAppliesRole,
   EarningEventType,
   EarningRateType,
-} from '@/internal/finance/earnings/enum';
+} from '../../../../../internal/finance/earnings/enum';
+import {
+  earningAppliesRoleEnum,
+  earningEventTypeEnum,
+  earningRateTypeEnum,
+} from './earning-enums.schema';
 import { earningTiers } from './earning-tiers.schema';
 import { earningSplits } from './earning-splits.schema';
 import { users } from '../../users/users.schema';
 
+export {
+  earningAppliesRoleEnum,
+  earningEventTypeEnum,
+  earningRateTypeEnum,
+};
+
 const financeSchema = pgSchema('finance');
-
-export const earningEventTypeEnum = pgEnum(
-  'finance_earning_event_type_enum',
-  EarningEventType,
-);
-
-export const earningRateTypeEnum = pgEnum(
-  'finance_earning_rate_type_enum',
-  EarningRateType,
-);
-
-export const earningAppliesRoleEnum = pgEnum(
-  'finance_earning_applies_role_enum',
-  EarningAppliesRole,
-);
 
 /**
  * Drizzle mirror of `EarningPolicy` (`finance.earning_policies` TypeORM entity).

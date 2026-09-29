@@ -1,6 +1,6 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import { EmailQueueService } from '@/core/queue/services/email-queue.service';
+import { EmailQueueService } from '../../../../../core/queue/services/email-queue.service';
 
 export interface ClientRegisteredEventPayload {
   userId: string;

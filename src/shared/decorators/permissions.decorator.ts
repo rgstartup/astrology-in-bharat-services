@@ -3,7 +3,7 @@
 // Ye decorator ek controller method par lagao to specify karo ki kaunsi permission chahiye.
 
 import { SetMetadata } from '@nestjs/common';
-import { AdminPermission } from '@/internal/users/enums/AdminPermission.enum';
+import { AdminPermission } from '../../internal/users/enums/AdminPermission.enum';
 
 export const PERMISSIONS_KEY = Symbol('handler-permissions');
 

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UsersService } from '@/internal/users/users.service';
+import { UsersService } from '../../../users/users.service';
 
-import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
+import { ProfileAgent } from '../entities/profile-agent.entity';
 
 @Injectable()
 export class GetAdminAgentStatsUseCase {

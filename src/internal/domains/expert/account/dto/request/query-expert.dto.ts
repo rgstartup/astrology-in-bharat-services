@@ -1,4 +1,4 @@
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { PaginationDto } from '../../../../../../shared/dto/pagination.dto';
 import { Type } from 'class-transformer';
 import {
   IsArray,

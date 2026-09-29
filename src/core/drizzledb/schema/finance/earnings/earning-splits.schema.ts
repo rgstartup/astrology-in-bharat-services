@@ -7,11 +7,9 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { EarningEventType } from '@/internal/finance/earnings/enum';
-import {
-  earningEventTypeEnum,
-  earningPolicies,
-} from './earning-policies.schema';
+import { EarningEventType } from '../../../../../internal/finance/earnings/enum';
+import { earningEventTypeEnum } from './earning-enums.schema';
+import { earningPolicies } from './earning-policies.schema';
 
 const financeSchema = pgSchema('finance');
 

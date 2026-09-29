@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { User } from '../entities/user.entity';
+import { RoleEnum } from '../enums/Role.enum';
+import { ClientAccount } from '../../domains/client/account/entities/account.entity';
 
 @Injectable()
 export class GetClientStatsUseCase {

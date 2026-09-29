@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RazorpayConfig } from '@/config/razorpay.config';
+import { RazorpayConfig } from '../../../../config/razorpay.config';
 
 @Injectable()
 export class RazorpayPayoutService {

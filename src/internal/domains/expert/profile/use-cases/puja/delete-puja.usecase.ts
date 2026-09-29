@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExpertPuja } from '../../entities/expert-puja.entity';
 import { ProfileExpert } from '../../entities/profile-expert.entity';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class DeletePujaUseCase {

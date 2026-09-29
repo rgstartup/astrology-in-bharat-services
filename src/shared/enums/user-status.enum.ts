@@ -1,1 +1,1 @@
-export { UserStatusEnum } from '@/core/enums';
+export { UserStatusEnum } from '../../core/enums';

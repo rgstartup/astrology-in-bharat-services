@@ -1,10 +1,10 @@
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import {
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager } from 'typeorm';
 import {
@@ -12,30 +12,30 @@ import {
   PujaAppointmentStatus,
 } from '../entities/puja-appointment.entity';
 import { UpdatePujaAppointmentStatusDto } from '../dtos/update-puja-appointment-status.dto';
-import { NotificationService } from '@/internal/notification/notification.service';
-import { NotificationType } from '@/internal/notification/entities/notification.entity';
-import { Wallet } from '@/internal/finance/wallet/entities/wallet.entity';
-import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { NotificationService } from '../../notification/notification.service';
+import { NotificationType } from '../../notification/entities/notification.entity';
+import { Wallet } from '../../finance/wallet/entities/wallet.entity';
+import { Transaction } from '../../finance/wallet/entities/transaction.entity';
 import {
   TransactionType,
   TransactionPurpose,
-} from '@/internal/finance/wallet/enum';
-import { SystemSetting } from '@/internal/admin/entities/system-setting.entity';
+} from '../../finance/wallet/enum';
+import { SystemSetting } from '../../admin/entities/system-setting.entity';
 import {
   CommissionSplit,
   SplitReferenceType,
-} from '@/internal/finance/commissions/entities/commission-split.entity';
-import { generateTransactionNo } from '@/shared/utils/transaction-no.util';
-import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
+} from '../../finance/commissions/entities/commission-split.entity';
+import { generateTransactionNo } from '../../../shared/utils/transaction-no.util';
+import { LedgerQueueService } from '../../../core/queue/services/ledger-queue.service';
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
-import { Todo } from '@/internal/domains/expert/todos/entities/todo.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
-import { User } from '@/internal/users/entities/user.entity';
+} from '../../finance/ledger/entities/general-ledger-entry.entity';
+import { Todo } from '../../domains/expert/todos/entities/todo.entity';
+import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
+import { ProfileAgent } from '../../domains/agent/entities/profile-agent.entity';
+import { User } from '../../users/entities/user.entity';
 
 // Resolved commission interface
 interface ResolvedCommission {

@@ -6,7 +6,7 @@ import {
   LedgerQueueService,
   LEDGER_QUEUE,
 } from './services/ledger-queue.service';
-import { RedisConfig } from '@/config/redis.config';
+import { RedisConfig } from '../../config/redis.config';
 
 @Module({
   imports: [

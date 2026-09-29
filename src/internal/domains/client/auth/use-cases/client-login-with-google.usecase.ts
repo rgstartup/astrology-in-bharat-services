@@ -2,8 +2,8 @@ import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { Profile } from 'passport-google-oauth20';
 import { and, eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '../../../../../core/drizzledb/drizzle.types';
 import {
   clientAccounts,
   media,
@@ -12,10 +12,10 @@ import {
   users,
   type ClientAccountRow,
   type UserRow,
-} from '@/core/drizzledb/schema';
-import { MediaSource } from '@/internal/media/enum';
+} from '../../../../../core/drizzledb/schema';
+import { MediaSource } from '../../../../media/enum';
 import { TokenCryptoService } from '../services/token-crypto.service';
-import { IAccessTokenPayloadClient } from '@/shared/types/access-token.payload';
+import { IAccessTokenPayloadClient } from '../../../../../shared/types/access-token.payload';
 import { ClientOAuthDto } from '../dto/client-oauth-user.dto';
 
 @Injectable()

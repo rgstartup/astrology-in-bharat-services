@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Review } from '../entities/review.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
 
 @Injectable()
 export class UpdateReviewStatusUseCase {

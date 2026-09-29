@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   ManyToOne,
@@ -7,11 +8,11 @@ import {
   Column,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { Product } from '@/internal/commerce/product/entities/product.entity';
-import { ExpertPuja } from '@/internal/domains/expert/profile/entities/expert-puja.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { Product } from '../../product/entities/product.entity';
+import { ExpertPuja } from '../../../domains/expert/profile/entities/expert-puja.entity';
+import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
 
 @Entity({ schema: 'commerce', name: 'wishlists' })
 @Unique(['client', 'product'])
@@ -24,7 +25,7 @@ export class Wishlist {
 
   @ManyToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({ name: 'client_id', type: 'int' })
   client_id!: number;
@@ -54,7 +55,7 @@ export class Wishlist {
     nullable: true,
   })
   @JoinColumn({ name: 'puja_id' })
-  puja!: ExpertPuja;
+  puja!: Relation<ExpertPuja>;
 
   @ManyToOne(() => MerchantAccount, {
     onDelete: 'CASCADE',

@@ -1,12 +1,12 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../core/database/database.service';
 import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { UserRegisteredEvent } from '../domain/events/user-registered.event';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class InitiateEmailRegistrationUseCase {

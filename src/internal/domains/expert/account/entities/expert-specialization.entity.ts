@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -9,7 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ExpertAccount } from './account.entity';
-import { Specialization } from '@/internal/domains/expert/specialization/entities/specialization.entity';
+import { Specialization } from '../../specialization/entities/specialization.entity';
 
 @Entity({ schema: 'expert', name: 'expert_specializations' })
 @Index('UQ_expert_specialization', ['expert', 'specialization'], {
@@ -23,7 +24,7 @@ export class ExpertSpecialization {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'expert_id' })
-  expert!: ExpertAccount;
+  expert!: Relation<ExpertAccount>;
 
   @ManyToOne(
     () => Specialization,
@@ -33,7 +34,7 @@ export class ExpertSpecialization {
     },
   )
   @JoinColumn({ name: 'specialization_id' })
-  specialization!: Specialization;
+  specialization!: Relation<Specialization>;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -10,7 +11,7 @@ import {
 } from 'typeorm';
 import { DiscountType } from '../enum';
 import { ProductVariant } from './variants.entity';
-import { PricingTargetAudience } from '@/internal/domains/expert/shared/enums/pricing.enum';
+import { PricingTargetAudience } from '../../../domains/expert/shared/enums/pricing.enum';
 
 @Entity({ schema: 'commerce', name: 'product_variant_promotions' })
 @Index('IDX_product_variant_promotions_lookup', [
@@ -28,7 +29,7 @@ export class ProductVariantPromotions {
 
   @ManyToOne(() => ProductVariant, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'variant_id' })
-  variant: ProductVariant;
+  variant: Relation<ProductVariant>;
 
   @Column({ name: 'name', type: 'varchar', length: 255 })
   name: string;

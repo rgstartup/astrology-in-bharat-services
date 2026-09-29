@@ -5,7 +5,7 @@ import {
   timestamp,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { MediaSource } from '@/internal/media/enum';
+import { MediaSource } from '../../../../internal/media/enum';
 
 export const contentSchema = pgSchema('content');
 

@@ -6,9 +6,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Product } from '../entities/product.entity';
-import { CreateMerchantProductDto } from '@/internal/domains/merchant/dashboard/dto/create-merchant-product.dto';
-import { MerchantProductStatus } from '@/internal/domains/merchant/dashboard/enum';
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { CreateMerchantProductDto } from '../../../domains/merchant/dashboard/dto/create-merchant-product.dto';
+import { MerchantProductStatus } from '../../../domains/merchant/dashboard/enum';
+import { QueryDeepPartialEntity } from 'typeorm';
 
 type ProductStatus = 'active' | 'draft' | 'out_of_stock';
 

@@ -26,8 +26,8 @@ export default registerAs<Partial<DatabaseConfig>>('database', () => ({
 
 const getDataSourceOptions = (): DataSourceOptions => {
   const baseOptions = {
-    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+    entities: [import.meta.dirname + '/../**/*.entity{.ts,.js}'],
+    migrations: [import.meta.dirname + '/migrations/**/*{.ts,.js}'],
     synchronize: process.env.NODE_ENV !== 'production', // set to false in production
     poolSize: process.env.DB_MAX_CONNECTIONS
       ? parseInt(process.env.DB_MAX_CONNECTIONS, 10)

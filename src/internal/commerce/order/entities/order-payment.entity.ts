@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -21,7 +22,7 @@ export class OrderPayment {
 
   @ManyToOne(() => Order, (order) => order.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'order_id' })
-  order!: Order;
+  order!: Relation<Order>;
 
   @Column({ name: 'payment_method', type: 'varchar', length: 50 })
   payment_method!: string; // 'razorpay' | 'wallet' | 'split' | 'cod'

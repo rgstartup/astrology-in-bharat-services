@@ -6,12 +6,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { DatabaseService } from '@/core/database/database.service';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
-import { Session } from '@/internal/auth/entities/session.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { PlatformEnum } from '@/internal/users/enums/Platform.enum';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { DatabaseService } from '../../../../../core/database/database.service';
+import { type IHasher, IHasherToken } from '../../../../../shared/contracts/hasher.contract';
+import { Session } from '../../../../auth/entities/session.entity';
+import { User } from '../../../../users/entities/user.entity';
+import { PlatformEnum } from '../../../../users/enums/Platform.enum';
+import { RoleEnum } from '../../../../users/enums/Role.enum';
 import { MerchantAccount } from '../../account/entities/account.entity';
 import { CompleteMerchantRegisterDto } from '../dto/merchant-register.dto';
 import { MerchantTokenCryptoService } from '../services/token-crypto.service';

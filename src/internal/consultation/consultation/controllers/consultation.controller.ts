@@ -1,12 +1,12 @@
 import { Controller, Get, Query, UseGuards, Header } from '@nestjs/common';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
-import { IUser } from '@/shared/types/access-token.payload';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
+import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
+import { type IUser } from '../../../../shared/types/access-token.payload';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 import { GetUnifiedHistoryUseCase } from '../use-cases/get-unified-history.use-case';
-import { CallService } from '@/internal/consultation/call/call.service';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
+import { CallService } from '../../call/call.service';
+import { ChatService } from '../../chat/chat.service';
 import { GetUnifiedHistoryDto } from '../dto/get-unified-history.dto';
 import { Post, Param, ParseIntPipe } from '@nestjs/common';
 

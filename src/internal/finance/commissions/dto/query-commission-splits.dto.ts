@@ -7,7 +7,7 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { SplitReferenceType } from '@/internal/finance/commissions/entities/commission-split.entity';
+import { SplitReferenceType } from '../entities/commission-split.entity';
 
 export class QueryCommissionSplitsDto {
   @IsOptional()

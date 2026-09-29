@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { runSeeders } from 'typeorm-extension';
-import { dataSource } from '@/config/db.config';
+import { dataSource } from '../config/db.config';
 import { ensurePostgresSchemasExist } from './utils/ensure-schemas';
 import {
   AdminSeeder,

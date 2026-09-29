@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
 // src/modules/admin/application/use-cases/toggle-user-block.use-case.ts
 // Ye use-case user ko block ya unblock karta hai aur AdminAuditLog mein record karta hai
 // taaki hamesha pata rahe ki kis admin ne kya action liya.
@@ -10,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UsersService } from '@/internal/users/users.service';
+import { UsersService } from '../../users/users.service';
 import { AdminAuditLog } from '../entities/admin-audit-log.entity';
 
 export interface ToggleUserBlockInput {
@@ -24,7 +25,7 @@ export interface ToggleUserBlockInput {
 export class ToggleUserBlockUseCase {
   constructor(
     @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
+    private readonly usersService: DeferredDependency<UsersService>,
 
     @InjectRepository(AdminAuditLog)
     private readonly auditLogRepo: Repository<AdminAuditLog>,

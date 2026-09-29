@@ -14,9 +14,9 @@ import { GetAdminListingsUseCase } from './use-cases/get-admin-listings.use-case
 import { UpdateAdminListingStatusUseCase } from './use-cases/update-admin-listing-status.use-case';
 import { RequestAgentWithdrawalUseCase } from './use-cases/request-agent-withdrawal.use-case';
 
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { PaginationDto } from '../../../shared/dto/pagination.dto';
 import { QueryRunner } from 'typeorm';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../shared/types/access-token.payload';
 
 // New DTO imports
 import { GetAgentStatsDto } from './dto/get-agent-stats.dto';

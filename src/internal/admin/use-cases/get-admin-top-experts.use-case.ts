@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { Transaction } from '../../finance/wallet/entities/transaction.entity';
 
 interface TopExpertRawRow {
   name: string;
@@ -24,7 +24,7 @@ export class GetAdminTopExpertsUseCase {
     // Assuming transactions have a way to link to expert profile id (often via reference_id linking to a session with expert_id)
     // Here we use a query that mimics the previous logic by fetching from the respective session tables joined directly.
 
-    const topExpertsRaw = await this.transactionRepository.manager.query(
+    const topExpertsRaw = await this.transactionRepository.manager.query<TopExpertRawRow[]>(
       `
       SELECT 
           u.name,

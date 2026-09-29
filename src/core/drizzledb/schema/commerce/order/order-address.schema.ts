@@ -7,7 +7,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { AddressType } from '@/shared/enums/address-type.enum';
+import { AddressType } from '../../../../../shared/enums/address-type.enum';
 import { orders } from './order.schema';
 
 const commerceSchema = pgSchema('commerce');

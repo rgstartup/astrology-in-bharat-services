@@ -4,12 +4,12 @@ import { QueryRunner, Repository } from 'typeorm';
 import { EarningSplit } from '../entities/earning-split.entity';
 import { CalculateEarningsUseCase } from './calculate-earnings.use-case';
 import { CalculateEarningsInput } from '../dto/calculate-earnings.dto';
-import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
+import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
+} from '../../ledger/entities/general-ledger-entry.entity';
 import { EarningEventType } from '../enum';
 
 export interface DistributeEarningsInput extends CalculateEarningsInput {

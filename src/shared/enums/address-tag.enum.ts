@@ -1,1 +1,1 @@
-export { AddressTag } from '@/core/enums';
+export { AddressTag } from '../../core/enums';

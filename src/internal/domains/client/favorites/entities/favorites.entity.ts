@@ -1,4 +1,5 @@
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import type { Relation } from 'typeorm';
+import { ClientAccount } from '../../account/entities/account.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -19,7 +20,7 @@ export class Favorites {
 
   @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({ name: 'item_type', type: 'enum', enum: FavoriteItemType })
   item_type!: FavoriteItemType;

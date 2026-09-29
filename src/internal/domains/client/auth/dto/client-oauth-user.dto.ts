@@ -1,5 +1,5 @@
 import { IsEmail, IsOptional, IsString } from 'class-validator';
-import { Profile } from 'passport-google-oauth20';
+import { type Profile } from 'passport-google-oauth20';
 
 export class ClientOAuthDto {
   @IsString()

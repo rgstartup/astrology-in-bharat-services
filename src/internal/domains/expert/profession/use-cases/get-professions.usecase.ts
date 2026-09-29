@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Profession } from '../entities/profession.entity';
 import { GetProfessionsDto } from '../dto/request/profession.dto';
-import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../../../../shared/dto/paginated-response.dto';
 import { ProfessionResponseDto } from '../dto/response/profession-response.dto';
 
 @Injectable()

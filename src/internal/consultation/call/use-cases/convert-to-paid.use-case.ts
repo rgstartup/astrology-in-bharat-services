@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import {
   Injectable,
   BadRequestException,
@@ -8,7 +9,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CallSession } from '../entities/call-session.entity';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../../finance/wallet/wallet.service';
 
 @Injectable()
 export class ConvertToPaidUseCase {
@@ -16,7 +17,7 @@ export class ConvertToPaidUseCase {
     @InjectRepository(CallSession)
     private sessionRepo: Repository<CallSession>,
     @Inject(forwardRef(() => WalletService))
-    private walletService: WalletService,
+    private walletService: DeferredDependency<WalletService>,
   ) {}
 
   async execute(sessionId: number) {

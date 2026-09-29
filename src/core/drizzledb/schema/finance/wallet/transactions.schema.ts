@@ -12,7 +12,7 @@ import { wallets } from './wallets.schema';
 import {
   TransactionPurpose,
   TransactionType,
-} from '@/internal/finance/wallet/enum';
+} from '../../../../../internal/finance/wallet/enum';
 
 const financeSchema = pgSchema('finance');
 

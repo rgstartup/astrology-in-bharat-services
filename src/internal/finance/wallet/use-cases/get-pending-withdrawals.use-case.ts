@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Withdrawal } from '../entities/withdrawal.entity';
 import { WithdrawalStatus } from '../enum';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 
 @Injectable()
 export class GetPendingWithdrawalsUseCase {

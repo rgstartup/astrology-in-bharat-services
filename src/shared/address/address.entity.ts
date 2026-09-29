@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -6,8 +7,8 @@ import {
   Unique,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../internal/domains/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../internal/domains/client/account/entities/account.entity';
 import { AddressTag } from '../enums/address-tag.enum';
 import { AddressType } from '../enums/address-type.enum';
 export { AddressTag, AddressType };
@@ -67,12 +68,12 @@ export class Address {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'profile_expert_id' })
-  profile_expert?: ProfileExpert;
+  profile_expert?: Relation<ProfileExpert>;
 
   @ManyToOne(() => ClientAccount, (profile) => profile.addresses, {
     nullable: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'client_account_id' })
-  client_account?: ClientAccount;
+  client_account?: Relation<ClientAccount>;
 }

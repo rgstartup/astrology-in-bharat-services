@@ -2,10 +2,10 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
-  IPaymentGateway,
+  type IPaymentGateway,
   PAYMENT_GATEWAY,
   WebhookValidationRequest,
-} from '@/external/payment/payment-gateway.interface';
+} from '../../../../external/payment/payment-gateway.interface';
 import { GatewayTransaction } from '../entities/gateway-transaction.entity';
 import { GatewayTransactionStatus } from '../enums/gateway-transaction-status.enum';
 import { VerifyPaymentUseCase } from './verify-payment.use-case';

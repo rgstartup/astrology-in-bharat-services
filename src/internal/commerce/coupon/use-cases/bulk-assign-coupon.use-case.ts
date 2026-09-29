@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../../core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CouponStatus } from '../enum';
 import { Coupon } from '../entities/coupon.entity';
 import { UserCoupon } from '../entities/user-coupon.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
 
 @Injectable()
 export class BulkAssignCouponUseCase {

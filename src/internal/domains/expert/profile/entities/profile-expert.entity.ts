@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Check,
   Column,
@@ -10,9 +11,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { User } from '@/internal/users/entities/user.entity';
-import { Address } from '@/shared/address/address.entity';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
+import { User } from '../../../../users/entities/user.entity';
+import { Address } from '../../../../../shared/address/address.entity';
+import { ColumnNumericTransformer } from '../../../../../shared/transformers/numeric.transformer';
 import { ExpertPuja } from './expert-puja.entity';
 
 @Entity({ schema: 'expert', name: 'profile' })
@@ -24,7 +25,7 @@ export class ProfileExpert {
 
   @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ name: 'user_id', type: 'int' })
   user_id!: number;

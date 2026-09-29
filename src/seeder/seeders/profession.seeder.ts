@@ -1,7 +1,7 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource, In } from 'typeorm';
-import { Profession } from '@/internal/domains/expert/profession/entities/profession.entity';
-import { Specialization } from '@/internal/domains/expert/specialization/entities/specialization.entity';
+import { Profession } from '../../internal/domains/expert/profession/entities/profession.entity';
+import { Specialization } from '../../internal/domains/expert/specialization/entities/specialization.entity';
 
 export class ProfessionSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {

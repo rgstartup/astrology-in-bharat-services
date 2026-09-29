@@ -6,13 +6,13 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
-import { TransactionPurpose } from '@/internal/finance/wallet/enum';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
-import { CouponService } from '@/internal/commerce/coupon/coupon.service';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
+import { WalletService } from '../../../finance/wallet/wallet.service';
+import { ChatService } from '../chat.service';
+import { TransactionPurpose } from '../../../finance/wallet/enum';
+import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
+import { CouponService } from '../../../commerce/coupon/coupon.service';
 import { ConsultationBookDto } from '../dto/consultation-book.dto';
 
 @Controller({

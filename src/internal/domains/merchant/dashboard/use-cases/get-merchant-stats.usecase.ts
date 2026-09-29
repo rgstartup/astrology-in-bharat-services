@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { OrderService } from '@/internal/commerce/order/order.service';
-import { ProductService } from '@/internal/commerce/product/product.service';
+import { OrderService } from '../../../../commerce/order/order.service';
+import { ProductService } from '../../../../commerce/product/product.service';
 import { CalculateMerchantEarningsUseCase } from './calculate-merchant-earnings.usecase';
 
 @Injectable()

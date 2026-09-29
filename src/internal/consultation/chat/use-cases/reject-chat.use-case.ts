@@ -1,9 +1,10 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
 import { ChatSessionStatus } from '../enum';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../../finance/wallet/wallet.service';
 
 @Injectable()
 export class RejectChatUseCase {
@@ -11,7 +12,7 @@ export class RejectChatUseCase {
     @InjectRepository(ChatSession)
     private sessionRepo: Repository<ChatSession>,
     @Inject(forwardRef(() => WalletService))
-    private walletService: WalletService,
+    private walletService: DeferredDependency<WalletService>,
   ) {}
 
   async execute(sessionId: number) {

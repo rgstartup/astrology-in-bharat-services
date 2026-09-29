@@ -12,7 +12,7 @@ import { relations } from 'drizzle-orm';
 import {
   RefundDestination,
   RefundStatus,
-} from '@/internal/commerce/order/enum';
+} from '../../../../../internal/commerce/order/enum';
 import { orders } from './order.schema';
 import { orderPayments } from './order-payment.schema';
 

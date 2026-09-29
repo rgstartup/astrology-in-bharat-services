@@ -1,4 +1,5 @@
-import { User } from '@/internal/users/entities/user.entity';
+import type { Relation } from 'typeorm';
+import { User } from '../../../../users/entities/user.entity';
 import {
   BeforeInsert,
   Check,
@@ -13,10 +14,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { nanoid } from 'nanoid';
-import { Address } from '@/shared/address/address.entity';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
-import { UserStatusEnum } from '@/shared/enums/user-status.enum';
-import { Media } from '@/internal/media/entities/media.entity';
+import { Address } from '../../../../../shared/address/address.entity';
+import { ColumnNumericTransformer } from '../../../../../shared/transformers/numeric.transformer';
+import { UserStatusEnum } from '../../../../../shared/enums/user-status.enum';
+import { Media } from '../../../../media/entities/media.entity';
 
 export type GENDER = 'male' | 'female' | 'other';
 
@@ -38,7 +39,7 @@ export class ClientAccount {
 
   @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 12, unique: true })

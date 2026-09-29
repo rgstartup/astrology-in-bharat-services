@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
-import { UsersService } from '@/internal/users/users.service';
+import { UsersService } from '../../internal/users/users.service';
 
 @Injectable()
 export class BlockStatusGuard implements CanActivate {

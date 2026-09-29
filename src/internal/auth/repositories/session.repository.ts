@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { FindOptionsWhere, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Session } from '../entities/session.entity';
-import { BaseService } from '@/shared/services/transaction.service';
+import { BaseService } from '../../../shared/services/transaction.service';
 
 @Injectable()
 export class SessionRepository extends BaseService<Session> {

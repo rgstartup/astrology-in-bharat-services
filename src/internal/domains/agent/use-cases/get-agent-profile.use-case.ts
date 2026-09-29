@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileAgent } from '../entities/profile-agent.entity';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class GetAgentProfileUseCase {

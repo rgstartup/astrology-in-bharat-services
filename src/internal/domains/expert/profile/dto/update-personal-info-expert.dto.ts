@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Gender } from './profile-expert.dto';
-import { AddressDto } from '@/shared/address/address.dto';
+import { AddressDto } from '../../../../../shared/address/address.dto';
 import { Type } from 'class-transformer';
 
 export class UpdatePersonalInfoExpertDto {

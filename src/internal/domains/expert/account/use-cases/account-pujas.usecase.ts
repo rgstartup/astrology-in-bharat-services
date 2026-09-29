@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IExpert } from '@/shared/types/access-token.payload';
+import { IExpert } from '../../../../../shared/types/access-token.payload';
 import { ExpertPujaDto } from '../../profile/dto/expert-puja.dto';
 import { ExpertAccount } from '../entities/account.entity';
 import { ExpertAccountPuja } from '../entities/account-puja.entity';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
 
 @Injectable()
 export class ExpertAccountPujasUseCase {

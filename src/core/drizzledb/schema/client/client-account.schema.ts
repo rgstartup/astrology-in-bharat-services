@@ -12,7 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from '../users/users.schema';
-import { UserStatusEnum } from '@/core/enums';
+import { UserStatusEnum } from '../../../enums';
 import { clientFavorites } from './client-favorites.schema';
 
 const clientSchema = pgSchema('client');

@@ -3,7 +3,7 @@ import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet, WalletKey } from '../entities/wallet.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { TransactionType, TransactionPurpose } from '../enum';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
 
 @Injectable()
 export class DeductFromReservedUseCase {

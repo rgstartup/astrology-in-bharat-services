@@ -12,16 +12,16 @@ import {
   sql,
   type SQL,
 } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
 import {
   expertProfessions,
   professionSpecializations,
   professions,
   specializations,
-} from '@/core/drizzledb/schema';
+} from '../../../../../core/drizzledb/schema';
 import { GetSpecializationsDto } from '../dto/request/get-specializations.dto';
-import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../../../../shared/dto/paginated-response.dto';
 
 const sortColumns = {
   sort_order: specializations.sort_order,

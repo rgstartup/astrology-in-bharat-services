@@ -11,9 +11,9 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { OAuthAccount } from '@/internal/auth/entities/oauth-accounts.entity';
-import { Session } from '@/internal/auth/entities/session.entity';
-import { Media } from '@/internal/media/entities/media.entity';
+import { OAuthAccount } from '../../auth/entities/oauth-accounts.entity';
+import { Session } from '../../auth/entities/session.entity';
+import { Media } from '../../media/entities/media.entity';
 import { RoleEnum } from '../enums/Role.enum';
 import { AdminPermission } from '../enums/AdminPermission.enum';
 import { Exclude } from 'class-transformer';

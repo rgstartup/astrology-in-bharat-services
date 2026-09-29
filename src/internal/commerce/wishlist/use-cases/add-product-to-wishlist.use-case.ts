@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../entities/wishlist.entity';
-import { Product } from '@/internal/commerce/product/entities/product.entity';
+import { Product } from '../../product/entities/product.entity';
 import {
   ProductAlreadyInWishlistError,
   ProductNotFoundError,

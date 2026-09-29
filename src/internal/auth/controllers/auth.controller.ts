@@ -1,4 +1,4 @@
-import { CookieOptions, Request, Response } from 'express';
+import { CookieOptions, type Request, type Response } from 'express';
 import {
   Controller,
   Post,
@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 
 import { RegisterDto, LoginDto, AgentRegisterUserDto } from '../dto';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -23,11 +23,11 @@ import {
 } from '../dto/email-register.dto';
 import { JwtAuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/role.guard';
-import { Roles } from '@/shared/decorators/roles.decorator';
+import { Roles } from '../../../shared/decorators/roles.decorator';
 import { AuthService } from '../auth.service';
 import { instanceToPlain } from 'class-transformer';
 import { JwtAuthRefreshGuard } from '../guards/auth-refresh.guard';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 
 @Controller({
   path: 'auth',

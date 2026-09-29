@@ -7,12 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Review } from '../entities/review.entity';
-import { Order } from '@/internal/commerce/order/entities/order.entity';
-import { OrderStatus } from '@/internal/commerce/order/enum';
-import { ChatSession } from '@/internal/consultation/chat/entities/chat-session.entity';
-import { CallSession } from '@/internal/consultation/call/entities/call-session.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { Order } from '../../../commerce/order/entities/order.entity';
+import { OrderStatus } from '../../../commerce/order/enum';
+import { ChatSession } from '../../chat/entities/chat-session.entity';
+import { CallSession } from '../../call/entities/call-session.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
 import { CreateReviewDto } from '../dto/create-review.dto';
 
 @Injectable()

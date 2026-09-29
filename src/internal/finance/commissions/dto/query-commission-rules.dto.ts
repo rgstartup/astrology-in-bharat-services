@@ -3,7 +3,7 @@ import { Transform } from 'class-transformer';
 import {
   CommissionEventType,
   CommissionType,
-} from '@/internal/finance/commissions/entities/commission-rule.entity';
+} from '../entities/commission-rule.entity';
 
 export class QueryCommissionRulesDto {
   @IsOptional()

@@ -3,14 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileAgent } from './entities/profile-agent.entity';
 import { AgentListing } from './entities/agent-listing.entity';
 import { User } from '../../users/entities/user.entity';
-import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
+import { Transaction } from '../../finance/wallet/entities/transaction.entity';
 import { AgentController } from './controllers/agent.controller';
-import { DatabaseModule } from '@/core/database/database.module';
-import { WalletModule } from '@/internal/finance/wallet/wallet.module';
+import { DatabaseModule } from '../../../core/database/database.module';
+import { WalletModule } from '../../finance/wallet/wallet.module';
 import { ConsultationModule } from '../../consultation/consultation.module';
 import { PujaAppointmentModule } from '../../puja-appointment/puja-appointment.module';
 import { NotificationModule } from '../../notification/notification.module';
-import { CommissionsModule } from '@/internal/finance/commissions/commissions.module';
+import { CommissionsModule } from '../../finance/commissions/commissions.module';
 
 import { AgentService } from './agent.service';
 import { ProfileModule as ExpertProfileModule } from '../expert/profile/profile.module';

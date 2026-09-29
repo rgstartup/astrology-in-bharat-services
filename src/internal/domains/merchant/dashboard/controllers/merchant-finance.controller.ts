@@ -13,16 +13,16 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../../../auth/guards/auth.guard';
+import { CurrentUser } from '../../../../../shared/decorators/current-user.decorator';
 import { GetMerchantFinanceStatsUseCase } from '../use-cases/get-merchant-finance-stats.usecase';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { WalletService } from '../../../../finance/wallet/wallet.service';
+import { MerchantAccount } from '../../account/entities/account.entity';
 import { GetMerchantFinanceTransactionsDto } from '../dto/get-merchant-finance-transactions.dto';
 import { RequestMerchantWithdrawalDto } from '../dto/request-merchant-withdrawal.dto';
 
-import { RolesGuard } from '@/internal/auth/guards/role.guard';
-import { Roles } from '@/shared/decorators/roles.decorator';
+import { RolesGuard } from '../../../../auth/guards/role.guard';
+import { Roles } from '../../../../../shared/decorators/roles.decorator';
 
 @Controller({
   path: 'merchant/finance',

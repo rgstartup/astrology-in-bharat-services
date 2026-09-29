@@ -1,15 +1,16 @@
+import type { DeferredDependency } from '../../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ReviewsService } from '@/internal/consultation/reviews/reviews.service';
-import { OrderService } from '@/internal/commerce/order/order.service';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { ReviewsService } from '../../../../consultation/reviews/reviews.service';
+import { OrderService } from '../../../../commerce/order/order.service';
+import { MerchantAccount } from '../../account/entities/account.entity';
 
 @Injectable()
 export class GetMerchantPerformanceUseCase {
   constructor(
     @Inject(forwardRef(() => ReviewsService))
-    private readonly reviewsService: ReviewsService,
+    private readonly reviewsService: DeferredDependency<ReviewsService>,
     private readonly orderService: OrderService,
     @InjectRepository(MerchantAccount)
     private readonly profileRepo: Repository<MerchantAccount>,

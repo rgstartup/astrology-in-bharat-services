@@ -13,7 +13,7 @@ import { relations } from 'drizzle-orm';
 import {
   ClientTransactionPurpose,
   ClientTransactionType,
-} from '@/internal/domains/client/wallet/enum';
+} from '../../../../internal/domains/client/wallet/enum';
 import { clientWallets } from './client-wallet.schema';
 
 const clientSchema = pgSchema('client');

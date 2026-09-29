@@ -1,4 +1,4 @@
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { PaginationDto } from '../../../../../../shared/dto/pagination.dto';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { MerchantStatus } from '../../entities/account.entity';
 
@@ -13,7 +13,7 @@ export class QueryMerchantDto extends PaginationDto {
 
   @IsOptional()
   @IsEnum(MerchantStatus)
-  status?: MerchantStatus;
+  declare status?: MerchantStatus;
 
   @IsOptional()
   @IsString()

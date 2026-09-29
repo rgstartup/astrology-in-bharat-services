@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -9,7 +10,7 @@ import {
   Index,
 } from 'typeorm';
 import { ClientWallet } from './client-wallet.entity';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
+import { ColumnNumericTransformer } from '../../../../../shared/transformers/numeric.transformer';
 import { ClientRechargeStatus } from '../enum';
 
 @Entity({ schema: 'client', name: 'wallet_recharges' })
@@ -23,7 +24,7 @@ export class ClientWalletRecharge {
 
   @ManyToOne(() => ClientWallet, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'wallet_id' })
-  wallet!: ClientWallet;
+  wallet!: Relation<ClientWallet>;
 
   @Column({
     type: 'decimal',

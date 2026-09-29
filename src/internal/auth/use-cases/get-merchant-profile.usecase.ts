@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
-import { hasRoles, RoleEnum } from '@/internal/users/enums/Role.enum';
+import { DatabaseService } from '../../../core/database/database.service';
+import { hasRoles, RoleEnum } from '../../users/enums/Role.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { User } from '../../users/entities/user.entity';
+import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
 
 @Injectable()
 export class GetMerchantProfileUseCase {

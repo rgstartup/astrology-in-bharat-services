@@ -3,7 +3,7 @@ import type {
   CartRow,
   ProductRow,
   ProductVariantRow,
-} from '@/core/drizzledb/schema';
+} from '../../../../core/drizzledb/schema';
 
 /**
  * Product with `numeric` columns normalized to numbers and the

@@ -13,11 +13,11 @@ import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
-import { NotificationService } from '@/internal/notification/notification.service';
-import { NotificationGateway } from '@/internal/notification/gateways/notification.gateway';
-import { NotificationType } from '@/internal/notification/entities/notification.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+} from '../../../../finance/ledger/entities/general-ledger-entry.entity';
+import { NotificationService } from '../../../../notification/notification.service';
+import { NotificationGateway } from '../../../../notification/gateways/notification.gateway';
+import { NotificationType } from '../../../../notification/entities/notification.entity';
+import { RoleEnum } from '../../../../users/enums/Role.enum';
 import { randomBytes } from 'crypto';
 
 @Injectable()

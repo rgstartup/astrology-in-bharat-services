@@ -1,4 +1,4 @@
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import {
   IsArray,
   IsEmail,
@@ -6,7 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Profile } from 'passport-google-oauth20';
+import { type Profile } from 'passport-google-oauth20';
 
 export class OAuthUserDto {
   @IsString()

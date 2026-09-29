@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -19,7 +20,7 @@ export class EarningTier {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'policy_id' })
-  policy!: EarningPolicy;
+  policy!: Relation<EarningPolicy>;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   min_threshold!: number;

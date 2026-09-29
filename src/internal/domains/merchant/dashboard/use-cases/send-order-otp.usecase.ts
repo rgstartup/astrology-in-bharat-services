@@ -1,10 +1,10 @@
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../../../users/enums/Role.enum';
 import { Injectable } from '@nestjs/common';
-import { OrderService } from '@/internal/commerce/order/order.service';
-import { NotificationService } from '@/internal/notification/notification.service';
-import { NotificationType } from '@/internal/notification/entities/notification.entity';
-import { NotificationGateway } from '@/internal/notification/gateways/notification.gateway';
-import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
+import { OrderService } from '../../../../commerce/order/order.service';
+import { NotificationService } from '../../../../notification/notification.service';
+import { NotificationType } from '../../../../notification/entities/notification.entity';
+import { NotificationGateway } from '../../../../notification/gateways/notification.gateway';
+import { NodeMailerService } from '../../../../../external/nodemailer/nodemailer.service';
 
 @Injectable()
 export class SendOrderOtpUseCase {

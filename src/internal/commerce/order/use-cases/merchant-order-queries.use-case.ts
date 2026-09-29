@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderItem } from '../entities/order-item.entity';
 import { Order } from '../entities/order.entity';
-import { SystemSetting } from '@/internal/admin/entities/system-setting.entity';
+import { SystemSetting } from '../../../admin/entities/system-setting.entity';
 
 @Injectable()
 export class MerchantOrderQueriesUseCase {

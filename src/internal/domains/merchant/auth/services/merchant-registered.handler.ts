@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
-import { EmailQueueService } from '@/core/queue/services/email-queue.service';
+import { EmailQueueService } from '../../../../../core/queue/services/email-queue.service';
 
 interface MerchantRegisteredEvent {
   email: string;

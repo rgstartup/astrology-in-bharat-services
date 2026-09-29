@@ -1,4 +1,4 @@
-import { AuthConfig } from '@/config/auth.config';
+import { AuthConfig } from '../../../../config/auth.config';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { ExtractJwt, StrategyOptionsWithoutRequest } from 'passport-jwt';

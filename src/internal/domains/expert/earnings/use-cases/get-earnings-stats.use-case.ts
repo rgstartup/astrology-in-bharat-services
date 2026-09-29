@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
-import { CallService } from '@/internal/consultation/call/call.service';
-import { GetExpertPujasByDateUseCase } from '@/internal/puja-appointment/use-cases/get-expert-pujas-by-date.use-case';
-import { ReviewsService } from '@/internal/consultation/reviews/reviews.service';
-import { CallType } from '@/internal/consultation/call/enum';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
+import { ChatService } from '../../../../consultation/chat/chat.service';
+import { CallService } from '../../../../consultation/call/call.service';
+import { GetExpertPujasByDateUseCase } from '../../../../puja-appointment/use-cases/get-expert-pujas-by-date.use-case';
+import { ReviewsService } from '../../../../consultation/reviews/reviews.service';
+import { CallType } from '../../../../consultation/call/enum';
+import { WalletService } from '../../../../finance/wallet/wallet.service';
+import { ExpertAccount } from '../../account/entities/account.entity';
 
 import { GetExpertEarningsStatsDto } from '../dto/get-expert-earnings-stats.dto';
 

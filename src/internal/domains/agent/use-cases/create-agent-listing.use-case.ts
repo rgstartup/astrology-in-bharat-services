@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../../core/database/database.service';
 import { AgentListing } from '../entities/agent-listing.entity';
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import {
-  IPaymentGateway,
+  type IPaymentGateway,
   PAYMENT_GATEWAY,
 } from '@/external/payment/payment-gateway.interface';
 import { PaymentOrder, PaymentStatus } from '../entities/payment-order.entity';

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CommissionSplit } from '@/internal/finance/commissions/entities/commission-split.entity';
+import { CommissionSplit } from '../entities/commission-split.entity';
 import {
   QueryCommissionSplitsDto,
   QueryCommissionSplitsSummaryDto,

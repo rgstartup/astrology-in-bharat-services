@@ -12,9 +12,9 @@ import {
 import { CartService } from '../cart.service';
 import { AddToCartDto } from '../dto/create-cart.dto';
 import { UpdateCartItemDto } from '../dto/update-cart.dto';
-import { ClientJwtAuthGuard } from '@/internal/domains/client/auth/guards/auth.guard';
-import { CurrentClient } from '@/internal/domains/client/auth/decorators/current-client.decorator';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { ClientJwtAuthGuard } from '../../auth/guards/auth.guard';
+import { CurrentClient } from '../../auth/decorators/current-client.decorator';
+import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
 
 @Controller({
   path: 'client/cart',

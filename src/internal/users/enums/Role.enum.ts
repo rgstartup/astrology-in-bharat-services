@@ -1,4 +1,4 @@
-import { ParseEnumPipe, ParseEnumPipeOptions } from '@nestjs/common/pipes';
+import { ParseEnumPipe, type ParseEnumPipeOptions } from '@nestjs/common';
 
 export enum RoleEnum {
   CLIENT = 'client',

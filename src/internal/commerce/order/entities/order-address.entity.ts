@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -7,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Order } from './order.entity';
-import { AddressType } from '@/shared/enums/address-type.enum';
+import { AddressType } from '../../../../shared/enums/address-type.enum';
 
 @Entity({ schema: 'commerce', name: 'order_addresses' })
 export class OrderAddress {
@@ -19,7 +20,7 @@ export class OrderAddress {
 
   @ManyToOne(() => Order, (order) => order.addresses, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'order_id' })
-  order!: Order;
+  order!: Relation<Order>;
 
   @Column({
     type: 'enum',

@@ -63,15 +63,15 @@ export class QueryExpertAccountsUseCase {
       (
         SELECT json_agg(
           json_build_object(
-            'id', ${expertSpecializations.id},
-            'title', ${specializations.title},
-            'slug', ${specializations.slug}
+            'id', ${specializations}.${sql.identifier(specializations.id.name)},
+            'title', ${specializations}.${sql.identifier(specializations.title.name)},
+            'slug', ${specializations}.${sql.identifier(specializations.slug.name)}
           )
         )
         FROM ${expertSpecializations}
-        INNER JOIN ${specializations} ON ${expertSpecializations.specialization_id} = ${specializations.id}
-        WHERE ${expertSpecializations.expert_id} = ${expertAccounts.id}
-          AND ${specializations.is_active} = true
+        INNER JOIN ${specializations} ON ${expertSpecializations}.${sql.identifier(expertSpecializations.specialization_id.name)} = ${specializations}.${sql.identifier(specializations.id.name)}
+        WHERE ${expertSpecializations}.${sql.identifier(expertSpecializations.expert_id.name)} = ${expertAccounts}.${sql.identifier(expertAccounts.id.name)}
+          AND ${specializations}.${sql.identifier(specializations.is_active.name)} = true
       ),
       '[]'::json
     )`;
@@ -80,24 +80,24 @@ export class QueryExpertAccountsUseCase {
   private get pricingSubquery() {
     return sql<PricingSubqueryResult | null>`(
       SELECT json_build_object(
-        'id', ${expertConsultationPricing.id},
-        'call_price', ${expertConsultationPricing.call_price},
-        'video_call_price', ${expertConsultationPricing.video_call_price},
-        'chat_price', ${expertConsultationPricing.chat_price},
-        'currency', ${expertConsultationPricing.currency},
-        'effective_from', ${expertConsultationPricing.effective_from}
+        'id', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.id.name)},
+        'call_price', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.call_price.name)},
+        'video_call_price', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.video_call_price.name)},
+        'chat_price', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.chat_price.name)},
+        'currency', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.currency.name)},
+        'effective_from', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.effective_from.name)}
       )
       FROM ${expertConsultationPricing}
-      WHERE ${expertConsultationPricing.expert_id} = ${expertAccounts.id}
-        AND ${expertConsultationPricing.is_active} = true
-        AND ${expertConsultationPricing.status} = ${PricingStatus.ACTIVE}
-        AND ${expertConsultationPricing.target_audience} = ${PricingTargetAudience.ALL}
-        AND ${expertConsultationPricing.effective_from} <= CURRENT_TIMESTAMP
+      WHERE ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.expert_id.name)} = ${expertAccounts}.${sql.identifier(expertAccounts.id.name)}
+        AND ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.is_active.name)} = true
+        AND ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.status.name)} = ${PricingStatus.ACTIVE}
+        AND ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.target_audience.name)} = ${PricingTargetAudience.ALL}
+        AND ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.effective_from.name)} <= CURRENT_TIMESTAMP
         AND (
-          ${expertConsultationPricing.effective_to} IS NULL
-          OR ${expertConsultationPricing.effective_to} > CURRENT_TIMESTAMP
+          ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.effective_to.name)} IS NULL
+          OR ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.effective_to.name)} > CURRENT_TIMESTAMP
         )
-      ORDER BY ${expertConsultationPricing.effective_from} DESC
+      ORDER BY ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.effective_from.name)} DESC
       LIMIT 1
     )`;
   }
@@ -107,14 +107,14 @@ export class QueryExpertAccountsUseCase {
       (
         SELECT json_agg(
           json_build_object(
-            'id', ${expertProfessions.id},
-            'title', ${professions.title},
-            'slug', ${professions.slug}
+            'id', ${expertProfessions}.${sql.identifier(expertProfessions.id.name)},
+            'title', ${professions}.${sql.identifier(professions.title.name)},
+            'slug', ${professions}.${sql.identifier(professions.slug.name)}
           )
         )
         FROM ${expertProfessions}
-        INNER JOIN ${professions} ON ${expertProfessions.profession_id} = ${professions.id}
-        WHERE ${expertProfessions.expert_id} = ${expertAccounts.id}
+        INNER JOIN ${professions} ON ${expertProfessions}.${sql.identifier(expertProfessions.profession_id.name)} = ${professions}.${sql.identifier(professions.id.name)}
+        WHERE ${expertProfessions}.${sql.identifier(expertProfessions.expert_id.name)} = ${expertAccounts}.${sql.identifier(expertAccounts.id.name)}
       ),
       '[]'::json
     )`;
@@ -140,10 +140,7 @@ export class QueryExpertAccountsUseCase {
         .where(where)
         .limit(query.limit)
         .offset(query.offset),
-      this.db
-        .select({ value: count() })
-        .from(expertAccounts)
-        .where(where),
+      this.db.select({ value: count() }).from(expertAccounts).where(where),
     ]);
 
     const data = experts.map((expert) => ({
@@ -210,7 +207,9 @@ export class QueryExpertAccountsUseCase {
       ...account,
       expert_professions: account.professions,
       professions: account.professions,
-      pricing: account.pricing ? toExpertPricingResponse(account.pricing) : null,
+      pricing: account.pricing
+        ? toExpertPricingResponse(account.pricing)
+        : null,
     };
   }
 

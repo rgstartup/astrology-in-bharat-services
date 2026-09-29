@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Dispute } from '../entities/dispute.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { User } from '@/internal/users/entities/user.entity';
+import { MerchantAccount } from '../../domains/merchant/account/entities/account.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class GetDisputeByIdUseCase {

@@ -1,4 +1,4 @@
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
+import { ExpertAccount } from '../../account/entities/account.entity';
 import { ProfileNotFoundError } from '../errors/profile-not-found.error';
 
 export class DashboardPolicy {

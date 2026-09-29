@@ -1,6 +1,6 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { AstrologyService } from '@/internal/astrology/entities/astrology-service.entity';
+import { AstrologyService } from '../../internal/astrology/entities/astrology-service.entity';
 
 export class AstrologyServiceSeeder implements Seeder {
   async run(dataSource: DataSource): Promise<void> {

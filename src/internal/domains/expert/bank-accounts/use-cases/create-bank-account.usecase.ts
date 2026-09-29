@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BankAccount } from '../entities/bank-account.entity';
 import { CreateBankAccountDto } from '../dto/bank-account.dto';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
+import { ExpertAccount } from '../../account/entities/account.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BankAccountCreatedEvent } from '../events/bank-account-events';
 

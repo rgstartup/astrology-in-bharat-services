@@ -3,16 +3,16 @@ import { DataSource, QueryRunner } from 'typeorm';
 import { ClientWallet } from '../entities/client-wallet.entity';
 import { ClientTransaction } from '../entities/client-transaction.entity';
 import { ClientTransactionType, ClientTransactionPurpose } from '../enum';
-import { InsufficientBalanceError } from '@/internal/finance/wallet/domain/errors/insufficient-balance.error';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { generateTransactionNo } from '@/shared/utils/transaction-no.util';
+import { InsufficientBalanceError } from '../../../../finance/wallet/domain/errors/insufficient-balance.error';
+import { ClientAccount } from '../../account/entities/account.entity';
+import { generateTransactionNo } from '../../../../../shared/utils/transaction-no.util';
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
-import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
-import { TransactionPurpose } from '@/internal/finance/wallet/enum';
+} from '../../../../finance/ledger/entities/general-ledger-entry.entity';
+import { LedgerQueueService } from '../../../../../core/queue/services/ledger-queue.service';
+import { TransactionPurpose } from '../../../../finance/wallet/enum';
 
 const purposeToLedgerEventType: Record<
   ClientTransactionPurpose,

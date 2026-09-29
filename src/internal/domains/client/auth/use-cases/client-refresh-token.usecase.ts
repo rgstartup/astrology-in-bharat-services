@@ -6,12 +6,12 @@ import {
 } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import { and, eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { clientAccounts, sessions, users } from '@/core/drizzledb/schema';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { clientAccounts, sessions, users } from '../../../../../core/drizzledb/schema';
 import { TokenCryptoService } from '../services/token-crypto.service';
-import { IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
-import { IAccessTokenPayloadClient } from '@/shared/types/access-token.payload';
+import { type IHasher, IHasherToken } from '../../../../../shared/contracts/hasher.contract';
+import { IAccessTokenPayloadClient } from '../../../../../shared/types/access-token.payload';
 
 @Injectable()
 export class ClientRefreshTokenUseCase {

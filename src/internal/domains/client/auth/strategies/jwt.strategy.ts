@@ -4,11 +4,11 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { clientAccounts, media, users } from '@/core/drizzledb/schema';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { clientAccounts, media, users } from '../../../../../core/drizzledb/schema';
 import { toClientAccountResponse } from '../../account/account.mapper';
-import { createJwtStrategyOptions } from '@/internal/auth/strategies/abstract/jwt.options';
+import { createJwtStrategyOptions } from '../../../../auth/strategies/abstract/jwt.options';
 
 export interface ClientJwtPayload {
   sub: number | string;

@@ -4,10 +4,10 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AuthConfig } from '@/config/auth.config';
+import { AuthConfig } from '../../../config/auth.config';
 import { LoginWithGoogleUseCase } from '../use-cases/login-with-google.usecase';
 import { GoogleLoginQueryDto } from '../dto/login.dto';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 interface RequestUser {
   user: User;

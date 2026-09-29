@@ -12,10 +12,10 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ReviewsService } from '../reviews.service';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { RolesGuard } from '@/internal/auth/guards/role.guard';
-import { Roles } from '@/shared/decorators/roles.decorator';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { RolesGuard } from '../../../auth/guards/role.guard';
+import { Roles } from '../../../../shared/decorators/roles.decorator';
+import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { GetReviewsDto } from '../dto/get-reviews.dto';
 import { GetAdminReviewsDto } from '../dto/get-admin-reviews.dto';

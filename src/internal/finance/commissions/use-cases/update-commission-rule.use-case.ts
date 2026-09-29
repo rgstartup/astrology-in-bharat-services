@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CommissionRule } from '@/internal/finance/commissions/entities/commission-rule.entity';
-import { CommissionTier } from '@/internal/finance/commissions/entities/commission-tier.entity';
+import { CommissionRule } from '../entities/commission-rule.entity';
+import { CommissionTier } from '../entities/commission-tier.entity';
 import { UpdateCommissionRuleDto } from '../dto/update-commission-rule.dto';
 
 export { UpdateCommissionRuleDto };

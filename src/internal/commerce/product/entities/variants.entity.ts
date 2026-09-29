@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -28,7 +29,7 @@ export class ProductVariant {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'product_id' })
-  product!: Product;
+  product!: Relation<Product>;
 
   @Column({ length: 150 })
   name!: string;
@@ -52,10 +53,10 @@ export class ProductVariant {
   sort_order!: number;
 
   @OneToOne(() => ProductInventory, (inventory) => inventory.variant)
-  inventory!: ProductInventory;
+  inventory!: Relation<ProductInventory>;
 
   @OneToOne(() => ProductFulFillment, (fulfillment) => fulfillment.variant)
-  fulfillment!: ProductFulFillment;
+  fulfillment!: Relation<ProductFulFillment>;
 
   @OneToMany(() => ProductVariantPricing, (pricing) => pricing.variant)
   pricing!: ProductVariantPricing[];

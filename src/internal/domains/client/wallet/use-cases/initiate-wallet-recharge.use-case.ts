@@ -1,23 +1,23 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
-  IPaymentGateway,
+  type IPaymentGateway,
   PAYMENT_GATEWAY,
-} from '@/external/payment/payment-gateway.interface';
+} from '../../../../../external/payment/payment-gateway.interface';
 import {
   PaymentOrder,
   PaymentStatus,
-} from '@/internal/finance/payments/entities/payment-order.entity';
-import { GatewayTransaction } from '@/internal/finance/payments/entities/gateway-transaction.entity';
+} from '../../../../finance/payments/entities/payment-order.entity';
+import { GatewayTransaction } from '../../../../finance/payments/entities/gateway-transaction.entity';
 import {
   GatewayIntent,
   GatewayName,
   GatewayTransactionStatus,
-} from '@/internal/finance/payments/enums';
-import { DatabaseService } from '@/core/database/database.service';
-import { DomainError } from '@/shared/types/domain.error';
-import { PaymentOrderCreationFailedError } from '@/internal/finance/payments/domain/errors/payment.errors';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+} from '../../../../finance/payments/enums';
+import { DatabaseService } from '../../../../../core/database/database.service';
+import { DomainError } from '../../../../../shared/types/domain.error';
+import { PaymentOrderCreationFailedError } from '../../../../finance/payments/domain/errors/payment.errors';
+import { ClientAccount } from '../../account/entities/account.entity';
 import { InitiateRechargeDto } from '../dto/initiate-recharge.dto';
 
 @Injectable()

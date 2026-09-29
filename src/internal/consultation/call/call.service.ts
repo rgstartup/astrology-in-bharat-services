@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InitiateCallUseCase } from './use-cases/initiate-call.use-case';
 import { AcceptCallUseCase } from './use-cases/accept-call.use-case';
@@ -24,11 +25,11 @@ import { GetCallSessionsDto } from './dto/get-call-sessions.dto';
 export class CallService {
   constructor(
     @Inject(forwardRef(() => InitiateCallUseCase))
-    private readonly initiateCallUseCase: InitiateCallUseCase,
+    private readonly initiateCallUseCase: DeferredDependency<InitiateCallUseCase>,
     @Inject(forwardRef(() => AcceptCallUseCase))
-    private readonly acceptCallUseCase: AcceptCallUseCase,
+    private readonly acceptCallUseCase: DeferredDependency<AcceptCallUseCase>,
     @Inject(forwardRef(() => EndCallUseCase))
-    private readonly endCallUseCase: EndCallUseCase,
+    private readonly endCallUseCase: DeferredDependency<EndCallUseCase>,
     private readonly getExpertCallSessionsUseCase: GetExpertCallSessionsUseCase,
     private readonly getCallSessionUseCase: GetCallSessionUseCase,
     private readonly getCallTokenUseCase: GetCallTokenUseCase,

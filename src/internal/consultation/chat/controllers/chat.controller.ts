@@ -11,8 +11,8 @@ import {
   Query,
   NotFoundException,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
 import { ChatService } from '../chat.service';
 import { ExpertSessionFilter } from '../use-cases/find-expert-sessions.use-case';
 import { ChatGateway } from '../chat.gateway';

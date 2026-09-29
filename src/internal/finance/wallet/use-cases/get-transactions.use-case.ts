@@ -97,7 +97,7 @@ export class GetTransactionsUseCase {
             const apptId = tx.reference_id.replace('puja_appt_', '');
             try {
               const { PujaAppointment } = await import(
-                '@/internal/puja-appointment/entities/puja-appointment.entity'
+                '../../../puja-appointment/entities/puja-appointment.entity'
               );
               const appt = await this.transactionRepository.manager.findOne(
                 PujaAppointment as unknown as import('typeorm').EntityTarget<

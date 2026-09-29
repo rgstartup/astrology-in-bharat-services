@@ -3,7 +3,7 @@ import { DataSource, QueryRunner } from 'typeorm';
 import { ClientWallet } from '../entities/client-wallet.entity';
 import { ClientTransaction } from '../entities/client-transaction.entity';
 import { ClientTransactionPurpose, ClientTransactionType } from '../enum';
-import { InsufficientBalanceError } from '@/internal/finance/wallet/domain/errors/insufficient-balance.error';
+import { InsufficientBalanceError } from '../../../../finance/wallet/domain/errors/insufficient-balance.error';
 
 @Injectable()
 export class ReserveClientBalanceUseCase {

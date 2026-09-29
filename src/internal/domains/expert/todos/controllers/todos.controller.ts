@@ -11,9 +11,9 @@ import {
 } from '@nestjs/common';
 import { TodosService } from '../todos.service';
 import { CreateTodoDto, UpdateTodoDto } from '../dto/todo.dto';
-import { ExpertJwtAuthGuard } from '@/internal/domains/expert/auth/guards/auth.guard';
-import { CurrentExpert } from '@/internal/domains/expert/auth/decorators/current-expert.decorator';
-import { IExpert } from '@/shared/types/access-token.payload';
+import { ExpertJwtAuthGuard } from '../../auth/guards/auth.guard';
+import { CurrentExpert } from '../../auth/decorators/current-expert.decorator';
+import { type IExpert } from '../../../../../shared/types/access-token.payload';
 
 @Controller({
   path: 'expert/todos',

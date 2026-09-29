@@ -5,8 +5,8 @@ import {
   CommissionRule,
   CommissionAppliesRole,
   CommissionRateType,
-} from '@/internal/finance/commissions/entities/commission-rule.entity';
-import { CommissionTier } from '@/internal/finance/commissions/entities/commission-tier.entity';
+} from '../entities/commission-rule.entity';
+import { CommissionTier } from '../entities/commission-tier.entity';
 import { CreateCommissionRuleDto } from '../dto/create-commission-rule.dto';
 
 export { CreateCommissionRuleDto };

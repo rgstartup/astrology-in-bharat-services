@@ -1,11 +1,11 @@
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../entities/review.entity';
-import { NotificationService } from '@/internal/notification/notification.service';
-import { NotificationType } from '@/internal/notification/entities/notification.entity';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+import { NotificationService } from '../../../notification/notification.service';
+import { NotificationType } from '../../../notification/entities/notification.entity';
+import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
 
 @Injectable()
 export class SendReviewResponseUseCase {

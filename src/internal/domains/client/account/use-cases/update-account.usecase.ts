@@ -1,17 +1,17 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '../../../../../core/drizzledb/drizzle.types';
 import {
   addresses,
   clientAccounts,
   users,
   type ClientAccountRow,
-} from '@/core/drizzledb/schema';
-import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
+} from '../../../../../core/drizzledb/schema';
+import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
 import { UpdateClientAccountDto } from '../dto/account.dto';
 import type { ClientAccount } from '../entities/account.entity';
-import { AddressType, AddressTag } from '@/core/enums';
+import { AddressType, AddressTag } from '../../../../../core/enums';
 
 type AddressInput = {
   line1?: string;

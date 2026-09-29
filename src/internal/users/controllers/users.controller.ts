@@ -16,7 +16,7 @@ import { RolesGuard } from '../../auth/guards/role.guard';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { User } from '../entities/user.entity';
-import { IUser } from '@/shared/types/access-token.payload';
+import { type IUser } from '../../../shared/types/access-token.payload';
 import { RoleEnum, RolePipe } from '../enums/Role.enum';
 
 @Controller('users')

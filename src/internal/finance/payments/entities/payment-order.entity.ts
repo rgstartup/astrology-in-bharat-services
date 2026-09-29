@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -8,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
 
 export enum PaymentStatus {
   PENDING = 'pending',
@@ -35,7 +36,7 @@ export class PaymentOrder {
 
   @ManyToOne(() => ClientAccount, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({
     name: 'razorpay_order_id',

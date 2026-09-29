@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -16,7 +17,7 @@ export class CommissionTier {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'rule_id' })
-  rule!: CommissionRule;
+  rule!: Relation<CommissionRule>;
 
   @Column({ type: 'int' })
   rule_id!: number;

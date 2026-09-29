@@ -5,8 +5,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '@/shared/decorators/roles.decorator';
-import { hasRoles, Role, RoleEnum } from '@/internal/users/enums/Role.enum';
+import { ROLES_KEY } from '../../../shared/decorators/roles.decorator';
+import { hasRoles, Role, RoleEnum } from '../../users/enums/Role.enum';
 
 interface JwtUser {
   id: string;

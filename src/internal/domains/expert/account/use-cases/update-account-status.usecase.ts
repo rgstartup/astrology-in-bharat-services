@@ -5,10 +5,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { expertAccounts } from '@/core/drizzledb/schema';
-import { IExpert } from '@/shared/types/access-token.payload';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { expertAccounts } from '../../../../../core/drizzledb/schema';
+import { IExpert } from '../../../../../shared/types/access-token.payload';
 import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
 import { toExpertAccountResponse } from '../account.mapper';
 

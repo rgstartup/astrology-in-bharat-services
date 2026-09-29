@@ -8,10 +8,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { clientAccounts, users } from '@/core/drizzledb/schema';
-import { ImageUploadService } from '@/external/cloudinary';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { clientAccounts, users } from '../../../../../core/drizzledb/schema';
+import { ImageUploadService } from '../../../../../external/cloudinary';
 
 @Injectable()
 export class UpdateAccountPictureUseCase {

@@ -9,8 +9,8 @@ import { PaymentsService } from './payments.service';
 import { VerifyPaymentUseCase } from './use-cases/verify-payment.use-case';
 import { HandleWebhookUseCase } from './use-cases/handle-webhook.use-case';
 import { PaymentIntentDispatcher } from './services/payment-intent-dispatcher.service';
-import { PaymentGatewayModule as ExternalPaymentGatewayModule } from '@/external/payment/payment-gateway.module';
-import { OrderModule } from '@/internal/commerce/order/order.module';
+import { PaymentGatewayModule as ExternalPaymentGatewayModule } from '../../../external/payment/payment-gateway.module';
+import { OrderModule } from '../../commerce/order/order.module';
 
 @Module({
   imports: [

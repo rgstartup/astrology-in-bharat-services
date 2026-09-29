@@ -22,8 +22,7 @@ import { DatabaseService } from './database.service';
           // port: dbConfig.port,
           // username: dbConfig.username,
           // password: dbConfig.password,
-          entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
-          autoLoadEntities: true, // automatically load entities registered in modules
+          autoLoadEntities: true, // Use bundled classes registered through forFeature; no filesystem glob.
           // synchronize: process.env.NODE_ENV !== 'production', // set to false in production
           synchronize: true, // set to false in production
           poolSize: dbConfig.max_connections,

@@ -1,9 +1,9 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { UserRegisteredEvent } from '../domain/events/user-registered.event';
-import { EmailQueueService } from '@/core/queue/services/email-queue.service';
+import { EmailQueueService } from '../../../core/queue/services/email-queue.service';
 import { ConfigService } from '@nestjs/config';
-import { hasRoles } from '@/internal/users/enums/Role.enum';
+import { hasRoles } from '../../users/enums/Role.enum';
 
 @Injectable()
 export class UserRegisteredHandler {

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { RoleEnum } from '../../../users/enums/Role.enum';
 import { IFindProfileStrategy } from './find-profile.strategy';
 
 @Injectable()

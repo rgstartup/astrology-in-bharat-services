@@ -6,10 +6,10 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
 
 @Entity({ schema: 'finance', name: 'idempotency_keys' })
 export class Idempotency {

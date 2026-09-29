@@ -12,7 +12,7 @@ export class UpdateProfileWithQueryRunnerUseCase {
 
   async execute(
     userId: number,
-    updates: import('typeorm/query-builder/QueryPartialEntity').QueryDeepPartialEntity<ProfileExpert>,
+    updates: import('typeorm').QueryDeepPartialEntity<ProfileExpert>,
     queryRunner: QueryRunner,
   ) {
     await queryRunner.manager.update(

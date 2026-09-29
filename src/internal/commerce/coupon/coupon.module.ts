@@ -14,7 +14,7 @@ import { MarkCouponAsUsedUseCase } from './use-cases/mark-coupon-as-used.use-cas
 import { BulkAssignCouponUseCase } from './use-cases/bulk-assign-coupon.use-case';
 import { CouponController } from './controllers/coupon.controller';
 
-import { AccountModule } from '@/internal/domains/client/account/account.module';
+import { AccountModule } from '../../domains/client/account/account.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Coupon, UserCoupon]), AccountModule],

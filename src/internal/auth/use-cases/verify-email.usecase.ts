@@ -3,14 +3,14 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../core/database/database.service';
 import { UsedTokensService } from '../services/used-tokens.service';
 import { EmailVerificationPolicy } from '../domain/policies/email-verification.policy';
 import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { AuthTokenService } from '../services/auth-token.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class VerifyEmailUseCase {

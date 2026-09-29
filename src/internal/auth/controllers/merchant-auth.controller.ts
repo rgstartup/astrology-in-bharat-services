@@ -1,4 +1,4 @@
-import { CookieOptions, Request, Response } from 'express';
+import { CookieOptions, type Request, type Response } from 'express';
 import {
   Controller,
   Post,
@@ -17,8 +17,8 @@ import { MerchantRegisterDto } from '../dto/merchant-register.dto';
 import { MerchantLoginDto } from '../dto/merchant-login.dto';
 import { AuthService } from '../auth.service';
 import { JwtAuthGuard } from '../guards/auth.guard';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { DataSource } from 'typeorm';
 
 @Controller({
@@ -80,7 +80,7 @@ export class MerchantAuthController {
       this.setCookies(res, tokens);
 
       const { MerchantAccount } = await import(
-        '@/internal/domains/merchant/account/entities/account.entity'
+        '../../domains/merchant/account/entities/account.entity'
       );
       const merchantProfile = await this.dataSource
         .getRepository(MerchantAccount)

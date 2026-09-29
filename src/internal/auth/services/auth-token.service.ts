@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { SessionRepository } from '../repositories/session.repository';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { FindProfileResolver } from '../strategies/find-profile/find-profile.resolver';
-import { IAccessTokenPayload } from '@/shared/types/access-token.payload';
+import { IAccessTokenPayload } from '../../../shared/types/access-token.payload';
 
 @Injectable()
 export class AuthTokenService {

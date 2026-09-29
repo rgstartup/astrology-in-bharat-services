@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -7,9 +8,9 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { ExpertPuja } from '@/internal/domains/expert/profile/entities/expert-puja.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
+import { ExpertPuja } from '../../domains/expert/profile/entities/expert-puja.entity';
+import { ClientAccount } from '../../domains/client/account/entities/account.entity';
 
 export enum PujaAppointmentStatus {
   PENDING = 'pending',
@@ -33,21 +34,21 @@ export class PujaAppointment {
 
   @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({ type: 'int', name: 'client_id' })
   client_id!: number;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
-  expert!: ProfileExpert;
+  expert!: Relation<ProfileExpert>;
 
   @Column({ type: 'int' })
   expert_id!: number;
 
   @ManyToOne(() => ExpertPuja)
   @JoinColumn({ name: 'puja_id' })
-  puja!: ExpertPuja;
+  puja!: Relation<ExpertPuja>;
 
   @Column({ type: 'int' })
   puja_id!: number;

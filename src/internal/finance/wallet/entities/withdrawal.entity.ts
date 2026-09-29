@@ -7,10 +7,10 @@ import {
   UpdateDateColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
-import { BankAccount } from '@/internal/domains/expert/bank-accounts/entities/bank-account.entity';
+import { ExpertAccount } from '../../../domains/expert/account/entities/account.entity';
+import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
+import { BankAccount } from '../../../domains/expert/bank-accounts/entities/bank-account.entity';
 import { WithdrawalStatus } from '../enum';
 
 @Entity({ schema: 'finance', name: 'withdrawals' })

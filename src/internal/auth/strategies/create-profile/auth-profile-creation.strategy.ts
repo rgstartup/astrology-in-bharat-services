@@ -1,9 +1,9 @@
-import { User } from '@/internal/users/entities/user.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { ProfileAgent } from '@/internal/domains/agent/entities/profile-agent.entity';
+import { User } from '../../../users/entities/user.entity';
+import { RoleEnum } from '../../../users/enums/Role.enum';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ProfileAgent } from '../../../domains/agent/entities/profile-agent.entity';
 import { QueryRunner } from 'typeorm';
 
 // 1. Role to Profile Mapping

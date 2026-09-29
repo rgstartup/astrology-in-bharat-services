@@ -1,10 +1,10 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { and, eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
-import { users, type UserRow } from '@/core/drizzledb/schema';
-import { PlatformEnum } from '@/core/enums';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '../../../../../core/drizzledb/drizzle.types';
+import { users, type UserRow } from '../../../../../core/drizzledb/schema';
+import { PlatformEnum } from '../../../../../core/enums';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';
 
 @Injectable()

@@ -1,8 +1,8 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ExpertEarningsService } from '../expert-earnings.service';
-import { ExpertJwtAuthGuard } from '@/internal/domains/expert/auth/guards/auth.guard';
-import { CurrentExpert } from '@/internal/domains/expert/auth/decorators/current-expert.decorator';
-import { IExpert } from '@/shared/types/access-token.payload';
+import { ExpertJwtAuthGuard } from '../../auth/guards/auth.guard';
+import { CurrentExpert } from '../../auth/decorators/current-expert.decorator';
+import { type IExpert } from '../../../../../shared/types/access-token.payload';
 import { GetExpertEarningsStatsDto } from '../dto/get-expert-earnings-stats.dto';
 
 @Controller({

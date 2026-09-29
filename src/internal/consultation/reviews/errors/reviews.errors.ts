@@ -1,4 +1,4 @@
-import { DomainError } from '@/shared/types/domain.error';
+import { DomainError } from '../../../../shared/types/domain.error';
 
 export class ExpertNotFoundError extends DomainError {
   constructor(expert_id: string) {

@@ -1,6 +1,6 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
+import { NodeMailerService } from '../../../external/nodemailer/nodemailer.service';
 import { ResetPasswordEvent } from '../domain/events/reset-password.event';
 
 @Injectable()

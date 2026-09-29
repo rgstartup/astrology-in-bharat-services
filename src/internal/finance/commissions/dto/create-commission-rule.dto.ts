@@ -18,7 +18,7 @@ import {
   CommissionType,
   CommissionRateType,
   CommissionAppliesRole,
-} from '@/internal/finance/commissions/entities/commission-rule.entity';
+} from '../entities/commission-rule.entity';
 
 export class CreateCommissionTierDto {
   @IsNumber()

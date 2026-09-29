@@ -2,10 +2,10 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { KycStatusChangedEvent } from '../domain/events/profile-events';
 import { ExpertGateway } from '../gateways/expert.gateway';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../../../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
+import { NodeMailerService } from '../../../../../external/nodemailer/nodemailer.service';
 
 @Injectable()
 export class KycStatusChangedHandler {

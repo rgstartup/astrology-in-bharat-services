@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   OneToOne,
@@ -7,7 +8,7 @@ import {
   UpdateDateColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
 import { CartItem } from './cart-item.entity';
 
 @Entity({ schema: 'commerce', name: 'carts' })
@@ -17,7 +18,7 @@ export class Cart {
 
   @OneToOne(() => ClientAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { cascade: true })
   items!: CartItem[];

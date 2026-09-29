@@ -6,7 +6,7 @@ import { GetUnifiedHistoryUseCase } from './consultation/use-cases/get-unified-h
 import { GetConsultationTopicsUseCase } from './consultation/use-cases/get-consultation-topics.use-case';
 import { ChatSession } from './chat/entities/chat-session.entity';
 import { CallSession } from './call/entities/call-session.entity';
-import { Review } from '@/internal/consultation/reviews/entities/review.entity';
+import { Review } from './reviews/entities/review.entity';
 import { ConsultationTopic } from './consultation/entities/consultation_topic.entity';
 import { CallModule } from './call/call.module';
 import { ChatModule } from './chat/chat.module';

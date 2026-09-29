@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { count, desc, eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { notifications } from '@/core/drizzledb/schema';
-import { GetNotificationsDto } from '@/internal/notification/dto/get-notifications.dto';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { notifications } from '../../../../../core/drizzledb/schema';
+import { GetNotificationsDto } from '../../../../notification/dto/get-notifications.dto';
 
 @Injectable()
 export class GetClientNotificationsUseCase {

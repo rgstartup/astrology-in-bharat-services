@@ -8,16 +8,16 @@ import {
   Patch,
   ParseIntPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/auth.guard';
 import { CreatePujaAppointmentUseCase } from '../use-cases/create-puja-appointment.use-case';
 import { CreatePujaAppointmentDto } from '../dtos/create-puja-appointment.dto';
 import { GetUserPujaAppointmentsUseCase } from '../use-cases/get-user-puja-appointments.use-case';
 import { GetExpertPujaAppointmentsUseCase } from '../use-cases/get-expert-puja-appointments.use-case';
 import { UpdatePujaAppointmentStatusUseCase } from '../use-cases/update-puja-appointment-status.use-case';
 import { UpdatePujaAppointmentStatusDto } from '../dtos/update-puja-appointment-status.dto';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
-import { IUser } from '@/shared/types/access-token.payload';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { CurrentProfile } from '../../../shared/decorators/current-profile.decorator';
+import { type IUser } from '../../../shared/types/access-token.payload';
 
 @Controller('puja-appointments')
 export class PujaAppointmentController {

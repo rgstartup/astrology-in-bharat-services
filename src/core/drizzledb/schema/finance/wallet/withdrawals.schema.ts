@@ -12,7 +12,7 @@ import {
 import { relations } from 'drizzle-orm';
 import { expertAccounts } from '../../expert/expert-account.schema';
 import { users } from '../../users/users.schema';
-import { WithdrawalStatus } from '@/internal/finance/wallet/enum';
+import { WithdrawalStatus } from '../../../../../internal/finance/wallet/enum';
 
 const financeSchema = pgSchema('finance');
 

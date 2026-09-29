@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   BeforeInsert,
   Column,
@@ -8,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { createHash } from 'crypto';
 
 @Entity({
@@ -21,7 +22,7 @@ export class UsedTokens {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column('text')
   token!: string;

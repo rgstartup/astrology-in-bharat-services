@@ -20,7 +20,7 @@ import {
   InitiateRegisterDto,
   CompleteRegisterDto,
 } from './dto/email-register.dto';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../users/enums/Role.enum';
 
 @Injectable()
 export class AuthService {

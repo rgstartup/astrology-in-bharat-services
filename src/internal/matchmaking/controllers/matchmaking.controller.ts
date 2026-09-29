@@ -1,6 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { GunaMilanRequestDto, LoveCalculatorDto } from '../dto/matchmaking.dto';
-import { Public } from '@/shared/decorators/public.decorator';
+import { Public } from '../../../shared/decorators/public.decorator';
 import { MatchmakingService } from '../matchmaking.service';
 
 @Controller('matchmaking')

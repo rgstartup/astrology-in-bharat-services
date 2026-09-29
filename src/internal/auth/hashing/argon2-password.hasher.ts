@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IHasher } from '@/shared/contracts/hasher.contract';
+import { IHasher } from '../../../shared/contracts/hasher.contract';
 import * as argon2 from 'argon2';
 
 @Injectable()

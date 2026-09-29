@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import {
   Injectable,
   Inject,
@@ -9,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
 import { ChatMessage } from '../entities/chat-message.entity';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../../finance/wallet/wallet.service';
 import { MessageType, ChatSessionStatus } from '../enum';
 
 @Injectable()
@@ -20,7 +21,7 @@ export class ActivateSessionUseCase {
     @InjectRepository(ChatMessage)
     private messageRepo: Repository<ChatMessage>,
     @Inject(forwardRef(() => WalletService))
-    private walletService: WalletService,
+    private walletService: DeferredDependency<WalletService>,
   ) {}
 
   async execute(

@@ -1,13 +1,13 @@
-import ToBoolean from '@/shared/decorators/transform/bool.transform';
-import TrimString from '@/shared/decorators/transform/trim.transform';
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import ToBoolean from '../../../../shared/decorators/transform/bool.transform';
+import TrimString from '../../../../shared/decorators/transform/trim.transform';
+import { PaginationDto } from '../../../../shared/dto/pagination.dto';
 import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
 
 export class GetConsultationTopicsDto extends PaginationDto {
   @IsOptional()
   @IsString()
   @TrimString()
-  search?: string;
+  declare search?: string;
 
   @IsOptional()
   @ToBoolean()

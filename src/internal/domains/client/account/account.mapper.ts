@@ -3,7 +3,7 @@ import type {
   ClientAccountRow,
   MediaRow,
   UserRow,
-} from '@/core/drizzledb/schema';
+} from '../../../../core/drizzledb/schema';
 
 /** `users` columns safe to expose (never `password`). */
 export type SafeUserRow = Omit<UserRow, 'password'>;

@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { User } from '../../users/entities/user.entity';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { AdminAuditLog } from '../entities/admin-audit-log.entity';
 
 @Injectable()

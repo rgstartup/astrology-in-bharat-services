@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -24,7 +25,7 @@ export class DistrictEntity {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'state_id' })
-  state: StateEntity;
+  state: Relation<StateEntity>;
 
   @CreateDateColumn()
   created_at: Date;

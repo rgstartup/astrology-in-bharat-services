@@ -3,7 +3,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../account/entities/account.entity';
 
 export const CurrentClient = createParamDecorator(
   <T extends keyof ClientAccount | undefined>(

@@ -11,7 +11,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { AdminPermission, PlatformEnum, RoleEnum } from '@/core/enums';
+import { AdminPermission, PlatformEnum, RoleEnum } from '../../../enums';
 
 export const roleEnum = pgEnum('role', RoleEnum);
 

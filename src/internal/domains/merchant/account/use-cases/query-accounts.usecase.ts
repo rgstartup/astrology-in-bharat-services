@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MerchantAccount, MerchantStatus } from '../entities/account.entity';
 import { QueryMerchantDto } from '../dto/request/query-merchant.dto';
-import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../../../../shared/dto/paginated-response.dto';
 import { MerchantAccountResponseDto } from '../dto/response/merchant-account-response.dto';
 
 @Injectable()

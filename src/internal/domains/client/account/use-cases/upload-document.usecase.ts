@@ -4,7 +4,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { ImageUploadService } from '@/external/cloudinary';
+import { ImageUploadService } from '../../../../../external/cloudinary';
 
 @Injectable()
 export class UploadDocumentUseCase {

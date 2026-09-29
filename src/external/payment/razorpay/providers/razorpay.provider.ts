@@ -10,7 +10,7 @@ import {
 } from '../../payment-gateway.interface';
 import Razorpay from 'razorpay';
 import { createHmac } from 'crypto';
-import { RazorpayConfig } from '@/config/razorpay.config';
+import { RazorpayConfig } from '../../../../config/razorpay.config';
 
 @Injectable()
 export class RazorpayProvider implements IPaymentGateway {

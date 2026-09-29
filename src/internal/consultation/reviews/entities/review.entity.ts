@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -6,12 +7,12 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
-import { ChatSession } from '@/internal/consultation/chat/entities/chat-session.entity';
-import { CallSession } from '@/internal/consultation/call/entities/call-session.entity';
-import { Order } from '@/internal/commerce/order/entities/order.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../../domains/expert/profile/entities/profile-expert.entity';
+import { MerchantAccount } from '../../../domains/merchant/account/entities/account.entity';
+import { ChatSession } from '../../chat/entities/chat-session.entity';
+import { CallSession } from '../../call/entities/call-session.entity';
+import { Order } from '../../../commerce/order/entities/order.entity';
 
 @Entity({ schema: 'consultations', name: 'reviews' })
 export class Review {
@@ -23,7 +24,7 @@ export class Review {
 
   @ManyToOne(() => ClientAccount)
   @JoinColumn({ name: 'client_id' })
-  client!: ClientAccount;
+  client!: Relation<ClientAccount>;
 
   @Column({ type: 'int', name: 'order_id', nullable: true })
   order_id!: number | null;
@@ -37,28 +38,28 @@ export class Review {
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
-  expert!: ProfileExpert;
+  expert!: Relation<ProfileExpert>;
 
   @Column({ type: 'int', name: 'merchant_id', nullable: true })
   merchant_id!: number | null;
 
   @ManyToOne(() => MerchantAccount)
   @JoinColumn({ name: 'merchant_id' })
-  merchant!: MerchantAccount;
+  merchant!: Relation<MerchantAccount>;
 
   @Column({ type: 'int', nullable: true, name: 'session_id' })
   session_id!: number | null;
 
   @ManyToOne(() => ChatSession, { nullable: true })
   @JoinColumn({ name: 'session_id' })
-  session!: ChatSession;
+  session!: Relation<ChatSession>;
 
   @Column({ type: 'int', nullable: true, name: 'call_session_id' })
   call_session_id!: number | null;
 
   @ManyToOne(() => CallSession, { nullable: true })
   @JoinColumn({ name: 'call_session_id' })
-  callSession!: CallSession;
+  callSession!: Relation<CallSession>;
 
   @Column({ type: 'float' })
   rating!: number;

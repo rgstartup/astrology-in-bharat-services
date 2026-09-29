@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { OrderStatus } from '@/internal/commerce/order/enum';
+import { OrderStatus } from '../../../../commerce/order/enum';
 
 export class UpdateMerchantOrderStatusDto {
   @IsEnum(OrderStatus)

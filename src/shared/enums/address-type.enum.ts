@@ -1,1 +1,1 @@
-export { AddressType } from '@/core/enums';
+export { AddressType } from '../../core/enums';

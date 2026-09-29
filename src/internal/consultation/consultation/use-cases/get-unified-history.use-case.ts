@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { ChatSession } from '@/internal/consultation/chat/entities/chat-session.entity';
-import { ChatSessionStatus } from '@/internal/consultation/chat/enum';
-import { CallSession } from '@/internal/consultation/call/entities/call-session.entity';
-import { CallSessionStatus, CallType } from '@/internal/consultation/call/enum';
-import { Review } from '@/internal/consultation/reviews/entities/review.entity';
+import { ChatSession } from '../../chat/entities/chat-session.entity';
+import { ChatSessionStatus } from '../../chat/enum';
+import { CallSession } from '../../call/entities/call-session.entity';
+import { CallSessionStatus, CallType } from '../../call/enum';
+import { Review } from '../../reviews/entities/review.entity';
 import { ConsultationHistoryDto } from '../dto/consultation-history.dto';
 import { ConsultationType, ConsultationStatus } from '../enum';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
 
 import { GetUnifiedHistoryDto } from '../dto/get-unified-history.dto';
 

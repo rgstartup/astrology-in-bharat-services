@@ -8,13 +8,13 @@ import {
   sql,
   type SQL,
 } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
 import {
   clientFavorites,
   products,
   productVariants,
-} from '@/core/drizzledb/schema';
+} from '../../../../../core/drizzledb/schema';
 import { FavoriteItemType } from '../enum';
 import { FindFavoriteProductVariantsDto } from '../dto/favorite-product-variant.dto';
 

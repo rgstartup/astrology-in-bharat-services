@@ -1,21 +1,22 @@
+import type { DeferredDependency } from '../../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
-import { ReviewsService } from '@/internal/consultation/reviews/reviews.service';
-import { ChatSessionStatus } from '@/internal/consultation/chat/enum';
-import { CallSessionStatus } from '@/internal/consultation/call/enum';
-import { CallService } from '@/internal/consultation/call/call.service';
+import { ChatService } from '../../../../consultation/chat/chat.service';
+import { WalletService } from '../../../../finance/wallet/wallet.service';
+import { ReviewsService } from '../../../../consultation/reviews/reviews.service';
+import { ChatSessionStatus } from '../../../../consultation/chat/enum';
+import { CallSessionStatus } from '../../../../consultation/call/enum';
+import { CallService } from '../../../../consultation/call/call.service';
 
 @Injectable()
 export class GetDashboardStatsUseCase {
   constructor(
     @Inject(forwardRef(() => ChatService))
-    private readonly chatService: ChatService,
+    private readonly chatService: DeferredDependency<ChatService>,
     @Inject(forwardRef(() => WalletService))
-    private readonly walletService: WalletService,
+    private readonly walletService: DeferredDependency<WalletService>,
     private readonly reviewsService: ReviewsService,
     @Inject(forwardRef(() => CallService))
-    private readonly callService: CallService,
+    private readonly callService: DeferredDependency<CallService>,
   ) {}
 
   async execute(expertProfileId: number, type: 'today' | 'total' = 'today') {

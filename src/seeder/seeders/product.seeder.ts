@@ -1,15 +1,15 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource, In } from 'typeorm';
-import { Product } from '@/internal/commerce/product/entities/product.entity';
-import { ProductCategory } from '@/internal/commerce/product/entities/category.entity';
-import { ProductVariant } from '@/internal/commerce/product/entities/variants.entity';
-import { ProductFulFillment } from '@/internal/commerce/product/entities/fulfillment.entity';
-import { ProductInventory } from '@/internal/commerce/product/entities/inventory.entity';
-import { ProductVariantPricing } from '@/internal/commerce/product/entities/pricing.entity';
-import { ProductVariantPromotions } from '@/internal/commerce/product/entities/promotions.entity';
-import { ProductMedia } from '@/internal/commerce/product/entities/media.entity';
-import { Media } from '@/internal/media/entities/media.entity';
-import { MerchantAccount } from '@/internal/domains/merchant/account/entities/account.entity';
+import { Product } from '../../internal/commerce/product/entities/product.entity';
+import { ProductCategory } from '../../internal/commerce/product/entities/category.entity';
+import { ProductVariant } from '../../internal/commerce/product/entities/variants.entity';
+import { ProductFulFillment } from '../../internal/commerce/product/entities/fulfillment.entity';
+import { ProductInventory } from '../../internal/commerce/product/entities/inventory.entity';
+import { ProductVariantPricing } from '../../internal/commerce/product/entities/pricing.entity';
+import { ProductVariantPromotions } from '../../internal/commerce/product/entities/promotions.entity';
+import { ProductMedia } from '../../internal/commerce/product/entities/media.entity';
+import { Media } from '../../internal/media/entities/media.entity';
+import { MerchantAccount } from '../../internal/domains/merchant/account/entities/account.entity';
 import {
   ProductType,
   ProductGroup,
@@ -17,14 +17,14 @@ import {
   DeliveryType,
   DiscountType,
   MediaRole,
-} from '@/internal/commerce/product/enum';
+} from '../../internal/commerce/product/enum';
 import {
   PricingStatus,
   PricingTargetAudience,
-} from '@/internal/domains/expert/shared/enums/pricing.enum';
-import { ExpertAccount } from '@/internal/domains/expert/account/entities/account.entity';
-import { ExpertProducts } from '@/internal/domains/expert/products/entities/expert-product.entity';
-import { ExpertProductRelationType } from '@/internal/domains/expert/products/enum/expert-product-relation-type.enum';
+} from '../../internal/domains/expert/shared/enums/pricing.enum';
+import { ExpertAccount } from '../../internal/domains/expert/account/entities/account.entity';
+import { ExpertProducts } from '../../internal/domains/expert/products/entities/expert-product.entity';
+import { ExpertProductRelationType } from '../../internal/domains/expert/products/enum/expert-product-relation-type.enum';
 
 interface VariantSeedData {
   name: string;

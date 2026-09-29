@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -19,7 +20,7 @@ export class ProductInventory {
 
   @OneToOne(() => ProductVariant)
   @JoinColumn({ name: 'variant_id' })
-  variant!: ProductVariant;
+  variant!: Relation<ProductVariant>;
 
   @Column({ name: 'stock', default: 0 })
   stock!: number;

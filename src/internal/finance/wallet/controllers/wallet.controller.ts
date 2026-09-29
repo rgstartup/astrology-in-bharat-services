@@ -1,7 +1,7 @@
 import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { WalletService } from '../wallet.service';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
 
 import { GetTransactionsDto } from '../dto/get-transactions.dto';
 

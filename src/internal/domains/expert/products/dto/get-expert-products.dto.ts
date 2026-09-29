@@ -1,5 +1,5 @@
 import { PickType } from '@nestjs/mapped-types';
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { PaginationDto } from '../../../../../shared/dto/pagination.dto';
 import {
   IsBoolean,
   IsEnum,
@@ -7,9 +7,9 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import TrimString from '@/shared/decorators/transform/trim.transform';
-import ToBoolean from '@/shared/decorators/transform/bool.transform';
-import { ProductType, ProductGroup } from '@/internal/commerce/product/enum';
+import TrimString from '../../../../../shared/decorators/transform/trim.transform';
+import ToBoolean from '../../../../../shared/decorators/transform/bool.transform';
+import { ProductType, ProductGroup } from '../../../../commerce/product/enum';
 import { ExpertProductRelationType } from '../enum/expert-product-relation-type.enum';
 
 export class GetExpertProductsDto extends PickType(PaginationDto, [

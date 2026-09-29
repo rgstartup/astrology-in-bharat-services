@@ -1,5 +1,5 @@
 ﻿import { HttpStatus } from '@nestjs/common';
-import { DomainError } from '@/shared/types/domain.error';
+import { DomainError } from '../../../../shared/types/domain.error';
 
 export class CallExpertNotFoundError extends DomainError {
   readonly code = 'CALL_EXPERT_NOT_FOUND';

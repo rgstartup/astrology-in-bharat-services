@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { CalendarService } from '../calendar.service';
-import { Public } from '@/shared/decorators/public.decorator';
+import { Public } from '../../../shared/decorators/public.decorator';
 
 @Controller('calendar')
 export class CalendarController {

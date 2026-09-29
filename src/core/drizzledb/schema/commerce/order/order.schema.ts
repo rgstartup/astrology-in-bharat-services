@@ -11,7 +11,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { OrderStatus, PaymentStatus } from '@/internal/commerce/order/enum';
+import { OrderStatus, PaymentStatus } from '../../../../../internal/commerce/order/enum';
 import { clientAccounts } from '../../client/client-account.schema';
 import { orderItems } from './order-item.schema';
 import { orderShipments } from './order-shipment.schema';

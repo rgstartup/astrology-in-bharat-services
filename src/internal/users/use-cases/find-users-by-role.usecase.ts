@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../domains/client/account/entities/account.entity';
+import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
 
-import { Address } from '@/shared/address/address.entity';
+import { Address } from '../../../shared/address/address.entity';
 
 @Injectable()
 export class FindUsersByRoleUseCase {

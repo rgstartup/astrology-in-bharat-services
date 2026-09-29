@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, getTableColumns, ilike, or, type SQL } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { clientFavorites, expertAccounts } from '@/core/drizzledb/schema';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { clientFavorites, expertAccounts } from '../../../../../core/drizzledb/schema';
 import { FavoriteItemType } from '../enum';
 import { FindFavoriteExpertsDto } from '../dto/favorite-expert.dto';
 

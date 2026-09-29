@@ -1,11 +1,11 @@
 import { Controller, Post, Get, Res, Req, Logger } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { type Request, type Response } from 'express';
 import * as twilio from 'twilio';
-import { Public } from '@/shared/decorators/public.decorator';
+import { Public } from '../../../../shared/decorators/public.decorator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CallSession } from '../entities/call-session.entity';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../../finance/wallet/wallet.service';
 
 @Controller({
   path: 'call',

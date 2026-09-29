@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { RoleEnum } from '../enums/Role.enum';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
+import { ProfileExpert } from '../../domains/expert/profile/entities/profile-expert.entity';
 
 @Injectable()
 export class GetExpertStatsUseCase {

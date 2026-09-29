@@ -4,14 +4,14 @@ import { Wallet, WalletKey } from '../entities/wallet.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { TransactionType, TransactionPurpose } from '../enum';
 import { InsufficientBalanceError } from '../domain/errors/insufficient-balance.error';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
-import { generateTransactionNo } from '@/shared/utils/transaction-no.util';
+import { ClientAccount } from '../../../domains/client/account/entities/account.entity';
+import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '@/internal/finance/ledger/entities/general-ledger-entry.entity';
-import { LedgerQueueService } from '@/core/queue/services/ledger-queue.service';
+} from '../../ledger/entities/general-ledger-entry.entity';
+import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
 
 const purposeToLedgerEventType: Record<
   TransactionPurpose,

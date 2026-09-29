@@ -1,6 +1,6 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { ProductCategory } from '@/internal/commerce/product/entities/category.entity';
+import { ProductCategory } from '../../internal/commerce/product/entities/category.entity';
 
 interface ProductCategorySeedData {
   name: string;

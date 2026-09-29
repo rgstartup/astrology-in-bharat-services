@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Place } from '../entities/place.entity';
-import { SerperService } from '@/external/serper/serper.service';
+import { SerperService } from '../../../external/serper/serper.service';
 import { PlacesMapper } from '../places.mapper';
 
 @Injectable()

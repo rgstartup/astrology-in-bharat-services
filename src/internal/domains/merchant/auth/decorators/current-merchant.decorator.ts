@@ -3,7 +3,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { IMerchant } from '@/shared/types/access-token.payload';
+import { IMerchant } from '../../../../../shared/types/access-token.payload';
 
 export const CurrentMerchant = createParamDecorator(
   <T extends keyof IMerchant | undefined>(

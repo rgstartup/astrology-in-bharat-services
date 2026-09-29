@@ -3,15 +3,15 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../core/database/database.service';
 import { UsedTokensService } from '../services/used-tokens.service';
 import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { LoginWithMagicLinkPolicy } from '../domain/policies/login-with-magic-link.policy';
 import { AuthTokenService } from '../services/auth-token.service';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class LoginWithMagicLinkUseCase {

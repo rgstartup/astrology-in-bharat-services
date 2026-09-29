@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CommissionRule } from '@/internal/finance/commissions/entities/commission-rule.entity';
+import { CommissionRule } from '../entities/commission-rule.entity';
 import { QueryCommissionRulesDto } from '../dto/query-commission-rules.dto';
 
 export { QueryCommissionRulesDto };

@@ -4,9 +4,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { Repository } from 'typeorm';
-import { createJwtStrategyOptions } from '@/internal/auth/strategies/abstract/jwt.options';
+import { createJwtStrategyOptions } from '../../../../auth/strategies/abstract/jwt.options';
 import { MerchantAccount } from '../../account/entities/account.entity';
-import { IMerchant } from '@/shared/types/access-token.payload';
+import { IMerchant } from '../../../../../shared/types/access-token.payload';
 
 export interface MerchantJwtPayload {
   sub: number;

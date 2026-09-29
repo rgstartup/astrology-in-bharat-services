@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -10,7 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
 import { CallService } from './call.service';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../finance/wallet/wallet.service';
 import { CallSessionStatus } from './enum';
 
 @WebSocketGateway({
@@ -32,9 +33,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     @Inject(forwardRef(() => CallService))
-    private readonly callService: CallService,
+    private readonly callService: DeferredDependency<CallService>,
     @Inject(forwardRef(() => WalletService))
-    private readonly walletService: WalletService,
+    private readonly walletService: DeferredDependency<WalletService>,
   ) {}
 
   handleConnection(client: Socket) {

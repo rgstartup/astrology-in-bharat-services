@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../../../finance/wallet/wallet.service';
 
 @Injectable()
 export class GetWalletBalanceUseCase {

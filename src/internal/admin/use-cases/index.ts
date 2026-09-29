@@ -21,7 +21,7 @@ export { GetAgentStatsUseCase } from './get-agent-stats.use-case';
 export { GetAgentsUseCase } from './get-agents.use-case';
 export { GetExpertDetailUseCase } from './get-expert-detail.use-case';
 export {
-  FilterCriteria,
+  type FilterCriteria,
   GetFilteredUsersUseCase,
 } from './get-filtered-users.use-case';
 export { GetLiveSessionsUseCase } from './get-live-sessions.use-case';

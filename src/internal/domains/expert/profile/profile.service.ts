@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { IUser } from '@/shared/types/access-token.payload';
+import { IUser } from '../../../../shared/types/access-token.payload';
 import {
   CreateProfileExpertDto,
   UpdateProfileExpertDto,
@@ -104,7 +104,7 @@ export class ExpertProfileService {
 
   async updateProfileWithQueryRunner(
     userId: number,
-    updates: import('typeorm/query-builder/QueryPartialEntity').QueryDeepPartialEntity<
+    updates: import('typeorm').QueryDeepPartialEntity<
       import('./entities/profile-expert.entity').ProfileExpert
     >,
     queryRunner: QueryRunner,

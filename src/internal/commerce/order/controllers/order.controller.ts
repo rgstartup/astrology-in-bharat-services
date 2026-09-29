@@ -10,15 +10,15 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { OrderService } from '../order.service';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { RolesGuard } from '@/internal/auth/guards/role.guard';
-import { Roles } from '@/shared/decorators/roles.decorator';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
+import { RolesGuard } from '../../../auth/guards/role.guard';
+import { Roles } from '../../../../shared/decorators/roles.decorator';
+import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
+import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderStatusDto } from '../dto/update-order-status.dto';
 import { GetMyOrdersDto } from '../dto/get-my-orders.dto';
-import { IUser } from '@/shared/types/access-token.payload';
+import { type IUser } from '../../../../shared/types/access-token.payload';
 
 // Standard Controller (Plural 'orders') - Restores /api/v1/orders
 @Controller({

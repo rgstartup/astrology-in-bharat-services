@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -8,8 +9,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { ColumnNumericTransformer } from '../../../../../shared/transformers/numeric.transformer';
+import { ClientAccount } from '../../../client/account/entities/account.entity';
 import {
   PricingStatus,
   PricingTargetAudience,
@@ -41,7 +42,7 @@ export class ExpertConsultationPricing {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'expert_id' })
-  expert!: ExpertAccount;
+  expert!: Relation<ExpertAccount>;
 
   @Column({ type: 'int', nullable: true, name: 'client_id' })
   client_id!: number | null;

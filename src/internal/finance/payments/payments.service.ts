@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { VerifyPaymentUseCase } from './use-cases/verify-payment.use-case';
 import { HandleWebhookUseCase } from './use-cases/handle-webhook.use-case';
 import { VerifyPaymentDto } from './dto/verify-payment.dto';
-import { WebhookValidationRequest } from '@/external/payment/payment-gateway.interface';
+import { WebhookValidationRequest } from '../../../external/payment/payment-gateway.interface';
 
 @Injectable()
 export class PaymentsService {

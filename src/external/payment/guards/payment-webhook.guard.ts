@@ -6,7 +6,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { IPaymentGateway, PAYMENT_GATEWAY } from '../payment-gateway.interface';
+import { type IPaymentGateway, PAYMENT_GATEWAY } from '../payment-gateway.interface';
 
 @Injectable()
 export class PaymentWebhookGuard implements CanActivate {

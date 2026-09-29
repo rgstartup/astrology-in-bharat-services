@@ -13,9 +13,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImageUploadService, VideoUploadService } from '@/external/cloudinary';
-import { Public } from '@/shared/decorators/public.decorator';
-import { IMerchant } from '@/shared/types/access-token.payload';
+import { ImageUploadService, VideoUploadService } from '../../../../../external/cloudinary';
+import { Public } from '../../../../../shared/decorators/public.decorator';
+import { type IMerchant } from '../../../../../shared/types/access-token.payload';
 import { MerchantJwtAuthGuard } from '../../auth/guards/auth.guard';
 import { CurrentMerchant } from '../../auth/decorators/current-merchant.decorator';
 import { MerchantAccountService } from '../account.service';

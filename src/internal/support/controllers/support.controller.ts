@@ -11,10 +11,10 @@ import {
 import { SupportService } from '../support.service';
 import { CreateDisputeDto } from '../dto/create-dispute.dto';
 import { SendDisputeMessageDto } from '../dto/send-dispute-message.dto';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
-import { IUser } from '@/shared/types/access-token.payload';
+import { JwtAuthGuard } from '../../auth/guards/auth.guard';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { CurrentProfile } from '../../../shared/decorators/current-profile.decorator';
+import { type IUser } from '../../../shared/types/access-token.payload';
 
 @Controller({
   path: 'support',

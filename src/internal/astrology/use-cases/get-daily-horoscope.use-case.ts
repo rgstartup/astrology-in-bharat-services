@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ProkeralaService } from '@/external/prokerala/prokerala.service';
+import { ProkeralaService } from '../../../external/prokerala/prokerala.service';
 import { GetDailyHoroscopeDto } from '../dto/get-daily-horoscope.dto';
 
 @Injectable()

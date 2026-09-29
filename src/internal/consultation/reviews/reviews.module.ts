@@ -2,10 +2,10 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReviewsController } from './controllers/reviews.controller';
 import { Review } from './entities/review.entity';
-import { ChatSession } from '@/internal/consultation/chat/entities/chat-session.entity';
-import { CallSession } from '@/internal/consultation/call/entities/call-session.entity';
-import { WalletModule } from '@/internal/finance/wallet/wallet.module';
-import { NotificationModule } from '@/internal/notification/notification.module';
+import { ChatSession } from '../chat/entities/chat-session.entity';
+import { CallSession } from '../call/entities/call-session.entity';
+import { WalletModule } from '../../finance/wallet/wallet.module';
+import { NotificationModule } from '../../notification/notification.module';
 
 import { ReviewsService } from './reviews.service';
 import { CreateReviewUseCase } from './use-cases/create-review.use-case';
@@ -21,9 +21,9 @@ import { SendReviewResponseUseCase } from './use-cases/send-review-response.use-
 import { GetApprovedPlatformReviewsUseCase } from './use-cases/get-approved-platform-reviews.use-case';
 import { GetExpertReviewsByDateUseCase } from './use-cases/get-expert-reviews-by-date.use-case';
 
-import { ProfileModule as ExpertProfileModule } from '@/internal/domains/expert/profile/profile.module';
-import { MerchantAccountModule } from '@/internal/domains/merchant/account/account.module';
-import { OrderModule } from '@/internal/commerce/order/order.module';
+import { ProfileModule as ExpertProfileModule } from '../../domains/expert/profile/profile.module';
+import { MerchantAccountModule } from '../../domains/merchant/account/account.module';
+import { OrderModule } from '../../commerce/order/order.module';
 
 @Module({
   imports: [

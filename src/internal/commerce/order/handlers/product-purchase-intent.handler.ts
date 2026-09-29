@@ -1,9 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { IPaymentIntentHandler } from '@/internal/finance/payments/interfaces/payment-intent-handler.interface';
-import { GatewayIntent } from '@/internal/finance/payments/enums/gateway-intent.enum';
-import { GatewayTransaction } from '@/internal/finance/payments/entities/gateway-transaction.entity';
-import { PaymentIntentDispatcher } from '@/internal/finance/payments/services/payment-intent-dispatcher.service';
+import { IPaymentIntentHandler } from '../../../finance/payments/interfaces/payment-intent-handler.interface';
+import { GatewayIntent } from '../../../finance/payments/enums/gateway-intent.enum';
+import { GatewayTransaction } from '../../../finance/payments/entities/gateway-transaction.entity';
+import { PaymentIntentDispatcher } from '../../../finance/payments/services/payment-intent-dispatcher.service';
 import { OrderService } from '../order.service';
 
 @Injectable()

@@ -11,10 +11,10 @@ import {
   Body,
   ParseIntPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
-import { RolesGuard } from '@/internal/auth/guards/role.guard';
-import { Roles } from '@/shared/decorators/roles.decorator';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../../../auth/guards/auth.guard';
+import { RolesGuard } from '../../../../auth/guards/role.guard';
+import { Roles } from '../../../../../shared/decorators/roles.decorator';
+import { CurrentUser } from '../../../../../shared/decorators/current-user.decorator';
 import { GetMerchantStatsUseCase } from '../use-cases/get-merchant-stats.usecase';
 import { GetRecentOrdersUseCase } from '../use-cases/get-recent-orders.usecase';
 import { GetMerchantOrdersUseCase } from '../use-cases/get-merchant-orders.usecase';
@@ -23,7 +23,7 @@ import { GetMerchantPerformanceUseCase } from '../use-cases/get-merchant-perform
 import { GetMerchantAnalyticsUseCase } from '../use-cases/get-merchant-analytics.usecase';
 import { SendOrderOtpUseCase } from '../use-cases/send-order-otp.usecase';
 import { VerifyOrderOtpUseCase } from '../use-cases/verify-order-otp.usecase';
-import { OrderService } from '@/internal/commerce/order/order.service';
+import { OrderService } from '../../../../commerce/order/order.service';
 import { GetMerchantOrdersDto } from '../dto/get-merchant-orders.dto';
 import { UpdateMerchantOrderStatusDto } from '../dto/update-merchant-order-status.dto';
 

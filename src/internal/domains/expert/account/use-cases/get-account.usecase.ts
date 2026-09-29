@@ -41,17 +41,17 @@ export class GetExpertAccountUseCase {
           (
             SELECT json_agg(
               json_build_object(
-                'id', ${expertProfessions.id},
-                'profession_id', ${expertProfessions.profession_id},
-                'is_primary', ${expertProfessions.is_primary},
-                'title', ${professions.title},
-                'slug', ${professions.slug},
-                'icon', ${professions.icon}
+                'id', ${expertProfessions}.${sql.identifier(expertProfessions.id.name)},
+                'profession_id', ${expertProfessions}.${sql.identifier(expertProfessions.profession_id.name)},
+                'is_primary', ${expertProfessions}.${sql.identifier(expertProfessions.is_primary.name)},
+                'title', ${professions}.${sql.identifier(professions.title.name)},
+                'slug', ${professions}.${sql.identifier(professions.slug.name)},
+                'icon', ${professions}.${sql.identifier(professions.icon.name)}
               )
             )
             FROM ${expertProfessions}
-            INNER JOIN ${professions} ON ${expertProfessions.profession_id} = ${professions.id}
-            WHERE ${expertProfessions.expert_id} = ${expertAccounts.id}
+            INNER JOIN ${professions} ON ${expertProfessions}.${sql.identifier(expertProfessions.profession_id.name)} = ${professions}.${sql.identifier(professions.id.name)}
+            WHERE ${expertProfessions}.${sql.identifier(expertProfessions.expert_id.name)} = ${expertAccounts}.${sql.identifier(expertAccounts.id.name)}
           ),
           '[]'::json
         )`,
@@ -65,15 +65,15 @@ export class GetExpertAccountUseCase {
           (
             SELECT json_agg(
               json_build_object(
-                'id', ${expertSpecializations.id},
-                'title', ${specializations.title},
-                'slug', ${specializations.slug}
+                'id', ${specializations}.${sql.identifier(specializations.id.name)},
+                'title', ${specializations}.${sql.identifier(specializations.title.name)},
+                'slug', ${specializations}.${sql.identifier(specializations.slug.name)}
               )
             )
             FROM ${expertSpecializations}
-            INNER JOIN ${specializations} ON ${expertSpecializations.specialization_id} = ${specializations.id}
-            WHERE ${expertSpecializations.expert_id} = ${expertAccounts.id}
-              AND ${specializations.is_active} = true
+            INNER JOIN ${specializations} ON ${expertSpecializations}.${sql.identifier(expertSpecializations.specialization_id.name)} = ${specializations}.${sql.identifier(specializations.id.name)}
+            WHERE ${expertSpecializations}.${sql.identifier(expertSpecializations.expert_id.name)} = ${expertAccounts}.${sql.identifier(expertAccounts.id.name)}
+              AND ${specializations}.${sql.identifier(specializations.is_active.name)} = true
           ),
           '[]'::json
         )`,
@@ -84,22 +84,22 @@ export class GetExpertAccountUseCase {
           chat_price: string | null;
         } | null>`(
           SELECT json_build_object(
-            'id', ${expertConsultationPricing.id},
-            'call_price', ${expertConsultationPricing.call_price},
-            'video_call_price', ${expertConsultationPricing.video_call_price},
-            'chat_price', ${expertConsultationPricing.chat_price}
+            'id', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.id.name)},
+            'call_price', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.call_price.name)},
+            'video_call_price', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.video_call_price.name)},
+            'chat_price', ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.chat_price.name)}
           )
           FROM ${expertConsultationPricing}
-          WHERE ${expertConsultationPricing.expert_id} = ${expertAccounts.id}
-            AND ${expertConsultationPricing.is_active} = true
-            AND ${expertConsultationPricing.status} = ${PricingStatus.ACTIVE}
-            AND ${expertConsultationPricing.target_audience} = ${PricingTargetAudience.ALL}
-            AND ${expertConsultationPricing.effective_from} <= CURRENT_TIMESTAMP
+          WHERE ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.expert_id.name)} = ${expertAccounts}.${sql.identifier(expertAccounts.id.name)}
+            AND ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.is_active.name)} = true
+            AND ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.status.name)} = ${PricingStatus.ACTIVE}
+            AND ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.target_audience.name)} = ${PricingTargetAudience.ALL}
+            AND ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.effective_from.name)} <= CURRENT_TIMESTAMP
             AND (
-              ${expertConsultationPricing.effective_to} IS NULL
-              OR ${expertConsultationPricing.effective_to} > CURRENT_TIMESTAMP
+              ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.effective_to.name)} IS NULL
+              OR ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.effective_to.name)} > CURRENT_TIMESTAMP
             )
-          ORDER BY ${expertConsultationPricing.effective_from} DESC
+          ORDER BY ${expertConsultationPricing}.${sql.identifier(expertConsultationPricing.effective_from.name)} DESC
           LIMIT 1
         )`,
       })

@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -16,7 +17,7 @@ export class ExpertAccountPuja {
 
   @ManyToOne(() => ExpertAccount, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'expert_account_id' })
-  account!: ExpertAccount;
+  account!: Relation<ExpertAccount>;
 
   @Column({ name: 'expert_account_id', type: 'int' })
   expert_account_id!: number;

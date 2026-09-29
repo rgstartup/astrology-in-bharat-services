@@ -1,3 +1,4 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,7 +9,7 @@ import { CallGateway } from '../call.gateway';
 import { CallPolicy } from '../policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallAcceptedEvent } from '../events/call.events';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../../finance/wallet/wallet.service';
 import { CallSessionAccessDeniedError } from '../errors/call.errors';
 
 @Injectable()
@@ -20,9 +21,9 @@ export class AcceptCallUseCase {
     private readonly sessionRepo: Repository<CallSession>,
     private readonly twilioService: TwilioService,
     @Inject(forwardRef(() => WalletService))
-    private readonly walletService: WalletService,
+    private readonly walletService: DeferredDependency<WalletService>,
     @Inject(forwardRef(() => CallGateway))
-    private readonly callGateway: CallGateway,
+    private readonly callGateway: DeferredDependency<CallGateway>,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 

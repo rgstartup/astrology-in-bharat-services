@@ -2,8 +2,8 @@ import { ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { Observable } from 'rxjs';
-import { IMerchant } from '@/shared/types/access-token.payload';
-import { IS_PUBLIC } from '@/shared/decorators/public.decorator';
+import { IMerchant } from '../../../../../shared/types/access-token.payload';
+import { IS_PUBLIC } from '../../../../../shared/decorators/public.decorator';
 
 @Injectable()
 export class MerchantJwtAuthGuard extends AuthGuard('merchant-jwt') {

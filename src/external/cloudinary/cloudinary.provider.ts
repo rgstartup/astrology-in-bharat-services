@@ -1,7 +1,7 @@
 import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryConfig } from '@/config/cloudinary.config';
+import { CloudinaryConfig } from '../../config/cloudinary.config';
 
 export const CLOUDINARY = Symbol('CLOUDINARY');
 

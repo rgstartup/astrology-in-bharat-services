@@ -1,8 +1,8 @@
-import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { PaginationDto } from '../../../shared/dto/pagination.dto';
 import { IsOptional, IsString } from 'class-validator';
 
 export class GetLiveSessionsDto extends PaginationDto {
   @IsOptional()
   @IsString()
-  override type?: string;
+  declare type?: string;
 }

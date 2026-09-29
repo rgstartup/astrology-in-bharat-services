@@ -1,15 +1,16 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../entities/review.entity';
-import { ExpertProfileService } from '@/internal/domains/expert/profile/profile.service';
+import { ExpertProfileService } from '../../../domains/expert/profile/profile.service';
 import { GetReviewsDto } from '../dto/get-reviews.dto';
 
 @Injectable()
 export class GetExpertReviewsUseCase {
   constructor(
     @Inject(forwardRef(() => ExpertProfileService))
-    private readonly expertProfileService: ExpertProfileService,
+    private readonly expertProfileService: DeferredDependency<ExpertProfileService>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
   ) {}

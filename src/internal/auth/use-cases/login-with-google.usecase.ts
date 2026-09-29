@@ -3,19 +3,19 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { Profile } from 'passport-google-oauth20';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../core/database/database.service';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { QueryRunner } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { OAuthAccount } from '../entities/oauth-accounts.entity';
 import { OAuthUserDto } from '../dto';
 import { TokenCryptoService } from '../tokens/token-crypto.service';
-import { IAccessTokenPayload } from '@/shared/types/access-token.payload';
+import { IAccessTokenPayload } from '../../../shared/types/access-token.payload';
 import { Session } from '../entities/session.entity';
-import { Media } from '@/internal/media/entities/media.entity';
-import { MediaSource } from '@/internal/media/enum';
+import { Media } from '../../media/entities/media.entity';
+import { MediaSource } from '../../media/enum';
 
 @Injectable()
 export class LoginWithGoogleUseCase {

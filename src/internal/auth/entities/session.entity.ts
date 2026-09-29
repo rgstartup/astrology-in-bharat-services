@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -5,8 +6,8 @@ import {
   CreateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { User } from '@/internal/users/entities/user.entity';
-import { UuidPrimaryKeyColumn } from '@/shared/decorators/primary-key.decorator';
+import { User } from '../../users/entities/user.entity';
+import { UuidPrimaryKeyColumn } from '../../../shared/decorators/primary-key.decorator';
 
 @Entity({
   schema: 'auth',
@@ -26,7 +27,7 @@ export class Session {
 
   @ManyToOne(() => User, (u) => u.sessions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'timestamptz' })
   expires_at!: Date;

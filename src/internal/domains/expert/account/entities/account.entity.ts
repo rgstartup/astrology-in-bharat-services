@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Check,
   Column,
@@ -9,8 +10,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
-import { User } from '@/internal/users/entities/user.entity';
+import { ColumnNumericTransformer } from '../../../../../shared/transformers/numeric.transformer';
+import { User } from '../../../../users/entities/user.entity';
 import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
 import { ExpertSpecialization } from './expert-specialization.entity';
 import { ExpertConsultationPricing } from './expert-consultation-pricing.entity';
@@ -26,7 +27,7 @@ export class ExpertAccount {
 
   @OneToOne(() => User, { cascade: true })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'text', unique: true, nullable: true })
   uid!: string | null;

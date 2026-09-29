@@ -1,9 +1,10 @@
+import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../entities/order.entity';
 import { OrderStatus } from '../enum';
-import { PujaAppointmentService } from '@/internal/puja-appointment/puja-appointment.service';
+import { PujaAppointmentService } from '../../../puja-appointment/puja-appointment.service';
 import { GetMyOrdersDto } from '../dto/get-my-orders.dto';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class GetUserOrdersUseCase {
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
     @Inject(forwardRef(() => PujaAppointmentService))
-    private pujaAppointmentService: PujaAppointmentService,
+    private pujaAppointmentService: DeferredDependency<PujaAppointmentService>,
   ) {}
 
   async execute(profileId: number, userId: number, dto: GetMyOrdersDto) {

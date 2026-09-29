@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Entity,
   Column,
@@ -20,7 +21,7 @@ export class OrderRefund {
 
   @ManyToOne(() => Order, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'order_id' })
-  order!: Order;
+  order!: Relation<Order>;
 
   @Column({ name: 'payment_id', type: 'int', nullable: true })
   payment_id!: number | null;

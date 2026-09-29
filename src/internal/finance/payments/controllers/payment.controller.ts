@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { PaymentsService } from '../payments.service';
-import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
+import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
 import { VerifyPaymentDto } from '../dto/verify-payment.dto';
 
 @Controller({

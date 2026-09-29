@@ -1,21 +1,21 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { DatabaseService } from '@/core/database/database.service';
+import { DatabaseService } from '../../../../core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileAgent } from '../entities/profile-agent.entity';
-import { User } from '@/internal/users/entities/user.entity';
-import { ProfileExpert } from '@/internal/domains/expert/profile/entities/profile-expert.entity';
-import { ClientAccount } from '@/internal/domains/client/account/entities/account.entity';
+import { User } from '../../../users/entities/user.entity';
+import { ProfileExpert } from '../../expert/profile/entities/profile-expert.entity';
+import { ClientAccount } from '../../client/account/entities/account.entity';
 import {
   CommissionsService,
   CommissionEventType,
   CommissionType,
   CommissionAppliesRole,
-} from '@/internal/finance/commissions/commissions.service';
+} from '../../../finance/commissions/commissions.service';
 import {
   TransactionType,
   TransactionPurpose,
-} from '@/internal/finance/wallet/enum';
+} from '../../../finance/wallet/enum';
 
 interface WalletRawRow {
   id: string;

@@ -1,5 +1,5 @@
 // src/auth/dto/register.dto.ts
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
+import { RoleEnum } from '../../users/enums/Role.enum';
 import { PickType } from '@nestjs/mapped-types';
 import {
   IsArray,

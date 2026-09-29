@@ -1,12 +1,13 @@
+import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { WalletService } from '../../finance/wallet/wallet.service';
 import { GetWithdrawalsDto } from '../dto/get-withdrawals.dto';
 
 @Injectable()
 export class GetAdminWithdrawalsUseCase {
   constructor(
     @Inject(forwardRef(() => WalletService))
-    private readonly walletService: WalletService,
+    private readonly walletService: DeferredDependency<WalletService>,
   ) {}
 
   async execute(dto: GetWithdrawalsDto) {

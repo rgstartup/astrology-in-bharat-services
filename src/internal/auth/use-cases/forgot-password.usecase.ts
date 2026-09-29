@@ -1,6 +1,6 @@
 import { TokenCryptoService } from '../tokens/token-crypto.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { User } from '@/internal/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ResetPasswordEvent } from '../domain/events/reset-password.event';
 import { InjectRepository } from '@nestjs/typeorm';

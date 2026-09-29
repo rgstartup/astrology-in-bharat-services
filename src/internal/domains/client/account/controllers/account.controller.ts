@@ -9,8 +9,8 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ClientJwtAuthGuard } from '@/internal/domains/client/auth/guards/auth.guard';
-import { CurrentClient } from '@/internal/domains/client/auth/decorators/current-client.decorator';
+import { ClientJwtAuthGuard } from '../../auth/guards/auth.guard';
+import { CurrentClient } from '../../auth/decorators/current-client.decorator';
 import { AccountService } from '../account.service';
 import {
   CreateClientAccountDto,
