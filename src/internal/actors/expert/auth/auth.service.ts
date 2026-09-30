@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import type { Profile } from 'passport-google-oauth20';
 import { ExpertLoginDto } from './dto/expert-login.dto';
 import {
   CompleteExpertRegisterDto,
   InitiateExpertRegisterDto,
 } from './dto/expert-register.dto';
-import { InitiateExpertEmailRegistrationUseCase } from './use-cases/initiate-expert-email-registration.usecase';
-import { CompleteExpertEmailRegistrationUseCase } from './use-cases/complete-expert-email-registration.usecase';
-import { ExpertLoginWithEmailUseCase } from './use-cases/expert-login-with-email.usecase';
-import { ExpertRefreshTokenUseCase } from './use-cases/expert-refresh-token.usecase';
+import {
+  InitiateExpertEmailRegistrationUseCase,
+  CompleteExpertEmailRegistrationUseCase,
+  ExpertLoginWithEmailUseCase,
+  ExpertLoginWithGoogleUseCase,
+  ExpertRefreshTokenUseCase,
+} from './use-cases';
 
 @Injectable()
 export class ExpertAuthService {
@@ -16,6 +20,7 @@ export class ExpertAuthService {
     private readonly completeRegistration: CompleteExpertEmailRegistrationUseCase,
     private readonly login: ExpertLoginWithEmailUseCase,
     private readonly refresh: ExpertRefreshTokenUseCase,
+    private readonly loginWithGoogleUseCase: ExpertLoginWithGoogleUseCase,
   ) {}
 
   initiateEmailRegistration(dto: InitiateExpertRegisterDto) {
@@ -32,6 +37,19 @@ export class ExpertAuthService {
 
   loginWithEmail(dto: ExpertLoginDto, ip?: string, userAgent?: string) {
     return this.login.execute(dto, ip, userAgent);
+  }
+
+  loginWithGoogle(
+    dto: {
+      providerId: string;
+      email: string;
+      name?: string;
+      oauthProfile?: Profile;
+    },
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
+    return this.loginWithGoogleUseCase.execute(dto, ipAddress, userAgent);
   }
 
   refreshToken(refreshToken: string) {

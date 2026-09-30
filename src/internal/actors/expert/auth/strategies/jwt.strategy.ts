@@ -3,11 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { eq } from 'drizzle-orm';
-import { createJwtStrategyOptions } from '../../../../auth/strategies/abstract/jwt.options';
-import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
-import { expertAccounts, users } from '../../../../../core/drizzledb/schema';
-import { IExpert } from '../../../../../shared/types/access-token.payload';
+import { createJwtStrategyOptions } from '@/internal/auth/strategies/abstract/jwt.options';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { expertAccounts, users } from '@/core/drizzledb/schema';
+import { IExpert } from '@/shared/types/access-token.payload';
 
 export interface ExpertJwtPayload {
   sub: number;

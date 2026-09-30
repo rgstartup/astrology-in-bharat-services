@@ -1,6 +1,16 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { CookieOptions, Request, Response } from 'express';
 import { ExpertJwtRefreshAuthGuard } from '../guards/refresh-auth.guard';
+import { ExpertGoogleAuthGuard } from '../guards/google-auth.guard';
+import { ExpertGoogleAuthResult } from '../strategies/google-auth.strategy';
 import { ExpertAuthService } from '../auth.service';
 import { ExpertLoginDto } from '../dto/expert-login.dto';
 import {
@@ -13,6 +23,27 @@ type RefreshTokenRequest = Request & { refreshToken: string };
 @Controller({ path: 'expert/auth', version: '1' })
 export class ExpertAuthController {
   constructor(private readonly authService: ExpertAuthService) {}
+
+  @Get('google/login')
+  @UseGuards(ExpertGoogleAuthGuard)
+  googleLogin() {
+    return;
+  }
+
+  @Get('google/callback')
+  @UseGuards(ExpertGoogleAuthGuard)
+  googleCallback(@Req() req: Request, @Res() res: Response) {
+    const authData = req.user as ExpertGoogleAuthResult;
+
+    if (!authData || !authData.tokens) {
+      const errorBase = authData?.redirect_uri;
+      return res.redirect(`${errorBase}?error=google_auth_failed`);
+    }
+
+    this.setCookies(res, authData.tokens);
+
+    return res.redirect(authData.redirect_uri!);
+  }
 
   @Post('email/register/initiate')
   initiate(@Body() dto: InitiateExpertRegisterDto) {
