@@ -1,92 +1,78 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import {
   addresses,
   clientAccounts,
   media,
-  users,
-} from '../../../../../core/drizzledb/schema';
-import {
-  toClientAccountResponse,
-  type ClientAccountDetails,
-  type SafeUserRow,
-} from '../account.mapper';
-import type { ClientAccount } from '../entities/account.entity';
+  clientWallets,
+} from '@/core/drizzledb/schema';
+import type { ClientAccountDetails } from '../account.mapper';
 
 @Injectable()
 export class GetAccountUseCase {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
-    client: ClientAccount | { id: number | string },
+    accountId: number
   ): Promise<ClientAccountDetails | null> {
-    const accountId = Number(client.id);
 
-    let [account] = await this.db
-      .select()
-      .from(clientAccounts)
-      .where(eq(clientAccounts.id, accountId))
-      .limit(1);
-
-    // Fall back to a user_id lookup: some callers pass the user id
-    // (e.g. admin expert-detail passes `{ id: user.id }`).
-    if (!account) {
-      [account] = await this.db
-        .select()
-        .from(clientAccounts)
-        .where(eq(clientAccounts.user_id, accountId))
-        .limit(1);
-    }
-
-    if (!account) return null;
-
-    const [[user], [avatar_media], accountAddresses] = await Promise.all([
+    const [[result], accountAddresses] = await Promise.all([
       this.db
         .select({
-          id: users.id,
-          user_group_id: users.user_group_id,
-          email: users.email,
-          email_verified_at: users.email_verified_at,
-          first_name: users.first_name,
-          last_name: users.last_name,
-          name: users.name,
-          full_name: users.full_name,
-          avatar: users.avatar,
-          avatar_id: users.avatar_id,
-          is_blocked: users.is_blocked,
-          blocked_by_id: users.blocked_by_id,
-          blocked_by_name: users.blocked_by_name,
-          blocked_at: users.blocked_at,
-          role: users.role,
-          platform: users.platform,
-          admin_permissions: users.admin_permissions,
-          referred_by_id: users.referred_by_id,
-          created_at: users.created_at,
-          updated_at: users.updated_at,
+          account: {
+            id: clientAccounts.id,
+            email: clientAccounts.email,
+            first_name: clientAccounts.first_name,
+            last_name: clientAccounts.last_name,
+            full_name: clientAccounts.name,
+            public_id: clientAccounts.public_id,
+            is_blocked: clientAccounts.is_blocked,
+            date_of_birth: clientAccounts.date_of_birth,
+            time_of_birth: clientAccounts.time_of_birth,
+            place_of_birth: clientAccounts.place_of_birth,
+            marital_status: clientAccounts.marital_status,
+            occupation: clientAccounts.occupation,
+            about_me: clientAccounts.about_me,
+            status: clientAccounts.status,
+            preferences: clientAccounts.preferences,
+            gender: clientAccounts.gender,
+            phone: clientAccounts.phone,
+            phone_verified_at: clientAccounts.phone_verified_at,
+            created_at: clientAccounts.created_at,
+            updated_at: clientAccounts.updated_at,
+          },
+          avatar_media: {
+            id: media.id,
+            public_id: media.public_id,
+            url: media.url,
+          },
+          wallet: {
+            balance: clientWallets.balance,
+          },
         })
-        .from(users)
-        .where(eq(users.id, account.user_id))
+        .from(clientAccounts)
+        .leftJoin(media, eq(media.id, clientAccounts.avatar_id))
+        .leftJoin(clientWallets, eq(clientWallets.client_id, clientAccounts.id))
+        .where(eq(clientAccounts.id, accountId))
         .limit(1),
-      account.avatar_id
-        ? this.db
-            .select()
-            .from(media)
-            .where(eq(media.id, account.avatar_id))
-            .limit(1)
-            .then(([row]) => [row ?? null])
-        : Promise.resolve([null]),
-      this.db
+     
+     //fetch addreses for the account
+        this.db
         .select()
         .from(addresses)
-        .where(eq(addresses.client_account_id, account.id)),
+        .where(eq(addresses.client_account_id, accountId)),
     ]);
 
+    if (!result) return null;
+
     return {
-      ...toClientAccountResponse(account),
-      user: (user ?? null) as SafeUserRow | null,
-      avatar_media: avatar_media ?? null,
+      ...result.account,
+      avatar_media: result.avatar_media,
+      wallet: {
+        balance: Number(result.wallet?.balance ?? 0),
+      },
       addresses: accountAddresses,
     };
   }

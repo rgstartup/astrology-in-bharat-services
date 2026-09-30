@@ -1,19 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { GetClientBalanceUseCase } from './get-client-balance.use-case';
+import { GetClientWalletUseCase } from './get-client-wallet.use-case';
 
 @Injectable()
 export class ValidateClientBalanceUseCase {
   constructor(
-    private readonly getClientBalanceUseCase: GetClientBalanceUseCase,
+    private readonly getClientBalanceUseCase: GetClientWalletUseCase,
   ) {}
 
   async execute(
     clientId: string | number,
     minAmount: number,
   ): Promise<boolean> {
-    const balance = await this.getClientBalanceUseCase.execute(
+    const clientWallet = await this.getClientBalanceUseCase.execute(
       Number(clientId),
     );
-    return balance >= minAmount;
+
+    const availableBalance =
+      clientWallet.balance - clientWallet.reserved_balance;
+
+    return availableBalance >= minAmount;
   }
 }

@@ -38,4 +38,4 @@ export class PaginationDto {
   }
 }
 
-export * from './paginated-response.dto';
+export { PaginationMetaDto, PaginatedResponseDto } from './paginated-response.dto';

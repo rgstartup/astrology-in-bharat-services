@@ -8,10 +8,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
-import { clientAccounts, users } from '../../../../../core/drizzledb/schema';
-import { ImageUploadService } from '../../../../../external/cloudinary';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientAccounts, users } from '@/core/drizzledb/schema';
+import { ImageUploadService } from '@/external/cloudinary';
 
 @Injectable()
 export class UpdateAccountPictureUseCase {
@@ -22,13 +22,15 @@ export class UpdateAccountPictureUseCase {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
-  async execute(clientId: number | string, file: Express.Multer.File) {
+  async execute(clientId: number | string, file: Express.Multer.File, public_id?: string) {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }
 
     try {
-      const result = await this.imageUploadService.uploadImage(file);
+      const result = await this.imageUploadService.uploadImage(file, {
+        public_id
+      });
       const pictureUrl = result.secure_url;
       const mediaId = result.media?.id ?? null;
 

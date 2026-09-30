@@ -5,24 +5,20 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
-import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
-import type {
-  DrizzleDb,
-  DrizzleTx,
-} from '../../../../../core/drizzledb/drizzle.types';
+import { and, desc, eq } from 'drizzle-orm';
+import { createHash } from 'crypto';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
 import {
   expertAccounts,
+  otps,
   sessions,
   users,
   type ExpertAccountRow,
   type UserRow,
-} from '../../../../../core/drizzledb/schema';
-import { PlatformEnum } from '../../../../../core/enums';
-import {
-  type IHasher,
-  IHasherToken,
-} from '../../../../../shared/contracts/hasher.contract';
+} from '@/core/drizzledb/schema';
+import { OtpPurposeEnum, PlatformEnum } from '@/core/enums';
+import { type IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
 import { CompleteExpertRegisterDto } from '../dto/expert-register.dto';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';
 
@@ -39,8 +35,8 @@ export class CompleteExpertEmailRegistrationUseCase {
     ip?: string,
     userAgent?: string,
   ) {
-    await this.verifyToken(dto.token, dto.email);
     return this.db.transaction(async (tx) => {
+      await this.verifyAndConsumeOtp(tx, dto.email, dto.otp);
       const user = await this.getPendingExpert(tx, dto.email);
       const hashedPassword = await this.hasher.hash(dto.password);
       const emailVerifiedAt = new Date();
@@ -68,7 +64,7 @@ export class CompleteExpertEmailRegistrationUseCase {
       const [accessToken, refresh] = await Promise.all([
         this.tokenCrypto.createAccessToken({
           sub: account.id,
-          email: account.email ?? updatedUser.email,
+          email: account.email,
         }),
         this.tokenCrypto.createRefreshToken(),
       ]);
@@ -83,25 +79,63 @@ export class CompleteExpertEmailRegistrationUseCase {
           secret_hash: refresh.hash,
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         })
-        .returning();
+        .returning({ id: sessions.id });
 
       return { accessToken, refreshToken: `${session.id}.${refresh.raw}` };
     });
   }
 
-  private async verifyToken(token: string, email: string) {
-    try {
-      const payload = await this.tokenCrypto.verifyJwt<{
-        email: string;
-        platform: PlatformEnum;
-      }>(token);
-      if (payload.email !== email || payload.platform !== PlatformEnum.EXPERT) {
-        throw new BadRequestException('Token does not match expert account');
-      }
-    } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException('Invalid or expired token');
+  private async verifyAndConsumeOtp(
+    tx: DrizzleTx,
+    email: string,
+    inputOtp: string,
+  ) {
+    const [otpEntry] = await tx
+      .select({
+        id: otps.id,
+        attempts: otps.attempts,
+        expires_at: otps.expires_at,
+        otp: otps.otp,
+      })
+      .from(otps)
+      .where(
+        and(
+          eq(otps.email, email),
+          eq(otps.purpose, OtpPurposeEnum.REGISTRATION),
+        ),
+      )
+      .orderBy(desc(otps.created_at))
+      .limit(1);
+
+    if (!otpEntry) {
+      throw new BadRequestException('Invalid or expired OTP');
     }
+
+    if (new Date() > otpEntry.expires_at) {
+      await tx.delete(otps).where(eq(otps.id, otpEntry.id));
+      throw new BadRequestException(
+        'OTP has expired. Please request a new OTP.',
+      );
+    }
+
+    if (otpEntry.attempts >= 5) {
+      await tx.delete(otps).where(eq(otps.id, otpEntry.id));
+      throw new BadRequestException(
+        'Maximum verification attempts exceeded. Please request a new OTP.',
+      );
+    }
+
+    const hashedInputOtp = createHash('sha256').update(inputOtp).digest('hex');
+
+    if (hashedInputOtp !== otpEntry.otp) {
+      await tx
+        .update(otps)
+        .set({ attempts: otpEntry.attempts + 1 })
+        .where(eq(otps.id, otpEntry.id));
+      throw new BadRequestException('Invalid OTP');
+    }
+
+    await tx.delete(otps).where(eq(otps.id, otpEntry.id));
   }
 
   private async getPendingExpert(
@@ -151,8 +185,8 @@ export class CompleteExpertEmailRegistrationUseCase {
           updated_at: new Date(),
         })
         .where(eq(expertAccounts.id, existingAccount.id))
-        .returning();
-      return updated;
+        .returning({ id: expertAccounts.id, email: expertAccounts.email });
+      return updated as ExpertAccountRow;
     }
 
     const [created] = await tx
@@ -169,7 +203,7 @@ export class CompleteExpertEmailRegistrationUseCase {
         experience_in_years: dto.experience_in_years ?? 0,
         about_me: dto.aboutMe,
       })
-      .returning();
-    return created;
+      .returning({ id: expertAccounts.id, email: expertAccounts.email });
+    return created as ExpertAccountRow;
   }
 }

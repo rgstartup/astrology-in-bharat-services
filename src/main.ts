@@ -3,11 +3,13 @@ process.env.TZ = 'UTC'; // Force UTC timezone globally
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, ValidationError } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 import { DomainExceptionFilter } from './shared/filters/domain-exception.filter';
 import { UnknownExceptionFilter } from './shared/filters/unknown-exception.filter';
+import { ValidationDomainError } from './shared/errors';
+import { formatValidationErrors } from './shared/utils/validation-error-formatter.util';
 import * as express from 'express';
 
 async function bootstrap() {
@@ -79,6 +81,10 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // throw error if extra properties are present
       transform: true, // automatically transform payloads to DTO instances
       transformOptions: { enableImplicitConversion: true }, // convert types (e.g., string -> number)
+      exceptionFactory: (errors: ValidationError[]) => {
+        const fieldErrors = formatValidationErrors(errors);
+        return new ValidationDomainError(fieldErrors);
+      },
     }),
   );
 

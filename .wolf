@@ -1,0 +1,13 @@
+# Workspace Rules & Standards
+
+## 1. Exports & Tree-Shaking
+- **NO `export *` STATEMENTS:** Never use wildcard re-exports (`export * from '...'`). It violates tree-shakeable architecture and bloats bundles. Always use explicit, named exports (e.g., `export { Foo, Bar } from './foo';`).
+
+## 2. Errors & Exceptions
+- Shared domain errors live in `src/shared/errors/`.
+- Domain errors extend `DomainError` with explicit `code`, `message`, and `httpStatus`.
+- Validation errors use `ValidationDomainError` with `fieldErrors: Record<string, string[]>`.
+
+## 3. Tool Usage & Persona
+- Prefix terminal read operations with `rtk`.
+- Terse caveman communication persona.

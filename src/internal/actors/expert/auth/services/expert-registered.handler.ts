@@ -1,67 +1,51 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { ConfigService } from '@nestjs/config';
-import { EmailQueueService } from '../../../../../core/queue/services/email-queue.service';
+import { EmailQueueService } from '@/core/queue/services/email-queue.service';
 
-interface ExpertRegisteredEvent {
+export interface ExpertRegisteredEventPayload {
+  userId: number;
   email: string;
   name?: string;
-  verification_token: string;
+  role: string;
+  otp: string;
 }
 
 @Injectable()
 export class ExpertRegisteredHandler {
   private readonly logger = new Logger(ExpertRegisteredHandler.name);
 
-  constructor(
-    private readonly emailQueue: EmailQueueService,
-    private readonly config: ConfigService,
-  ) {}
+  constructor(private readonly emailQueue: EmailQueueService) {}
 
   @OnEvent('auth.expert.registered', { async: true })
-  handle(event: ExpertRegisteredEvent) {
-    const frontendUrl =
-      this.config.get<string>('email.expertFrontendUrl') ||
-      process.env.ASTROLOGER_FRONTEND_URL ||
-      this.config.get<string>('email.frontendUrl') ||
-      process.env.FRONTEND_URL;
-
-    if (!frontendUrl) {
-      this.logger.warn(
-        'ASTROLOGER_FRONTEND_URL is not configured; sending the verification token without a link',
-      );
-    }
-
-    const link = frontendUrl
-      ? `${frontendUrl.replace(/\/+$/, '')}/verify-email?verification_token=${encodeURIComponent(event.verification_token)}`
-      : null;
-
-    const verificationAction = link
-      ? `
-        <p>
-          <a href="${link}" style="display:inline-block;padding:12px 20px;background:#673ab7;color:#fff;text-decoration:none;border-radius:6px;">
-            Verify Email Address
-          </a>
-        </p>
-        <p>If the button does not work, copy this URL:</p>
-        <p style="word-break:break-all;"><a href="${link}">${link}</a></p>
-      `
-      : '<p>No expert frontend URL is configured. Use the token below to complete registration through the API.</p>';
-
-    return this.emailQueue.queueEmail({
+  async handle(event: ExpertRegisteredEventPayload) {
+    this.logger.debug('Email sending OTP to the expert');
+    await this.emailQueue.queueEmail({
       to: event.email,
-      subject: 'Verify your expert account',
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;">
-          <h2>Verify your expert account</h2>
-          <p>Hi ${event.name ?? 'there'},</p>
-          <p>Complete your Astrology in Bharat expert registration.</p>
-          ${verificationAction}
-          <p>Verification token:</p>
-          <pre style="white-space:pre-wrap;word-break:break-all;background:#f5f5f5;padding:12px;border-radius:4px;">${event.verification_token}</pre>
-          <p>If you did not request this account, you can ignore this email.</p>
-        </div>
-      `,
+      subject: 'Verify your expert account - Astrology in Bharat',
+      html: this.buildTemplate(event),
     });
+  }
+
+  private buildTemplate(event: ExpertRegisteredEventPayload) {
+    console.log('\n======================================================');
+    console.log('✅ NEW EXPERT REGISTRATION OTP GENERATED:');
+    console.log(`Email: ${event.email} | OTP: ${event.otp}`);
+    console.log('======================================================\n');
+
+    return `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h2 style="color: #333;">Welcome to Astrology in Bharat!</h2>
+        <p>Hi ${event.name ?? 'there'},</p>
+        <p>Thank you for registering as an expert. Please use the following 6-digit OTP to complete your registration:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #673ab7; background-color: #ede7f6; padding: 12px 24px; border-radius: 8px; border: 1px dashed #673ab7; display: inline-block;">
+            ${event.otp}
+          </span>
+        </div>
+        <p style="color: #666; font-size: 14px;">This OTP is valid for <strong>10 minutes</strong>. Do not share this code with anyone.</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="font-size: 12px; color: #999;">If you didn't create an account, you can safely ignore this email.</p>
+      </div>
+    `;
   }
 }

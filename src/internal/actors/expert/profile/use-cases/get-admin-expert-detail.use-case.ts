@@ -46,9 +46,7 @@ export class GetExpertDetailUseCase {
       relations: ['addresses'],
     });
 
-    const clientAccount = await this.accountService.getAccount({
-      id: user.id,
-    });
+    const clientAccount = await this.accountService.getAccount(user.id);
     const expertProfileId = profile?.id || 0;
     const total_earnings = await this.walletService.getTotalEarnings(
       expertProfileId,

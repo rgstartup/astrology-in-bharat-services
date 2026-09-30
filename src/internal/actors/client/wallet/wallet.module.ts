@@ -14,7 +14,6 @@ import { ClientPaymentsModule } from '@/internal/actors/client/payments/payments
 import { ClientWalletService } from './wallet.service';
 import { ClientWalletController } from './controllers/wallet.controller';
 import { GetClientWalletUseCase } from './use-cases/get-client-wallet.use-case';
-import { GetClientBalanceUseCase } from './use-cases/get-client-balance.use-case';
 import { ValidateClientBalanceUseCase } from './use-cases/validate-client-balance.use-case';
 import { RechargeWalletUseCase } from './use-cases/recharge-wallet.use-case';
 import { DebitClientWalletUseCase } from './use-cases/debit-client-wallet.use-case';
@@ -46,7 +45,6 @@ import { WalletRechargeIntentHandler } from './handlers/wallet-recharge-intent.h
   providers: [
     ClientWalletService,
     GetClientWalletUseCase,
-    GetClientBalanceUseCase,
     ValidateClientBalanceUseCase,
     RechargeWalletUseCase,
     DebitClientWalletUseCase,
@@ -61,7 +59,6 @@ import { WalletRechargeIntentHandler } from './handlers/wallet-recharge-intent.h
   exports: [
     ClientWalletService,
     GetClientWalletUseCase,
-    GetClientBalanceUseCase,
     ValidateClientBalanceUseCase,
     RechargeWalletUseCase,
     DebitClientWalletUseCase,

@@ -1,6 +1,6 @@
 import { Catch, ExceptionFilter, ArgumentsHost } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { DomainError } from '../types/domain.error';
+import { DomainError } from '../errors/domain.error';
 
 @Catch(DomainError)
 export class DomainExceptionFilter implements ExceptionFilter {
@@ -10,9 +10,10 @@ export class DomainExceptionFilter implements ExceptionFilter {
     const req = ctx.getRequest<Request>();
 
     res.status(exception.httpStatus).json({
-      statusCode: exception.httpStatus,
+      status: exception.httpStatus,
       errorCode: exception.code,
       message: exception.message,
+      ...(exception.fieldErrors ? { fieldErrors: exception.fieldErrors } : {}),
       path: req.url,
       timestamp: new Date().toISOString(),
     });

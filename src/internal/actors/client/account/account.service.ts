@@ -25,8 +25,8 @@ export class AccountService {
     private readonly verifyPhoneOtpUseCase: VerifyPhoneOtpUseCase,
   ) {}
 
-  async getAccount(client: ClientAccount | { id: number | string }) {
-    return this.getAccountUseCase.execute(client);
+  async getAccount(clientId: number) {
+    return this.getAccountUseCase.execute(clientId);
   }
 
   async createAccount(userId: number | string, dto: CreateClientAccountDto) {
@@ -43,8 +43,9 @@ export class AccountService {
   async updateAccountPicture(
     clientId: number | string,
     file: Express.Multer.File,
+    public_id?: string,
   ) {
-    return this.updateAccountPictureUseCase.execute(clientId, file);
+    return this.updateAccountPictureUseCase.execute(clientId, file, public_id);
   }
 
   async uploadDocument(userId: number | string, file: Express.Multer.File) {

@@ -10,7 +10,7 @@ import {
   Index,
 } from 'typeorm';
 import { ClientAccount } from '../../account/entities/account.entity';
-import { ColumnNumericTransformer } from '../../../../../shared/transformers/numeric.transformer';
+import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
 
 @Entity({ schema: 'client', name: 'wallets' })
 export class ClientWallet {

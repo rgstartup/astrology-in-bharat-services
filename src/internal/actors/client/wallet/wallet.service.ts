@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { GetClientWalletUseCase } from './use-cases/get-client-wallet.use-case';
-import { GetClientBalanceUseCase } from './use-cases/get-client-balance.use-case';
 import { ValidateClientBalanceUseCase } from './use-cases/validate-client-balance.use-case';
 import { RechargeWalletUseCase } from './use-cases/recharge-wallet.use-case';
 import { DebitClientWalletUseCase } from './use-cases/debit-client-wallet.use-case';
@@ -22,7 +21,6 @@ import { ClientWallet } from './entities/client-wallet.entity';
 export class ClientWalletService {
   constructor(
     private readonly getClientWalletUseCase: GetClientWalletUseCase,
-    private readonly getClientBalanceUseCase: GetClientBalanceUseCase,
     private readonly validateClientBalanceUseCase: ValidateClientBalanceUseCase,
     private readonly rechargeWalletUseCase: RechargeWalletUseCase,
     private readonly debitClientWalletUseCase: DebitClientWalletUseCase,
@@ -39,7 +37,8 @@ export class ClientWalletService {
   }
 
   async getBalance(clientId: number): Promise<number> {
-    return this.getClientBalanceUseCase.execute(clientId);
+    const wallet = await this.getClientWalletUseCase.execute(clientId);
+    return wallet.balance;  
   }
 
   async validateBalance(clientId: number, minAmount: number): Promise<boolean> {

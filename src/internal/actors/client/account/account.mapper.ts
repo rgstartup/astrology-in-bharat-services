@@ -3,25 +3,41 @@ import type {
   ClientAccountRow,
   MediaRow,
   UserRow,
-} from '../../../../core/drizzledb/schema';
+} from '@/core/drizzledb/schema';
 
 /** `users` columns safe to expose (never `password`). */
 export type SafeUserRow = Omit<UserRow, 'password'>;
 
 /**
  * Drizzle-backed shape of a client account with its relations loaded.
- * Mirrors what the legacy TypeORM `getAccount` returned with
- * `relations: ['user', 'avatar_media', 'addresses']`, except
- * `total_spending` is normalized to a number (Drizzle returns numeric
- * as string; TypeORM did the same conversion via ColumnNumericTransformer).
+ * Includes avatar media, addresses, and wallet balance without user data.
+ * Matches the selected profile fields; wallet balance is normalized to a number.
  */
-export interface ClientAccountDetails extends Omit<
+export interface ClientAccountDetails extends Pick<
   ClientAccountRow,
-  'total_spending'
+  | 'id'
+  | 'email'
+  | 'first_name'
+  | 'last_name'
+  | 'public_id'
+  | 'is_blocked'
+  | 'date_of_birth'
+  | 'time_of_birth'
+  | 'place_of_birth'
+  | 'marital_status'
+  | 'occupation'
+  | 'about_me'
+  | 'status'
+  | 'preferences'
+  | 'gender'
+  | 'phone'
+  | 'phone_verified_at'
+  | 'created_at'
+  | 'updated_at'
 > {
-  total_spending: number;
-  user: SafeUserRow | null;
-  avatar_media: MediaRow | null;
+  full_name: ClientAccountRow['name'];
+  wallet: { balance: number };
+  avatar_media: Pick<MediaRow, 'id' | 'public_id' | 'url'> | null;
   addresses: AddressRow[];
 }
 
