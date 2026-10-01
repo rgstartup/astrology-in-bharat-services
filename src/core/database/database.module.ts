@@ -24,7 +24,7 @@ import { DatabaseService } from './database.service';
           // password: dbConfig.password,
           autoLoadEntities: true, // Use bundled classes registered through forFeature; no filesystem glob.
           // synchronize: process.env.NODE_ENV !== 'production', // set to false in production
-          synchronize: true, // set to false in production
+          synchronize: false, // set to false in production
           poolSize: dbConfig.max_connections,
           retryAttempts: 2, // number of retry attempts for database connection
           retryDelay: 3000, // delay between retry attempts in milliseconds

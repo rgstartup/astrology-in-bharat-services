@@ -21,17 +21,18 @@ export default registerAs<Partial<DatabaseConfig>>('database', () => ({
   database: process.env.DB_NAME,
   max_connections: process.env.DB_MAX_CONNECTIONS
     ? parseInt(process.env.DB_MAX_CONNECTIONS, 10)
-    : 100,
+    : 10,
 }));
 
 const getDataSourceOptions = (): DataSourceOptions => {
   const baseOptions = {
     entities: [import.meta.dirname + '/../**/*.entity{.ts,.js}'],
     migrations: [import.meta.dirname + '/migrations/**/*{.ts,.js}'],
-    synchronize: process.env.NODE_ENV !== 'production', // set to false in production
+    // synchronize: process.env.NODE_ENV !== 'production', // set to false in production
+    synchronize: false, // set to false in production
     poolSize: process.env.DB_MAX_CONNECTIONS
       ? parseInt(process.env.DB_MAX_CONNECTIONS, 10)
-      : 100,
+      : 10,
   };
 
   if (process.env.DATABASE_URL) {

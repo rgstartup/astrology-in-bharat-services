@@ -5,7 +5,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { sql } from 'drizzle-orm';
 import { schema } from './schema';
 import type { DrizzleDb } from './drizzle.types';
-import type { DatabaseConfig } from '../../config/db.config';
+import type { DatabaseConfig } from '@/config/db.config';
 
 /**
  * Owns the `pg` Pool + Drizzle client for the gradual TypeORM → Drizzle
