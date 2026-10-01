@@ -12,6 +12,8 @@ import { CallAcceptedEvent } from '../events/call.events';
 import { WalletService } from '../../../finance/wallet/wallet.service';
 import { CallSessionAccessDeniedError } from '../errors/call.errors';
 
+import { PresenceService } from '@/internal/presence/presence.service';
+
 @Injectable()
 export class AcceptCallUseCase {
   private readonly logger = new Logger(AcceptCallUseCase.name);
@@ -25,6 +27,7 @@ export class AcceptCallUseCase {
     @Inject(forwardRef(() => CallGateway))
     private readonly callGateway: DeferredDependency<CallGateway>,
     private readonly eventEmitter: EventEmitter2,
+    private readonly presenceService: PresenceService,
   ) {}
 
   async execute(expertProfileId: number, sessionId: number) {
@@ -73,6 +76,7 @@ export class AcceptCallUseCase {
     );
 
     const savedSession = await this.sessionRepo.save(session);
+    await this.presenceService.setBusy(session.expert_id, session.id);
     this.logger.log(`Session activated: id=${savedSession.id}`);
 
     // Generate token for expert

@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
+import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { User } from '../../../../users/entities/user.entity';
+import { User } from '@/internal/users/entities/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../domain/policies/profile.policy';
 import { KycStatusChangedEvent } from '../domain/events/profile-events';

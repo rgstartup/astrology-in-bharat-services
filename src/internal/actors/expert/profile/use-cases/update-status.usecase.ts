@@ -1,4 +1,4 @@
-import type { DeferredDependency } from '../../../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import {
   Injectable,
   Logger,
@@ -6,11 +6,11 @@ import {
   forwardRef,
   ForbiddenException,
 } from '@nestjs/common';
-import { BooleanMessage } from '../../../../../shared/dto/boolean-message.dto';
+import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { IUser } from '../../../../../shared/types/access-token.payload';
+import { IUser } from '@/shared/types/access-token.payload';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../domain/policies/profile.policy';
 import { ExpertStatusChangedEvent } from '../domain/events/profile-events';

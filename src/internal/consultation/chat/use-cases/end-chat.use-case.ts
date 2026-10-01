@@ -34,6 +34,8 @@ import {
   NotificationType,
 } from '../../../notification/entities/notification.entity';
 
+import { PresenceService } from '@/internal/presence/presence.service';
+
 @Injectable()
 export class EndChatUseCase {
   constructor(
@@ -41,6 +43,7 @@ export class EndChatUseCase {
     private sessionRepo: Repository<ChatSession>,
     private readonly ledgerQueueService: LedgerQueueService,
     private readonly dataSource: DataSource,
+    private readonly presenceService: PresenceService,
   ) {}
 
   async execute(sessionId: number) {
@@ -312,6 +315,7 @@ export class EndChatUseCase {
       }
 
       await queryRunner.commitTransaction();
+      await this.presenceService.setIdle(session.expert_id, session.id);
 
       // Return updated session with user's remaining balance for the summary popup
       let remainingBalance = 0;

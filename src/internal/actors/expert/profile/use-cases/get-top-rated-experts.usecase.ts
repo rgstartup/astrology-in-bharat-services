@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { ExpertGateway } from '../gateways/expert.gateway';
+// import { ExpertGateway } from '../gateways/expert.gateway';
 
 @Injectable()
 export class GetTopRatedExpertsUseCase {
   constructor(
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-    private readonly expertGateway: ExpertGateway,
+    // private readonly expertGateway: ExpertGateway,
   ) {}
 
   async execute(limit: number = 3) {
@@ -33,9 +33,9 @@ export class GetTopRatedExpertsUseCase {
         : [];
       plain.userId = ex.user?.id;
       plain.isAvailable = ex.is_available;
-      plain.is_online = ex.user?.id
-        ? this.expertGateway.isExpertOnline(ex.user.id)
-        : false;
+      // plain.is_online = ex.user?.id
+      //   ? this.expertGateway.isExpertOnline(ex.user.id)
+      //   : false;
       return plain;
     });
   }

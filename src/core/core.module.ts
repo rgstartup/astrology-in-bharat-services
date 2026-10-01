@@ -3,6 +3,7 @@ import { Global, Module } from '@nestjs/common';
 import { DatabaseModule } from './database/database.module';
 import { DrizzleModule } from './drizzledb/drizzle.module';
 import { JwtModule } from './jwt/jwt.module';
+import { RedisModule } from './redis/redis.module';
 
 @Global()
 @Module({
@@ -10,8 +11,9 @@ import { JwtModule } from './jwt/jwt.module';
     DatabaseModule,
     DrizzleModule,
     JwtModule,
+    RedisModule,
     EventEmitterModule.forRoot(),
   ],
-  exports: [DatabaseModule, DrizzleModule],
+  exports: [DatabaseModule, DrizzleModule, RedisModule],
 })
 export class CoreModule {}

@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   ParseIntPipe,
   Patch,
@@ -14,22 +15,19 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ImageUploadService,
-  VideoUploadService,
-} from '../../../../../external/cloudinary';
-import { CurrentExpert } from '../../auth/decorators/current-expert.decorator';
-import { type IExpert } from '../../../../../shared/types/access-token.payload';
-import { Public } from '../../../../../shared/decorators/public.decorator';
-import { ExpertJwtAuthGuard } from '../../auth/guards/auth.guard';
+import { ImageUploadService, VideoUploadService } from '@/external/cloudinary';
+import { CurrentExpert } from '@/internal/actors/expert/auth/decorators/current-expert.decorator';
+import { type IExpert } from '@/shared/types/access-token.payload';
+import { ExpertJwtAuthGuard } from '@/internal/actors/expert/auth/guards/auth.guard';
 import { ExpertAccountService } from '../account.service';
 import { UpdateExpertAccountDto } from '../dto/request/account.dto';
-import { QueryExpertDto } from '../dto/request/query-expert.dto';
-import { ExpertPujaDto } from '../../profile/dto/expert-puja.dto';
+import { ExpertPujaDto } from '@/internal/actors/expert/profile/dto/expert-puja.dto';
 
 @Controller({ path: 'expert/account', version: '1' })
 @UseGuards(ExpertJwtAuthGuard)
 export class ExpertAccountController {
+  private readonly logger = new Logger(ExpertAccountController.name);
+
   constructor(
     private readonly accountService: ExpertAccountService,
     private readonly imageUploadService: ImageUploadService,
@@ -122,22 +120,12 @@ export class ExpertAccountController {
     return this.accountService.updateStatus(expert, isAvailable);
   }
 
-  @Get('list')
-  @Public()
-  listAccounts(@Query() query: QueryExpertDto) {
-    return this.accountService.listAccounts(query);
-  }
-
-  @Get('top-rated')
-  @Public()
-  getTopRated(@Query('limit') limit = 3) {
-    return this.accountService.getTopRated(Number(limit));
-  }
-
-  @Get(':id')
-  @Public()
-  getById(@Param('id', ParseIntPipe) id: number) {
-    return this.accountService.getById(id);
+  @Patch('availability')
+  updateAvailability(
+    @CurrentExpert() expert: IExpert,
+    @Body() dto: { mode: 'available' | 'unavailable' },
+  ) {
+    return this.accountService.updateStatus(expert, dto.mode === 'available');
   }
 
   @Post('puja')
@@ -157,23 +145,64 @@ export class ExpertAccountController {
     return this.accountService.deletePuja(expert, id);
   }
 
-  @Get('pujas/all')
-  @Public()
-  listAllPujas() {
-    return this.accountService.listAllPujas();
+  // @Get('pujas/all')
+  // @Public()
+  // listAllPujas() {
+  //   return this.accountService.listAllPujas();
+  // }
+
+  // @Get('puja/info/:id')
+  // @Public()
+  // getPujaById(@Param('id', ParseIntPipe) id: number) {
+  //   return this.accountService.getPujaById(id);
+  // }
+
+  @Patch(['avatar', 'picture'])
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }),
+  )
+  async updateAvatar(
+    @CurrentExpert() expert: IExpert,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('public_id') public_id?: string,
+  ) {
+    if (!file) throw new BadRequestException('File is required');
+    const allowed = /^image\/(jpeg|jpg|png|webp|avif)$/;
+    if (!allowed.test(file.mimetype)) {
+      throw new BadRequestException(`Unsupported image type: ${file.mimetype}`);
+    }
+    return this.accountService.updateAvatar(expert, file, public_id);
   }
 
-  @Get('puja/info/:id')
-  @Public()
-  getPujaById(@Param('id', ParseIntPipe) id: number) {
-    return this.accountService.getPujaById(id);
+  @Patch('intro-video')
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }),
+  )
+  async updateIntroVideo(
+    @CurrentExpert() expert: IExpert,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('public_id') public_id?: string,
+  ) {
+    if (!file) throw new BadRequestException('File is required');
+    const allowed = /^video\/(mp4|webm|quicktime)$/;
+    if (!allowed.test(file.mimetype)) {
+      throw new BadRequestException(`Unsupported video type: ${file.mimetype}`);
+    }
+    return this.accountService.updateIntroVideo(expert, file, public_id);
   }
 
-  @Post('upload-file')
+  /**
+   * @deprecated Use `PATCH avatar` / `PATCH intro-video` instead.
+   * Generic upload does not attach media to the expert account.
+   */
+  @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }),
   )
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    this.logger.warn(
+      'Deprecated POST expert/account/upload called; use PATCH avatar / intro-video',
+    );
     if (!file) throw new BadRequestException('File is required');
     const allowed =
       /^image\/(jpeg|jpg|png|webp|avif)$|^application\/pdf$|^video\/(mp4|webm|quicktime)$/;
@@ -190,11 +219,17 @@ export class ExpertAccountController {
     };
   }
 
+  /**
+   * @deprecated Use `PATCH avatar` / `PATCH intro-video` instead.
+   */
   @Post('upload-document')
   @UseInterceptors(
     FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }),
   )
   uploadDocument(@UploadedFile() file: Express.Multer.File) {
+    this.logger.warn(
+      'Deprecated POST expert/account/upload-document called; use PATCH avatar / intro-video',
+    );
     return this.uploadFile(file);
   }
 }

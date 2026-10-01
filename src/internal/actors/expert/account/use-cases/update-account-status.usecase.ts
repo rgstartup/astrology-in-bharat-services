@@ -11,29 +11,48 @@ import { expertAccounts } from '../../../../../core/drizzledb/schema';
 import { IExpert } from '../../../../../shared/types/access-token.payload';
 import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
 import { toExpertAccountResponse } from '../account.mapper';
+import { PresenceService } from '@/internal/presence/presence.service';
+import { AvailabilityMode } from '@/internal/presence/presence.types';
 
 @Injectable()
 export class UpdateExpertAccountStatusUseCase {
-  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
+  constructor(
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
+    private readonly presenceService: PresenceService,
+  ) {}
 
-  async execute(expert: IExpert, isAvailable: boolean) {
+  async execute(expert: IExpert, isAvailable: boolean | AvailabilityMode) {
+    const mode: AvailabilityMode =
+      typeof isAvailable === 'string'
+        ? isAvailable
+        : isAvailable
+          ? 'available'
+          : 'unavailable';
+
     const [account] = await this.db
       .select()
       .from(expertAccounts)
       .where(eq(expertAccounts.id, Number(expert.sub)))
       .limit(1);
     if (!account) throw new NotFoundException('Expert account not found');
-    if (isAvailable && account.kyc_status !== ExpertKycStatus.APPROVED) {
+    if (
+      mode === 'available' &&
+      account.kyc_status !== ExpertKycStatus.APPROVED
+    ) {
       throw new ForbiddenException(
         'Your account is inactive. You cannot go online.',
       );
     }
+
+    await this.presenceService.setAvailability(account.id, mode);
+
     const [updated] = await this.db
-      .update(expertAccounts)
-      .set({ is_available: isAvailable, updated_at: new Date() })
+      .select()
+      .from(expertAccounts)
       .where(eq(expertAccounts.id, account.id))
-      .returning();
-    return toExpertAccountResponse(updated);
+      .limit(1);
+
+    return toExpertAccountResponse(updated || account);
   }
 
   async updateKyc(id: number, status: ExpertKycStatus, reason?: string) {

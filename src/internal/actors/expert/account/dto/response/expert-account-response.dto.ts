@@ -25,13 +25,34 @@ export class ExpertConsultationPricingResponseDto extends BaseDto {
 
 export { ExpertConsultationPricingResponseDto as ExpertPricingResponseDto };
 
+export class ExpertAvatarMediaDto extends BaseDto {
+  id!: string;
+  public_id!: string | null;
+  url!: string;
+}
+
+export class ExpertIntroVideoMediaDto extends BaseDto {
+  id!: string;
+  public_id!: string | null;
+  url!: string;
+}
+
 export class ExpertAccountResponseDto extends BaseDto {
   id!: string;
   name!: string | null;
   about!: string | null;
   languages!: string | null;
   avatar!: string | null;
+  avatar_id!: number | null;
+  intro_video!: string | null;
+  intro_video_id!: number | null;
   experience_in_years!: number;
+
+  @Type(() => ExpertAvatarMediaDto)
+  avatar_media!: ExpertAvatarMediaDto | null;
+
+  @Type(() => ExpertIntroVideoMediaDto)
+  intro_video_media!: ExpertIntroVideoMediaDto | null;
 
   @Type(() => ExpertProfessionItemResponseDto)
   professions!: ExpertProfessionItemResponseDto[];

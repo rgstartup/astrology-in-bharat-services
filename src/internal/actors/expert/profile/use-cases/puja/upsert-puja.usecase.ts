@@ -11,7 +11,7 @@ import { ProfileExpert } from '../../entities/profile-expert.entity';
 import { IUser } from '../../../../../../shared/types/access-token.payload';
 import { ExpertPujaDto } from '../../dto/expert-puja.dto';
 import { Base64UploadService } from '../../../../../../external/cloudinary';
-import { ExpertGateway } from '../../gateways/expert.gateway';
+// import { ExpertGateway } from '../../gateways/expert.gateway';
 import sharp from 'sharp';
 
 // Required image specs
@@ -30,7 +30,7 @@ export class UpsertPujaUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly base64UploadService: Base64UploadService,
-    private readonly expertGateway: ExpertGateway,
+    // private readonly expertGateway: ExpertGateway,
   ) {}
 
   private async validateImageDimensions(base64: string): Promise<void> {
@@ -169,11 +169,11 @@ export class UpsertPujaUseCase {
       plain.userId = profile.user?.id;
       plain.isAvailable = profile.is_available;
 
-      if (profile.user?.id && this.expertGateway) {
-        plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
-      } else {
-        plain.is_online = false;
-      }
+      // if (profile.user?.id && this.expertGateway) {
+      //   plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
+      // } else {
+      //   plain.is_online = false;
+      // }
 
       plain.total_likes = (profile as any).total_likes || 0;
       plain.custom_services = profile.custom_services || [];

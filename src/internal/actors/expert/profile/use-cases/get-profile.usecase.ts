@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { IUser } from '../../../../../shared/types/access-token.payload';
-import { ExpertGateway } from '../gateways/expert.gateway';
+import { IUser } from '@/shared/types/access-token.payload';
+// import { ExpertGateway } from '../gateways/expert.gateway';
 
 @Injectable()
 export class GetProfileUseCase {
@@ -12,7 +12,7 @@ export class GetProfileUseCase {
   constructor(
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-    private readonly expertGateway: ExpertGateway,
+    // private readonly expertGateway: ExpertGateway,
   ) {}
 
   async execute(user: IUser, queryRunner?: QueryRunner) {
@@ -75,7 +75,7 @@ export class GetProfileUseCase {
 
       if (profile.user?.id) {
         this.logger.log(`Checking online status for expert ${profile.user.id}`);
-        plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
+        // plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
       } else {
         plain.is_online = false;
       }

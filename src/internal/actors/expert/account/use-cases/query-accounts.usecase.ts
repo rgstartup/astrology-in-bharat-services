@@ -32,6 +32,7 @@ import {
   toExpertAccountResponse,
   toExpertPricingResponse,
 } from '../account.mapper';
+import { PresenceService } from '@/internal/presence/presence.service';
 
 type PricingSubqueryResult = {
   id: number;
@@ -56,7 +57,10 @@ type ProfessionSubqueryResult = {
 
 @Injectable()
 export class QueryExpertAccountsUseCase {
-  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
+  constructor(
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
+    private readonly presenceService: PresenceService,
+  ) {}
 
   private get specializationsSubquery() {
     return sql<SpecializationSubqueryResult[]>`COALESCE(
@@ -143,10 +147,20 @@ export class QueryExpertAccountsUseCase {
       this.db.select({ value: count() }).from(expertAccounts).where(where),
     ]);
 
-    const data = experts.map((expert) => ({
-      ...expert,
-      pricing: expert.pricing ? toExpertPricingResponse(expert.pricing) : null,
-    }));
+    const expertIds = experts.map((e) => e.id);
+    const statuses = await this.presenceService.getStatuses(expertIds);
+
+    const data = experts.map((expert) => {
+      const status = statuses.get(expert.id) || 'offline';
+      return {
+        ...expert,
+        status,
+        isAvailableForConsultation: status === 'online',
+        pricing: expert.pricing
+          ? toExpertPricingResponse(expert.pricing)
+          : null,
+      };
+    });
 
     return new PaginatedResponseDto(data, total, query.page, query.limit);
   }
@@ -169,10 +183,20 @@ export class QueryExpertAccountsUseCase {
       .orderBy(desc(expertAccounts.rating))
       .limit(limit);
 
-    return experts.map((expert) => ({
-      ...expert,
-      pricing: expert.pricing ? toExpertPricingResponse(expert.pricing) : null,
-    }));
+    const expertIds = experts.map((e) => e.id);
+    const statuses = await this.presenceService.getStatuses(expertIds);
+
+    return experts.map((expert) => {
+      const status = statuses.get(expert.id) || 'offline';
+      return {
+        ...expert,
+        status,
+        isAvailableForConsultation: status === 'online',
+        pricing: expert.pricing
+          ? toExpertPricingResponse(expert.pricing)
+          : null,
+      };
+    });
   }
 
   async byId(id: number) {
@@ -188,6 +212,7 @@ export class QueryExpertAccountsUseCase {
         total_reviews: expertAccounts.total_reviews,
         total_likes: expertAccounts.total_likes,
         is_available: expertAccounts.is_available,
+        availability_mode: expertAccounts.availability_mode,
         professions: this.professionsSubquery,
         specializations: this.specializationsSubquery,
         pricing: this.pricingSubquery,
@@ -203,8 +228,12 @@ export class QueryExpertAccountsUseCase {
 
     if (!account) throw new NotFoundException('Expert account not found');
 
+    const status = await this.presenceService.getStatus(id);
+
     return {
       ...account,
+      status,
+      isAvailableForConsultation: status === 'online',
       expert_professions: account.professions,
       professions: account.professions,
       pricing: account.pricing

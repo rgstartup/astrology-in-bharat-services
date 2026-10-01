@@ -1,11 +1,11 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { KycStatusChangedEvent } from '../domain/events/profile-events';
-import { ExpertGateway } from '../gateways/expert.gateway';
-import { User } from '../../../../users/entities/user.entity';
+// import { ExpertGateway } from '../gateways/expert.gateway';
+import { User } from '@/internal/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NodeMailerService } from '../../../../../external/nodemailer/nodemailer.service';
+import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 
 @Injectable()
 export class KycStatusChangedHandler {
@@ -13,7 +13,7 @@ export class KycStatusChangedHandler {
 
   constructor(
     private readonly nodemailerService: NodeMailerService,
-    private readonly expertGateway: ExpertGateway,
+    // private readonly expertGateway: ExpertGateway,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
   ) {}
@@ -25,11 +25,11 @@ export class KycStatusChangedHandler {
     );
 
     // Notify via socket
-    this.expertGateway.notifyKycStatusUpdate(
-      event.userId,
-      event.status,
-      event.reason,
-    );
+    // this.expertGateway.notifyKycStatusUpdate(
+    //   event.userId,
+    //   event.status,
+    //   event.reason,
+    // );
 
     // If rejected, send email
     if (event.status === 'rejected' && event.reason) {

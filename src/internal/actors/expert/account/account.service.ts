@@ -1,20 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { IExpert } from '../../../../shared/types/access-token.payload';
+import { IExpert } from '@/shared/types/access-token.payload';
 import { UpdateExpertAccountDto } from './dto/request/account.dto';
 import { GetExpertAccountUseCase } from './use-cases/get-account.usecase';
+import { UpdateExpertAccountAvatarUseCase } from './use-cases/update-account-avatar.usecase';
+import { UpdateExpertAccountIntroVideoUseCase } from './use-cases/update-account-intro-video.usecase';
 import { UpdateExpertAccountUseCase } from './use-cases/update-account.usecase';
 import { QueryExpertAccountsUseCase } from './use-cases/query-accounts.usecase';
 import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-status.usecase';
-import { ExpertKycStatus } from '../shared/enums/kyc-status.enum';
+import { ExpertKycStatus } from '@/internal/actors/expert/shared/enums/kyc-status.enum';
 import { ExpertAccountPujasUseCase } from './use-cases/account-pujas.usecase';
-import { ExpertPujaDto } from '../profile/dto/expert-puja.dto';
-import { QueryExpertDto } from './dto/request/query-expert.dto';
+import { ExpertPujaDto } from '@/internal/actors/expert/profile/dto/expert-puja.dto';
 
 @Injectable()
 export class ExpertAccountService {
   constructor(
     private readonly getAccountUseCase: GetExpertAccountUseCase,
     private readonly updateAccountUseCase: UpdateExpertAccountUseCase,
+    private readonly updateAvatarUseCase: UpdateExpertAccountAvatarUseCase,
+    private readonly updateIntroVideoUseCase: UpdateExpertAccountIntroVideoUseCase,
     // private readonly createAccountUseCase: CreateExpertAccountUseCase,
     private readonly queryAccountsUseCase: QueryExpertAccountsUseCase,
     private readonly updateStatusUseCase: UpdateExpertAccountStatusUseCase,
@@ -29,21 +32,29 @@ export class ExpertAccountService {
     return this.updateAccountUseCase.execute(expert, dto);
   }
 
+  updateAvatar(
+    expert: IExpert,
+    file: Express.Multer.File,
+    public_id?: string,
+  ) {
+    return this.updateAvatarUseCase.execute(Number(expert.sub), file, public_id);
+  }
+
+  updateIntroVideo(
+    expert: IExpert,
+    file: Express.Multer.File,
+    public_id?: string,
+  ) {
+    return this.updateIntroVideoUseCase.execute(
+      Number(expert.sub),
+      file,
+      public_id,
+    );
+  }
+
   // createAccount(expert: IExpert, dto: CreateExpertAccountDto) {
   //   return this.createAccountUseCase.execute(expert, dto);
   // }
-
-  listAccounts(query: QueryExpertDto) {
-    return this.queryAccountsUseCase.list(query);
-  }
-
-  getTopRated(limit = 3) {
-    return this.queryAccountsUseCase.topRated(limit);
-  }
-
-  getById(id: number) {
-    return this.queryAccountsUseCase.byId(id);
-  }
 
   getByUserId(userId: number) {
     return this.queryAccountsUseCase.byUserId(userId);

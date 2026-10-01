@@ -10,12 +10,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ColumnNumericTransformer } from '../../../../../shared/transformers/numeric.transformer';
-import { User } from '../../../../users/entities/user.entity';
-import { ExpertKycStatus } from '../../shared/enums/kyc-status.enum';
+import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
+import { User } from '@/internal/users/entities/user.entity';
+import { Media } from '@/internal/media/entities/media.entity';
+import { ExpertKycStatus } from '@/internal/actors/expert/shared/enums/kyc-status.enum';
 import { ExpertSpecialization } from './expert-specialization.entity';
 import { ExpertConsultationPricing } from './expert-consultation-pricing.entity';
-import { ExpertProfession } from '../../profession/entities/expert-profession.entity';
+import { ExpertProfession } from '@/internal/actors/expert/profession/entities/expert-profession.entity';
 import { ExpertAstrologyService } from './expert-astrology-service.entity';
 
 @Entity({ schema: 'expert', name: 'account' })
@@ -41,8 +42,18 @@ export class ExpertAccount {
   @Column({ type: 'character varying', length: 255, nullable: true })
   email!: string | null;
 
+  /**
+   * @deprecated Use `avatar_id` and `avatar_media` relation instead.
+   */
   @Column({ type: 'text', nullable: true })
   avatar!: string | null;
+
+  @Column({ type: 'int', nullable: true, name: 'avatar_id' })
+  avatar_id!: number | null;
+
+  @OneToOne(() => Media, { nullable: true, onDelete: 'SET NULL', eager: true })
+  @JoinColumn({ name: 'avatar_id' })
+  avatar_media!: Media | null;
 
   @Column({ type: 'text', nullable: true })
   phone!: string | null;
@@ -132,8 +143,22 @@ export class ExpertAccount {
   @Column({ type: 'simple-array', nullable: true })
   certificates!: string[] | null;
 
+  /**
+   * @deprecated Use `intro_video_id` and `intro_video_media` relation instead.
+   * Retained for backward compatibility with legacy `video` column.
+   */
   @Column({ type: 'text', nullable: true })
   video!: string | null;
+
+  @Column({ type: 'text', nullable: true, name: 'intro_video' })
+  intro_video!: string | null;
+
+  @Column({ type: 'int', nullable: true, name: 'intro_video_id' })
+  intro_video_id!: number | null;
+
+  @OneToOne(() => Media, { nullable: true, onDelete: 'SET NULL', eager: true })
+  @JoinColumn({ name: 'intro_video_id' })
+  intro_video_media!: Media | null;
 
   @Column({ type: 'json', nullable: true })
   detailed_experience!: Record<string, unknown>[] | null;

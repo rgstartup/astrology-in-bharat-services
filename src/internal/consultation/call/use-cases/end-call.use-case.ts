@@ -50,6 +50,8 @@ import { User } from '../../../users/entities/user.entity';
 
 import { EndCallDto } from '../dto/end-call.dto';
 
+import { PresenceService } from '@/internal/presence/presence.service';
+
 @Injectable()
 export class EndCallUseCase {
   constructor(
@@ -62,6 +64,7 @@ export class EndCallUseCase {
     private readonly ledgerQueueService: LedgerQueueService,
     private readonly dataSource: DataSource,
     private readonly eventEmitter: EventEmitter2,
+    private readonly presenceService: PresenceService,
   ) {}
 
   async execute(dto: EndCallDto) {
@@ -355,6 +358,8 @@ export class EndCallUseCase {
           error,
         );
       }
+
+      await this.presenceService.setIdle(session.expert_id, session.id);
 
       this.callGateway.server.to(`call_room_${sessionId}`).emit('call_ended', {
         sessionId,

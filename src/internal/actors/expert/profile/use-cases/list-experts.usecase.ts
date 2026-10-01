@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../entities/profile-expert.entity';
 import { QueryExpertDto } from '../dto/query-expert.dto';
-import { ExpertGateway } from '../gateways/expert.gateway';
+// import { ExpertGateway } from '../gateways/expert.gateway';
 
 @Injectable()
 export class ListExpertsUseCase {
@@ -12,7 +12,7 @@ export class ListExpertsUseCase {
   constructor(
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-    private readonly expertGateway: ExpertGateway,
+    // private readonly expertGateway: ExpertGateway,
   ) {}
 
   async execute(query: QueryExpertDto) {
@@ -164,9 +164,9 @@ export class ListExpertsUseCase {
           : [];
         plain.userId = ex.user?.id;
         plain.isAvailable = ex.is_available;
-        plain.is_online = ex.user?.id
-          ? this.expertGateway.isExpertOnline(ex.user.id)
-          : false;
+        // plain.is_online = ex.user?.id
+        //   ? this.expertGateway.isExpertOnline(ex.user.id)
+        //   : false;
 
         // Standard fallbacks (COALESCE logic shifted to backend)
         plain.price = ex.price || 0;

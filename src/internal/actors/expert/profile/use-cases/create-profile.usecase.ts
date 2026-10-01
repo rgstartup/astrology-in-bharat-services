@@ -6,7 +6,6 @@ import { User } from '../../../../users/entities/user.entity';
 import { IUser } from '../../../../../shared/types/access-token.payload';
 import { CreateProfileExpertDto } from '../dto/profile-expert.dto';
 import { Address } from '../../../../../shared/address/address.entity';
-import { ExpertGateway } from '../gateways/expert.gateway';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   ProfileUpdatedEvent,
@@ -22,7 +21,6 @@ export class CreateProfileUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
     @InjectRepository(Address)
     private readonly addressRepo: Repository<Address>,
-    private readonly expertGateway: ExpertGateway,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -172,7 +170,7 @@ export class CreateProfileUseCase {
       plain.isAvailable = profile.is_available;
 
       if (profile.user?.id) {
-        plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
+        // plain.is_online = this.expertGateway.isExpertOnline(profile.user.id);
       } else {
         plain.is_online = false;
       }

@@ -13,6 +13,8 @@ import { ChatMessage } from '../entities/chat-message.entity';
 import { WalletService } from '../../../finance/wallet/wallet.service';
 import { MessageType, ChatSessionStatus } from '../enum';
 
+import { PresenceService } from '@/internal/presence/presence.service';
+
 @Injectable()
 export class ActivateSessionUseCase {
   constructor(
@@ -22,6 +24,7 @@ export class ActivateSessionUseCase {
     private messageRepo: Repository<ChatMessage>,
     @Inject(forwardRef(() => WalletService))
     private walletService: DeferredDependency<WalletService>,
+    private readonly presenceService: PresenceService,
   ) {}
 
   async execute(
@@ -58,6 +61,7 @@ export class ActivateSessionUseCase {
     session.max_duration_seconds = Math.floor(totalMinutes * 60);
 
     const savedSession = await this.sessionRepo.save(session);
+    await this.presenceService.setBusy(session.expert_id, session.id);
 
     // ✅ Automatically send Intro Card
     let introCard: ChatMessage | undefined;

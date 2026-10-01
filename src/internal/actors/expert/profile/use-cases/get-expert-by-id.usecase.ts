@@ -2,14 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { ExpertGateway } from '../gateways/expert.gateway';
 
 @Injectable()
 export class GetExpertByIdUseCase {
   constructor(
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-    private readonly expertGateway: ExpertGateway,
   ) {}
 
   async execute(id: number) {
@@ -38,9 +36,9 @@ export class GetExpertByIdUseCase {
       : [];
     plain.userId = expert.user?.id;
     plain.isAvailable = expert.is_available;
-    plain.is_online = expert.user?.id
-      ? this.expertGateway.isExpertOnline(expert.user.id)
-      : false;
+    // plain.is_online = expert.user?.id
+    //   ? this.expertGateway.isExpertOnline(expert.user.id)
+    //   : false;
 
     // Standard fallbacks (COALESCE logic shifted to backend)
     plain.price = expert.price || 0;

@@ -35,7 +35,9 @@ export const expertAccounts = expertSchema.table('account', {
   is_blocked: boolean('is_blocked').notNull().default(false),
   name: varchar('name', { length: 255 }),
   email: varchar('email', { length: 255 }),
+  /** @deprecated Use `avatar_id` + media relation instead. */
   avatar: text('avatar'),
+  avatar_id: integer('avatar_id'),
   phone: text('phone'),
   gender: text('gender').notNull().default('other'),
   date_of_birth: timestamp('date_of_birth', { withTimezone: true }),
@@ -73,11 +75,20 @@ export const expertAccounts = expertSchema.table('account', {
   gallery: text('gallery'),
   videos: text('videos'),
   certificates: text('certificates'),
+  /** @deprecated Use `intro_video_id` + media relation instead. */
   video: text('video'),
+  intro_video: text('intro_video'),
+  intro_video_id: integer('intro_video_id'),
   detailed_experience: json('detailed_experience').$type<
     Record<string, unknown>[] | null
   >(),
+
+  /** @deprecated Use `availability_mode` instead. */
   is_available: boolean('is_available').notNull().default(false),
+  availability_mode: varchar('availability_mode', { length: 20 })
+    .$type<'available' | 'unavailable'>()
+    .notNull()
+    .default('available'),
   about_me: text('about_me'),
   total_earning: numeric('total_earning', { precision: 10, scale: 2 })
     .notNull()

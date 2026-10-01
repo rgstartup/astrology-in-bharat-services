@@ -10,7 +10,6 @@ import { AccountModule } from '../../client/account/account.module';
 import { ProfileExpert } from './entities/profile-expert.entity';
 import { Address } from '../../../../shared/address/address.entity';
 import { ProfileController } from './controllers/profile.controller';
-import { ExpertGateway } from './gateways/expert.gateway';
 import { NodemailerModule } from '../../../../external/nodemailer/nodemailer.module';
 import { CloudinaryModule } from '../../../../external/cloudinary/cloudinary.module';
 import { ConsultationModule } from '../../../consultation/consultation.module';
@@ -49,7 +48,6 @@ import { ExpertStatusChangedHandler } from './event-handlers/expert-status-chang
   ],
   controllers: [ProfileController],
   providers: [
-    ExpertGateway,
     ExpertProfileService,
     GetProfileUseCase,
     CreateProfileUseCase,
@@ -71,11 +69,6 @@ import { ExpertStatusChangedHandler } from './event-handlers/expert-status-chang
     KycStatusChangedHandler,
     ExpertStatusChangedHandler,
   ],
-  exports: [
-    ExpertProfileService,
-    ExpertGateway,
-    GetExpertByIdUseCase,
-    TypeOrmModule,
-  ],
+  exports: [ExpertProfileService, GetExpertByIdUseCase, TypeOrmModule],
 })
 export class ProfileModule {}

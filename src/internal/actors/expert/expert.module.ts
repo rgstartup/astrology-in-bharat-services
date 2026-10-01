@@ -5,6 +5,7 @@ import { ExpertDashboardModule } from './dashboard/expert-dashboard.module';
 import { TodosModule } from './todos/todos.module';
 import { ExpertAuthModule } from './auth/auth.module';
 import { ExpertAccountModule } from './account/account.module';
+import { ExpertDiscoveryModule } from './discovery/discovery.module';
 import { SpecializationModule } from './specialization/specialization.module';
 import { ProfessionModule } from './profession/profession.module';
 import { ExpertProductsModule } from './products/products.module';
@@ -17,6 +18,7 @@ import { ExpertProductsModule } from './products/products.module';
     TodosModule,
     ExpertAuthModule,
     ExpertAccountModule,
+    ExpertDiscoveryModule,
     SpecializationModule,
     ProfessionModule,
     ExpertProductsModule,
@@ -28,6 +30,7 @@ import { ExpertProductsModule } from './products/products.module';
     TodosModule,
     ExpertAuthModule,
     ExpertAccountModule,
+    ExpertDiscoveryModule,
     SpecializationModule,
     ProfessionModule,
     ExpertProductsModule,

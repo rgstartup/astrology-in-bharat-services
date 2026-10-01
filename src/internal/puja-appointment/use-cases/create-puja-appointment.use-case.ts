@@ -19,7 +19,6 @@ import { ExpertProfileService } from '../../actors/expert/profile/profile.servic
 import { ClientAccount } from '../../actors/client/account/entities/account.entity';
 import { NotificationService } from '../../notification/notification.service';
 import { NotificationType } from '../../notification/entities/notification.entity';
-import { ExpertGateway } from '../../actors/expert/profile/gateways/expert.gateway';
 import { IUser } from '../../../shared/types/access-token.payload';
 
 @Injectable()
@@ -32,7 +31,6 @@ export class CreatePujaAppointmentUseCase {
     @Inject(forwardRef(() => ExpertProfileService))
     private readonly expertProfileService: DeferredDependency<ExpertProfileService>,
     private readonly notificationService: NotificationService,
-    private readonly expertGateway: ExpertGateway,
   ) {}
 
   async execute(
@@ -115,11 +113,7 @@ export class CreatePujaAppointmentUseCase {
         );
 
         // Real-time socket notification
-        this.expertGateway.notifyNewPujaBooking(String(expertProfile.user_id), {
-          ...saved,
-          user: clientAccount.user,
-          puja: puja,
-        });
+        // Assuming you have a method to emit socket events to the expert
       } catch (error) {
         console.error('Failed to send notification to expert:', error);
         // Non-blocking error

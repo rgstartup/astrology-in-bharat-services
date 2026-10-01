@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import {
@@ -7,6 +7,7 @@ import {
   expertConsultationPricing,
   expertProfessions,
   expertSpecializations,
+  media,
   professions,
   specializations,
 } from '@/core/drizzledb/schema';
@@ -27,6 +28,9 @@ export class GetExpertAccountUseCase {
         languages: expertAccounts.languages,
         name: expertAccounts.name,
         avatar: expertAccounts.avatar,
+        avatar_id: expertAccounts.avatar_id,
+        intro_video: expertAccounts.intro_video,
+        intro_video_id: expertAccounts.intro_video_id,
         experience_in_years: expertAccounts.experience_in_years,
         professions: sql<
           Array<{
@@ -111,8 +115,42 @@ export class GetExpertAccountUseCase {
       return null;
     }
 
+    const mediaIds = [account.avatar_id, account.intro_video_id].filter(
+      (id): id is number => typeof id === 'number' && id !== null,
+    );
+    let avatar_media: {
+      id: number;
+      public_id: string | null;
+      url: string;
+    } | null = null;
+    let intro_video_media: {
+      id: number;
+      public_id: string | null;
+      url: string;
+    } | null = null;
+
+    if (mediaIds.length > 0) {
+      const mediaRows = await this.db
+        .select({
+          id: media.id,
+          public_id: media.public_id,
+          url: media.url,
+        })
+        .from(media)
+        .where(inArray(media.id, mediaIds));
+      const byId = new Map(mediaRows.map((row) => [row.id, row]));
+      if (account.avatar_id != null) {
+        avatar_media = byId.get(account.avatar_id) ?? null;
+      }
+      if (account.intro_video_id != null) {
+        intro_video_media = byId.get(account.intro_video_id) ?? null;
+      }
+    }
+
     return ExpertAccountResponseDto.from({
       ...account,
+      avatar_media,
+      intro_video_media,
       pricing: account.pricing
         ? toExpertPricingResponse(account.pricing)
         : null,
