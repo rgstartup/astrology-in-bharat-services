@@ -13,7 +13,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from '../users/users.schema';
-import { ExpertKycStatus } from '../../../../internal/actors/expert/shared/enums/kyc-status.enum';
+import { ExpertKycStatus } from '@/internal/actors/expert/shared/enums/kyc-status.enum';
 
 const expertSchema = pgSchema('expert');
 
@@ -53,11 +53,17 @@ export const expertAccounts = expertSchema.table('account', {
   rejection_reason: text('rejection_reason'),
   consultation_count: integer('consultation_count').notNull().default(0),
   phone_number: text('phone_number'),
+  /** @deprecated Retained for backward compatibility. */
   price: doublePrecision('price'),
+  /** @deprecated Retained for backward compatibility. */
   chat_price: doublePrecision('chat_price'),
+  /** @deprecated Retained for backward compatibility. */
   call_price: doublePrecision('call_price'),
+  /** @deprecated Retained for backward compatibility. */
   video_call_price: doublePrecision('video_call_price'),
+  /** @deprecated Retained for backward compatibility. */
   report_price: doublePrecision('report_price'),
+  /** @deprecated Retained for backward compatibility. */
   horoscope_price: doublePrecision('horoscope_price'),
   custom_services: json('custom_services').$type<
     Record<string, unknown>[] | null

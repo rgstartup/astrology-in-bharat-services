@@ -10,7 +10,8 @@ import { DomainExceptionFilter } from './shared/filters/domain-exception.filter'
 import { UnknownExceptionFilter } from './shared/filters/unknown-exception.filter';
 import { ValidationDomainError } from './shared/errors';
 import { formatValidationErrors } from './shared/utils/validation-error-formatter.util';
-import * as express from 'express';
+import { json, urlencoded } from 'express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -55,7 +56,7 @@ async function bootstrap() {
   // Increase payload limit for large base64 strings (images)
   // And capture rawBody for webhook signature verification
   app.use(
-    express.json({
+    json({
       limit: '50mb',
       verify: (
         req: import('express').Request & { rawBody?: Buffer },
@@ -66,7 +67,7 @@ async function bootstrap() {
       },
     }),
   );
-  app.use(express.urlencoded({ limit: '50mb', extended: true }));
+  app.use(urlencoded({ limit: '50mb', extended: true }));
 
   app.setGlobalPrefix('api');
 
@@ -94,6 +95,18 @@ async function bootstrap() {
     new HttpExceptionFilter(), // Client mistake
     new DomainExceptionFilter(), // Business rule failed
   );
+
+  //swagger
+  const config = new DocumentBuilder()
+    .setTitle('Astrology in Bharat API')
+    .setDescription('Astrology in Bharat API')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+
+  SwaggerModule.setup('docs', app, documentFactory);
 
   await app.listen(process.env.PORT!);
 

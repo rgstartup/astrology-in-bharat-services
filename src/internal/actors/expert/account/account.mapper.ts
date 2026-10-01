@@ -1,7 +1,7 @@
 import type {
   ExpertAccountRow,
   ExpertConsultationPricingRow,
-} from '../../../../core/drizzledb/schema';
+} from '@/core/drizzledb/schema';
 
 /**
  * Drizzle `numeric` columns come back as strings from the driver — normalize
