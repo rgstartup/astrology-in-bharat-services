@@ -1,4 +1,4 @@
-import type { DeferredDependency } from '../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from "@/shared/types/deferred-dependency.type";
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -7,24 +7,24 @@ import {
   OnGatewayDisconnect,
   MessageBody,
   ConnectedSocket,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { Inject, Logger, forwardRef } from '@nestjs/common';
-import { CallService } from './call.service';
-import { WalletService } from '../../finance/wallet/wallet.service';
-import { CallSessionStatus } from './enum';
+} from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
+import { Inject, Logger, forwardRef } from "@nestjs/common";
+import { CallService } from "./call.service";
+import { WalletService } from "../../finance/wallet/wallet.service";
+import { CallSessionStatus } from "./enum";
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: "*",
   },
-  namespace: 'call',
+  namespace: "call",
 })
 export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  private logger: Logger = new Logger('CallGateway');
+  private logger: Logger = new Logger("CallGateway");
   private expertSockets = new Map<string | number, string>(); // expert_id -> socketId
   private sessionTimers = new Map<string | number, NodeJS.Timeout>();
   private triggeredFreeLimit = new Set<string | number>();
@@ -63,13 +63,13 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             );
             await this.callService.end({
               sessionId: Number(sessionId),
-              endedBy: 'system',
-              reason: 'socket_disconnected',
+              endedBy: "system",
+              reason: "socket_disconnected",
             });
             this.stopSessionTimer(sessionId);
-            this.server.to(`call_room_${sessionId}`).emit('call_ended', {
-              reason: 'socket_disconnected',
-              message: 'Call ended due to lost connection.',
+            this.server.to(`call_room_${sessionId}`).emit("call_ended", {
+              reason: "socket_disconnected",
+              message: "Call ended due to lost connection.",
             });
           }
         } catch (e) {
@@ -98,7 +98,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
-  @SubscribeMessage('register_expert')
+  @SubscribeMessage("register_expert")
   async handleRegisterExpert(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { expert_id: string | number },
@@ -115,7 +115,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `[CallGateway] Registered experts map: ${JSON.stringify(Object.fromEntries(this.expertSockets))}`,
     );
-    return { status: 'registered' };
+    return { status: "registered" };
   }
 
   notifyExpertNewCall(expert_id: string | number, callData: unknown) {
@@ -126,7 +126,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `[CallGateway] 📞 notifyExpertNewCall called for expert_id=${expert_id}`,
     );
     this.logger.log(
-      `[CallGateway] Is expert registered in socket map? ${isExpertRegistered} | socketId: ${expertSocketId || 'NOT FOUND'}`,
+      `[CallGateway] Is expert registered in socket map? ${isExpertRegistered} | socketId: ${expertSocketId || "NOT FOUND"}`,
     );
     this.logger.log(
       `[CallGateway] All registered experts: ${JSON.stringify(Object.fromEntries(this.expertSockets))}`,
@@ -134,7 +134,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `[CallGateway] Emitting 'new_call_request' to room: ${roomName}`,
     );
-    this.server.to(roomName).emit('new_call_request', callData);
+    this.server.to(roomName).emit("new_call_request", callData);
     this.logger.log(
       `[CallGateway] ✅ Emitted new_call_request to ${roomName} for sessionId: ${(callData as { session: { id: string | number } }).session.id}`,
     );
@@ -147,7 +147,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   notifyExpertStatusUpdate(
     expert_id: string | number,
-    event: 'call_accepted' | 'call_ended',
+    event: "call_accepted" | "call_ended",
     data: unknown,
   ) {
     const roomName = `expert_${expert_id}`;
@@ -157,7 +157,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
-  @SubscribeMessage('join_call_room')
+  @SubscribeMessage("join_call_room")
   async handleJoinRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { sessionId: string | number },
@@ -182,7 +182,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Start timer if session is already active (e.g. on rejoin)
     this.startSessionTimer(payload.sessionId);
 
-    return { status: 'joined' };
+    return { status: "joined" };
   }
 
   startSessionTimer(sessionId: string | number) {
@@ -213,12 +213,12 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
         await this.callService.end({
           sessionId: numericSessionId,
-          endedBy: 'system',
-          reason: 'max_duration_reached',
+          endedBy: "system",
+          reason: "max_duration_reached",
         });
-        this.server.to(`call_room_${sessionId}`).emit('call_ended', {
-          reason: 'max_duration_reached',
-          message: 'Maximum call duration of 1 hour reached.',
+        this.server.to(`call_room_${sessionId}`).emit("call_ended", {
+          reason: "max_duration_reached",
+          message: "Maximum call duration of 1 hour reached.",
         });
         this.stopSessionTimer(sessionId);
         return;
@@ -233,14 +233,14 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.triggeredFreeLimit.add(sessionId);
         const balance = await this.walletService.getBalance(
           currentSession.client_id,
-          'client_id',
+          "client_id",
         );
         const minReq = currentSession.price_per_minute * 5;
 
-        this.server.to(`call_room_${sessionId}`).emit('free_time_ending_soon', {
+        this.server.to(`call_room_${sessionId}`).emit("free_time_ending_soon", {
           message:
             balance < minReq
-              ? 'Your free session is ending soon. Please recharge to continue.'
+              ? "Your free session is ending soon. Please recharge to continue."
               : `Your free session has ended. To continue at ₹${currentSession.price_per_minute}/min, please confirm.`,
           requireRecharge: balance < minReq,
           expertPrice: currentSession.price_per_minute,
@@ -254,22 +254,22 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
           if (s?.status === CallSessionStatus.ACTIVE && s.is_free) {
             await this.callService.end({
               sessionId: Number(sessionId),
-              endedBy: 'system',
-              reason: 'free_limit_ended_no_confirmation',
+              endedBy: "system",
+              reason: "free_limit_ended_no_confirmation",
             });
-            this.server.to(`call_room_${sessionId}`).emit('call_ended', {
-              reason: 'free_limit_ended_no_confirmation',
-              message: 'Your free consultation has ended.',
+            this.server.to(`call_room_${sessionId}`).emit("call_ended", {
+              reason: "free_limit_ended_no_confirmation",
+              message: "Your free consultation has ended.",
             });
             this.stopSessionTimer(sessionId);
 
             // ✅ Broadcast expert is now FREE again
             if (s.expert_id) {
-              this.server.emit('expert_busy_changed', {
+              this.server.emit("expert_busy_changed", {
                 expert_id: s.expert_id,
                 is_busy: false,
               });
-              this.notifyExpertStatusUpdate(s.expert_id, 'call_ended', s);
+              this.notifyExpertStatusUpdate(s.expert_id, "call_ended", s);
             }
           }
         }, 30000);
@@ -282,11 +282,11 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (durationMins >= checkThreshold) {
         const balance = await this.walletService.getBalance(
           currentSession.client_id,
-          'client_id',
+          "client_id",
         );
         if (balance < currentSession.price_per_minute) {
-          this.server.to(`call_room_${sessionId}`).emit('balance_warning', {
-            message: 'Insufficient balance. Call will end in 30 seconds.',
+          this.server.to(`call_room_${sessionId}`).emit("balance_warning", {
+            message: "Insufficient balance. Call will end in 30 seconds.",
           });
 
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -294,9 +294,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const s = await this.callService.getSession(Number(sessionId));
             if (s?.status === CallSessionStatus.ACTIVE) {
               await this.callService.end(Number(sessionId));
-              this.server.to(`call_room_${sessionId}`).emit('call_ended', {
-                reason: 'insufficient_balance',
-                message: 'Call ended due to low balance.',
+              this.server.to(`call_room_${sessionId}`).emit("call_ended", {
+                reason: "insufficient_balance",
+                message: "Call ended due to low balance.",
               });
             }
           }, 30000);
@@ -315,7 +315,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.triggeredFreeLimit.delete(sessionId);
   }
 
-  @SubscribeMessage('end_call')
+  @SubscribeMessage("end_call")
   async handleEndCall(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { sessionId: string | number },
@@ -328,18 +328,18 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.stopSessionTimer(payload.sessionId);
       this.server
         .to(`call_room_${payload.sessionId}`)
-        .emit('call_ended', session);
-      return { status: 'ended' };
+        .emit("call_ended", session);
+      return { status: "ended" };
     } catch (error: unknown) {
       this.logger.error(
         `Failed to end call sessionId=${payload.sessionId}`,
         error,
       );
-      return { status: 'error', message: (error as Error).message };
+      return { status: "error", message: (error as Error).message };
     }
   }
 
-  @SubscribeMessage('confirm_paid_continuation')
+  @SubscribeMessage("confirm_paid_continuation")
   async handleConfirmContinuation(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { sessionId: string },
@@ -350,14 +350,14 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       this.server
         .to(`call_room_${payload.sessionId}`)
-        .emit('continuation_confirmed', {
+        .emit("continuation_confirmed", {
           message:
-            'Continuation confirmed. Call will continue as a paid session.',
+            "Continuation confirmed. Call will continue as a paid session.",
           session,
         });
-      return { status: 'success' };
+      return { status: "success" };
     } catch (error: unknown) {
-      return { status: 'error', message: (error as Error).message };
+      return { status: "error", message: (error as Error).message };
     }
   }
 }
