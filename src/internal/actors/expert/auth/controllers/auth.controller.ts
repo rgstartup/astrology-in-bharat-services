@@ -6,31 +6,31 @@ import {
   Req,
   Res,
   UseGuards,
-} from '@nestjs/common';
-import type { CookieOptions, Request, Response } from 'express';
-import { ExpertJwtRefreshAuthGuard } from '../guards/refresh-auth.guard';
-import { ExpertGoogleAuthGuard } from '../guards/google-auth.guard';
-import { ExpertGoogleAuthResult } from '../strategies/google-auth.strategy';
-import { ExpertAuthService } from '../auth.service';
-import { ExpertLoginDto } from '../dto/expert-login.dto';
+} from "@nestjs/common";
+import type { CookieOptions, Request, Response } from "express";
+import { ExpertJwtRefreshAuthGuard } from "../guards/refresh-auth.guard";
+import { ExpertGoogleAuthGuard } from "../guards/google-auth.guard";
+import { ExpertGoogleAuthResult } from "../strategies/google-auth.strategy";
+import { ExpertAuthService } from "../auth.service";
+import { ExpertLoginDto } from "../dto/expert-login.dto";
 import {
   CompleteExpertRegisterDto,
   InitiateExpertRegisterDto,
-} from '../dto/expert-register.dto';
+} from "../dto/expert-register.dto";
 
 type RefreshTokenRequest = Request & { refreshToken: string };
 
-@Controller({ path: 'expert/auth', version: '1' })
+@Controller({ path: "expert/auth", version: "1" })
 export class ExpertAuthController {
   constructor(private readonly authService: ExpertAuthService) {}
 
-  @Get('google/login')
+  @Get("google/login")
   @UseGuards(ExpertGoogleAuthGuard)
   googleLogin() {
     return;
   }
 
-  @Get('google/callback')
+  @Get("google/callback")
   @UseGuards(ExpertGoogleAuthGuard)
   googleCallback(@Req() req: Request, @Res() res: Response) {
     const authData = req.user as ExpertGoogleAuthResult;
@@ -45,12 +45,12 @@ export class ExpertAuthController {
     return res.redirect(authData.redirect_uri!);
   }
 
-  @Post('email/register/initiate')
+  @Post("email/register/initiate")
   initiate(@Body() dto: InitiateExpertRegisterDto) {
     return this.authService.initiateEmailRegistration(dto);
   }
 
-  @Post('email/register/complete')
+  @Post("email/register/complete")
   async complete(
     @Body() dto: CompleteExpertRegisterDto,
     @Req() req: Request,
@@ -59,13 +59,13 @@ export class ExpertAuthController {
     const result = await this.authService.completeEmailRegistration(
       dto,
       req.ip,
-      req.get('user-agent'),
+      req.get("user-agent"),
     );
     this.setCookies(res, result);
     return result;
   }
 
-  @Post('email/login')
+  @Post("email/login")
   async login(
     @Body() dto: ExpertLoginDto,
     @Req() req: Request,
@@ -74,13 +74,13 @@ export class ExpertAuthController {
     const result = await this.authService.loginWithEmail(
       dto,
       req.ip,
-      req.get('user-agent'),
+      req.get("user-agent"),
     );
     this.setCookies(res, result);
     return result;
   }
 
-  @Post('refresh')
+  @Post("refresh")
   @UseGuards(ExpertJwtRefreshAuthGuard)
   async refresh(
     @Req() req: RefreshTokenRequest,
@@ -98,14 +98,14 @@ export class ExpertAuthController {
     const options: CookieOptions = {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
-      path: '/',
+      sameSite: "none",
+      path: "/",
     };
-    res.cookie('accessToken', tokens.accessToken, {
+    res.cookie("accessToken", tokens.accessToken, {
       ...options,
       maxAge: 15 * 60 * 1000,
     });
-    res.cookie('refreshToken', tokens.refreshToken, {
+    res.cookie("refreshToken", tokens.refreshToken, {
       ...options,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });

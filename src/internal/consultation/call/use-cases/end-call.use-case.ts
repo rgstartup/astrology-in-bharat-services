@@ -1,56 +1,56 @@
-import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from "../../../../shared/types/deferred-dependency.type";
 import {
   Injectable,
   Inject,
   forwardRef,
   BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, EntityManager } from 'typeorm';
-import { CallSession } from '../entities/call-session.entity';
-import { CallSessionStatus, CallType } from '../enum';
-import { CallGateway } from '../call.gateway';
-import { CallPolicy } from '../policies/call.policy';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CallEndedEvent } from '../events/call.events';
-import { Transaction } from '../../../finance/wallet/entities/transaction.entity';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DataSource, EntityManager } from "typeorm";
+import { CallSession } from "../entities/call-session.entity";
+import { CallSessionStatus, CallType } from "../enum";
+import { CallGateway } from "../call.gateway";
+import { CallPolicy } from "../policies/call.policy";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { CallEndedEvent } from "../events/call.events";
+import { Transaction } from "../../../finance/wallet/entities/transaction.entity";
 import {
   TransactionType,
   TransactionPurpose,
-} from '../../../finance/wallet/enum';
-import { Wallet } from '../../../finance/wallet/entities/wallet.entity';
-import { SystemSetting } from '@/internal/actors/admin/entities/system-setting.entity';
+} from "../../../finance/wallet/enum";
+import { Wallet } from "../../../finance/wallet/entities/wallet.entity";
+import { SystemSetting } from "@/internal/actors/admin/entities/system-setting.entity";
 import {
   CommissionRule,
   CommissionType,
   CommissionEventType,
   CommissionAppliesRole,
   CommissionRateType,
-} from '../../../finance/commissions/entities/commission-rule.entity';
+} from "../../../finance/commissions/entities/commission-rule.entity";
 import {
   CommissionSplit,
   SplitReferenceType,
-} from '../../../finance/commissions/entities/commission-split.entity';
-import { CommissionTier } from '../../../finance/commissions/entities/commission-tier.entity';
+} from "../../../finance/commissions/entities/commission-split.entity";
+import { CommissionTier } from "../../../finance/commissions/entities/commission-tier.entity";
 
-import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
-import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
+import { ProfileExpert } from "../../../actors/expert/profile/entities/profile-expert.entity";
+import { LedgerQueueService } from "../../../../core/queue/services/ledger-queue.service";
 import {
   GeneralLedgerEntryType,
   GeneralLedgerEventType,
   GeneralLedgerPartyType,
-} from '../../../finance/ledger/entities/general-ledger-entry.entity';
-import { generateTransactionNo } from '../../../../shared/utils/transaction-no.util';
-import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
+} from "../../../finance/ledger/entities/general-ledger-entry.entity";
+import { generateTransactionNo } from "../../../../shared/utils/transaction-no.util";
+import { ExpertProfileService } from "../../../actors/expert/profile/profile.service";
 import {
   Notification,
   NotificationType,
-} from '../../../notification/entities/notification.entity';
-import { User } from '../../../users/entities/user.entity';
+} from "../../../notification/entities/notification.entity";
+import { User } from "../../../users/entities/user.entity";
 
-import { EndCallDto } from '../dto/end-call.dto';
+import { EndCallDto } from "../dto/end-call.dto";
 
-import { PresenceService } from '@/internal/presence/presence.service';
+import { PresenceService } from "@/internal/actors/expert/presence/presence.service";
 
 @Injectable()
 export class EndCallUseCase {
@@ -80,7 +80,7 @@ export class EndCallUseCase {
     try {
       const session = await queryRunner.manager.findOne(CallSession, {
         where: { id: sessionId },
-        relations: ['client', 'client.user'],
+        relations: ["client", "client.user"],
       });
 
       CallPolicy.ensureSessionExists(session);
@@ -253,7 +253,7 @@ export class EndCallUseCase {
             await this.deductFromReserved(
               queryRunner.manager,
               session.client_id,
-              'client_id',
+              "client_id",
               finalPrice,
               referenceId,
             );
@@ -263,7 +263,7 @@ export class EndCallUseCase {
             await this.releaseReserved(
               queryRunner.manager,
               session.client_id,
-              'client_id',
+              "client_id",
               remainingReserved,
               referenceId,
             );
@@ -272,7 +272,7 @@ export class EndCallUseCase {
           await this.deductFromReserved(
             queryRunner.manager,
             session.client_id,
-            'client_id',
+            "client_id",
             initialReservation,
             referenceId,
           );
@@ -280,7 +280,7 @@ export class EndCallUseCase {
           await this.debit(
             queryRunner.manager,
             session.client_id,
-            'client_id',
+            "client_id",
             excessCost,
             TransactionPurpose.CONSULTATION,
             referenceId,
@@ -292,7 +292,7 @@ export class EndCallUseCase {
           await this.credit(
             queryRunner.manager,
             session.expert_id,
-            'expert_id',
+            "expert_id",
             session.expert_earning,
             TransactionPurpose.CONSULTATION,
             referenceId,
@@ -301,19 +301,19 @@ export class EndCallUseCase {
           // 💰 Credit Seller's Agent
           if (agent_commission > 0 && agent_id) {
             const { ProfileAgent } =
-              await import('../../../actors/agent/entities/profile-agent.entity');
+              await import("../../../actors/agent/entities/profile-agent.entity");
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {
                 where: { user_id: agent_id },
-                select: ['id'],
+                select: ["id"],
               },
             );
             if (agentProfile) {
               await this.credit(
                 queryRunner.manager,
                 agentProfile.id,
-                'agent_id',
+                "agent_id",
                 agent_commission,
                 TransactionPurpose.AGENT_COMMISSION,
                 referenceId,
@@ -328,19 +328,19 @@ export class EndCallUseCase {
           // 💰 Credit Buyer's Agent
           if (buyer_agent_commission > 0 && buyer_agent_id) {
             const { ProfileAgent } =
-              await import('../../../actors/agent/entities/profile-agent.entity');
+              await import("../../../actors/agent/entities/profile-agent.entity");
             const agentProfile = await queryRunner.manager.findOne(
               ProfileAgent,
               {
                 where: { user_id: buyer_agent_id },
-                select: ['id'],
+                select: ["id"],
               },
             );
             if (agentProfile) {
               await this.credit(
                 queryRunner.manager,
                 agentProfile.id,
-                'agent_id',
+                "agent_id",
                 buyer_agent_commission,
                 TransactionPurpose.AGENT_COMMISSION,
                 `call_buyer_ref_${sessionId}`,
@@ -361,7 +361,7 @@ export class EndCallUseCase {
 
       await this.presenceService.setIdle(session.expert_id, session.id);
 
-      this.callGateway.server.to(`call_room_${sessionId}`).emit('call_ended', {
+      this.callGateway.server.to(`call_room_${sessionId}`).emit("call_ended", {
         sessionId,
         split,
         terminatedBy,
@@ -371,7 +371,7 @@ export class EndCallUseCase {
       // Also notify expert dashboard
       this.callGateway.notifyExpertStatusUpdate(
         session.expert_id,
-        'call_ended',
+        "call_ended",
         {
           sessionId,
           session: session,
@@ -382,7 +382,7 @@ export class EndCallUseCase {
       );
 
       this.eventEmitter.emit(
-        'call.ended',
+        "call.ended",
         new CallEndedEvent(
           session.id,
           session.client_id,
@@ -396,28 +396,28 @@ export class EndCallUseCase {
       try {
         if (expert) {
           const startTime = savedSession.start_time
-            ? savedSession.start_time.toLocaleTimeString('en-IN', {
-                hour: '2-digit',
-                minute: '2-digit',
+            ? savedSession.start_time.toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
               })
-            : 'N/A';
+            : "N/A";
           const endTime = savedSession.end_time
-            ? savedSession.end_time.toLocaleTimeString('en-IN', {
-                hour: '2-digit',
-                minute: '2-digit',
+            ? savedSession.end_time.toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
               })
-            : 'N/A';
+            : "N/A";
           const expertName =
             (expertUser?.name as string | null) ||
             (expert.name as string | null) ||
-            'Astrologer';
+            "Astrologer";
           const duration = savedSession.duration_seconds
             ? (savedSession.duration_seconds / 60).toFixed(1)
-            : '0';
+            : "0";
           const typeLabel =
-            savedSession.type === CallType.VIDEO ? 'Video Call' : 'Call';
+            savedSession.type === CallType.VIDEO ? "Video Call" : "Call";
 
-          const title = 'Consultation Summary';
+          const title = "Consultation Summary";
           const message = `From ${startTime} to ${endTime} you consulted ${expertName} via ${typeLabel}, total duration: ${duration} mins, total cost: ₹${savedSession.final_price}`;
 
           const notification = queryRunner.manager.create(Notification, {
@@ -425,7 +425,7 @@ export class EndCallUseCase {
             type: NotificationType.GENERAL,
             title,
             message,
-            metadata: { sessionId, type: 'CALL_SUMMARY' },
+            metadata: { sessionId, type: "CALL_SUMMARY" },
           });
           await queryRunner.manager.save(Notification, notification);
         }
@@ -478,9 +478,9 @@ export class EndCallUseCase {
         where: { key },
       });
       if (!setting) {
-        const altKey = key.includes('COMMISSION')
-          ? key.replace('COMMISSION', 'COMMISION')
-          : key.replace('COMMISION', 'COMMISSION');
+        const altKey = key.includes("COMMISSION")
+          ? key.replace("COMMISSION", "COMMISION")
+          : key.replace("COMMISION", "COMMISSION");
         setting = await manager.findOne(SystemSetting, {
           where: { key: altKey },
         });
@@ -510,8 +510,8 @@ export class EndCallUseCase {
         commission_type: commissionType,
         is_active: true,
       },
-      relations: ['tiers'],
-      order: { priority: 'DESC' },
+      relations: ["tiers"],
+      order: { priority: "DESC" },
     });
 
     const activeRules = rules.filter(
@@ -578,63 +578,63 @@ export class EndCallUseCase {
     > = {
       [CommissionEventType.CHAT]: {
         [CommissionType.PLATFORM_FEE]: [
-          'COMMISION_FROM_ASTROLOGER',
-          'COMMISSION_FROM_ASTROLOGER',
+          "COMMISION_FROM_ASTROLOGER",
+          "COMMISSION_FROM_ASTROLOGER",
         ],
         [CommissionType.SELLER_AGENT]: [
-          'COMMISION_FROM_ASTROLOGER',
-          'COMMISSION_FROM_ASTROLOGER',
+          "COMMISION_FROM_ASTROLOGER",
+          "COMMISSION_FROM_ASTROLOGER",
         ],
         [CommissionType.BUYER_AGENT]: [
-          'COMMISION_FOR_BUYER_AGENT',
-          'COMMISSION_FOR_BUYER_AGENT',
+          "COMMISION_FOR_BUYER_AGENT",
+          "COMMISSION_FOR_BUYER_AGENT",
         ],
-        [CommissionType.GST]: ['GST_PERCENTAGE'],
+        [CommissionType.GST]: ["GST_PERCENTAGE"],
       },
       [CommissionEventType.CALL]: {
         [CommissionType.PLATFORM_FEE]: [
-          'COMMISION_FROM_ASTROLOGER',
-          'COMMISSION_FROM_ASTROLOGER',
+          "COMMISION_FROM_ASTROLOGER",
+          "COMMISSION_FROM_ASTROLOGER",
         ],
         [CommissionType.SELLER_AGENT]: [
-          'COMMISION_FROM_ASTROLOGER',
-          'COMMISSION_FROM_ASTROLOGER',
+          "COMMISION_FROM_ASTROLOGER",
+          "COMMISSION_FROM_ASTROLOGER",
         ],
         [CommissionType.BUYER_AGENT]: [
-          'COMMISION_FOR_BUYER_AGENT',
-          'COMMISSION_FOR_BUYER_AGENT',
+          "COMMISION_FOR_BUYER_AGENT",
+          "COMMISSION_FOR_BUYER_AGENT",
         ],
-        [CommissionType.GST]: ['GST_PERCENTAGE'],
+        [CommissionType.GST]: ["GST_PERCENTAGE"],
       },
       [CommissionEventType.PUJA]: {
         [CommissionType.PLATFORM_FEE]: [
-          'COMMISION_FROM_ASTROLOGER',
-          'COMMISSION_FROM_ASTROLOGER',
+          "COMMISION_FROM_ASTROLOGER",
+          "COMMISSION_FROM_ASTROLOGER",
         ],
         [CommissionType.SELLER_AGENT]: [
-          'COMMISION_FROM_ASTROLOGER',
-          'COMMISSION_FROM_ASTROLOGER',
+          "COMMISION_FROM_ASTROLOGER",
+          "COMMISSION_FROM_ASTROLOGER",
         ],
         [CommissionType.BUYER_AGENT]: [
-          'COMMISION_FOR_BUYER_AGENT',
-          'COMMISSION_FOR_BUYER_AGENT',
+          "COMMISION_FOR_BUYER_AGENT",
+          "COMMISSION_FOR_BUYER_AGENT",
         ],
-        [CommissionType.GST]: ['GST_PERCENTAGE'],
+        [CommissionType.GST]: ["GST_PERCENTAGE"],
       },
       [CommissionEventType.PRODUCT_ORDER]: {
         [CommissionType.PLATFORM_FEE]: [
-          'COMMISION_FROM_PUJA_SHOP',
-          'COMMISION_FROM_PUJA_SHOP',
+          "COMMISION_FROM_PUJA_SHOP",
+          "COMMISION_FROM_PUJA_SHOP",
         ],
         [CommissionType.SELLER_AGENT]: [
-          'COMMISION_FROM_PUJA_SHOP',
-          'COMMISION_FROM_PUJA_SHOP',
+          "COMMISION_FROM_PUJA_SHOP",
+          "COMMISION_FROM_PUJA_SHOP",
         ],
         [CommissionType.BUYER_AGENT]: [
-          'COMMISION_FOR_BUYER_AGENT',
-          'COMMISION_FOR_BUYER_AGENT',
+          "COMMISION_FOR_BUYER_AGENT",
+          "COMMISION_FOR_BUYER_AGENT",
         ],
-        [CommissionType.GST]: ['GST_PERCENTAGE'],
+        [CommissionType.GST]: ["GST_PERCENTAGE"],
       },
     };
 
@@ -671,11 +671,11 @@ export class EndCallUseCase {
     purpose: TransactionPurpose,
     referenceId?: string,
   ): Promise<Wallet> {
-    if (amount <= 0) throw new BadRequestException('Amount must be positive');
+    if (amount <= 0) throw new BadRequestException("Amount must be positive");
 
     let wallet = await manager.findOne(Wallet, {
       where: { [walletKey]: profileId },
-      lock: { mode: 'pessimistic_write' },
+      lock: { mode: "pessimistic_write" },
     });
 
     if (!wallet) {
@@ -709,13 +709,13 @@ export class EndCallUseCase {
 
     try {
       const roleForTx =
-        walletKey === 'expert_id'
-          ? 'EXPERT'
-          : walletKey === 'merchant_id'
-            ? 'MERCHANT'
-            : walletKey === 'agent_id'
-              ? 'AGENT'
-              : 'CLIENT';
+        walletKey === "expert_id"
+          ? "EXPERT"
+          : walletKey === "merchant_id"
+            ? "MERCHANT"
+            : walletKey === "agent_id"
+              ? "AGENT"
+              : "CLIENT";
 
       savedTx.transaction_no = generateTransactionNo(
         roleForTx,
@@ -762,14 +762,14 @@ export class EndCallUseCase {
     });
 
     if (
-      walletKey === 'expert_id' &&
+      walletKey === "expert_id" &&
       (purpose === TransactionPurpose.CONSULTATION ||
         purpose === TransactionPurpose.PRODUCT_PURCHASE)
     ) {
       try {
         const expertProfile = await manager.findOne(ProfileExpert, {
           where: { id: profileId },
-          select: ['id'],
+          select: ["id"],
         });
 
         if (expertProfile) {
@@ -780,7 +780,7 @@ export class EndCallUseCase {
               total_earning: () =>
                 `COALESCE(total_earning, 0) + ${Number(amount)}`,
             })
-            .where('id = :id', { id: expertProfile.id })
+            .where("id = :id", { id: expertProfile.id })
             .execute();
         }
       } catch (e) {
@@ -802,11 +802,11 @@ export class EndCallUseCase {
     referenceId?: string,
     allowNegative: boolean = false,
   ): Promise<Wallet> {
-    if (amount <= 0) throw new BadRequestException('Amount must be positive');
+    if (amount <= 0) throw new BadRequestException("Amount must be positive");
 
     let wallet = await manager.findOne(Wallet, {
       where: { [walletKey]: profileId },
-      lock: { mode: 'pessimistic_write' },
+      lock: { mode: "pessimistic_write" },
     });
 
     if (!wallet) {
@@ -820,7 +820,7 @@ export class EndCallUseCase {
 
     const balance = Number(wallet.balance) || 0;
     if (!allowNegative && balance < amount) {
-      throw new BadRequestException('Insufficient balance');
+      throw new BadRequestException("Insufficient balance");
     }
 
     await manager
@@ -846,13 +846,13 @@ export class EndCallUseCase {
 
     try {
       const roleForTx =
-        walletKey === 'expert_id'
-          ? 'EXPERT'
-          : walletKey === 'merchant_id'
-            ? 'MERCHANT'
-            : walletKey === 'agent_id'
-              ? 'AGENT'
-              : 'CLIENT';
+        walletKey === "expert_id"
+          ? "EXPERT"
+          : walletKey === "merchant_id"
+            ? "MERCHANT"
+            : walletKey === "agent_id"
+              ? "AGENT"
+              : "CLIENT";
 
       savedTx.transaction_no = generateTransactionNo(
         roleForTx,
@@ -910,11 +910,11 @@ export class EndCallUseCase {
   ): Promise<void> {
     const wallet = await manager.findOne(Wallet, {
       where: { [walletKey]: profileId },
-      lock: { mode: 'pessimistic_write' },
+      lock: { mode: "pessimistic_write" },
     });
 
     if (!wallet || Number(wallet.reserved_balance) < amount) {
-      throw new BadRequestException('Insufficient reserved balance');
+      throw new BadRequestException("Insufficient reserved balance");
     }
 
     const balanceBefore = Number(wallet.balance) || 0;
@@ -943,11 +943,11 @@ export class EndCallUseCase {
   ): Promise<void> {
     const wallet = await manager.findOne(Wallet, {
       where: { [walletKey]: profileId },
-      lock: { mode: 'pessimistic_write' },
+      lock: { mode: "pessimistic_write" },
     });
 
     if (!wallet || Number(wallet.reserved_balance) < amount) {
-      throw new BadRequestException('Insufficient reserved balance to release');
+      throw new BadRequestException("Insufficient reserved balance to release");
     }
 
     const balanceBefore = Number(wallet.balance) || 0;

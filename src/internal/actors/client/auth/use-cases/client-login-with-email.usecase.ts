@@ -1,33 +1,31 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Inject,
   Injectable,
   UnauthorizedException,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { and, eq } from 'drizzle-orm';
-import { createHash, randomInt } from 'crypto';
-import { nanoid } from 'nanoid';
-import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { and, desc, eq } from "drizzle-orm";
+import { createHash, randomInt } from "crypto";
+import { nanoid } from "nanoid";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
 import {
   clientAccounts,
   otps,
   sessions,
   users,
   type ClientAccountRow,
-} from '../../../../../core/drizzledb/schema';
-import { PlatformEnum } from '../../../../users/enums/Platform.enum';
-import { RoleEnum } from '../../../../users/enums/Role.enum';
-import { OtpPurposeEnum } from '../../../../auth/enums/otp-purpose.enum';
-import { ClientLoginDto } from '../dto/client-login.dto';
-import {
-  type IHasher,
-  IHasherToken,
-} from '../../../../../shared/contracts/hasher.contract';
-import { IAccessTokenPayloadClient } from '../../../../../shared/types/access-token.payload';
-import { TokenCryptoService } from '../services/token-crypto.service';
+} from "@/core/drizzledb/schema";
+import { PlatformEnum } from "@/internal/users/enums/Platform.enum";
+import { RoleEnum } from "@/internal/users/enums/Role.enum";
+import { OtpPurposeEnum } from "@/internal/auth/enums/otp-purpose.enum";
+import { ClientLoginDto } from "../dto/client-login.dto";
+import { type IHasher, IHasherToken } from "@/shared/contracts/hasher.contract";
+import { IAccessTokenPayloadClient } from "@/shared/types/access-token.payload";
+import { TokenCryptoService } from "../services/token-crypto.service";
 
 type LoginUserRow = {
   id: number;
@@ -79,14 +77,22 @@ export class ClientLoginWithEmailUseCase {
     );
 
     if (!user || !user.password || !isValidPassword) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException("Invalid email or password");
     }
 
     if (!user.email_verified_at) {
-      await this.sendVerificationOtp(user);
-      throw new ConflictException(
-        'Please verify your email first. A new OTP has been sent to your email.',
-      );
+      if (!dto.otp) {
+        await this.sendVerificationOtp(user);
+        throw new ConflictException(
+          "Please verify your email first. A new OTP has been sent to your email.",
+        );
+      }
+
+      await this.verifyRegistrationOtp(user, dto.otp);
+      await this.db
+        .update(users)
+        .set({ email_verified_at: new Date() })
+        .where(eq(users.id, user.id));
     }
 
     let account = await this.findAccountByUserId(user.id);
@@ -96,7 +102,7 @@ export class ClientLoginWithEmailUseCase {
     }
 
     if (account.is_blocked || user.is_blocked) {
-      throw new ForbiddenException('Your account has been suspended');
+      throw new ForbiddenException("Your account has been suspended");
     }
 
     const tokens = await this.getTokens(account);
@@ -130,7 +136,7 @@ export class ClientLoginWithEmailUseCase {
     const firstName = user.first_name;
     const lastName = user.last_name;
     const fullName =
-      [firstName, lastName].filter(Boolean).join(' ') ||
+      [firstName, lastName].filter(Boolean).join(" ") ||
       user.full_name ||
       user.name;
 
@@ -161,7 +167,7 @@ export class ClientLoginWithEmailUseCase {
       );
 
     const otp = randomInt(100000, 1000000).toString();
-    const hashedOtp = createHash('sha256').update(otp).digest('hex');
+    const hashedOtp = createHash("sha256").update(otp).digest("hex");
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     await this.db.insert(otps).values({
@@ -173,7 +179,7 @@ export class ClientLoginWithEmailUseCase {
       expires_at: expiresAt,
     });
 
-    this.eventEmitter.emit('auth.client.registered', {
+    this.eventEmitter.emit("auth.client.registered", {
       userId: user.id,
       email: user.email,
       name: user.full_name || undefined,
@@ -182,11 +188,55 @@ export class ClientLoginWithEmailUseCase {
     });
   }
 
+  private async verifyRegistrationOtp(user: LoginUserRow, inputOtp: string) {
+    const [otpEntry] = await this.db
+      .select()
+      .from(otps)
+      .where(
+        and(
+          eq(otps.email, user.email),
+          eq(otps.purpose, OtpPurposeEnum.REGISTRATION),
+        ),
+      )
+      .orderBy(desc(otps.created_at))
+      .limit(1);
+
+    if (!otpEntry) {
+      throw new BadRequestException("Invalid or expired OTP");
+    }
+
+    if (new Date() > otpEntry.expires_at) {
+      await this.db.delete(otps).where(eq(otps.id, otpEntry.id));
+      throw new BadRequestException(
+        "OTP has expired. Please request a new OTP.",
+      );
+    }
+
+    if (otpEntry.attempts >= 5) {
+      await this.db.delete(otps).where(eq(otps.id, otpEntry.id));
+      throw new BadRequestException(
+        "Maximum verification attempts exceeded. Please request a new OTP.",
+      );
+    }
+
+    const hashedInputOtp = createHash("sha256").update(inputOtp).digest("hex");
+
+    if (hashedInputOtp !== otpEntry.otp) {
+      await this.db
+        .update(otps)
+        .set({ attempts: otpEntry.attempts + 1 })
+        .where(eq(otps.id, otpEntry.id));
+      throw new BadRequestException("Invalid OTP");
+    }
+
+    await this.db.delete(otps).where(eq(otps.id, otpEntry.id));
+  }
+
   private async verifyPassword(
     passwordHash: string | null,
     password: string,
   ): Promise<boolean> {
-    const FALLBACK_PASSWORD = await this.hasher.hash('fallbackInvalidPassword');
+    const FALLBACK_PASSWORD = await this.hasher.hash("fallbackInvalidPassword");
 
     const isValid = await this.hasher.verify(
       passwordHash ?? FALLBACK_PASSWORD,
@@ -223,7 +273,7 @@ export class ClientLoginWithEmailUseCase {
         user_id,
         ip_address: ip,
         user_agent: ua,
-        type: 'refresh_token',
+        type: "refresh_token",
         secret_hash: refreshTokenHash,
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       })

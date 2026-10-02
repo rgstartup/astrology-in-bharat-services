@@ -4,8 +4,7 @@ import {
   AvailabilityMode,
   ConsultationState,
   ExpertClientStatus,
-  RealtimePresence,
-} from '../presence.types';
+} from '@/core/enums';
 
 describe('Presence E2E Lifecycle Flow', () => {
   let service: PresenceService;
@@ -154,7 +153,7 @@ describe('Presence E2E Lifecycle Flow', () => {
     });
 
     // 3. Expert becomes unavailable -> Client sees 'offline'
-    await service.setAvailability(expertId, 'unavailable');
+    await service.setAvailability(expertId, AvailabilityMode.UNAVAILABLE);
     expect(await service.getStatus(expertId)).toBe('offline');
     expect(clientObservedStatuses[clientObservedStatuses.length - 1]).toEqual({
       expertId,
@@ -162,7 +161,7 @@ describe('Presence E2E Lifecycle Flow', () => {
     });
 
     // 4. Expert becomes available -> Client sees 'online'
-    await service.setAvailability(expertId, 'available');
+    await service.setAvailability(expertId, AvailabilityMode.AVAILABLE);
     expect(await service.getStatus(expertId)).toBe('online');
     expect(clientObservedStatuses[clientObservedStatuses.length - 1]).toEqual({
       expertId,

@@ -1,12 +1,22 @@
 import type { Redis } from 'ioredis';
 
-export type RealtimePresence = 'online' | 'offline';
+// Single source of truth for presence/availability string values lives in
+// `@/core/enums` as string enums (value + type in one declaration). They are
+// imported here for the interfaces below and re-exported so existing
+// `presence.types` import sites keep working.
+import {
+  AvailabilityMode,
+  ConsultationState,
+  ExpertClientStatus,
+  RealtimePresence,
+} from '@/core/enums';
 
-export type AvailabilityMode = 'available' | 'unavailable';
-
-export type ConsultationState = 'idle' | 'busy';
-
-export type ExpertClientStatus = 'online' | 'busy' | 'offline';
+export {
+  AvailabilityMode,
+  ConsultationState,
+  ExpertClientStatus,
+  RealtimePresence,
+};
 
 export interface PresenceChangedEventPayload {
   expertId: number;

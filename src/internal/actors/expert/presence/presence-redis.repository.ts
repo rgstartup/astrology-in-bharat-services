@@ -9,9 +9,11 @@ import {
   AvailabilityMode,
   ConsultationState,
   ExpertClientStatus,
-  PresenceChangedEventPayload,
-  type PresenceRedisClient,
   RealtimePresence,
+} from '@/core/enums';
+import {
+  type PresenceChangedEventPayload,
+  type PresenceRedisClient,
 } from './presence.types';
 import { registerPresenceScripts } from './utils/register-presence-scripts.util';
 
@@ -112,12 +114,14 @@ export class PresenceRedisRepository {
     try {
       const connSetKey = PRESENCE_KEYS.expertConnections(expertId);
       const activeCount = await this.commands.presenceGetRealtime(connSetKey);
-      return Number(activeCount) > 0 ? 'online' : 'offline';
+      return Number(activeCount) > 0
+        ? RealtimePresence.ONLINE
+        : RealtimePresence.OFFLINE;
     } catch (err) {
       this.logger.error(
         `Failed to get realtime presence for expert ${expertId}: ${(err as Error).message}`,
       );
-      return 'offline';
+      return RealtimePresence.OFFLINE;
     }
   }
 
@@ -137,14 +141,17 @@ export class PresenceRedisRepository {
       for (let i = 0; i < expertIds.length; i++) {
         const id = expertIds[i]!;
         const count = counts[i] || 0;
-        result.set(id, count > 0 ? 'online' : 'offline');
+        result.set(
+          id,
+          count > 0 ? RealtimePresence.ONLINE : RealtimePresence.OFFLINE,
+        );
       }
     } catch (err) {
       this.logger.error(
         `Failed to batch get realtime presence: ${(err as Error).message}`,
       );
       for (const id of expertIds) {
-        result.set(id, 'offline');
+        result.set(id, RealtimePresence.OFFLINE);
       }
     }
     return result;
@@ -157,9 +164,9 @@ export class PresenceRedisRepository {
   ): Promise<void> {
     try {
       const key = PRESENCE_KEYS.expertConsultation(expertId);
-      if (state === 'busy') {
+      if (state === ConsultationState.BUSY) {
         const payload = JSON.stringify({
-          state: 'busy',
+          state: ConsultationState.BUSY,
           consultationId: consultationId ? String(consultationId) : null,
           updatedAt: Date.now(),
         });
@@ -178,14 +185,16 @@ export class PresenceRedisRepository {
     try {
       const key = PRESENCE_KEYS.expertConsultation(expertId);
       const val = await this.redis.get(key);
-      if (!val) return 'idle';
+      if (!val) return ConsultationState.IDLE;
       const parsed = JSON.parse(val);
-      return parsed.state === 'busy' ? 'busy' : 'idle';
+      return parsed.state === ConsultationState.BUSY
+        ? ConsultationState.BUSY
+        : ConsultationState.IDLE;
     } catch (err) {
       this.logger.error(
         `Failed to get consultation state for expert ${expertId}: ${(err as Error).message}`,
       );
-      return 'idle';
+      return ConsultationState.IDLE;
     }
   }
 
@@ -205,12 +214,17 @@ export class PresenceRedisRepository {
         if (val) {
           try {
             const parsed = JSON.parse(val);
-            result.set(id, parsed.state === 'busy' ? 'busy' : 'idle');
+            result.set(
+              id,
+              parsed.state === ConsultationState.BUSY
+                ? ConsultationState.BUSY
+                : ConsultationState.IDLE,
+            );
           } catch {
-            result.set(id, 'idle');
+            result.set(id, ConsultationState.IDLE);
           }
         } else {
-          result.set(id, 'idle');
+          result.set(id, ConsultationState.IDLE);
         }
       }
     } catch (err) {
@@ -218,7 +232,7 @@ export class PresenceRedisRepository {
         `Failed to batch get consultation states: ${(err as Error).message}`,
       );
       for (const id of expertIds) {
-        result.set(id, 'idle');
+        result.set(id, ConsultationState.IDLE);
       }
     }
     return result;
@@ -244,7 +258,10 @@ export class PresenceRedisRepository {
     try {
       const key = PRESENCE_KEYS.expertAvailability(expertId);
       const val = await this.redis.get(key);
-      if (val === 'available' || val === 'unavailable') {
+      if (
+        val === AvailabilityMode.AVAILABLE ||
+        val === AvailabilityMode.UNAVAILABLE
+      ) {
         return val;
       }
       return null;
@@ -269,7 +286,10 @@ export class PresenceRedisRepository {
       for (let i = 0; i < expertIds.length; i++) {
         const id = expertIds[i]!;
         const val = values[i];
-        if (val === 'available' || val === 'unavailable') {
+        if (
+          val === AvailabilityMode.AVAILABLE ||
+          val === AvailabilityMode.UNAVAILABLE
+        ) {
           result.set(id, val);
         } else {
           result.set(id, null);
@@ -290,7 +310,11 @@ export class PresenceRedisRepository {
     try {
       const key = PRESENCE_KEYS.expertLastStatus(expertId);
       const val = await this.redis.get(key);
-      if (val === 'online' || val === 'busy' || val === 'offline') {
+      if (
+        val === ExpertClientStatus.ONLINE ||
+        val === ExpertClientStatus.BUSY ||
+        val === ExpertClientStatus.OFFLINE
+      ) {
         return val;
       }
       return null;

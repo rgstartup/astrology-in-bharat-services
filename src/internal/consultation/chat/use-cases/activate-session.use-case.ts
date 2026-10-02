@@ -1,19 +1,19 @@
-import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from "../../../../shared/types/deferred-dependency.type";
 import {
   Injectable,
   Inject,
   forwardRef,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
-import { ChatSession } from '../entities/chat-session.entity';
-import { ChatMessage } from '../entities/chat-message.entity';
-import { WalletService } from '../../../finance/wallet/wallet.service';
-import { MessageType, ChatSessionStatus } from '../enum';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Like } from "typeorm";
+import { ChatSession } from "../entities/chat-session.entity";
+import { ChatMessage } from "../entities/chat-message.entity";
+import { WalletService } from "../../../finance/wallet/wallet.service";
+import { MessageType, ChatSessionStatus } from "../enum";
 
-import { PresenceService } from '@/internal/presence/presence.service';
+import { PresenceService } from "@/internal/actors/expert/presence/presence.service";
 
 @Injectable()
 export class ActivateSessionUseCase {
@@ -32,9 +32,9 @@ export class ActivateSessionUseCase {
   ): Promise<{ session: ChatSession; introCard?: ChatMessage }> {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
-      relations: ['client', 'client.user'],
+      relations: ["client", "client.user"],
     });
-    if (!session) throw new NotFoundException('Session not found');
+    if (!session) throw new NotFoundException("Session not found");
 
     if (session.status === ChatSessionStatus.ACTIVE) {
       return { session }; // Already active, no need to throw error
@@ -52,7 +52,7 @@ export class ActivateSessionUseCase {
     // Calculate Max Duration based on Wallet Balance + Free Minutes
     const balance = await this.walletService.getBalance(
       session.client_id,
-      'client_id',
+      "client_id",
     );
     const paidMinutes =
       session.price_per_minute > 0 ? balance / session.price_per_minute : 60; // fallback 60 mins if price is 0
@@ -70,7 +70,7 @@ export class ActivateSessionUseCase {
     const existingCard = await this.messageRepo.findOne({
       where: {
         session_id: sessionId,
-        content: Like('[INTRO_CARD]%'),
+        content: Like("[INTRO_CARD]%"),
       },
     });
 
@@ -91,7 +91,7 @@ export class ActivateSessionUseCase {
         this.messageRepo.create({
           session_id: sessionId,
           sender_id: session.client_id,
-          sender_type: 'user',
+          sender_type: "user",
           content,
           type: MessageType.TEXT,
         }),

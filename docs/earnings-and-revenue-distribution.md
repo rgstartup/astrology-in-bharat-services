@@ -25,7 +25,7 @@ graph TD
 
 > [!NOTE]
 > **Peer Referrals & Signup Bounties Separation**:
-> Peer-to-peer user invitation bounties (Client-to-Client, Expert-to-Peer) are managed exclusively by the **Referral Module** (`src/modules/finance/referrals/`), documented separately in [referral-system-design.md](file:///home/rgstartup/AIB/project/astrology-in-bharat-services/docs/referral-system-design.md).
+> Peer-to-peer user invitation bounties (Client-to-Client, Expert-to-Peer) are managed exclusively by the **Referral Module** (`src/modules/finance/referrals/`), documented separately in [referral-system-design.md](file:///home/rgstartup/AIB/project/backend/docs/referral-system-design.md).
 >
 > The Earnings Module deals strictly with **per-transaction splits** involving the Platform, Service Providers, and Dedicated Marketers (`RoleEnum.AGENT`).
 

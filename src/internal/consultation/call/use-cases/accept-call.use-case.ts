@@ -1,18 +1,18 @@
-import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CallSession } from '../entities/call-session.entity';
-import { CallSessionStatus } from '../enum';
-import { TwilioService } from '../services/twilio.service';
-import { CallGateway } from '../call.gateway';
-import { CallPolicy } from '../policies/call.policy';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CallAcceptedEvent } from '../events/call.events';
-import { WalletService } from '../../../finance/wallet/wallet.service';
-import { CallSessionAccessDeniedError } from '../errors/call.errors';
+import type { DeferredDependency } from "../../../../shared/types/deferred-dependency.type";
+import { Injectable, Logger, Inject, forwardRef } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { CallSession } from "../entities/call-session.entity";
+import { CallSessionStatus } from "../enum";
+import { TwilioService } from "../services/twilio.service";
+import { CallGateway } from "../call.gateway";
+import { CallPolicy } from "../policies/call.policy";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { CallAcceptedEvent } from "../events/call.events";
+import { WalletService } from "../../../finance/wallet/wallet.service";
+import { CallSessionAccessDeniedError } from "../errors/call.errors";
 
-import { PresenceService } from '@/internal/presence/presence.service';
+import { PresenceService } from "@/internal/actors/expert/presence/presence.service";
 
 @Injectable()
 export class AcceptCallUseCase {
@@ -33,7 +33,7 @@ export class AcceptCallUseCase {
   async execute(expertProfileId: number, sessionId: number) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
-      relations: ['client', 'client.user', 'expert', 'expert.user'],
+      relations: ["client", "client.user", "expert", "expert.user"],
     });
 
     CallPolicy.ensureSessionExists(session);
@@ -63,7 +63,7 @@ export class AcceptCallUseCase {
     // Calculate Max Duration based on Wallet Balance + Free Minutes
     const balance = await this.walletService.getBalance(
       session.client_id,
-      'client_id',
+      "client_id",
     );
     const paidMinutes =
       session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
@@ -97,7 +97,7 @@ export class AcceptCallUseCase {
 
     this.callGateway.server
       .to(`call_room_${sessionId}`)
-      .emit('call_accepted', result);
+      .emit("call_accepted", result);
 
     // Start the duration/balance timer
     this.callGateway.startSessionTimer(sessionId);
@@ -105,7 +105,7 @@ export class AcceptCallUseCase {
     // Also notify expert dashboard (any open tab)
     this.callGateway.notifyExpertStatusUpdate(
       session.expert_id,
-      'call_accepted',
+      "call_accepted",
       result,
     );
 
@@ -113,7 +113,7 @@ export class AcceptCallUseCase {
       `Client notified of call acceptance sessionId=${sessionId}`,
     );
     this.eventEmitter.emit(
-      'call.accepted',
+      "call.accepted",
       new CallAcceptedEvent(
         savedSession.id,
         expertProfileId,

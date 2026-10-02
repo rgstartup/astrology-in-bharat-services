@@ -6,7 +6,7 @@ import {
   AvailabilityMode,
   ConsultationState,
   RealtimePresence,
-} from '../presence.types';
+} from '@/core/enums';
 
 describe('PresenceService', () => {
   let service: PresenceService;
@@ -69,7 +69,7 @@ describe('PresenceService', () => {
         .fn()
         .mockImplementation(async (expertId: number) => {
           const set = inMemoryState.connections.get(expertId);
-          return set && set.size > 0 ? 'online' : 'offline';
+          return set && set.size > 0 ? RealtimePresence.ONLINE : RealtimePresence.OFFLINE;
         }),
       getBatchRealtimePresence: vi
         .fn()
@@ -77,7 +77,7 @@ describe('PresenceService', () => {
           const map = new Map<number, RealtimePresence>();
           for (const id of expertIds) {
             const set = inMemoryState.connections.get(id);
-            map.set(id, set && set.size > 0 ? 'online' : 'offline');
+            map.set(id, set && set.size > 0 ? RealtimePresence.ONLINE : RealtimePresence.OFFLINE);
           }
           return map;
         }),
@@ -91,14 +91,14 @@ describe('PresenceService', () => {
       getConsultationState: vi
         .fn()
         .mockImplementation(async (expertId: number) => {
-          return inMemoryState.consultation.get(expertId) || 'idle';
+          return inMemoryState.consultation.get(expertId) || ConsultationState.IDLE;
         }),
       getBatchConsultationStates: vi
         .fn()
         .mockImplementation(async (expertIds: number[]) => {
           const map = new Map<number, ConsultationState>();
           for (const id of expertIds) {
-            map.set(id, inMemoryState.consultation.get(id) || 'idle');
+            map.set(id, inMemoryState.consultation.get(id) || ConsultationState.IDLE);
           }
           return map;
         }),
@@ -257,7 +257,7 @@ describe('PresenceService', () => {
       await service.connect(expertId, 'socket-tab-1');
       mockRedisRepo.publishPresenceChanged.mockClear();
 
-      await service.setAvailability(expertId, 'unavailable');
+      await service.setAvailability(expertId, AvailabilityMode.UNAVAILABLE);
 
       expect(mockRedisRepo.setCachedAvailability).toHaveBeenCalledWith(
         expertId,
@@ -275,10 +275,10 @@ describe('PresenceService', () => {
     it('switching back to available while online restores online status', async () => {
       const expertId = 101;
       await service.connect(expertId, 'socket-tab-1');
-      await service.setAvailability(expertId, 'unavailable');
+      await service.setAvailability(expertId, AvailabilityMode.UNAVAILABLE);
       mockRedisRepo.publishPresenceChanged.mockClear();
 
-      await service.setAvailability(expertId, 'available');
+      await service.setAvailability(expertId, AvailabilityMode.AVAILABLE);
 
       expect(mockRedisRepo.publishPresenceChanged).toHaveBeenCalledWith(
         expertId,
@@ -290,7 +290,7 @@ describe('PresenceService', () => {
 
     it('setting available while offline remains offline', async () => {
       const expertId = 202; // not connected
-      await service.setAvailability(expertId, 'available');
+      await service.setAvailability(expertId, AvailabilityMode.AVAILABLE);
 
       const status = await service.getStatus(expertId);
       expect(status).toBe('offline');
@@ -347,7 +347,7 @@ describe('PresenceService', () => {
       mockRedisRepo.publishPresenceChanged.mockClear();
 
       // Expert toggles to unavailable during call
-      await service.setAvailability(expertId, 'unavailable');
+      await service.setAvailability(expertId, AvailabilityMode.UNAVAILABLE);
 
       // Client sees offline, but consultation state remains busy in consultation domain
       const fullStatus = await service.getFullStatus(expertId);
@@ -366,18 +366,18 @@ describe('PresenceService', () => {
   describe('Batch Query Efficiency (No N+1)', () => {
     it('getStatuses batches calls for multiple experts efficiently', async () => {
       const expertIds = [1, 2, 3, 4, 5];
-      inMemoryState.availability.set(1, 'available');
-      inMemoryState.availability.set(2, 'available');
-      inMemoryState.availability.set(3, 'unavailable');
-      inMemoryState.availability.set(4, 'available');
-      inMemoryState.availability.set(5, 'available');
+      inMemoryState.availability.set(1, AvailabilityMode.AVAILABLE);
+      inMemoryState.availability.set(2, AvailabilityMode.AVAILABLE);
+      inMemoryState.availability.set(3, AvailabilityMode.UNAVAILABLE);
+      inMemoryState.availability.set(4, AvailabilityMode.AVAILABLE);
+      inMemoryState.availability.set(5, AvailabilityMode.AVAILABLE);
 
       inMemoryState.connections.set(1, new Set(['s1']));
       inMemoryState.connections.set(2, new Set(['s2']));
       inMemoryState.connections.set(3, new Set(['s3']));
       // 4 and 5 offline
 
-      inMemoryState.consultation.set(2, 'busy');
+      inMemoryState.consultation.set(2, ConsultationState.BUSY);
 
       const statuses = await service.getStatuses(expertIds);
 

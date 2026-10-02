@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
   and,
   count,
@@ -10,9 +10,9 @@ import {
   inArray,
   sql,
   type SQL,
-} from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+} from "drizzle-orm";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
 import {
   expertAccounts,
   expertConsultationPricing,
@@ -20,16 +20,17 @@ import {
   expertSpecializations,
   professions,
   specializations,
-} from '@/core/drizzledb/schema';
-import { QueryExpertsDto } from '../dto/query-experts.dto';
-import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
+} from "@/core/drizzledb/schema";
+import { QueryExpertsDto } from "../dto/query-experts.dto";
+import { PaginatedResponseDto } from "@/shared/dto/paginated-response.dto";
 import {
+  ExpertClientStatus,
   ExpertKycStatus,
   PricingStatus,
   PricingTargetAudience,
-} from '@/core/enums';
-import { toExpertPricingResponse } from '../../account/account.mapper';
-import { PresenceService } from '@/internal/presence/presence.service';
+} from "@/core/enums";
+import { toExpertPricingResponse } from "../../account/account.mapper";
+import { PresenceService } from "@/internal/actors/expert/presence/presence.service";
 
 type PricingSubqueryResult = {
   id: number;
@@ -148,11 +149,11 @@ export class QueryExpertsUseCase {
     const statuses = await this.presenceService.getStatuses(expertIds);
 
     const data = experts.map((expert) => {
-      const status = statuses.get(expert.id) || 'offline';
+      const status = statuses.get(expert.id) || ExpertClientStatus.OFFLINE;
       return {
         ...expert,
         status,
-        isAvailableForConsultation: status === 'online',
+        isAvailableForConsultation: status === ExpertClientStatus.ONLINE,
         pricing: expert.pricing
           ? toExpertPricingResponse(expert.pricing)
           : null,
@@ -184,11 +185,11 @@ export class QueryExpertsUseCase {
     const statuses = await this.presenceService.getStatuses(expertIds);
 
     return experts.map((expert) => {
-      const status = statuses.get(expert.id) || 'offline';
+      const status = statuses.get(expert.id) || ExpertClientStatus.OFFLINE;
       return {
         ...expert,
         status,
-        isAvailableForConsultation: status === 'online',
+        isAvailableForConsultation: status === ExpertClientStatus.ONLINE,
         pricing: expert.pricing
           ? toExpertPricingResponse(expert.pricing)
           : null,
@@ -223,14 +224,14 @@ export class QueryExpertsUseCase {
       )
       .limit(1);
 
-    if (!account) throw new NotFoundException('Expert account not found');
+    if (!account) throw new NotFoundException("Expert account not found");
 
     const status = await this.presenceService.getStatus(id);
 
     return {
       ...account,
       status,
-      isAvailableForConsultation: status === 'online',
+      isAvailableForConsultation: status === ExpertClientStatus.ONLINE,
       expert_professions: account.professions,
       professions: account.professions,
       pricing: account.pricing
@@ -275,7 +276,7 @@ export class QueryExpertsUseCase {
       );
     }
 
-    if (query.online === 'true' || query.onlineOnly === 'true') {
+    if (query.online === "true" || query.onlineOnly === "true") {
       conditions.push(eq(expertAccounts.is_available, true));
     }
 

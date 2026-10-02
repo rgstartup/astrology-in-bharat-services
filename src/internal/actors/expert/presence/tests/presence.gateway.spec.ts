@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PresenceGateway } from '../presence.gateway';
 import { PresenceService } from '../presence.service';
 import { PRESENCE_EVENT_NAME } from '../presence.constants';
+import { ExpertClientStatus } from '@/core/enums';
 
 describe('PresenceGateway', () => {
   let gateway: PresenceGateway;
@@ -141,7 +142,7 @@ describe('PresenceGateway', () => {
     it('broadcasts expert.presence.changed event to all clients and rooms', () => {
       const payload = {
         expertId: 42,
-        status: 'busy' as const,
+        status: ExpertClientStatus.BUSY,
         timestamp: new Date().toISOString(),
       };
 

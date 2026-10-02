@@ -6,74 +6,75 @@ import {
 import {
   AvailabilityMode,
   ConsultationState,
+  ExpertClientStatus,
   RealtimePresence,
-} from '../presence.types';
+} from '@/core/enums';
 
 describe('PresenceUtils - Status Derivation', () => {
   const testMatrix: Array<{
     realtime: RealtimePresence;
     availability: AvailabilityMode;
     consultation: ConsultationState;
-    expectedStatus: 'online' | 'busy' | 'offline';
+    expectedStatus: ExpertClientStatus;
     expectedAvailableForConsultation: boolean;
   }> = [
     // Realtime offline
     {
-      realtime: 'offline',
-      availability: 'available',
-      consultation: 'idle',
-      expectedStatus: 'offline',
+      realtime: RealtimePresence.OFFLINE,
+      availability: AvailabilityMode.AVAILABLE,
+      consultation: ConsultationState.IDLE,
+      expectedStatus: ExpertClientStatus.OFFLINE,
       expectedAvailableForConsultation: false,
     },
     {
-      realtime: 'offline',
-      availability: 'available',
-      consultation: 'busy',
-      expectedStatus: 'offline',
+      realtime: RealtimePresence.OFFLINE,
+      availability: AvailabilityMode.AVAILABLE,
+      consultation: ConsultationState.BUSY,
+      expectedStatus: ExpertClientStatus.OFFLINE,
       expectedAvailableForConsultation: false,
     },
     {
-      realtime: 'offline',
-      availability: 'unavailable',
-      consultation: 'idle',
-      expectedStatus: 'offline',
+      realtime: RealtimePresence.OFFLINE,
+      availability: AvailabilityMode.UNAVAILABLE,
+      consultation: ConsultationState.IDLE,
+      expectedStatus: ExpertClientStatus.OFFLINE,
       expectedAvailableForConsultation: false,
     },
     {
-      realtime: 'offline',
-      availability: 'unavailable',
-      consultation: 'busy',
-      expectedStatus: 'offline',
+      realtime: RealtimePresence.OFFLINE,
+      availability: AvailabilityMode.UNAVAILABLE,
+      consultation: ConsultationState.BUSY,
+      expectedStatus: ExpertClientStatus.OFFLINE,
       expectedAvailableForConsultation: false,
     },
 
     // Realtime online
     {
-      realtime: 'online',
-      availability: 'available',
-      consultation: 'idle',
-      expectedStatus: 'online',
+      realtime: RealtimePresence.ONLINE,
+      availability: AvailabilityMode.AVAILABLE,
+      consultation: ConsultationState.IDLE,
+      expectedStatus: ExpertClientStatus.ONLINE,
       expectedAvailableForConsultation: true,
     },
     {
-      realtime: 'online',
-      availability: 'available',
-      consultation: 'busy',
-      expectedStatus: 'busy',
+      realtime: RealtimePresence.ONLINE,
+      availability: AvailabilityMode.AVAILABLE,
+      consultation: ConsultationState.BUSY,
+      expectedStatus: ExpertClientStatus.BUSY,
       expectedAvailableForConsultation: false,
     },
     {
-      realtime: 'online',
-      availability: 'unavailable',
-      consultation: 'idle',
-      expectedStatus: 'offline',
+      realtime: RealtimePresence.ONLINE,
+      availability: AvailabilityMode.UNAVAILABLE,
+      consultation: ConsultationState.IDLE,
+      expectedStatus: ExpertClientStatus.OFFLINE,
       expectedAvailableForConsultation: false,
     },
     {
-      realtime: 'online',
-      availability: 'unavailable',
-      consultation: 'busy',
-      expectedStatus: 'offline',
+      realtime: RealtimePresence.ONLINE,
+      availability: AvailabilityMode.UNAVAILABLE,
+      consultation: ConsultationState.BUSY,
+      expectedStatus: ExpertClientStatus.OFFLINE,
       expectedAvailableForConsultation: false,
     },
   ];

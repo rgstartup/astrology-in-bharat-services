@@ -22,6 +22,7 @@ import { ExpertJwtAuthGuard } from '@/internal/actors/expert/auth/guards/auth.gu
 import { ExpertAccountService } from '../account.service';
 import { UpdateExpertAccountDto } from '../dto/request/account.dto';
 import { ExpertPujaDto } from '@/internal/actors/expert/profile/dto/expert-puja.dto';
+import { AvailabilityMode } from '@/core/enums';
 
 @Controller({ path: 'expert/account', version: '1' })
 @UseGuards(ExpertJwtAuthGuard)
@@ -123,9 +124,12 @@ export class ExpertAccountController {
   @Patch('availability')
   updateAvailability(
     @CurrentExpert() expert: IExpert,
-    @Body() dto: { mode: 'available' | 'unavailable' },
+    @Body() dto: { mode: AvailabilityMode },
   ) {
-    return this.accountService.updateStatus(expert, dto.mode === 'available');
+    return this.accountService.updateStatus(
+      expert,
+      dto.mode === AvailabilityMode.AVAILABLE,
+    );
   }
 
   @Post('puja')

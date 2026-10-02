@@ -1,11 +1,10 @@
-import { RoleEnum } from '../../../../users/enums/Role.enum';
 import {
   IsEmail,
-  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUrl,
+  Length,
 } from 'class-validator';
 
 export class ClientLoginDto {
@@ -14,14 +13,15 @@ export class ClientLoginDto {
 
   @IsString()
   password!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @Length(6, 6, { message: 'OTP must be 6 digits' })
+  otp?: string;
 }
 
 export class GoogleLoginQueryDto {
-  @IsEnum(RoleEnum, {
-    message: 'Please provide a valid role',
-  })
-  role!: RoleEnum;
-
   @IsUrl({
     require_tld: false,
   })

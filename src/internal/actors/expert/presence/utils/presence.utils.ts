@@ -3,7 +3,7 @@ import {
   ConsultationState,
   ExpertClientStatus,
   RealtimePresence,
-} from '../presence.types';
+} from '@/core/enums';
 
 /**
  * Single authoritative client status derivation:
@@ -25,16 +25,16 @@ export function deriveExpertClientStatus(
   availabilityMode: AvailabilityMode,
   consultationState: ConsultationState,
 ): ExpertClientStatus {
-  if (realtimePresence === 'offline') {
-    return 'offline';
+  if (realtimePresence === RealtimePresence.OFFLINE) {
+    return ExpertClientStatus.OFFLINE;
   }
-  if (availabilityMode === 'unavailable') {
-    return 'offline';
+  if (availabilityMode === AvailabilityMode.UNAVAILABLE) {
+    return ExpertClientStatus.OFFLINE;
   }
-  if (consultationState === 'busy') {
-    return 'busy';
+  if (consultationState === ConsultationState.BUSY) {
+    return ExpertClientStatus.BUSY;
   }
-  return 'online';
+  return ExpertClientStatus.ONLINE;
 }
 
 /**
@@ -51,6 +51,6 @@ export function isAvailableForConsultation(
       realtimePresence,
       availabilityMode,
       consultationState,
-    ) === 'online'
+    ) === ExpertClientStatus.ONLINE
   );
 }

@@ -14,6 +14,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { PRESENCE_EVENT_NAME } from './presence.constants';
 import { PresenceService } from './presence.service';
 import { type PresenceChangedEventPayload } from './presence.types';
+import { ExpertClientStatus } from '@/core/enums';
 
 @WebSocketGateway({
   cors: {
@@ -130,7 +131,7 @@ export class PresenceGateway
     this.server.emit('expert_status_changed', {
       expert_id: payload.expertId,
       status: payload.status,
-      is_available: payload.status === 'online',
+      is_available: payload.status === ExpertClientStatus.ONLINE,
       timestamp: payload.timestamp,
     });
 

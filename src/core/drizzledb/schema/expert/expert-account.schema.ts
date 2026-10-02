@@ -14,6 +14,7 @@ import {
 import { relations } from 'drizzle-orm';
 import { users } from '../users/users.schema';
 import { ExpertKycStatus } from '@/internal/actors/expert/shared/enums/kyc-status.enum';
+import { AvailabilityMode } from '@/core/enums/availability-mode.enum';
 
 const expertSchema = pgSchema('expert');
 
@@ -86,9 +87,9 @@ export const expertAccounts = expertSchema.table('account', {
   /** @deprecated Use `availability_mode` instead. */
   is_available: boolean('is_available').notNull().default(false),
   availability_mode: varchar('availability_mode', { length: 20 })
-    .$type<'available' | 'unavailable'>()
+    .$type<AvailabilityMode>()
     .notNull()
-    .default('available'),
+    .default(AvailabilityMode.AVAILABLE),
   about_me: text('about_me'),
   total_earning: numeric('total_earning', { precision: 10, scale: 2 })
     .notNull()

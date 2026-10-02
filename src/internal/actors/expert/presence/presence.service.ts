@@ -12,9 +12,13 @@ import {
 import { PresenceRedisRepository } from './presence-redis.repository';
 import {
   AvailabilityMode,
+  ConsultationState,
   ExpertClientStatus,
-  ExpertFullStatus,
-  PresenceChangedEventPayload,
+  RealtimePresence,
+} from '@/core/enums';
+import {
+  type ExpertFullStatus,
+  type PresenceChangedEventPayload,
 } from './presence.types';
 import {
   deriveExpertClientStatus,
@@ -115,7 +119,7 @@ export class PresenceService implements OnModuleInit {
       consultationState: consultation,
       status,
       isAvailableForConsultation: availableForConsultation,
-      activeConnections: realtime === 'online' ? 1 : 0,
+      activeConnections: realtime === RealtimePresence.ONLINE ? 1 : 0,
     };
   }
 
@@ -153,13 +157,13 @@ export class PresenceService implements OnModuleInit {
 
         for (const row of rows) {
           const mode: AvailabilityMode =
-            row.availability_mode === 'unavailable'
-              ? 'unavailable'
-              : row.availability_mode === 'available'
-                ? 'available'
+            row.availability_mode === AvailabilityMode.UNAVAILABLE
+              ? AvailabilityMode.UNAVAILABLE
+              : row.availability_mode === AvailabilityMode.AVAILABLE
+                ? AvailabilityMode.AVAILABLE
                 : row.is_available
-                  ? 'available'
-                  : 'available'; // Default to available preference
+                  ? AvailabilityMode.AVAILABLE
+                  : AvailabilityMode.AVAILABLE; // Default to available preference
 
           cachedAvailabilityMap.set(row.id, mode);
           void this.redisRepo.setCachedAvailability(row.id, mode);
@@ -172,9 +176,11 @@ export class PresenceService implements OnModuleInit {
     }
 
     for (const id of expertIds) {
-      const realtime = realtimeMap.get(id) || 'offline';
-      const availability = cachedAvailabilityMap.get(id) || 'available';
-      const consultation = consultationMap.get(id) || 'idle';
+      const realtime = realtimeMap.get(id) || RealtimePresence.OFFLINE;
+      const availability =
+        cachedAvailabilityMap.get(id) || AvailabilityMode.AVAILABLE;
+      const consultation =
+        consultationMap.get(id) || ConsultationState.IDLE;
       const status = deriveExpertClientStatus(
         realtime,
         availability,
@@ -190,7 +196,7 @@ export class PresenceService implements OnModuleInit {
     expertId: number,
     mode: AvailabilityMode,
   ): Promise<void> {
-    const isAvailableBool = mode === 'available';
+    const isAvailableBool = mode === AvailabilityMode.AVAILABLE;
 
     // 1. Update persistent PostgreSQL record
     await this.db
@@ -217,7 +223,7 @@ export class PresenceService implements OnModuleInit {
     expertId: number,
     consultationId?: string | number,
   ): Promise<void> {
-    await this.redisRepo.setConsultationState(expertId, 'busy', consultationId);
+    await this.redisRepo.setConsultationState(expertId, ConsultationState.BUSY, consultationId);
     this.logger.log(
       `[Consultation] Expert ${expertId} marked busy (consultation: ${consultationId ?? 'active'})`,
     );
@@ -228,7 +234,7 @@ export class PresenceService implements OnModuleInit {
     expertId: number,
     consultationId?: string | number,
   ): Promise<void> {
-    await this.redisRepo.setConsultationState(expertId, 'idle');
+    await this.redisRepo.setConsultationState(expertId, ConsultationState.IDLE);
     this.logger.log(
       `[Consultation] Expert ${expertId} marked idle (consultation: ${consultationId ?? 'ended'})`,
     );
@@ -254,13 +260,13 @@ export class PresenceService implements OnModuleInit {
 
       if (account) {
         const mode: AvailabilityMode =
-          account.availability_mode === 'unavailable'
-            ? 'unavailable'
-            : account.availability_mode === 'available'
-              ? 'available'
+          account.availability_mode === AvailabilityMode.UNAVAILABLE
+            ? AvailabilityMode.UNAVAILABLE
+            : account.availability_mode === AvailabilityMode.AVAILABLE
+              ? AvailabilityMode.AVAILABLE
               : account.is_available
-                ? 'available'
-                : 'available';
+                ? AvailabilityMode.AVAILABLE
+                : AvailabilityMode.AVAILABLE;
         await this.redisRepo.setCachedAvailability(expertId, mode);
         return mode;
       }
@@ -270,7 +276,7 @@ export class PresenceService implements OnModuleInit {
       );
     }
 
-    return 'available';
+    return AvailabilityMode.AVAILABLE;
   }
 
   private async evaluateAndPublishStatusChange(

@@ -49,7 +49,7 @@ The client-facing status is derived from three decoupled, independent pieces of 
 
 ## 3. Authoritative Status Derivation
 
-All marketplace listings, detail queries, and WebSocket broadcasts derive client status through a single authoritative function ([`deriveExpertClientStatus`](file:///home/rgstartup/AIB/project/astrology-in-bharat-services-v12/src/internal/presence/presence.utils.ts#L26-L39)):
+All marketplace listings, detail queries, and WebSocket broadcasts derive client status through a single authoritative function ([`deriveExpertClientStatus`](file:///home/rgstartup/AIB/project/backend/src/internal/presence/presence.utils.ts#L26-L39)):
 
 | Realtime Presence | Availability Mode | Consultation State | Derived Client Status | `isAvailableForConsultation` |
 | :---------------- | :---------------- | :----------------- | :-------------------- | :--------------------------- |
@@ -277,10 +277,10 @@ const socket = io('https://api.example.com', {
 
 ## 7. Automated Test Suite
 
-Test suite location: [`src/internal/presence/tests/`](file:///home/rgstartup/AIB/project/astrology-in-bharat-services-v12/src/internal/presence/tests/):
+Test suite location: [`src/internal/presence/tests/`](file:///home/rgstartup/AIB/project/backend/src/internal/presence/tests/):
 
-1. **[`presence.utils.spec.ts`](file:///home/rgstartup/AIB/project/astrology-in-bharat-services-v12/src/internal/presence/tests/presence.utils.spec.ts)**: Unit tests for all 8 status derivation combinations and consultation availability booleans.
-2. **[`presence.service.spec.ts`](file:///home/rgstartup/AIB/project/astrology-in-bharat-services-v12/src/internal/presence/tests/presence.service.spec.ts)**: Unit tests for multi-tab lifecycle, heartbeat TTL handling, manual availability changes, consultation transitions, race conditions, and batched pipeline query efficiency (avoiding N+1).
-3. **[`presence.gateway.spec.ts`](file:///home/rgstartup/AIB/project/astrology-in-bharat-services-v12/src/internal/presence/tests/presence.gateway.spec.ts)**: Gateway tests for handshake JWT authentication, heartbeat dispatch, disconnect handling, and room broadcasting.
-4. **[`presence.e2e.spec.ts`](file:///home/rgstartup/AIB/project/astrology-in-bharat-services-v12/src/internal/presence/tests/presence.e2e.spec.ts)**: End-to-end simulation covering the entire expert lifecycle:
+1. **[`presence.utils.spec.ts`](file:///home/rgstartup/AIB/project/backend/src/internal/presence/tests/presence.utils.spec.ts)**: Unit tests for all 8 status derivation combinations and consultation availability booleans.
+2. **[`presence.service.spec.ts`](file:///home/rgstartup/AIB/project/backend/src/internal/presence/tests/presence.service.spec.ts)**: Unit tests for multi-tab lifecycle, heartbeat TTL handling, manual availability changes, consultation transitions, race conditions, and batched pipeline query efficiency (avoiding N+1).
+3. **[`presence.gateway.spec.ts`](file:///home/rgstartup/AIB/project/backend/src/internal/presence/tests/presence.gateway.spec.ts)**: Gateway tests for handshake JWT authentication, heartbeat dispatch, disconnect handling, and room broadcasting.
+4. **[`presence.e2e.spec.ts`](file:///home/rgstartup/AIB/project/backend/src/internal/presence/tests/presence.e2e.spec.ts)**: End-to-end simulation covering the entire expert lifecycle:
    - Connect (`online`) → Unavailable (`offline`) → Available (`online`) → Consultation Start (`busy`) → Consultation End (`online`) → Disconnect (`offline`).
