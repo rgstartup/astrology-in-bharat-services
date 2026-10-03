@@ -7,7 +7,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { EarningEventType } from '../../../../../internal/finance/earnings/enum';
+import { EarningEventType } from '@/internal/finance/earnings/enum';
 import { earningEventTypeEnum } from './earning-enums.schema';
 import { earningPolicies } from './earning-policies.schema';
 
@@ -37,6 +37,7 @@ export const earningSplits = financeSchema.table('earning_splits', {
     precision: 12,
     scale: 2,
   }).notNull(),
+
   seller_agent_earning: numeric('seller_agent_earning', {
     precision: 12,
     scale: 2,

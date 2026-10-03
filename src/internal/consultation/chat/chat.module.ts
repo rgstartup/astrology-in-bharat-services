@@ -34,6 +34,7 @@ import { NotificationModule } from '../../notification/notification.module';
 import { CouponModule } from '../../commerce/coupon/coupon.module';
 import { ProfileModule as ExpertProfileModule } from '../../actors/expert/profile/profile.module';
 import { QueueModule } from '../../../core/queue/queue.module';
+import { PresenceModule } from '@/internal/actors/expert/presence/presence.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { QueueModule } from '../../../core/queue/queue.module';
     forwardRef(() => CouponModule),
     forwardRef(() => ExpertProfileModule),
     QueueModule,
+    PresenceModule,
   ],
   providers: [
     ChatGateway,

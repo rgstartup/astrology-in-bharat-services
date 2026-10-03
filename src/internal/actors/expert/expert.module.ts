@@ -10,6 +10,7 @@ import { SpecializationModule } from "./specialization/specialization.module";
 import { ProfessionModule } from "./profession/profession.module";
 import { ExpertProductsModule } from "./products/products.module";
 import { PresenceModule } from "./presence/presence.module";
+import { ExpertRealtimeModule } from "./realtime/expert-realtime.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PresenceModule } from "./presence/presence.module";
     ProfessionModule,
     ExpertProductsModule,
     PresenceModule,
+    ExpertRealtimeModule,
   ],
   exports: [
     BankAccountsModule,
@@ -37,6 +39,7 @@ import { PresenceModule } from "./presence/presence.module";
     ProfessionModule,
     ExpertProductsModule,
     PresenceModule,
+    ExpertRealtimeModule,
   ],
 })
 export class ExpertModule {}

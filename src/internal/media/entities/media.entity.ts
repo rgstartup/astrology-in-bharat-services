@@ -49,6 +49,18 @@ export class Media {
   @Column({ type: 'varchar', length: 255, nullable: true })
   file_name!: string | null;
 
+  /** Provider-side object key (S3 key, Cloudinary public path, local path) */
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  storage_key!: string | null;
+
+  /** Integrity hash of the stored file (e.g. sha256 hex) */
+  @Column({ type: 'varchar', length: 128, nullable: true })
+  checksum!: string | null;
+
+  /** Provider-specific metadata (dimensions, duration, pages, exif...) */
+  @Column({ type: 'jsonb', nullable: true })
+  metadata!: Record<string, any> | null;
+
   /** Timestamp when the media asset was created */
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   created_at!: Date;

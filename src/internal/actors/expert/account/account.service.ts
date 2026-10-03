@@ -5,7 +5,6 @@ import { GetExpertAccountUseCase } from './use-cases/get-account.usecase';
 import { UpdateExpertAccountAvatarUseCase } from './use-cases/update-account-avatar.usecase';
 import { UpdateExpertAccountIntroVideoUseCase } from './use-cases/update-account-intro-video.usecase';
 import { UpdateExpertAccountUseCase } from './use-cases/update-account.usecase';
-import { QueryExpertAccountsUseCase } from './use-cases/query-accounts.usecase';
 import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-status.usecase';
 import { ExpertKycStatus } from '@/internal/actors/expert/shared/enums/kyc-status.enum';
 import { ExpertAccountPujasUseCase } from './use-cases/account-pujas.usecase';
@@ -19,7 +18,6 @@ export class ExpertAccountService {
     private readonly updateAvatarUseCase: UpdateExpertAccountAvatarUseCase,
     private readonly updateIntroVideoUseCase: UpdateExpertAccountIntroVideoUseCase,
     // private readonly createAccountUseCase: CreateExpertAccountUseCase,
-    private readonly queryAccountsUseCase: QueryExpertAccountsUseCase,
     private readonly updateStatusUseCase: UpdateExpertAccountStatusUseCase,
     private readonly pujasUseCase: ExpertAccountPujasUseCase,
   ) {}
@@ -32,12 +30,12 @@ export class ExpertAccountService {
     return this.updateAccountUseCase.execute(expert, dto);
   }
 
-  updateAvatar(
-    expert: IExpert,
-    file: Express.Multer.File,
-    public_id?: string,
-  ) {
-    return this.updateAvatarUseCase.execute(Number(expert.sub), file, public_id);
+  updateAvatar(expert: IExpert, file: Express.Multer.File, public_id?: string) {
+    return this.updateAvatarUseCase.execute(
+      Number(expert.sub),
+      file,
+      public_id,
+    );
   }
 
   updateIntroVideo(
@@ -55,10 +53,6 @@ export class ExpertAccountService {
   // createAccount(expert: IExpert, dto: CreateExpertAccountDto) {
   //   return this.createAccountUseCase.execute(expert, dto);
   // }
-
-  getByUserId(userId: number) {
-    return this.queryAccountsUseCase.byUserId(userId);
-  }
 
   updateStatus(expert: IExpert, isAvailable: boolean) {
     return this.updateStatusUseCase.execute(expert, isAvailable);

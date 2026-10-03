@@ -16,8 +16,8 @@ import { GetExpertAccountUseCase } from './use-cases/get-account.usecase';
 import { UpdateExpertAccountAvatarUseCase } from './use-cases/update-account-avatar.usecase';
 import { UpdateExpertAccountIntroVideoUseCase } from './use-cases/update-account-intro-video.usecase';
 import { UpdateExpertAccountUseCase } from './use-cases/update-account.usecase';
-import { QueryExpertAccountsUseCase } from './use-cases/query-accounts.usecase';
 import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-status.usecase';
+import { PresenceModule } from '../presence/presence.module';
 
 @Module({
   imports: [
@@ -32,6 +32,7 @@ import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-sta
     ]),
     ExpertAuthModule,
     CloudinaryModule,
+    PresenceModule,
   ],
   controllers: [ExpertAccountController],
   providers: [
@@ -40,7 +41,6 @@ import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-sta
     UpdateExpertAccountAvatarUseCase,
     UpdateExpertAccountIntroVideoUseCase,
     UpdateExpertAccountUseCase,
-    QueryExpertAccountsUseCase,
     UpdateExpertAccountStatusUseCase,
     ExpertAccountPujasUseCase,
   ],

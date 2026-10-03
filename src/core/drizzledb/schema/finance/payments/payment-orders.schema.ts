@@ -10,7 +10,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { clientAccounts } from '../../client/client-account.schema';
-import { PaymentStatus } from '../../../../enums';
+import { PaymentStatus } from '@/core/enums';
 
 const financeSchema = pgSchema('finance');
 

@@ -1,5 +1,6 @@
 import {
   integer,
+  jsonb,
   pgSchema,
   serial,
   timestamp,
@@ -20,7 +21,9 @@ export const mediaSourceEnum = contentSchema.enum(
  *
  * Keys are snake_case end-to-end (JS keys match DB columns).
  *
- * Only what client-auth flows need today (Google avatar persistence).
+ * Only what client-auth flows need today (Google avatar persistence), plus
+ * the storage columns required by consultation attachments/recordings.
+ * `source` doubles as the diagram's `storage_provider`.
  * The `media_source_enum` name mirrors TypeORM's generated PG enum type
  * (`{table}_{column}_enum` in the table schema). Expand when the media
  * module itself migrates.
@@ -34,6 +37,12 @@ export const media = contentSchema.table('media', {
   alt_text: varchar('alt_text', { length: 500 }),
   file_size: integer('file_size'),
   file_name: varchar('file_name', { length: 255 }),
+  /** Provider-side object key (S3 key, Cloudinary public path, local path). */
+  storage_key: varchar('storage_key', { length: 512 }),
+  /** Integrity hash of the stored file (e.g. sha256 hex). */
+  checksum: varchar('checksum', { length: 128 }),
+  /** Provider-specific metadata (dimensions, duration, pages, exif...). */
+  metadata: jsonb('metadata').$type<Record<string, unknown> | null>(),
   created_at: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

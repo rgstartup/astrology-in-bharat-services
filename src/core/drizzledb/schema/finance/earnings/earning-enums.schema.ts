@@ -3,7 +3,7 @@ import {
   EarningAppliesRole,
   EarningEventType,
   EarningRateType,
-} from '../../../../../internal/finance/earnings/enum';
+} from '@/internal/finance/earnings/enum';
 
 export const earningEventTypeEnum = pgEnum(
   'finance_earning_event_type_enum',

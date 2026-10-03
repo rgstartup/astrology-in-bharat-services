@@ -12,7 +12,7 @@ import {
   EarningAppliesRole,
   EarningEventType,
   EarningRateType,
-} from '../../../../../internal/finance/earnings/enum';
+} from '@/internal/finance/earnings/enum';
 import {
   earningAppliesRoleEnum,
   earningEventTypeEnum,

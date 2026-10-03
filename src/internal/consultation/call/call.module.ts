@@ -23,6 +23,7 @@ import { CallController } from './controllers/call.controller';
 import { TwimlController } from './controllers/twiml.controller';
 import { CallGateway } from './call.gateway';
 import { CallService } from './call.service';
+import { PresenceModule } from '@/internal/actors/expert/presence/presence.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { CallService } from './call.service';
     NotificationModule,
     forwardRef(() => ExpertProfileModule),
     QueueModule,
+    PresenceModule,
   ],
   controllers: [CallController, TwimlController],
   providers: [
