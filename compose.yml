@@ -1,0 +1,68 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: aib-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aib-network
+
+  backend:
+    profiles: ["prod"]
+    container_name: aib-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    restart: unless-stopped
+    ports:
+      - "6543:6543"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--network-family-autoselection-attempt-timeout=2000
+      - PORT=6543
+      - REDIS_HOST=aib-redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+    networks:
+      - aib-network
+
+  backend-dev:
+    profiles: ["dev"]
+    container_name: aib-backend-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "6543:6543"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - NODE_OPTIONS=--network-family-autoselection-attempt-timeout=2000
+      - PORT=6543
+      - REDIS_HOST=aib-redis
+      - REDIS_PORT=6379
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: ["pnpm", "run", "start:dev"]
+    depends_on:
+      - redis
+    networks:
+      - aib-network
+
+volumes:
+  redis_data:
+
+networks:
+  aib-network:
+    name: aib-network
+    driver: bridge
