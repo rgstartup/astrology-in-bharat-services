@@ -1,13 +1,13 @@
-process.env.TZ = 'UTC'; // Force UTC timezone globally
+process.env.TZ = "UTC"; // Force UTC timezone globally
 
-import { NestFactory } from '@nestjs/core';
-import { EmailWorkerModule } from './worker.module';
+import { NestFactory } from "@nestjs/core";
+import { EmailWorkerModule } from "./email.module";
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(EmailWorkerModule);
   await app.init();
   console.log(
-    '🚀 Email Worker Process successfully started and listening for jobs...',
+    "🚀 Email Worker Process successfully started and listening for jobs...",
   );
 
   // Handle graceful shutdown
@@ -16,4 +16,4 @@ async function bootstrap() {
   // Keep the standalone process alive
   setInterval(() => {}, 1000 * 60 * 60);
 }
-bootstrap().catch((err) => console.error('Error starting Email Worker:', err));
+bootstrap().catch((err) => console.error("Error starting Email Worker:", err));
