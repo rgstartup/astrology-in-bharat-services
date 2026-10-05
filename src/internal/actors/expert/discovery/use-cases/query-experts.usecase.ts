@@ -135,6 +135,7 @@ export class QueryExpertsUseCase {
           avatar: expertAccounts.avatar,
           experience_in_years: expertAccounts.experience_in_years,
           rating: expertAccounts.rating,
+          last_seen_at: expertAccounts.last_seen_at,
           specializations: this.specializationsSubquery,
           pricing: this.pricingSubquery,
         })
@@ -154,6 +155,9 @@ export class QueryExpertsUseCase {
         ...expert,
         status,
         isAvailableForConsultation: status === ExpertClientStatus.ONLINE,
+        lastSeenAt: expert.last_seen_at
+          ? expert.last_seen_at.toISOString()
+          : null,
         pricing: expert.pricing
           ? toExpertPricingResponse(expert.pricing)
           : null,
@@ -173,6 +177,7 @@ export class QueryExpertsUseCase {
         avatar: expertAccounts.avatar,
         experience_in_years: expertAccounts.experience_in_years,
         rating: expertAccounts.rating,
+        last_seen_at: expertAccounts.last_seen_at,
         specializations: this.specializationsSubquery,
         pricing: this.pricingSubquery,
       })
@@ -190,6 +195,9 @@ export class QueryExpertsUseCase {
         ...expert,
         status,
         isAvailableForConsultation: status === ExpertClientStatus.ONLINE,
+        lastSeenAt: expert.last_seen_at
+          ? expert.last_seen_at.toISOString()
+          : null,
         pricing: expert.pricing
           ? toExpertPricingResponse(expert.pricing)
           : null,
@@ -211,6 +219,7 @@ export class QueryExpertsUseCase {
         total_likes: expertAccounts.total_likes,
         is_available: expertAccounts.is_available,
         availability_mode: expertAccounts.availability_mode,
+        last_seen_at: expertAccounts.last_seen_at,
         professions: this.professionsSubquery,
         specializations: this.specializationsSubquery,
         pricing: this.pricingSubquery,
@@ -232,6 +241,10 @@ export class QueryExpertsUseCase {
       ...account,
       status,
       isAvailableForConsultation: status === ExpertClientStatus.ONLINE,
+      lastSeenAt:
+        status === ExpertClientStatus.OFFLINE
+          ? (account.last_seen_at?.toISOString() ?? null)
+          : null,
       expert_professions: account.professions,
       professions: account.professions,
       pricing: account.pricing

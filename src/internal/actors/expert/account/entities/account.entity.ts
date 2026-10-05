@@ -166,6 +166,9 @@ export class ExpertAccount {
   @Column({ type: 'boolean', default: false })
   is_available!: boolean;
 
+  @Column({ type: 'timestamptz', nullable: true, name: 'last_seen_at' })
+  last_seen_at!: Date | null;
+
   @Column({ type: 'text', nullable: true })
   about_me!: string | null;
 

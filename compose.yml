@@ -4,14 +4,14 @@ services:
     container_name: aib-redis
     restart: unless-stopped
     ports:
-      - "6380:6379"
+      - '6380:6379'
     volumes:
       - redis_data:/data
     networks:
       - aib-network
 
   backend:
-    profiles: ["prod"]
+    profiles: ['prod']
     container_name: aib-backend
     build:
       context: .
@@ -19,7 +19,8 @@ services:
       target: production
     restart: unless-stopped
     ports:
-      - "6543:6543"
+      - '6543:6543'
+      - '4983:4983'
     env_file:
       - .env
     environment:
@@ -34,14 +35,14 @@ services:
       - aib-network
 
   backend-dev:
-    profiles: ["dev"]
+    profiles: ['dev']
     container_name: aib-backend-dev
     build:
       context: .
       dockerfile: Dockerfile
       target: development
     ports:
-      - "6543:6543"
+      - '6543:6543'
     env_file:
       - .env
     environment:
@@ -53,7 +54,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    command: ["pnpm", "run", "start:dev"]
+    command: ['pnpm', 'run', 'start:dev']
     depends_on:
       - redis
     networks:

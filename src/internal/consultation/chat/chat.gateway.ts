@@ -16,11 +16,10 @@ import { ChatService } from './chat.service';
 import { MessageType, ChatSessionStatus } from './enum';
 import { ChatSession } from './entities/chat-session.entity';
 import { WalletService } from '../../finance/wallet/wallet.service';
+import { REALTIME_CORS_OPTIONS } from '../../realtime/gateways/realtime-gateway.options';
 
 @WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
+  cors: REALTIME_CORS_OPTIONS,
   namespace: 'chat',
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {

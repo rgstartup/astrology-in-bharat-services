@@ -21,9 +21,6 @@ describe('PresenceService', () => {
     setConsultationState: ReturnType<typeof vi.fn>;
     getConsultationState: ReturnType<typeof vi.fn>;
     getBatchConsultationStates: ReturnType<typeof vi.fn>;
-    setCachedAvailability: ReturnType<typeof vi.fn>;
-    getCachedAvailability: ReturnType<typeof vi.fn>;
-    getBatchCachedAvailability: ReturnType<typeof vi.fn>;
     getLastStatus: ReturnType<typeof vi.fn>;
     setLastStatus: ReturnType<typeof vi.fn>;
     publishPresenceChanged: ReturnType<typeof vi.fn>;
@@ -33,14 +30,12 @@ describe('PresenceService', () => {
   const inMemoryState = {
     connections: new Map<number, Set<string>>(),
     consultation: new Map<number, ConsultationState>(),
-    availability: new Map<number, AvailabilityMode>(),
     lastStatus: new Map<number, string | null>(),
   };
 
   beforeEach(() => {
     inMemoryState.connections.clear();
     inMemoryState.consultation.clear();
-    inMemoryState.availability.clear();
     inMemoryState.lastStatus.clear();
 
     mockRedisRepo = {
@@ -102,27 +97,6 @@ describe('PresenceService', () => {
           }
           return map;
         }),
-      setCachedAvailability: vi
-        .fn()
-        .mockImplementation(
-          async (expertId: number, mode: AvailabilityMode) => {
-            inMemoryState.availability.set(expertId, mode);
-          },
-        ),
-      getCachedAvailability: vi
-        .fn()
-        .mockImplementation(async (expertId: number) => {
-          return inMemoryState.availability.get(expertId) || null;
-        }),
-      getBatchCachedAvailability: vi
-        .fn()
-        .mockImplementation(async (expertIds: number[]) => {
-          const map = new Map<number, AvailabilityMode | null>();
-          for (const id of expertIds) {
-            map.set(id, inMemoryState.availability.get(id) || null);
-          }
-          return map;
-        }),
       getLastStatus: vi.fn().mockImplementation(async (expertId: number) => {
         return inMemoryState.lastStatus.get(expertId) || null;
       }),
@@ -134,16 +108,38 @@ describe('PresenceService', () => {
       publishPresenceChanged: vi.fn().mockResolvedValue(undefined),
     };
 
+    // PG-backed account rows: { id, availability_mode, last_seen_at }.
+    // update().set().where() applies writes to all seeded rows (tests are
+    // single-expert scoped; the batch test never writes).
     mockDb = {
+      _rows: [] as any[],
       update: vi.fn().mockReturnValue({
-        set: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue(undefined),
-        }),
+        set: vi.fn().mockImplementation((values: any) => ({
+          where: vi.fn().mockImplementation(async () => {
+            if (values.availability_mode) {
+              mockDb._rows = mockDb._rows.map((r: any) => ({
+                ...r,
+                availability_mode: values.availability_mode,
+              }));
+            }
+            if ('last_seen_at' in values) {
+              mockDb._rows = mockDb._rows.map((r: any) => ({
+                ...r,
+                last_seen_at: values.last_seen_at,
+              }));
+            }
+          }),
+        })),
       }),
       select: vi.fn().mockReturnValue({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([]),
+          where: vi.fn().mockImplementation(() => {
+            const rows = mockDb._rows;
+            const p: any = Promise.resolve(rows);
+            p.limit = vi
+              .fn()
+              .mockImplementation(async (n?: number) => rows.slice(0, n ?? 1));
+            return p;
           }),
         }),
       }),
@@ -177,6 +173,7 @@ describe('PresenceService', () => {
       expect(mockRedisRepo.publishPresenceChanged).toHaveBeenCalledWith(
         expertId,
         'online',
+        null,
       );
       expect(inMemoryState.lastStatus.get(expertId)).toBe('online');
     });
@@ -216,8 +213,11 @@ describe('PresenceService', () => {
       expect(currentStatus).toBe('online');
     });
 
-    it('closing final connection makes expert offline and publishes event', async () => {
+    it('closing final connection makes expert offline, stamps last-seen, and publishes', async () => {
       const expertId = 101;
+      mockDb._rows = [
+        { id: expertId, availability_mode: 'available', last_seen_at: null },
+      ];
       await service.connect(expertId, 'socket-tab-1');
       mockRedisRepo.publishPresenceChanged.mockClear();
 
@@ -231,7 +231,9 @@ describe('PresenceService', () => {
       expect(mockRedisRepo.publishPresenceChanged).toHaveBeenCalledWith(
         expertId,
         'offline',
+        expect.any(String),
       );
+      expect(mockDb._rows[0].last_seen_at).toBeInstanceOf(Date);
       const currentStatus = await service.getStatus(expertId);
       expect(currentStatus).toBe('offline');
     });
@@ -254,18 +256,20 @@ describe('PresenceService', () => {
   describe('Manual Availability', () => {
     it('switching to unavailable while online makes client status offline', async () => {
       const expertId = 101;
+      mockDb._rows = [
+        { id: expertId, availability_mode: 'available', last_seen_at: null },
+      ];
       await service.connect(expertId, 'socket-tab-1');
       mockRedisRepo.publishPresenceChanged.mockClear();
 
       await service.setAvailability(expertId, AvailabilityMode.UNAVAILABLE);
 
-      expect(mockRedisRepo.setCachedAvailability).toHaveBeenCalledWith(
-        expertId,
-        'unavailable',
-      );
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDb._rows[0].availability_mode).toBe('unavailable');
       expect(mockRedisRepo.publishPresenceChanged).toHaveBeenCalledWith(
         expertId,
         'offline',
+        expect.any(String),
       );
 
       const status = await service.getStatus(expertId);
@@ -274,6 +278,9 @@ describe('PresenceService', () => {
 
     it('switching back to available while online restores online status', async () => {
       const expertId = 101;
+      mockDb._rows = [
+        { id: expertId, availability_mode: 'available', last_seen_at: null },
+      ];
       await service.connect(expertId, 'socket-tab-1');
       await service.setAvailability(expertId, AvailabilityMode.UNAVAILABLE);
       mockRedisRepo.publishPresenceChanged.mockClear();
@@ -283,6 +290,7 @@ describe('PresenceService', () => {
       expect(mockRedisRepo.publishPresenceChanged).toHaveBeenCalledWith(
         expertId,
         'online',
+        null,
       );
       const status = await service.getStatus(expertId);
       expect(status).toBe('online');
@@ -313,6 +321,7 @@ describe('PresenceService', () => {
       expect(mockRedisRepo.publishPresenceChanged).toHaveBeenCalledWith(
         expertId,
         'busy',
+        null,
       );
 
       const status = await service.getStatus(expertId);
@@ -334,6 +343,7 @@ describe('PresenceService', () => {
       expect(mockRedisRepo.publishPresenceChanged).toHaveBeenCalledWith(
         expertId,
         'online',
+        null,
       );
 
       const status = await service.getStatus(expertId);
@@ -342,6 +352,9 @@ describe('PresenceService', () => {
 
     it('active consultation does not terminate when availability mode toggled to unavailable', async () => {
       const expertId = 101;
+      mockDb._rows = [
+        { id: expertId, availability_mode: 'available', last_seen_at: null },
+      ];
       await service.connect(expertId, 'socket-tab-1');
       await service.setBusy(expertId, 999);
       mockRedisRepo.publishPresenceChanged.mockClear();
@@ -366,11 +379,12 @@ describe('PresenceService', () => {
   describe('Batch Query Efficiency (No N+1)', () => {
     it('getStatuses batches calls for multiple experts efficiently', async () => {
       const expertIds = [1, 2, 3, 4, 5];
-      inMemoryState.availability.set(1, AvailabilityMode.AVAILABLE);
-      inMemoryState.availability.set(2, AvailabilityMode.AVAILABLE);
-      inMemoryState.availability.set(3, AvailabilityMode.UNAVAILABLE);
-      inMemoryState.availability.set(4, AvailabilityMode.AVAILABLE);
-      inMemoryState.availability.set(5, AvailabilityMode.AVAILABLE);
+      mockDb._rows = [
+        { id: 1, availability_mode: 'available', last_seen_at: null },
+        { id: 2, availability_mode: 'available', last_seen_at: null },
+        { id: 3, availability_mode: 'unavailable', last_seen_at: null },
+        // 4 and 5 have no row -> default available, offline (not connected)
+      ];
 
       inMemoryState.connections.set(1, new Set(['s1']));
       inMemoryState.connections.set(2, new Set(['s2']));
@@ -382,14 +396,27 @@ describe('PresenceService', () => {
       const statuses = await service.getStatuses(expertIds);
 
       expect(mockRedisRepo.getBatchRealtimePresence).toHaveBeenCalledTimes(1);
-      expect(mockRedisRepo.getBatchCachedAvailability).toHaveBeenCalledTimes(1);
       expect(mockRedisRepo.getBatchConsultationStates).toHaveBeenCalledTimes(1);
+      expect(mockDb.select).toHaveBeenCalledTimes(1);
 
       expect(statuses.get(1)).toBe('online');
       expect(statuses.get(2)).toBe('busy');
       expect(statuses.get(3)).toBe('offline'); // unavailable
       expect(statuses.get(4)).toBe('offline'); // not connected
       expect(statuses.get(5)).toBe('offline'); // not connected
+    });
+
+    it('getFullStatus exposes lastSeenAt from the account row', async () => {
+      const expertId = 101;
+      const seen = new Date('2026-09-01T10:00:00.000Z');
+      mockDb._rows = [
+        { id: expertId, availability_mode: 'available', last_seen_at: seen },
+      ];
+
+      const full = await service.getFullStatus(expertId);
+
+      expect(full.status).toBe('offline');
+      expect(full.lastSeenAt).toBe(seen.toISOString());
     });
   });
 });

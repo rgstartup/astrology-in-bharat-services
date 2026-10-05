@@ -81,7 +81,25 @@ export class PresenceService implements OnModuleInit {
       `[Presence] Expert ${expertId} disconnected (conn: ${connectionId}, remaining: ${remainingConnections})`,
     );
 
+    if (remainingConnections === 0) {
+      await this.markLastSeen(expertId);
+    }
+
     await this.evaluateAndPublishStatusChange(expertId);
+  }
+
+  /** Persists last-seen on final disconnect; never throws. */
+  private async markLastSeen(expertId: number): Promise<void> {
+    try {
+      await this.db
+        .update(expertAccounts)
+        .set({ last_seen_at: new Date(), updated_at: new Date() })
+        .where(eq(expertAccounts.id, expertId));
+    } catch (err) {
+      this.logger.error(
+        `Failed to mark last_seen_at for expert ${expertId}: ${(err as Error).message}`,
+      );
+    }
   }
 
   async getStatus(expertId: number): Promise<ExpertClientStatus> {
@@ -95,31 +113,32 @@ export class PresenceService implements OnModuleInit {
   }
 
   async getFullStatus(expertId: number): Promise<ExpertFullStatus> {
-    const [realtime, availability, consultation] = await Promise.all([
+    const [realtime, account, consultation] = await Promise.all([
       this.redisRepo.getRealtimePresence(expertId),
-      this.getAvailabilityMode(expertId),
+      this.loadAccountState(expertId),
       this.redisRepo.getConsultationState(expertId),
     ]);
 
     const status = deriveExpertClientStatus(
       realtime,
-      availability,
+      account.mode,
       consultation,
     );
     const availableForConsultation = isAvailableForConsultation(
       realtime,
-      availability,
+      account.mode,
       consultation,
     );
 
     return {
       expertId,
       realtimePresence: realtime,
-      availabilityMode: availability,
+      availabilityMode: account.mode,
       consultationState: consultation,
       status,
       isAvailableForConsultation: availableForConsultation,
       activeConnections: realtime === RealtimePresence.ONLINE ? 1 : 0,
+      lastSeenAt: account.lastSeenAt,
     };
   }
 
@@ -129,56 +148,16 @@ export class PresenceService implements OnModuleInit {
     const result = new Map<number, ExpertClientStatus>();
     if (expertIds.length === 0) return result;
 
-    const [realtimeMap, cachedAvailabilityMap, consultationMap] =
-      await Promise.all([
-        this.redisRepo.getBatchRealtimePresence(expertIds),
-        this.redisRepo.getBatchCachedAvailability(expertIds),
-        this.redisRepo.getBatchConsultationStates(expertIds),
-      ]);
-
-    // Check which experts need DB lookup for availability mode
-    const missingAvailabilityIds: number[] = [];
-    for (const id of expertIds) {
-      if (!cachedAvailabilityMap.get(id)) {
-        missingAvailabilityIds.push(id);
-      }
-    }
-
-    if (missingAvailabilityIds.length > 0) {
-      try {
-        const rows = await this.db
-          .select({
-            id: expertAccounts.id,
-            availability_mode: expertAccounts.availability_mode,
-            is_available: expertAccounts.is_available,
-          })
-          .from(expertAccounts)
-          .where(inArray(expertAccounts.id, missingAvailabilityIds));
-
-        for (const row of rows) {
-          const mode: AvailabilityMode =
-            row.availability_mode === AvailabilityMode.UNAVAILABLE
-              ? AvailabilityMode.UNAVAILABLE
-              : row.availability_mode === AvailabilityMode.AVAILABLE
-                ? AvailabilityMode.AVAILABLE
-                : row.is_available
-                  ? AvailabilityMode.AVAILABLE
-                  : AvailabilityMode.AVAILABLE; // Default to available preference
-
-          cachedAvailabilityMap.set(row.id, mode);
-          void this.redisRepo.setCachedAvailability(row.id, mode);
-        }
-      } catch (err) {
-        this.logger.error(
-          `Failed to batch load expert availability from DB: ${(err as Error).message}`,
-        );
-      }
-    }
+    const [realtimeMap, consultationMap, availabilityMap] = await Promise.all([
+      this.redisRepo.getBatchRealtimePresence(expertIds),
+      this.redisRepo.getBatchConsultationStates(expertIds),
+      this.loadAvailabilityMap(expertIds),
+    ]);
 
     for (const id of expertIds) {
       const realtime = realtimeMap.get(id) || RealtimePresence.OFFLINE;
       const availability =
-        cachedAvailabilityMap.get(id) || AvailabilityMode.AVAILABLE;
+        availabilityMap.get(id) || AvailabilityMode.AVAILABLE;
       const consultation =
         consultationMap.get(id) || ConsultationState.IDLE;
       const status = deriveExpertClientStatus(
@@ -190,6 +169,31 @@ export class PresenceService implements OnModuleInit {
     }
 
     return result;
+  }
+
+  /** Single batched PG read for availability; missing rows default downstream. */
+  private async loadAvailabilityMap(
+    expertIds: number[],
+  ): Promise<Map<number, AvailabilityMode>> {
+    const map = new Map<number, AvailabilityMode>();
+    try {
+      const rows = await this.db
+        .select({
+          id: expertAccounts.id,
+          availability_mode: expertAccounts.availability_mode,
+        })
+        .from(expertAccounts)
+        .where(inArray(expertAccounts.id, expertIds));
+
+      for (const row of rows) {
+        map.set(row.id, toAvailabilityMode(row.availability_mode));
+      }
+    } catch (err) {
+      this.logger.error(
+        `Failed to batch load expert availability from DB: ${(err as Error).message}`,
+      );
+    }
+    return map;
   }
 
   async setAvailability(
@@ -208,14 +212,11 @@ export class PresenceService implements OnModuleInit {
       })
       .where(eq(expertAccounts.id, expertId));
 
-    // 2. Update Redis cache
-    await this.redisRepo.setCachedAvailability(expertId, mode);
-
     this.logger.log(
       `[Availability] Expert ${expertId} updated availability mode to ${mode}`,
     );
 
-    // 3. Recalculate status and emit event if changed
+    // 2. Recalculate status and emit event if changed
     await this.evaluateAndPublishStatusChange(expertId);
   }
 
@@ -244,31 +245,31 @@ export class PresenceService implements OnModuleInit {
   private async getAvailabilityMode(
     expertId: number,
   ): Promise<AvailabilityMode> {
-    const cached = await this.redisRepo.getCachedAvailability(expertId);
-    if (cached) return cached;
+    return (await this.loadAccountState(expertId)).mode;
+  }
 
+  /** PG-direct account state (mode + last-seen); defaults when missing. */
+  private async loadAccountState(
+    expertId: number,
+  ): Promise<{ mode: AvailabilityMode; lastSeenAt: string | null }> {
     try {
       const [account] = await this.db
         .select({
           id: expertAccounts.id,
           availability_mode: expertAccounts.availability_mode,
-          is_available: expertAccounts.is_available,
+          last_seen_at: expertAccounts.last_seen_at,
         })
         .from(expertAccounts)
         .where(eq(expertAccounts.id, expertId))
         .limit(1);
 
       if (account) {
-        const mode: AvailabilityMode =
-          account.availability_mode === AvailabilityMode.UNAVAILABLE
-            ? AvailabilityMode.UNAVAILABLE
-            : account.availability_mode === AvailabilityMode.AVAILABLE
-              ? AvailabilityMode.AVAILABLE
-              : account.is_available
-                ? AvailabilityMode.AVAILABLE
-                : AvailabilityMode.AVAILABLE;
-        await this.redisRepo.setCachedAvailability(expertId, mode);
-        return mode;
+        return {
+          mode: toAvailabilityMode(account.availability_mode),
+          lastSeenAt: account.last_seen_at
+            ? account.last_seen_at.toISOString()
+            : null,
+        };
       }
     } catch (err) {
       this.logger.error(
@@ -276,7 +277,7 @@ export class PresenceService implements OnModuleInit {
       );
     }
 
-    return AvailabilityMode.AVAILABLE;
+    return { mode: AvailabilityMode.AVAILABLE, lastSeenAt: null };
   }
 
   private async evaluateAndPublishStatusChange(
@@ -287,10 +288,31 @@ export class PresenceService implements OnModuleInit {
 
     if (newStatus !== lastStatus) {
       await this.redisRepo.setLastStatus(expertId, newStatus);
-      await this.redisRepo.publishPresenceChanged(expertId, newStatus);
+      const lastSeenAt =
+        newStatus === ExpertClientStatus.OFFLINE
+          ? new Date().toISOString()
+          : null;
+      await this.redisRepo.publishPresenceChanged(
+        expertId,
+        newStatus,
+        lastSeenAt,
+      );
       this.logger.log(
         `[Presence] 📢 Expert ${expertId} status transitioned: ${lastStatus ?? 'none'} -> ${newStatus}`,
       );
     }
   }
+}
+
+/**
+ * Normalizes the persistent availability preference.
+ * Legacy `is_available` only ever resolved to AVAILABLE, so an unknown
+ * `availability_mode` defaults to AVAILABLE to preserve behavior.
+ */
+function toAvailabilityMode(
+  mode: AvailabilityMode | string | null | undefined,
+): AvailabilityMode {
+  return mode === AvailabilityMode.UNAVAILABLE
+    ? AvailabilityMode.UNAVAILABLE
+    : AvailabilityMode.AVAILABLE;
 }

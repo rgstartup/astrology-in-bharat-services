@@ -22,6 +22,8 @@ export interface PresenceChangedEventPayload {
   expertId: number;
   status: ExpertClientStatus;
   timestamp: string;
+  /** ISO instant the expert was last seen; set on offline transitions. */
+  lastSeenAt?: string | null;
 }
 
 export interface ExpertFullStatus {
@@ -32,6 +34,8 @@ export interface ExpertFullStatus {
   status: ExpertClientStatus;
   isAvailableForConsultation: boolean;
   activeConnections: number;
+  /** ISO instant from `expertAccounts.last_seen_at`; null when never seen. */
+  lastSeenAt: string | null;
 }
 
 /**

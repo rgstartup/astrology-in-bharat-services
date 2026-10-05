@@ -1,5 +1,10 @@
-export const PRESENCE_HEARTBEAT_INTERVAL = 10; // seconds
-export const PRESENCE_TTL = 30; // seconds
+export const PRESENCE_HEARTBEAT_INTERVAL = 30; // seconds
+export const PRESENCE_TTL = 90; // seconds
+
+/** Busy marker expiry: bounds stale `busy` after a crash without `setIdle`. */
+export const PRESENCE_CONSULTATION_TTL = 4 * 3600; // seconds
+/** Dedupe marker expiry: bounds cold-key memory to experts seen in last 24h. */
+export const PRESENCE_LAST_STATUS_TTL = 24 * 3600; // seconds
 
 export const PRESENCE_PUBSUB_CHANNEL = 'presence:events';
 export const PRESENCE_EVENT_NAME = 'expert.presence.changed';
@@ -10,8 +15,6 @@ export const PRESENCE_KEYS = {
   connection: (connectionId: string) => `presence:connection:${connectionId}`,
   expertConsultation: (expertId: number | string) =>
     `presence:expert:${expertId}:consultation`,
-  expertAvailability: (expertId: number | string) =>
-    `presence:expert:${expertId}:availability`,
   expertLastStatus: (expertId: number | string) =>
     `presence:expert:${expertId}:last_status`,
 } as const;

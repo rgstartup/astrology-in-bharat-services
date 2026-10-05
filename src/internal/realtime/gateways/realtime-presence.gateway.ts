@@ -27,6 +27,7 @@ import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
 import { SubscribePresenceDto } from '../dto/subscribe-presence.dto';
+import { SubscribeManyPresenceDto } from '../dto/subscribe-many-presence.dto';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
 import { REALTIME_GATEWAY_OPTIONS } from './realtime-gateway.options';
@@ -73,6 +74,28 @@ export class RealtimePresenceGateway implements OnGatewayInit {
     );
   }
 
+  @SubscribeMessage(SOCKET_EVENTS.PRESENCE.SUBSCRIBE_MANY)
+  async handlePresenceSubscribeMany(
+    @ConnectedSocket() socket: RealtimeSocket,
+    @MessageBody() dto: SubscribeManyPresenceDto,
+  ) {
+    return this.clientRealtimeService.subscribeManyExpertPresence(
+      socket,
+      dto.expertIds,
+    );
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.PRESENCE.UNSUBSCRIBE_MANY)
+  async handlePresenceUnsubscribeMany(
+    @ConnectedSocket() socket: RealtimeSocket,
+    @MessageBody() dto: SubscribeManyPresenceDto,
+  ) {
+    return this.clientRealtimeService.unsubscribeManyExpertPresence(
+      socket,
+      dto.expertIds,
+    );
+  }
+
   @UseGuards(WsAuthGuard, WsAuthorizationGuard)
   @WsRoles('expert')
   @SubscribeMessage(SOCKET_EVENTS.PRESENCE.HEARTBEAT)
@@ -92,7 +115,8 @@ export class RealtimePresenceGateway implements OnGatewayInit {
       return;
     }
 
-    this.server.emit(SOCKET_EVENTS.PRESENCE.UPDATED, payload);
+    // Room-only fan-out: only sockets that joined the expert's presence
+    // room (list/detail viewers) plus the expert's own dashboard room.
     this.server
       .to(SOCKET_ROOMS.EXPERT_PRESENCE(payload.expertId))
       .emit(SOCKET_EVENTS.PRESENCE.UPDATED, payload);

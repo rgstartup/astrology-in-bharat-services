@@ -20,7 +20,6 @@ describe('Presence E2E Lifecycle Flow', () => {
   const redisState = {
     connections: new Map<number, Set<string>>(),
     consultation: new Map<number, ConsultationState>(),
-    cachedAvailability: new Map<number, AvailabilityMode>(),
     lastStatus: new Map<number, ExpertClientStatus | null>(),
   };
 
@@ -29,7 +28,6 @@ describe('Presence E2E Lifecycle Flow', () => {
     dbState.expertAvailability.clear();
     redisState.connections.clear();
     redisState.consultation.clear();
-    redisState.cachedAvailability.clear();
     redisState.lastStatus.clear();
 
     const mockRedisRepo: any = {
@@ -71,18 +69,6 @@ describe('Presence E2E Lifecycle Flow', () => {
         .fn()
         .mockImplementation(async (expertId: number) => {
           return redisState.consultation.get(expertId) || 'idle';
-        }),
-      setCachedAvailability: vi
-        .fn()
-        .mockImplementation(
-          async (expertId: number, mode: AvailabilityMode) => {
-            redisState.cachedAvailability.set(expertId, mode);
-          },
-        ),
-      getCachedAvailability: vi
-        .fn()
-        .mockImplementation(async (expertId: number) => {
-          return redisState.cachedAvailability.get(expertId) || null;
         }),
       getLastStatus: vi.fn().mockImplementation(async (expertId: number) => {
         return redisState.lastStatus.get(expertId) || null;

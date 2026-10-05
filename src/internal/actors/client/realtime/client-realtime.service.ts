@@ -69,6 +69,23 @@ export class ClientRealtimeService {
     return this.presenceHandler.unsubscribeExpertPresence(socket, expertId);
   }
 
+  async subscribeManyExpertPresence(
+    socket: RealtimeSocket,
+    expertIds: number[],
+  ) {
+    return this.presenceHandler.subscribeManyExpertPresence(socket, expertIds);
+  }
+
+  async unsubscribeManyExpertPresence(
+    socket: RealtimeSocket,
+    expertIds: number[],
+  ) {
+    return this.presenceHandler.unsubscribeManyExpertPresence(
+      socket,
+      expertIds,
+    );
+  }
+
   async subscribeNotifications(
     socket: RealtimeSocket,
     identity: AuthenticatedSocketIdentity,

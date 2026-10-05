@@ -13,11 +13,10 @@ import { Inject, Logger, forwardRef } from "@nestjs/common";
 import { CallService } from "./call.service";
 import { WalletService } from "../../finance/wallet/wallet.service";
 import { CallSessionStatus } from "./enum";
+import { REALTIME_CORS_OPTIONS } from "../../realtime/gateways/realtime-gateway.options";
 
 @WebSocketGateway({
-  cors: {
-    origin: "*",
-  },
+  cors: REALTIME_CORS_OPTIONS,
   namespace: "call",
 })
 export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {

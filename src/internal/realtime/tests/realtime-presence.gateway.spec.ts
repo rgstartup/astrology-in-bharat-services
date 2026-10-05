@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RealtimePresenceGateway } from '../gateways/realtime-presence.gateway';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
-import { SOCKET_EVENTS } from '../constants/socket-events.constant';
 import { SOCKET_ROOMS } from '../constants/socket-rooms.constant';
 import { ExpertClientStatus } from '@/core/enums';
 
@@ -11,6 +10,8 @@ describe('RealtimePresenceGateway', () => {
   let mockClientRealtimeService: {
     subscribeExpertPresence: ReturnType<typeof vi.fn>;
     unsubscribeExpertPresence: ReturnType<typeof vi.fn>;
+    subscribeManyExpertPresence: ReturnType<typeof vi.fn>;
+    unsubscribeManyExpertPresence: ReturnType<typeof vi.fn>;
   };
   let mockExpertRealtimeService: {
     handleHeartbeat: ReturnType<typeof vi.fn>;
@@ -35,6 +36,12 @@ describe('RealtimePresenceGateway', () => {
       unsubscribeExpertPresence: vi
         .fn()
         .mockResolvedValue({ expertId: 42, status: 'unsubscribed' }),
+      subscribeManyExpertPresence: vi.fn().mockResolvedValue({
+        subscribed: [{ expertId: 42, status: 'online', lastSeenAt: null }],
+      }),
+      unsubscribeManyExpertPresence: vi
+        .fn()
+        .mockResolvedValue({ unsubscribed: [42] }),
     };
     mockExpertRealtimeService = {
       handleHeartbeat: vi
@@ -93,7 +100,29 @@ describe('RealtimePresenceGateway', () => {
     expect(result.status).toBe('ok');
   });
 
-  it('broadcasts presence update to /realtime namespace and expert rooms', () => {
+  it('routes bulk presence subscribe/unsubscribe through client service', async () => {
+    const mockSocket: any = { id: 's1', data: { auth: null } };
+
+    const result = await gateway.handlePresenceSubscribeMany(mockSocket, {
+      expertIds: [42, 43],
+    } as any);
+
+    expect(
+      mockClientRealtimeService.subscribeManyExpertPresence,
+    ).toHaveBeenCalledWith(mockSocket, [42, 43]);
+    expect(result).toEqual({
+      subscribed: [{ expertId: 42, status: 'online', lastSeenAt: null }],
+    });
+
+    await gateway.handlePresenceUnsubscribeMany(mockSocket, {
+      expertIds: [42],
+    } as any);
+    expect(
+      mockClientRealtimeService.unsubscribeManyExpertPresence,
+    ).toHaveBeenCalledWith(mockSocket, [42]);
+  });
+
+  it('broadcasts presence update to expert rooms only (no global emit)', () => {
     const payload = {
       expertId: 42,
       status: ExpertClientStatus.BUSY,
@@ -102,10 +131,7 @@ describe('RealtimePresenceGateway', () => {
 
     gateway.handlePresenceChanged(payload);
 
-    expect(mockServer.emit).toHaveBeenCalledWith(
-      SOCKET_EVENTS.PRESENCE.UPDATED,
-      payload,
-    );
+    expect(mockServer.emit).not.toHaveBeenCalled();
     expect(mockServer.to).toHaveBeenCalledWith(
       SOCKET_ROOMS.EXPERT_PRESENCE(42),
     );

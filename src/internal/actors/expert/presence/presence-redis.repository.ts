@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '@/core/redis/redis.service';
 import {
+  PRESENCE_CONSULTATION_TTL,
   PRESENCE_KEYS,
+  PRESENCE_LAST_STATUS_TTL,
   PRESENCE_PUBSUB_CHANNEL,
   PRESENCE_TTL,
 } from './presence.constants';
 import {
-  AvailabilityMode,
   ConsultationState,
   ExpertClientStatus,
   RealtimePresence,
@@ -170,7 +171,7 @@ export class PresenceRedisRepository {
           consultationId: consultationId ? String(consultationId) : null,
           updatedAt: Date.now(),
         });
-        await this.redis.set(key, payload);
+        await this.redis.set(key, payload, PRESENCE_CONSULTATION_TTL);
       } else {
         await this.redis.del(key);
       }
@@ -238,74 +239,6 @@ export class PresenceRedisRepository {
     return result;
   }
 
-  async setCachedAvailability(
-    expertId: number,
-    mode: AvailabilityMode,
-  ): Promise<void> {
-    try {
-      const key = PRESENCE_KEYS.expertAvailability(expertId);
-      await this.redis.set(key, mode);
-    } catch (err) {
-      this.logger.error(
-        `Failed to cache availability mode for expert ${expertId}: ${(err as Error).message}`,
-      );
-    }
-  }
-
-  async getCachedAvailability(
-    expertId: number,
-  ): Promise<AvailabilityMode | null> {
-    try {
-      const key = PRESENCE_KEYS.expertAvailability(expertId);
-      const val = await this.redis.get(key);
-      if (
-        val === AvailabilityMode.AVAILABLE ||
-        val === AvailabilityMode.UNAVAILABLE
-      ) {
-        return val;
-      }
-      return null;
-    } catch (err) {
-      this.logger.error(
-        `Failed to get cached availability for expert ${expertId}: ${(err as Error).message}`,
-      );
-      return null;
-    }
-  }
-
-  async getBatchCachedAvailability(
-    expertIds: number[],
-  ): Promise<Map<number, AvailabilityMode | null>> {
-    const result = new Map<number, AvailabilityMode | null>();
-    if (expertIds.length === 0) return result;
-
-    try {
-      const keys = expertIds.map((id) => PRESENCE_KEYS.expertAvailability(id));
-      const values = await this.redis.mget(keys);
-
-      for (let i = 0; i < expertIds.length; i++) {
-        const id = expertIds[i]!;
-        const val = values[i];
-        if (
-          val === AvailabilityMode.AVAILABLE ||
-          val === AvailabilityMode.UNAVAILABLE
-        ) {
-          result.set(id, val);
-        } else {
-          result.set(id, null);
-        }
-      }
-    } catch (err) {
-      this.logger.error(
-        `Failed to batch get cached availability: ${(err as Error).message}`,
-      );
-      for (const id of expertIds) {
-        result.set(id, null);
-      }
-    }
-    return result;
-  }
-
   async getLastStatus(expertId: number): Promise<ExpertClientStatus | null> {
     try {
       const key = PRESENCE_KEYS.expertLastStatus(expertId);
@@ -329,7 +262,7 @@ export class PresenceRedisRepository {
   ): Promise<void> {
     try {
       const key = PRESENCE_KEYS.expertLastStatus(expertId);
-      await this.redis.set(key, status);
+      await this.redis.set(key, status, PRESENCE_LAST_STATUS_TTL);
     } catch (err) {
       this.logger.error(
         `Failed to set last status for expert ${expertId}: ${(err as Error).message}`,
@@ -340,12 +273,14 @@ export class PresenceRedisRepository {
   async publishPresenceChanged(
     expertId: number,
     status: ExpertClientStatus,
+    lastSeenAt?: string | null,
   ): Promise<void> {
     try {
       const payload: PresenceChangedEventPayload = {
         expertId,
         status,
         timestamp: new Date().toISOString(),
+        lastSeenAt: lastSeenAt ?? null,
       };
       await this.redis.publish(
         PRESENCE_PUBSUB_CHANNEL,

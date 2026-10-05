@@ -3,6 +3,8 @@ export const SOCKET_EVENTS = {
     HEARTBEAT: 'presence:heartbeat',
     SUBSCRIBE: 'presence:subscribe',
     UNSUBSCRIBE: 'presence:unsubscribe',
+    SUBSCRIBE_MANY: 'presence:subscribe_many',
+    UNSUBSCRIBE_MANY: 'presence:unsubscribe_many',
     UPDATED: 'presence:updated',
   },
 

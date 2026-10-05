@@ -9,6 +9,7 @@ import { RealtimeAuthService } from './services/realtime-auth.service';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
 import type { RealtimeSocket } from './types/socket-data.types';
+import type { RealtimeActorType } from './types/socket-auth.types';
 import { REALTIME_GATEWAY_OPTIONS } from './gateways/realtime-gateway.options';
 
 @WebSocketGateway(REALTIME_GATEWAY_OPTIONS)
@@ -38,7 +39,10 @@ export class RealtimeGateway
       return;
     }
 
-    const identity = await this.authService.authenticate(token);
+    const identity = await this.authService.authenticate(
+      token,
+      this.extractActorHint(socket),
+    );
 
     if (!identity) {
       socket.data.auth = null;
@@ -108,5 +112,16 @@ export class RealtimeGateway
       return socket.handshake.query.token.replace(/^Bearer\s+/i, '');
     }
     return null;
+  }
+
+  /**
+   * Optional client-declared actor (`socket.auth.actorType`). Only selects
+   * which verifier table to check — trust still comes from the JWT itself.
+   * Without it, client and expert tokens are structurally identical (shared
+   * secret, `{sub, email}`), so first-match trial can misidentify the actor.
+   */
+  private extractActorHint(socket: RealtimeSocket): RealtimeActorType | undefined {
+    const hint = socket.handshake.auth?.actorType;
+    return hint === 'client' || hint === 'expert' ? hint : undefined;
   }
 }

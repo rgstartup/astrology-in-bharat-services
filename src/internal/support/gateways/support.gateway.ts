@@ -9,11 +9,10 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { REALTIME_CORS_OPTIONS } from '../../realtime/gateways/realtime-gateway.options';
 
 @WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
+  cors: REALTIME_CORS_OPTIONS,
   namespace: 'support',
 })
 export class SupportGateway

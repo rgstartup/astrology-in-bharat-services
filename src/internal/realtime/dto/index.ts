@@ -1,4 +1,5 @@
 export { SubscribePresenceDto } from './subscribe-presence.dto';
+export { SubscribeManyPresenceDto } from './subscribe-many-presence.dto';
 export {
   JoinChatDto,
   LeaveChatDto,

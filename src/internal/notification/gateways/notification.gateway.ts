@@ -8,9 +8,10 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { NotificationType } from '../entities/notification.entity';
+import { REALTIME_CORS_OPTIONS } from '../../realtime/gateways/realtime-gateway.options';
 
 @WebSocketGateway({
-  cors: { origin: '*' },
+  cors: REALTIME_CORS_OPTIONS,
   namespace: 'notifications',
 })
 export class NotificationGateway {

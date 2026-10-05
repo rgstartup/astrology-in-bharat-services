@@ -90,6 +90,7 @@ export const expertAccounts = expertSchema.table('account', {
     .$type<AvailabilityMode>()
     .notNull()
     .default(AvailabilityMode.AVAILABLE),
+  last_seen_at: timestamp('last_seen_at', { withTimezone: true }),
   about_me: text('about_me'),
   total_earning: numeric('total_earning', { precision: 10, scale: 2 })
     .notNull()
