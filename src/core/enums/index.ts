@@ -25,8 +25,14 @@ export { ExpertClientStatus } from './expert-client-status.enum';
 export { ExpertKycStatus } from './expert-kyc-status.enum';
 export { ExpertProductRelationType } from './expert-product-relation-type.enum';
 export { FavoriteItemType } from './favorite-item-type.enum';
-export { FinanceTransactionPurpose, TransactionPurpose } from './finance-transaction-purpose.enum';
-export { FinanceTransactionType, TransactionType } from './finance-transaction-type.enum';
+export {
+  FinanceTransactionPurpose,
+  TransactionPurpose,
+} from './finance-transaction-purpose.enum';
+export {
+  FinanceTransactionType,
+  TransactionType,
+} from './finance-transaction-type.enum';
 export { FulfillmentType } from './fulfillment-type.enum';
 export { GatewayIntent } from './gateway-intent.enum';
 export { GatewayName } from './gateway-name.enum';
@@ -59,3 +65,19 @@ export { ShipmentStatus } from './shipment-status.enum';
 export { SplitReferenceType } from './split-reference-type.enum';
 export { UserStatusEnum } from './user-status.enum';
 export { WithdrawalStatus } from './withdrawal-status.enum';
+
+//Earning Schema
+export { EarningCategory } from './earning-category.enum';
+export { EarningType } from './earning-type.enum';
+export { EarningRuleStatus } from './earning-rule-status.enum';
+export { EarningRecipientType } from './earning-recipient-type.enum';
+export { EarningCalculationMethod } from './earning-calculation-method.enum';
+export { EarningTierBasis } from './earning-tier-basis.enum';
+export { EarningSubjectType } from './earning-subject-type.enum';
+export { EarningAllocationStatus } from './earning-allocation-status.enum';
+export { FinancialAccountType } from './financial-account-type.enum';
+export { FinancialAccountOwnerType } from './financial-account-owner-type.enum';
+export { FinancialAccountStatus } from './financial-account-status.enum';
+export { FinancialTransactionStatus } from './financial-transaction-status.enum';
+export { FinancialTransactionReferenceType } from './financial-transaction-reference-type.enum';
+export { FinancialTransactionEventType } from './financial-transaction-event-type.enum';

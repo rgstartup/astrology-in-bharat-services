@@ -57,6 +57,20 @@
       "when": 1791177609863,
       "tag": "0007_mighty_tattoo",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791201721804,
+      "tag": "0008_earning_and_ledger_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791202392208,
+      "tag": "0009_previous_warstar",
+      "breakpoints": true
     }
   ]
 }
