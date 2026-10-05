@@ -11,7 +11,7 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { ChatSessionStatus } from '../../../../../internal/consultation/chat/enum';
+import { ChatSessionStatus } from '@/internal/consultation/chat/enum';
 import { clientAccounts } from '../../client/client-account.schema';
 import { chatMessages } from './chat-message.schema';
 

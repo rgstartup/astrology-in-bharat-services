@@ -7,7 +7,7 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { MessageType } from '../../../../../internal/consultation/chat/enum';
+import { MessageType } from '@/internal/consultation/chat/enum';
 import { chatSessions } from './chat-session.schema';
 
 const consultationsSchema = pgSchema('consultations');

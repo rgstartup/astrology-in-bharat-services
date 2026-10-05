@@ -19,6 +19,7 @@ import { ChatGateway } from '../chat.gateway';
 import { ChatSessionStatus } from '../enum';
 import { InitiateChatDto } from '../dto/initiate-chat.dto';
 import { GetExpertChatSessionsDto } from '../dto/get-expert-chat-sessions.dto';
+import { ChatEligibilityResponseDto } from '../dto/chat-eligibility-response.dto';
 
 @Controller({
   path: 'chat',
@@ -97,7 +98,7 @@ export class ChatController {
   async checkEligibility(
     @CurrentProfile() clientId: number,
     @Query('expert_id', ParseIntPipe) expertId: number,
-  ) {
+  ): Promise<ChatEligibilityResponseDto> {
     return this.chatService.checkEligibility(clientId, expertId);
   }
 

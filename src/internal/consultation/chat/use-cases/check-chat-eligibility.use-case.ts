@@ -6,6 +6,7 @@ import { ChatSession } from '../entities/chat-session.entity';
 import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
 import { WalletService } from '../../../finance/wallet/wallet.service';
 import { ChatSessionStatus } from '../enum';
+import { ChatEligibilityResponseDto } from '../dto/chat-eligibility-response.dto';
 
 @Injectable()
 export class CheckChatEligibilityUseCase {
@@ -18,7 +19,10 @@ export class CheckChatEligibilityUseCase {
     private walletService: DeferredDependency<WalletService>,
   ) {}
 
-  async execute(clientId: number, expertId: number) {
+  async execute(
+    clientId: number,
+    expertId: number,
+  ): Promise<ChatEligibilityResponseDto> {
     // Get expert details
     const expert = await this.expertProfileService.getExpertById(expertId);
     const chatPrice = expert

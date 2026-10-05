@@ -25,6 +25,7 @@ import { GetExpertSessionsByDateUseCase } from './use-cases/get-expert-sessions-
 import { CheckChatEligibilityUseCase } from './use-cases/check-chat-eligibility.use-case';
 import { ResolveSessionDetailsUseCase } from './use-cases/resolve-session-details.use-case';
 import { GetExpertChatSessionsDto } from './dto/get-expert-chat-sessions.dto';
+import { ChatEligibilityResponseDto } from './dto/chat-eligibility-response.dto';
 import { MessageType, ChatSessionStatus } from './enum';
 
 @Injectable()
@@ -54,7 +55,10 @@ export class ChatService {
     private readonly resolveSessionDetailsUseCase: ResolveSessionDetailsUseCase,
   ) {}
 
-  async checkEligibility(clientId: number, expertId: number) {
+  async checkEligibility(
+    clientId: number,
+    expertId: number,
+  ): Promise<ChatEligibilityResponseDto> {
     return this.checkChatEligibilityUseCase.execute(clientId, expertId);
   }
 
