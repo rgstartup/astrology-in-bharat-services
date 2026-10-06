@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { IHasher } from '../../../shared/contracts/hasher.contract';
-import * as argon2 from 'argon2';
+import { hash, verify } from '@node-rs/argon2';
 
 @Injectable()
 export class Argon2PasswordHasher implements IHasher {
-  hash(password: string) {
-    return argon2.hash(password, { type: argon2.argon2id });
+  hash(password: string): Promise<string> {
+    return hash(password);
   }
 
-  verify(hash: string, password: string) {
-    return argon2.verify(hash, password);
+  verify(hash: string, password: string): Promise<boolean> {
+    return verify(hash, password);
   }
 }

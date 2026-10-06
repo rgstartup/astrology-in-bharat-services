@@ -1,6 +1,6 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import * as argon2 from 'argon2';
+import { hash } from '@node-rs/argon2';
 import { User } from '../../internal/users/entities/user.entity';
 import { RoleEnum } from '../../internal/users/enums/Role.enum';
 import { PlatformEnum } from '../../internal/users/enums/Platform.enum';
@@ -40,9 +40,7 @@ export class ClientSeeder implements Seeder {
     const walletRepository = dataSource.getRepository(ClientWallet);
 
     const defaultPassword = process.env.CLIENT_SEED_PASSWORD || 'Client@123456';
-    const hashedPassword = await argon2.hash(defaultPassword, {
-      type: argon2.argon2id,
-    });
+    const hashedPassword = await hash(defaultPassword);
 
     const clients: ClientSeedData[] = [
       {

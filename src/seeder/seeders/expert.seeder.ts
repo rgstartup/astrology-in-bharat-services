@@ -1,6 +1,6 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource, In } from 'typeorm';
-import { hash, argon2id } from 'argon2';
+import { hash } from '@node-rs/argon2';
 import { User } from '../../internal/users/entities/user.entity';
 import { RoleEnum } from '../../internal/users/enums/Role.enum';
 import { PlatformEnum } from '../../internal/users/enums/Platform.enum';
@@ -84,9 +84,7 @@ export class ExpertSeeder implements Seeder {
       process.env.EXPERT_SEED_PASSWORD ||
       process.env.MERCHANT_SEED_PASSWORD ||
       'Astro@123456';
-    const hashedPassword = await hash(defaultPassword, {
-      type: argon2id,
-    });
+    const hashedPassword = await hash(defaultPassword);
 
     const experts: ExpertSeedData[] = [
       {
