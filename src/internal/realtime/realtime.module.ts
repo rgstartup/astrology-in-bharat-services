@@ -6,6 +6,7 @@ import { ExpertRealtimeAuthVerifier } from '@/internal/actors/expert/realtime/ex
 import { REALTIME_AUTH_VERIFIERS } from './contracts/realtime-auth-verifier.contract';
 import { RealtimeAuthService } from './services/realtime-auth.service';
 import { RealtimeGateway } from './realtime.gateway';
+import { ChatRequestExpiryCron } from './chat-request-expiry.cron';
 import {
   RealtimeCallGateway,
   RealtimeChatGateway,
@@ -27,6 +28,7 @@ import {
     RealtimeAuthService,
     RealtimeGateway,
     RealtimeChatGateway,
+    ChatRequestExpiryCron,
     RealtimeCallGateway,
     RealtimeNotificationGateway,
     RealtimePresenceGateway,

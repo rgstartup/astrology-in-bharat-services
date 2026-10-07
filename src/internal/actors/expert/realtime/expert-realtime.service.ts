@@ -149,6 +149,24 @@ export class ExpertRealtimeService {
     this.chatHandler.relayChatTyping(socket, consultationId, isTyping, identity);
   }
 
+  async acceptChat(
+    server: Server,
+    socket: RealtimeSocket,
+    consultationId: number,
+    identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.chatHandler.acceptChat(server, socket, consultationId, identity);
+  }
+
+  async rejectChat(
+    server: Server,
+    socket: RealtimeSocket,
+    consultationId: number,
+    identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.chatHandler.rejectChat(server, socket, consultationId, identity);
+  }
+
   async joinCall(
     socket: RealtimeSocket,
     consultationId: number,

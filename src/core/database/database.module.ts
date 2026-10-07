@@ -17,11 +17,12 @@ import { DatabaseService } from './database.service';
 
         return {
           type: 'postgres',
-          url: dbConfig.url,
-          // host: dbConfig.host,
-          // port: dbConfig.port,
-          // username: dbConfig.username,
-          // password: dbConfig.password,
+          // url: dbConfig.url,
+          name: dbConfig.database,
+          host: dbConfig.host,
+          port: dbConfig.port,
+          username: dbConfig.username,
+          password: dbConfig.password,
           autoLoadEntities: true, // Use bundled classes registered through forFeature; no filesystem glob.
           // synchronize: process.env.NODE_ENV !== 'production', // set to false in production
           synchronize: false, // set to false in production

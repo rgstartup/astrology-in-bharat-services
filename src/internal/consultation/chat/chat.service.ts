@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InitiateChatUseCase } from './use-cases/initiate-chat.use-case';
 import { ActivateSessionUseCase } from './use-cases/activate-session.use-case';
 import { EndChatUseCase } from './use-cases/end-chat.use-case';
 import { ExpireSessionUseCase } from './use-cases/expire-session.use-case';
@@ -22,16 +21,13 @@ import { RejectChatUseCase } from './use-cases/reject-chat.use-case';
 import { UpdateSessionMetadataUseCase } from './use-cases/update-session-metadata.use-case';
 import { GetChatEarningsUseCase } from './use-cases/get-chat-earnings.use-case';
 import { GetExpertSessionsByDateUseCase } from './use-cases/get-expert-sessions-by-date.use-case';
-import { CheckChatEligibilityUseCase } from './use-cases/check-chat-eligibility.use-case';
 import { ResolveSessionDetailsUseCase } from './use-cases/resolve-session-details.use-case';
 import { GetExpertChatSessionsDto } from './dto/get-expert-chat-sessions.dto';
-import { ChatEligibilityResponseDto } from './dto/chat-eligibility-response.dto';
 import { MessageType, ChatSessionStatus } from './enum';
 
 @Injectable()
 export class ChatService {
   constructor(
-    private readonly initiateChatUseCase: InitiateChatUseCase,
     private readonly activateSessionUseCase: ActivateSessionUseCase,
     private readonly endChatUseCase: EndChatUseCase,
     private readonly expireSessionUseCase: ExpireSessionUseCase,
@@ -51,24 +47,8 @@ export class ChatService {
     private readonly updateSessionMetadataUseCase: UpdateSessionMetadataUseCase,
     private readonly getChatEarningsUseCase: GetChatEarningsUseCase,
     private readonly getExpertSessionsByDateUseCase: GetExpertSessionsByDateUseCase,
-    private readonly checkChatEligibilityUseCase: CheckChatEligibilityUseCase,
     private readonly resolveSessionDetailsUseCase: ResolveSessionDetailsUseCase,
   ) {}
-
-  async checkEligibility(
-    clientId: number,
-    expertId: number,
-  ): Promise<ChatEligibilityResponseDto> {
-    return this.checkChatEligibilityUseCase.execute(clientId, expertId);
-  }
-
-  async initiateChat(
-    userId: number,
-    expert_id: number,
-    metadata?: Record<string, unknown>,
-  ) {
-    return this.initiateChatUseCase.execute(userId, expert_id, metadata);
-  }
 
   async activateSession(sessionId: number) {
     return this.activateSessionUseCase.execute(sessionId);

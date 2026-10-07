@@ -6,21 +6,6 @@ export {
 } from './call';
 export type { CallSessionRow, NewCallSessionRow } from './call';
 
-export {
-  chatSessions,
-  chatSessionsRelations,
-  chatSessionStatusEnum,
-  chatMessages,
-  chatMessagesRelations,
-  chatMessageTypeEnum,
-} from './chat';
-export type {
-  ChatSessionRow,
-  NewChatSessionRow,
-  ChatMessageRow,
-  NewChatMessageRow,
-} from './chat';
-
 export { consultationTopics } from './consultation';
 export type {
   ConsultationTopicRow,

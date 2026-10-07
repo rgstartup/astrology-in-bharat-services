@@ -1,10 +1,15 @@
-import { IsInt, IsOptional, IsObject } from 'class-validator';
+import { IsInt, IsObject, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class InitiateChatDto {
   @IsInt()
   @Type(() => Number)
   expert_id!: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  consultation_id?: number;
 
   @IsOptional()
   @IsObject()

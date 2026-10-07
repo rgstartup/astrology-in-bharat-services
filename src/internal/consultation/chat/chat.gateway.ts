@@ -22,6 +22,15 @@ import { REALTIME_CORS_OPTIONS } from '../../realtime/gateways/realtime-gateway.
   cors: REALTIME_CORS_OPTIONS,
   namespace: 'chat',
 })
+/**
+ * @deprecated The `chat` WebSocket namespace is retired. All realtime traffic
+ * goes through the `/realtime` namespace (`RealtimeChatGateway` with
+ * `ClientRealtimeService` / `ExpertRealtimeService`).
+ *
+ * Kept registered only until pending-request notify/expiry
+ * (`handleNewChatRequest`) and the remaining session emits are re-homed onto
+ * the realtime path. Do not add new callers.
+ */
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -195,6 +204,65 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
+  private requestExpiryTimers = new Map<number, NodeJS.Timeout>(); // sessionId -> timeout
+
+  getRequestExpiryMs(): number {
+    return parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || '120000', 10);
+  }
+
+  /**
+   * Single entry point for a new PENDING chat request: notifies the expert
+   * and arms the request-expiry timer. Returns `expiresAt` so the HTTP
+   * response can carry it for the frontend countdown display.
+   */
+  handleNewChatRequest(
+    session: { id: number; expert_id: number } & Record<string, unknown>,
+  ): Date {
+    const expiryMs = this.getRequestExpiryMs();
+    this.notifyExpertNewRequest(
+      session.expert_id,
+      session as unknown as ChatSession,
+    );
+    this.cancelRequestExpiry(session.id);
+    const timer = setTimeout(() => {
+      void this.expirePendingRequest(session.id, expiryMs);
+    }, expiryMs);
+    this.requestExpiryTimers.set(session.id, timer);
+    return new Date(Date.now() + expiryMs);
+  }
+
+  cancelRequestExpiry(sessionId: number) {
+    const timer = this.requestExpiryTimers.get(sessionId);
+    if (timer) {
+      clearTimeout(timer);
+      this.requestExpiryTimers.delete(sessionId);
+    }
+  }
+
+  private async expirePendingRequest(sessionId: number, expiryMs: number) {
+    this.requestExpiryTimers.delete(sessionId);
+    try {
+      const expiredSession = await this.chatService.expireSession(sessionId);
+      if (!expiredSession) return;
+
+      const expiryMinutes = Math.ceil(expiryMs / 60000);
+      this.server.to(`room_${sessionId}`).emit('session_ended', {
+        status: 'expired',
+        id: sessionId,
+        message: `Session expired as expert did not join within ${expiryMinutes} minutes.`,
+      });
+      this.notifyExpertStatusUpdate(expiredSession.expert_id, 'session_ended', {
+        status: 'expired',
+        id: sessionId,
+      });
+    } catch (e) {
+      this.logger.error(
+        `[ChatGateway] Failed to expire pending session ${sessionId}`,
+        e,
+      );
+    }
+  }
+
   /**
    * Notify an expert's dashboard about any session status change
    */
@@ -263,6 +331,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     if (!session) return null;
+
+    this.cancelRequestExpiry(sessionId);
 
     // Calculate initial timer values for immediate sync
     const wallet = await this.walletService.getWallet(

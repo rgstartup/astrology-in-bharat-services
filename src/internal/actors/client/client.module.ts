@@ -5,6 +5,7 @@ import { ClientNotificationModule } from './notification/notification.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { WalletModule } from './wallet/wallet.module';
 import { ClientPaymentsModule } from './payments/payments.module';
+import { ClientChatModule } from './consultation/chat/chat.module';
 import { ClientRealtimeModule } from './realtime/client-realtime.module';
 
 @Module({
@@ -15,6 +16,7 @@ import { ClientRealtimeModule } from './realtime/client-realtime.module';
     FavoritesModule,
     WalletModule,
     ClientPaymentsModule,
+    ClientChatModule,
     ClientRealtimeModule,
   ],
   exports: [
@@ -24,6 +26,7 @@ import { ClientRealtimeModule } from './realtime/client-realtime.module';
     FavoritesModule,
     WalletModule,
     ClientPaymentsModule,
+    ClientChatModule,
     ClientRealtimeModule,
   ],
 })

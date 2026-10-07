@@ -9,7 +9,7 @@ import {
 import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
 import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
 import { WalletService } from '../../../finance/wallet/wallet.service';
-import { ChatService } from '../chat.service';
+import { ClientChatService } from '@/internal/actors/client/consultation/chat/chat.service';
 import { TransactionPurpose } from '../../../finance/wallet/enum';
 import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
 import { CouponService } from '../../../commerce/coupon/coupon.service';
@@ -23,7 +23,7 @@ import { ConsultationBookDto } from '../dto/consultation-book.dto';
 export class ConsultationController {
   constructor(
     private readonly walletService: WalletService,
-    private readonly chatService: ChatService,
+    private readonly clientChatService: ClientChatService,
     private readonly couponService: CouponService,
     private readonly expertProfileService: ExpertProfileService,
   ) {}
@@ -95,7 +95,10 @@ export class ConsultationController {
     // Given the current architecture, initiateChat handles its own balance check.
 
     // For now, we'll just initiate the chat. The user now has 'amount' less balance.
-    const session = await this.chatService.initiateChat(profileId, expert_id);
+    const session = await this.clientChatService.initiateChat(
+      profileId,
+      expert_id,
+    );
 
     return {
       success: true,

@@ -22,6 +22,12 @@ export const SOCKET_EVENTS = {
     MESSAGE: 'chat:message',
     TYPING: 'chat:typing',
     END: 'chat:end',
+    REQUEST: 'chat:request',
+    INCOMING: 'chat:incoming',
+    ACCEPT: 'chat:accept',
+    REJECT: 'chat:reject',
+    ACCEPTED: 'chat:accepted',
+    REJECTED: 'chat:rejected',
   },
 
   CALL: {

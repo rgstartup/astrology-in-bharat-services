@@ -136,6 +136,22 @@ export class ClientRealtimeService {
     this.chatHandler.relayChatTyping(socket, consultationId, isTyping, identity);
   }
 
+  async requestChat(
+    server: Server,
+    socket: RealtimeSocket,
+    consultationId: number,
+    expertId: number,
+    identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.chatHandler.requestChat(
+      server,
+      socket,
+      consultationId,
+      expertId,
+      identity,
+    );
+  }
+
   async joinCall(
     socket: RealtimeSocket,
     consultationId: number,

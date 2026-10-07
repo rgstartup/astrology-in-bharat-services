@@ -6,7 +6,6 @@ import { ChatGateway } from './chat.gateway';
 import { ChatController } from './controllers/chat.controller';
 import { ConsultationController } from './controllers/consultation.controller';
 import { ChatService } from './chat.service';
-import { InitiateChatUseCase } from './use-cases/initiate-chat.use-case';
 import { ActivateSessionUseCase } from './use-cases/activate-session.use-case';
 import { EndChatUseCase } from './use-cases/end-chat.use-case';
 import { ExpireSessionUseCase } from './use-cases/expire-session.use-case';
@@ -26,7 +25,6 @@ import { RejectChatUseCase } from './use-cases/reject-chat.use-case';
 import { UpdateSessionMetadataUseCase } from './use-cases/update-session-metadata.use-case';
 import { GetChatEarningsUseCase } from './use-cases/get-chat-earnings.use-case';
 import { GetExpertSessionsByDateUseCase } from './use-cases/get-expert-sessions-by-date.use-case';
-import { CheckChatEligibilityUseCase } from './use-cases/check-chat-eligibility.use-case';
 import { ResolveSessionDetailsUseCase } from './use-cases/resolve-session-details.use-case';
 
 import { WalletModule } from '../../finance/wallet/wallet.module';
@@ -35,6 +33,7 @@ import { CouponModule } from '../../commerce/coupon/coupon.module';
 import { ProfileModule as ExpertProfileModule } from '../../actors/expert/profile/profile.module';
 import { QueueModule } from '../../../core/queue/queue.module';
 import { PresenceModule } from '@/internal/actors/expert/presence/presence.module';
+import { ClientChatModule } from '@/internal/actors/client/consultation/chat/chat.module';
 
 @Module({
   imports: [
@@ -45,11 +44,13 @@ import { PresenceModule } from '@/internal/actors/expert/presence/presence.modul
     forwardRef(() => ExpertProfileModule),
     QueueModule,
     PresenceModule,
+    forwardRef(() => ClientChatModule),
   ],
   providers: [
+    // @deprecated `chat` namespace retired (see ChatGateway); kept until
+    // notify/expiry move to the realtime path.
     ChatGateway,
     ChatService,
-    InitiateChatUseCase,
     ActivateSessionUseCase,
     EndChatUseCase,
     ExpireSessionUseCase,
@@ -69,7 +70,6 @@ import { PresenceModule } from '@/internal/actors/expert/presence/presence.modul
     UpdateSessionMetadataUseCase,
     GetChatEarningsUseCase,
     GetExpertSessionsByDateUseCase,
-    CheckChatEligibilityUseCase,
     ResolveSessionDetailsUseCase,
   ],
   controllers: [ChatController, ConsultationController],

@@ -17,9 +17,7 @@ import { ChatService } from '../chat.service';
 import { ExpertSessionFilter } from '../use-cases/find-expert-sessions.use-case';
 import { ChatGateway } from '../chat.gateway';
 import { ChatSessionStatus } from '../enum';
-import { InitiateChatDto } from '../dto/initiate-chat.dto';
 import { GetExpertChatSessionsDto } from '../dto/get-expert-chat-sessions.dto';
-import { ChatEligibilityResponseDto } from '../dto/chat-eligibility-response.dto';
 
 @Controller({
   path: 'chat',
@@ -31,76 +29,6 @@ export class ChatController {
     private readonly chatService: ChatService,
     private readonly chatGateway: ChatGateway,
   ) {}
-
-  @Post('initiate')
-  async initiateChat(
-    @CurrentProfile() clientId: number,
-    @Body() dto: InitiateChatDto,
-  ) {
-    const session = await this.chatService.initiateChat(
-      clientId,
-      dto.expert_id,
-      dto.metadata,
-    );
-
-    const expiryTime = parseInt(
-      process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
-      10,
-    );
-    const expiryMinutes = Math.ceil(expiryTime / 60000);
-
-    const expiresAt = new Date(Date.now() + expiryTime);
-
-    // Calculate affordable minutes for paid chat or use freeMinutes
-    let maxMinutes = session.is_free ? session.free_minutes : 0;
-    if (!session.is_free && session.price_per_minute > 0) {
-      const balance = await this.chatGateway.getWalletBalance(clientId);
-      maxMinutes = Math.floor(balance / session.price_per_minute);
-    }
-
-    const sessionWithExpiry = { ...session, expiresAt, maxMinutes };
-
-    // Notify expert with the full session object (including expiresAt and maxMinutes)
-    this.chatGateway.notifyExpertNewRequest(dto.expert_id, sessionWithExpiry);
-
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      const expiredSession = await this.chatService.expireSession(session.id);
-      if (expiredSession) {
-        // If it was actually expired (was still pending), notify users
-        this.chatGateway.server.to(`room_${session.id}`).emit('session_ended', {
-          status: 'expired',
-          id: session.id,
-          message: `Session expired as expert did not join within ${expiryMinutes} minutes.`,
-        });
-        // Also notify expert's dashboard room
-        this.chatGateway.notifyExpertStatusUpdate(
-          session.expert_id,
-          'session_ended',
-          {
-            status: 'expired',
-            id: session.id,
-          },
-        );
-      }
-    }, expiryTime);
-
-    return sessionWithExpiry;
-  }
-
-  /**
-   * GET /api/v1/chat/eligibility?expert_id=<id>
-   * Returns eligibility info for the current user to start a chat with an expert.
-   * Business logic is fully handled on the backend.
-   */
-  @Get('eligibility')
-  @Header('Cache-Control', 'no-store')
-  async checkEligibility(
-    @CurrentProfile() clientId: number,
-    @Query('expert_id', ParseIntPipe) expertId: number,
-  ): Promise<ChatEligibilityResponseDto> {
-    return this.chatService.checkEligibility(clientId, expertId);
-  }
 
   @Post('activate/:sessionId')
   async activateSession(@Param('sessionId', ParseIntPipe) sessionId: number) {

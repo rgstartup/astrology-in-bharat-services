@@ -11,7 +11,7 @@ import { relations } from 'drizzle-orm';
 import { clientAccounts } from '../../client/client-account.schema';
 import { orders } from '../../commerce/order/order.schema';
 import { callSessions } from '../call/call-session.schema';
-import { chatSessions } from '../chat/chat-session.schema';
+import { consultationSessions } from '../session/consultation-session.schema';
 
 const consultationsSchema = pgSchema('consultations');
 
@@ -42,7 +42,7 @@ export const reviews = consultationsSchema.table('reviews', {
   }),
   expert_id: integer('expert_id'),
   merchant_id: integer('merchant_id'),
-  session_id: integer('session_id').references(() => chatSessions.id, {
+  session_id: integer('session_id').references(() => consultationSessions.id, {
     onDelete: 'set null',
   }),
   call_session_id: integer('call_session_id').references(
@@ -72,9 +72,9 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
     fields: [reviews.order_id],
     references: [orders.id],
   }),
-  session: one(chatSessions, {
+  session: one(consultationSessions, {
     fields: [reviews.session_id],
-    references: [chatSessions.id],
+    references: [consultationSessions.id],
   }),
   callSession: one(callSessions, {
     fields: [reviews.call_session_id],

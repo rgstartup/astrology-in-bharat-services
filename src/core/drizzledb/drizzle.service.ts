@@ -21,19 +21,18 @@ export class DrizzleService implements OnModuleDestroy {
   constructor(configService: ConfigService) {
     const dbConfig = configService.get<DatabaseConfig>('database');
 
-    this.pool = dbConfig?.url
-      ? new Pool({
-          connectionString: dbConfig.url,
-          max: dbConfig.max_connections ?? 20,
-        })
-      : new Pool({
-          host: dbConfig?.host,
-          port: dbConfig?.port ?? 5432,
-          user: dbConfig?.username,
-          password: dbConfig?.password,
-          database: dbConfig?.database,
-          max: dbConfig?.max_connections ?? 20,
-        });
+    if (!dbConfig) {
+      throw new Error('Database configuration not found');
+    }
+
+    this.pool = new Pool({
+      host: dbConfig.host,
+      port: dbConfig.port,
+      user: dbConfig.username,
+      password: dbConfig.password,
+      database: dbConfig.database,
+      max: dbConfig?.max_connections ?? 20,
+    });
 
     this.pool.on('error', (err) => {
       this.logger.error('Drizzle pg pool error', err);

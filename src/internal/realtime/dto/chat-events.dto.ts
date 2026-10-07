@@ -51,3 +51,22 @@ export class TypingChatDto {
   @IsOptional()
   isTyping?: boolean;
 }
+
+export class ChatRequestDto {
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  consultationId!: number;
+
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  expertId!: number;
+}
+
+export class ChatActionDto {
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  consultationId!: number;
+}
