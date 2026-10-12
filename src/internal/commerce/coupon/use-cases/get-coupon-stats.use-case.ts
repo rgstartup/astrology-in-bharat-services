@@ -1,48 +1,48 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Coupon } from '../entities/coupon.entity';
-import { CouponStatus } from '../enum';
+import { Inject, Injectable } from '@nestjs/common';
+import { and, count, eq, gt, gte, isNull, or, sql, sum } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { coupons } from '@/core/drizzledb/schema';
+import { CouponStatus } from '@/core/enums';
 
 @Injectable()
 export class GetCouponStatsUseCase {
-  constructor(
-    @InjectRepository(Coupon)
-    private readonly couponRepository: Repository<Coupon>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute() {
-    const now = new Date();
-    const [totalCoupons, activeCouponsCount, totalRedemptions] =
-      await Promise.all([
-        this.couponRepository.count(),
-        this.couponRepository
-          .createQueryBuilder('coupon')
-          .where('coupon.status = :status', { status: CouponStatus.ACTIVE })
-          .andWhere(
-            '(coupon.expiry_date IS NULL OR coupon.expiry_date > :now)',
-            { now },
-          )
-          .getCount(),
-        this.couponRepository.sum('usage_count'),
-      ]);
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // This is a bit simplified, usually you'd track redemptions in a separate table
-    // For now, let's just return a placeholder or sum usage of coupons updated today
-    const usedToday = await this.couponRepository
-      .createQueryBuilder('coupon')
-      .where('coupon.updated_at >= :today', { today })
-      .select('SUM(coupon.usage_count)', 'sum')
-      .getRawOne<{ sum: string | null }>();
+    const [
+      [{ value: totalCoupons }],
+      [{ value: activeCouponsCount }],
+      [{ value: totalRedemptions }],
+      [{ value: usedToday }],
+    ] = await Promise.all([
+      this.db.select({ value: count() }).from(coupons),
+      this.db
+        .select({ value: count() })
+        .from(coupons)
+        .where(
+          and(
+            eq(coupons.status, CouponStatus.ACTIVE),
+            or(isNull(coupons.expiry_date), gt(coupons.expiry_date, sql`NOW()`)),
+          ),
+        ),
+      this.db
+        .select({ value: sum(coupons.usage_count) })
+        .from(coupons),
+      this.db
+        .select({ value: sum(coupons.usage_count) })
+        .from(coupons)
+        .where(gte(coupons.updated_at, today)),
+    ]);
 
     return {
-      totalCoupons,
-      activeCoupons: activeCouponsCount,
-      totalRedemptions: totalRedemptions || 0,
-      usedToday: parseInt(usedToday?.sum || '0', 10),
+      totalCoupons: Number(totalCoupons || 0),
+      activeCoupons: Number(activeCouponsCount || 0),
+      totalRedemptions: Number(totalRedemptions || 0),
+      usedToday: Number(usedToday || 0),
     };
   }
 }

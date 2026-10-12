@@ -66,6 +66,11 @@ export class ChatService {
     return this.getSessionUseCase.execute(id);
   }
 
+  /**
+   * @deprecated
+   * chat messages are now managed in the consultation_messages table
+   * in other words chat message and consultation message is same
+   */
   async getHistory(sessionId: number) {
     return this.getMessagesUseCase.execute(sessionId);
   }

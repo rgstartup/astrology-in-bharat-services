@@ -1,35 +1,40 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { IMerchant } from '../../../../../shared/types/access-token.payload';
-import { MerchantAccount, MerchantStatus } from '../entities/account.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { merchantAccounts, MerchantStatus } from '@/core/drizzledb/schema';
+import type { IMerchant } from '@/shared/types/access-token.payload';
 import { MerchantAccountResponseDto } from '../dto/response/merchant-account-response.dto';
+import { toMerchantAccountResponse } from '../account.mapper';
+import { ResourceNotFoundError } from '@/shared/errors';
 
 @Injectable()
 export class UpdateMerchantStatusUseCase {
-  constructor(
-    @InjectRepository(MerchantAccount)
-    private readonly accountRepo: Repository<MerchantAccount>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     merchant: IMerchant,
     isOnline?: boolean,
   ): Promise<MerchantAccountResponseDto> {
-    const account = await this.accountRepo.findOne({
-      where: { id: merchant.sub },
-    });
-
-    if (!account) {
-      throw new NotFoundException('Merchant account not found');
-    }
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date(),
+    };
 
     if (isOnline !== undefined) {
-      account.is_online = isOnline;
+      updateData.is_online = isOnline;
     }
 
-    const saved = await this.accountRepo.save(account);
-    return MerchantAccountResponseDto.from(saved);
+    const [saved] = await this.db
+      .update(merchantAccounts)
+      .set(updateData)
+      .where(eq(merchantAccounts.id, merchant.sub))
+      .returning();
+
+    if (!saved) {
+      throw new ResourceNotFoundError('Merchant', merchant.sub);
+    }
+
+    return MerchantAccountResponseDto.from(toMerchantAccountResponse(saved));
   }
 
   async updateVerification(
@@ -37,17 +42,25 @@ export class UpdateMerchantStatusUseCase {
     status: MerchantStatus,
     isVerified?: boolean,
   ): Promise<MerchantAccountResponseDto> {
-    const account = await this.accountRepo.findOne({ where: { id } });
-    if (!account) {
-      throw new NotFoundException('Merchant account not found');
-    }
+    const updateData: Record<string, unknown> = {
+      status,
+      updated_at: new Date(),
+    };
 
-    account.status = status;
     if (isVerified !== undefined) {
-      account.is_verified = isVerified;
+      updateData.is_verified = isVerified;
     }
 
-    const saved = await this.accountRepo.save(account);
-    return MerchantAccountResponseDto.from(saved);
+    const [saved] = await this.db
+      .update(merchantAccounts)
+      .set(updateData)
+      .where(eq(merchantAccounts.id, id))
+      .returning();
+
+    if (!saved) {
+      throw new ResourceNotFoundError('Merchant', id);
+    }
+
+    return MerchantAccountResponseDto.from(toMerchantAccountResponse(saved));
   }
 }

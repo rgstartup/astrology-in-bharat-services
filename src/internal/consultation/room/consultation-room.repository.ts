@@ -17,6 +17,65 @@ export function chatRequestTtlSeconds(): number {
   return Math.max(1, Math.ceil(chatRequestTtlMs() / 1000));
 }
 
+/** Redis key for a consultation's balance-exhaustion pause gate. TTL = expert wait window. */
+export const consultationPausedKey = (consultationId: number): string =>
+  `consultation:paused:${consultationId}`;
+
+/** Redis key for a consultation's resume anchor (no TTL — lifecycle-owned). */
+export const consultationAnchorKey = (consultationId: number): string =>
+  `consultation:anchor:${consultationId}`;
+
+/**
+ * Redis key for a consultation's affordable-minutes snapshot (no TTL —
+ * lifecycle-owned, cleared on `chat:end`). Captured at initiate time from
+ * the pre-hold wallet balance so the mid-chat HOLD (balance → reserved)
+ * never shrinks the countdown. Shape: `{ m: maxMinutes, b: balanceAtSnap,
+ * f: freeBasis }`. `reserved_balance` is deliberately never read.
+ */
+export const consultationBudgetKey = (consultationId: number): string =>
+  `consultation:budget:${consultationId}`;
+
+export interface BudgetSnapshot {
+  maxMinutes: number;
+  balanceAtSnap: number;
+  /** 1 when the snapshot is the single-shot free grant (no recharge delta). */
+  freeBasis: number;
+}
+
+/**
+ * Redis key for a consultation's currently active metered mode (no TTL —
+ * lifecycle-owned, cleared on `chat:end`). Set on `chat:join` (CHAT) and
+ * `call:join` (declared audio/video kind); the budget rate follows it.
+ */
+export const consultationModeKey = (consultationId: number): string =>
+  `consultation:mode:${consultationId}`;
+
+/** `JSON.parse` yields `any` — narrow to a plain record before touching fields. */
+function isJsonRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** Finite, non-negative JSON number (rejects NaN/Infinity/negatives). */
+function isCount(value: unknown): value is number {
+  return (
+    typeof value === 'number' && Number.isFinite(value) && value >= 0
+  );
+}
+
+/**
+ * Single source of truth for the balance-pause wait window, in milliseconds.
+ * The expert waits this long for the client to recharge before the chat ends.
+ */
+export function chatPauseTtlMs(): number {
+  const ms = parseInt(process.env.CHAT_PAUSE_TTL_MS || '300000', 10);
+  return Math.max(1, ms);
+}
+
+/** Single source of truth for the balance-pause wait window, in seconds. */
+export function chatPauseTtlSeconds(): number {
+  return Math.max(1, Math.ceil(chatPauseTtlMs() / 1000));
+}
+
 @Injectable()
 export class ConsultationRoomRepository {
   constructor(private readonly redis: RedisService) {}
@@ -52,5 +111,132 @@ export class ConsultationRoomRepository {
 
   roomSession(consultationId: number): Promise<string | null> {
     return this.redis.get(consultationRoomKey(consultationId));
+  }
+
+  /**
+   * Pause live messaging for a consultation (balance exhausted). The key TTL
+   * is the expert wait window — expiry means the client never recharged.
+   */
+  pauseRoom(consultationId: number): Promise<'OK' | null> {
+    return this.redis.set(
+      consultationPausedKey(consultationId),
+      new Date().toISOString(),
+      chatPauseTtlSeconds(),
+    );
+  }
+
+  isPaused(consultationId: number): Promise<boolean> {
+    return this.redis.get(consultationPausedKey(consultationId)).then((v) => v !== null);
+  }
+
+  clearPaused(consultationId: number): Promise<number> {
+    return this.redis.del(consultationPausedKey(consultationId));
+  }
+
+  /**
+   * Resume anchor for the room countdown. `baseSeconds` is the elapsed time
+   * already consumed before the resume; the live elapsed is
+   * `baseSeconds + (now - anchor)`. Set on `chat:resume`, cleared on
+   * `chat:request` (fresh cycle) and `chat:end`. No TTL — lifecycle-owned.
+   */
+  setAnchor(
+    consultationId: number,
+    anchorIso: string,
+    baseSeconds: number,
+  ): Promise<'OK' | null> {
+    return this.redis.set(
+      consultationAnchorKey(consultationId),
+      JSON.stringify({ a: anchorIso, b: Math.max(0, Math.floor(baseSeconds)) }),
+    );
+  }
+
+  async getAnchor(
+    consultationId: number,
+  ): Promise<{ anchorIso: string; baseSeconds: number } | null> {
+    const raw = await this.redis.get(consultationAnchorKey(consultationId));
+    if (!raw) return null;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw) as unknown;
+    } catch {
+      return null;
+    }
+    if (!isJsonRecord(parsed)) return null;
+    const { a, b } = parsed;
+    if (typeof a !== 'string' || Number.isNaN(Date.parse(a))) return null;
+    if (!isCount(b)) return null;
+    return { anchorIso: a, baseSeconds: Math.floor(b) };
+  }
+
+  clearAnchor(consultationId: number): Promise<number> {
+    return this.redis.del(consultationAnchorKey(consultationId));
+  }
+
+  /**
+   * Affordable-minutes snapshot for the room countdown. Set once at initiate
+   * (pre-hold math), re-based on `chat:resume`, cleared on `chat:end`.
+   * No TTL — lifecycle-owned like the resume anchor.
+   */
+  setBudget(
+    consultationId: number,
+    snapshot: BudgetSnapshot,
+  ): Promise<'OK' | null> {
+    return this.redis.set(
+      consultationBudgetKey(consultationId),
+      JSON.stringify({
+        m: snapshot.maxMinutes,
+        b: snapshot.balanceAtSnap,
+        f: snapshot.freeBasis,
+      }),
+    );
+  }
+
+  async getBudget(consultationId: number): Promise<BudgetSnapshot | null> {
+    const raw = await this.redis.get(consultationBudgetKey(consultationId));
+    if (!raw) return null;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw) as unknown;
+    } catch {
+      return null;
+    }
+    if (!isJsonRecord(parsed)) return null;
+    const { m, b, f } = parsed;
+    if (!isCount(m) || !isCount(b)) return null;
+    return {
+      maxMinutes: Math.floor(m),
+      balanceAtSnap: b,
+      freeBasis: f === 1 ? 1 : 0,
+    };
+  }
+
+  clearBudget(consultationId: number): Promise<number> {
+    return this.redis.del(consultationBudgetKey(consultationId));
+  }
+
+  /**
+   * Currently metered mode for the shared budget (CHAT by default). Joins
+   * record their side — chat joins set CHAT, call joins set the declared
+   * audio/video kind — and the budget rate follows the stored value, so one
+   * consultation burns at exactly one rate at a time across chat, audio
+   * calls, and video calls. No TTL — lifecycle-owned like anchor/budget.
+   */
+  setActiveMode(
+    consultationId: number,
+    mode: string,
+  ): Promise<'OK' | null> {
+    return this.redis.set(consultationModeKey(consultationId), mode);
+  }
+
+  async getActiveMode(consultationId: number): Promise<string | null> {
+    const raw = await this.redis.get(consultationModeKey(consultationId));
+    if (!raw) return null;
+    return raw === 'CHAT' || raw === 'AUDIO_CALL' || raw === 'VIDEO_CALL'
+      ? raw
+      : null;
+  }
+
+  clearActiveMode(consultationId: number): Promise<number> {
+    return this.redis.del(consultationModeKey(consultationId));
   }
 }

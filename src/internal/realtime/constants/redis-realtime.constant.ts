@@ -27,6 +27,18 @@ export const REDIS_KEYS = {
     activeExpert: (expertId: string | number) =>
       `call:expert:${expertId}:active`,
   },
+  consultation: {
+    budgetHold: (consultationId: string | number) =>
+      `consultation:budget_hold:${consultationId}`,
+    lock: (consultationId: string | number) =>
+      `consultation:lock:${consultationId}`,
+    mode: (consultationId: string | number) =>
+      `consultation:mode:${consultationId}`,
+    anchor: (consultationId: string | number) =>
+      `consultation:anchor:${consultationId}`,
+    paused: (consultationId: string | number) =>
+      `consultation:paused:${consultationId}`,
+  },
   notification: {
     clientUnreadCount: (clientId: string | number) =>
       `notification:client:${clientId}:unread_count`,

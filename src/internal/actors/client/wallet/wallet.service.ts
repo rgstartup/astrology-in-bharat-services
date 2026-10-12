@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { GetClientWalletUseCase } from './use-cases/get-client-wallet.use-case';
 import { ValidateClientBalanceUseCase } from './use-cases/validate-client-balance.use-case';
-import { RechargeWalletUseCase } from './use-cases/recharge-wallet.use-case';
 import { DebitClientWalletUseCase } from './use-cases/debit-client-wallet.use-case';
 import { ReserveClientBalanceUseCase } from './use-cases/reserve-client-balance.use-case';
 import { DeductFromClientReservedUseCase } from './use-cases/deduct-from-client-reserved.use-case';
@@ -22,7 +21,6 @@ export class ClientWalletService {
   constructor(
     private readonly getClientWalletUseCase: GetClientWalletUseCase,
     private readonly validateClientBalanceUseCase: ValidateClientBalanceUseCase,
-    private readonly rechargeWalletUseCase: RechargeWalletUseCase,
     private readonly debitClientWalletUseCase: DebitClientWalletUseCase,
     private readonly reserveClientBalanceUseCase: ReserveClientBalanceUseCase,
     private readonly deductFromClientReservedUseCase: DeductFromClientReservedUseCase,
@@ -43,24 +41,6 @@ export class ClientWalletService {
 
   async validateBalance(clientId: number, minAmount: number): Promise<boolean> {
     return this.validateClientBalanceUseCase.execute(clientId, minAmount);
-  }
-
-  async recharge(
-    clientId: number,
-    amount: number,
-    qr: QueryRunner,
-    referenceId?: string,
-    referenceType?: string,
-    metadata?: Record<string, any>,
-  ): Promise<ClientWallet> {
-    return this.rechargeWalletUseCase.execute(
-      clientId,
-      amount,
-      qr,
-      referenceId,
-      referenceType,
-      metadata,
-    );
   }
 
   async debit(

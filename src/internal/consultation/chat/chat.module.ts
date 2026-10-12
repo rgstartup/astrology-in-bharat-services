@@ -40,7 +40,7 @@ import { ClientChatModule } from '@/internal/actors/client/consultation/chat/cha
     TypeOrmModule.forFeature([ChatSession, ChatMessage]),
     forwardRef(() => WalletModule),
     NotificationModule,
-    forwardRef(() => CouponModule),
+    CouponModule,
     forwardRef(() => ExpertProfileModule),
     QueueModule,
     PresenceModule,

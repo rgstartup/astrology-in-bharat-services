@@ -31,13 +31,14 @@ export const mediaSourceEnum = contentSchema.enum(
 export const media = contentSchema.table('media', {
   id: serial('id').primaryKey(),
   url: varchar('url').notNull(),
-  source: mediaSourceEnum('source').notNull().default(MediaSource.CLOUDINARY),
+  source: mediaSourceEnum('source'),
   public_id: varchar('public_id', { length: 255 }),
   mime_type: varchar('mime_type', { length: 100 }),
   alt_text: varchar('alt_text', { length: 500 }),
   file_size: integer('file_size'),
   file_name: varchar('file_name', { length: 255 }),
   /** Provider-side object key (S3 key, Cloudinary public path, local path). */
+  storage_provider: varchar('storage_provider', { length: 100 }),
   storage_key: varchar('storage_key', { length: 512 }),
   /** Integrity hash of the stored file (e.g. sha256 hex). */
   checksum: varchar('checksum', { length: 128 }),

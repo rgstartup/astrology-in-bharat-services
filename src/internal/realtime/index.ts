@@ -1,8 +1,23 @@
 export { RealtimeModule } from './realtime.module';
 export { RealtimeGateway } from './realtime.gateway';
 export {
+  RealtimeChatModule,
+  ChatAttachmentMessageService,
+  ChatAttachmentMessageError,
+  chatDisconnectGrace,
+  chatRequestTimers,
+  isChatParticipant,
+  getConsultationStatus,
+  resolveChatClientName,
+  persistChatMessage,
+  resolveMessageSessionId,
+  toMessageType,
+  closeActiveChatSessions,
+} from './chat';
+export {
   RealtimeChatGateway,
   RealtimeCallGateway,
+  RealtimeConsultationGateway,
   RealtimeNotificationGateway,
   RealtimePresenceGateway,
   REALTIME_NAMESPACE,

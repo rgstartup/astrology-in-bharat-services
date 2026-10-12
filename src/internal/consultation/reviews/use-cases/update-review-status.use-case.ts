@@ -1,86 +1,87 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, count, eq, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
+import { expertAccounts, merchantAccounts, reviews } from '@/core/drizzledb/schema';
 import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { Review } from '../entities/review.entity';
-import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
-import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
 
 @Injectable()
 export class UpdateReviewStatusUseCase {
-  constructor(
-    @InjectRepository(Review)
-    private readonly reviewRepository: Repository<Review>,
-    @Inject(DataSource)
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
-  async execute(id: number, status: string) {
-    const review = await this.reviewRepository.findOne({ where: { id } });
-    if (!review) {
-      throw new NotFoundException(`Review with id ${id} not found`);
-    }
+  async execute(id: number, status: string): Promise<BooleanMessage> {
+    return this.db.transaction(async (tx) => {
+      const review = await tx.query.reviews.findFirst({
+        where: eq(reviews.id, id),
+      });
+      if (!review) {
+        throw new NotFoundException(`Review with id ${id} not found`);
+      }
 
-    const result = await this.reviewRepository.update(id, { status });
+      const [updated] = await tx
+        .update(reviews)
+        .set({ status })
+        .where(eq(reviews.id, id))
+        .returning();
 
-    if (!result.affected) {
-      throw new NotFoundException(`Review with id ${id} not found`);
-    }
+      if (!updated) {
+        throw new NotFoundException(`Review with id ${id} not found`);
+      }
 
-    if (review.expert_id) {
-      await this.updateExpertRating(review.expert_id);
-    }
-    if (review.merchant_id) {
-      await this.updateMerchantRating(review.merchant_id);
-    }
+      if (review.expert_id) {
+        await this.updateExpertRating(tx, review.expert_id);
+      }
+      if (review.merchant_id) {
+        await this.updateMerchantRating(tx, review.merchant_id);
+      }
 
-    return new BooleanMessage(true, 'Review Updated Successfully');
+      return new BooleanMessage(true, 'Review Updated Successfully');
+    });
   }
 
-  private async updateExpertRating(expert_id: number) {
-    const result = await this.reviewRepository
-      .createQueryBuilder('review')
-      .select('AVG(review.rating)', 'average')
-      .addSelect('COUNT(review.id)', 'count')
-      .where('review.expert_id = :expert_id', { expert_id })
-      .andWhere('review.status = :status', { status: 'approved' })
-      .getRawOne<{ average: string | null; count: string | null }>();
+  private async updateExpertRating(tx: DrizzleTx, expertId: number) {
+    const [result] = await tx
+      .select({
+        avg: sql<string>`coalesce(avg(${reviews.rating}), 0)`,
+        count: count(),
+      })
+      .from(reviews)
+      .where(
+        and(
+          eq(reviews.expert_id, expertId),
+          eq(reviews.status, 'approved'),
+        ),
+      );
 
-    const average = result?.average
-      ? parseFloat(parseFloat(result?.average).toFixed(1))
-      : 0;
-    const count = result?.count ? parseInt(result?.count, 10) : 0;
+    const average = result ? parseFloat(Number(result.avg).toFixed(1)) : 0;
+    const reviewCount = Number(result?.count ?? 0);
 
-    await this.dataSource
-      .createQueryBuilder()
-      .update(ProfileExpert)
-      .set({ rating: average, total_reviews: count })
-      .where('id = :expert_id', { expert_id })
-      .execute();
+    await tx
+      .update(expertAccounts)
+      .set({ rating: average, total_reviews: reviewCount })
+      .where(eq(expertAccounts.id, expertId));
   }
 
-  private async updateMerchantRating(merchantId: number) {
-    const result = (await this.reviewRepository
-      .createQueryBuilder('review')
-      .select('AVG(review.rating)', 'average')
-      .addSelect('COUNT(review.id)', 'count')
-      .where('review.merchant_id = :merchantId', { merchantId })
-      .andWhere('review.status = :status', { status: 'approved' })
-      .getRawOne<{ average: string | null; count: string | null }>()) ?? {
-      average: null,
-      count: null,
-    };
+  private async updateMerchantRating(tx: DrizzleTx, merchantId: number) {
+    const [result] = await tx
+      .select({
+        avg: sql<string>`coalesce(avg(${reviews.rating}), 0)`,
+        count: count(),
+      })
+      .from(reviews)
+      .where(
+        and(
+          eq(reviews.merchant_id, merchantId),
+          eq(reviews.status, 'approved'),
+        ),
+      );
 
-    const average = result.average
-      ? parseFloat(parseFloat(result.average).toFixed(1))
-      : 0;
-    const count = result.count ? parseInt(result.count, 10) : 0;
+    const average = result ? parseFloat(Number(result.avg).toFixed(1)) : 0;
+    const reviewCount = Number(result?.count ?? 0);
 
-    await this.dataSource
-      .createQueryBuilder()
-      .update(MerchantAccount)
-      .set({ rating: average, review_count: count })
-      .where('id = :merchantId', { merchantId })
-      .execute();
+    await tx
+      .update(merchantAccounts)
+      .set({ rating: String(average), review_count: reviewCount })
+      .where(eq(merchantAccounts.id, merchantId));
   }
 }

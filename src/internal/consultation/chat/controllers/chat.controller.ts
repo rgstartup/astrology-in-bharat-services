@@ -150,7 +150,18 @@ export class ChatController {
     );
   }
 
+  /**
+   * @deprecated
+   * chat messages are now managed in the consultation_messages table
+   * in other words chat message and consultation message is same
+   */
   @Get('history/:sessionId')
+  /**
+   * @deprecated
+   * chat messages are now managed in the consultation_messages table
+   * in other words chat message and consultation message is same
+   * use client/chat/history/:sessionId
+   */
   getHistory(@Param('sessionId', ParseIntPipe) sessionId: number) {
     return this.chatService.getHistory(sessionId);
   }

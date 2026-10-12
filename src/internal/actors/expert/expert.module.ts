@@ -11,6 +11,7 @@ import { ProfessionModule } from "./profession/profession.module";
 import { ExpertProductsModule } from "./products/products.module";
 import { PresenceModule } from "./presence/presence.module";
 import { ExpertRealtimeModule } from "./realtime/expert-realtime.module";
+import { ExpertChatModule } from "./consultation/chat/chat.module";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ExpertRealtimeModule } from "./realtime/expert-realtime.module";
     ExpertProductsModule,
     PresenceModule,
     ExpertRealtimeModule,
+    ExpertChatModule,
   ],
   exports: [
     BankAccountsModule,
@@ -40,6 +42,7 @@ import { ExpertRealtimeModule } from "./realtime/expert-realtime.module";
     ExpertProductsModule,
     PresenceModule,
     ExpertRealtimeModule,
+    ExpertChatModule,
   ],
 })
 export class ExpertModule {}

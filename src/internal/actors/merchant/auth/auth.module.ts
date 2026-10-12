@@ -1,14 +1,9 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
-import { MerchantAccount } from '../account/entities/account.entity';
-import { User } from '../../../users/entities/user.entity';
-import { Session } from '../../../auth/entities/session.entity';
-import { DatabaseModule } from '../../../../core/database/database.module';
-import { QueueModule } from '../../../../core/queue/queue.module';
-import { JwtModule } from '../../../../core/jwt/jwt.module';
-import { IHasherToken } from '../../../../shared/contracts/hasher.contract';
-import { Argon2PasswordHasher } from '../../../auth/hashing/argon2-password.hasher';
+import { QueueModule } from '@/core/queue/queue.module';
+import { JwtModule } from '@/core/jwt/jwt.module';
+import { IHasherToken } from '@/shared/contracts/hasher.contract';
+import { Argon2PasswordHasher } from '@/internal/auth/hashing/argon2-password.hasher';
 import { MerchantAuthController } from './controllers/auth.controller';
 import { MerchantAuthService } from './auth.service';
 import { MerchantJwtAuthGuard } from './guards/auth.guard';
@@ -24,9 +19,7 @@ import { MerchantRefreshTokenUseCase } from './use-cases/merchant-refresh-token.
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MerchantAccount, User, Session]),
     PassportModule,
-    DatabaseModule,
     QueueModule,
     JwtModule,
   ],

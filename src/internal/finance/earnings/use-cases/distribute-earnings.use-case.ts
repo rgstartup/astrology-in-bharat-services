@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { QueryRunner, Repository } from 'typeorm';
-import { EarningSplit } from '../entities/earning-split.entity';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb, DrizzleTx } from '@/core/drizzledb/drizzle.types';
+import { earningSplits } from '@/core/drizzledb/schema';
 import { CalculateEarningsUseCase } from './calculate-earnings.use-case';
 import { CalculateEarningsInput } from '../dto/calculate-earnings.dto';
 import { LedgerQueueService } from '../../../../core/queue/services/ledger-queue.service';
@@ -11,6 +11,7 @@ import {
   GeneralLedgerPartyType,
 } from '../../ledger/entities/general-ledger-entry.entity';
 import { EarningEventType } from '../enum';
+import { type EarningSplitDomain, toEarningSplitDomain } from '../earnings.mapper';
 
 export interface DistributeEarningsInput extends CalculateEarningsInput {
   referenceId: string;
@@ -29,63 +30,66 @@ export class DistributeEarningsUseCase {
   private readonly logger = new Logger(DistributeEarningsUseCase.name);
 
   constructor(
-    @InjectRepository(EarningSplit)
-    private readonly splitRepo: Repository<EarningSplit>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly calculateUseCase: CalculateEarningsUseCase,
     private readonly ledgerQueueService: LedgerQueueService,
   ) {}
 
   async execute(
     input: DistributeEarningsInput,
-    qr?: QueryRunner,
-  ): Promise<EarningSplit> {
+    tx?: DrizzleTx,
+  ): Promise<EarningSplitDomain> {
     const calc = await this.calculateUseCase.execute(input);
+    const executor = tx ?? this.db;
 
-    const split = new EarningSplit();
-    split.reference_id = input.referenceId;
-    split.reference_type = input.eventType;
-    split.gross_amount = calc.grossAmount;
-    split.platform_earning = calc.platformEarning;
-    split.gst_on_platform_fee = calc.gstOnPlatformFee;
-    split.provider_earning = calc.providerEarning;
-    split.seller_agent_earning = calc.sellerAgentEarning;
-    split.buyer_agent_earning = calc.buyerAgentEarning;
-    split.client_profile_id = input.clientProfileId ?? null;
-    split.provider_profile_id = input.providerProfileId ?? null;
-    split.seller_agent_profile_id = input.sellerAgentProfileId ?? null;
-    split.buyer_agent_profile_id = input.buyerAgentProfileId ?? null;
-    split.policy_id = calc.policyId;
+    const [saved] = await executor
+      .insert(earningSplits)
+      .values({
+        reference_id: input.referenceId,
+        reference_type: input.eventType,
+        gross_amount: String(calc.grossAmount),
+        platform_earning: String(calc.platformEarning),
+        gst_on_platform_fee: String(calc.gstOnPlatformFee),
+        provider_earning: String(calc.providerEarning),
+        seller_agent_earning: String(calc.sellerAgentEarning),
+        buyer_agent_earning: String(calc.buyerAgentEarning),
+        client_profile_id: input.clientProfileId ?? null,
+        provider_profile_id: input.providerProfileId ?? null,
+        seller_agent_profile_id: input.sellerAgentProfileId ?? null,
+        buyer_agent_profile_id: input.buyerAgentProfileId ?? null,
+        policy_id: calc.policyId,
+      })
+      .returning();
 
-    const saved = qr
-      ? await qr.manager.save(EarningSplit, split)
-      : await this.splitRepo.save(split);
+    const domain = toEarningSplitDomain(saved);
 
     // Enqueue Platform Revenue Ledger Entry
-    if (saved.platform_earning > 0) {
+    if (domain.platform_earning > 0) {
       void this.ledgerQueueService.enqueue({
-        event_id: saved.reference_id,
-        event_type: eventTypeToLedgerEvent[saved.reference_type],
+        event_id: domain.reference_id,
+        event_type: eventTypeToLedgerEvent[domain.reference_type],
         entry_type: GeneralLedgerEntryType.CREDIT,
         party_type: GeneralLedgerPartyType.PLATFORM,
         party_id: null,
-        amount: saved.platform_earning,
-        note: `platform_earning for ${saved.reference_type} #${saved.reference_id} (GST: ₹${saved.gst_on_platform_fee})`,
+        amount: domain.platform_earning,
+        note: `platform_earning for ${domain.reference_type} #${domain.reference_id} (GST: ₹${domain.gst_on_platform_fee})`,
       });
     }
 
     // Enqueue Agent Commission Ledger Entry if present
-    if (saved.seller_agent_earning > 0 && saved.seller_agent_profile_id) {
+    if (domain.seller_agent_earning > 0 && domain.seller_agent_profile_id) {
       void this.ledgerQueueService.enqueue({
-        event_id: saved.reference_id,
-        event_type: eventTypeToLedgerEvent[saved.reference_type],
+        event_id: domain.reference_id,
+        event_type: eventTypeToLedgerEvent[domain.reference_type],
         entry_type: GeneralLedgerEntryType.CREDIT,
         party_type: GeneralLedgerPartyType.AGENT,
-        party_id: saved.seller_agent_profile_id,
-        amount: saved.seller_agent_earning,
-        note: `seller_agent_commission for ${saved.reference_type} #${saved.reference_id}`,
+        party_id: domain.seller_agent_profile_id,
+        amount: domain.seller_agent_earning,
+        note: `seller_agent_commission for ${domain.reference_type} #${domain.reference_id}`,
       });
     }
 
-    return saved;
+    return domain;
   }
 }
+

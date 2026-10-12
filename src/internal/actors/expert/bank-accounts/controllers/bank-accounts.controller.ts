@@ -18,6 +18,9 @@ import { ExpertJwtAuthGuard } from '../../auth/guards/auth.guard';
 import { CurrentExpert } from '../../auth/decorators/current-expert.decorator';
 import { type IExpert } from '../../../../../shared/types/access-token.payload';
 
+/**
+ * @deprecated Legacy TypeORM expert bank accounts controller.
+ */
 @Controller({
   path: 'expert/bank-accounts',
   version: '1',

@@ -1,6 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Server } from 'socket.io';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
+import {
+  chatDisconnectGrace,
+  hasLiveActorSocket,
+} from '@/internal/realtime/chat/chat-disconnect-grace';
 import type {
   AuthenticatedSocketIdentity,
   ExpertSocketIdentity,
@@ -14,6 +20,7 @@ import { ExpertCallHandler } from './handlers/expert-call.handler';
 interface ChatMessageInput {
   consultationId: number;
   content: string;
+  attachmentMediaId?: number;
   attachmentUrl?: string;
   attachmentType?: string;
 }
@@ -35,6 +42,7 @@ export class ExpertRealtimeService {
   private readonly logger = new Logger(ExpertRealtimeService.name);
 
   constructor(
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly presenceHandler: ExpertPresenceHandler,
     private readonly notificationHandler: ExpertNotificationHandler,
     private readonly chatHandler: ExpertChatHandler,
@@ -45,6 +53,9 @@ export class ExpertRealtimeService {
     socket: RealtimeSocket,
     identity: ExpertSocketIdentity,
   ): Promise<void> {
+    // Rejoined inside the disconnect grace window — cancel the deferred
+    // session close so a refresh never ends the chat.
+    chatDisconnectGrace.cancel('expert', identity.expertId);
     const expertRoom = SOCKET_ROOMS.EXPERT(identity.expertId);
     await socket.join(expertRoom);
 
@@ -67,6 +78,7 @@ export class ExpertRealtimeService {
   async handleExpertDisconnect(
     socket: RealtimeSocket,
     identity: ExpertSocketIdentity,
+    server: Server,
   ): Promise<void> {
     try {
       await this.presenceHandler.unregisterConnection(
@@ -78,6 +90,18 @@ export class ExpertRealtimeService {
         `[ExpertRealtime] Failed to unregister presence for expert ${identity.expertId}: ${(err as Error).message}`,
       );
     }
+
+    // Another tab still live → not a real leave; a refresh rejoins inside
+    // the grace window (cancelled on connect), so the session survives.
+    if (hasLiveActorSocket(server, 'expert', identity.expertId)) return;
+    chatDisconnectGrace.arm(
+      this.db,
+      server,
+      'expert',
+      identity.expertId,
+      { expertId: identity.expertId },
+      'expert_disconnect',
+    );
 
     this.logger.log(
       `[ExpertRealtime] Expert ${identity.expertId} disconnected (socket: ${socket.id})`,
@@ -117,11 +141,12 @@ export class ExpertRealtimeService {
   }
 
   async joinChat(
+    server: Server,
     socket: RealtimeSocket,
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
   ) {
-    return this.chatHandler.joinChat(socket, consultationId, identity);
+    return this.chatHandler.joinChat(server, socket, consultationId, identity);
   }
 
   async leaveChat(
@@ -133,11 +158,12 @@ export class ExpertRealtimeService {
   }
 
   async sendChatMessage(
+    server: Server,
     socket: RealtimeSocket,
     input: ChatMessageInput,
     identity: AuthenticatedSocketIdentity,
   ) {
-    return this.chatHandler.sendChatMessage(socket, input, identity);
+    return this.chatHandler.sendChatMessage(server, socket, input, identity);
   }
 
   relayChatTyping(
@@ -165,6 +191,33 @@ export class ExpertRealtimeService {
     identity: AuthenticatedSocketIdentity,
   ) {
     return this.chatHandler.rejectChat(server, socket, consultationId, identity);
+  }
+
+  async endChat(
+    server: Server,
+    socket: RealtimeSocket,
+    consultationId: number,
+    identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.chatHandler.endChat(server, socket, consultationId, identity);
+  }
+
+  async pauseChat(
+    server: Server,
+    socket: RealtimeSocket,
+    consultationId: number,
+    identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.chatHandler.pauseChat(server, socket, consultationId, identity);
+  }
+
+  async resumeChat(
+    server: Server,
+    socket: RealtimeSocket,
+    consultationId: number,
+    identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.chatHandler.resumeChat(server, socket, consultationId, identity);
   }
 
   async joinCall(

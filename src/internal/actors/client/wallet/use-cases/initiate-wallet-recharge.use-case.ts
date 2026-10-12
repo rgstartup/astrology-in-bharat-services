@@ -1,22 +1,20 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import {
-  type IPaymentGateway,
-  PAYMENT_GATEWAY,
-} from '../../../../../external/payment/payment-gateway.interface';
-import {
-  PaymentOrder,
-  PaymentStatus,
-} from '../../../../finance/payments/entities/payment-order.entity';
-import { GatewayTransaction } from '../../../../finance/payments/entities/gateway-transaction.entity';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { gatewayTransactions, paymentOrders } from '@/core/drizzledb/schema';
+import { PaymentStatus } from '@/core/enums';
 import {
   GatewayIntent,
   GatewayName,
   GatewayTransactionStatus,
-} from '../../../../finance/payments/enums';
-import { DatabaseService } from '../../../../../core/database/database.service';
-import { DomainError } from '../../../../../shared/types/domain.error';
-import { PaymentOrderCreationFailedError } from '../../../../finance/payments/domain/errors/payment.errors';
-import { ClientAccount } from '../../account/entities/account.entity';
+} from '@/internal/finance/payments/enums';
+import {
+  PAYMENT_GATEWAY,
+  type IPaymentGateway,
+} from '@/external/payment/payment-gateway.interface';
+import { DomainError } from '@/shared/types/domain.error';
+import { PaymentOrderCreationFailedError } from '@/internal/finance/payments/domain/errors/payment.errors';
+import { ClientAccount } from '@/internal/actors/client/account/entities/account.entity';
 import { InitiateRechargeDto } from '../dto/initiate-recharge.dto';
 
 @Injectable()
@@ -26,7 +24,7 @@ export class InitiateWalletRechargeUseCase {
   constructor(
     @Inject(PAYMENT_GATEWAY)
     private readonly paymentGateway: IPaymentGateway,
-    private readonly db: DatabaseService,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
   async execute(client: ClientAccount, dto: InitiateRechargeDto) {
@@ -57,20 +55,19 @@ export class InitiateWalletRechargeUseCase {
         notes: options.notes,
       });
 
-      await this.db.transaction(async (queryRunner) => {
-        const paymentOrder = queryRunner.manager.create(PaymentOrder, {
+      await this.db.transaction(async (tx) => {
+        await tx.insert(paymentOrders).values({
           client_id: client.id,
           razorpay_order_id: order.providerOrderId,
-          amount,
+          amount: String(amount),
           notes: options.notes,
           status: PaymentStatus.PENDING,
         });
-        await queryRunner.manager.save(PaymentOrder, paymentOrder);
 
-        const gatewayTx = queryRunner.manager.create(GatewayTransaction, {
+        await tx.insert(gatewayTransactions).values({
           gateway_name: GatewayName.RAZORPAY,
           client_id: client.id,
-          amount,
+          amount: String(amount),
           currency: order.currency,
           status: GatewayTransactionStatus.PENDING,
           intent: GatewayIntent.WALLET_RECHARGE,
@@ -79,7 +76,6 @@ export class InitiateWalletRechargeUseCase {
           reference_type: 'wallet_recharge',
           metadata: options.notes,
         });
-        await queryRunner.manager.save(GatewayTransaction, gatewayTx);
       });
 
       return {

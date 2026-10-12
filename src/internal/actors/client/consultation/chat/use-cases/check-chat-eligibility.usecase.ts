@@ -137,6 +137,7 @@ export class CheckChatEligibilityUsecase {
       .leftJoin(clientWallets, eq(clientWallets.client_id, clientAccounts.id))
       .where(eq(clientAccounts.id, clientId))
       .limit(1);
+
     if (!row) throw new ClientNotFoundError();
 
     return {

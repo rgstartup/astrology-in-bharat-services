@@ -42,7 +42,7 @@ import { AdminModule } from '@/internal/actors/admin/admin.module';
     UsersModule,
     forwardRef(() => AdminModule),
     forwardRef(() => ExpertProfileModule),
-    forwardRef(() => MerchantAccountModule),
+    MerchantAccountModule,
     forwardRef(() => ConsultationModule),
     forwardRef(() => PujaAppointmentModule),
   ],

@@ -36,6 +36,9 @@ import { ExpertPuja } from './entities/expert-puja.entity';
 import { KycStatusChangedHandler } from './event-handlers/kyc-status-changed.handler';
 import { ExpertStatusChangedHandler } from './event-handlers/expert-status-changed.handler';
 
+/**
+ * @deprecated Legacy TypeORM expert profile module. Replaced by Drizzle `actors/expert/account` (`ExpertAccountModule`) and `actors/expert/discovery` (`ExpertDiscoveryModule`).
+ */
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProfileExpert, User, Address, ExpertPuja]),

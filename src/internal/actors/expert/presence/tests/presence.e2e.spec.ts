@@ -42,7 +42,9 @@ describe('Presence E2E Lifecycle Flow', () => {
           set.add(connId);
           return { wasOnline, activeConnections: set.size };
         }),
-      refreshHeartbeat: vi.fn().mockResolvedValue(true),
+      refreshHeartbeat: vi
+        .fn()
+        .mockResolvedValue({ ok: true, revived: false }),
       removeConnection: vi
         .fn()
         .mockImplementation(async (expertId: number, connId: string) => {

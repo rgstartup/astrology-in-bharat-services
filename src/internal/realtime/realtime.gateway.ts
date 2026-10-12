@@ -3,8 +3,10 @@ import {
   OnGatewayDisconnect,
   OnGatewayInit,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
+import type { Server } from 'socket.io';
 import { RealtimeAuthService } from './services/realtime-auth.service';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
@@ -17,6 +19,9 @@ export class RealtimeGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   private readonly logger = new Logger(RealtimeGateway.name);
+
+  @WebSocketServer()
+  server!: Server;
 
   constructor(
     private readonly authService: RealtimeAuthService,
@@ -73,11 +78,13 @@ export class RealtimeGateway
         await this.clientRealtimeService.handleClientDisconnect(
           socket,
           identity,
+          this.server,
         );
       } else if (identity.actorType === 'expert') {
         await this.expertRealtimeService.handleExpertDisconnect(
           socket,
           identity,
+          this.server,
         );
       }
       this.logger.log(

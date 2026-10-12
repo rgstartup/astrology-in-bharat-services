@@ -1,7 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EarningPolicy } from '../entities/earning-policy.entity';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { and, eq, gte, isNull, lte, or } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import {
+  earningPolicies,
+  earningTiers,
+} from '@/core/drizzledb/schema';
+import { EarningType } from '@/core/enums';
 import { EarningEventType, EarningRateType } from '../enum';
 import {
   CalculateEarningsInput,
@@ -12,10 +17,7 @@ import {
 export class CalculateEarningsUseCase {
   private readonly logger = new Logger(CalculateEarningsUseCase.name);
 
-  constructor(
-    @InjectRepository(EarningPolicy)
-    private readonly policyRepo: Repository<EarningPolicy>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     input: CalculateEarningsInput,
@@ -24,38 +26,33 @@ export class CalculateEarningsUseCase {
     const gross = Number(input.grossAmount) || 0;
     const durationMins = Number(input.durationMinutes) || 1;
 
-    // 1. Look for specific override policy first (by user id), then fallback to global active rule
-    const qb = this.policyRepo
-      .createQueryBuilder('p')
-      .leftJoinAndSelect('p.tiers', 'tiers')
-      .where('p.event_type = :eventType', { eventType: input.eventType })
-      .andWhere('p.is_active = true')
-      .andWhere('p.effective_from <= :now', { now })
-      .andWhere('(p.effective_to IS NULL OR p.effective_to >= :now)', { now })
-      .andWhere('p.min_amount <= :gross', { gross })
-      .orderBy('p.priority', 'DESC');
+    // 1. Look for active policy if configured
+    const policy = await this.db.query.earningPolicies.findFirst({
+      where: and(
+        lte(earningPolicies.effective_from, now),
+        or(
+          isNull(earningPolicies.effective_until),
+          gte(earningPolicies.effective_until, now),
+        ),
+      ),
+    });
 
-    if (input.providerProfileId) {
-      qb.andWhere(
-        '(p.applies_to_user_id IS NULL OR p.applies_to_user_id = :providerId)',
-        { providerId: input.providerProfileId },
-      );
-    } else {
-      qb.andWhere('p.applies_to_user_id IS NULL');
-    }
+    // Default Fallbacks
+    let platformRate = 2.0; // Default ₹2
+    let rateType: EarningRateType = EarningRateType.FIXED;
+    const gstRatePercent = 18.0;
+    const sellerAgentRate = 0;
+    const buyerAgentRate = 0;
 
-    const policy = await qb.getOne();
-
-    // Default Fallbacks if no policy configured yet
-    let platformRate = policy ? Number(policy.platform_cut_value) : 2.0; // Default ₹2
-    const rateType = policy ? policy.platform_cut_type : EarningRateType.FIXED;
-    const gstRatePercent = policy ? Number(policy.gst_rate_percent) : 18.0;
-    const sellerAgentRate = policy ? Number(policy.seller_agent_rate) : 0;
-    const buyerAgentRate = policy ? Number(policy.buyer_agent_rate) : 0;
-
-    // Check if Tiered Rate applies
-    if (policy && policy.tiers && policy.tiers.length > 0) {
-      const matchingTier = policy.tiers.find(
+    // Check if Tiered Rate applies if policy found
+    if (policy) {
+      if (policy.type === EarningType.PRODUCT_SALE) {
+        rateType = EarningRateType.PERCENTAGE;
+      }
+      const tiers = await this.db.query.earningTiers.findMany({
+        where: eq(earningTiers.policy_id, policy.id),
+      });
+      const matchingTier = tiers.find(
         (t) =>
           gross >= Number(t.min_threshold) &&
           (t.max_threshold === null || gross <= Number(t.max_threshold)),
@@ -84,10 +81,6 @@ export class CalculateEarningsUseCase {
       } else {
         platformEarning = platformRate;
       }
-    }
-
-    if (policy?.max_cap && platformEarning > Number(policy.max_cap)) {
-      platformEarning = Number(policy.max_cap);
     }
 
     // Ensure platform cut doesn't exceed gross

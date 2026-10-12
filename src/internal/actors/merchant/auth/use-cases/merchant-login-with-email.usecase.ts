@@ -4,42 +4,43 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { and, eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import {
+  merchantAccounts,
+  sessions,
+  users,
+} from '@/core/drizzledb/schema';
+import { PlatformEnum } from '@/core/enums';
 import {
   type IHasher,
   IHasherToken,
 } from '../../../../../shared/contracts/hasher.contract';
-import { Session } from '../../../../auth/entities/session.entity';
-import { User } from '../../../../users/entities/user.entity';
-import { PlatformEnum } from '../../../../users/enums/Platform.enum';
-import { MerchantAccount } from '../../account/entities/account.entity';
 import { MerchantLoginDto } from '../dto/merchant-login.dto';
 import { MerchantTokenCryptoService } from '../services/token-crypto.service';
 
 @Injectable()
 export class MerchantLoginWithEmailUseCase {
   constructor(
-    @InjectRepository(MerchantAccount)
-    private readonly merchantRepo: Repository<MerchantAccount>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-    @InjectRepository(Session)
-    private readonly sessionRepo: Repository<Session>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly tokenCrypto: MerchantTokenCryptoService,
     @Inject(IHasherToken) private readonly hasher: IHasher,
   ) {}
 
   async execute(dto: MerchantLoginDto, ip?: string, userAgent?: string) {
-    const user = await this.userRepo.findOne({
-      where: { email: dto.email, platform: PlatformEnum.MERCHANT },
+    const user = await this.db.query.users.findFirst({
+      where: and(
+        eq(users.email, dto.email),
+        eq(users.platform, PlatformEnum.MERCHANT),
+      ),
     });
 
     if (!user || !user.password) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    if (!user.isVerified()) {
+    if (!user.email_verified_at) {
       throw new BadRequestException(
         'Email not verified. Please complete registration.',
       );
@@ -57,8 +58,8 @@ export class MerchantLoginWithEmailUseCase {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const merchant = await this.merchantRepo.findOne({
-      where: { user: { id: user.id } },
+    const merchant = await this.db.query.merchantAccounts.findFirst({
+      where: eq(merchantAccounts.user_id, user.id),
     });
 
     if (!merchant) {
@@ -77,16 +78,17 @@ export class MerchantLoginWithEmailUseCase {
       this.tokenCrypto.createRefreshToken(),
     ]);
 
-    const session = await this.sessionRepo.save(
-      this.sessionRepo.create({
-        user,
+    const [session] = await this.db
+      .insert(sessions)
+      .values({
+        user_id: user.id,
         ip_address: ip,
         user_agent: userAgent,
         type: 'refresh_token',
         secret_hash: refresh.hash,
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      }),
-    );
+      })
+      .returning();
 
     return {
       accessToken,
@@ -101,3 +103,4 @@ export class MerchantLoginWithEmailUseCase {
     };
   }
 }
+

@@ -17,6 +17,9 @@ import { CommissionSplitsController } from './controllers/commission-splits.cont
 
 import { QueueModule } from '@/core/queue/queue.module';
 
+/**
+ * @deprecated Legacy TypeORM commissions module. Slated for phased deprecation/removal.
+ */
 @Module({
   imports: [
     TypeOrmModule.forFeature([

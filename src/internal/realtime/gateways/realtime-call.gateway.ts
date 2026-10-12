@@ -20,6 +20,7 @@ import { CurrentWsAuth } from '../decorators/current-ws-auth.decorator';
 import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
+import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
 import {
   CallActionDto,
   CallAnswerDto,
@@ -43,6 +44,7 @@ export class RealtimeCallGateway implements OnGatewayInit {
   constructor(
     private readonly clientRealtimeService: ClientRealtimeService,
     private readonly expertRealtimeService: ExpertRealtimeService,
+    private readonly orchestrator: ConsultationOrchestratorService,
   ) {}
 
   afterInit() {
@@ -117,15 +119,15 @@ export class RealtimeCallGateway implements OnGatewayInit {
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(SOCKET_EVENTS.CALL.END)
   async handleCallEnd(
-    @ConnectedSocket() socket: RealtimeSocket,
+    @ConnectedSocket() _socket: RealtimeSocket,
     @MessageBody() dto: CallActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
-    return this.forActor(identity).endCall(
-      this.server,
-      socket,
-      { consultationId: dto.consultationId, reason: dto.reason },
-      identity,
-    );
+    return this.orchestrator.end(this.server, {
+      consultationId: dto.consultationId,
+      actorId: identity.id,
+      actorType: identity.actorType === 'client' ? 'client' : 'expert',
+      reason: dto.reason ?? 'manual',
+    });
   }
 }

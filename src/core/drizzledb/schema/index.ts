@@ -221,6 +221,13 @@ export type { AddressRow, NewAddressRow } from './addresses';
 export { media, mediaSourceEnum } from './media';
 export type { MediaRow, NewMediaRow } from './media';
 
+// Common
+export { commonIdempotencyKeys } from './common';
+export type {
+  CommonIdempotencyKeyRow,
+  NewCommonIdempotencyKeyRow,
+} from './common';
+
 // Support
 export {
   notifications,
@@ -546,6 +553,7 @@ import {
   addressTagEnum,
 } from './addresses';
 import { media, mediaSourceEnum } from './media';
+import { commonIdempotencyKeys } from './common';
 import {
   notifications,
   notificationsRelations,
@@ -794,6 +802,9 @@ export const schema = {
   // Media
   media,
   mediaSourceEnum,
+
+  // Common
+  commonIdempotencyKeys,
 
   // Support
   notifications,

@@ -1,34 +1,36 @@
-import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
-import { Review } from '../entities/review.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { and, count, eq, or, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { expertAccounts, reviews } from '@/core/drizzledb/schema';
 
 @Injectable()
 export class GetReviewsStatsUseCase {
-  constructor(
-    @Inject(forwardRef(() => ExpertProfileService))
-    private readonly expertProfileService: DeferredDependency<ExpertProfileService>,
-    @InjectRepository(Review)
-    private readonly reviewRepository: Repository<Review>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(expert_id: number) {
-    const expert =
-      (await this.expertProfileService.getExpertById(expert_id)) ||
-      (await this.expertProfileService.getExpertByUserId(expert_id));
+    const expert = await this.db.query.expertAccounts.findFirst({
+      where: or(
+        eq(expertAccounts.id, expert_id),
+        eq(expertAccounts.user_id, expert_id),
+      ),
+    });
     if (!expert) return null;
 
     // Get star-wise distribution counts
-    const result: unknown = await this.reviewRepository
-      .createQueryBuilder('review')
-      .select('CAST(review.rating AS INTEGER)', 'rating')
-      .addSelect('COUNT(*)', 'count')
-      .where('review.expert_id = :expert_id', { expert_id: expert.id })
-      .andWhere('review.status = :status', { status: 'approved' })
-      .groupBy('review.rating')
-      .getRawMany();
+    const result = await this.db
+      .select({
+        rating: sql<number>`cast(round(${reviews.rating}) as integer)`,
+        count: count(),
+      })
+      .from(reviews)
+      .where(
+        and(
+          eq(reviews.expert_id, expert.id),
+          eq(reviews.status, 'approved'),
+        ),
+      )
+      .groupBy(sql`round(${reviews.rating})`);
 
     // Initialize counts for all stars 1 to 5
     const counts = {
@@ -42,14 +44,13 @@ export class GetReviewsStatsUseCase {
     let calculatedTotalReviews = 0;
     let sumRatings = 0;
 
-    const countsResult = result as Array<Record<string, string>>;
-    countsResult.forEach((row) => {
-      const ratingKey = row.rating.toString();
-      if (Object.prototype.hasOwnProperty.call(counts, ratingKey)) {
-        const count = parseInt(row.count, 10);
-        counts[ratingKey as keyof typeof counts] = count;
-        calculatedTotalReviews += count;
-        sumRatings += parseInt(ratingKey, 10) * count;
+    result.forEach((row) => {
+      const ratingKey = row.rating?.toString();
+      if (ratingKey && Object.prototype.hasOwnProperty.call(counts, ratingKey)) {
+        const rowCount = Number(row.count) || 0;
+        counts[ratingKey as keyof typeof counts] = rowCount;
+        calculatedTotalReviews += rowCount;
+        sumRatings += parseInt(ratingKey, 10) * rowCount;
       }
     });
 

@@ -13,6 +13,9 @@ import { SetPrimaryBankAccountUseCase } from './use-cases/set-primary-bank-accou
 import { RemoveBankAccountUseCase } from './use-cases/remove-bank-account.usecase';
 import { BankAccountEventHandler } from './event-handlers/bank-account.handler';
 
+/**
+ * @deprecated Legacy TypeORM expert bank accounts module. Slated for replacement by Drizzle persistence or account-embedded payout details.
+ */
 @Module({
   imports: [
     TypeOrmModule.forFeature([BankAccount, ExpertAccount]),

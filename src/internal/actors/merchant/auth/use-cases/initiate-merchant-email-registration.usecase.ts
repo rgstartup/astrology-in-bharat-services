@@ -1,27 +1,41 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { QueryRunner } from 'typeorm';
-import { DatabaseService } from '../../../../../core/database/database.service';
-import { User } from '../../../../users/entities/user.entity';
-import { PlatformEnum } from '../../../../users/enums/Platform.enum';
+import { and, eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { users } from '@/core/drizzledb/schema';
+import { PlatformEnum } from '@/core/enums';
 import { MerchantTokenCryptoService } from '../services/token-crypto.service';
 
 @Injectable()
 export class InitiateMerchantEmailRegistrationUseCase {
   constructor(
-    private readonly db: DatabaseService,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly events: EventEmitter2,
     private readonly tokenCrypto: MerchantTokenCryptoService,
   ) {}
 
   execute(email: string) {
-    return this.db.transaction(async (qr) => {
-      const existing = await this.findMerchant(qr, email);
-      if (existing?.isVerified()) {
+    return this.db.transaction(async (tx) => {
+      const existing = await tx.query.users.findFirst({
+        where: and(
+          eq(users.email, email),
+          eq(users.platform, PlatformEnum.MERCHANT),
+        ),
+      });
+
+      if (existing?.email_verified_at) {
         throw new ConflictException('Merchant is already registered');
       }
 
-      const user = existing ?? (await this.createMerchant(qr, email));
+      let user = existing;
+      if (!user) {
+        const [inserted] = await tx
+          .insert(users)
+          .values({ email, platform: PlatformEnum.MERCHANT })
+          .returning();
+        user = inserted;
+      }
 
       const verificationToken = this.tokenCrypto.signTemporaryToken({
         userId: user.id,
@@ -37,17 +51,5 @@ export class InitiateMerchantEmailRegistrationUseCase {
       return { message: 'Verification email sent successfully.' };
     });
   }
-
-  private findMerchant(qr: QueryRunner, email: string) {
-    return qr.manager.findOne(User, {
-      where: { email, platform: PlatformEnum.MERCHANT },
-    });
-  }
-
-  private createMerchant(qr: QueryRunner, email: string) {
-    return qr.manager.save(
-      User,
-      qr.manager.create(User, { email, platform: PlatformEnum.MERCHANT }),
-    );
-  }
 }
+

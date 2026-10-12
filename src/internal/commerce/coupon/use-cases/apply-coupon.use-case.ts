@@ -1,38 +1,39 @@
 import {
-  Injectable,
   BadRequestException,
-  NotFoundException,
+  Inject,
+  Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Coupon } from '../entities/coupon.entity';
-import { CouponType, CouponStatus } from '../enum';
-import { UserCoupon } from '../entities/user-coupon.entity';
+import { and, eq, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { coupons } from '@/core/drizzledb/schema';
+import { CouponStatus, CouponType } from '@/core/enums';
 import { ApplyCouponDto } from '../dto/apply-coupon.dto';
 
 @Injectable()
 export class ApplyCouponUseCase {
   private readonly logger = new Logger(ApplyCouponUseCase.name);
 
-  constructor(
-    @InjectRepository(Coupon)
-    private readonly couponRepo: Repository<Coupon>,
-    @InjectRepository(UserCoupon)
-    private readonly userCouponRepo: Repository<UserCoupon>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(dto: ApplyCouponDto) {
     const code = dto.code || dto.couponCode || '';
     const amount = dto.amount || dto.orderValue || 0;
 
-    // 1. Find active coupon
-    const coupon = await this.couponRepo
-      .createQueryBuilder('coupon')
-      .where('LOWER(coupon.code) = LOWER(:code)', { code })
-      .andWhere('coupon.is_active = :isActive', { isActive: true })
-      .andWhere('coupon.status = :status', { status: CouponStatus.ACTIVE })
-      .getOne();
+    // 1. Find active coupon (case-insensitive code match)
+    const [coupon] = await this.db
+      .select()
+      .from(coupons)
+      .where(
+        and(
+          sql`LOWER(${coupons.code}) = LOWER(${code})`,
+          eq(coupons.is_active, true),
+          eq(coupons.status, CouponStatus.ACTIVE),
+        ),
+      )
+      .limit(1);
 
     if (!coupon) {
       throw new NotFoundException('Coupon not found or inactive');

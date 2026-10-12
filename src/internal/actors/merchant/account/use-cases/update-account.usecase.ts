@@ -1,33 +1,45 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { IMerchant } from '../../../../../shared/types/access-token.payload';
-import { MerchantAccount } from '../entities/account.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { merchantAccounts } from '@/core/drizzledb/schema';
+import type { IMerchant } from '@/shared/types/access-token.payload';
 import { UpdateMerchantAccountDto } from '../dto/request/account.dto';
 import { MerchantAccountResponseDto } from '../dto/response/merchant-account-response.dto';
+import { toMerchantAccountResponse } from '../account.mapper';
+import { ResourceNotFoundError } from '@/shared/errors';
 
 @Injectable()
 export class UpdateMerchantAccountUseCase {
-  constructor(
-    @InjectRepository(MerchantAccount)
-    private readonly accountRepo: Repository<MerchantAccount>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     merchant: IMerchant,
     dto: UpdateMerchantAccountDto,
   ): Promise<MerchantAccountResponseDto> {
-    const account = await this.accountRepo.findOne({
-      where: { id: merchant.sub },
-      relations: { user: true },
-    });
+    const updateData: Record<string, unknown> = {
+      ...dto,
+      updated_at: new Date(),
+    };
 
-    if (!account) {
-      throw new NotFoundException('Merchant account not found');
+    if (dto.latitude !== undefined) {
+      updateData.latitude = dto.latitude != null ? String(dto.latitude) : null;
+    }
+    if (dto.longitude !== undefined) {
+      updateData.longitude =
+        dto.longitude != null ? String(dto.longitude) : null;
     }
 
-    Object.assign(account, dto);
-    const saved = await this.accountRepo.save(account);
-    return MerchantAccountResponseDto.from(saved);
+    const [updated] = await this.db
+      .update(merchantAccounts)
+      .set(updateData)
+      .where(eq(merchantAccounts.id, merchant.sub))
+      .returning();
+
+    if (!updated) {
+      throw new ResourceNotFoundError('Merchant', merchant.sub);
+    }
+
+    return MerchantAccountResponseDto.from(toMerchantAccountResponse(updated));
   }
 }

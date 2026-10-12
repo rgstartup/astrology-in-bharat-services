@@ -5,74 +5,95 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { clientAccounts, users } from '@/core/drizzledb/schema';
-import { ImageUploadService } from '@/external/cloudinary';
+import { clientAccounts, users, media } from '@/core/drizzledb/schema';
+import { StorageService } from '@/external/storage';
+import { ResourceNotFoundError } from '@/shared/errors';
 
 @Injectable()
 export class UpdateAccountPictureUseCase {
   private readonly logger = new Logger(UpdateAccountPictureUseCase.name);
 
   constructor(
-    private readonly imageUploadService: ImageUploadService,
+    private readonly storageService: StorageService,
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
-  async execute(clientId: number | string, file: Express.Multer.File, public_id?: string) {
+  async execute(
+    clientId: number | string,
+    file: Express.Multer.File,
+    public_id?: string,
+  ) {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }
 
     try {
-      const result = await this.imageUploadService.uploadImage(file, {
-        public_id
+      const resultFile = await this.storageService.upload(file, {
+        resourceType: 'image',
+        maxSizeBytes: 5 * 1024 * 1024,
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        allowedPrefixes: ['image/'],
+        filename: `client_avatar_${clientId}`,
+        publicId: public_id,
+        overwrite: true,
+        invalidate: true,
       });
-      const pictureUrl = result.secure_url;
-      const mediaId = result.media?.id ?? null;
 
-      if (!pictureUrl) {
+      if (!resultFile) {
         throw new InternalServerErrorException(
           'Image upload did not return a valid secure URL',
         );
       }
 
-      await this.db.transaction(async (tx) => {
+      const updatedMedia = await this.db.transaction(async (tx) => {
         const [account] = await tx
           .select({
             id: clientAccounts.id,
             user_id: clientAccounts.user_id,
-            avatar: clientAccounts.avatar,
+            avatar_id: clientAccounts.avatar_id,
           })
           .from(clientAccounts)
+          .leftJoin(media, eq(media.id, clientAccounts.avatar_id))
           .where(eq(clientAccounts.id, Number(clientId)))
           .limit(1);
 
-        if (!account) {
-          throw new NotFoundException('Client not found');
+        if (!account.avatar_id) {
+          throw new ResourceNotFoundError('client', Number(clientId));
         }
 
-        const avatar = pictureUrl || account.avatar;
+        // update media
+        const [resultMedia] = await tx
+          .update(media)
+          .set({
+            url: resultFile.secureUrl,
+            public_id: resultFile.key,
+            checksum: resultFile.checksum,
+            mime_type: resultFile.mimeType,
+            file_name: resultFile.originalFilename,
+            file_size: resultFile.size,
+            storage_provider: resultFile.provider,
+            storage_key: resultFile.key,
+            alt_text: `${clientAccounts.name}`,
+          })
+          .where(eq(media.id, account.avatar_id))
+          .returning({ id: media.id });
+
+        const avatar_id = resultMedia.id;
         const updated_at = new Date();
 
         const accountPatch: Partial<typeof clientAccounts.$inferInsert> = {
-          avatar,
+          avatar_id,
           updated_at,
         };
-        if (mediaId !== null) {
-          accountPatch.avatar_id = mediaId;
-        }
 
         const userPatch: Partial<typeof users.$inferInsert> = {
-          avatar,
+          avatar_id,
           updated_at,
         };
-        if (mediaId !== null) {
-          userPatch.avatar_id = mediaId;
-        }
 
         await Promise.all([
           tx
@@ -81,14 +102,15 @@ export class UpdateAccountPictureUseCase {
             .where(eq(clientAccounts.id, account.id)),
           tx.update(users).set(userPatch).where(eq(users.id, account.user_id)),
         ]);
+
+        return resultMedia;
       });
 
       return {
         success: true,
         message: 'Picture uploaded successfully',
-        avatar: pictureUrl,
-        avatar_id: mediaId,
-        avatar_media: result.media ?? null,
+        avatar_url: resultFile.secureUrl,
+        avatar_media: updatedMedia,
       };
     } catch (error: unknown) {
       const err = error as Error;

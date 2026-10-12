@@ -1,13 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { DataSource, QueryRunner } from 'typeorm';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { QueryRunner } from 'typeorm';
+import { eq, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientWallets } from '@/core/drizzledb/schema';
 import { ClientWallet } from '../entities/client-wallet.entity';
-import { ClientTransaction } from '../entities/client-transaction.entity';
-import { ClientTransactionPurpose, ClientTransactionType } from '../enum';
-import { InsufficientBalanceError } from '../../../../finance/wallet/domain/errors/insufficient-balance.error';
+import { InsufficientBalanceError } from '@/internal/finance/wallet/domain/errors/insufficient-balance.error';
 
 @Injectable()
 export class ReserveClientBalanceUseCase {
-  constructor(private readonly dataSource: DataSource) {}
+  private readonly logger = new Logger(ReserveClientBalanceUseCase.name);
+
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     clientId: number,
@@ -15,55 +19,93 @@ export class ReserveClientBalanceUseCase {
     referenceId: string,
     externalQueryRunner?: QueryRunner,
   ): Promise<boolean> {
-    const qr = externalQueryRunner || this.dataSource.createQueryRunner();
-
+    // Standalone: Drizzle-owned transaction. An external TypeORM
+    // QueryRunner (commerce order flow) keeps the legacy TypeORM path so
+    // the reserve stays atomic with the caller's tx.
     if (!externalQueryRunner) {
-      await qr.connect();
-      await qr.startTransaction();
+      return this.db.transaction(async (tx) => {
+        this.logger.log(
+          `[CLIENT_RESERVE_TX] Client: ${clientId}, Amount: ${amount}, Reference: ${referenceId}`,
+        );
+
+        const [wallet] = await tx
+          .select()
+          .from(clientWallets)
+          .where(eq(clientWallets.client_id, clientId))
+          .limit(1);
+
+        const balance = wallet ? Number(wallet.balance) : 0;
+
+        if (!wallet || balance < amount) {
+          this.logger.error(
+            `[CLIENT_RESERVE_TX] Insufficient balance for client ${clientId}. Has: ${balance}, Needs: ${amount}`,
+          );
+          throw new InsufficientBalanceError();
+        }
+
+        await tx
+          .update(clientWallets)
+          .set({
+            balance: sql`${clientWallets.balance} - ${Number(amount)}`,
+            reserved_balance: sql`${clientWallets.reserved_balance} + ${Number(amount)}`,
+            updated_at: new Date(),
+          })
+          .where(eq(clientWallets.id, wallet.id));
+
+        this.logger.log(
+          `[CLIENT_RESERVE_TX] Reserved ${amount} for client ${clientId}, reference: ${referenceId}`,
+        );
+
+        return true;
+      });
     }
 
-    try {
-      const wallet = await qr.manager.findOne(ClientWallet, {
-        where: { client_id: clientId },
-        lock: { mode: 'pessimistic_write' },
-      });
+    return this.executeWithQueryRunner(
+      externalQueryRunner,
+      clientId,
+      amount,
+      referenceId,
+    );
+  }
 
-      if (!wallet || Number(wallet.balance) < amount) {
-        throw new InsufficientBalanceError();
-      }
+  private async executeWithQueryRunner(
+    qr: QueryRunner,
+    clientId: number,
+    amount: number,
+    referenceId: string,
+  ): Promise<boolean> {
+    this.logger.log(
+      `[CLIENT_RESERVE_TX] Client: ${clientId}, Amount: ${amount}, Reference: ${referenceId}`,
+    );
 
-      const balanceBefore = Number(wallet.balance) || 0;
-      const balanceAfter = balanceBefore - Number(amount);
+    const wallet = await qr.manager.findOne(ClientWallet, {
+      where: { client_id: clientId },
+      lock: { mode: 'pessimistic_write' },
+    });
 
-      wallet.balance = balanceAfter;
-      wallet.reserved_balance =
-        Number(wallet.reserved_balance) + Number(amount);
-      await qr.manager.save(ClientWallet, wallet);
+    const balance = wallet ? Number(wallet.balance) : 0;
 
-      const transaction = qr.manager.create(ClientTransaction, {
-        wallet_id: wallet.id,
-        amount,
-        balance_before: balanceBefore,
-        balance_after: balanceAfter,
-        type: ClientTransactionType.HOLD,
-        purpose: ClientTransactionPurpose.CONSULTATION,
-        reference_id: referenceId,
-      });
-      await qr.manager.save(ClientTransaction, transaction);
-
-      if (!externalQueryRunner) {
-        await qr.commitTransaction();
-      }
-      return true;
-    } catch (err) {
-      if (!externalQueryRunner && qr.isTransactionActive) {
-        await qr.rollbackTransaction();
-      }
-      throw err;
-    } finally {
-      if (!externalQueryRunner) {
-        await qr.release();
-      }
+    if (!wallet || balance < amount) {
+      this.logger.error(
+        `[CLIENT_RESERVE_TX] Insufficient balance for client ${clientId}. Has: ${balance}, Needs: ${amount}`,
+      );
+      throw new InsufficientBalanceError();
     }
+
+    await qr.manager
+      .createQueryBuilder()
+      .update(ClientWallet)
+      .set({
+        balance: () => `balance - ${Number(amount)}`,
+        reserved_balance: () => `reserved_balance + ${Number(amount)}`,
+      })
+      .where('client_id = :clientId', { clientId })
+      .execute();
+
+    this.logger.log(
+      `[CLIENT_RESERVE_TX] Reserved ${amount} for client ${clientId}, reference: ${referenceId}`,
+    );
+
+    return true;
   }
 }

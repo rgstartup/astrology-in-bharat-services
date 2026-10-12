@@ -18,6 +18,7 @@ import {
   ConsultationRoomRepository,
   chatRequestTtlSeconds,
 } from '@/internal/consultation/room/consultation-room.repository';
+import { effectiveMaxMinutes } from '@/internal/consultation/room/resolve-consultation-budget.use-case';
 import { InitiateChatResponseDto } from '../dto/initiate-chat-response.dto';
 import { ClientTransactionPurpose } from '@/internal/actors/client/wallet/enum';
 import { ClientTransactionType } from '@/internal/actors/client/wallet/enum';
@@ -170,7 +171,23 @@ export class InitiateChatUsecase {
     await this.rooms.armRoom(id, sessionId);
 
     // Display math only — no hold on reconnect (already held at creation).
-    const maxMinutes = this.maxMinutes(await this.readBalance(clientId), quote);
+    // Reuse the initiate-time snapshot when present so the post-hold
+    // balance can't shrink the countdown; seed it when absent.
+    const balance = await this.readBalance(clientId);
+    const snap = await this.rooms.getBudget(id);
+
+    let maxMinutes: number;
+
+    if (snap) {
+      maxMinutes = effectiveMaxMinutes(snap, balance, quote.chatPrice);
+    } else {
+      maxMinutes = this.maxMinutes(balance, quote);
+      await this.rooms.setBudget(id, {
+        maxMinutes,
+        balanceAtSnap: balance,
+        freeBasis: quote.isEligibleForFree ? 1 : 0,
+      });
+    }
 
     return {
       consultationId: id,
@@ -288,6 +305,12 @@ export class InitiateChatUsecase {
         consultationId: saved.id,
         sessionId: session.id,
         maxMinutes,
+        // Post-hold balance: the snapshot pairs pre-hold affordable minutes
+        // with the balance the live delta is measured against, so the HOLD
+        // itself never reads as a spend. Free chats hold nothing.
+        balanceAtSnap: isEligibleForFree
+          ? balance
+          : balance - minBalanceRequired,
         requestExpiresInSec: chatRequestTtlSeconds(),
       };
     });
@@ -296,8 +319,15 @@ export class InitiateChatUsecase {
       consultation.consultationId,
       consultation.sessionId,
     );
+    await this.rooms.setBudget(consultation.consultationId, {
+      maxMinutes: consultation.maxMinutes,
+      balanceAtSnap: consultation.balanceAtSnap,
+      freeBasis: isEligibleForFree ? 1 : 0,
+    });
 
-    return consultation;
+    const { balanceAtSnap, ...response } = consultation;
+    void balanceAtSnap;
+    return response;
   }
 
   private maxMinutes(balance: number, quote: PricingQuote): number {

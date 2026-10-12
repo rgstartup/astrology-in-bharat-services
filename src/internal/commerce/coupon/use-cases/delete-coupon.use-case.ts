@@ -1,25 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Coupon } from '../entities/coupon.entity';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { coupons } from '@/core/drizzledb/schema';
+import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
 
 @Injectable()
 export class DeleteCouponUseCase {
-  constructor(
-    @InjectRepository(Coupon)
-    private readonly couponRepository: Repository<Coupon>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(id: number | string) {
-    const coupon = await this.couponRepository.findOne({
-      where: { id: Number(id) },
-    });
-    if (!coupon) {
+    const [deleted] = await this.db
+      .delete(coupons)
+      .where(eq(coupons.id, Number(id)))
+      .returning();
+
+    if (!deleted) {
       throw new NotFoundException('Coupon not found');
     }
 
-    await this.couponRepository.remove(coupon);
     return new BooleanMessage();
   }
 }

@@ -1,3 +1,8 @@
+/**
+ * @deprecated
+ * chat messages are now managed in the consultation_messages table
+ * in other words chat message and consultation message is same
+ */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,6 +15,11 @@ export class GetMessagesUseCase {
     private messageRepo: Repository<ChatMessage>,
   ) {}
 
+  /**
+   * @deprecated
+   * chat messages are now managed in the consultation_messages table
+   * in other words chat message and consultation message is same
+   */
   async execute(sessionId: number) {
     return this.messageRepo.find({
       where: { session_id: sessionId },

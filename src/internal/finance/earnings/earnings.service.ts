@@ -1,22 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { QueryRunner } from 'typeorm';
+import type { DrizzleTx } from '@/core/drizzledb/drizzle.types';
+import type { EarningPolicyRow } from '@/core/drizzledb/schema';
 import { CalculateEarningsUseCase } from './use-cases/calculate-earnings.use-case';
 import {
   DistributeEarningsUseCase,
-  DistributeEarningsInput,
+  type DistributeEarningsInput,
 } from './use-cases/distribute-earnings.use-case';
 import {
   GetEarningSplitsUseCase,
-  EarningsSummaryResult,
+  type EarningsSummaryResult,
 } from './use-cases/get-earning-splits.use-case';
 import { ManageEarningPoliciesUseCase } from './use-cases/manage-earning-policies.use-case';
 import {
-  CalculateEarningsInput,
-  CalculatedEarningsResult,
+  type CalculateEarningsInput,
+  type CalculatedEarningsResult,
   QueryEarningSplitsDto,
   CreateEarningPolicyDto,
 } from './dto';
-import { EarningSplit, EarningPolicy } from './entities';
+import type { EarningSplitDomain } from './earnings.mapper';
 
 @Injectable()
 export class EarningsService {
@@ -41,9 +42,9 @@ export class EarningsService {
    */
   async distributeEarnings(
     input: DistributeEarningsInput,
-    qr?: QueryRunner,
-  ): Promise<EarningSplit> {
-    return this.distributeUseCase.execute(input, qr);
+    tx?: DrizzleTx,
+  ): Promise<EarningSplitDomain> {
+    return this.distributeUseCase.execute(input, tx);
   }
 
   /**
@@ -62,11 +63,12 @@ export class EarningsService {
   /**
    * Policy management.
    */
-  async createPolicy(dto: CreateEarningPolicyDto): Promise<EarningPolicy> {
+  async createPolicy(dto: CreateEarningPolicyDto): Promise<EarningPolicyRow> {
     return this.managePoliciesUseCase.createPolicy(dto);
   }
 
-  async listPolicies(): Promise<EarningPolicy[]> {
+  async listPolicies(): Promise<EarningPolicyRow[]> {
     return this.managePoliciesUseCase.listPolicies();
   }
 }
+

@@ -26,6 +26,9 @@ import { AccountModule } from '../../actors/client/account/account.module';
 import { MerchantAccountModule } from '../../actors/merchant/account/account.module';
 import { ProfileModule as ExpertProfileModule } from '../../actors/expert/profile/profile.module';
 
+/**
+ * @deprecated Legacy TypeORM wishlist module. Replaced by Drizzle `actors/client/favorites` (`FavoritesModule`).
+ */
 @Module({
   imports: [
     TypeOrmModule.forFeature([Wishlist, Product, User]),

@@ -42,7 +42,13 @@ describe('ExpertRealtimeService (delegates to domain handlers)', () => {
     presence.registerConnection.mockResolvedValue(undefined);
     presence.unregisterConnection.mockResolvedValue(undefined);
     presence.handleHeartbeat.mockResolvedValue({ status: 'ok', timestamp: 1 });
+    const db: any = {
+      select: vi.fn(() => ({
+        from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
+      })),
+    };
     service = new ExpertRealtimeService(
+      db,
       presence as any,
       notification as any,
       chat as any,
@@ -57,7 +63,10 @@ describe('ExpertRealtimeService (delegates to domain handlers)', () => {
   });
 
   it('unregisters presence on disconnect', async () => {
-    await service.handleExpertDisconnect(socket, identity);
+    const server: any = {
+      to: vi.fn(() => ({ emit: vi.fn() })),
+    };
+    await service.handleExpertDisconnect(socket, identity, server);
     expect(presence.unregisterConnection).toHaveBeenCalledWith(42, 's1');
   });
 
@@ -82,8 +91,8 @@ describe('ExpertRealtimeService (delegates to domain handlers)', () => {
       identity,
     );
 
-    await service.joinChat(socket, 100, identity);
-    expect(chat.joinChat).toHaveBeenCalledWith(socket, 100, identity);
+    await service.joinChat({} as any, socket, 100, identity);
+    expect(chat.joinChat).toHaveBeenCalledWith({}, socket, 100, identity);
 
     service.relayChatTyping(socket, 100, true, identity);
     expect(chat.relayChatTyping).toHaveBeenCalledWith(

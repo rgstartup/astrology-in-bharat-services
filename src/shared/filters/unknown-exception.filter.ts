@@ -6,7 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import * as fs from 'fs';
+import { appendFileSync } from 'fs';
 
 @Catch()
 export class UnknownExceptionFilter implements ExceptionFilter {
@@ -18,7 +18,7 @@ export class UnknownExceptionFilter implements ExceptionFilter {
     // 🔴 Log aggressively (replace with Winston/Sentry/etc)
     console.error('Unhandled exception:', exception);
     try {
-      fs.appendFileSync(
+      appendFileSync(
         '../../../logs/unhandled-errors.log',
         new Date().toISOString() +
           '\n' +

@@ -50,7 +50,18 @@ describe('PresenceService', () => {
           set.add(connId);
           return { wasOnline, activeConnections: set.size };
         }),
-      refreshHeartbeat: vi.fn().mockResolvedValue(true),
+      refreshHeartbeat: vi
+        .fn()
+        .mockImplementation(async (expertId: number, connId: string) => {
+          if (!inMemoryState.connections.has(expertId)) {
+            inMemoryState.connections.set(expertId, new Set());
+          }
+          const set = inMemoryState.connections.get(expertId)!;
+          // Mirrors HEARTBEAT_LUA: revival when the conn key had expired.
+          const revived = !set.has(connId);
+          set.add(connId);
+          return { ok: true, revived };
+        }),
       removeConnection: vi
         .fn()
         .mockImplementation(async (expertId: number, connId: string) => {
@@ -250,6 +261,46 @@ describe('PresenceService', () => {
         'socket-tab-1',
       );
       expect(mockRedisRepo.publishPresenceChanged).not.toHaveBeenCalled();
+    });
+
+    it('heartbeat reviving an expired connection republishes online', async () => {
+      const expertId = 102;
+      await service.connect(expertId, 'socket-tab-1');
+      mockRedisRepo.publishPresenceChanged.mockClear();
+
+      // Simulate connection-key expiry: realtime flips offline while the
+      // 24h `last_status` still says online (no expiry watcher exists).
+      inMemoryState.connections.get(expertId)!.delete('socket-tab-1');
+      expect(await service.getStatus(expertId)).toBe('offline');
+
+      await service.heartbeat(expertId, 'socket-tab-1');
+
+      expect(mockRedisRepo.publishPresenceChanged).toHaveBeenCalledWith(
+        expertId,
+        'online',
+        null,
+      );
+      expect(await service.getStatus(expertId)).toBe('online');
+    });
+
+    it('reconnect with stale last_status republishes online', async () => {
+      const expertId = 103;
+      await service.connect(expertId, 'socket-tab-1');
+      await service.disconnect(expertId, 'socket-tab-1');
+      mockRedisRepo.publishPresenceChanged.mockClear();
+
+      // Stale `last_status` (e.g. rewritten by a concurrent writer) already
+      // says online while realtime is offline: reconnect must still emit.
+      inMemoryState.lastStatus.set(expertId, 'online');
+      expect(await service.getStatus(expertId)).toBe('offline');
+
+      await service.connect(expertId, 'socket-tab-2');
+
+      expect(mockRedisRepo.publishPresenceChanged).toHaveBeenCalledWith(
+        expertId,
+        'online',
+        null,
+      );
     });
   });
 

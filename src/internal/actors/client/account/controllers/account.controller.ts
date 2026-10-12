@@ -22,11 +22,9 @@ import { ClientAccount } from '../entities/account.entity';
 @Controller('client/account')
 @UseGuards(ClientJwtAuthGuard)
 export class AccountController {
-  constructor(
-    private readonly accountService: AccountService,
-  ) {}
+  constructor(private readonly accountService: AccountService) {}
 
-    @Get()
+  @Get()
   getAccount(@CurrentClient('id') clientId: number) {
     return this.accountService.getAccount(clientId);
   }
@@ -48,9 +46,7 @@ export class AccountController {
   }
 
   @Patch(['avatar', 'picture'])
-  @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }),
-  )
+  @UseInterceptors(FileInterceptor('file'))
   async updateAccountAvatar(
     @CurrentClient('id') clientId: number,
     @UploadedFile() file: Express.Multer.File,

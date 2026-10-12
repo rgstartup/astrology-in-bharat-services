@@ -60,11 +60,17 @@ export class PresenceRedisRepository {
     }
   }
 
+  /**
+   * Refreshes a connection's TTL. Reports whether the connection key was
+   * newly (re)created: a heartbeat arriving after key expiry revives a
+   * dead connection, which is an offline->online transition subscribers
+   * must hear about (see `PresenceService.heartbeat`).
+   */
   async refreshHeartbeat(
     expertId: number,
     connectionId: string,
     ttlSeconds = PRESENCE_TTL,
-  ): Promise<boolean> {
+  ): Promise<{ ok: boolean; revived: boolean }> {
     try {
       const connSetKey = PRESENCE_KEYS.expertConnections(expertId);
       const connKey = PRESENCE_KEYS.connection(connectionId);
@@ -78,12 +84,12 @@ export class PresenceRedisRepository {
         ttlSeconds.toString(),
         now,
       );
-      return result === 1 || result === 2;
+      return { ok: result === 1 || result === 2, revived: result === 2 };
     } catch (err) {
       this.logger.error(
         `Failed to refresh heartbeat for expert ${expertId}: ${(err as Error).message}`,
       );
-      return false;
+      return { ok: false, revived: false };
     }
   }
 

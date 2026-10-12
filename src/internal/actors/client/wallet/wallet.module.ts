@@ -10,12 +10,10 @@ import { PaymentGatewayModule as ExternalPaymentGatewayModule } from '@/external
 import { PaymentOrder } from '@/internal/finance/payments/entities/payment-order.entity';
 import { GatewayTransaction } from '@/internal/finance/payments/entities/gateway-transaction.entity';
 import { PaymentsModule as FinancePaymentsModule } from '@/internal/finance/payments/payments.module';
-import { ClientPaymentsModule } from '@/internal/actors/client/payments/payments.module';
 import { ClientWalletService } from './wallet.service';
 import { ClientWalletController } from './controllers/wallet.controller';
 import { GetClientWalletUseCase } from './use-cases/get-client-wallet.use-case';
 import { ValidateClientBalanceUseCase } from './use-cases/validate-client-balance.use-case';
-import { RechargeWalletUseCase } from './use-cases/recharge-wallet.use-case';
 import { DebitClientWalletUseCase } from './use-cases/debit-client-wallet.use-case';
 import { ReserveClientBalanceUseCase } from './use-cases/reserve-client-balance.use-case';
 import { DeductFromClientReservedUseCase } from './use-cases/deduct-from-client-reserved.use-case';
@@ -24,6 +22,7 @@ import { GetClientTransactionsUseCase } from './use-cases/get-client-transaction
 import { InitiateWalletRechargeUseCase } from './use-cases/initiate-wallet-recharge.use-case';
 import { VerifyWalletRechargeUseCase } from './use-cases/verify-wallet-recharge.use-case';
 import { WalletRechargeIntentHandler } from './handlers/wallet-recharge-intent.handler';
+import { WalletRechargeFulfillmentService } from './handlers/wallet-recharge-fulfillment.service';
 
 @Module({
   imports: [
@@ -39,14 +38,13 @@ import { WalletRechargeIntentHandler } from './handlers/wallet-recharge-intent.h
     QueueModule,
     ExternalPaymentGatewayModule,
     FinancePaymentsModule,
-    ClientPaymentsModule,
   ],
   controllers: [ClientWalletController],
   providers: [
     ClientWalletService,
     GetClientWalletUseCase,
     ValidateClientBalanceUseCase,
-    RechargeWalletUseCase,
+    ValidateClientBalanceUseCase,
     DebitClientWalletUseCase,
     ReserveClientBalanceUseCase,
     DeductFromClientReservedUseCase,
@@ -55,12 +53,13 @@ import { WalletRechargeIntentHandler } from './handlers/wallet-recharge-intent.h
     InitiateWalletRechargeUseCase,
     VerifyWalletRechargeUseCase,
     WalletRechargeIntentHandler,
+    WalletRechargeFulfillmentService,
   ],
   exports: [
     ClientWalletService,
     GetClientWalletUseCase,
     ValidateClientBalanceUseCase,
-    RechargeWalletUseCase,
+    ValidateClientBalanceUseCase,
     DebitClientWalletUseCase,
     ReserveClientBalanceUseCase,
     DeductFromClientReservedUseCase,
@@ -69,6 +68,7 @@ import { WalletRechargeIntentHandler } from './handlers/wallet-recharge-intent.h
     InitiateWalletRechargeUseCase,
     VerifyWalletRechargeUseCase,
     TypeOrmModule,
+    WalletRechargeFulfillmentService,
   ],
 })
 export class WalletModule {}

@@ -9,6 +9,9 @@ import {
 } from 'typeorm';
 import { ExpertAccount } from '../../account/entities/account.entity';
 
+/**
+ * @deprecated Legacy TypeORM bank account entity.
+ */
 @Entity({ schema: 'expert', name: 'bank_accounts' })
 export class BankAccount {
   @PrimaryGeneratedColumn()

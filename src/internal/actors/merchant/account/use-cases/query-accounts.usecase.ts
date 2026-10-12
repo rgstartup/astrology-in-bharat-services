@@ -1,79 +1,124 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { MerchantAccount } from '../entities/account.entity';
-import { QueryMerchantDto } from '../dto/request/query-merchant.dto';
-import { PaginatedResponseDto } from '../../../../../shared/dto/paginated-response.dto';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, count, eq, ilike, or, type SQL } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import {
+  merchantAccounts,
+  type MerchantAccountRow,
+} from '@/core/drizzledb/schema';
+import type { MerchantAccount } from '../entities/account.entity';
+import type { QueryMerchantDto } from '../dto/request/query-merchant.dto';
+import { PaginatedResponseDto } from '@/shared/dto/paginated-response.dto';
 import { MerchantAccountResponseDto } from '../dto/response/merchant-account-response.dto';
+import { toMerchantAccountResponse } from '../account.mapper';
 
 @Injectable()
 export class QueryMerchantAccountsUseCase {
-  constructor(
-    @InjectRepository(MerchantAccount)
-    private readonly accountRepo: Repository<MerchantAccount>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async list(query: QueryMerchantDto) {
-    const qb = this.accountRepo
-      .createQueryBuilder('merchant')
-      .leftJoinAndSelect('merchant.user', 'user')
-      .skip(query.offset)
-      .take(query.limit);
+    const conditions: SQL[] = [];
 
     if (query?.q) {
-      qb.andWhere(
-        '(merchant.name ILIKE :q OR merchant.shop_name ILIKE :q OR merchant.city ILIKE :q)',
-        { q: `%${query.q}%` },
+      const searchPattern = `%${query.q}%`;
+      conditions.push(
+        or(
+          ilike(merchantAccounts.name, searchPattern),
+          ilike(merchantAccounts.shop_name, searchPattern),
+          ilike(merchantAccounts.city, searchPattern),
+        )!,
       );
     }
 
     if (query?.city) {
-      qb.andWhere('merchant.city ILIKE :city', { city: `%${query.city}%` });
+      conditions.push(ilike(merchantAccounts.city, `%${query.city}%`));
     }
 
     if (query?.status) {
-      qb.andWhere('merchant.status = :status', { status: query.status });
+      conditions.push(eq(merchantAccounts.status, query.status));
     }
 
     if (query?.is_online === 'true') {
-      qb.andWhere('merchant.is_online = true');
+      conditions.push(eq(merchantAccounts.is_online, true));
     }
 
-    const [data, total] = await qb.getManyAndCount();
-    const mapped = data.map((item) => MerchantAccountResponseDto.from(item));
-    return new PaginatedResponseDto(mapped, total, query.page, query.limit);
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [data, [{ value: totalCount }]] = await Promise.all([
+      this.db
+        .select()
+        .from(merchantAccounts)
+        .where(whereClause)
+        .offset(query.offset)
+        .limit(query.limit),
+      this.db
+        .select({ value: count() })
+        .from(merchantAccounts)
+        .where(whereClause),
+    ]);
+
+    const mapped = (data as MerchantAccountRow[]).map(
+      (item: MerchantAccountRow) =>
+        MerchantAccountResponseDto.from(toMerchantAccountResponse(item)),
+    );
+
+    return new PaginatedResponseDto(
+      mapped,
+      Number(totalCount),
+      query.page,
+      query.limit,
+    );
   }
 
   async byId(id: number): Promise<MerchantAccountResponseDto> {
-    const account = await this.accountRepo.findOne({
-      where: { id },
-      relations: { user: true },
-    });
+    const [account] = await this.db
+      .select()
+      .from(merchantAccounts)
+      .where(eq(merchantAccounts.id, id))
+      .limit(1);
 
     if (!account) {
       throw new NotFoundException('Merchant account not found');
     }
 
-    return MerchantAccountResponseDto.from(account);
+    return MerchantAccountResponseDto.from(
+      toMerchantAccountResponse(account as MerchantAccountRow),
+    );
   }
 
   async findEntityById(id: number): Promise<MerchantAccount | null> {
-    return this.accountRepo.findOne({
-      where: { id },
-      relations: { user: true },
-    });
+    const [account] = await this.db
+      .select()
+      .from(merchantAccounts)
+      .where(eq(merchantAccounts.id, id))
+      .limit(1);
+
+    return account
+      ? (toMerchantAccountResponse(
+          account as MerchantAccountRow,
+        ) as unknown as MerchantAccount)
+      : null;
   }
 
   async byUserId(userId: number): Promise<MerchantAccount | null> {
-    return this.accountRepo.findOne({
-      where: { user: { id: userId } },
-      relations: { user: true },
-    });
+    const [account] = await this.db
+      .select()
+      .from(merchantAccounts)
+      .where(eq(merchantAccounts.user_id, userId))
+      .limit(1);
+
+    return account
+      ? (toMerchantAccountResponse(
+          account as MerchantAccountRow,
+        ) as unknown as MerchantAccount)
+      : null;
   }
 
   async getRaw(): Promise<MerchantAccount[]> {
-    return this.accountRepo.find({
-      relations: { user: true },
-    });
+    const accounts = await this.db.select().from(merchantAccounts);
+    return (accounts as MerchantAccountRow[]).map(
+      (a: MerchantAccountRow) =>
+        toMerchantAccountResponse(a) as unknown as MerchantAccount,
+    );
   }
 }

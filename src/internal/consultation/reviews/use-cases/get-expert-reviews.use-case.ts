@@ -1,25 +1,23 @@
-import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Review } from '../entities/review.entity';
-import { ExpertProfileService } from '../../../actors/expert/profile/profile.service';
+import { Inject, Injectable } from '@nestjs/common';
+import { and, count, desc, eq, or } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { expertAccounts, reviews } from '@/core/drizzledb/schema';
 import { GetReviewsDto } from '../dto/get-reviews.dto';
+import { toReviewDomain } from '../reviews.mapper';
 
 @Injectable()
 export class GetExpertReviewsUseCase {
-  constructor(
-    @Inject(forwardRef(() => ExpertProfileService))
-    private readonly expertProfileService: DeferredDependency<ExpertProfileService>,
-    @InjectRepository(Review)
-    private readonly reviewRepository: Repository<Review>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(expert_id: number, dto: GetReviewsDto) {
     const { page = 1, limit = 20 } = dto;
-    const expert =
-      (await this.expertProfileService.getExpertById(expert_id)) ||
-      (await this.expertProfileService.getExpertByUserId(expert_id));
+    const expert = await this.db.query.expertAccounts.findFirst({
+      where: or(
+        eq(expertAccounts.id, expert_id),
+        eq(expertAccounts.user_id, expert_id),
+      ),
+    });
 
     if (!expert) {
       return {
@@ -30,17 +28,25 @@ export class GetExpertReviewsUseCase {
       };
     }
 
-    const [reviews, total] = await this.reviewRepository.findAndCount({
-      where: { expert_id: expert.id as number, status: 'approved' },
-      relations: ['client', 'client.user'],
-      order: { created_at: 'DESC' },
-      take: limit,
-      skip: (page - 1) * limit,
-    });
+    const whereClause = and(
+      eq(reviews.expert_id, expert.id),
+      eq(reviews.status, 'approved'),
+    );
+
+    const [rows, [totalResult]] = await Promise.all([
+      this.db.query.reviews.findMany({
+        where: whereClause,
+        with: { client: { with: { user: true } } },
+        orderBy: [desc(reviews.created_at)],
+        limit,
+        offset: (page - 1) * limit,
+      }),
+      this.db.select({ total: count() }).from(reviews).where(whereClause),
+    ]);
 
     return {
-      data: reviews,
-      total,
+      data: rows.map(toReviewDomain),
+      total: totalResult?.total ?? 0,
       page,
       limit,
     };

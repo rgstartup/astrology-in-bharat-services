@@ -1,33 +1,30 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Review } from '../entities/review.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { count, eq, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { reviews } from '@/core/drizzledb/schema';
 
 @Injectable()
 export class GetMerchantReviewsStatsUseCase {
-  constructor(
-    @InjectRepository(Review)
-    private readonly reviewRepo: Repository<Review>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(merchantId: number) {
-    const statsResult = (await this.reviewRepo
-      .createQueryBuilder('r')
-      .where('r.merchant_id = :merchantId', { merchantId })
-      .select('AVG(r.rating)', 'avg')
-      .addSelect('COUNT(r.id)', 'count')
-      .getRawOne<{ avg: string | null; count: string | null }>()) ?? {
-      avg: null,
-      count: null,
-    };
+    const [statsResult] = await this.db
+      .select({
+        avg: sql<string>`coalesce(avg(${reviews.rating}), 0)`,
+        count: count(),
+      })
+      .from(reviews)
+      .where(eq(reviews.merchant_id, merchantId));
 
-    const distResult = await this.reviewRepo
-      .createQueryBuilder('r')
-      .where('r.merchant_id = :merchantId', { merchantId })
-      .select('ROUND(r.rating)', 'rating')
-      .addSelect('COUNT(r.id)', 'count')
-      .groupBy('ROUND(r.rating)')
-      .getRawMany<{ rating: string | number; count: string | number }>();
+    const distResult = await this.db
+      .select({
+        rating: sql<number>`cast(round(${reviews.rating}) as integer)`,
+        count: count(),
+      })
+      .from(reviews)
+      .where(eq(reviews.merchant_id, merchantId))
+      .groupBy(sql`round(${reviews.rating})`);
 
     const distribution: Record<string, number> = {
       '1': 0,
@@ -37,15 +34,17 @@ export class GetMerchantReviewsStatsUseCase {
       '5': 0,
     };
     distResult.forEach((d) => {
-      const rating = Math.round(Number(d.rating)).toString();
-      if (Object.prototype.hasOwnProperty.call(distribution, rating))
+      const rating = d.rating?.toString();
+      if (rating && Object.prototype.hasOwnProperty.call(distribution, rating)) {
         distribution[rating] = Number(d.count);
+      }
     });
 
     return {
-      average_rating: parseFloat(Number(statsResult.avg ?? 0).toFixed(1)),
-      totalReviews: Number(statsResult.count ?? 0),
+      average_rating: parseFloat(Number(statsResult?.avg ?? 0).toFixed(1)),
+      totalReviews: Number(statsResult?.count ?? 0),
       distribution,
     };
   }
 }
+

@@ -8,23 +8,28 @@ import { ClientPaymentController } from './controllers/payment.controller';
 import { ClientPaymentsService } from './payments.service';
 import { CreatePaymentOrderUseCase } from './use-cases/create-payment-order.use-case';
 import { VerifyPaymentUseCase } from './use-cases/verify-payment.use-case';
+import { VerifyPaymentDrizzleUseCase } from './use-cases/verify-payment-drizzle.use-case';
+import { WalletModule as ClientWalletModule } from '@/internal/actors/client/wallet/wallet.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PaymentOrder, GatewayTransaction]),
     ExternalPaymentGatewayModule,
     FinancePaymentsModule,
+    ClientWalletModule,
   ],
   controllers: [ClientPaymentController],
   providers: [
     ClientPaymentsService,
     CreatePaymentOrderUseCase,
     VerifyPaymentUseCase,
+    VerifyPaymentDrizzleUseCase,
   ],
   exports: [
     ClientPaymentsService,
     CreatePaymentOrderUseCase,
     VerifyPaymentUseCase,
+    VerifyPaymentDrizzleUseCase,
   ],
 })
 export class ClientPaymentsModule {}

@@ -1,9 +1,22 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ClientJwtAuthGuard } from '@/internal/actors/client/auth/guards/auth.guard';
 import { CurrentClient } from '@/internal/actors/client/auth/decorators/current-client.decorator';
 import { ClientChatService } from '../chat.service';
 import { InitiateChatDto } from '../dto/initiate-chat.dto';
 import { InitiateChatResponseDto } from '../dto/initiate-chat-response.dto';
+import { ChatAttachmentResponseDto } from '../dto/chat-attachment-response.dto';
+import { ChatHistoryResponseDto } from '../dto/chat-history-response.dto';
 
 @Controller({
   path: 'client/chat',
@@ -25,5 +38,31 @@ export class ClientChatController {
     );
 
     return session;
+  }
+
+  @Get('history/:consultationId')
+  async getChatHistory(
+    @CurrentClient('id') clientId: number,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+  ): Promise<ChatHistoryResponseDto> {
+    return this.clientChatService.getChatHistory(clientId, consultationId);
+  }
+
+  @Post('attachments')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadChatAttachment(
+    @CurrentClient('id') clientId: number,
+    @Body('consultationId', ParseIntPipe) consultationId: number,
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @Body('content') content?: string,
+    @Body('idempotencyKey') idempotencyKey?: string,
+  ): Promise<ChatAttachmentResponseDto> {
+    return this.clientChatService.uploadAttachment(
+      clientId,
+      consultationId,
+      file,
+      content,
+      idempotencyKey,
+    );
   }
 }

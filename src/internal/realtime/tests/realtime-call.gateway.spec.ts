@@ -43,6 +43,7 @@ describe('RealtimeCallGateway', () => {
     gateway = new RealtimeCallGateway(
       mockClientRealtimeService as unknown as ClientRealtimeService,
       mockExpertRealtimeService as unknown as ExpertRealtimeService,
+      { end: vi.fn() } as any,
     );
     gateway.server = mockServer as any;
   });
@@ -115,16 +116,22 @@ describe('RealtimeCallGateway', () => {
       data: { auth: clientIdentity },
     };
 
+    const mockOrchestrator = { end: vi.fn() };
+    (gateway as any).orchestrator = mockOrchestrator;
+
     await gateway.handleCallEnd(
       mockSocket,
       { consultationId: 100 } as any,
       clientIdentity,
     );
-    expect(mockClientRealtimeService.endCall).toHaveBeenCalledWith(
+    expect(mockOrchestrator.end).toHaveBeenCalledWith(
       gateway.server,
-      mockSocket,
-      { consultationId: 100, reason: undefined },
-      clientIdentity,
+      {
+        consultationId: 100,
+        actorId: clientIdentity.id,
+        actorType: 'client',
+        reason: 'manual',
+      },
     );
   });
 });

@@ -1,21 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { BooleanMessage } from '../../../../shared/dto/boolean-message.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Review } from '../entities/review.entity';
+import { eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { reviews } from '@/core/drizzledb/schema';
 
 @Injectable()
 export class DeleteReviewUseCase {
-  constructor(
-    @InjectRepository(Review)
-    private readonly reviewRepository: Repository<Review>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(id: number) {
-    const result = await this.reviewRepository.delete(id);
-    if (!result.affected) {
+    const deleted = await this.db
+      .delete(reviews)
+      .where(eq(reviews.id, id))
+      .returning();
+
+    if (deleted.length === 0) {
       throw new NotFoundException(`Review with id ${id} not found`);
     }
     return new BooleanMessage(true, 'Review deleted successfully');
   }
 }
+

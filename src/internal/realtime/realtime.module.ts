@@ -6,16 +6,22 @@ import { ExpertRealtimeAuthVerifier } from '@/internal/actors/expert/realtime/ex
 import { REALTIME_AUTH_VERIFIERS } from './contracts/realtime-auth-verifier.contract';
 import { RealtimeAuthService } from './services/realtime-auth.service';
 import { RealtimeGateway } from './realtime.gateway';
-import { ChatRequestExpiryCron } from './chat-request-expiry.cron';
+import { ConsultationOrchestratorModule } from '@/internal/consultation/orchestrator/consultation-orchestrator.module';
+import { RealtimeChatModule } from './chat/realtime-chat.module';
 import {
   RealtimeCallGateway,
-  RealtimeChatGateway,
+  RealtimeConsultationGateway,
   RealtimeNotificationGateway,
   RealtimePresenceGateway,
 } from './gateways';
 
 @Module({
-  imports: [ClientRealtimeModule, ExpertRealtimeModule],
+  imports: [
+    ClientRealtimeModule,
+    ExpertRealtimeModule,
+    ConsultationOrchestratorModule,
+    RealtimeChatModule,
+  ],
   providers: [
     {
       provide: REALTIME_AUTH_VERIFIERS,
@@ -27,12 +33,16 @@ import {
     },
     RealtimeAuthService,
     RealtimeGateway,
-    RealtimeChatGateway,
-    ChatRequestExpiryCron,
+    RealtimeConsultationGateway,
     RealtimeCallGateway,
     RealtimeNotificationGateway,
     RealtimePresenceGateway,
   ],
-  exports: [RealtimeGateway, RealtimeAuthService],
+  exports: [
+    RealtimeGateway,
+    RealtimeAuthService,
+    RealtimeChatModule,
+  ],
 })
 export class RealtimeModule {}
+

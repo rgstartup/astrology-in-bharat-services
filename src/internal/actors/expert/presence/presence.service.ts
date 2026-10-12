@@ -57,19 +57,28 @@ export class PresenceService implements OnModuleInit {
   }
 
   async connect(expertId: number, connectionId: string): Promise<void> {
-    const { activeConnections } = await this.redisRepo.registerConnection(
-      expertId,
-      connectionId,
-    );
+    const { wasOnline, activeConnections } =
+      await this.redisRepo.registerConnection(expertId, connectionId);
     this.logger.log(
       `[Presence] Expert ${expertId} connected (conn: ${connectionId}, total active: ${activeConnections})`,
     );
 
-    await this.evaluateAndPublishStatusChange(expertId);
+    // Force-republish when coming from fully offline: `last_status`
+    // outlives connection-key expiry, so without this the reconnect
+    // broadcast is suppressed and subscribed clients stay stale-offline.
+    await this.evaluateAndPublishStatusChange(expertId, !wasOnline);
   }
 
   async heartbeat(expertId: number, connectionId: string): Promise<void> {
-    await this.redisRepo.refreshHeartbeat(expertId, connectionId);
+    const { ok, revived } = await this.redisRepo.refreshHeartbeat(
+      expertId,
+      connectionId,
+    );
+    // A heartbeat that revives an expired connection is an
+    // offline->online transition: steady heartbeats stay silent.
+    if (ok && revived) {
+      await this.evaluateAndPublishStatusChange(expertId, true);
+    }
   }
 
   async disconnect(expertId: number, connectionId: string): Promise<void> {
@@ -282,11 +291,20 @@ export class PresenceService implements OnModuleInit {
 
   private async evaluateAndPublishStatusChange(
     expertId: number,
+    forcePublishIfOnline = false,
   ): Promise<void> {
     const newStatus = await this.getStatus(expertId);
     const lastStatus = await this.redisRepo.getLastStatus(expertId);
 
-    if (newStatus !== lastStatus) {
+    // `forcePublishIfOnline` covers transitions the `last_status` compare
+    // cannot see: it survives connection-key expiry, so a reconnect or a
+    // heartbeat-revival after expiry would otherwise publish nothing even
+    // though realtime just flipped offline->online.
+    const shouldPublish =
+      newStatus !== lastStatus ||
+      (forcePublishIfOnline && newStatus !== ExpertClientStatus.OFFLINE);
+
+    if (shouldPublish) {
       await this.redisRepo.setLastStatus(expertId, newStatus);
       const lastSeenAt =
         newStatus === ExpertClientStatus.OFFLINE

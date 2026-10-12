@@ -37,6 +37,7 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
       'endCall',
     ]);
     service = new ClientRealtimeService(
+      {} as any,
       presence as any,
       notification as any,
       chat as any,
@@ -70,15 +71,16 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
   });
 
   it('routes chat calls to the chat handler', async () => {
-    await service.joinChat(socket, 100, identity);
-    expect(chat.joinChat).toHaveBeenCalledWith(socket, 100, identity);
+    const server: any = {};
+    await service.joinChat(server, socket, 100, identity);
+    expect(chat.joinChat).toHaveBeenCalledWith(server, socket, 100, identity);
 
     await service.leaveChat(socket, 100, identity);
     expect(chat.leaveChat).toHaveBeenCalledWith(socket, 100, identity);
 
     const input = { consultationId: 100, content: 'Hi' };
-    await service.sendChatMessage(socket, input, identity);
-    expect(chat.sendChatMessage).toHaveBeenCalledWith(socket, input, identity);
+    await service.sendChatMessage(server, socket, input, identity);
+    expect(chat.sendChatMessage).toHaveBeenCalledWith(server, socket, input, identity);
 
     service.relayChatTyping(socket, 100, true, identity);
     expect(chat.relayChatTyping).toHaveBeenCalledWith(
@@ -97,15 +99,16 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
     expect(call.leaveCall).toHaveBeenCalledWith(socket, 100, identity);
 
     const signal = { consultationId: 100, offer: { sdp: 'o' } };
-    service.relayCallSignal(socket, 'call:offer', signal, identity);
+
+    const server: any = {};
+    service.relayCallSignal(socket, 'consultation:call:offer', signal, identity);
     expect(call.relayCallSignal).toHaveBeenCalledWith(
       socket,
-      'call:offer',
+      'consultation:call:offer',
       signal,
       identity,
     );
 
-    const server: any = {};
     const end = { consultationId: 100 };
     await service.endCall(server, socket, end, identity);
     expect(call.endCall).toHaveBeenCalledWith(server, socket, end, identity);

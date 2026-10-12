@@ -28,13 +28,9 @@ export class CouponService {
   async markCouponAsUsed(
     profileId: number | string,
     code: string,
-    manager?: unknown,
+    tx?: unknown,
   ) {
-    return this.markCouponAsUsedUseCase.execute(
-      profileId,
-      code,
-      manager as import('typeorm').EntityManager,
-    );
+    return this.markCouponAsUsedUseCase.execute(profileId, code, tx);
   }
 
   async createCoupon(data: Record<string, unknown>) {

@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { EarningPolicy, EarningTier, EarningSplit } from './entities';
 import { CalculateEarningsUseCase } from './use-cases/calculate-earnings.use-case';
 import { DistributeEarningsUseCase } from './use-cases/distribute-earnings.use-case';
 import { GetEarningSplitsUseCase } from './use-cases/get-earning-splits.use-case';
@@ -10,10 +8,7 @@ import { EarningsController } from './controllers/earnings.controller';
 import { QueueModule } from '../../../core/queue/queue.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([EarningPolicy, EarningTier, EarningSplit]),
-    QueueModule,
-  ],
+  imports: [QueueModule],
   controllers: [EarningsController],
   providers: [
     CalculateEarningsUseCase,
@@ -22,6 +17,7 @@ import { QueueModule } from '../../../core/queue/queue.module';
     ManageEarningPoliciesUseCase,
     EarningsService,
   ],
-  exports: [EarningsService, TypeOrmModule],
+  exports: [EarningsService],
 })
 export class EarningsModule {}
+

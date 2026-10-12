@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AddExpertToFavoritesUseCase } from './use-cases/add-expert-to-fovorites.usecase';
+import { AddExpertToFavoritesUseCase } from './use-cases/add-expert-to-favorites.usecase';
 import { FindFavoriteExpertsUseCase } from './use-cases/find-all-favorite-experts.usecase';
 import { RemoveExpertFromFavoritesUseCase } from './use-cases/remove-expert-from-favorites.usecase';
 import { FindFavoriteExpertsDto } from './dto/favorite-expert.dto';

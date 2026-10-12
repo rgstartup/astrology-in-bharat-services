@@ -1,83 +1,68 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, EntityManager, DataSource } from 'typeorm';
-import { Coupon } from '../entities/coupon.entity';
-import { UserCoupon } from '../entities/user-coupon.entity';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, eq, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { coupons, userCoupons } from '@/core/drizzledb/schema';
 
 @Injectable()
 export class MarkCouponAsUsedUseCase {
-  constructor(
-    @InjectRepository(Coupon)
-    private readonly couponRepo: Repository<Coupon>,
-    @InjectRepository(UserCoupon)
-    private readonly userCouponRepo: Repository<UserCoupon>,
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     profileId: number | string,
     code: string,
-    manager?: EntityManager,
+    tx?: unknown,
   ) {
-    const executeLogic = async (mgr: EntityManager) => {
-      const repo = mgr.getRepository(Coupon);
-      const userCouponRepo = mgr.getRepository(UserCoupon);
+    const executor = (tx as DrizzleDb) || this.db;
 
-      const coupon = await repo
-        .createQueryBuilder('coupon')
-        .where('LOWER(coupon.code) = LOWER(:code)', { code })
-        .andWhere('coupon.is_active = :isActive', { isActive: true })
-        .getOne();
+    const [coupon] = await executor
+      .select()
+      .from(coupons)
+      .where(
+        and(
+          sql`LOWER(${coupons.code}) = LOWER(${code})`,
+          eq(coupons.is_active, true),
+        ),
+      )
+      .limit(1);
 
-      if (!coupon) {
-        throw new NotFoundException('Coupon not found');
-      }
+    if (!coupon) {
+      throw new NotFoundException('Coupon not found');
+    }
 
-      // Increment usage count
-      coupon.usage_count += 1;
-      await repo.save(coupon);
+    // Increment usage count
+    await executor
+      .update(coupons)
+      .set({
+        usage_count: sql`${coupons.usage_count} + 1`,
+        updated_at: new Date(),
+      })
+      .where(eq(coupons.id, coupon.id));
 
-      // Record user usage
-      let userCoupon = await userCouponRepo.findOne({
-        where: { client_id: Number(profileId), coupon_id: coupon.id },
+    // Record user usage with upsert
+    const now = new Date();
+    await executor
+      .insert(userCoupons)
+      .values({
+        client_id: Number(profileId),
+        coupon_id: coupon.id,
+        is_used: true,
+        used_at: now,
+        assigned_at: now,
+        updated_at: now,
+      })
+      .onConflictDoUpdate({
+        target: [userCoupons.client_id, userCoupons.coupon_id],
+        set: {
+          is_used: true,
+          used_at: now,
+          updated_at: now,
+        },
       });
 
-      if (userCoupon) {
-        userCoupon.is_used = true;
-        userCoupon.used_at = new Date();
-      } else {
-        userCoupon = userCouponRepo.create({
-          client_id: Number(profileId),
-          coupon_id: coupon.id,
-          is_used: true,
-          used_at: new Date(),
-        });
-      }
-
-      await userCouponRepo.save(userCoupon);
-
-      return {
-        success: true,
-        message: 'Coupon applied and marked as used',
-      };
+    return {
+      success: true,
+      message: 'Coupon applied and marked as used',
     };
-
-    if (manager) {
-      return await executeLogic(manager);
-    } else {
-      const queryRunner = this.dataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-      try {
-        const result = await executeLogic(queryRunner.manager);
-        await queryRunner.commitTransaction();
-        return result;
-      } catch (err) {
-        await queryRunner.rollbackTransaction();
-        throw err;
-      } finally {
-        await queryRunner.release();
-      }
-    }
   }
 }

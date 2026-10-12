@@ -10,6 +10,9 @@ import {
   UpdateBankAccountDto,
 } from './dto/bank-account.dto';
 
+/**
+ * @deprecated Legacy TypeORM expert bank accounts service.
+ */
 @Injectable()
 export class BankAccountsService {
   constructor(

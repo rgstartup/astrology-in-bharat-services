@@ -73,7 +73,7 @@ describe('ClientLoginWithEmailUseCase', () => {
       db,
       tokenCrypto as any,
       eventEmitter,
-      hasher,
+      hasher as any,
     );
   });
 

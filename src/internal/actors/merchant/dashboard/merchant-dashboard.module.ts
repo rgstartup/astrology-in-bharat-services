@@ -21,7 +21,7 @@ import { ConsultationModule } from '../../../consultation/consultation.module';
 import { MerchantAccount } from '../account/entities/account.entity';
 import { MerchantAccountModule } from '../account/account.module';
 import { NotificationModule } from '../../../notification/notification.module';
-import { NodemailerModule } from '../../../../external/nodemailer/nodemailer.module';
+import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 
 @Module({
   imports: [
@@ -31,7 +31,7 @@ import { NodemailerModule } from '../../../../external/nodemailer/nodemailer.mod
     forwardRef(() => OrderModule),
     ProductModule,
     forwardRef(() => ConsultationModule),
-    forwardRef(() => MerchantAccountModule),
+    MerchantAccountModule,
     NotificationModule,
     NodemailerModule,
   ],

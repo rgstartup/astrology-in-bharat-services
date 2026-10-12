@@ -1,10 +1,5 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from '@nestjs/common';
 import { ReviewsController } from './controllers/reviews.controller';
-import { Review } from './entities/review.entity';
-import { ChatSession } from '../chat/entities/chat-session.entity';
-import { CallSession } from '../call/entities/call-session.entity';
-import { WalletModule } from '../../finance/wallet/wallet.module';
 import { NotificationModule } from '../../notification/notification.module';
 
 import { ReviewsService } from './reviews.service';
@@ -21,19 +16,8 @@ import { SendReviewResponseUseCase } from './use-cases/send-review-response.use-
 import { GetApprovedPlatformReviewsUseCase } from './use-cases/get-approved-platform-reviews.use-case';
 import { GetExpertReviewsByDateUseCase } from './use-cases/get-expert-reviews-by-date.use-case';
 
-import { ProfileModule as ExpertProfileModule } from '../../actors/expert/profile/profile.module';
-import { MerchantAccountModule } from '../../actors/merchant/account/account.module';
-import { OrderModule } from '../../commerce/order/order.module';
-
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Review, ChatSession, CallSession]),
-    forwardRef(() => WalletModule),
-    NotificationModule,
-    forwardRef(() => ExpertProfileModule),
-    forwardRef(() => MerchantAccountModule),
-    forwardRef(() => OrderModule),
-  ],
+  imports: [NotificationModule],
   controllers: [ReviewsController],
   providers: [
     ReviewsService,

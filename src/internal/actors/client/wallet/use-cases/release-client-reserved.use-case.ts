@@ -1,12 +1,16 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { DataSource, QueryRunner } from 'typeorm';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { QueryRunner } from 'typeorm';
+import { eq, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { clientWallets } from '@/core/drizzledb/schema';
 import { ClientWallet } from '../entities/client-wallet.entity';
-import { ClientTransaction } from '../entities/client-transaction.entity';
-import { ClientTransactionPurpose, ClientTransactionType } from '../enum';
 
 @Injectable()
 export class ReleaseClientReservedUseCase {
-  constructor(private readonly dataSource: DataSource) {}
+  private readonly logger = new Logger(ReleaseClientReservedUseCase.name);
+
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     clientId: number,
@@ -14,56 +18,106 @@ export class ReleaseClientReservedUseCase {
     referenceId: string,
     externalQueryRunner?: QueryRunner,
   ): Promise<void> {
-    const qr = externalQueryRunner || this.dataSource.createQueryRunner();
-
+    // Standalone: Drizzle-owned transaction. An external TypeORM
+    // QueryRunner (commerce order flow) keeps the legacy TypeORM path so
+    // the release stays atomic with the caller's tx.
     if (!externalQueryRunner) {
-      await qr.connect();
-      await qr.startTransaction();
-    }
-
-    try {
-      const wallet = await qr.manager.findOne(ClientWallet, {
-        where: { client_id: clientId },
-        lock: { mode: 'pessimistic_write' },
-      });
-
-      if (!wallet || Number(wallet.reserved_balance) < amount) {
-        throw new BadRequestException(
-          'Insufficient reserved balance to release',
+      await this.db.transaction(async (tx) => {
+        this.logger.log(
+          `[CLIENT_RELEASE_RESERVED_TX] Client: ${clientId}, Amount: ${amount}, Reference: ${referenceId}`,
         );
-      }
 
-      const balanceBefore = Number(wallet.balance) || 0;
-      const balanceAfter = balanceBefore + Number(amount);
+        const [wallet] = await tx
+          .select()
+          .from(clientWallets)
+          .where(eq(clientWallets.client_id, clientId))
+          .limit(1);
 
-      wallet.reserved_balance =
-        Number(wallet.reserved_balance) - Number(amount);
-      wallet.balance = balanceAfter;
-      await qr.manager.save(ClientWallet, wallet);
+        if (!wallet) {
+          this.logger.error(
+            `[CLIENT_RELEASE_RESERVED_TX] Wallet not found for client ${clientId}`,
+          );
+          throw new Error(`Wallet not found for client ${clientId}`);
+        }
 
-      const transaction = qr.manager.create(ClientTransaction, {
-        wallet_id: wallet.id,
-        amount,
-        balance_before: balanceBefore,
-        balance_after: balanceAfter,
-        type: ClientTransactionType.RELEASE,
-        purpose: ClientTransactionPurpose.REFUND,
-        reference_id: referenceId,
+        const reservedBalance = Number(wallet.reserved_balance) || 0;
+        const releaseAmount = Math.min(reservedBalance, amount);
+
+        if (releaseAmount <= 0) {
+          this.logger.log(
+            `[CLIENT_RELEASE_RESERVED_TX] Nothing to release for client ${clientId}`,
+          );
+          return;
+        }
+
+        await tx
+          .update(clientWallets)
+          .set({
+            reserved_balance: sql`${clientWallets.reserved_balance} - ${releaseAmount}`,
+            balance: sql`${clientWallets.balance} + ${releaseAmount}`,
+            updated_at: new Date(),
+          })
+          .where(eq(clientWallets.id, wallet.id));
+
+        this.logger.log(
+          `[CLIENT_RELEASE_RESERVED_TX] Released ${releaseAmount} back to balance for client ${clientId}`,
+        );
       });
-      await qr.manager.save(ClientTransaction, transaction);
-
-      if (!externalQueryRunner) {
-        await qr.commitTransaction();
-      }
-    } catch (err) {
-      if (!externalQueryRunner && qr.isTransactionActive) {
-        await qr.rollbackTransaction();
-      }
-      throw err;
-    } finally {
-      if (!externalQueryRunner) {
-        await qr.release();
-      }
+      return;
     }
+
+    return this.executeWithQueryRunner(
+      externalQueryRunner,
+      clientId,
+      amount,
+      referenceId,
+    );
+  }
+
+  private async executeWithQueryRunner(
+    qr: QueryRunner,
+    clientId: number,
+    amount: number,
+    referenceId: string,
+  ): Promise<void> {
+    this.logger.log(
+      `[CLIENT_RELEASE_RESERVED_TX] Client: ${clientId}, Amount: ${amount}, Reference: ${referenceId}`,
+    );
+
+    const wallet = await qr.manager.findOne(ClientWallet, {
+      where: { client_id: clientId },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    if (!wallet) {
+      this.logger.error(
+        `[CLIENT_RELEASE_RESERVED_TX] Wallet not found for client ${clientId}`,
+      );
+      throw new Error(`Wallet not found for client ${clientId}`);
+    }
+
+    const reservedBalance = Number(wallet.reserved_balance) || 0;
+    const releaseAmount = Math.min(reservedBalance, amount);
+
+    if (releaseAmount <= 0) {
+      this.logger.log(
+        `[CLIENT_RELEASE_RESERVED_TX] Nothing to release for client ${clientId}`,
+      );
+      return;
+    }
+
+    await qr.manager
+      .createQueryBuilder()
+      .update(ClientWallet)
+      .set({
+        reserved_balance: () => `reserved_balance - ${releaseAmount}`,
+        balance: () => `balance + ${releaseAmount}`,
+      })
+      .where('client_id = :clientId', { clientId })
+      .execute();
+
+    this.logger.log(
+      `[CLIENT_RELEASE_RESERVED_TX] Released ${releaseAmount} back to balance for client ${clientId}`,
+    );
   }
 }

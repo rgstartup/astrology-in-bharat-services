@@ -1,59 +1,73 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Coupon } from '../entities/coupon.entity';
-import { CouponStatus } from '../enum';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  ilike,
+  isNotNull,
+  isNull,
+  lt,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import {
+  coupons,
+  type CouponRow,
+} from '@/core/drizzledb/schema';
+import { CouponStatus } from '@/core/enums';
 
 @Injectable()
 export class GetCouponsUseCase {
-  constructor(
-    @InjectRepository(Coupon)
-    private readonly couponRepository: Repository<Coupon>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(params?: Record<string, unknown>) {
-    const query = this.couponRepository.createQueryBuilder('coupon');
+    const conditions: SQL[] = [];
 
     // Note: For 'expired', we check both the status column and the expiry_date
     if (params?.status && params.status !== 'all') {
       if (params.status === 'expired') {
-        query.andWhere(
-          '(coupon.status = :expiredStatus OR (coupon.expiry_date IS NOT NULL AND coupon.expiry_date < :now))',
-          {
-            expiredStatus: CouponStatus.EXPIRED,
-            now: new Date(),
-          },
+        conditions.push(
+          or(
+            eq(coupons.status, CouponStatus.EXPIRED),
+            and(isNotNull(coupons.expiry_date), lt(coupons.expiry_date, sql`NOW()`)),
+          )!,
         );
       } else if (params.status === 'active') {
-        query.andWhere('coupon.status = :activeStatus', {
-          activeStatus: CouponStatus.ACTIVE,
-        });
-        query.andWhere(
-          '(coupon.expiry_date IS NULL OR coupon.expiry_date > :now)',
-          {
-            now: new Date(),
-          },
+        conditions.push(
+          and(
+            eq(coupons.status, CouponStatus.ACTIVE),
+            or(isNull(coupons.expiry_date), gt(coupons.expiry_date, sql`NOW()`)),
+          )!,
         );
       } else {
-        query.andWhere('coupon.status = :status', { status: params.status });
+        conditions.push(eq(coupons.status, params.status as CouponStatus));
       }
     }
 
     if (params?.search) {
-      query.andWhere(
-        '(coupon.code ILIKE :search OR coupon.description ILIKE :search)',
-        {
-          search: `%${params.search as string}%`,
-        },
+      const searchPattern = `%${params.search as string}%`;
+      conditions.push(
+        or(
+          ilike(coupons.code, searchPattern),
+          ilike(coupons.description, searchPattern),
+        )!,
       );
     }
 
-    query.orderBy('coupon.created_at', 'DESC');
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    const coupons = await query.getMany();
+    const results = (await this.db
+      .select()
+      .from(coupons)
+      .where(whereClause)
+      .orderBy(desc(coupons.created_at))) as CouponRow[];
 
     // Map status to 'expired' on the fly if date is passed
-    return coupons.map((coupon) => {
+    return results.map((coupon) => {
       if (
         coupon.status !== CouponStatus.EXPIRED &&
         coupon.expiry_date &&

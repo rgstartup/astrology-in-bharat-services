@@ -5,7 +5,7 @@ export {
   LeaveChatDto,
   SendChatMessageDto,
   TypingChatDto,
-} from './chat-events.dto';
+} from '../chat/dto';
 export {
   JoinCallDto,
   CallOfferDto,

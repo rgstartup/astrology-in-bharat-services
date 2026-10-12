@@ -11,6 +11,7 @@ import { ConsultationTopic } from './consultation/entities/consultation_topic.en
 import { CallModule } from './call/call.module';
 import { ChatModule } from './chat/chat.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { ConsultationOrchestratorModule } from './orchestrator/consultation-orchestrator.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ReviewsModule } from './reviews/reviews.module';
     forwardRef(() => ChatModule),
     forwardRef(() => CallModule),
     forwardRef(() => ReviewsModule),
+    ConsultationOrchestratorModule,
   ],
   controllers: [ConsultationController, ConsultationTopicController],
   providers: [GetUnifiedHistoryUseCase, GetConsultationTopicsUseCase],
@@ -31,6 +33,7 @@ import { ReviewsModule } from './reviews/reviews.module';
     CallModule,
     ReviewsModule,
     GetConsultationTopicsUseCase,
+    ConsultationOrchestratorModule,
   ],
 })
 export class ConsultationModule {}

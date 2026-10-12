@@ -30,14 +30,41 @@ export class CreateEarningPolicyDto {
   @IsString()
   name!: string;
 
+  @IsOptional()
+  @IsString()
+  code?: string;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
+  @IsString()
+  currency?: string;
+
+  @IsOptional()
+  @IsString()
+  effective_from?: string | Date;
+
+  @IsOptional()
+  @IsString()
+  effective_to?: string | Date;
+
+  @IsOptional()
   @IsEnum(EarningEventType)
-  event_type!: EarningEventType;
+  event_type?: EarningEventType;
 
+  @IsOptional()
   @IsEnum(EarningRateType)
-  platform_cut_type!: EarningRateType;
+  platform_cut_type?: EarningRateType;
 
+  @IsOptional()
   @IsNumber()
-  platform_cut_value!: number;
+  platform_cut_value?: number;
 
   @IsOptional()
   @IsNumber()

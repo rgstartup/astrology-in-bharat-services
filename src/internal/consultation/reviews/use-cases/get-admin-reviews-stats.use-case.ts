@@ -1,32 +1,34 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Review } from '../entities/review.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { count, gte, lte, eq } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { reviews } from '@/core/drizzledb/schema';
 
 @Injectable()
 export class GetAdminReviewsStatsUseCase {
-  constructor(
-    @InjectRepository(Review)
-    private readonly reviewRepository: Repository<Review>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute() {
-    const total = await this.reviewRepository.count();
-
-    const goodCount = await this.reviewRepository
-      .createQueryBuilder('review')
-      .where('review.rating >= :rating', { rating: 4 })
-      .getCount();
-
-    const moderateCount = await this.reviewRepository
-      .createQueryBuilder('review')
-      .where('review.rating = :rating', { rating: 3 })
-      .getCount();
-
-    const badCount = await this.reviewRepository
-      .createQueryBuilder('review')
-      .where('review.rating <= :rating', { rating: 2 })
-      .getCount();
+    const [
+      [{ total }],
+      [{ good: goodCount }],
+      [{ moderate: moderateCount }],
+      [{ bad: badCount }],
+    ] = await Promise.all([
+      this.db.select({ total: count() }).from(reviews),
+      this.db
+        .select({ good: count() })
+        .from(reviews)
+        .where(gte(reviews.rating, 4)),
+      this.db
+        .select({ moderate: count() })
+        .from(reviews)
+        .where(eq(reviews.rating, 3)),
+      this.db
+        .select({ bad: count() })
+        .from(reviews)
+        .where(lte(reviews.rating, 2)),
+    ]);
 
     return {
       total,
@@ -36,3 +38,4 @@ export class GetAdminReviewsStatsUseCase {
     };
   }
 }
+

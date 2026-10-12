@@ -3,7 +3,7 @@ import { FavoriteExpertController } from './controllers/expert.controller';
 import { FavoriteProductController } from './controllers/product.controller';
 import { FavoriteProductVariantController } from './controllers/product-variant.controller';
 import { FavoritesService } from './favorites.service';
-import { AddExpertToFavoritesUseCase } from './use-cases/add-expert-to-fovorites.usecase';
+import { AddExpertToFavoritesUseCase } from './use-cases/add-expert-to-favorites.usecase';
 import { FindFavoriteExpertsUseCase } from './use-cases/find-all-favorite-experts.usecase';
 import { RemoveExpertFromFavoritesUseCase } from './use-cases/remove-expert-from-favorites.usecase';
 import { AddProductToFavoritesUseCase } from './use-cases/add-product-to-favorites.usecase';
