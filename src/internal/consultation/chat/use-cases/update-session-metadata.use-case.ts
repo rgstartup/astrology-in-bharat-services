@@ -4,6 +4,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
 
+/**
+ * @deprecated Legacy TypeORM metadata updater. Not used in new consultation architecture.
+ */
 @Injectable()
 export class UpdateSessionMetadataUseCase {
   constructor(

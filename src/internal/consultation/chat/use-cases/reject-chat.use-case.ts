@@ -6,6 +6,9 @@ import { ChatSession } from '../entities/chat-session.entity';
 import { ChatSessionStatus } from '../enum';
 import { WalletService } from '../../../finance/wallet/wallet.service';
 
+/**
+ * @deprecated Legacy TypeORM rejection logic. Replaced by `RejectConsultationUseCase` in `ConsultationOrchestratorModule`.
+ */
 @Injectable()
 export class RejectChatUseCase {
   constructor(

@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { ChatMessage } from '../entities/chat-message.entity';
 import { MessageType } from '../enum';
 
+/**
+ * @deprecated Legacy TypeORM message persistence. Replaced by Drizzle `persistChatMessage()` under `internal/realtime/chat`.
+ */
 @Injectable()
 export class SaveMessageUseCase {
   constructor(

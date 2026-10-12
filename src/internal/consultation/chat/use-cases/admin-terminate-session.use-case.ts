@@ -1,4 +1,4 @@
-import type { DeferredDependency } from '../../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import {
   Injectable,
   NotFoundException,
@@ -11,6 +11,9 @@ import { ChatSession } from '../entities/chat-session.entity';
 import { ChatGateway } from '../chat.gateway';
 import { ChatSessionStatus } from '../enum';
 
+/**
+ * @deprecated Legacy TypeORM admin session termination. Replaced by `EndConsultationUseCase` in `ConsultationOrchestratorModule`.
+ */
 @Injectable()
 export class AdminTerminateSessionUseCase {
   constructor(

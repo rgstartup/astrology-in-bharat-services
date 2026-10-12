@@ -4,6 +4,9 @@ import { Repository, In, MoreThanOrEqual } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
 import { ChatSessionStatus } from '../enum';
 
+/**
+ * @deprecated Legacy TypeORM expert sessions count & revenue. Replaced by Drizzle consultation queries.
+ */
 @Injectable()
 export class CountExpertSessionsUseCase {
   constructor(

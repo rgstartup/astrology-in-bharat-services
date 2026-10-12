@@ -11,6 +11,9 @@ import { Repository } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
 import { WalletService } from '../../../finance/wallet/wallet.service';
 
+/**
+ * @deprecated Legacy TypeORM free-to-paid conversion. Replaced by `ConsultationBudgetEngine` in `ConsultationOrchestratorModule`.
+ */
 @Injectable()
 export class ConvertToPaidUseCase {
   constructor(

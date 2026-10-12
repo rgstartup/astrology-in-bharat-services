@@ -3,6 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
 
+/**
+ * @deprecated Legacy TypeORM session details resolver. Replaced by Drizzle consultation queries.
+ */
 @Injectable()
 export class ResolveSessionDetailsUseCase {
   constructor(

@@ -5,6 +5,9 @@ import { ChatMessage } from '../entities/chat-message.entity';
 import { ChatSession } from '../entities/chat-session.entity';
 import { ChatSessionStatus } from '../enum';
 
+/**
+ * @deprecated Legacy TypeORM session query. Admin sessions view will migrate to Drizzle consultations table.
+ */
 @Injectable()
 export class FindAllSessionsUseCase {
   constructor(

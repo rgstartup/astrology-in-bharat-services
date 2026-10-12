@@ -4,6 +4,9 @@ import { Repository, Between } from 'typeorm';
 import { ChatSession } from '../entities/chat-session.entity';
 import { ChatSessionStatus } from '../enum';
 
+/**
+ * @deprecated Legacy TypeORM sessions-by-date query. Replaced by Drizzle consultation queries.
+ */
 @Injectable()
 export class GetExpertSessionsByDateUseCase {
   constructor(
