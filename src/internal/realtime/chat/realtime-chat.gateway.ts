@@ -160,45 +160,48 @@ export class RealtimeChatGateway implements OnGatewayInit {
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(SOCKET_EVENTS.CHAT.ACCEPT)
   async handleChatAccept(
-    @ConnectedSocket() _socket: RealtimeSocket,
+    @ConnectedSocket() socket: RealtimeSocket,
     @MessageBody() dto: ChatActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
     if (identity.actorType !== 'expert') return { status: CONSULTATION_ACK_STATUS.IGNORED };
-    return this.orchestrator.accept(this.server, {
-      consultationId: dto.consultationId,
-      actorId: identity.id,
-      actorType: 'expert',
-    });
+    return this.expertRealtimeService.acceptChat(
+      this.server,
+      socket,
+      dto.consultationId,
+      identity,
+    );
   }
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(SOCKET_EVENTS.CHAT.REJECT)
   async handleChatReject(
-    @ConnectedSocket() _socket: RealtimeSocket,
+    @ConnectedSocket() socket: RealtimeSocket,
     @MessageBody() dto: ChatActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
     if (identity.actorType !== 'expert') return { status: CONSULTATION_ACK_STATUS.IGNORED };
-    return this.orchestrator.reject(this.server, {
-      consultationId: dto.consultationId,
-      actorId: identity.id,
-      actorType: 'expert',
-    });
+    return this.expertRealtimeService.rejectChat(
+      this.server,
+      socket,
+      dto.consultationId,
+      identity,
+    );
   }
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(SOCKET_EVENTS.CHAT.END)
   async handleChatEnd(
-    @ConnectedSocket() _socket: RealtimeSocket,
+    @ConnectedSocket() socket: RealtimeSocket,
     @MessageBody() dto: ChatActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
-    return this.orchestrator.end(this.server, {
-      consultationId: dto.consultationId,
-      actorId: identity.id,
-      actorType: identity.actorType === 'client' ? 'client' : 'expert',
-    });
+    return this.forActor(identity).endChat(
+      this.server,
+      socket,
+      dto.consultationId,
+      identity,
+    );
   }
 
   @UseGuards(WsAuthGuard)

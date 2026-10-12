@@ -85,15 +85,21 @@ export class PauseConsultationUseCase {
     await this.rooms.pauseRoom(row.id);
     await this.getAdapter(mode).onPause(row.id);
 
+    const elapsedSec = affordability?.elapsedSeconds ?? 0;
+    const ratePerMin = affordability?.ratePerMinute ?? 0;
+    const consumedAmount = Math.round((elapsedSec / 60) * ratePerMin * 100) / 100;
+
     const payload: ConsultationStatePayload = {
       consultationId: row.id,
       mode,
       state: 'paused',
       reason: command.reason ?? 'manual',
       startedAt: affordability?.startedAt ?? null,
-      elapsedSeconds: affordability?.elapsedSeconds ?? 0,
+      elapsedSeconds: elapsedSec,
       maxMinutes: affordability?.maxMinutes ?? 0,
-      ratePerMinute: affordability?.ratePerMinute ?? 0,
+      ratePerMinute: ratePerMin,
+      pauseExpiresInSec: 300,
+      consumedAmount,
       timestamp: now.toISOString(),
     };
 

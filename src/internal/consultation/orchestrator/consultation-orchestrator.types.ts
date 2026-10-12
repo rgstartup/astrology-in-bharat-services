@@ -128,6 +128,8 @@ export interface ConsultationStatePayload {
   remainingSeconds?: number;
   maxMinutes: number;
   ratePerMinute: number;
+  pauseExpiresInSec?: number;
+  consumedAmount?: number;
   timestamp: string;
 }
 
@@ -151,6 +153,14 @@ export interface ConsultationBudgetTickPayload {
   elapsedSeconds: number;
   maxMinutes: number;
   ratePerMinute: number;
+  timestamp: string;
+}
+
+export interface ConsultationBudgetWarningPayload {
+  consultationId: number;
+  mode: ConsultationModeType;
+  remainingSeconds: number;
+  message?: string;
   timestamp: string;
 }
 

@@ -11,8 +11,11 @@ import {
   StartConsultationUseCase,
   TriggerBudgetHoldUseCase,
 } from './use-cases';
+import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
+import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import {
   AcceptConsultationCommand,
+  ConsultationBudgetWarningPayload,
   ConsultationEndedPayload,
   ConsultationModeType,
   ConsultationStatePayload,
@@ -27,6 +30,7 @@ import {
 export class ConsultationOrchestratorService {
   private readonly logger = new Logger(ConsultationOrchestratorService.name);
   private readonly budgetTimers = new Map<number, NodeJS.Timeout>();
+  private readonly warningTimers = new Map<number, NodeJS.Timeout>();
   private readonly graceTimers = new Map<number, NodeJS.Timeout>();
 
   constructor(
@@ -105,6 +109,30 @@ export class ConsultationOrchestratorService {
         void this.triggerBudgetHold(server, consultationId);
         return;
       }
+
+      // 60-second advance warning before exhaustion if remaining time allows
+      const warningThresholdSec = 60;
+      if (live.remainingSeconds > warningThresholdSec) {
+        const warningDelayMs = (live.remainingSeconds - warningThresholdSec) * 1000;
+        const warningTimer = setTimeout(() => {
+          this.warningTimers.delete(consultationId);
+          const warningPayload: ConsultationBudgetWarningPayload = {
+            consultationId,
+            mode,
+            remainingSeconds: warningThresholdSec,
+            message: '1 minute remaining in consultation.',
+            timestamp: new Date().toISOString(),
+          };
+          server
+            .to(SOCKET_ROOMS.CONSULTATION(consultationId))
+            .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.WARNING, warningPayload);
+          server
+            .to(SOCKET_ROOMS.CHAT_SESSION(consultationId))
+            .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.WARNING, warningPayload);
+        }, Math.min(warningDelayMs, 2_147_483_647));
+        this.warningTimers.set(consultationId, warningTimer);
+      }
+
       const delayMs = Math.max(1000, live.remainingSeconds * 1000);
       const timer = setTimeout(() => {
         void this.triggerBudgetHold(server, consultationId);
@@ -118,6 +146,11 @@ export class ConsultationOrchestratorService {
     if (timer) {
       clearTimeout(timer);
       this.budgetTimers.delete(consultationId);
+    }
+    const warningTimer = this.warningTimers.get(consultationId);
+    if (warningTimer) {
+      clearTimeout(warningTimer);
+      this.warningTimers.delete(consultationId);
     }
   }
 

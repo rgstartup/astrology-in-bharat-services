@@ -26,7 +26,7 @@ import {
 } from '../errors';
 import { ChatEligibilityResponseDto } from '../dto/chat-eligibility-response.dto';
 
-export const MIN_PAID_CHAT_MINUTES = 5;
+export const MIN_PAID_CHAT_MINUTES = 1;
 
 interface ExpertPricing {
   id: number;

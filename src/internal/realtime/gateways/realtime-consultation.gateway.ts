@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { SOCKET_EVENTS } from '../constants/socket-events.constant';
+import { SOCKET_ROOMS } from '../constants/socket-rooms.constant';
 import { WsAuthGuard } from '../guards/ws-auth.guard';
 import { CurrentWsAuth } from '../decorators/current-ws-auth.decorator';
 import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
@@ -54,16 +55,18 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(SOCKET_EVENTS.CONSULTATION.COMMANDS.ACCEPT)
   async handleAccept(
-    @ConnectedSocket() _socket: RealtimeSocket,
+    @ConnectedSocket() socket: RealtimeSocket,
     @MessageBody() dto: ConsultationActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
     if (identity.actorType !== 'expert') {
       return { status: 'ignored', message: 'Only experts can accept consultations' };
     }
+    await socket.join(SOCKET_ROOMS.CONSULTATION(dto.consultationId));
+    await socket.join(SOCKET_ROOMS.CHAT_SESSION(dto.consultationId));
     return this.orchestrator.accept(this.server, {
       consultationId: dto.consultationId,
-      actorId: identity.id,
+      actorId: identity.expertId,
       actorType: 'expert',
     });
   }
@@ -80,7 +83,7 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
     }
     return this.orchestrator.reject(this.server, {
       consultationId: dto.consultationId,
-      actorId: identity.id,
+      actorId: identity.expertId,
       actorType: 'expert',
       reason: dto.reason,
     });
@@ -93,9 +96,10 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
     @MessageBody() dto: ConsultationActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
+    const actorId = identity.actorType === 'expert' ? identity.expertId : identity.id;
     return this.orchestrator.start(this.server, {
       consultationId: dto.consultationId,
-      actorId: identity.id,
+      actorId,
       actorType: identity.actorType === 'client' ? 'client' : 'expert',
     });
   }
@@ -107,9 +111,10 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
     @MessageBody() dto: ConsultationActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
+    const actorId = identity.actorType === 'expert' ? identity.expertId : identity.id;
     return this.orchestrator.pause(this.server, {
       consultationId: dto.consultationId,
-      actorId: identity.id,
+      actorId,
       actorType: identity.actorType === 'client' ? 'client' : 'expert',
       reason: 'manual',
     });
@@ -122,9 +127,10 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
     @MessageBody() dto: ConsultationActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
+    const actorId = identity.actorType === 'expert' ? identity.expertId : identity.id;
     return this.orchestrator.resume(this.server, {
       consultationId: dto.consultationId,
-      actorId: identity.id,
+      actorId,
       actorType: identity.actorType === 'client' ? 'client' : 'expert',
     });
   }
@@ -136,9 +142,10 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
     @MessageBody() dto: ConsultationActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
+    const actorId = identity.actorType === 'expert' ? identity.expertId : identity.id;
     return this.orchestrator.end(this.server, {
       consultationId: dto.consultationId,
-      actorId: identity.id,
+      actorId,
       actorType: identity.actorType === 'client' ? 'client' : 'expert',
       reason: dto.reason ?? 'manual',
     });
