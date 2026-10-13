@@ -1,5 +1,8 @@
 import { ConsultationMode } from '@/internal/consultation/enums';
-export type { IConsultationModeAdapter } from './adapters/consultation-mode.adapter';
+export type {
+  ConsultationResumeContext,
+  IConsultationModeAdapter,
+} from './adapters/consultation-mode.adapter';
 
 /**
  * Standardized string mode names across client, expert, and backend orchestrator.
@@ -74,6 +77,13 @@ export interface RejectConsultationCommand {
   actorId: number;
   actorType: 'expert' | 'client' | 'system';
   reason?: string;
+}
+
+export interface RequestConsultationCommand {
+  consultationId: number;
+  actorId: number;
+  actorType: 'client';
+  expertId: number;
 }
 
 export interface CancelConsultationCommand {

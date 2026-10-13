@@ -8,10 +8,12 @@ import { VoiceModeAdapter } from './adapters/voice-mode.adapter';
 import { VideoModeAdapter } from './adapters/video-mode.adapter';
 import {
   AcceptConsultationUseCase,
+  CancelConsultationUseCase,
   EndConsultationUseCase,
   GetConsultationStatusUseCase,
   PauseConsultationUseCase,
   RejectConsultationUseCase,
+  RequestConsultationUseCase,
   ResumeConsultationUseCase,
   StartConsultationUseCase,
   TriggerBudgetHoldUseCase,
@@ -20,6 +22,8 @@ import {
 const USE_CASES = [
   AcceptConsultationUseCase,
   RejectConsultationUseCase,
+  RequestConsultationUseCase,
+  CancelConsultationUseCase,
   StartConsultationUseCase,
   PauseConsultationUseCase,
   ResumeConsultationUseCase,

@@ -16,24 +16,27 @@ export const SOCKET_EVENTS = {
   },
 
   CHAT: {
+    // Transport-only events (remain on chat gateway)
     JOIN: 'consultation:chat:join',
     LEAVE: 'consultation:chat:leave',
     SEND: 'consultation:chat:send',
     MESSAGE: 'consultation:chat:message',
     TYPING: 'consultation:chat:typing',
-    END: 'consultation:chat:end',
-    REQUEST: 'consultation:chat:request',
-    INCOMING: 'consultation:chat:incoming',
-    ACCEPT: 'consultation:chat:accept',
-    REJECT: 'consultation:chat:reject',
-    ACCEPTED: 'consultation:chat:accepted',
-    REJECTED: 'consultation:chat:rejected',
-    CANCEL: 'consultation:chat:cancel',
-    ENDED: 'consultation:chat:ended',
-    PAUSE: 'consultation:chat:pause',
-    PAUSED: 'consultation:chat:paused',
-    RESUME: 'consultation:chat:resume',
-    RESUMED: 'consultation:chat:resumed',
+
+    // Deprecated lifecycle events — use CONSULTATION.COMMANDS/EVENTS instead
+    // END: 'consultation:chat:end',
+    // REQUEST: 'consultation:chat:request',
+    // INCOMING: 'consultation:chat:incoming',
+    // ACCEPT: 'consultation:chat:accept',
+    // REJECT: 'consultation:chat:reject',
+    // ACCEPTED: 'consultation:chat:accepted',
+    // REJECTED: 'consultation:chat:rejected',
+    // CANCEL: 'consultation:chat:cancel',
+    // ENDED: 'consultation:chat:ended',
+    // PAUSE: 'consultation:chat:pause',
+    // PAUSED: 'consultation:chat:paused',
+    // RESUME: 'consultation:chat:resume',
+    // RESUMED: 'consultation:chat:resumed',
   },
 
   /**

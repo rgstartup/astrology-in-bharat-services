@@ -18,7 +18,6 @@ import {
 } from '@/internal/consultation/enums';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
-import { ConsultationRoomRepository } from '../../room/consultation-room.repository';
 import { ConsultationBudgetEngine } from '../consultation-budget.engine';
 import { ChatModeAdapter } from '../adapters/chat-mode.adapter';
 import { VoiceModeAdapter } from '../adapters/voice-mode.adapter';
@@ -28,7 +27,6 @@ import {
   ConsultationStatePayload,
   IConsultationModeAdapter,
   StartConsultationCommand,
-  toConsultationModeEnum,
   toConsultationModeType,
 } from '../consultation-orchestrator.types';
 
@@ -38,8 +36,8 @@ import {
  * Responsibilities:
  * - Activate pending `consultation_sessions` row and set `started_at` in DB.
  * - Transition consultation status from `ACCEPTED` to `ACTIVE`.
- * - Record currently active metered mode and clear any stale pause key in Redis.
- * - Dispatch session initialization to the target mode adapter (`ChatModeAdapter`, `VoiceModeAdapter`, `VideoModeAdapter`).
+ * - Delegate channel setup (active-mode marker, stale pause clear) to the
+ *   target mode adapter (`ChatModeAdapter`, `VoiceModeAdapter`, `VideoModeAdapter`).
  * - Calculate live affordability and broadcast `consultation:started` event.
  */
 @Injectable()
@@ -48,7 +46,6 @@ export class StartConsultationUseCase {
 
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
-    private readonly rooms: ConsultationRoomRepository,
     private readonly budget: ConsultationBudgetEngine,
     chatAdapter: ChatModeAdapter,
     voiceAdapter: VoiceModeAdapter,
@@ -123,9 +120,6 @@ export class StartConsultationUseCase {
         })
         .where(eq(consultations.id, row.id));
     }
-
-    await this.rooms.setActiveMode(row.id, toConsultationModeEnum(mode));
-    await this.rooms.clearPaused(row.id);
 
     await this.getAdapter(mode).onStart(row.id, activeSession ?? {});
 

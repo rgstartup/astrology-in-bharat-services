@@ -84,7 +84,7 @@ export class AcceptConsultationUseCase {
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED, payload);
     server
       .to(SOCKET_ROOMS.CHAT_SESSION(consultation.id))
-      .emit(SOCKET_EVENTS.CHAT.ACCEPTED, payload);
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED, payload);
 
     return { status: 'accepted', consultationId: consultation.id };
   }

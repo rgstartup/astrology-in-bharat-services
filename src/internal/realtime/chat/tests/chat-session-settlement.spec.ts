@@ -57,7 +57,7 @@ describe('closeActiveChatSessions (disconnect closes live sessions)', () => {
     );
     expect(server.to).toHaveBeenCalledWith('chat:7');
     expect(emit).toHaveBeenCalledWith(
-      'consultation:chat:ended',
+      'consultation:ended',
       expect.objectContaining({
         consultationId: 7,
         endedBy: 'client_disconnect',

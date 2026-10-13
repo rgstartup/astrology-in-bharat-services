@@ -16,6 +16,12 @@ import {
   type PresenceChangedEventPayload,
   type PresenceRedisClient,
 } from './presence.types';
+
+/** Raw shape of the `presence:expert:{id}:consultation` BUSY marker. */
+export interface ConsultationMarker {
+  state: ConsultationState;
+  consultationId: string | null;
+}
 import { registerPresenceScripts } from './utils/register-presence-scripts.util';
 
 @Injectable()
@@ -185,6 +191,58 @@ export class PresenceRedisRepository {
       this.logger.error(
         `Failed to set consultation state in Redis for expert ${expertId}: ${(err as Error).message}`,
       );
+    }
+  }
+
+  /**
+   * Raw BUSY-marker read (null when absent/unparseable). Repair logic uses
+   * this instead of `getConsultationState` so it can verify the holding
+   * consultation against the DB.
+   */
+  async getConsultationMarker(
+    expertId: number,
+  ): Promise<ConsultationMarker | null> {
+    try {
+      const key = PRESENCE_KEYS.expertConsultation(expertId);
+      const val = await this.redis.get(key);
+      if (!val) return null;
+      const parsed = JSON.parse(val);
+      return {
+        state:
+          parsed.state === ConsultationState.BUSY
+            ? ConsultationState.BUSY
+            : ConsultationState.IDLE,
+        consultationId:
+          parsed.consultationId != null
+            ? String(parsed.consultationId)
+            : null,
+      };
+    } catch (err) {
+      this.logger.error(
+        `Failed to get consultation marker for expert ${expertId}: ${(err as Error).message}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Re-applies the TTL on a live BUSY marker without changing its payload.
+   * Called from the 30s expert heartbeat while the consultation is verified
+   * live, so the 15min bound only ever fires after a real crash. Returns
+   * false when no marker exists.
+   */
+  async refreshConsultationMarker(expertId: number): Promise<boolean> {
+    try {
+      const key = PRESENCE_KEYS.expertConsultation(expertId);
+      const val = await this.redis.get(key);
+      if (!val) return false;
+      await this.redis.set(key, val, PRESENCE_CONSULTATION_TTL);
+      return true;
+    } catch (err) {
+      this.logger.error(
+        `Failed to refresh consultation marker for expert ${expertId}: ${(err as Error).message}`,
+      );
+      return false;
     }
   }
 

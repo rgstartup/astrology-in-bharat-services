@@ -1,9 +1,10 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { inArray, eq } from 'drizzle-orm';
+import { and, gt, inArray, eq } from 'drizzle-orm';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { expertAccounts } from '@/core/drizzledb/schema';
+import { consultations, expertAccounts } from '@/core/drizzledb/schema';
+import { ConsultationStatus } from '@/internal/consultation/enums';
 import { RedisService } from '@/core/redis/redis.service';
 import {
   PRESENCE_EVENT_NAME,
@@ -24,6 +25,20 @@ import {
   deriveExpertClientStatus,
   isAvailableForConsultation,
 } from './utils/presence.utils';
+
+/** Consultation rows that can never go live again: a BUSY marker naming one is stale. */
+const TERMINAL_CONSULTATION_STATUSES = [
+  ConsultationStatus.COMPLETED,
+  ConsultationStatus.CANCELLED,
+  ConsultationStatus.REJECTED,
+  ConsultationStatus.MISSED,
+  ConsultationStatus.EXPIRED,
+];
+
+/** Boot-sweep lookback: markers older than the 15min TTL are dead anyway. */
+const SWEEP_LOOKBACK_MS = 60 * 60 * 1000;
+/** Boot-sweep cap: bounded work at startup; TTL bounds the rest. */
+const SWEEP_LIMIT = 500;
 
 @Injectable()
 export class PresenceService implements OnModuleInit {
@@ -54,6 +69,51 @@ export class PresenceService implements OnModuleInit {
         `Failed to subscribe to Redis presence Pub/Sub channel: ${(err as Error).message}`,
       );
     }
+    await this.sweepStaleBusyMarkers();
+  }
+
+  /**
+   * Boot sweep: release BUSY markers whose consultation ended terminally
+   * while this instance was down. DB-driven (recently-terminal rows mapped
+   * to experts, marker compared before DEL) so no Redis key enumeration is
+   * needed. Best-effort: repair-on-read and the 15min TTL cover the rest.
+   */
+  private async sweepStaleBusyMarkers(): Promise<void> {
+    try {
+      const cutoff = new Date(Date.now() - SWEEP_LOOKBACK_MS);
+      const rows = await this.db
+        .select({ id: consultations.id, expertId: consultations.expert_id })
+        .from(consultations)
+        .where(
+          and(
+            inArray(consultations.status, [...TERMINAL_CONSULTATION_STATUSES]),
+            gt(consultations.updated_at, cutoff),
+          ),
+        )
+        .limit(SWEEP_LIMIT);
+      let repaired = 0;
+      for (const row of rows) {
+        try {
+          const marker = await this.redisRepo.getConsultationMarker(row.expertId);
+          if (
+            marker?.state === ConsultationState.BUSY &&
+            marker.consultationId === String(row.id)
+          ) {
+            await this.setIdle(row.expertId, row.id);
+            repaired += 1;
+          }
+        } catch {
+          continue;
+        }
+      }
+      this.logger.log(
+        `[Presence] Boot sweep: checked ${rows.length} terminal consultations, repaired ${repaired} stale busy markers`,
+      );
+    } catch (err) {
+      this.logger.warn(
+        `Presence boot sweep failed (repair-on-read still applies): ${(err as Error).message}`,
+      );
+    }
   }
 
   async connect(expertId: number, connectionId: string): Promise<void> {
@@ -74,6 +134,9 @@ export class PresenceService implements OnModuleInit {
       expertId,
       connectionId,
     );
+    // Sustain the BUSY marker while the expert is live: repair it when the
+    // holding consultation is terminal, else refresh its 15min TTL.
+    await this.sustainBusyMarker(expertId);
     // A heartbeat that revives an expired connection is an
     // offline->online transition: steady heartbeats stay silent.
     if (ok && revived) {
@@ -112,6 +175,7 @@ export class PresenceService implements OnModuleInit {
   }
 
   async getStatus(expertId: number): Promise<ExpertClientStatus> {
+    await this.repairStaleBusyMarker(expertId);
     const [realtime, availability, consultation] = await Promise.all([
       this.redisRepo.getRealtimePresence(expertId),
       this.getAvailabilityMode(expertId),
@@ -122,6 +186,7 @@ export class PresenceService implements OnModuleInit {
   }
 
   async getFullStatus(expertId: number): Promise<ExpertFullStatus> {
+    await this.repairStaleBusyMarker(expertId);
     const [realtime, account, consultation] = await Promise.all([
       this.redisRepo.getRealtimePresence(expertId),
       this.loadAccountState(expertId),
@@ -287,6 +352,87 @@ export class PresenceService implements OnModuleInit {
     }
 
     return { mode: AvailabilityMode.AVAILABLE, lastSeenAt: null };
+  }
+
+  /**
+   * Repair-on-read: a BUSY marker naming a missing, foreign, or terminal
+   * consultation is released before the status is derived, so every status
+   * evaluation self-heals crash orphans (bug-070 class). Never throws and
+   * never refreshes the TTL (reads must not slide expiry). Fail-closed: a
+   * DB error keeps the marker.
+   */
+  private async repairStaleBusyMarker(expertId: number): Promise<boolean> {
+    try {
+      const marker = await this.redisRepo.getConsultationMarker(expertId);
+      if (
+        !marker ||
+        marker.state !== ConsultationState.BUSY ||
+        !marker.consultationId
+      ) {
+        return false;
+      }
+      if (!(await this.isBusyMarkerStale(marker.consultationId, expertId))) {
+        return false;
+      }
+      await this.setIdle(expertId, marker.consultationId);
+      this.logger.warn(
+        `[Presence] repair_stale_busy expert=${expertId} consultation=${marker.consultationId}`,
+      );
+      return true;
+    } catch (err) {
+      this.logger.warn(
+        `Busy-marker repair failed for expert ${expertId}: ${(err as Error).message}`,
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Heartbeat sustain: repair a stale BUSY marker, else refresh its TTL so
+   * the 15min bound only fires after a real crash, never mid-consultation.
+   */
+  private async sustainBusyMarker(expertId: number): Promise<void> {
+    try {
+      if (await this.repairStaleBusyMarker(expertId)) return;
+      const marker = await this.redisRepo.getConsultationMarker(expertId);
+      if (marker?.state === ConsultationState.BUSY) {
+        await this.redisRepo.refreshConsultationMarker(expertId);
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Busy-marker sustain failed for expert ${expertId}: ${(err as Error).message}`,
+      );
+    }
+  }
+
+  /**
+   * True when the holding consultation is gone, belongs to another expert,
+   * or can never go live again. False (keep BUSY) on any DB error.
+   */
+  private async isBusyMarkerStale(
+    consultationId: string,
+    expertId: number,
+  ): Promise<boolean> {
+    const id = Number(consultationId);
+    if (!Number.isInteger(id)) return false;
+    try {
+      const [row] = await this.db
+        .select({
+          id: consultations.id,
+          expertId: consultations.expert_id,
+          status: consultations.status,
+        })
+        .from(consultations)
+        .where(eq(consultations.id, id))
+        .limit(1);
+      if (!row || row.expertId !== expertId) return true;
+      return (TERMINAL_CONSULTATION_STATUSES as string[]).includes(row.status);
+    } catch (err) {
+      this.logger.warn(
+        `Busy-marker staleness check failed for consultation ${consultationId}: ${(err as Error).message}`,
+      );
+      return false;
+    }
   }
 
   private async evaluateAndPublishStatusChange(

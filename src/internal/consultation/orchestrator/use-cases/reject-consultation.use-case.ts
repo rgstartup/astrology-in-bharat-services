@@ -156,10 +156,10 @@ export class RejectConsultationUseCase {
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.REJECTED, payload);
     server
       .to(SOCKET_ROOMS.CHAT_SESSION(claimed.id))
-      .emit(SOCKET_EVENTS.CHAT.REJECTED, payload);
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.REJECTED, payload);
     server
       .to(SOCKET_ROOMS.EXPERT(claimed.expert_id))
-      .emit(SOCKET_EVENTS.CHAT.REJECTED, payload);
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.REJECTED, payload);
 
     return { status: 'rejected', consultationId: claimed.id };
   }

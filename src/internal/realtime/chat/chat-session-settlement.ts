@@ -60,8 +60,15 @@ async function closeForConsultation(
     `[ChatSession] Consultation ${consultationId} sessions closed by ${endedBy} (${closed.length}).`,
   );
   server
+    .to(SOCKET_ROOMS.CONSULTATION(consultationId))
+    .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED, {
+      consultationId,
+      endedBy,
+      timestamp: now.toISOString(),
+    });
+  server
     .to(SOCKET_ROOMS.CHAT_SESSION(consultationId))
-    .emit(SOCKET_EVENTS.CHAT.ENDED, {
+    .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED, {
       consultationId,
       endedBy,
       timestamp: now.toISOString(),

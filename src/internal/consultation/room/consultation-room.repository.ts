@@ -129,6 +129,16 @@ export class ConsultationRoomRepository {
     return this.redis.get(consultationPausedKey(consultationId)).then((v) => v !== null);
   }
 
+  /**
+   * Remaining pause-window milliseconds from the paused-key TTL. Null when
+   * no pause is armed (key missing or persistent) — callers fall back to a
+   * full grace window.
+   */
+  async pausedTtlMs(consultationId: number): Promise<number | null> {
+    const ms = await this.redis.pttl(consultationPausedKey(consultationId));
+    return ms > 0 ? ms : null;
+  }
+
   clearPaused(consultationId: number): Promise<number> {
     return this.redis.del(consultationPausedKey(consultationId));
   }
@@ -238,5 +248,19 @@ export class ConsultationRoomRepository {
 
   clearActiveMode(consultationId: number): Promise<number> {
     return this.redis.del(consultationModeKey(consultationId));
+  }
+
+  /**
+   * Arm the request expiry timer. Re-uses the room key TTL.
+   */
+  async armRequestExpiry(consultationId: number): Promise<void> {
+    await this.refreshRoom(consultationId);
+  }
+
+  /**
+   * Cancel the request expiry timer by clearing the room key.
+   */
+  async cancelRequestExpiry(consultationId: number): Promise<void> {
+    await this.clearRoom(consultationId);
   }
 }

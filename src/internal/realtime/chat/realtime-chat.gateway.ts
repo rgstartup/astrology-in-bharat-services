@@ -7,6 +7,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import {
+  BadRequestException,
   Logger,
   UseFilters,
   UseGuards,
@@ -15,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { SOCKET_EVENTS } from '../constants/socket-events.constant';
-import { CONSULTATION_ACK_STATUS } from '../constants/consultation-ack-status.constant';
 import { WsAuthGuard } from '../guards/ws-auth.guard';
 import { CurrentWsAuth } from '../decorators/current-ws-auth.decorator';
 import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
@@ -26,8 +26,6 @@ import {
   LeaveChatDto,
   SendChatMessageDto,
   TypingChatDto,
-  ChatRequestDto,
-  ChatActionDto,
 } from './dto/chat-events.dto';
 import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
@@ -95,6 +93,12 @@ export class RealtimeChatGateway implements OnGatewayInit {
     @MessageBody() dto: SendChatMessageDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
+    // Guard: only allow sending messages when consultation is active
+    const status = await this.orchestrator.getStatus(dto.consultationId);
+    if (!status || status.state !== 'active') {
+      throw new BadRequestException('Consultation is not active');
+    }
+
     return this.forActor(identity).sendChatMessage(
       this.server,
       socket,
@@ -122,114 +126,5 @@ export class RealtimeChatGateway implements OnGatewayInit {
       dto.isTyping ?? true,
       identity,
     );
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHAT.REQUEST)
-  async handleChatRequest(
-    @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: ChatRequestDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    if (identity.actorType !== 'client') return { status: CONSULTATION_ACK_STATUS.IGNORED };
-    return this.clientRealtimeService.requestChat(
-      this.server,
-      socket,
-      dto.consultationId,
-      dto.expertId,
-      identity,
-    );
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHAT.CANCEL)
-  async handleChatCancel(
-    @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: ChatActionDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    if (identity.actorType !== 'client') return { status: CONSULTATION_ACK_STATUS.IGNORED };
-    return this.clientRealtimeService.cancelChat(
-      this.server,
-      socket,
-      dto.consultationId,
-      identity,
-    );
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHAT.ACCEPT)
-  async handleChatAccept(
-    @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: ChatActionDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    if (identity.actorType !== 'expert') return { status: CONSULTATION_ACK_STATUS.IGNORED };
-    return this.expertRealtimeService.acceptChat(
-      this.server,
-      socket,
-      dto.consultationId,
-      identity,
-    );
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHAT.REJECT)
-  async handleChatReject(
-    @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: ChatActionDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    if (identity.actorType !== 'expert') return { status: CONSULTATION_ACK_STATUS.IGNORED };
-    return this.expertRealtimeService.rejectChat(
-      this.server,
-      socket,
-      dto.consultationId,
-      identity,
-    );
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHAT.END)
-  async handleChatEnd(
-    @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: ChatActionDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.forActor(identity).endChat(
-      this.server,
-      socket,
-      dto.consultationId,
-      identity,
-    );
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHAT.PAUSE)
-  async handleChatPause(
-    @ConnectedSocket() _socket: RealtimeSocket,
-    @MessageBody() dto: ChatActionDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.orchestrator.pause(this.server, {
-      consultationId: dto.consultationId,
-      actorId: identity.id,
-      actorType: identity.actorType === 'client' ? 'client' : 'expert',
-      reason: 'manual',
-    });
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHAT.RESUME)
-  async handleChatResume(
-    @ConnectedSocket() _socket: RealtimeSocket,
-    @MessageBody() dto: ChatActionDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.orchestrator.resume(this.server, {
-      consultationId: dto.consultationId,
-      actorId: identity.id,
-      actorType: identity.actorType === 'client' ? 'client' : 'expert',
-    });
   }
 }

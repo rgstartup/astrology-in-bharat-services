@@ -62,6 +62,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.client.del(...keys);
   }
 
+  /**
+   * Milliseconds until `key` expires. `-2` when the key is missing, `-1`
+   * when it has no expiry.
+   */
+  async pttl(key: string): Promise<number> {
+    return this.client.pttl(key);
+  }
+
   async mget(keys: string[]): Promise<(string | null)[]> {
     if (keys.length === 0) return [];
     return this.client.mget(...keys);

@@ -1,5 +1,7 @@
 export * from './accept-consultation.use-case';
 export * from './reject-consultation.use-case';
+export * from './request-consultation.use-case';
+export * from './cancel-consultation.use-case';
 export * from './start-consultation.use-case';
 export * from './pause-consultation.use-case';
 export * from './resume-consultation.use-case';

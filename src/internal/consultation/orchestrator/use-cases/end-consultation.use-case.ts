@@ -19,10 +19,10 @@ import {
 import { PresenceService } from '@/internal/actors/expert/presence/presence.service';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
-import { ConsultationRoomRepository } from '../../room/consultation-room.repository';
 import { ChatModeAdapter } from '../adapters/chat-mode.adapter';
 import { VoiceModeAdapter } from '../adapters/voice-mode.adapter';
 import { VideoModeAdapter } from '../adapters/video-mode.adapter';
+import { ConsultationBudgetEngine } from '../consultation-budget.engine';
 import {
   ConsultationEndedPayload,
   ConsultationModeType,
@@ -38,8 +38,8 @@ import {
  * - Update consultation status to `COMPLETED` and record `ended_at` in DB.
  * - Complete active `consultation_sessions` row.
  * - Set expert presence back to `IDLE` via `PresenceService`.
- * - Clean up mode adapter resources (`onEnd`).
- * - Flush Redis pause, anchor, and active mode state keys.
+ * - Delegate teardown to the target mode adapter (`onEnd`): flush Redis
+ *   pause, anchor, budget, and active-mode keys plus mode-specific cleanup.
  * - Broadcast `consultation:ended` payload to participants.
  */
 @Injectable()
@@ -48,8 +48,8 @@ export class EndConsultationUseCase {
 
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
-    private readonly rooms: ConsultationRoomRepository,
     private readonly presence: PresenceService,
+    private readonly budget: ConsultationBudgetEngine,
     chatAdapter: ChatModeAdapter,
     voiceAdapter: VoiceModeAdapter,
     videoAdapter: VideoModeAdapter,
@@ -90,10 +90,14 @@ export class EndConsultationUseCase {
     const mode = toConsultationModeType(row.mode);
     const now = new Date();
 
+    const affordability = await this.budget.calculateAffordability(row.id, mode);
+    const durationSeconds = affordability?.elapsedSeconds ?? row.duration_seconds;
+
     await this.db
       .update(consultations)
       .set({
         status: ConsultationStatus.COMPLETED,
+        duration_seconds: durationSeconds,
         ended_at: now,
         updated_at: now,
       })
@@ -117,24 +121,23 @@ export class EndConsultationUseCase {
       .where(
         and(
           eq(consultationSessions.consultation_id, command.consultationId),
-          eq(consultationSessions.status, ConsultationSessionStatus.ACTIVE),
+          inArray(consultationSessions.status, [
+            ConsultationSessionStatus.PENDING,
+            ConsultationSessionStatus.ACTIVE,
+          ]),
         ),
       );
 
     await this.presence.setIdle(row.expert_id);
 
     await this.getAdapter(mode).onEnd(row.id);
-    await this.rooms.clearPaused(row.id);
-    await this.rooms.clearAnchor(row.id);
-    await this.rooms.clearBudget(row.id);
-    await this.rooms.clearActiveMode(row.id);
 
     const payload: ConsultationEndedPayload = {
       consultationId: row.id,
       mode,
       endedBy: String(command.actorId),
       reason: command.reason ?? 'manual',
-      totalDurationSeconds: row.duration_seconds,
+      totalDurationSeconds: durationSeconds,
       timestamp: now.toISOString(),
     };
 
@@ -143,7 +146,7 @@ export class EndConsultationUseCase {
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED, payload);
     server
       .to(SOCKET_ROOMS.CHAT_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CHAT.ENDED, payload);
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED, payload);
     server
       .to(SOCKET_ROOMS.CALL_SESSION(row.id))
       .emit(SOCKET_EVENTS.CALL.END, payload);

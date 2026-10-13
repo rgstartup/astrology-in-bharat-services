@@ -5,7 +5,6 @@ export { ChatAttachmentMessageError } from './chat-attachment-message.error';
 export { chatDisconnectGrace, chatDisconnectGraceMs, hasLiveActorSocket } from './chat-disconnect-grace';
 export { persistChatMessage, resolveMessageSessionId, toMessageType } from './chat-message-persistence';
 export { ChatRequestExpiryCron } from './chat-request-expiry.cron';
-export { chatRequestTimers } from './chat-request-timers';
 export { isChatParticipant, getConsultationStatus, resolveChatClientName } from './chat-room-access';
 export { closeActiveChatSessions } from './chat-session-settlement';
 export {

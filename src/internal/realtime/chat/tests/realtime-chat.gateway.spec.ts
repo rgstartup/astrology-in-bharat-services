@@ -43,7 +43,7 @@ describe('RealtimeChatGateway', () => {
     gateway = new RealtimeChatGateway(
       mockClientRealtimeService as unknown as ClientRealtimeService,
       mockExpertRealtimeService as unknown as ExpertRealtimeService,
-      { accept: vi.fn(), reject: vi.fn(), end: vi.fn(), pause: vi.fn(), resume: vi.fn() } as any,
+      { accept: vi.fn(), reject: vi.fn(), end: vi.fn(), pause: vi.fn(), resume: vi.fn(), getStatus: vi.fn().mockResolvedValue({ state: 'active' }) } as any,
     );
   });
 

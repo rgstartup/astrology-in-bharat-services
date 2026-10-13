@@ -19,6 +19,8 @@ describe('PresenceService', () => {
     getRealtimePresence: ReturnType<typeof vi.fn>;
     getBatchRealtimePresence: ReturnType<typeof vi.fn>;
     setConsultationState: ReturnType<typeof vi.fn>;
+    getConsultationMarker: ReturnType<typeof vi.fn>;
+    refreshConsultationMarker: ReturnType<typeof vi.fn>;
     getConsultationState: ReturnType<typeof vi.fn>;
     getBatchConsultationStates: ReturnType<typeof vi.fn>;
     getLastStatus: ReturnType<typeof vi.fn>;
@@ -30,12 +32,14 @@ describe('PresenceService', () => {
   const inMemoryState = {
     connections: new Map<number, Set<string>>(),
     consultation: new Map<number, ConsultationState>(),
+    markers: new Map<number, { state: ConsultationState; consultationId: string | null }>(),
     lastStatus: new Map<number, string | null>(),
   };
 
   beforeEach(() => {
     inMemoryState.connections.clear();
     inMemoryState.consultation.clear();
+    inMemoryState.markers.clear();
     inMemoryState.lastStatus.clear();
 
     mockRedisRepo = {
@@ -90,10 +94,35 @@ describe('PresenceService', () => {
       setConsultationState: vi
         .fn()
         .mockImplementation(
-          async (expertId: number, state: ConsultationState) => {
+          async (
+            expertId: number,
+            state: ConsultationState,
+            consultationId?: string | number,
+          ) => {
             inMemoryState.consultation.set(expertId, state);
+            // Mirror prod: BUSY writes the marker, IDLE deletes it, so
+            // repair→setIdle→re-read terminates like the real key.
+            if (state === ConsultationState.BUSY) {
+              inMemoryState.markers.set(expertId, {
+                state,
+                consultationId:
+                  consultationId != null ? String(consultationId) : null,
+              });
+            } else {
+              inMemoryState.markers.delete(expertId);
+            }
           },
         ),
+      getConsultationMarker: vi
+        .fn()
+        .mockImplementation(async (expertId: number) => {
+          return inMemoryState.markers.get(expertId) ?? null;
+        }),
+      refreshConsultationMarker: vi
+        .fn()
+        .mockImplementation(async (expertId: number) => {
+          return inMemoryState.markers.has(expertId);
+        }),
       getConsultationState: vi
         .fn()
         .mockImplementation(async (expertId: number) => {
@@ -359,6 +388,9 @@ describe('PresenceService', () => {
   describe('Consultation Lifecycle', () => {
     it('consultation starting sets busy status', async () => {
       const expertId = 101;
+      // Repair-on-read needs the holding row to exist (prod: accept writes
+      // it before setBusy), else the marker reads as a missing-row orphan.
+      mockDb._rows = [{ id: 999, expert_id: expertId, expertId, status: 'active' }];
       await service.connect(expertId, 'socket-tab-1');
       mockRedisRepo.publishPresenceChanged.mockClear();
 
@@ -381,6 +413,7 @@ describe('PresenceService', () => {
 
     it('consultation ending restores online status', async () => {
       const expertId = 101;
+      mockDb._rows = [{ id: 999, expert_id: expertId, expertId, status: 'active' }];
       await service.connect(expertId, 'socket-tab-1');
       await service.setBusy(expertId, 999);
       mockRedisRepo.publishPresenceChanged.mockClear();
@@ -403,8 +436,10 @@ describe('PresenceService', () => {
 
     it('active consultation does not terminate when availability mode toggled to unavailable', async () => {
       const expertId = 101;
+      // Mock DB ignores WHERE: one row serves both the account lookup
+      // (needs availability fields) and the repair check (needs id 999).
       mockDb._rows = [
-        { id: expertId, availability_mode: 'available', last_seen_at: null },
+        { id: 999, expert_id: expertId, expertId, status: 'active', availability_mode: 'available', last_seen_at: null },
       ];
       await service.connect(expertId, 'socket-tab-1');
       await service.setBusy(expertId, 999);
@@ -424,6 +459,103 @@ describe('PresenceService', () => {
       const afterEnd = await service.getFullStatus(expertId);
       expect(afterEnd.consultationState).toBe('idle');
       expect(afterEnd.status).toBe('offline'); // remains offline because availability is unavailable
+    });
+  });
+
+  describe('Stale BUSY repair (shutdown-safe)', () => {
+    // NOTE: mockDb.select returns mockDb._rows for every table, so these
+    // tests seed consultation-shaped rows only; the account lookup takes
+    // rows[0] and defaults to AVAILABLE when availability fields are absent.
+    it('releases a BUSY marker naming a terminal consultation on read', async () => {
+      const expertId = 101;
+      mockDb._rows = [{ id: 35, expert_id: expertId, expertId, status: 'completed' }];
+      await service.connect(expertId, 'socket-tab-1');
+      // Seed a crash-orphaned marker directly (no setBusy: prod wrote the
+      // row terminal without ever calling setIdle).
+      inMemoryState.consultation.set(expertId, ConsultationState.BUSY);
+      inMemoryState.markers.set(expertId, {
+        state: ConsultationState.BUSY,
+        consultationId: '35',
+      });
+      mockRedisRepo.publishPresenceChanged.mockClear();
+      mockRedisRepo.setConsultationState.mockClear();
+
+      const status = await service.getStatus(expertId);
+
+      expect(status).toBe('online');
+      // Repair path releases via setIdle (marker DEL); the status publish
+      // already fired during setBusy, so only the release is asserted here.
+      expect(mockRedisRepo.setConsultationState).toHaveBeenCalledWith(
+        expertId,
+        'idle',
+      );
+    });
+
+    it('keeps a BUSY marker naming a live consultation', async () => {
+      const expertId = 101;
+      mockDb._rows = [{ id: 35, expert_id: expertId, expertId, status: 'active' }];
+      await service.connect(expertId, 'socket-tab-1');
+      await service.setBusy(expertId, 35);
+      mockRedisRepo.setConsultationState.mockClear();
+
+      const status = await service.getStatus(expertId);
+
+      expect(status).toBe('busy');
+      expect(mockRedisRepo.setConsultationState).not.toHaveBeenCalled();
+      expect(mockRedisRepo.refreshConsultationMarker).not.toHaveBeenCalled();
+    });
+
+    it('releases a BUSY marker naming a missing consultation', async () => {
+      const expertId = 101;
+      mockDb._rows = [];
+      await service.connect(expertId, 'socket-tab-1');
+      await service.setBusy(expertId, 35);
+
+      expect(await service.getStatus(expertId)).toBe('online');
+    });
+
+    it('releases a BUSY marker naming another expert consultation', async () => {
+      const expertId = 101;
+      mockDb._rows = [{ id: 35, expert_id: 999, expertId: 999, status: 'active' }];
+      await service.connect(expertId, 'socket-tab-1');
+      await service.setBusy(expertId, 35);
+
+      expect(await service.getStatus(expertId)).toBe('online');
+    });
+
+    it('keeps a BUSY marker with no consultation id (TTL bounds it)', async () => {
+      const expertId = 101;
+      mockDb._rows = [];
+      await service.connect(expertId, 'socket-tab-1');
+      await service.setBusy(expertId);
+
+      expect(await service.getStatus(expertId)).toBe('busy');
+    });
+
+    it('heartbeat refreshes the TTL of a healthy BUSY marker', async () => {
+      const expertId = 101;
+      mockDb._rows = [{ id: 35, expert_id: expertId, expertId, status: 'active' }];
+      await service.connect(expertId, 'socket-tab-1');
+      await service.setBusy(expertId, 35);
+      mockRedisRepo.refreshConsultationMarker.mockClear();
+
+      await service.heartbeat(expertId, 'socket-tab-1');
+
+      expect(mockRedisRepo.refreshConsultationMarker).toHaveBeenCalledWith(
+        expertId,
+      );
+    });
+
+    it('getFullStatus also repairs a stale BUSY marker', async () => {
+      const expertId = 101;
+      mockDb._rows = [{ id: 35, expert_id: expertId, expertId, status: 'rejected' }];
+      await service.connect(expertId, 'socket-tab-1');
+      await service.setBusy(expertId, 35);
+
+      const full = await service.getFullStatus(expertId);
+
+      expect(full.consultationState).toBe('idle');
+      expect(full.status).toBe('online');
     });
   });
 

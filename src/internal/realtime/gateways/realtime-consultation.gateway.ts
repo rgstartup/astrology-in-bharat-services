@@ -35,6 +35,12 @@ class ConsultationActionDto {
   reason?: string;
 }
 
+class ConsultationRequestDto extends ConsultationActionDto {
+  @IsNumber()
+  @IsNotEmpty()
+  expertId!: number;
+}
+
 @UseFilters(RealtimeWsExceptionFilter)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @WebSocketGateway(REALTIME_GATEWAY_OPTIONS)
@@ -50,6 +56,7 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
 
   afterInit() {
     this.logger.log('[RealtimeConsultationGateway] Initialized on namespace /realtime');
+    void this.orchestrator.onServerReady(this.server);
   }
 
   @UseGuards(WsAuthGuard)
@@ -85,6 +92,44 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
       consultationId: dto.consultationId,
       actorId: identity.expertId,
       actorType: 'expert',
+      reason: dto.reason,
+    });
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.CONSULTATION.COMMANDS.REQUEST)
+  async handleRequest(
+    @ConnectedSocket() socket: RealtimeSocket,
+    @MessageBody() dto: ConsultationRequestDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    if (identity.actorType !== 'client') {
+      return { status: 'ignored', message: 'Only clients can request consultations' };
+    }
+    await socket.join(SOCKET_ROOMS.CONSULTATION(dto.consultationId));
+    await socket.join(SOCKET_ROOMS.CHAT_SESSION(dto.consultationId));
+    return this.orchestrator.request(this.server, {
+      consultationId: dto.consultationId,
+      actorId: identity.id,
+      actorType: 'client',
+      expertId: dto.expertId,
+    });
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.CONSULTATION.COMMANDS.CANCEL)
+  async handleCancel(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: ConsultationActionDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    if (identity.actorType !== 'client') {
+      return { status: 'ignored', message: 'Only clients can cancel consultations' };
+    }
+    return this.orchestrator.cancel(this.server, {
+      consultationId: dto.consultationId,
+      actorId: identity.id,
+      actorType: 'client',
       reason: dto.reason,
     });
   }

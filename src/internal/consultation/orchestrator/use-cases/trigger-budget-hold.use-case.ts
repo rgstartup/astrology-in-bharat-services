@@ -39,7 +39,8 @@ export class TriggerBudgetHoldUseCase {
    *
    * @param server - Authoritative Socket.IO server instance.
    * @param consultationId - ID of the consultation whose budget was exhausted.
-   * @returns Object with graceDeadline timestamp and graceDurationSeconds (300).
+   * @returns Object with graceDeadline timestamp and graceDurationSeconds (300),
+   *   or undefined when the consultation is missing or terminal (pause guard).
    */
   async execute(server: Server, consultationId: number) {
     const [row] = await this.db
@@ -51,13 +52,15 @@ export class TriggerBudgetHoldUseCase {
     if (!row) return;
     const mode = toConsultationModeType(row.mode);
 
-    // Pause room first
-    await this.pauseUseCase.execute(server, {
+    // Pause room first (no-op on terminal consultations, e.g. a hold racing
+    // a completed end — never prompt recharge post-ended).
+    const paused = await this.pauseUseCase.execute(server, {
       consultationId,
       actorId: 0,
       actorType: 'system',
       reason: 'insufficient_balance',
     });
+    if (!paused) return;
 
     const graceDurationSeconds = 300;
     const graceDeadline = new Date(

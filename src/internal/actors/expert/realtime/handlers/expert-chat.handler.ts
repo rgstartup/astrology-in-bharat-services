@@ -1,9 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Server } from 'socket.io';
-import { and, eq } from 'drizzle-orm';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { consultations } from '@/core/drizzledb/schema';
 import { ConsultationStatus } from '@/internal/consultation/enums';
 import { ConsultationMode } from '@/internal/consultation/enums';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
@@ -20,8 +18,11 @@ import {
 import { MarkConsultationSessionStartedUseCase } from '@/internal/consultation/room/mark-consultation-session-started.use-case';
 import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
 import { ResolveConsultationBudgetUseCase } from '@/internal/consultation/room/resolve-consultation-budget.use-case';
-import { isChatParticipant, getConsultationStatus, resolveChatClientName } from '@/internal/realtime/chat/chat-room-access';
-import { chatRequestTimers } from '@/internal/realtime/chat/chat-request-timers';
+import {
+  isChatParticipant,
+  getConsultationStatus,
+  resolveChatClientName,
+} from '@/internal/realtime/chat/chat-room-access';
 import type { AuthenticatedSocketIdentity } from '@/internal/realtime/types/socket-auth.types';
 import type { RealtimeSocket } from '@/internal/realtime/types/socket-data.types';
 
@@ -69,20 +70,49 @@ export class ExpertChatHandler {
     socket: RealtimeSocket,
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
-  ): Promise<{ status: ConsultationAckStatus; consultationId: number; consultationStatus: string | null; maxMinutes?: number; startedAt?: string | null; clientName?: string | null }> {
+  ): Promise<{
+    status: ConsultationAckStatus;
+    consultationId: number;
+    consultationStatus: string | null;
+    maxMinutes?: number;
+    startedAt?: string | null;
+    clientName?: string | null;
+  }> {
     if (!(await isChatParticipant(this.db, consultationId, identity))) {
-      return { status: CONSULTATION_ACK_STATUS.IGNORED, consultationId, consultationStatus: null };
+      return {
+        status: CONSULTATION_ACK_STATUS.IGNORED,
+        consultationId,
+        consultationStatus: null,
+      };
     }
     const room = SOCKET_ROOMS.CHAT_SESSION(consultationId);
     await socket.join(room);
     if (identity.actorType === 'expert') {
       await this.markStarted.execute(consultationId, identity.expertId);
+      // First expert join owns billing start: the session is now active but
+      // the consultation row is still `accepted`, and the SEND guard requires
+      // `active`. Nothing in either frontend emits `consultation:start`, so
+      // transition here — `start` is transition-safe (session update guarded
+      // by `started_at IS NULL`, consultation update by `status == ACCEPTED`).
+      const status = await getConsultationStatus(this.db, consultationId);
+      if (status === ConsultationStatus.ACCEPTED) {
+        await this.orchestrator.start(server, {
+          consultationId,
+          actorId: identity.expertId,
+          actorType: 'expert',
+        });
+      }
     }
     this.logger.debug(
       `Actor ${identity.actorType}:${identity.id} joined chat room ${room} (socket: ${socket.id})`,
     );
-    const liveBudget = await this.budget.execute(consultationId).catch(() => null);
-    const clientName = await resolveChatClientName(this.db, consultationId).catch(() => null);
+    const liveBudget = await this.budget
+      .execute(consultationId)
+      .catch(() => null);
+    const clientName = await resolveChatClientName(
+      this.db,
+      consultationId,
+    ).catch(() => null);
     // Server-owned exhaustion backstop: a rejoin past zero pauses
     // immediately (both sides get `consultation:paused`), otherwise the timer owns it.
     this.orchestrator.armBudgetTimer(server, consultationId, 'chat');
@@ -115,7 +145,10 @@ export class ExpertChatHandler {
     socket: RealtimeSocket,
     input: ChatMessageInput,
     identity: AuthenticatedSocketIdentity,
-  ): Promise<{ status: ConsultationAckStatus; message: Record<string, unknown> }> {
+  ): Promise<{
+    status: ConsultationAckStatus;
+    message: Record<string, unknown>;
+  }> {
     if (!(await isChatParticipant(this.db, input.consultationId, identity))) {
       return { status: CONSULTATION_ACK_STATUS.IGNORED, message: {} };
     }
@@ -130,12 +163,18 @@ export class ExpertChatHandler {
     // Foolproof backstop: a send past zero pauses first (both sides get
     // `consultation:paused`) and the message itself is dropped.
     const budget = await this.orchestrator.getStatus(input.consultationId);
-    if (budget && (budget.remainingSeconds ?? 0) <= 0 && budget.ratePerMinute > 0) {
+    if (
+      budget &&
+      (budget.remainingSeconds ?? 0) <= 0 &&
+      budget.ratePerMinute > 0
+    ) {
       await this.orchestrator.triggerBudgetHold(server, input.consultationId);
       return { status: CONSULTATION_ACK_STATUS.IGNORED, message: {} };
     }
+
     const senderId =
       identity.actorType === 'expert' ? identity.expertId : identity.id;
+
     const persisted = await persistChatMessage(this.db, {
       consultationId: input.consultationId,
       sessionId: await resolveMessageSessionId(this.db, input.consultationId),
@@ -145,6 +184,7 @@ export class ExpertChatHandler {
       messageType: toMessageType(input.attachmentType),
       mediaId: input.attachmentMediaId,
     });
+
     const messagePayload = {
       id: persisted.id,
       consultationId: input.consultationId,
@@ -185,12 +225,12 @@ export class ExpertChatHandler {
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
   ): Promise<{ status: ConsultationAckStatus; consultationId: number }> {
-    chatRequestTimers.cancel(consultationId);
     const room = SOCKET_ROOMS.CHAT_SESSION(consultationId);
     await socket.join(room);
     await this.orchestrator.accept(server, {
       consultationId,
-      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorId:
+        identity.actorType === 'expert' ? identity.expertId : identity.id,
       actorType: 'expert',
     });
     return { status: CONSULTATION_ACK_STATUS.ACCEPTED, consultationId };
@@ -204,10 +244,10 @@ export class ExpertChatHandler {
     identity: AuthenticatedSocketIdentity,
   ): Promise<{ status: ConsultationAckStatus; consultationId: number }> {
     void socket;
-    chatRequestTimers.cancel(consultationId);
     await this.orchestrator.reject(server, {
       consultationId,
-      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorId:
+        identity.actorType === 'expert' ? identity.expertId : identity.id,
       actorType: 'expert',
       reason: 'expert_rejected',
     });
@@ -225,10 +265,10 @@ export class ExpertChatHandler {
     identity: AuthenticatedSocketIdentity,
   ): Promise<{ status: ConsultationAckStatus; consultationId: number }> {
     void socket;
-    chatRequestTimers.cancel(consultationId);
     await this.orchestrator.end(server, {
       consultationId,
-      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorId:
+        identity.actorType === 'expert' ? identity.expertId : identity.id,
       actorType: identity.actorType === 'expert' ? 'expert' : 'client',
       reason: 'manual',
     });
@@ -248,10 +288,14 @@ export class ExpertChatHandler {
     await socket.join(SOCKET_ROOMS.CHAT_SESSION(consultationId));
     const state = await this.orchestrator.pause(server, {
       consultationId,
-      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorId:
+        identity.actorType === 'expert' ? identity.expertId : identity.id,
       actorType: identity.actorType === 'expert' ? 'expert' : 'client',
       reason: 'manual',
     });
+    if (!state) {
+      return { status: CONSULTATION_ACK_STATUS.IGNORED, consultationId };
+    }
     return {
       status: CONSULTATION_ACK_STATUS.PAUSED,
       consultationId,
@@ -272,7 +316,8 @@ export class ExpertChatHandler {
     await socket.join(SOCKET_ROOMS.CHAT_SESSION(consultationId));
     const state = await this.orchestrator.resume(server, {
       consultationId,
-      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorId:
+        identity.actorType === 'expert' ? identity.expertId : identity.id,
       actorType: identity.actorType === 'expert' ? 'expert' : 'client',
     });
     return {

@@ -5,7 +5,6 @@ export {
   ChatAttachmentMessageService,
   ChatAttachmentMessageError,
   chatDisconnectGrace,
-  chatRequestTimers,
   isChatParticipant,
   getConsultationStatus,
   resolveChatClientName,

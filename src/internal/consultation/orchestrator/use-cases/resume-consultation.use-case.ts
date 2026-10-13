@@ -11,7 +11,6 @@ import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { consultations } from '@/core/drizzledb/schema';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
-import { ConsultationRoomRepository } from '../../room/consultation-room.repository';
 import { ConsultationBudgetEngine } from '../consultation-budget.engine';
 import { ChatModeAdapter } from '../adapters/chat-mode.adapter';
 import { VoiceModeAdapter } from '../adapters/voice-mode.adapter';
@@ -29,9 +28,8 @@ import {
  *
  * Responsibilities:
  * - Validate that client wallet holds sufficient balance for continuation ($\ge \text{ratePerMinute}$).
- * - Re-anchor billing clock in Redis carrying base consumed seconds forward.
- * - Clear Redis pause key.
- * - Delegate resume actions to target mode adapter (`onResume`).
+ * - Delegate resume to the target mode adapter (`onResume`): re-anchor the
+ *   billing clock carrying base consumed seconds forward and clear the pause key.
  * - Broadcast `consultation:resumed` and `consultation:budget:restored` events.
  */
 @Injectable()
@@ -40,7 +38,6 @@ export class ResumeConsultationUseCase {
 
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
-    private readonly rooms: ConsultationRoomRepository,
     private readonly budget: ConsultationBudgetEngine,
     chatAdapter: ChatModeAdapter,
     voiceAdapter: VoiceModeAdapter,
@@ -90,10 +87,10 @@ export class ResumeConsultationUseCase {
     const now = new Date();
     const startedAt = now.toISOString();
 
-    await this.rooms.setAnchor(row.id, startedAt, affordability.elapsedSeconds);
-    await this.rooms.clearPaused(row.id);
-
-    await this.getAdapter(mode).onResume(row.id);
+    await this.getAdapter(mode).onResume(row.id, {
+      anchorIso: startedAt,
+      baseSeconds: affordability.elapsedSeconds,
+    });
 
     const payload: ConsultationStatePayload = {
       consultationId: row.id,
@@ -114,10 +111,13 @@ export class ResumeConsultationUseCase {
       .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.RESTORED, payload);
     server
       .to(SOCKET_ROOMS.CHAT_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CHAT.RESUMED, payload);
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.RESUMED, payload);
+    server
+      .to(SOCKET_ROOMS.CHAT_SESSION(row.id))
+      .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.RESTORED, payload);
     server
       .to(SOCKET_ROOMS.CALL_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CONSULTATION.RESUMED, payload);
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.RESUMED, payload);
 
     return payload;
   }

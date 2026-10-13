@@ -18,7 +18,6 @@ import {
   getConsultationStatus,
   resolveChatClientName,
 } from '@/internal/realtime/chat/chat-room-access';
-import { chatRequestTimers } from '@/internal/realtime/chat/chat-request-timers';
 import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
 import { ResolveConsultationBudgetUseCase } from '@/internal/consultation/room/resolve-consultation-budget.use-case';
 import {
@@ -215,7 +214,7 @@ export class ClientChatHandler {
       )
       .orderBy(desc(consultationSessions.id))
       .limit(1);
-    server.to(SOCKET_ROOMS.EXPERT(expertId)).emit(SOCKET_EVENTS.CHAT.INCOMING, {
+    server.to(SOCKET_ROOMS.EXPERT(expertId)).emit(SOCKET_EVENTS.CONSULTATION.EVENTS.INCOMING, {
       consultationId,
       expertId,
       clientId: identity.id,
@@ -226,7 +225,6 @@ export class ClientChatHandler {
         .then((clientName) => (clientName ? { clientName } : {}))
         .catch(() => ({}))),
     });
-    chatRequestTimers.arm(this.orchestrator, server, consultationId);
     if (!(await this.rooms.refreshRoom(consultationId))) {
       this.logger.debug(
         `[ClientChat] Room key for ${consultationId} already lapsed; timer + cron own expiry.`,
@@ -240,10 +238,9 @@ export class ClientChatHandler {
     server: Server,
     socket: RealtimeSocket,
     consultationId: number,
-    identity: AuthenticatedSocketIdentity,
+    _identity: AuthenticatedSocketIdentity,
   ): Promise<{ status: ConsultationAckStatus; consultationId: number }> {
     void socket;
-    chatRequestTimers.cancel(consultationId);
     const [row] = await this.db
       .select({ expertId: consultations.expert_id })
       .from(consultations)
@@ -271,7 +268,6 @@ export class ClientChatHandler {
     identity: AuthenticatedSocketIdentity,
   ): Promise<{ status: ConsultationAckStatus; consultationId: number }> {
     void socket;
-    chatRequestTimers.cancel(consultationId);
     await this.orchestrator.end(server, {
       consultationId,
       actorId: identity.id,
@@ -301,6 +297,9 @@ export class ClientChatHandler {
       actorType: identity.actorType === 'client' ? 'client' : 'expert',
       reason: 'manual',
     });
+    if (!state) {
+      return { status: CONSULTATION_ACK_STATUS.IGNORED, consultationId };
+    }
     return {
       status: CONSULTATION_ACK_STATUS.PAUSED,
       consultationId,
