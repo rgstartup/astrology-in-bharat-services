@@ -42,6 +42,8 @@ export interface ExpertChatResumeAck {
   consultationId: number;
   maxMinutes?: number;
   startedAt?: string | null;
+  /** Consumed seconds carried forward as the resume base (pre-resume billing). */
+  elapsedSeconds?: number;
   mode?: ConsultationMode;
 }
 
@@ -76,6 +78,7 @@ export class ExpertChatHandler {
     consultationStatus: string | null;
     maxMinutes?: number;
     startedAt?: string | null;
+    elapsedSeconds?: number;
     clientName?: string | null;
   }> {
     if (!(await isChatParticipant(this.db, consultationId, identity))) {
@@ -121,7 +124,11 @@ export class ExpertChatHandler {
       consultationId,
       consultationStatus: await getConsultationStatus(this.db, consultationId),
       ...(liveBudget
-        ? { maxMinutes: liveBudget.maxMinutes, startedAt: liveBudget.startedAt }
+        ? {
+            maxMinutes: liveBudget.maxMinutes,
+            startedAt: liveBudget.startedAt,
+            elapsedSeconds: liveBudget.elapsedSeconds,
+          }
         : {}),
       ...(clientName ? { clientName } : {}),
     };
@@ -325,6 +332,7 @@ export class ExpertChatHandler {
       consultationId,
       maxMinutes: state.maxMinutes,
       startedAt: state.startedAt ?? new Date().toISOString(),
+      elapsedSeconds: state.elapsedSeconds,
       mode: ConsultationMode.CHAT,
     };
   }
