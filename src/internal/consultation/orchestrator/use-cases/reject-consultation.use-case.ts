@@ -1,19 +1,11 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
-import { randomUUIDv7 } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import type { Server } from 'socket.io';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import {
-  clientTransactions,
-  clientWallets,
-  consultations,
-} from '@/core/drizzledb/schema';
+import { consultations } from '@/core/drizzledb/schema';
 import { ConsultationStatus } from '@/internal/consultation/enums';
-import {
-  ClientTransactionPurpose,
-  ClientTransactionType,
-} from '@/internal/actors/client/wallet/enum';
+import { releaseConsultationHold } from '@/internal/actors/client/wallet/release-consultation-hold';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import {
@@ -74,65 +66,7 @@ export class RejectConsultationUseCase {
       if (!row) return null;
 
       // Release any wallet HOLD transaction for this consultation
-      const referenceId = `consultation_${row.id}`;
-      const [hold] = await tx
-        .select({ amount: clientTransactions.amount })
-        .from(clientTransactions)
-        .where(
-          and(
-            eq(clientTransactions.reference_id, referenceId),
-            eq(clientTransactions.type, ClientTransactionType.HOLD),
-          ),
-        )
-        .limit(1);
-
-      if (hold) {
-        const [alreadyReleased] = await tx
-          .select({ id: clientTransactions.id })
-          .from(clientTransactions)
-          .where(
-            and(
-              eq(clientTransactions.reference_id, referenceId),
-              eq(clientTransactions.type, ClientTransactionType.RELEASE),
-            ),
-          )
-          .limit(1);
-
-        if (!alreadyReleased) {
-          const [wallet] = await tx
-            .select()
-            .from(clientWallets)
-            .where(eq(clientWallets.client_id, row.client_id))
-            .limit(1);
-
-          if (wallet) {
-            const held = Number(hold.amount);
-            const reserved = Number(wallet.reserved_balance);
-            const balance = Number(wallet.balance);
-            const release = Math.min(held, reserved);
-
-            await tx
-              .update(clientWallets)
-              .set({
-                balance: String(balance + release),
-                reserved_balance: String(reserved - release),
-                updated_at: now,
-              })
-              .where(eq(clientWallets.id, wallet.id));
-
-            await tx.insert(clientTransactions).values({
-              wallet_id: wallet.id,
-              amount: String(release),
-              balance_before: String(balance),
-              balance_after: String(balance + release),
-              type: ClientTransactionType.RELEASE,
-              purpose: ClientTransactionPurpose.REFUND,
-              reference_id: referenceId,
-              transaction_no: randomUUIDv7(),
-            });
-          }
-        }
-      }
+      await releaseConsultationHold(tx, row.client_id, row.id);
 
       return row;
     });
@@ -153,9 +87,6 @@ export class RejectConsultationUseCase {
 
     server
       .to(SOCKET_ROOMS.CONSULTATION(claimed.id))
-      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.REJECTED, payload);
-    server
-      .to(SOCKET_ROOMS.CHAT_SESSION(claimed.id))
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.REJECTED, payload);
     server
       .to(SOCKET_ROOMS.EXPERT(claimed.expert_id))

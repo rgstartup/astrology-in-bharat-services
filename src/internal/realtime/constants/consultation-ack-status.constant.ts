@@ -9,6 +9,7 @@ export const CONSULTATION_ACK_STATUS = {
   CANCELLED: 'cancelled',
   ENDED: 'ended',
   IGNORED: 'ignored',
+  TOKEN: 'token',
   PAUSED: 'paused',
   RESUMED: 'resumed',
 } as const;

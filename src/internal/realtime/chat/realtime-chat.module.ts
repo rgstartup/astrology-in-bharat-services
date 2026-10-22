@@ -24,9 +24,6 @@ import { ChatRequestExpiryCron } from './chat-request-expiry.cron';
     ChatAttachmentMessageService,
     ChatRequestExpiryCron,
   ],
-  exports: [
-    RealtimeChatGateway,
-    ChatAttachmentMessageService,
-  ],
+  exports: [RealtimeChatGateway, ChatAttachmentMessageService],
 })
 export class RealtimeChatModule {}

@@ -12,10 +12,22 @@ import type {
   ExpertSocketIdentity,
 } from '@/internal/realtime/types/socket-auth.types';
 import type { RealtimeSocket } from '@/internal/realtime/types/socket-data.types';
+import type { ConsultationModeType } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
+import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
+import { ResolveConsultationBudgetUseCase } from '@/internal/consultation/room/resolve-consultation-budget.use-case';
+import { MarkConsultationSessionStartedUseCase } from '@/internal/consultation/room/mark-consultation-session-started.use-case';
+import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
+import { VoiceService } from '@/external/voice';
+import {
+  joinConsultationRoom,
+  leaveConsultationRoom,
+  refreshVoiceToken,
+  relayMediaSignal as relayMediaSignalToRoom,
+  type MediaSignalInput,
+} from '@/internal/realtime/room/consultation-room-membership';
 import { ExpertPresenceHandler } from './handlers/expert-presence.handler';
 import { ExpertNotificationHandler } from './handlers/expert-notification.handler';
 import { ExpertChatHandler } from './handlers/expert-chat.handler';
-import { ExpertCallHandler } from './handlers/expert-call.handler';
 
 interface ChatMessageInput {
   consultationId: number;
@@ -23,18 +35,6 @@ interface ChatMessageInput {
   attachmentMediaId?: number;
   attachmentUrl?: string;
   attachmentType?: string;
-}
-
-interface CallSignalInput {
-  consultationId: number;
-  offer?: Record<string, any>;
-  answer?: Record<string, any>;
-  candidate?: Record<string, any>;
-}
-
-interface CallEndInput {
-  consultationId: number;
-  reason?: string;
 }
 
 @Injectable()
@@ -46,7 +46,11 @@ export class ExpertRealtimeService {
     private readonly presenceHandler: ExpertPresenceHandler,
     private readonly notificationHandler: ExpertNotificationHandler,
     private readonly chatHandler: ExpertChatHandler,
-    private readonly callHandler: ExpertCallHandler,
+    private readonly rooms: ConsultationRoomRepository,
+    private readonly budget: ResolveConsultationBudgetUseCase,
+    private readonly markStarted: MarkConsultationSessionStartedUseCase,
+    private readonly orchestrator: ConsultationOrchestratorService,
+    private readonly voice: VoiceService,
   ) {}
 
   async handleExpertConnect(
@@ -140,21 +144,72 @@ export class ExpertRealtimeService {
     );
   }
 
-  async joinChat(
+  async joinConsultation(
     server: Server,
     socket: RealtimeSocket,
     consultationId: number,
+    mode: ConsultationModeType,
     identity: AuthenticatedSocketIdentity,
   ) {
-    return this.chatHandler.joinChat(server, socket, consultationId, identity);
+    return joinConsultationRoom(
+      {
+        db: this.db,
+        rooms: this.rooms,
+        budget: this.budget,
+        orchestrator: this.orchestrator,
+        markStarted: this.markStarted,
+        voice: this.voice,
+      },
+      server,
+      socket,
+      consultationId,
+      mode,
+      identity,
+    );
   }
 
-  async leaveChat(
+  async leaveConsultation(
     socket: RealtimeSocket,
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
   ) {
-    return this.chatHandler.leaveChat(socket, consultationId, identity);
+    return leaveConsultationRoom(socket, consultationId, identity, this.rooms);
+  }
+
+  /**
+   * Re-issues the caller's Agora token for an accepted/active voice/video
+   * consultation (expiry fallback and mid-call renew without rejoining).
+   *
+   * @param consultationId - ID of the live consultation.
+   * @param identity - Requesting side (must participate).
+   * @returns Token ack, or an ignored ack for non-participants/ended rows.
+   */
+  async voiceToken(
+    consultationId: number,
+    identity: AuthenticatedSocketIdentity,
+  ) {
+    return refreshVoiceToken(
+      { db: this.db, voice: this.voice },
+      consultationId,
+      identity,
+    );
+  }
+
+  /**
+   * Records Agora readiness for voice/video; billing starts on the second
+   * side's ready via the orchestrator (transition-safe).
+   *
+   * @param server - Authoritative Socket.IO server instance.
+   * @param consultationId - ID of the consultation going live on media.
+   * @param identity - Reporting side (must participate).
+   * @returns Readiness payload, or null for non-participants.
+   */
+  async mediaReady(
+    server: Server,
+    consultationId: number,
+    identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.orchestrator.mediaReady(server, consultationId, identity);
   }
 
   async sendChatMessage(
@@ -172,7 +227,12 @@ export class ExpertRealtimeService {
     isTyping: boolean,
     identity: AuthenticatedSocketIdentity,
   ): void {
-    this.chatHandler.relayChatTyping(socket, consultationId, isTyping, identity);
+    this.chatHandler.relayChatTyping(
+      socket,
+      consultationId,
+      isTyping,
+      identity,
+    );
   }
 
   async acceptChat(
@@ -181,7 +241,12 @@ export class ExpertRealtimeService {
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
   ) {
-    return this.chatHandler.acceptChat(server, socket, consultationId, identity);
+    return this.chatHandler.acceptChat(
+      server,
+      socket,
+      consultationId,
+      identity,
+    );
   }
 
   async rejectChat(
@@ -190,7 +255,12 @@ export class ExpertRealtimeService {
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
   ) {
-    return this.chatHandler.rejectChat(server, socket, consultationId, identity);
+    return this.chatHandler.rejectChat(
+      server,
+      socket,
+      consultationId,
+      identity,
+    );
   }
 
   async endChat(
@@ -217,40 +287,20 @@ export class ExpertRealtimeService {
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
   ) {
-    return this.chatHandler.resumeChat(server, socket, consultationId, identity);
+    return this.chatHandler.resumeChat(
+      server,
+      socket,
+      consultationId,
+      identity,
+    );
   }
 
-  async joinCall(
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.callHandler.joinCall(socket, consultationId, identity);
-  }
-
-  async leaveCall(
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.callHandler.leaveCall(socket, consultationId, identity);
-  }
-
-  relayCallSignal(
+  relayMediaSignal(
     socket: RealtimeSocket,
     event: string,
-    input: CallSignalInput,
+    input: MediaSignalInput,
     identity: AuthenticatedSocketIdentity,
   ): void {
-    this.callHandler.relayCallSignal(socket, event, input, identity);
-  }
-
-  async endCall(
-    server: Server,
-    socket: RealtimeSocket,
-    input: CallEndInput,
-    identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.callHandler.endCall(server, socket, input, identity);
+    relayMediaSignalToRoom(socket, event, input, identity);
   }
 }

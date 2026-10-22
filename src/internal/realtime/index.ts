@@ -53,15 +53,11 @@ export type {
 
 export {
   SubscribePresenceDto,
-  JoinChatDto,
-  LeaveChatDto,
   SendChatMessageDto,
   TypingChatDto,
-  JoinCallDto,
   CallOfferDto,
   CallAnswerDto,
   IceCandidateDto,
-  CallActionDto,
   ReadNotificationDto,
   SubscribeNotificationDto,
 } from './dto';

@@ -22,8 +22,6 @@ import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
 import {
-  JoinChatDto,
-  LeaveChatDto,
   SendChatMessageDto,
   TypingChatDto,
 } from './dto/chat-events.dto';
@@ -55,35 +53,6 @@ export class RealtimeChatGateway implements OnGatewayInit {
     return identity.actorType === 'client'
       ? this.clientRealtimeService
       : this.expertRealtimeService;
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHAT.JOIN)
-  async handleChatJoin(
-    @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: JoinChatDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.forActor(identity).joinChat(
-      this.server,
-      socket,
-      dto.consultationId,
-      identity,
-    );
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHAT.LEAVE)
-  async handleChatLeave(
-    @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: LeaveChatDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.forActor(identity).leaveChat(
-      socket,
-      dto.consultationId,
-      identity,
-    );
   }
 
   @UseGuards(WsAuthGuard)

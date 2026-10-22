@@ -1,9 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Inject } from '@nestjs/common';
+import { count } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { consultations } from '@/core/drizzledb/schema';
 import { Public } from '@/shared/decorators/public.decorator';
 import { RoleEnum } from '@/internal/users/enums/Role.enum';
 import { UsersService } from '@/internal/users/users.service';
 import { OrderService } from '@/internal/commerce/order/order.service';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
 import { AdminService } from '../admin.service';
 
 @Controller({
@@ -14,7 +17,7 @@ export class PublicStatsController {
   constructor(
     private readonly usersService: UsersService,
     private readonly orderService: OrderService,
-    private readonly chatService: ChatService,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly adminService: AdminService,
   ) {}
 
@@ -56,10 +59,14 @@ export class PublicStatsController {
   @Get('expert-hub')
   async getExpertHubStats() {
     try {
-      const [total_experts, totalServices] = await Promise.all([
+      const [total_experts, countRow] = await Promise.all([
         this.usersService.getUsersCountByRole(RoleEnum.EXPERT),
-        this.chatService.getTotalSessionsCount(),
+        this.db
+          .select({ value: count() })
+          .from(consultations)
+          .then(([r]) => Number(r?.value ?? 0)),
       ]);
+      const totalServices = countRow;
 
       return {
         success: true,

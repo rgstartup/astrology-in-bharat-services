@@ -1,17 +1,10 @@
 export { SubscribePresenceDto } from './subscribe-presence.dto';
 export { SubscribeManyPresenceDto } from './subscribe-many-presence.dto';
+export { SendChatMessageDto, TypingChatDto } from '../chat/dto';
 export {
-  JoinChatDto,
-  LeaveChatDto,
-  SendChatMessageDto,
-  TypingChatDto,
-} from '../chat/dto';
-export {
-  JoinCallDto,
   CallOfferDto,
   CallAnswerDto,
   IceCandidateDto,
-  CallActionDto,
 } from './call-events.dto';
 export {
   ReadNotificationDto,

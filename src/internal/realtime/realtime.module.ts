@@ -7,6 +7,8 @@ import { REALTIME_AUTH_VERIFIERS } from './contracts/realtime-auth-verifier.cont
 import { RealtimeAuthService } from './services/realtime-auth.service';
 import { RealtimeGateway } from './realtime.gateway';
 import { ConsultationOrchestratorModule } from '@/internal/consultation/orchestrator/consultation-orchestrator.module';
+import { ConsultationRoomModule } from '@/internal/consultation/room/consultation-room.module';
+import { VoiceModule } from '@/external/voice';
 import { RealtimeChatModule } from './chat/realtime-chat.module';
 import {
   RealtimeCallGateway,
@@ -20,6 +22,8 @@ import {
     ClientRealtimeModule,
     ExpertRealtimeModule,
     ConsultationOrchestratorModule,
+    ConsultationRoomModule,
+    VoiceModule,
     RealtimeChatModule,
   ],
   providers: [
@@ -38,11 +42,6 @@ import {
     RealtimeNotificationGateway,
     RealtimePresenceGateway,
   ],
-  exports: [
-    RealtimeGateway,
-    RealtimeAuthService,
-    RealtimeChatModule,
-  ],
+  exports: [RealtimeGateway, RealtimeAuthService, RealtimeChatModule],
 })
 export class RealtimeModule {}
-

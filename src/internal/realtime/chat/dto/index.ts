@@ -1,8 +1,1 @@
-export {
-  JoinChatDto,
-  LeaveChatDto,
-  SendChatMessageDto,
-  TypingChatDto,
-  ChatRequestDto,
-  ChatActionDto,
-} from './chat-events.dto';
+export { SendChatMessageDto, TypingChatDto } from './chat-events.dto';

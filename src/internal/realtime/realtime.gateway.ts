@@ -127,7 +127,9 @@ export class RealtimeGateway
    * Without it, client and expert tokens are structurally identical (shared
    * secret, `{sub, email}`), so first-match trial can misidentify the actor.
    */
-  private extractActorHint(socket: RealtimeSocket): RealtimeActorType | undefined {
+  private extractActorHint(
+    socket: RealtimeSocket,
+  ): RealtimeActorType | undefined {
     const hint = socket.handshake.auth?.actorType;
     return hint === 'client' || hint === 'expert' ? hint : undefined;
   }

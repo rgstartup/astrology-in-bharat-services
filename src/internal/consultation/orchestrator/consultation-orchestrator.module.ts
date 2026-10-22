@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PresenceModule } from '@/internal/actors/expert/presence/presence.module';
+import { VoiceModule } from '@/external/voice';
 import { ConsultationRoomModule } from '../room/consultation-room.module';
 import { ConsultationBudgetEngine } from './consultation-budget.engine';
 import { ConsultationOrchestratorService } from './consultation-orchestrator.service';
@@ -16,6 +17,7 @@ import {
   RequestConsultationUseCase,
   ResumeConsultationUseCase,
   StartConsultationUseCase,
+  SwitchToChatUseCase,
   TriggerBudgetHoldUseCase,
 } from './use-cases';
 
@@ -30,10 +32,11 @@ const USE_CASES = [
   EndConsultationUseCase,
   GetConsultationStatusUseCase,
   TriggerBudgetHoldUseCase,
+  SwitchToChatUseCase,
 ];
 
 @Module({
-  imports: [ConsultationRoomModule, PresenceModule],
+  imports: [ConsultationRoomModule, PresenceModule, VoiceModule],
   providers: [
     ConsultationBudgetEngine,
     ConsultationOrchestratorService,

@@ -20,7 +20,7 @@
 
 Quick lookup by keyword:
 - **`chat` / `realtime` / `socket`**: [BE-01](#be-01--legacy-chat-module-31-backend-files), [FE-02](#fe-02--client-libsocketts-monolith), [FE-03](#fe-03--client-libsocket-shims)
-- **`call` / `twilio` / `webrtc`**: [BE-02](#be-02--legacy-call-module-27-files)
+- **`call` / `twilio` / `webrtc`**: [BE-02](#be-02--legacy-call-module-27-files), [BE-13](#be-13--twilio-video-stack-externalvideo)
 - **`avatar` / `media` / `video` / `cloudinary` / `storage`**: [BE-03](#be-03--avatar-url-columns-deprecated-for-avatar_id-media-fk), [BE-04](#be-04--expert-generic-upload-endpoints), [BE-05](#be-05--expert-legacy-video-column), [BE-06](#be-06--cloudinaryservice-facade), [FE-06/07/10](#fe-060710--deprecated-dto-fields-uidpublic_id-avataravatar_media-is_available)
 - **`payment` / `razorpay` / `webhook`**: [BE-07](#be-07--validatewebhooksignature-optional-interface-method)
 - **`expert` / `presence` / `availability`**: [BE-04](#be-04--expert-generic-upload-endpoints), [BE-05](#be-05--expert-legacy-video-column), [BE-08](#be-08--expert-is_available-flag), [BE-10](#be-10--expert-profile-module-expertprofilemodule-profilemodulets), [BE-12](#be-12--bankaccountsmodule-bank-accountsmodulets), [FE-09](#fe-09--client-useexpertpresence-shim)
@@ -38,8 +38,8 @@ Quick lookup by keyword:
 
 | Element | Type | File(s) | Difficulty | Dependencies | Tags | Status |
 |---|---|---|---|---|---|---|
-| BE-01 Legacy chat module | module group (31 files) | `internal/consultation/chat/**` | Hard | Multiple | `chat`, `realtime`, `consultation`, `typeorm`, `socket` | Tracked, bodies restored 2026-10-08 |
-| BE-02 Legacy call module | module group (27 files) | `internal/consultation/call/**` | Moderate | Multiple | `call`, `consultation`, `twilio`, `typeorm`, `webrtc` | Tracked, bodies restored 2026-10-08 |
+| BE-01 Legacy chat module | module group (31 files) | `internal/consultation/chat/**` | Hard | Multiple | `chat`, `realtime`, `consultation`, `typeorm`, `socket` | **Removed (2026-10-17)** |
+| BE-02 Legacy call module | module group (27 files) | `internal/consultation/call/**` | Moderate | Multiple | `call`, `consultation`, `twilio`, `typeorm`, `webrtc` | **Removed (2026-10-17)** |
 | BE-03 Avatar URL columns | columns/fields (8) | schemas + entities + DTOs | Moderate | Multiple | `avatar`, `media`, `user`, `account`, `profile`, `schema`, `typeorm`, `drizzle` | Tracked |
 | BE-04 Expert generic upload endpoints | routes (2) | expert account.controller | Moderate | Internal | `expert`, `upload`, `media`, `cloudinary`, `controller` | Tracked |
 | BE-05 Expert legacy `video` column | column | expert account.entity | Moderate | Unknown | `expert`, `video`, `media`, `account`, `schema` | Tracked |
@@ -50,6 +50,7 @@ Quick lookup by keyword:
 | BE-10 ExpertProfileModule (`ProfileModule`) | module (22 files) | `internal/actors/expert/profile/**` | Moderate | Multiple | `expert`, `profile`, `discovery`, `account`, `puja`, `kyc`, `typeorm`, `module` | Tracked, marked @deprecated 2026-10-09 |
 | BE-11 CommissionsModule | module (17 files) | `internal/finance/commissions/**` | Moderate | Multiple | `commissions`, `finance`, `split`, `rule`, `tier`, `typeorm`, `module` | Tracked, marked @deprecated 2026-10-09 |
 | BE-12 BankAccountsModule | module (16 files) | `internal/actors/expert/bank-accounts/**` | Moderate | Multiple | `expert`, `bank-account`, `payout`, `typeorm`, `module` | Tracked, marked @deprecated 2026-10-12 |
+| BE-13 Twilio video stack | module group (5 files) | `external/video/**` | Easy | Single | `video`, `twilio`, `webrtc`, `external` | Tracked, marked @deprecated 2026-10-16 |
 | FE-01 safe-fetch legacy tuple API | types/functions (4) | `packages/safe-fetch/` | Moderate | Multiple | `safe-fetch`, `api`, `tuple`, `fetch`, `frontend` | Tracked |
 | FE-02 Client `lib/socket.ts` monolith | module | `apps/client/src/lib/socket.ts` | Easy | Internal | `socket`, `realtime`, `client`, `frontend` | Tracked |
 | FE-03 Client `lib/socket/` shims | barrel re-exports | `apps/client/src/lib/socket/` | Unknown | Unknown | `socket`, `shims`, `client`, `frontend` | Tracked |
@@ -64,8 +65,9 @@ Resolved (not inventoried): legacy expert `src/lib/socket.ts` (already removed),
 
 ---
 
-## BE-01 — Legacy chat module (31 backend files)
+## BE-01 — Legacy chat module (31 backend files) [REMOVED 2026-10-17]
 
+- **Status:** REMOVED on 2026-10-17. All 31 files deleted. Decoupled users, admin, expert, reviews modules to Drizzle `consultations.consultations`. Thin compatibility controller `ClientSessionCompatController` added to `ClientConsultationModule` for `/v1/chat/sessions/active-client`.
 - **Tags:** `chat`, `realtime`, `consultation`, `typeorm`, `socket`
 - **Type:** NestJS module group — gateway, module, service, 2 controllers
   (`chat.controller`, `consultation.controller`), 2 DTOs, 2 TypeORM
@@ -83,8 +85,8 @@ Resolved (not inventoried): legacy expert `src/lib/socket.ts` (already removed),
   get-chat-earnings, get-chat-session-stats, get-expert-sessions-by-date,
   get-messages, get-session, get-total-sessions-count, reject-chat,
   resolve-session-details, save-message, update-session-metadata}.use-case.ts`
-  (bodies restored 2026-10-08 via `git restore`; no `@deprecated` markers in
-  code — tracked here only).
+  (bodies restored 2026-10-08 via `git restore`; `@deprecated` markers added
+  2026-10-14 — see marking note below).
 - **Reason:** TypeORM chat stack on dead `chat` namespace (`room_*`,
   `expert_*` rooms). Replaced by `/realtime` (`SOCKET_EVENTS.CHAT`) +
   `actors/client/consultation/chat` (Drizzle). Per cerebrum 2026-10-06: delete
@@ -113,11 +115,29 @@ Resolved (not inventoried): legacy expert `src/lib/socket.ts` (already removed),
   page only after the new session-detail endpoint lands; ship drop-table
   migration. Do not stub-then-delete: the 2026-10-08 stub incident (52 files
   → comment-only) broke the build with 96 errors; restore-then-migrate only.
+- **Deprecation marking (2026-10-14):** `@deprecated` JSDoc added to
+  `ChatModule` (logs `Logger.warn` on init), `ChatGateway` (pre-existing note
+  formalized), `ChatService`, `ChatController`, `consultation.controller.ts`
+  (`v1/consultation`), and `enum.ts` (shared enums stay until importers
+  migrate). Use-cases are covered by the module-level marking. No behavior
+  change; frontends still served.
+- **Capability inventory (reproduce on the new stack before removal):**
+  lifecycle — activate, end (wallet debit/credit + commission splits),
+  expire-pending, convert free→paid, admin terminate, reject; reads — session
+  by id, history, client/expert sessions (pending/completed appointments),
+  active-client session, all sessions (paginated+filter), session stats,
+  sessions by date, resolve details, metadata update; money — expert
+  revenue+count (single + all), earnings by date, agent commission; realtime —
+  typing, 30s reconnect grace auto-end, 1h force-end; REST — `v1/chat/*`
+  (activate, end, status patch, session, history, user-session, pending,
+  completed, appointments pending/completed, all, my-sessions, active-client)
+  + `v1/consultation/book-with-wallet`.
 
 ---
 
-## BE-02 — Legacy call module (27 files)
+## BE-02 — Legacy call module (27 files) [REMOVED 2026-10-17]
 
+- **Status:** REMOVED on 2026-10-17. All 27 files deleted. Decoupled expert earnings and reviews to Drizzle `consultations.consultations`. Thin compatibility controller `ExpertAppointmentsCompatController` added to `ExpertChatModule` for `/v1/chat/sessions/appointments/*` and `/v1/call/sessions/appointments/*`.
 - **Tags:** `call`, `consultation`, `twilio`, `typeorm`, `webrtc`
 - **Type:** NestJS module group — gateway, module, service, 2 controllers
   (`call.controller`, `twiml.controller`), 3 DTOs, 1 entity, `enum.ts`,
@@ -130,13 +150,37 @@ Resolved (not inventoried): legacy expert `src/lib/socket.ts` (already removed),
   `services/twilio.service.ts` were never stubbed).
 - **Reason:** TypeORM call stack on dead `call` namespace. No actor-mirror yet;
   call re-homing is behind chat.
-- **Replacement:** none yet (future `/realtime` `SOCKET_EVENTS.CALL` actor flow).
+- **Replacement:** done — Drizzle `actors/client/consultation/voice`
+  (`ClientVoiceModule`: `POST /v1/client/voice/initiate`, `GET
+  /v1/client/voice/eligibility`, `GET /v1/client/voice/token/:consultationId`
+  now Agora via `VoiceService`), `/realtime` call handlers
+  (`ClientCallHandler`/`ExpertCallHandler` issuing Agora tokens scoped to
+  `SOCKET_ROOMS.VOICE_SESSION` = `consultation:voice:<id>` on
+  `consultation:call:join`, consumed by `@repo/rtc` `AgoraAdapter` on both
+  apps), `external/voice` (`VoiceService`, Agora default). The only live
+  Twilio remainder is the `VOICE_PROVIDER=twilio` fallback adapter
+  (deprecated, see BE-13 pattern) — no runtime fallback logic.
 - **Consumers:** DI via `consultation.module.ts` (`CallModule`, forwardRef +
   direct) and `TypeOrmModule.forFeature([CallSession])` there +
   `reviews.module.ts`; legacy expert call/video room pages + sockets.
 - **Dependency level:** Multiple. **Difficulty:** Moderate.
 - **Removal notes:** Needs its own actor-mirror epic first; then same playbook
   as BE-01 (stats, TypeOrm regs, drop migration for `consultations.call_*`).
+- **Deprecation marking (2026-10-14):** `@deprecated` JSDoc added to
+  `CallModule` (logs `Logger.warn` on init), `CallGateway`, `CallService`,
+  `TwilioService`, `CallController` (`v1/call`), `TwimlController` (PSTN
+  path — voice is WebRTC-only), and `enum.ts` (shared enums stay until
+  importers migrate). Use-cases are covered by the module-level marking. No
+  behavior change; frontends still served.
+- **Capability inventory (reproduce on the new stack before removal):**
+  lifecycle — initiate (eligibility, balance reserve, Twilio room), accept,
+  end (wallet settlement + commission splits), convert-to-paid, reject; reads
+  — session, Twilio access token, pending/completed appointments, all
+  sessions, expert sessions + revenue, calls by date, resolve details; money
+  — earnings by date + audio/video type, agent commission; realtime —
+  `join_call_room`, paid-continuation confirm; REST — `v1/call/*` (initiate,
+  accept, end, status patch, session, token, appointments pending/completed,
+  all) + TwiML webhooks (droppable — WebRTC-only).
 
 ---
 
@@ -275,6 +319,30 @@ Resolved (not inventoried): legacy expert `src/lib/socket.ts` (already removed),
 
 ---
 
+## BE-13 — Twilio video stack (`external/video`)
+
+- **Tags:** `video`, `twilio`, `webrtc`, `external`
+- **Type:** NestJS module group (5 files) — `video.module.ts`, `video.service.ts`,
+  `video.types.ts`, `adapters/twilio-video.adapter.ts`, `errors/video.errors.ts`.
+- **Files:** `backend/src/external/video/**` (marked `@deprecated` 2026-10-16:
+  module logs `Logger.warn` on init, service + adapter carry JSDoc markers).
+- **Reason:** Single-provider Twilio video stack. Voice moved to `external/voice`
+  (`VoiceService`, Agora default via `VOICE_PROVIDER`); video follows the same
+  provider pattern when rebuilt. `ClientVoiceModule` no longer imports it
+  (`GetVoiceTokenUsecase` mints Agora via `VoiceService`, channel
+  `consultation:voice:<id>`, identity `client_<id>_consult_<cid>`).
+- **Replacement:** `src/external/voice/` (`VoiceService` + `AgoraVoiceAdapter`).
+- **Consumers:** `ExternalModule` still registers `VideoModule` (global) — removal
+  means dropping it from `imports`/`exports` there. No feature module imports it
+  anymore. Test-only: `video.spec.ts`.
+- **Dependency level:** Single. **Difficulty:** Easy.
+- **Removal notes:** confirm no runtime callers, remove `VideoModule` from
+  `ExternalModule`, delete `external/video/`. Note: `resolveVideoOptions`
+  throws at boot without Twilio env — removing the registration also removes
+  that boot landmine for Agora-only deployments.
+
+---
+
 ## FE-01 — safe-fetch legacy tuple API
 
 - **Tags:** `safe-fetch`, `api`, `tuple`, `fetch`, `frontend`
@@ -353,7 +421,7 @@ Resolved (not inventoried): legacy expert `src/lib/socket.ts` (already removed),
 ## Removal groups
 
 ### Safe to remove (no/trivial consumers)
-BE-06, BE-07, FE-02, FE-09, FE-11.
+BE-06, BE-07, BE-13, FE-02, FE-09, FE-11.
 
 ### Requires consumer migration
 BE-02, BE-04, BE-05, BE-08, BE-09, BE-10, BE-11, FE-01, FE-05, FE-08 (+ FE-03/FE-06/07/10 once enumerated).

@@ -6,13 +6,7 @@ import { SOCKET_EVENTS } from '../constants/socket-events.constant';
 
 function actorServiceMock() {
   return {
-    joinCall: vi
-      .fn()
-      .mockResolvedValue({ status: 'joined', consultationId: 100 }),
-    relayCallSignal: vi.fn(),
-    endCall: vi
-      .fn()
-      .mockResolvedValue({ status: 'left', consultationId: 100 }),
+    relayMediaSignal: vi.fn(),
   };
 }
 
@@ -28,12 +22,6 @@ describe('RealtimeCallGateway', () => {
     clientId: 10,
     email: 'client@test.com',
   };
-  const expertIdentity = {
-    actorType: 'expert' as const,
-    id: 42,
-    expertId: 42,
-    email: 'expert@test.com',
-  };
 
   beforeEach(() => {
     mockClientRealtimeService = actorServiceMock();
@@ -43,28 +31,8 @@ describe('RealtimeCallGateway', () => {
     gateway = new RealtimeCallGateway(
       mockClientRealtimeService as unknown as ClientRealtimeService,
       mockExpertRealtimeService as unknown as ExpertRealtimeService,
-      { end: vi.fn() } as any,
     );
     gateway.server = mockServer as any;
-  });
-
-  it('routes call join to the owning actor service', async () => {
-    const mockSocket: any = {
-      id: 'expert-socket-1',
-      data: { auth: expertIdentity },
-    };
-
-    await gateway.handleCallJoin(
-      mockSocket,
-      { consultationId: 100 } as any,
-      expertIdentity,
-    );
-    expect(mockExpertRealtimeService.joinCall).toHaveBeenCalledWith(
-      mockSocket,
-      100,
-      expertIdentity,
-    );
-    expect(mockClientRealtimeService.joinCall).not.toHaveBeenCalled();
   });
 
   it('relays offer/answer/ice to the owning actor service', () => {
@@ -78,9 +46,9 @@ describe('RealtimeCallGateway', () => {
       { consultationId: 100, offer: { sdp: 'o' } } as any,
       clientIdentity,
     );
-    expect(mockClientRealtimeService.relayCallSignal).toHaveBeenCalledWith(
+    expect(mockClientRealtimeService.relayMediaSignal).toHaveBeenCalledWith(
       mockSocket,
-      SOCKET_EVENTS.CALL.OFFER,
+      SOCKET_EVENTS.MEDIA.OFFER,
       { consultationId: 100, offer: { sdp: 'o' } },
       clientIdentity,
     );
@@ -90,9 +58,9 @@ describe('RealtimeCallGateway', () => {
       { consultationId: 100, answer: { sdp: 'a' } } as any,
       clientIdentity,
     );
-    expect(mockClientRealtimeService.relayCallSignal).toHaveBeenCalledWith(
+    expect(mockClientRealtimeService.relayMediaSignal).toHaveBeenCalledWith(
       mockSocket,
-      SOCKET_EVENTS.CALL.ANSWER,
+      SOCKET_EVENTS.MEDIA.ANSWER,
       { consultationId: 100, answer: { sdp: 'a' } },
       clientIdentity,
     );
@@ -102,36 +70,11 @@ describe('RealtimeCallGateway', () => {
       { consultationId: 100, candidate: { c: 1 } } as any,
       clientIdentity,
     );
-    expect(mockClientRealtimeService.relayCallSignal).toHaveBeenCalledWith(
+    expect(mockClientRealtimeService.relayMediaSignal).toHaveBeenCalledWith(
       mockSocket,
-      SOCKET_EVENTS.CALL.ICE_CANDIDATE,
+      SOCKET_EVENTS.MEDIA.ICE_CANDIDATE,
       { consultationId: 100, candidate: { c: 1 } },
       clientIdentity,
-    );
-  });
-
-  it('routes call end with the gateway server to the owning actor service', async () => {
-    const mockSocket: any = {
-      id: 'client-socket-1',
-      data: { auth: clientIdentity },
-    };
-
-    const mockOrchestrator = { end: vi.fn() };
-    (gateway as any).orchestrator = mockOrchestrator;
-
-    await gateway.handleCallEnd(
-      mockSocket,
-      { consultationId: 100 } as any,
-      clientIdentity,
-    );
-    expect(mockOrchestrator.end).toHaveBeenCalledWith(
-      gateway.server,
-      {
-        consultationId: 100,
-        actorId: clientIdentity.id,
-        actorType: 'client',
-        reason: 'manual',
-      },
     );
   });
 });

@@ -1,11 +1,14 @@
-import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import {
   Injectable,
   Logger,
   Inject,
-  forwardRef,
   ForbiddenException,
 } from '@nestjs/common';
+import { and, count, eq, inArray } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { consultations } from '@/core/drizzledb/schema';
+import { ConsultationStatus } from '@/internal/consultation/enums';
 import { BooleanMessage } from '@/shared/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -15,9 +18,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../domain/policies/profile.policy';
 import { ExpertStatusChangedEvent } from '../domain/events/profile-events';
 import { ActiveSessionOfflineError } from '../domain/errors/active-session-offline.error';
-import { ChatService } from '../../../../consultation/chat/chat.service';
-import { ChatSessionStatus } from '../../../../consultation/chat/enum';
 
+/**
+ * Updates expert availability status, preventing offline transition during active consultations.
+ */
 @Injectable()
 export class UpdateStatusUseCase {
   private readonly logger = new Logger(UpdateStatusUseCase.name);
@@ -26,8 +30,8 @@ export class UpdateStatusUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly eventEmitter: EventEmitter2,
-    @Inject(forwardRef(() => ChatService))
-    private readonly chatService: DeferredDependency<ChatService>,
+    @Inject(DRIZZLE)
+    private readonly db: DrizzleDb,
   ) {}
 
   async execute(user: IUser, isAvailable: boolean) {
@@ -56,12 +60,21 @@ export class UpdateStatusUseCase {
 
     // Business Logic: Prevent going offline if there are active sessions
     if (isAvailable === false) {
-      const activeSessionsCount = await this.chatService.getExpertSessionCount(
-        profile.id,
-        {
-          status: [ChatSessionStatus.ACTIVE, ChatSessionStatus.PENDING],
-        },
-      );
+      const [countRow] = await this.db
+        .select({ value: count() })
+        .from(consultations)
+        .where(
+          and(
+            eq(consultations.expert_id, profile.id),
+            inArray(consultations.status, [
+              ConsultationStatus.ACTIVE,
+              ConsultationStatus.REQUESTED,
+              ConsultationStatus.ACCEPTED,
+            ]),
+          ),
+        );
+
+      const activeSessionsCount = Number(countRow?.value ?? 0);
 
       if (activeSessionsCount > 0) {
         this.logger.warn(

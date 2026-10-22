@@ -2,8 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, DataSource } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { ChatSession } from '../../consultation/chat/entities/chat-session.entity';
-import { ChatSessionStatus } from '../../consultation/chat/enum';
 import { Order } from '../../commerce/order/entities/order.entity';
 import { OrderStatus } from '../../commerce/order/enum';
 import { RoleEnum } from '../enums/Role.enum';
@@ -74,11 +72,11 @@ export class GetFilteredUsersUseCase {
         .andWhere((qb) => {
           const subQuery = qb
             .subQuery()
-            .select('COUNT(session.id)')
-            .from(ChatSession, 'session')
-            .where('session.client_id = user.id')
-            .andWhere('session.status = :sessStatus', {
-              sessStatus: ChatSessionStatus.COMPLETED,
+            .select('COUNT(c.id)')
+            .from('consultations.consultations', 'c')
+            .where('c.client_id = user.id')
+            .andWhere('c.status = :sessStatus', {
+              sessStatus: 'completed',
             })
             .getQuery();
           return `${subQuery} >= :minSess`;
@@ -163,11 +161,11 @@ export class GetFilteredUsersUseCase {
     // Enhance with stats for preview
     const enhancedUsers = await Promise.all(
       users.map(async (u) => {
-        const sessionCount = await this.dataSource
-          .getRepository(ChatSession)
-          .count({
-            where: { client_id: u.id, status: ChatSessionStatus.COMPLETED },
-          });
+        const sessionCountRaw = (await this.dataSource.query(
+          `SELECT COUNT(*)::int AS count FROM consultations.consultations WHERE client_id = $1 AND status = 'completed'`,
+          [u.id],
+        )) as Array<{ count?: number }>;
+        const sessionCount = Number(sessionCountRaw?.[0]?.count ?? 0);
 
         const spendingResult = (await this.dataSource
           .getRepository(Order)

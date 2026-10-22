@@ -1,42 +1,24 @@
 export const SOCKET_EVENTS = {
   PRESENCE: {
-    HEARTBEAT: 'presence:heartbeat',
-    SUBSCRIBE: 'presence:subscribe',
-    UNSUBSCRIBE: 'presence:unsubscribe',
-    SUBSCRIBE_MANY: 'presence:subscribe_many',
-    UNSUBSCRIBE_MANY: 'presence:unsubscribe_many',
-    UPDATED: 'presence:updated',
+    HEARTBEAT: "presence:heartbeat",
+    SUBSCRIBE: "presence:subscribe",
+    UNSUBSCRIBE: "presence:unsubscribe",
+    SUBSCRIBE_MANY: "presence:subscribe_many",
+    UNSUBSCRIBE_MANY: "presence:unsubscribe_many",
+    UPDATED: "presence:updated",
   },
 
   NOTIFICATION: {
-    SUBSCRIBE: 'notification:subscribe',
-    UNSUBSCRIBE: 'notification:unsubscribe',
-    READ: 'notification:read',
-    NEW: 'notification:new',
+    SUBSCRIBE: "notification:subscribe",
+    UNSUBSCRIBE: "notification:unsubscribe",
+    READ: "notification:read",
+    NEW: "notification:new",
   },
 
   CHAT: {
-    // Transport-only events (remain on chat gateway)
-    JOIN: 'consultation:chat:join',
-    LEAVE: 'consultation:chat:leave',
-    SEND: 'consultation:chat:send',
-    MESSAGE: 'consultation:chat:message',
-    TYPING: 'consultation:chat:typing',
-
-    // Deprecated lifecycle events — use CONSULTATION.COMMANDS/EVENTS instead
-    // END: 'consultation:chat:end',
-    // REQUEST: 'consultation:chat:request',
-    // INCOMING: 'consultation:chat:incoming',
-    // ACCEPT: 'consultation:chat:accept',
-    // REJECT: 'consultation:chat:reject',
-    // ACCEPTED: 'consultation:chat:accepted',
-    // REJECTED: 'consultation:chat:rejected',
-    // CANCEL: 'consultation:chat:cancel',
-    // ENDED: 'consultation:chat:ended',
-    // PAUSE: 'consultation:chat:pause',
-    // PAUSED: 'consultation:chat:paused',
-    // RESUME: 'consultation:chat:resume',
-    // RESUMED: 'consultation:chat:resumed',
+    SEND: "consultation:chat:send",
+    MESSAGE: "consultation:chat:message",
+    TYPING: "consultation:chat:typing",
   },
 
   /**
@@ -47,56 +29,61 @@ export const SOCKET_EVENTS = {
   CONSULTATION: {
     // 1. Inbound Commands (Client / Expert -> Server)
     COMMANDS: {
-      REQUEST: 'consultation:request',
-      ACCEPT: 'consultation:accept',
-      REJECT: 'consultation:reject',
-      CANCEL: 'consultation:cancel',
-      START: 'consultation:start',
-      PAUSE: 'consultation:pause',
-      RESUME: 'consultation:resume',
-      DISCONNECT: 'consultation:disconnect',
-      END: 'consultation:end',
-      GET_STATUS: 'consultation:get_status',
+      REQUEST: "consultation:request",
+      ACCEPT: "consultation:accept",
+      REJECT: "consultation:reject",
+      CANCEL: "consultation:cancel",
+      START: "consultation:start",
+      JOIN: "consultation:join",
+      LEAVE: "consultation:leave",
+      MEDIA_READY: "consultation:media_ready",
+      VOICE_TOKEN: "consultation:voice_token",
+      PAUSE: "consultation:pause",
+      RESUME: "consultation:resume",
+      DISCONNECT: "consultation:disconnect",
+      END: "consultation:end",
+      GET_STATUS: "consultation:get_status",
+      SWITCH_TO_CHAT: "consultation:switch_to_chat",
     },
 
     // 2. Outbound State Events (Server -> Room / Participants)
     EVENTS: {
-      STATE: 'consultation:state',
-      INCOMING: 'consultation:incoming',
-      ACCEPTED: 'consultation:accepted',
-      REJECTED: 'consultation:rejected',
-      CANCELLED: 'consultation:cancelled',
-      STARTED: 'consultation:started',
-      PAUSED: 'consultation:paused',
-      RESUMED: 'consultation:resumed',
-      DISCONNECTED: 'consultation:disconnected',
-      ENDED: 'consultation:ended',
+      STATE: "consultation:state",
+      INCOMING: "consultation:incoming",
+      ACCEPTED: "consultation:accepted",
+      REJECTED: "consultation:rejected",
+      CANCELLED: "consultation:cancelled",
+      STARTED: "consultation:started",
+      MEDIA_READY: "consultation:media_ready",
+      PAUSED: "consultation:paused",
+      RESUMED: "consultation:resumed",
+      DISCONNECTED: "consultation:disconnected",
+      ENDED: "consultation:ended",
     },
 
     // 3. Outbound Budget & Metering Events (Server -> Room / Participants)
     BUDGET: {
-      TICK: 'consultation:budget:tick',
-      WARNING: 'consultation:budget:warning',
-      EXHAUSTED: 'consultation:budget:exhausted',
-      RESTORED: 'consultation:budget:restored',
+      TICK: "consultation:budget:tick",
+      WARNING: "consultation:budget:warning",
+      EXHAUSTED: "consultation:budget:exhausted",
+      RESTORED: "consultation:budget:restored",
     },
 
     // Backwards-compatible legacy aliases
-    PAUSE: 'consultation:pause',
-    PAUSED: 'consultation:paused',
-    RESUME: 'consultation:resume',
-    RESUMED: 'consultation:resumed',
+    PAUSE: "consultation:pause",
+    PAUSED: "consultation:paused",
+    RESUME: "consultation:resume",
+    RESUMED: "consultation:resumed",
   },
 
-  CALL: {
-    JOIN: 'consultation:call:join',
-    OFFER: 'consultation:call:offer',
-    ANSWER: 'consultation:call:answer',
-    ICE_CANDIDATE: 'consultation:call:ice_candidate',
-    ACCEPT: 'consultation:call:accept',
-    REJECT: 'consultation:call:reject',
-    END: 'consultation:call:end',
-    INCOMING: 'consultation:call:incoming',
+  /**
+   * Media signalling shared by voice and video (WebRTC offer/answer/ICE).
+   * Transport-only relay — lifecycle rides on CONSULTATION commands/events.
+   */
+  MEDIA: {
+    OFFER: "consultation:media:offer",
+    ANSWER: "consultation:media:answer",
+    ICE_CANDIDATE: "consultation:media:ice_candidate",
   },
 } as const;
 

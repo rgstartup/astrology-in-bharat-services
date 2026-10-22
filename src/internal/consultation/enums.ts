@@ -53,3 +53,45 @@ export enum SessionRecordingStatus {
   COMPLETED = 'completed',
   FAILED = 'failed',
 }
+
+/**
+ * Message payload content types supported in consultation chats.
+ */
+export enum MessageType {
+  TEXT = 'text',
+  IMAGE = 'image',
+  FILE = 'file',
+}
+
+/**
+ * Voice and video call modalities.
+ */
+export enum CallType {
+  AUDIO = 'audio',
+  VIDEO = 'video',
+}
+
+/**
+ * Chat session lifecycle states.
+ */
+export enum ChatSessionStatus {
+  PENDING = 'pending',
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  REJECTED = 'rejected',
+  EXPIRED = 'expired',
+}
+
+/**
+ * Call session lifecycle states.
+ */
+export enum CallSessionStatus {
+  PENDING = 'pending',
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  REJECTED = 'rejected',
+  EXPIRED = 'expired',
+}
+

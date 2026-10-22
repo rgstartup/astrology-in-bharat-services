@@ -10,8 +10,6 @@ import {
 import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
 import { ProfileExpert } from '../../../actors/expert/profile/entities/profile-expert.entity';
 import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
-import { ChatSession } from '../../chat/entities/chat-session.entity';
-import { CallSession } from '../../call/entities/call-session.entity';
 import { Order } from '../../../commerce/order/entities/order.entity';
 
 @Entity({ schema: 'consultations', name: 'reviews' })
@@ -50,16 +48,8 @@ export class Review {
   @Column({ type: 'int', nullable: true, name: 'session_id' })
   session_id!: number | null;
 
-  @ManyToOne(() => ChatSession, { nullable: true })
-  @JoinColumn({ name: 'session_id' })
-  session!: Relation<ChatSession>;
-
   @Column({ type: 'int', nullable: true, name: 'call_session_id' })
   call_session_id!: number | null;
-
-  @ManyToOne(() => CallSession, { nullable: true })
-  @JoinColumn({ name: 'call_session_id' })
-  callSession!: Relation<CallSession>;
 
   @Column({ type: 'float' })
   rating!: number;

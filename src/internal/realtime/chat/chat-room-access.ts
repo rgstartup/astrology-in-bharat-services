@@ -1,9 +1,6 @@
 import { eq } from 'drizzle-orm';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import {
-  clientAccounts,
-  consultations,
-} from '@/core/drizzledb/schema';
+import { clientAccounts, consultations } from '@/core/drizzledb/schema';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 
 /**

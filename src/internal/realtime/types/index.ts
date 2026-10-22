@@ -6,7 +6,4 @@ export type {
   AuthenticatedSocketIdentity,
 } from './socket-auth.types';
 
-export type {
-  RealtimeSocketData,
-  RealtimeSocket,
-} from './socket-data.types';
+export type { RealtimeSocketData, RealtimeSocket } from './socket-data.types';

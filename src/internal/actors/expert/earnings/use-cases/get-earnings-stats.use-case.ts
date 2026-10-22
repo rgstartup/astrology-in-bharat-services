@@ -1,23 +1,31 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatService } from '../../../../consultation/chat/chat.service';
-import { CallService } from '../../../../consultation/call/call.service';
-import { GetExpertPujasByDateUseCase } from '../../../../puja-appointment/use-cases/get-expert-pujas-by-date.use-case';
-import { ReviewsService } from '../../../../consultation/reviews/reviews.service';
-import { CallType } from '../../../../consultation/call/enum';
-import { WalletService } from '../../../../finance/wallet/wallet.service';
+import { and, eq, gte, inArray, lte } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { consultations, clientAccounts, users } from '@/core/drizzledb/schema';
+import {
+  CallType,
+  ConsultationMode,
+  ConsultationStatus,
+} from '@/internal/consultation/enums';
+import { GetExpertPujasByDateUseCase } from '@/internal/puja-appointment/use-cases/get-expert-pujas-by-date.use-case';
+import { ReviewsService } from '@/internal/consultation/reviews/reviews.service';
+import { WalletService } from '@/internal/finance/wallet/wallet.service';
 import { ExpertAccount } from '../../account/entities/account.entity';
-
 import { GetExpertEarningsStatsDto } from '../dto/get-expert-earnings-stats.dto';
 
+/**
+ * Calculates earnings metrics, historical trends, and service breakdown for an expert.
+ */
 @Injectable()
 export class GetEarningsStatsUseCase {
   constructor(
     @InjectRepository(ExpertAccount)
     private expertRepo: Repository<ExpertAccount>,
-    private chatService: ChatService,
-    private callService: CallService,
+    @Inject(DRIZZLE)
+    private readonly db: DrizzleDb,
     private getExpertPujasByDateUseCase: GetExpertPujasByDateUseCase,
     private reviewsService: ReviewsService,
     private walletService: WalletService,
@@ -88,21 +96,33 @@ export class GetEarningsStatsUseCase {
 
     // --- Data Fetching (Current Period) ---
     const [sessions, calls, pujas, reviews] = await Promise.all([
-      this.chatService.getExpertSessionsByDate(expert_id, startDate, endDate),
-      this.callService.getExpertCallsByDate(expert_id, startDate, endDate),
+      this.getConsultationsByDate(
+        expert_id,
+        ConsultationMode.CHAT,
+        startDate,
+        endDate,
+      ),
+      this.getConsultationsByDate(
+        expert_id,
+        'CALL',
+        startDate,
+        endDate,
+      ),
       this.getExpertPujasByDateUseCase.execute(expert_id, startDate, endDate),
       this.reviewsService.getExpertReviewsByDate(expert_id, startDate, endDate),
     ]);
 
     // --- Data Fetching (Previous Period for Growth) ---
     const [prevSessions, prevCalls, prevPujas] = await Promise.all([
-      this.chatService.getExpertSessionsByDate(
+      this.getConsultationsByDate(
         expert_id,
+        ConsultationMode.CHAT,
         prevStartDate,
         prevEndDate,
       ),
-      this.callService.getExpertCallsByDate(
+      this.getConsultationsByDate(
         expert_id,
+        'CALL',
         prevStartDate,
         prevEndDate,
       ),
@@ -458,4 +478,75 @@ export class GetEarningsStatsUseCase {
       recentTransactions: recentTransactions,
     };
   }
+
+  /**
+   * Fetches completed consultations within a date range for earnings calculations.
+   *
+   * @param expertId - Expert account ID.
+   * @param mode - Consultation mode ('CHAT' or 'CALL').
+   * @param startDate - Range start date.
+   * @param endDate - Range end date.
+   * @returns Mapped session rows with durations and client snapshots.
+   */
+  private async getConsultationsByDate(
+    expertId: number,
+    mode: ConsultationMode | 'CALL',
+    startDate: Date,
+    endDate: Date,
+  ) {
+    const modeCondition =
+      mode === ConsultationMode.CHAT
+        ? eq(consultations.mode, ConsultationMode.CHAT)
+        : inArray(consultations.mode, [
+            ConsultationMode.AUDIO_CALL,
+            ConsultationMode.VIDEO_CALL,
+          ]);
+
+    const rows = await this.db
+      .select({
+        id: consultations.id,
+        client_id: consultations.client_id,
+        expert_id: consultations.expert_id,
+        mode: consultations.mode,
+        duration_seconds: consultations.duration_seconds,
+        created_at: consultations.created_at,
+        userName: users.name,
+        userAvatar: users.avatar,
+      })
+      .from(consultations)
+      .leftJoin(clientAccounts, eq(consultations.client_id, clientAccounts.id))
+      .leftJoin(users, eq(clientAccounts.user_id, users.id))
+      .where(
+        and(
+          eq(consultations.expert_id, expertId),
+          modeCondition,
+          eq(consultations.status, ConsultationStatus.COMPLETED),
+          gte(consultations.created_at, startDate),
+          lte(consultations.created_at, endDate),
+        ),
+      );
+
+    return rows.map((r) => ({
+      id: r.id,
+      client_id: r.client_id,
+      expert_id: r.expert_id,
+      type:
+        r.mode === ConsultationMode.VIDEO_CALL
+          ? CallType.VIDEO
+          : CallType.AUDIO,
+      mode: r.mode,
+      created_at: r.created_at,
+      total_cost: Math.round((r.duration_seconds / 60) * 10),
+      expert_earning: Math.round((r.duration_seconds / 60) * 10),
+      final_price: Math.round((r.duration_seconds / 60) * 10),
+      client: {
+        id: r.client_id,
+        user: {
+          name: r.userName || '',
+          avatar: r.userAvatar || '',
+        },
+      },
+    }));
+  }
 }
+

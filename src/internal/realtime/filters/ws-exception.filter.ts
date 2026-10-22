@@ -22,11 +22,10 @@ export class RealtimeWsExceptionFilter extends BaseWsExceptionFilter {
       message = err;
     } else if (typeof err === 'object' && err !== null) {
       const errorRecord = err as Record<string, unknown>;
-      code = typeof errorRecord.code === 'string' ? errorRecord.code : 'WS_ERROR';
+      code =
+        typeof errorRecord.code === 'string' ? errorRecord.code : 'WS_ERROR';
       message =
-        typeof errorRecord.message === 'string'
-          ? errorRecord.message
-          : message;
+        typeof errorRecord.message === 'string' ? errorRecord.message : message;
     }
 
     const payload: WsErrorResponse = {

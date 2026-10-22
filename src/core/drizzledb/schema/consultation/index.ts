@@ -25,20 +25,37 @@ export {
   consultationSessionsRelations,
   consultationSessionsStatusEnum,
   consultationSessionsModeEnum,
-  sessionProviders,
-  sessionProvidersRelations,
-  sessionRecordings,
-  sessionRecordingsRelations,
-  sessionRecordingsStatusEnum,
 } from './session';
 export type {
   ConsultationSessionRow,
   NewConsultationSessionRow,
-  SessionProviderRow,
-  NewSessionProviderRow,
-  SessionRecordingRow,
-  NewSessionRecordingRow,
 } from './session';
+
+export { consultationProviders } from './provider';
+export type {
+  ConsultationProviderRow,
+  NewConsultationProviderRow,
+} from './provider';
+
+export {
+  consultationVoiceRecords,
+  consultationVoiceRecordsRelations,
+  consultationRecordingStatusEnum,
+} from './voice';
+export type {
+  ConsultationVoiceRecordRow,
+  NewConsultationVoiceRecordRow,
+} from './voice';
+
+export {
+  consultationVideoRecords,
+  consultationVideoRecordsRelations,
+  consultationVideoRecordsStatusEnum,
+} from './video';
+export type {
+  ConsultationVideoRecordRow,
+  NewConsultationVideoRecordRow,
+} from './video';
 
 export {
   consultationMessages,

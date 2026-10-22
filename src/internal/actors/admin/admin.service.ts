@@ -1,5 +1,10 @@
 import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { asc, count, eq, inArray, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { consultations, consultationMessages } from '@/core/drizzledb/schema';
+import { ConsultationStatus } from '@/internal/consultation/enums';
 import { GetAdminDashboardStatsUseCase } from './use-cases/get-admin-dashboard-stats.use-case';
 import { GetAdminUserGrowthStatsUseCase } from './use-cases/get-admin-user-growth-stats.use-case';
 import { GetExpertDetailUseCase } from './use-cases/get-expert-detail.use-case';
@@ -76,8 +81,7 @@ export class AdminService {
     private readonly updateMerchantStatusAdminUseCase: UpdateMerchantStatusAdminUseCase,
     private readonly getMerchantSalesOverviewUseCase: GetAdminMerchantSalesOverviewUseCase,
     private readonly getMerchantSalesDetailsUseCase: GetAdminMerchantSalesDetailsUseCase,
-    // @Inject(forwardRef(() => ChatService))
-    // private readonly chatService: ChatService,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
     @Inject(forwardRef(() => WalletService))
     private readonly walletService: DeferredDependency<WalletService>,
     // @Inject(forwardRef(() => SupportService))
@@ -124,6 +128,50 @@ export class AdminService {
 
   async getLiveSessions(dto: GetLiveSessionsDto) {
     return this.getLiveSessionsUseCase.execute(dto);
+  }
+
+  /**
+   * Retrieves aggregated live session counts.
+   *
+   * @returns Counts for total, live, expired, and admin-terminated sessions.
+   */
+  async getLiveSessionStats() {
+    const [stats] = await this.db
+      .select({
+        total: count(),
+        live: sql<number>`count(*) filter (where ${eq(consultations.status, ConsultationStatus.ACTIVE)})`,
+        expired: sql<number>`count(*) filter (where ${inArray(consultations.status, [ConsultationStatus.EXPIRED, ConsultationStatus.COMPLETED])})`,
+        adminTerminated: sql<number>`count(*) filter (where ${eq(consultations.status, ConsultationStatus.COMPLETED)})`,
+      })
+      .from(consultations);
+
+    return {
+      total: Number(stats?.total ?? 0),
+      live: Number(stats?.live ?? 0),
+      expired: Number(stats?.expired ?? 0),
+      adminTerminated: Number(stats?.adminTerminated ?? 0),
+    };
+  }
+
+  /**
+   * Retrieves message history for a consultation session.
+   *
+   * @param id - Consultation ID.
+   * @returns Array of message rows.
+   */
+  async getChatHistory(id: number) {
+    return this.db
+      .select({
+        id: consultationMessages.id,
+        session_id: consultationMessages.session_id,
+        sender_id: consultationMessages.sender_id,
+        sender_type: consultationMessages.sender_type,
+        content: consultationMessages.content,
+        created_at: consultationMessages.created_at,
+      })
+      .from(consultationMessages)
+      .where(eq(consultationMessages.consultation_id, id))
+      .orderBy(asc(consultationMessages.created_at));
   }
 
   async terminateSession(

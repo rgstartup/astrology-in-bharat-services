@@ -2,18 +2,9 @@ import {
   IsInt,
   IsNotEmpty,
   IsObject,
-  IsOptional,
   IsPositive,
-  IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-
-export class JoinCallDto {
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  consultationId!: number;
-}
 
 export class CallOfferDto {
   @Type(() => Number)
@@ -46,15 +37,4 @@ export class IceCandidateDto {
   @IsObject()
   @IsNotEmpty()
   candidate!: Record<string, any>;
-}
-
-export class CallActionDto {
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  consultationId!: number;
-
-  @IsOptional()
-  @IsString()
-  reason?: string;
 }

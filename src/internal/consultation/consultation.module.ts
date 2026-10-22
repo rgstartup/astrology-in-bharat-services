@@ -4,33 +4,23 @@ import { ConsultationController } from './consultation/controllers/consultation.
 import { ConsultationTopicController } from './consultation/controllers/consultation-topic.controller';
 import { GetUnifiedHistoryUseCase } from './consultation/use-cases/get-unified-history.use-case';
 import { GetConsultationTopicsUseCase } from './consultation/use-cases/get-consultation-topics.use-case';
-import { ChatSession } from './chat/entities/chat-session.entity';
-import { CallSession } from './call/entities/call-session.entity';
 import { Review } from './reviews/entities/review.entity';
 import { ConsultationTopic } from './consultation/entities/consultation_topic.entity';
-import { CallModule } from './call/call.module';
-import { ChatModule } from './chat/chat.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { ConsultationOrchestratorModule } from './orchestrator/consultation-orchestrator.module';
 
+/**
+ * Module organizing consultation aggregate, topics, and history endpoints.
+ */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      ChatSession,
-      CallSession,
-      Review,
-      ConsultationTopic,
-    ]),
-    forwardRef(() => ChatModule),
-    forwardRef(() => CallModule),
+    TypeOrmModule.forFeature([Review, ConsultationTopic]),
     forwardRef(() => ReviewsModule),
     ConsultationOrchestratorModule,
   ],
   controllers: [ConsultationController, ConsultationTopicController],
   providers: [GetUnifiedHistoryUseCase, GetConsultationTopicsUseCase],
   exports: [
-    ChatModule,
-    CallModule,
     ReviewsModule,
     GetConsultationTopicsUseCase,
     ConsultationOrchestratorModule,

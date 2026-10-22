@@ -21,7 +21,6 @@ import { JwtAuthGuard } from '@/internal/auth/guards/auth.guard';
 import { AdminPermissionGuard } from '@/shared/guards/admin-permission.guard';
 import { RequirePermissions } from '@/shared/decorators/permissions.decorator';
 import { AdminPermission } from '@/internal/users/enums/AdminPermission.enum';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
 import { CouponService } from '@/internal/commerce/coupon/coupon.service';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { type IUser } from '@/shared/types/access-token.payload';
@@ -59,7 +58,6 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly usersService: UsersService,
-    private readonly chatService: ChatService,
     private readonly couponService: CouponService,
     private readonly reviewsService: ReviewsService,
     private readonly eventEmitter: EventEmitter2,
@@ -191,12 +189,12 @@ export class AdminController {
   @RequirePermissions(AdminPermission.LIVE_SESSIONS)
   @Get('live-sessions/stats')
   async getLiveSessionStats() {
-    return this.chatService.getSessionStats();
+    return this.adminService.getLiveSessionStats();
   }
   @RequirePermissions(AdminPermission.LIVE_SESSIONS)
   @Get('live-sessions/:id/history')
   async getChatHistory(@Param('id', ParseIntPipe) id: number) {
-    return this.chatService.getHistory(id);
+    return this.adminService.getChatHistory(id);
   }
   @RequirePermissions(AdminPermission.LIVE_SESSIONS)
   @Post('live-sessions/:id/terminate')

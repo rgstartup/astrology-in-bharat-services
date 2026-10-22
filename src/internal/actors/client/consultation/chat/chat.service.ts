@@ -1,24 +1,35 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
-import { ChatService } from '@/internal/consultation/chat/chat.service';
-import { CheckChatEligibilityUsecase } from './use-cases/check-chat-eligibility.usecase';
-import { GetChatHistoryUseCase } from './use-cases/get-chat-history.usecase';
-import { InitiateChatUsecase } from './use-cases/initiate-chat.usecase';
-import { UploadChatAttachmentUseCase } from './use-cases/upload-chat-attachment.usecase';
-import { ChatEligibilityResponseDto } from './dto/chat-eligibility-response.dto';
-import { ChatAttachmentResponseDto } from './dto/chat-attachment-response.dto';
-import { ChatHistoryResponseDto } from './dto/chat-history-response.dto';
+import { Injectable } from "@nestjs/common";
+import { CheckChatEligibilityUsecase } from "./use-cases/check-chat-eligibility.usecase";
+import { GetChatHistoryUseCase } from "./use-cases/get-chat-history.usecase";
+import { UploadChatAttachmentUseCase } from "./use-cases/upload-chat-attachment.usecase";
+import { ChatEligibilityResponseDto } from "./dto/chat-eligibility-response.dto";
+import { ChatHistoryResponseDto } from "./dto/chat-history-response.dto";
+import { ChatAttachmentResponseDto } from "./dto/chat-attachment-response.dto";
 
+/**
+ * Chat entry point for client consultations.
+ *
+ * Responsibilities:
+ * - Delegate chat eligibility, history, and attachment flows
+ *   to their single-responsibility use-cases.
+ * - Initiation is owned by `ClientConsultationService` via
+ *   `InitiateConsultationUsecase` (mode-agnostic).
+ */
 @Injectable()
 export class ClientChatService {
   constructor(
     private readonly checkChatEligibilityUsecase: CheckChatEligibilityUsecase,
     private readonly getChatHistoryUsecase: GetChatHistoryUseCase,
-    private readonly initiateChatUsecase: InitiateChatUsecase,
     private readonly uploadChatAttachmentUsecase: UploadChatAttachmentUseCase,
-    @Inject(forwardRef(() => ChatService))
-    private readonly legacyChatService: ChatService,
   ) {}
 
+  /**
+   * Checks whether a client can start a chat with an expert.
+   *
+   * @param clientId - ID of the requesting client.
+   * @param expertId - ID of the expert to consult.
+   * @returns Eligibility payload (eligible flag, rate, balance).
+   */
   checkEligibility(
     clientId: number,
     expertId: number,
@@ -26,10 +37,13 @@ export class ClientChatService {
     return this.checkChatEligibilityUsecase.execute(clientId, expertId);
   }
 
-  initiateChat(userId: number, expert_id: number, consultation_id?: number) {
-    return this.initiateChatUsecase.execute(userId, expert_id, consultation_id);
-  }
-
+  /**
+   * Returns the message history of a consultation.
+   *
+   * @param clientId - ID of the requesting client.
+   * @param consultationId - ID of the consultation.
+   * @returns Consultation-scoped message history.
+   */
   getChatHistory(
     clientId: number,
     consultationId: number,
@@ -37,6 +51,16 @@ export class ClientChatService {
     return this.getChatHistoryUsecase.execute(clientId, consultationId);
   }
 
+  /**
+   * Sends a chat attachment (file upload with optional text).
+   *
+   * @param clientId - ID of the requesting client.
+   * @param consultationId - ID of the consultation.
+   * @param file - Uploaded file (optional when content carries the message).
+   * @param content - Optional text accompanying the attachment.
+   * @param idempotencyKey - Optional key deduplicating retries.
+   * @returns Persisted attachment message payload.
+   */
   uploadAttachment(
     clientId: number,
     consultationId: number,
@@ -51,10 +75,5 @@ export class ClientChatService {
       content,
       idempotencyKey,
     );
-  }
-
-  /** Expiry still runs through the legacy service until it migrates. */
-  expireSession(sessionId: number) {
-    return this.legacyChatService.expireSession(sessionId);
   }
 }

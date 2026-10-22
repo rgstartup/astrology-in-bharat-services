@@ -7,14 +7,9 @@ import { PresenceService } from '@/internal/actors/expert/presence/presence.serv
 export class ExpertPresenceHandler {
   private readonly logger = new Logger(ExpertPresenceHandler.name);
 
-  constructor(
-    @Optional() private readonly presenceService?: PresenceService,
-  ) {}
+  constructor(@Optional() private readonly presenceService?: PresenceService) {}
 
-  async registerConnection(
-    expertId: number,
-    socketId: string,
-  ): Promise<void> {
+  async registerConnection(expertId: number, socketId: string): Promise<void> {
     if (this.presenceService) {
       await this.presenceService.connect(expertId, socketId);
     }

@@ -8,13 +8,10 @@ import {
   media,
   type NewMediaRow,
 } from '@/core/drizzledb/schema';
-import { ConsultationSessionStatus } from '@/internal/consultation/enums';
-import { MessageType } from '@/internal/consultation/chat/enum';
+import { ConsultationSessionStatus, MessageType } from '@/internal/consultation/enums';
 
 /** Socket `attachmentType` → persisted message type. No media resolution yet (see below). */
-export function toMessageType(
-  attachmentType?: string,
-): MessageType {
+export function toMessageType(attachmentType?: string): MessageType {
   if (attachmentType === 'image') return MessageType.IMAGE;
   if (attachmentType != null && attachmentType !== '') return MessageType.FILE;
   return MessageType.TEXT;
@@ -96,7 +93,8 @@ export async function persistChatMessage(
       });
 
     const attachments: PersistedChatMessageAttachment[] = [];
-    const mediaId = input.mediaId ?? (await insertMessageMedia(tx, input.mediaInsert));
+    const mediaId =
+      input.mediaId ?? (await insertMessageMedia(tx, input.mediaInsert));
     if (mediaId !== undefined) {
       const [asset] = await tx
         .select({ id: media.id, url: media.url, mimeType: media.mime_type })
@@ -124,6 +122,9 @@ async function insertMessageMedia(
   insert: NewMediaRow | undefined,
 ): Promise<number | undefined> {
   if (!insert) return undefined;
-  const [row] = await tx.insert(media).values(insert).returning({ id: media.id });
+  const [row] = await tx
+    .insert(media)
+    .values(insert)
+    .returning({ id: media.id });
   return row.id;
 }

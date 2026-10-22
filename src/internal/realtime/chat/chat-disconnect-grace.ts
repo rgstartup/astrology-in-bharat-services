@@ -53,8 +53,7 @@ export function hasLiveActorSocket(
     if (!auth || typeof auth !== 'object') continue;
     const record = auth as Record<string, unknown>;
     if (record.actorType !== actorType) continue;
-    const id =
-      actorType === 'client' ? record.clientId : record.expertId;
+    const id = actorType === 'client' ? record.clientId : record.expertId;
     if (id === actorId) return true;
   }
   return false;

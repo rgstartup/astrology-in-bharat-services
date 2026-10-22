@@ -1,5 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ClientRealtimeService } from '../client-realtime.service';
+import {
+  joinConsultationRoom,
+  leaveConsultationRoom,
+  relayMediaSignal,
+} from '@/internal/realtime/room/consultation-room-membership';
+
+vi.mock('@/internal/realtime/room/consultation-room-membership', () => ({
+  joinConsultationRoom: vi.fn(),
+  leaveConsultationRoom: vi.fn(),
+  relayMediaSignal: vi.fn(),
+}));
 
 function handlerMock(methods: string[]) {
   return Object.fromEntries(methods.map((m) => [m, vi.fn()]));
@@ -10,7 +21,11 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
   let presence: ReturnType<typeof handlerMock>;
   let notification: ReturnType<typeof handlerMock>;
   let chat: ReturnType<typeof handlerMock>;
-  let call: ReturnType<typeof handlerMock>;
+  let db: any;
+  let rooms: any;
+  let budget: any;
+  let orchestrator: any;
+  let voice: any;
 
   const socket: any = { id: 's1', join: vi.fn(), leave: vi.fn() };
   const identity: any = { actorType: 'client', id: 10, clientId: 10 };
@@ -24,24 +39,21 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
       'subscribeNotifications',
       'acknowledgeNotificationRead',
     ]);
-    chat = handlerMock([
-      'joinChat',
-      'leaveChat',
-      'sendChatMessage',
-      'relayChatTyping',
-    ]);
-    call = handlerMock([
-      'joinCall',
-      'leaveCall',
-      'relayCallSignal',
-      'endCall',
-    ]);
+    chat = handlerMock(['sendChatMessage', 'relayChatTyping']);
+    db = {};
+    rooms = {};
+    budget = {};
+    orchestrator = {};
+    voice = {};
     service = new ClientRealtimeService(
-      {} as any,
+      db,
       presence as any,
       notification as any,
       chat as any,
-      call as any,
+      rooms,
+      budget,
+      orchestrator,
+      voice,
     );
   });
 
@@ -50,10 +62,7 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
     expect(presence.subscribeExpertPresence).toHaveBeenCalledWith(socket, 42);
 
     await service.unsubscribeExpertPresence(socket, 42);
-    expect(presence.unsubscribeExpertPresence).toHaveBeenCalledWith(
-      socket,
-      42,
-    );
+    expect(presence.unsubscribeExpertPresence).toHaveBeenCalledWith(socket, 42);
   });
 
   it('routes notification calls to the notification handler', async () => {
@@ -72,15 +81,14 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
 
   it('routes chat calls to the chat handler', async () => {
     const server: any = {};
-    await service.joinChat(server, socket, 100, identity);
-    expect(chat.joinChat).toHaveBeenCalledWith(server, socket, 100, identity);
-
-    await service.leaveChat(socket, 100, identity);
-    expect(chat.leaveChat).toHaveBeenCalledWith(socket, 100, identity);
-
     const input = { consultationId: 100, content: 'Hi' };
     await service.sendChatMessage(server, socket, input, identity);
-    expect(chat.sendChatMessage).toHaveBeenCalledWith(server, socket, input, identity);
+    expect(chat.sendChatMessage).toHaveBeenCalledWith(
+      server,
+      socket,
+      input,
+      identity,
+    );
 
     service.relayChatTyping(socket, 100, true, identity);
     expect(chat.relayChatTyping).toHaveBeenCalledWith(
@@ -91,27 +99,47 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
     );
   });
 
-  it('routes call calls to the call handler', async () => {
-    await service.joinCall(socket, 100, identity);
-    expect(call.joinCall).toHaveBeenCalledWith(socket, 100, identity);
-
-    await service.leaveCall(socket, 100, identity);
-    expect(call.leaveCall).toHaveBeenCalledWith(socket, 100, identity);
-
-    const signal = { consultationId: 100, offer: { sdp: 'o' } };
-
+  it('joins/leaves through the shared room membership', async () => {
     const server: any = {};
-    service.relayCallSignal(socket, 'consultation:call:offer', signal, identity);
-    expect(call.relayCallSignal).toHaveBeenCalledWith(
+    await service.joinConsultation(server, socket, 100, 'voice', identity);
+    expect(joinConsultationRoom).toHaveBeenCalledWith(
+      { db, rooms, budget, orchestrator, voice },
+      server,
       socket,
-      'consultation:call:offer',
-      signal,
+      100,
+      'voice',
       identity,
     );
 
-    const end = { consultationId: 100 };
-    await service.endCall(server, socket, end, identity);
-    expect(call.endCall).toHaveBeenCalledWith(server, socket, end, identity);
+    await service.leaveConsultation(socket, 100, identity);
+    expect(leaveConsultationRoom).toHaveBeenCalledWith(
+      socket,
+      100,
+      identity,
+      rooms,
+    );
+  });
+
+  it('routes media readiness to the orchestrator', async () => {
+    const server: any = {};
+    orchestrator.mediaReady = vi.fn(async () => ({ bothReady: false }));
+    await service.mediaReady(server, 100, identity);
+    expect(orchestrator.mediaReady).toHaveBeenCalledWith(
+      server,
+      100,
+      identity,
+    );
+  });
+
+  it('relays media signals through the shared membership', () => {
+    const signal = { consultationId: 100, offer: { sdp: 'o' } };
+    service.relayMediaSignal(socket, 'consultation:media:offer', signal, identity);
+    expect(relayMediaSignal).toHaveBeenCalledWith(
+      socket,
+      'consultation:media:offer',
+      signal,
+      identity,
+    );
   });
 
   it('joins the client room on connect without touching handlers', async () => {

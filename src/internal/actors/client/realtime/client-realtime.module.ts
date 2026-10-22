@@ -7,17 +7,21 @@ import { ClientRealtimeService } from './client-realtime.service';
 import { ClientPresenceHandler } from './handlers/client-presence.handler';
 import { ClientNotificationHandler } from './handlers/client-notification.handler';
 import { ClientChatHandler } from './handlers/client-chat.handler';
-import { ClientCallHandler } from './handlers/client-call.handler';
+import { VoiceModule } from '@/external/voice';
 
 @Module({
-  imports: [PresenceModule, ConsultationRoomModule, ConsultationOrchestratorModule],
+  imports: [
+    PresenceModule,
+    ConsultationRoomModule,
+    ConsultationOrchestratorModule,
+    VoiceModule,
+  ],
   providers: [
     ClientRealtimeAuthVerifier,
     ClientRealtimeService,
     ClientPresenceHandler,
     ClientNotificationHandler,
     ClientChatHandler,
-    ClientCallHandler,
   ],
   exports: [ClientRealtimeAuthVerifier, ClientRealtimeService],
 })

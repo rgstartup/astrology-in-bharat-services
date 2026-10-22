@@ -7,17 +7,21 @@ import { ExpertRealtimeService } from './expert-realtime.service';
 import { ExpertPresenceHandler } from './handlers/expert-presence.handler';
 import { ExpertNotificationHandler } from './handlers/expert-notification.handler';
 import { ExpertChatHandler } from './handlers/expert-chat.handler';
-import { ExpertCallHandler } from './handlers/expert-call.handler';
+import { VoiceModule } from '@/external/voice';
 
 @Module({
-  imports: [PresenceModule, ConsultationRoomModule, ConsultationOrchestratorModule],
+  imports: [
+    PresenceModule,
+    ConsultationRoomModule,
+    ConsultationOrchestratorModule,
+    VoiceModule,
+  ],
   providers: [
     ExpertRealtimeAuthVerifier,
     ExpertRealtimeService,
     ExpertPresenceHandler,
     ExpertNotificationHandler,
     ExpertChatHandler,
-    ExpertCallHandler,
   ],
   exports: [ExpertRealtimeAuthVerifier, ExpertRealtimeService],
 })

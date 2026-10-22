@@ -17,7 +17,17 @@ export const isAllowedRealtimeOrigin = (
     process.env.AGENT_FRONTEND_URL,
     process.env.MERCHANT_FRONTEND_URL,
   ].filter(Boolean);
-  return allowedOrigins.includes(origin) || origin.endsWith('.vercel.app');
+  const isLocalDev =
+    process.env.NODE_ENV !== 'production' &&
+    /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$/.test(
+      origin,
+    );
+
+  return (
+    allowedOrigins.includes(origin) ||
+    isLocalDev ||
+    origin.endsWith('.vercel.app')
+  );
 };
 
 export const REALTIME_CORS_OPTIONS = {

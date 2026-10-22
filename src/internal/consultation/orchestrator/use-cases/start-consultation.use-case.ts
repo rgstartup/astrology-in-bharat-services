@@ -18,11 +18,13 @@ import {
 } from '@/internal/consultation/enums';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
+import { ConsultationRoomRepository } from '../../room/consultation-room.repository';
 import { ConsultationBudgetEngine } from '../consultation-budget.engine';
 import { ChatModeAdapter } from '../adapters/chat-mode.adapter';
 import { VoiceModeAdapter } from '../adapters/voice-mode.adapter';
 import { VideoModeAdapter } from '../adapters/video-mode.adapter';
 import {
+  ConsultationLifecycleState,
   ConsultationModeType,
   ConsultationStatePayload,
   IConsultationModeAdapter,
@@ -36,6 +38,7 @@ import {
  * Responsibilities:
  * - Activate pending `consultation_sessions` row and set `started_at` in DB.
  * - Transition consultation status from `ACCEPTED` to `ACTIVE`.
+ * - Clear room key in Redis to cancel pending request-expiry timer.
  * - Delegate channel setup (active-mode marker, stale pause clear) to the
  *   target mode adapter (`ChatModeAdapter`, `VoiceModeAdapter`, `VideoModeAdapter`).
  * - Calculate live affordability and broadcast `consultation:started` event.
@@ -47,6 +50,7 @@ export class StartConsultationUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly budget: ConsultationBudgetEngine,
+    private readonly rooms: ConsultationRoomRepository,
     chatAdapter: ChatModeAdapter,
     voiceAdapter: VoiceModeAdapter,
     videoAdapter: VideoModeAdapter,
@@ -67,6 +71,10 @@ export class StartConsultationUseCase {
   /**
    * Executes the session start workflow.
    *
+   * Idempotent: only the transition `accepted -> active` starts the session.
+   * A second call (a concurrent media-ready report, a reconnect) reports the
+   * live state instead of restarting the billing clock.
+   *
    * @param server - Authoritative Socket.IO server instance.
    * @param command - Command containing consultationId and participant actor info.
    * @returns Object containing started status, consultationId, and state payload.
@@ -83,6 +91,31 @@ export class StartConsultationUseCase {
 
     const mode = toConsultationModeType(row.mode);
     const now = new Date();
+
+    if (row.status !== ConsultationStatus.ACCEPTED) {
+      return this.currentState(row.id, mode, row.status);
+    }
+
+    // The conditional flip is the guard against a concurrent second start:
+    // only the winner writes `started_at`, so the billing clock cannot be
+    // restarted by a duplicated media-ready report.
+    const [claimed] = await this.db
+      .update(consultations)
+      .set({
+        status: ConsultationStatus.ACTIVE,
+        started_at: now,
+        updated_at: now,
+      })
+      .where(
+        and(
+          eq(consultations.id, row.id),
+          eq(consultations.status, ConsultationStatus.ACCEPTED),
+        ),
+      )
+      .returning({ id: consultations.id });
+    if (!claimed) {
+      return this.currentState(row.id, mode, ConsultationStatus.ACTIVE);
+    }
 
     const [pendingSession] = await this.db
       .select()
@@ -110,16 +143,7 @@ export class StartConsultationUseCase {
       activeSession = updated;
     }
 
-    if (row.status === ConsultationStatus.ACCEPTED) {
-      await this.db
-        .update(consultations)
-        .set({
-          status: ConsultationStatus.ACTIVE,
-          started_at: now,
-          updated_at: now,
-        })
-        .where(eq(consultations.id, row.id));
-    }
+    await this.rooms.clearRoom(row.id);
 
     await this.getAdapter(mode).onStart(row.id, activeSession ?? {});
 
@@ -141,5 +165,37 @@ export class StartConsultationUseCase {
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.STARTED, payload);
 
     return { status: 'started', consultationId: row.id, payload };
+  }
+
+  /**
+   * Builds the live state payload of a consultation that was not started by
+   * this call (already active, or closed before it ever ran).
+   *
+   * @param consultationId - Consultation to describe.
+   * @param mode - Metered mode of the consultation.
+   * @param status - Current lifecycle status of the consultation.
+   * @returns Started-style result carrying the current state.
+   */
+  private async currentState(
+    consultationId: number,
+    mode: ConsultationModeType,
+    status: ConsultationStatus,
+  ) {
+    const affordability = await this.budget
+      .calculateAffordability(consultationId, mode)
+      .catch(() => null);
+
+    const payload: ConsultationStatePayload = {
+      consultationId,
+      mode,
+      state: status as ConsultationLifecycleState,
+      startedAt: affordability?.startedAt,
+      elapsedSeconds: affordability?.elapsedSeconds ?? 0,
+      maxMinutes: affordability?.maxMinutes ?? 0,
+      ratePerMinute: affordability?.ratePerMinute ?? 0,
+      timestamp: new Date().toISOString(),
+    };
+
+    return { status: 'started', consultationId, payload };
   }
 }

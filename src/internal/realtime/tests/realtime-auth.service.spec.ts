@@ -39,7 +39,9 @@ describe('RealtimeAuthService', () => {
       clientId: 10,
       email: 'client@test.com',
     });
-    expect(mockClientVerifier.verify).toHaveBeenCalledWith('valid-client-token');
+    expect(mockClientVerifier.verify).toHaveBeenCalledWith(
+      'valid-client-token',
+    );
   });
 
   it('authenticates expert token using expert verifier', async () => {

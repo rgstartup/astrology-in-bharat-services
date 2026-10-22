@@ -26,7 +26,6 @@ import { ProfileModule } from '@/internal/actors/expert/profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminAuditLog } from './entities/admin-audit-log.entity';
 import { CouponModule } from '@/internal/commerce/coupon/coupon.module';
-import { ChatSession } from '@/internal/consultation/chat/entities/chat-session.entity';
 import { ExternalModule } from '@/external/external.module';
 import { User } from '@/internal/users/entities/user.entity';
 import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
@@ -78,7 +77,6 @@ import { GetPlatformStatsUseCase } from './use-cases/get-platform-stats.use-case
       AdminAuditLog,
       User,
       SystemSetting,
-      ChatSession,
       Transaction,
       ProfileExpert,
       ClientAccount,

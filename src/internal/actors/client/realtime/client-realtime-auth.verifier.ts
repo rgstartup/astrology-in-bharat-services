@@ -21,7 +21,9 @@ export class ClientRealtimeAuthVerifier implements IRealtimeAuthVerifier {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
-  async verify(cleanToken: string): Promise<AuthenticatedSocketIdentity | null> {
+  async verify(
+    cleanToken: string,
+  ): Promise<AuthenticatedSocketIdentity | null> {
     try {
       const payload =
         await this.jwtService.verifyAsync<ClientJwtPayload>(cleanToken);

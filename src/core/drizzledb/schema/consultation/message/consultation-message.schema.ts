@@ -8,7 +8,7 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { MessageType } from '@/internal/consultation/chat/enum';
+import { MessageType } from '@/internal/consultation/enums';
 import { consultations } from '../consultation/consultation.schema';
 import { consultationSessions } from '@/core/drizzledb/schema/consultation/session/consultation-session.schema';
 import { consultationMessageAttachments } from './consultation-message-attachment.schema';

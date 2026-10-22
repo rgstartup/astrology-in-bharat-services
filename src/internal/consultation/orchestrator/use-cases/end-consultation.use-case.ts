@@ -17,6 +17,7 @@ import {
   ConsultationStatus,
 } from '@/internal/consultation/enums';
 import { PresenceService } from '@/internal/actors/expert/presence/presence.service';
+import { releaseConsultationHold } from '@/internal/actors/client/wallet/release-consultation-hold';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import { ChatModeAdapter } from '../adapters/chat-mode.adapter';
@@ -37,6 +38,7 @@ import {
  * Responsibilities:
  * - Update consultation status to `COMPLETED` and record `ended_at` in DB.
  * - Complete active `consultation_sessions` row.
+ * - Refund the wallet hold when the consultation never started.
  * - Set expert presence back to `IDLE` via `PresenceService`.
  * - Delegate teardown to the target mode adapter (`onEnd`): flush Redis
  *   pause, anchor, budget, and active-mode keys plus mode-specific cleanup.
@@ -70,6 +72,10 @@ export class EndConsultationUseCase {
   /**
    * Executes the end consultation workflow.
    *
+   * A consultation that never started (no session ever became active) is
+   * cancelled instead of completed and the wallet hold taken at request time
+   * is refunded: the client waited in the lobby and got no service.
+   *
    * @param server - Authoritative Socket.IO server instance.
    * @param command - Command containing consultationId, ending actor, and termination reason.
    * @returns Consultation ended payload with duration and reason.
@@ -89,44 +95,58 @@ export class EndConsultationUseCase {
 
     const mode = toConsultationModeType(row.mode);
     const now = new Date();
+    const neverStarted = !row.started_at;
 
     const affordability = await this.budget.calculateAffordability(row.id, mode);
-    const durationSeconds = affordability?.elapsedSeconds ?? row.duration_seconds;
+    const durationSeconds = neverStarted
+      ? 0
+      : (affordability?.elapsedSeconds ?? row.duration_seconds);
 
-    await this.db
-      .update(consultations)
-      .set({
-        status: ConsultationStatus.COMPLETED,
-        duration_seconds: durationSeconds,
-        ended_at: now,
-        updated_at: now,
-      })
-      .where(
-        and(
-          eq(consultations.id, command.consultationId),
-          inArray(consultations.status, [
-            ConsultationStatus.ACCEPTED,
-            ConsultationStatus.ACTIVE,
-          ]),
-        ),
-      );
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(consultations)
+        .set({
+          status: neverStarted
+            ? ConsultationStatus.CANCELLED
+            : ConsultationStatus.COMPLETED,
+          duration_seconds: durationSeconds,
+          ended_at: now,
+          updated_at: now,
+          ...(neverStarted ? { cancelled_at: now } : {}),
+        })
+        .where(
+          and(
+            eq(consultations.id, command.consultationId),
+            inArray(consultations.status, [
+              ConsultationStatus.ACCEPTED,
+              ConsultationStatus.ACTIVE,
+            ]),
+          ),
+        );
 
-    await this.db
-      .update(consultationSessions)
-      .set({
-        status: ConsultationSessionStatus.COMPLETED,
-        ended_at: now,
-        updated_at: now,
-      })
-      .where(
-        and(
-          eq(consultationSessions.consultation_id, command.consultationId),
-          inArray(consultationSessions.status, [
-            ConsultationSessionStatus.PENDING,
-            ConsultationSessionStatus.ACTIVE,
-          ]),
-        ),
-      );
+      await tx
+        .update(consultationSessions)
+        .set({
+          status: neverStarted
+            ? ConsultationSessionStatus.CANCELLED
+            : ConsultationSessionStatus.COMPLETED,
+          ended_at: now,
+          updated_at: now,
+        })
+        .where(
+          and(
+            eq(consultationSessions.consultation_id, command.consultationId),
+            inArray(consultationSessions.status, [
+              ConsultationSessionStatus.PENDING,
+              ConsultationSessionStatus.ACTIVE,
+            ]),
+          ),
+        );
+
+      if (neverStarted) {
+        await releaseConsultationHold(tx, row.client_id, row.id);
+      }
+    });
 
     await this.presence.setIdle(row.expert_id);
 
@@ -144,12 +164,6 @@ export class EndConsultationUseCase {
     server
       .to(SOCKET_ROOMS.CONSULTATION(row.id))
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED, payload);
-    server
-      .to(SOCKET_ROOMS.CHAT_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED, payload);
-    server
-      .to(SOCKET_ROOMS.CALL_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CALL.END, payload);
 
     return payload;
   }

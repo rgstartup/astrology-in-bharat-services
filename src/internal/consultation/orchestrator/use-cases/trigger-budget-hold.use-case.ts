@@ -104,9 +104,6 @@ export class TriggerBudgetHoldUseCase {
     server
       .to(SOCKET_ROOMS.CONSULTATION(consultationId))
       .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.EXHAUSTED, clientPayload);
-    server
-      .to(SOCKET_ROOMS.CHAT_SESSION(consultationId))
-      .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.EXHAUSTED, clientPayload);
 
     this.logger.log(
       `[BudgetHold] Triggered 5-minute budget hold for consultation ${consultationId} (deadline: ${graceDeadline})`,

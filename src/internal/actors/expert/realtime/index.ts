@@ -5,5 +5,4 @@ export {
   ExpertPresenceHandler,
   ExpertNotificationHandler,
   ExpertChatHandler,
-  ExpertCallHandler,
 } from './handlers';

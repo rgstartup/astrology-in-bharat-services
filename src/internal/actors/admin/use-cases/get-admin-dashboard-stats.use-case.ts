@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { count } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { consultations } from '@/core/drizzledb/schema';
 import { User } from '@/internal/users/entities/user.entity';
 import { RoleEnum } from '@/internal/users/enums/Role.enum';
 import { ProfileExpert } from '@/internal/actors/expert/profile/entities/profile-expert.entity';
 import { ClientAccount } from '@/internal/actors/client/account/entities/account.entity';
-import { ChatSession } from '@/internal/consultation/chat/entities/chat-session.entity';
 import { Transaction } from '@/internal/finance/wallet/entities/transaction.entity';
 import { TransactionType, TransactionPurpose } from '@/internal/finance/wallet/enum';
 
@@ -14,8 +17,8 @@ export class GetAdminDashboardStatsUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(ChatSession)
-    private readonly chatSessionRepository: Repository<ChatSession>,
+    @Inject(DRIZZLE)
+    private readonly db: DrizzleDb,
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
   ) {}
@@ -78,7 +81,10 @@ export class GetAdminDashboardStatsUseCase {
         }>(),
 
       // Total chat sessions count
-      this.chatSessionRepository.count(),
+      this.db
+        .select({ value: count() })
+        .from(consultations)
+        .then(([row]) => Number(row?.value ?? 0)),
 
       // Global earnings + admin commission in one query
       this.transactionRepository

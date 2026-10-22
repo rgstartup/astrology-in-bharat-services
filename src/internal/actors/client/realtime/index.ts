@@ -5,5 +5,4 @@ export {
   ClientPresenceHandler,
   ClientNotificationHandler,
   ClientChatHandler,
-  ClientCallHandler,
 } from './handlers';

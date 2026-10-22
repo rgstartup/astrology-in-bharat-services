@@ -8,20 +8,6 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class JoinChatDto {
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  consultationId!: number;
-}
-
-export class LeaveChatDto {
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  consultationId!: number;
-}
-
 export class SendChatMessageDto {
   @Type(() => Number)
   @IsInt()
@@ -58,23 +44,4 @@ export class TypingChatDto {
 
   @IsOptional()
   isTyping?: boolean;
-}
-
-export class ChatRequestDto {
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  consultationId!: number;
-
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  expertId!: number;
-}
-
-export class ChatActionDto {
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  consultationId!: number;
 }

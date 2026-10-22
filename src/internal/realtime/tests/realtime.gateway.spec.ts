@@ -69,14 +69,20 @@ describe('RealtimeGateway (lifecycle only, /realtime namespace)', () => {
     it('authenticates client token and routes to client service', async () => {
       const mockSocket: any = {
         id: 'client-socket-1',
-        handshake: { auth: { token: 'client-jwt', actorType: 'client' }, headers: {} },
+        handshake: {
+          auth: { token: 'client-jwt', actorType: 'client' },
+          headers: {},
+        },
         data: {},
       };
       mockAuthService.authenticate.mockResolvedValue(clientIdentity);
 
       await gateway.handleConnection(mockSocket);
 
-      expect(mockAuthService.authenticate).toHaveBeenCalledWith('client-jwt', 'client');
+      expect(mockAuthService.authenticate).toHaveBeenCalledWith(
+        'client-jwt',
+        'client',
+      );
       expect(mockSocket.data.auth).toEqual(clientIdentity);
       expect(
         mockClientRealtimeService.handleClientConnect,
@@ -86,14 +92,20 @@ describe('RealtimeGateway (lifecycle only, /realtime namespace)', () => {
     it('authenticates expert token and routes to expert service', async () => {
       const mockSocket: any = {
         id: 'expert-socket-1',
-        handshake: { auth: { token: 'expert-jwt', actorType: 'expert' }, headers: {} },
+        handshake: {
+          auth: { token: 'expert-jwt', actorType: 'expert' },
+          headers: {},
+        },
         data: {},
       };
       mockAuthService.authenticate.mockResolvedValue(expertIdentity);
 
       await gateway.handleConnection(mockSocket);
 
-      expect(mockAuthService.authenticate).toHaveBeenCalledWith('expert-jwt', 'expert');
+      expect(mockAuthService.authenticate).toHaveBeenCalledWith(
+        'expert-jwt',
+        'expert',
+      );
       expect(mockSocket.data.auth).toEqual(expertIdentity);
       expect(
         mockExpertRealtimeService.handleExpertConnect,

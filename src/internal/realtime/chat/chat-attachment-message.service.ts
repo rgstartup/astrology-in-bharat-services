@@ -16,7 +16,7 @@ import {
 } from '@/core/drizzledb/schema';
 import { MediaSource } from '@/internal/media/enum';
 import { StorageService } from '@/external/storage';
-import { MessageType } from '@/internal/consultation/chat/enum';
+import { MessageType } from '@/internal/consultation/enums';
 import { ResourceNotFoundError } from '@/shared/errors';
 import { SOCKET_EVENTS } from '../constants/socket-events.constant';
 import { SOCKET_ROOMS } from '../constants/socket-rooms.constant';
@@ -211,7 +211,7 @@ export class ChatAttachmentMessageService {
       };
 
       this.chatGateway.server
-        .to(SOCKET_ROOMS.CHAT_SESSION(consultationId))
+        .to(SOCKET_ROOMS.CONSULTATION(consultationId))
         .emit(SOCKET_EVENTS.CHAT.MESSAGE, payload);
 
       if (key) {

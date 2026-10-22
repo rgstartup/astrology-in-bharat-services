@@ -63,7 +63,8 @@ export class VideoModeAdapter implements IConsultationModeAdapter {
   }
 
   /**
-   * Flushes video channel keys (pause, anchor, budget snapshot, active mode).
+   * Flushes video channel keys (pause, anchor, budget snapshot, active mode,
+   * media readiness).
    *
    * @param consultationId - ID of the consultation being ended.
    */
@@ -72,6 +73,7 @@ export class VideoModeAdapter implements IConsultationModeAdapter {
     await this.rooms.clearAnchor(consultationId);
     await this.rooms.clearBudget(consultationId);
     await this.rooms.clearActiveMode(consultationId);
+    await this.rooms.clearMediaReady(consultationId);
     this.logger.debug(`[VideoModeAdapter] Ended video session for consultation ${consultationId}`);
   }
 }

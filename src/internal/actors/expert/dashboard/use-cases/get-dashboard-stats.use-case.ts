@@ -1,24 +1,33 @@
-import type { DeferredDependency } from '../../../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { ChatService } from '../../../../consultation/chat/chat.service';
-import { WalletService } from '../../../../finance/wallet/wallet.service';
-import { ReviewsService } from '../../../../consultation/reviews/reviews.service';
-import { ChatSessionStatus } from '../../../../consultation/chat/enum';
-import { CallSessionStatus } from '../../../../consultation/call/enum';
-import { CallService } from '../../../../consultation/call/call.service';
+import { and, count, eq, gte, inArray, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { consultations } from '@/core/drizzledb/schema';
+import { ConsultationStatus } from '@/internal/consultation/enums';
+import { WalletService } from '@/internal/finance/wallet/wallet.service';
+import { ReviewsService } from '@/internal/consultation/reviews/reviews.service';
 
+/**
+ * Computes dashboard statistics for an expert across daily or all-time periods.
+ */
 @Injectable()
 export class GetDashboardStatsUseCase {
   constructor(
-    @Inject(forwardRef(() => ChatService))
-    private readonly chatService: DeferredDependency<ChatService>,
+    @Inject(DRIZZLE)
+    private readonly db: DrizzleDb,
     @Inject(forwardRef(() => WalletService))
     private readonly walletService: DeferredDependency<WalletService>,
     private readonly reviewsService: ReviewsService,
-    @Inject(forwardRef(() => CallService))
-    private readonly callService: DeferredDependency<CallService>,
   ) {}
 
+  /**
+   * Generates consultation metrics, earnings, and ratings for the expert dashboard.
+   *
+   * @param expertProfileId - Expert account ID.
+   * @param type - Reporting timeframe ('today' | 'total').
+   * @returns Aggregated statistics.
+   */
   async execute(expertProfileId: number, type: 'today' | 'total' = 'today') {
     if (!expertProfileId) {
       throw new Error('Expert profile ID is required');
@@ -30,50 +39,31 @@ export class GetDashboardStatsUseCase {
 
     const reviewStats = await this.reviewsService.getReviewsStats(expert_id);
 
-    if (type === 'today') {
-      const todayChatAppointments =
-        await this.chatService.getExpertSessionCount(expert_id, {
-          startDate: startOfToday,
-        });
-      const todayCallAppointments =
-        await this.callService.getExpertSessionCount(expert_id, {
-          startDate: startOfToday,
-        });
+    const isToday = type === 'today';
 
-      const completedToday = await this.chatService.getExpertSessionCount(
-        expert_id,
-        {
-          status: 'completed' as unknown as ChatSessionStatus,
-          startDate: startOfToday,
-        },
-      );
-      const completedCallsToday = await this.callService.getExpertSessionCount(
-        expert_id,
-        {
-          status: 'completed' as unknown as CallSessionStatus,
-          startDate: startOfToday,
-        },
-      );
+    const conditions = [eq(consultations.expert_id, expert_id)];
+    if (isToday) {
+      conditions.push(gte(consultations.created_at, startOfToday));
+    }
 
-      const expiredToday = await this.chatService.getExpertSessionCount(
-        expert_id,
-        {
-          status: ['expired', 'cancelled'] as unknown as ChatSessionStatus[],
-          startDate: startOfToday,
-        },
-      );
-      const expiredCallsToday = await this.callService.getExpertSessionCount(
-        expert_id,
-        {
-          status: [
-            'expired',
-            'cancelled',
-            'rejected',
-          ] as unknown as CallSessionStatus[],
-          startDate: startOfToday,
-        },
-      );
+    const [stats] = await this.db
+      .select({
+        totalAppointments: count(),
+        completed: sql<number>`count(*) filter (where ${eq(consultations.status, ConsultationStatus.COMPLETED)})`,
+        expired: sql<number>`count(*) filter (where ${inArray(consultations.status, [
+          ConsultationStatus.EXPIRED,
+          ConsultationStatus.CANCELLED,
+          ConsultationStatus.REJECTED,
+        ])})`,
+      })
+      .from(consultations)
+      .where(and(...conditions));
 
+    const totalAppointments = Number(stats?.totalAppointments ?? 0);
+    const completedCount = Number(stats?.completed ?? 0);
+    const expiredCount = Number(stats?.expired ?? 0);
+
+    if (isToday) {
       const todayEarnings = await this.walletService.getTotalEarnings(
         expert_id,
         'expert_id',
@@ -88,51 +78,16 @@ export class GetDashboardStatsUseCase {
       );
 
       return {
-        today_appointments: todayChatAppointments + todayCallAppointments,
-        completed_today: completedToday + completedCallsToday,
-        expired_today: expiredToday + expiredCallsToday,
+        today_appointments: totalAppointments,
+        completed_today: completedCount,
+        expired_today: expiredCount,
         today_earnings: todayEarnings,
         wallet_balance: wallet_balance,
         average_rating: reviewStats?.rating || 0,
         total_reviews: reviewStats?.totalReviews || 0,
-        total_chat_sessions: todayChatAppointments + todayCallAppointments,
+        total_chat_sessions: totalAppointments,
       };
     } else {
-      const totalChatAppointments =
-        await this.chatService.getExpertSessionCount(expert_id);
-      const totalCallAppointments =
-        await this.callService.getExpertSessionCount(expert_id);
-
-      const totalCompleted = await this.chatService.getExpertSessionCount(
-        expert_id,
-        {
-          status: 'completed' as unknown as ChatSessionStatus,
-        },
-      );
-      const totalCompletedCalls = await this.callService.getExpertSessionCount(
-        expert_id,
-        {
-          status: 'completed' as unknown as CallSessionStatus,
-        },
-      );
-
-      const totalExpired = await this.chatService.getExpertSessionCount(
-        expert_id,
-        {
-          status: ['expired', 'cancelled'] as unknown as ChatSessionStatus[],
-        },
-      );
-      const totalExpiredCalls = await this.callService.getExpertSessionCount(
-        expert_id,
-        {
-          status: [
-            'expired',
-            'cancelled',
-            'rejected',
-          ] as unknown as CallSessionStatus[],
-        },
-      );
-
       const total_earnings = await this.walletService.getTotalEarnings(
         expert_id,
         'expert_id',
@@ -143,15 +98,16 @@ export class GetDashboardStatsUseCase {
       );
 
       return {
-        total_appointments: totalChatAppointments + totalCallAppointments,
-        total_completed: totalCompleted + totalCompletedCalls,
-        total_expired: totalExpired + totalExpiredCalls,
+        total_appointments: totalAppointments,
+        total_completed: completedCount,
+        total_expired: expiredCount,
         total_earnings: total_earnings,
         wallet_balance: wallet_balance,
         average_rating: reviewStats?.rating || 0,
         total_reviews: reviewStats?.totalReviews || 0,
-        total_chat_sessions: totalChatAppointments + totalCallAppointments,
+        total_chat_sessions: totalAppointments,
       };
     }
   }
 }
+

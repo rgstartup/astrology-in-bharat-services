@@ -81,7 +81,8 @@ describe('PauseConsultationUseCase terminal guard', () => {
 
     expect(result?.state).toBe('paused');
     expect(a.chat.onPause).toHaveBeenCalledWith(8);
-    expect(emit).toHaveBeenCalledTimes(3);
+    expect(server.to).toHaveBeenCalledWith('consultation:8');
+    expect(emit).toHaveBeenCalledTimes(1);
   });
 
   it('throws when the consultation is missing', async () => {

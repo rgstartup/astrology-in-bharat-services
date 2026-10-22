@@ -12,8 +12,8 @@ import {
   ConsultationSessionStatus,
 } from '@/internal/consultation/enums';
 import { consultations } from '../consultation/consultation.schema';
-import { sessionProviders } from './session-provider.schema';
-import { sessionRecordings } from './session-recording.schema';
+import { consultationVoiceRecords } from '../voice/consultation-voice-record.schema';
+import { consultationVideoRecords } from '../video/consultation-video-record.schema';
 
 const consultationsSchema = pgSchema('consultations');
 
@@ -60,13 +60,13 @@ export const consultationSessions = consultationsSchema.table(
 
 export const consultationSessionsRelations = relations(
   consultationSessions,
-  ({ one, many }) => ({
+  ({ one }) => ({
     consultation: one(consultations, {
       fields: [consultationSessions.consultation_id],
       references: [consultations.id],
     }),
-    providers: many(sessionProviders),
-    recordings: many(sessionRecordings),
+    voiceRecord: one(consultationVoiceRecords),
+    videoRecord: one(consultationVideoRecords),
   }),
 );
 

@@ -88,6 +88,8 @@ describe('Client Favorites Module', () => {
         search: 'John',
         limit: 10,
         offset: 0,
+        page: 1,
+        skip: 0,
       });
 
       expect(result).toEqual(mockExperts);
@@ -161,6 +163,8 @@ describe('Client Favorites Module', () => {
         search: 'Rudraksha',
         limit: 5,
         offset: 0,
+        page: 1,
+        skip: 0,
       });
 
       expect(result).toEqual(mockProducts);
@@ -239,6 +243,8 @@ describe('Client Favorites Module', () => {
         search: 'Variant 1',
         limit: 10,
         offset: 0,
+        page: 1,
+        skip: 0,
       });
 
       expect(result).toEqual(mockVariants);

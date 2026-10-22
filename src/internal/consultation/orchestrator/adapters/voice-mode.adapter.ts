@@ -62,7 +62,8 @@ export class VoiceModeAdapter implements IConsultationModeAdapter {
   }
 
   /**
-   * Flushes voice channel keys (pause, anchor, budget snapshot, active mode).
+   * Flushes voice channel keys (pause, anchor, budget snapshot, active mode,
+   * media readiness).
    *
    * @param consultationId - ID of the consultation being ended.
    */
@@ -71,6 +72,7 @@ export class VoiceModeAdapter implements IConsultationModeAdapter {
     await this.rooms.clearAnchor(consultationId);
     await this.rooms.clearBudget(consultationId);
     await this.rooms.clearActiveMode(consultationId);
+    await this.rooms.clearMediaReady(consultationId);
     this.logger.debug(`[VoiceModeAdapter] Ended voice session for consultation ${consultationId}`);
   }
 }

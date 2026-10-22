@@ -13,11 +13,11 @@ export interface PresenceSubscriptionSnapshot {
 export class ClientPresenceHandler {
   private readonly logger = new Logger(ClientPresenceHandler.name);
 
-  constructor(
-    @Optional() private readonly presenceService?: PresenceService,
-  ) {}
+  constructor(@Optional() private readonly presenceService?: PresenceService) {}
 
-  private async snapshot(expertId: number): Promise<PresenceSubscriptionSnapshot> {
+  private async snapshot(
+    expertId: number,
+  ): Promise<PresenceSubscriptionSnapshot> {
     if (!this.presenceService) {
       return { expertId, status: 'offline', lastSeenAt: null };
     }

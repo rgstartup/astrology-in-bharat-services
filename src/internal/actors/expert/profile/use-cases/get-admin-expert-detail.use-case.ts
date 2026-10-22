@@ -1,22 +1,28 @@
-import type { DeferredDependency } from '../../../../../shared/types/deferred-dependency.type';
+import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
 import {
   Injectable,
   NotFoundException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import { UsersService } from '../../../../users/users.service';
-import { WalletService } from '../../../../finance/wallet/wallet.service';
-
-import { ChatService } from '../../../../consultation/chat/chat.service';
+import { and, eq, inArray, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { consultations } from '@/core/drizzledb/schema';
+import {
+  ConsultationMode,
+  ConsultationStatus,
+} from '@/internal/consultation/enums';
+import { UsersService } from '@/internal/users/users.service';
+import { WalletService } from '@/internal/finance/wallet/wallet.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSessionStatus } from '../../../../consultation/call/enum';
-import { ChatSessionStatus } from '../../../../consultation/chat/enum';
 import { ProfileExpert } from '../entities/profile-expert.entity';
-import { AccountService } from '../../../client/account/account.service';
-import { CallService } from '../../../../consultation/call/call.service';
+import { AccountService } from '@/internal/actors/client/account/account.service';
 
+/**
+ * Retrieves administrative expert profile details with consultation metrics.
+ */
 @Injectable()
 export class GetExpertDetailUseCase {
   constructor(
@@ -24,10 +30,8 @@ export class GetExpertDetailUseCase {
     private readonly usersService: DeferredDependency<UsersService>,
     @Inject(forwardRef(() => WalletService))
     private readonly walletService: DeferredDependency<WalletService>,
-    @Inject(forwardRef(() => ChatService))
-    private readonly chatService: DeferredDependency<ChatService>,
-    @Inject(forwardRef(() => CallService))
-    private readonly callService: DeferredDependency<CallService>,
+    @Inject(DRIZZLE)
+    private readonly db: DrizzleDb,
     @Inject(forwardRef(() => AccountService))
     private readonly accountService: DeferredDependency<AccountService>,
     @InjectRepository(ProfileExpert)
@@ -53,19 +57,21 @@ export class GetExpertDetailUseCase {
       'expert_id',
     );
 
-    const chatCount = await this.chatService.getExpertSessionCount(
-      expertProfileId,
-      {
-        status: ChatSessionStatus.COMPLETED,
-      },
-    );
+    const [counts] = await this.db
+      .select({
+        chatCount: sql<number>`count(*) filter (where ${eq(consultations.mode, ConsultationMode.CHAT)})`,
+        callCount: sql<number>`count(*) filter (where ${inArray(consultations.mode, [ConsultationMode.AUDIO_CALL, ConsultationMode.VIDEO_CALL])})`,
+      })
+      .from(consultations)
+      .where(
+        and(
+          eq(consultations.expert_id, expertProfileId),
+          eq(consultations.status, ConsultationStatus.COMPLETED),
+        ),
+      );
 
-    const callCount = await this.callService.getExpertSessionCount(
-      expertProfileId,
-      {
-        status: CallSessionStatus.COMPLETED,
-      },
-    );
+    const chatCount = Number(counts?.chatCount ?? 0);
+    const callCount = Number(counts?.callCount ?? 0);
 
     return {
       id: user.id,

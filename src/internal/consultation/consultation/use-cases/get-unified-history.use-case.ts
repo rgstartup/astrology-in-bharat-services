@@ -1,323 +1,294 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { ChatSession } from '../../chat/entities/chat-session.entity';
-import { ChatSessionStatus } from '../../chat/enum';
-import { CallSession } from '../../call/entities/call-session.entity';
-import { CallSessionStatus, CallType } from '../../call/enum';
-import { Review } from '../../reviews/entities/review.entity';
-import { ConsultationHistoryDto } from '../dto/consultation-history.dto';
+import { Injectable, Inject } from '@nestjs/common';
+import { and, count, desc, eq, inArray, or } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import {
+  consultations,
+  consultationBillings,
+  consultationSessions,
+  clientAccounts,
+  expertAccounts,
+  users,
+  reviews,
+} from '@/core/drizzledb/schema';
+import {
+  ConsultationMode,
+  ConsultationStatus as DrizzleConsultationStatus,
+} from '@/internal/consultation/enums';
+import {
+  ConsultationHistoryDto,
+  ConsultationExpertDto,
+} from '../dto/consultation-history.dto';
 import { ConsultationType, ConsultationStatus } from '../enum';
-import { ClientAccount } from '../../../actors/client/account/entities/account.entity';
-
 import { GetUnifiedHistoryDto } from '../dto/get-unified-history.dto';
 
+const clientUsers = alias(users, 'client_users');
+const expertUsers = alias(users, 'expert_users');
+
+/**
+ * Retrieves unified consultation history across chat, voice, and video modes.
+ */
 @Injectable()
 export class GetUnifiedHistoryUseCase {
   constructor(
-    @InjectRepository(ChatSession)
-    private readonly chatRepo: Repository<ChatSession>,
-    @InjectRepository(CallSession)
-    private readonly callRepo: Repository<CallSession>,
-    @InjectRepository(Review)
-    private readonly reviewRepo: Repository<Review>,
+    @Inject(DRIZZLE)
+    private readonly db: DrizzleDb,
   ) {}
 
+  /**
+   * Fetches paginated consultation history for client or expert.
+   *
+   * @param profileId - ID of the client or expert profile.
+   * @param isExpert - Whether the requester is an expert.
+   * @param dto - Pagination and search filters.
+   * @returns Paginated consultation history items and total count.
+   */
   async execute(
     profileId: number,
     isExpert: boolean,
     dto: GetUnifiedHistoryDto,
-  ) {
-    const { limit = 20, offset = 0, search } = dto;
-    let chatFilter = {};
-    let callFilter = {};
+  ): Promise<{ data: ConsultationHistoryDto[]; totalCount: number }> {
+    const limitNum = Math.min(Math.max(1, dto.limit ?? 20), 100);
+    const offsetNum = Math.max(0, dto.offset ?? 0);
+    const search = dto.search?.trim();
 
-    if (isExpert) {
-      chatFilter = { expert_id: profileId };
-      callFilter = { expert_id: profileId };
-    } else {
-      chatFilter = { client_id: profileId };
-      callFilter = { client_id: profileId };
-    }
-
-    // 2. Fetch Sessions with relations
-    const chatSessions = await this.chatRepo.find({
-      where: chatFilter,
-      relations: ['expert', 'expert.user', 'client', 'client.user'],
-      order: { created_at: 'DESC' },
-    });
-
-    const callSessions = await this.callRepo.find({
-      where: callFilter,
-      relations: ['expert', 'expert.user', 'client', 'client.user'],
-      order: { created_at: 'DESC' },
-    });
-
-    // 3. Fetch Reviews for these specific sessions
-    const chatIds = chatSessions.map((s) => s.id);
-    const callIds = callSessions.map((s) => s.id);
-
-    const whereConditions: Record<string, unknown>[] = [];
-    if (chatIds.length > 0) whereConditions.push({ session_id: In(chatIds) });
-    if (callIds.length > 0)
-      whereConditions.push({ call_session_id: In(callIds) });
-
-    const reviews =
-      whereConditions.length > 0
-        ? await this.reviewRepo.find({
-            where: whereConditions,
-          })
-        : [];
-
-    const chatReviewMap = new Map<
-      number,
-      { rating: number; comment?: string }
-    >();
-    const callReviewMap = new Map<
-      number,
-      { rating: number; comment?: string }
-    >();
-
-    reviews.forEach((r) => {
-      if (r.session_id)
-        chatReviewMap.set(r.session_id, {
-          rating: r.rating,
-          comment: r.comment,
-        });
-      if (r.call_session_id)
-        callReviewMap.set(r.call_session_id, {
-          rating: r.rating,
-          comment: r.comment,
-        });
-    });
-
-    // 5. Map to Standardized DTO
-    const unifiedHistory: ConsultationHistoryDto[] = [
-      ...chatSessions.map((s) => {
-        const duration = this.calculateDuration(s.start_time, s.end_time);
-        const profile = s.client;
-        return this.mapChatSession(
-          s,
-          chatReviewMap.get(s.id),
-          duration,
-          profile,
-        );
-      }),
-      ...callSessions.map((s) => {
-        const duration = s.duration_seconds || 0;
-        return this.mapCallSession(
-          s,
-          callReviewMap.get(s.id),
-          duration,
-          s.client,
-        );
-      }),
+    const whereConditions = [
+      isExpert
+        ? eq(consultations.expert_id, profileId)
+        : eq(consultations.client_id, profileId),
     ];
 
-    // 6. Sort by startTime / createdAt (DESC)
-    unifiedHistory.sort((a, b) => {
-      const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
-      const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
-      return timeB - timeA;
-    });
-
-    // 7. Apply Filter
-    let filteredHistory = unifiedHistory;
-    if (search && search.trim()) {
-      const lowerSearch = search.toLowerCase();
-      filteredHistory = unifiedHistory.filter(
-        (h) =>
-          (h.displayId && h.displayId.toLowerCase().includes(lowerSearch)) ||
-          String(h.id).toLowerCase().includes(lowerSearch),
-      );
+    if (search) {
+      const cleanSearch = search.replace(/^AIB-(CHAT|VID|CALL)-/i, '');
+      const searchNum = Number(cleanSearch);
+      if (!Number.isNaN(searchNum)) {
+        whereConditions.push(eq(consultations.id, searchNum));
+      }
     }
 
-    // 8. Apply Pagination
-    const limitNum = Math.min(Math.max(1, limit), 100);
-    const offsetNum = Math.max(0, offset);
-    const totalCount = filteredHistory.length;
-    const paginatedData = filteredHistory.slice(
-      offsetNum,
-      offsetNum + limitNum,
-    );
+    const whereClause = and(...whereConditions);
+
+    const [totalRow] = await this.db
+      .select({ value: count() })
+      .from(consultations)
+      .where(whereClause);
+
+    const totalCount = Number(totalRow?.value ?? 0);
+
+    if (totalCount === 0) {
+      return { data: [], totalCount: 0 };
+    }
+
+    const rows = await this.db
+      .select({
+        id: consultations.id,
+        clientId: consultations.client_id,
+        expertId: consultations.expert_id,
+        mode: consultations.mode,
+        status: consultations.status,
+        durationSeconds: consultations.duration_seconds,
+        startedAt: consultations.started_at,
+        endedAt: consultations.ended_at,
+        createdAt: consultations.created_at,
+        clientAvatar: clientAccounts.avatar,
+        clientUserName: clientUsers.name,
+        clientUserAvatar: clientUsers.avatar,
+        expertName: expertAccounts.name,
+        expertAvatar: expertAccounts.avatar,
+        expertSpecialization: expertAccounts.specialization,
+        expertUserName: expertUsers.name,
+        expertUserAvatar: expertUsers.avatar,
+        grossEarning: consultationBillings.gross_earning,
+        platformFee: consultationBillings.platform_fee,
+        tax: consultationBillings.tax,
+        ratePerMinute: consultationBillings.rate_per_minute,
+        netPayable: consultationBillings.net_payable,
+      })
+      .from(consultations)
+      .leftJoin(clientAccounts, eq(consultations.client_id, clientAccounts.id))
+      .leftJoin(clientUsers, eq(clientAccounts.user_id, clientUsers.id))
+      .leftJoin(expertAccounts, eq(consultations.expert_id, expertAccounts.id))
+      .leftJoin(expertUsers, eq(expertAccounts.user_id, expertUsers.id))
+      .leftJoin(
+        consultationBillings,
+        eq(consultations.id, consultationBillings.consultation_id),
+      )
+      .where(whereClause)
+      .orderBy(desc(consultations.created_at))
+      .limit(limitNum)
+      .offset(offsetNum);
+
+    const consultationIds = rows.map((r) => r.id);
+
+    // Fetch consultation session IDs to correlate reviews
+    const sessionRows = await this.db
+      .select({
+        id: consultationSessions.id,
+        consultationId: consultationSessions.consultation_id,
+      })
+      .from(consultationSessions)
+      .where(inArray(consultationSessions.consultation_id, consultationIds));
+
+    const sessionIdToConsultationId = new Map<number, number>();
+    const sessionIds: number[] = [];
+    for (const s of sessionRows) {
+      sessionIdToConsultationId.set(s.id, s.consultationId);
+      sessionIds.push(s.id);
+    }
+
+    const searchReviewIds = [...sessionIds, ...consultationIds];
+    const reviewRows =
+      searchReviewIds.length > 0
+        ? await this.db
+            .select({
+              rating: reviews.rating,
+              comment: reviews.comment,
+              sessionId: reviews.session_id,
+              callSessionId: reviews.call_session_id,
+            })
+            .from(reviews)
+            .where(
+              or(
+                inArray(reviews.session_id, searchReviewIds),
+                inArray(reviews.call_session_id, searchReviewIds),
+              ),
+            )
+        : [];
+
+    const consultationReviewMap = new Map<
+      number,
+      { rating: number; comment?: string }
+    >();
+    for (const rev of reviewRows) {
+      const cId =
+        (rev.sessionId ? sessionIdToConsultationId.get(rev.sessionId) : null) ??
+        rev.sessionId ??
+        rev.callSessionId;
+      if (cId && !consultationReviewMap.has(cId)) {
+        consultationReviewMap.set(cId, {
+          rating: Number(rev.rating),
+          comment: rev.comment ?? undefined,
+        });
+      }
+    }
+
+    const data: ConsultationHistoryDto[] = rows.map((row) => {
+      const mode = row.mode as ConsultationMode;
+      const type = this.mapModeToType(mode);
+      const displayId = this.getDisplayId(row.id, mode);
+      const duration = row.durationSeconds || 0;
+      const totalCost = Number(row.grossEarning || 0);
+      const platformFee = Number(row.platformFee || 0);
+      const gst = Number(row.tax || 0);
+      const expertEarning = Number(row.netPayable || 0);
+      const rate = Number(row.ratePerMinute || 0);
+      const review = consultationReviewMap.get(row.id);
+
+      const expertImage =
+        row.expertUserAvatar ||
+        row.expertAvatar ||
+        '/images/dummy-astrologer.jpg';
+      const userImage =
+        row.clientAvatar ||
+        row.clientUserAvatar ||
+        '/images/dummy-user.jpg';
+      const expertName = row.expertName || row.expertUserName || 'Expert';
+      const expertCategory = row.expertSpecialization || 'Astrologer';
+      const userName = row.clientUserName || 'Client';
+
+      const expert: ConsultationExpertDto = {
+        id: row.expertId,
+        name: expertName,
+        profile_image: expertImage,
+      };
+
+      return {
+        id: row.id,
+        displayId,
+        type,
+        status: this.mapStatus(row.status, duration),
+        startTime: row.startedAt || row.createdAt,
+        endTime: row.endedAt,
+        duration,
+        durationString: this.formatDuration(duration),
+        terminatedBy: undefined,
+        terminatedReason: 'Normal Closure',
+        total_cost: Math.round(totalCost * 100) / 100,
+        platform_fee: Math.round(platformFee * 100) / 100,
+        gst: Math.round(gst * 100) / 100,
+        agent_commission: 0,
+        expert_earning: Math.round(expertEarning * 100) / 100,
+        amount: Math.round(totalCost * 100) / 100,
+        rate: Math.round(rate * 100) / 100,
+        rating: review?.rating || 0,
+        comment: review?.comment,
+        expert_image: expertImage,
+        user_image: userImage,
+        expert_name: expertName,
+        expert_category: expertCategory,
+        user_name: userName,
+        expert,
+        metadata: {},
+      };
+    });
 
     return {
-      data: paginatedData,
+      data,
       totalCount,
     };
   }
 
-  private mapChatSession(
-    session: ChatSession,
-    review?: { rating: number; comment?: string },
-    duration: number = 0,
-    clientProfile?: ClientAccount,
-  ): ConsultationHistoryDto {
-    const total_cost = Number(session.total_cost || 0);
-    const displayId = `AIB-CHAT-${session.id}`;
-
-    return {
-      id: session.id,
-      displayId: displayId,
-      type: ConsultationType.CHAT,
-      status: this.mapChatStatus(session.status, duration),
-      startTime: session.start_time || session.created_at,
-      endTime: session.end_time,
-      duration: duration,
-      durationString: this.formatDuration(duration),
-      terminatedBy: session.terminated_by ?? undefined,
-      terminatedReason: 'Normal Closure',
-      total_cost: Math.round(total_cost * 100) / 100,
-      platform_fee: Math.round((session.platform_fee || 0) * 100) / 100,
-      gst: Math.round((session.gst || 0) * 100) / 100,
-      agent_commission: Math.round((session.agent_commission || 0) * 100) / 100,
-      expert_earning: Math.round((session.expert_earning || 0) * 100) / 100,
-      amount: total_cost,
-      rate: Number(session.price_per_minute || 0),
-      rating: review?.rating || 0,
-      comment: review?.comment,
-      expert_image:
-        (session.expert?.user as unknown as { avatar?: string })?.avatar ||
-        session.expert?.bio ||
-        '/images/dummy-astrologer.jpg',
-      user_image:
-        clientProfile?.avatar ||
-        session.client?.user?.avatar ||
-        '/images/dummy-user.jpg',
-      expert_name:
-        session.expert?.user?.name || session.expert?.name || 'Expert',
-      expert_category: session.expert?.specialization || 'Astrologer',
-      user_name: session.client?.user?.name || 'Client',
-      expert: {
-        id: session.expert?.id || '',
-        name: session.expert?.user?.name || session.expert?.name || 'Expert',
-        profile_image:
-          (session.expert?.user as unknown as { avatar?: string })?.avatar ||
-          session.expert?.bio ||
-          '/images/dummy-astrologer.jpg',
-      },
-      metadata: {
-        terminatedBy: session.terminated_by,
-        isFree: session.is_free,
-        ...session.metadata,
-      },
-    };
+  private mapModeToType(mode: ConsultationMode): ConsultationType {
+    switch (mode) {
+      case ConsultationMode.CHAT:
+        return ConsultationType.CHAT;
+      case ConsultationMode.AUDIO_CALL:
+        return ConsultationType.AUDIO_CALL;
+      case ConsultationMode.VIDEO_CALL:
+        return ConsultationType.VIDEO_CALL;
+      default:
+        return ConsultationType.CHAT;
+    }
   }
 
-  private mapCallSession(
-    session: CallSession,
-    review?: { rating: number; comment?: string },
-    duration: number = 0,
-    clientProfile?: ClientAccount,
-  ): ConsultationHistoryDto {
-    const final_price = Number(session.final_price || 0);
-    const typeLabel = session.type === CallType.VIDEO ? 'VID' : 'CALL';
-    const displayId = `AIB-${typeLabel}-${session.id}`;
-
-    return {
-      id: session.id,
-      displayId: displayId,
-      type:
-        session.type === CallType.VIDEO
-          ? ConsultationType.VIDEO_CALL
-          : ConsultationType.AUDIO_CALL,
-      status: this.mapCallStatus(session.status, duration),
-      startTime: session.start_time || session.created_at,
-      endTime: session.end_time,
-      duration: duration,
-      durationString: this.formatDuration(duration),
-      terminatedBy: session.terminated_by ?? undefined,
-      terminatedReason: session.terminated_reason ?? undefined,
-      total_cost: Math.round(final_price * 100) / 100,
-      platform_fee: Math.round((session.platform_fee || 0) * 100) / 100,
-      gst: Math.round((session.gst || 0) * 100) / 100,
-      agent_commission: Math.round((session.agent_commission || 0) * 100) / 100,
-      expert_earning: Math.round((session.expert_earning || 0) * 100) / 100,
-      amount: final_price,
-      rate: Number(session.price_per_minute || 0),
-      rating: review?.rating || 0,
-      comment: review?.comment,
-      expert_image:
-        (session.expert?.user as unknown as { avatar?: string })?.avatar ||
-        session.expert?.bio ||
-        '/images/dummy-expert.jpg',
-      user_image:
-        clientProfile?.avatar ||
-        (session.client?.user as unknown as { avatar?: string })?.avatar ||
-        '/images/dummy-user.jpg',
-      expert_name: session.expert?.user?.name || 'Expert',
-      expert_category: session.expert?.specialization || 'Astrologer',
-      user_name: session.client?.user?.name || 'User',
-      expert: {
-        id: session.expert?.id || '',
-        name: session.expert?.user?.name || 'Expert',
-        profile_image:
-          (session.expert?.user as unknown as { avatar?: string })?.avatar ||
-          session.expert?.bio ||
-          '/images/dummy-expert.jpg',
-      },
-      metadata: {
-        callSid: session.twilio_sid,
-        isFree: session.is_free,
-      },
-    };
+  private getDisplayId(id: number, mode: ConsultationMode): string {
+    switch (mode) {
+      case ConsultationMode.VIDEO_CALL:
+        return `AIB-VID-${id}`;
+      case ConsultationMode.AUDIO_CALL:
+        return `AIB-CALL-${id}`;
+      case ConsultationMode.CHAT:
+      default:
+        return `AIB-CHAT-${id}`;
+    }
   }
 
-  private mapChatStatus(
-    status: ChatSessionStatus,
+  private mapStatus(
+    status: DrizzleConsultationStatus,
     duration: number = 0,
   ): ConsultationStatus {
-    if (status === ChatSessionStatus.COMPLETED && duration === 0) {
+    if (status === DrizzleConsultationStatus.COMPLETED && duration === 0) {
       return ConsultationStatus.MISSED;
     }
 
     switch (status) {
-      case ChatSessionStatus.COMPLETED:
+      case DrizzleConsultationStatus.COMPLETED:
         return ConsultationStatus.COMPLETED;
-      case ChatSessionStatus.CANCELLED:
+      case DrizzleConsultationStatus.CANCELLED:
         return ConsultationStatus.CANCELLED;
-      case ChatSessionStatus.REJECTED:
+      case DrizzleConsultationStatus.REJECTED:
         return ConsultationStatus.REJECTED;
-      case ChatSessionStatus.EXPIRED:
+      case DrizzleConsultationStatus.EXPIRED:
         return ConsultationStatus.MISSED;
-      case ChatSessionStatus.PENDING:
+      case DrizzleConsultationStatus.REQUESTED:
+      case DrizzleConsultationStatus.ACCEPTED:
         return ConsultationStatus.PENDING;
-      case ChatSessionStatus.ACTIVE:
+      case DrizzleConsultationStatus.ACTIVE:
         return ConsultationStatus.ACTIVE;
       default:
         return ConsultationStatus.COMPLETED;
     }
-  }
-
-  private mapCallStatus(
-    status: CallSessionStatus,
-    duration: number = 0,
-  ): ConsultationStatus {
-    if (status === CallSessionStatus.COMPLETED && duration === 0) {
-      return ConsultationStatus.MISSED;
-    }
-
-    switch (status) {
-      case CallSessionStatus.COMPLETED:
-        return ConsultationStatus.COMPLETED;
-      case CallSessionStatus.CANCELLED:
-        return ConsultationStatus.CANCELLED;
-      case CallSessionStatus.REJECTED:
-        return ConsultationStatus.REJECTED;
-      case CallSessionStatus.EXPIRED:
-        return ConsultationStatus.MISSED;
-      case CallSessionStatus.PENDING:
-        return ConsultationStatus.PENDING;
-      case CallSessionStatus.ACTIVE:
-        return ConsultationStatus.ACTIVE;
-      default:
-        return ConsultationStatus.COMPLETED;
-    }
-  }
-
-  private calculateDuration(start: Date | null, end: Date | null): number {
-    if (!start || !end) return 0;
-    return Math.floor((end.getTime() - start.getTime()) / 1000);
   }
 
   private formatDuration(seconds: number): string {

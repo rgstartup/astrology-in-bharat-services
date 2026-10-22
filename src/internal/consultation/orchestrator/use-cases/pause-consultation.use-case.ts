@@ -115,12 +115,6 @@ export class PauseConsultationUseCase {
     server
       .to(SOCKET_ROOMS.CONSULTATION(row.id))
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.PAUSED, payload);
-    server
-      .to(SOCKET_ROOMS.CHAT_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.PAUSED, payload);
-    server
-      .to(SOCKET_ROOMS.CALL_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.PAUSED, payload);
 
     return payload;
   }

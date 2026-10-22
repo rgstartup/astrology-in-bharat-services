@@ -1,30 +1,30 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, gt, isNull, lte, or, sql } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { Inject, Injectable } from "@nestjs/common";
+import { and, desc, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
 import {
   consultations,
   clientAccounts,
   clientWallets,
   expertAccounts,
   expertConsultationPricing,
-} from '@/core/drizzledb/schema';
+} from "@/core/drizzledb/schema";
 import {
   ExpertClientStatus,
   PricingStatus,
   PricingTargetAudience,
-} from '@/core/enums';
+} from "@/core/enums";
 import {
   ConsultationMode,
   ConsultationStatus,
-} from '@/internal/consultation/enums';
-import { PresenceService } from '@/internal/actors/expert/presence/presence.service';
+} from "@/internal/consultation/enums";
+import { PresenceService } from "@/internal/actors/expert/presence/presence.service";
 import {
-  ChatPriceNotFoundError,
   ClientNotFoundError,
   ExpertNotFoundError,
-} from '../errors';
-import { ChatEligibilityResponseDto } from '../dto/chat-eligibility-response.dto';
+} from "../errors";
+import { PriceNotFoundError } from "@/internal/actors/client/consultation/errors";
+import { ChatEligibilityResponseDto } from "../dto/chat-eligibility-response.dto";
 
 export const MIN_PAID_CHAT_MINUTES = 1;
 
@@ -117,7 +117,7 @@ export class CheckChatEligibilityUsecase {
       row.activeChatPrice != null
         ? Number(row.activeChatPrice)
         : row.fallbackChatPrice;
-    if (raw == null || Number.isNaN(raw)) throw new ChatPriceNotFoundError();
+    if (raw == null || Number.isNaN(raw)) throw new PriceNotFoundError();
     return { id: row.id, chatPrice: raw };
   }
 
@@ -150,9 +150,9 @@ export class CheckChatEligibilityUsecase {
 
   private decideFreeTrial(completedCount: number) {
     const isEligibleForFree =
-      process.env.FREE_CHAT_ENABLED === 'true' && completedCount === 0;
+      process.env.FREE_CHAT_ENABLED === "true" && completedCount === 0;
     const freeMinutes = isEligibleForFree
-      ? parseInt(process.env.FREE_CHAT_DURATION_MINS || '5', 10)
+      ? parseInt(process.env.FREE_CHAT_DURATION_MINS || "5", 10)
       : 0;
     return { isEligibleForFree, freeMinutes };
   }

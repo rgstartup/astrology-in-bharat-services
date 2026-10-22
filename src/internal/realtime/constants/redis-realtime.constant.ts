@@ -2,8 +2,7 @@ export const REDIS_KEYS = {
   presence: {
     expertConnections: (expertId: string | number) =>
       `presence:expert:${expertId}:connections`,
-    connection: (connectionId: string) =>
-      `presence:connection:${connectionId}`,
+    connection: (connectionId: string) => `presence:connection:${connectionId}`,
     consultation: (expertId: string | number) =>
       `presence:expert:${expertId}:consultation`,
     availability: (expertId: string | number) =>
@@ -12,16 +11,14 @@ export const REDIS_KEYS = {
       `presence:expert:${expertId}:last_status`,
   },
   chat: {
-    session: (sessionId: string | number) =>
-      `chat:session:${sessionId}`,
+    session: (sessionId: string | number) => `chat:session:${sessionId}`,
     activeClient: (clientId: string | number) =>
       `chat:client:${clientId}:active`,
     activeExpert: (expertId: string | number) =>
       `chat:expert:${expertId}:active`,
   },
   call: {
-    session: (sessionId: string | number) =>
-      `call:session:${sessionId}`,
+    session: (sessionId: string | number) => `call:session:${sessionId}`,
     activeClient: (clientId: string | number) =>
       `call:client:${clientId}:active`,
     activeExpert: (expertId: string | number) =>

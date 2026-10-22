@@ -14,14 +14,21 @@
 - NEVER introduce new `../../` (or deeper) parent-traversal imports. When
   touching a file, convert eligible existing deep `../` imports to `@/`
   in the same change.
+- NEVER use wildcard imports (`import * as Foo`, `import Foo, * as Bar`).
+  Use a default import (`import Foo from '...'` + `Foo.Bar`) or explicit
+  named imports (`import { Bar } from '...'`) instead. Rationale: `import *`
+  breaks CJS/webpack interop the same way fragile named imports do
+  (bug-079: `agora-token` boot crash) and defeats tree-shaking.
 
 ```ts
 // Good
+import AgoraToken from 'agora-token'; // AgoraToken.RtcRole.PUBLISHER
 import { IExpert } from '@/shared/types/access-token.payload';
 import { Media } from '@/internal/media/entities/media.entity';
 import { GetExpertAccountUseCase } from './use-cases/get-account.usecase';
 
 // Bad
+import * as AgoraToken from 'agora-token';
 import { IExpert } from '../../../../shared/types/access-token.payload';
 import { Media } from '../../internal/media/entities/media.entity';
 ```

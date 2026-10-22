@@ -7,7 +7,6 @@ import { Transaction } from '@/internal/finance/wallet/entities/transaction.enti
 import { AgentController } from './controllers/agent.controller';
 import { DatabaseModule } from '@/core/database/database.module';
 import { WalletModule } from '@/internal/finance/wallet/wallet.module';
-import { ConsultationModule } from '@/internal/consultation/consultation.module';
 import { PujaAppointmentModule } from '@/internal/puja-appointment/puja-appointment.module';
 import { NotificationModule } from '@/internal/notification/notification.module';
 import { CommissionsModule } from '@/internal/finance/commissions/commissions.module';
@@ -43,7 +42,6 @@ import { AdminModule } from '@/internal/actors/admin/admin.module';
     forwardRef(() => AdminModule),
     forwardRef(() => ExpertProfileModule),
     MerchantAccountModule,
-    forwardRef(() => ConsultationModule),
     forwardRef(() => PujaAppointmentModule),
   ],
   controllers: [AgentController],

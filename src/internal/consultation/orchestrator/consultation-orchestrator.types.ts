@@ -126,8 +126,26 @@ export interface EndConsultationCommand {
 }
 
 /**
+ * Moves a voice/video consultation over to chat.
+ */
+export interface SwitchToChatCommand {
+  consultationId: number;
+  actorId: number;
+  actorType: 'client';
+}
+
+/**
  * Outbound Event Payloads.
  */
+export interface ConsultationMediaReadyPayload {
+  consultationId: number;
+  actorType: 'client' | 'expert';
+  actorId: number;
+  clientReady: boolean;
+  expertReady: boolean;
+  bothReady: boolean;
+  timestamp: string;
+}
 export interface ConsultationStatePayload {
   consultationId: number;
   mode: ConsultationModeType;

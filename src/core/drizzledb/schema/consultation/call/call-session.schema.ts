@@ -13,7 +13,7 @@ import { relations } from 'drizzle-orm';
 import {
   CallSessionStatus,
   CallType,
-} from '../../../../../internal/consultation/call/enum';
+} from '@/internal/consultation/enums';
 import { clientAccounts } from '../../client/client-account.schema';
 
 const consultationsSchema = pgSchema('consultations');

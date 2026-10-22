@@ -15,11 +15,9 @@ import {
 } from '@/internal/realtime/chat/chat-message-persistence';
 import {
   isChatParticipant,
-  getConsultationStatus,
   resolveChatClientName,
 } from '@/internal/realtime/chat/chat-room-access';
 import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
-import { ResolveConsultationBudgetUseCase } from '@/internal/consultation/room/resolve-consultation-budget.use-case';
 import {
   CONSULTATION_ACK_STATUS,
   type ConsultationAckStatus,
@@ -61,77 +59,22 @@ export class ClientChatHandler {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly rooms: ConsultationRoomRepository,
-    private readonly budget: ResolveConsultationBudgetUseCase,
     private readonly orchestrator: ConsultationOrchestratorService,
   ) {}
-
-  async joinChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ): Promise<{
-    status: ConsultationAckStatus;
-    consultationId: number;
-    consultationStatus: string | null;
-    maxMinutes?: number;
-    startedAt?: string | null;
-  }> {
-    const isIdentityOfChatParticipant = await isChatParticipant(
-      this.db,
-      consultationId,
-      identity,
-    );
-
-    if (!isIdentityOfChatParticipant) {
-      return {
-        status: CONSULTATION_ACK_STATUS.IGNORED,
-        consultationId,
-        consultationStatus: null,
-      };
-    }
-    const room = SOCKET_ROOMS.CHAT_SESSION(consultationId);
-    await socket.join(room);
-    this.logger.debug(
-      `Actor ${identity.actorType}:${identity.id} joined chat room ${room} (socket: ${socket.id})`,
-    );
-    // Chat joins meter at the chat rate: record the mode before reading.
-    await this.rooms.setActiveMode(consultationId, ConsultationMode.CHAT).catch(() => null);
-    const liveBudget = await this.budget.execute(consultationId).catch(() => null);
-    this.orchestrator.armBudgetTimer(server, consultationId, 'chat');
-    return {
-      status: CONSULTATION_ACK_STATUS.JOINED,
-      consultationId,
-      consultationStatus: await getConsultationStatus(this.db, consultationId),
-      ...(liveBudget
-        ? { maxMinutes: liveBudget.maxMinutes, startedAt: liveBudget.startedAt }
-        : {}),
-    };
-  }
-
-  async leaveChat(
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ): Promise<{ status: ConsultationAckStatus; consultationId: number }> {
-    const room = SOCKET_ROOMS.CHAT_SESSION(consultationId);
-    await socket.leave(room);
-    this.logger.debug(
-      `Actor ${identity.actorType}:${identity.id} left chat room ${room} (socket: ${socket.id})`,
-    );
-    return { status: CONSULTATION_ACK_STATUS.LEFT, consultationId };
-  }
 
   async sendChatMessage(
     server: Server,
     socket: RealtimeSocket,
     input: ChatMessageInput,
     identity: AuthenticatedSocketIdentity,
-  ): Promise<{ status: ConsultationAckStatus; message: Record<string, unknown> }> {
+  ): Promise<{
+    status: ConsultationAckStatus;
+    message: Record<string, unknown>;
+  }> {
     if (!(await isChatParticipant(this.db, input.consultationId, identity))) {
       return { status: CONSULTATION_ACK_STATUS.IGNORED, message: {} };
     }
-    const room = SOCKET_ROOMS.CHAT_SESSION(input.consultationId);
+    const room = SOCKET_ROOMS.CONSULTATION(input.consultationId);
     // Membership self-repair: a socket silently out of the room still gets
     // its own echo but misses the other side — rejoin before emitting.
     await socket.join(room);
@@ -142,7 +85,11 @@ export class ClientChatHandler {
     // Foolproof backstop: a send past zero pauses first (all sides get
     // `consultation:paused`) and the message itself is dropped.
     const budget = await this.orchestrator.getStatus(input.consultationId);
-    if (budget && (budget.remainingSeconds ?? 0) <= 0 && budget.ratePerMinute > 0) {
+    if (
+      budget &&
+      (budget.remainingSeconds ?? 0) <= 0 &&
+      budget.ratePerMinute > 0
+    ) {
       await this.orchestrator.triggerBudgetHold(server, input.consultationId);
       return { status: CONSULTATION_ACK_STATUS.IGNORED, message: {} };
     }
@@ -181,7 +128,7 @@ export class ClientChatHandler {
     isTyping: boolean,
     identity: AuthenticatedSocketIdentity,
   ): void {
-    const room = SOCKET_ROOMS.CHAT_SESSION(consultationId);
+    const room = SOCKET_ROOMS.CONSULTATION(consultationId);
     socket.to(room).emit(SOCKET_EVENTS.CHAT.TYPING, {
       consultationId,
       senderId: identity.id,
@@ -198,7 +145,7 @@ export class ClientChatHandler {
     expertId: number,
     identity: AuthenticatedSocketIdentity,
   ): Promise<{ status: ConsultationAckStatus; consultationId: number }> {
-    const room = SOCKET_ROOMS.CHAT_SESSION(consultationId);
+    const room = SOCKET_ROOMS.CONSULTATION(consultationId);
     await socket.join(room);
     // Fresh request cycle: drop any stale pause gate / resume anchor.
     await this.rooms.clearPaused(consultationId);
@@ -214,17 +161,19 @@ export class ClientChatHandler {
       )
       .orderBy(desc(consultationSessions.id))
       .limit(1);
-    server.to(SOCKET_ROOMS.EXPERT(expertId)).emit(SOCKET_EVENTS.CONSULTATION.EVENTS.INCOMING, {
-      consultationId,
-      expertId,
-      clientId: identity.id,
-      senderType: identity.actorType,
-      sessionId: session?.id ?? null,
-      timestamp: new Date().toISOString(),
-      ...(await resolveChatClientName(this.db, consultationId)
-        .then((clientName) => (clientName ? { clientName } : {}))
-        .catch(() => ({}))),
-    });
+    server
+      .to(SOCKET_ROOMS.EXPERT(expertId))
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.INCOMING, {
+        consultationId,
+        expertId,
+        clientId: identity.id,
+        senderType: identity.actorType,
+        sessionId: session?.id ?? null,
+        timestamp: new Date().toISOString(),
+        ...(await resolveChatClientName(this.db, consultationId)
+          .then((clientName) => (clientName ? { clientName } : {}))
+          .catch(() => ({}))),
+      });
     if (!(await this.rooms.refreshRoom(consultationId))) {
       this.logger.debug(
         `[ClientChat] Room key for ${consultationId} already lapsed; timer + cron own expiry.`,
@@ -289,8 +238,7 @@ export class ClientChatHandler {
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
   ): Promise<ClientChatPauseAck> {
-    await socket.join(SOCKET_ROOMS.CHAT_SESSION(consultationId));
-    await socket.join(SOCKET_ROOMS.CALL_SESSION(consultationId));
+    await socket.join(SOCKET_ROOMS.CONSULTATION(consultationId));
     const state = await this.orchestrator.pause(server, {
       consultationId,
       actorId: identity.id,
@@ -319,8 +267,7 @@ export class ClientChatHandler {
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
   ): Promise<ClientChatResumeAck> {
-    await socket.join(SOCKET_ROOMS.CHAT_SESSION(consultationId));
-    await socket.join(SOCKET_ROOMS.CALL_SESSION(consultationId));
+    await socket.join(SOCKET_ROOMS.CONSULTATION(consultationId));
     const state = await this.orchestrator.resume(server, {
       consultationId,
       actorId: identity.id,

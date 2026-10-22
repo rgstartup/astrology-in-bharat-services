@@ -4,6 +4,8 @@ import { NodemailerModule } from './nodemailer/nodemailer.module';
 import { ProkeralaModule } from './prokerala/prokerala.module';
 import { PaymentGatewayModule } from './payment/payment-gateway.module';
 import { StorageModule } from './storage/storage.module';
+import { VoiceModule } from './voice/voice.module';
+import { VideoModule } from './video/video.module';
 
 @Module({
   imports: [
@@ -12,6 +14,8 @@ import { StorageModule } from './storage/storage.module';
     ProkeralaModule,
     PaymentGatewayModule,
     StorageModule,
+    VoiceModule,
+    VideoModule,
   ],
   exports: [
     CloudinaryModule,
@@ -19,6 +23,8 @@ import { StorageModule } from './storage/storage.module';
     ProkeralaModule,
     PaymentGatewayModule,
     StorageModule,
+    VoiceModule,
+    VideoModule,
   ],
 })
 export class ExternalModule {}

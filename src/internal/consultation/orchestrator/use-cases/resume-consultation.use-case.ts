@@ -109,15 +109,6 @@ export class ResumeConsultationUseCase {
     server
       .to(SOCKET_ROOMS.CONSULTATION(row.id))
       .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.RESTORED, payload);
-    server
-      .to(SOCKET_ROOMS.CHAT_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.RESUMED, payload);
-    server
-      .to(SOCKET_ROOMS.CHAT_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.RESTORED, payload);
-    server
-      .to(SOCKET_ROOMS.CALL_SESSION(row.id))
-      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.RESUMED, payload);
 
     return payload;
   }

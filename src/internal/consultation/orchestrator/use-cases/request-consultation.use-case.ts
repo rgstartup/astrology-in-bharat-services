@@ -78,7 +78,7 @@ export class RequestConsultationUseCase {
     // Calculate initial affordability for the expert preview
     const affordability = await this.budget.calculateAffordability(row.id, mode);
 
-    // The expert app navigates to `/dashboard/chat/${sessionId}` on accept,
+    // The expert app navigates to `/dashboard/consultations/${sessionId}` on accept,
     // so the incoming card needs the pending session id (pre-migration
     // `requestChat` sent `sessionId: session?.id ?? null`).
     const [pendingSession] = await this.db

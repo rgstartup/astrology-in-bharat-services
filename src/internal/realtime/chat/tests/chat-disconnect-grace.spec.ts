@@ -86,12 +86,7 @@ describe('chatDisconnectGrace arm/cancel', () => {
     chatDisconnectGrace.arm(db, server, 'client', 10, { clientId: 10 }, 'x');
     expect(mockedClose).not.toHaveBeenCalled();
     vi.advanceTimersByTime(chatDisconnectGraceMs());
-    expect(mockedClose).toHaveBeenCalledWith(
-      db,
-      server,
-      { clientId: 10 },
-      'x',
-    );
+    expect(mockedClose).toHaveBeenCalledWith(db, server, { clientId: 10 }, 'x');
   });
 
   it('cancel inside the window prevents the close (refresh rejoins)', () => {

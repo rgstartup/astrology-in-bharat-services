@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 import {
   ChatAttachmentMessageService,
   type ChatAttachmentMessagePayload,
-} from '@/internal/realtime/chat/chat-attachment-message.service';
-import { ChatAttachmentResponseDto } from '../dto/chat-attachment-response.dto';
+} from "@/internal/realtime/chat/chat-attachment-message.service";
+import { ChatAttachmentResponseDto } from "../dto/chat-attachment-response.dto";
 
 /**
  * Client attachment send: single HTTP call carrying the file, the message
@@ -26,7 +26,7 @@ export class UploadChatAttachmentUseCase {
   ): Promise<ChatAttachmentResponseDto> {
     const payload: ChatAttachmentMessagePayload =
       await this.attachmentMessages.sendWithAttachment({
-        actorType: 'client',
+        actorType: "client",
         actorId: clientId,
         consultationId,
         content,
