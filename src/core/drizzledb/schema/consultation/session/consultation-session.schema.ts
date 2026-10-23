@@ -4,6 +4,7 @@ import {
   pgEnum,
   pgSchema,
   serial,
+  text,
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
@@ -46,6 +47,8 @@ export const consultationSessions = consultationsSchema.table(
       .default(ConsultationSessionStatus.PENDING),
     started_at: timestamp('started_at', { withTimezone: true }),
     ended_at: timestamp('ended_at', { withTimezone: true }),
+    /** Why the session closed when it was not a normal end (e.g. paused). */
+    ended_reason: text('ended_reason'),
     created_at: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

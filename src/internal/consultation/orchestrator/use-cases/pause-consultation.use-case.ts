@@ -4,12 +4,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { Server } from 'socket.io';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { consultations } from '@/core/drizzledb/schema';
-import { ConsultationStatus } from '@/internal/consultation/enums';
+import { consultationSessions, consultations } from '@/core/drizzledb/schema';
+import {
+  ConsultationSessionStatus,
+  ConsultationStatus,
+} from '@/internal/consultation/enums';
+import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import { ConsultationBudgetEngine } from '../consultation-budget.engine';
@@ -38,11 +42,15 @@ import {
  */
 @Injectable()
 export class PauseConsultationUseCase {
-  private readonly adapters: Map<ConsultationModeType, IConsultationModeAdapter>;
+  private readonly adapters: Map<
+    ConsultationModeType,
+    IConsultationModeAdapter
+  >;
 
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly budget: ConsultationBudgetEngine,
+    private readonly rooms: ConsultationRoomRepository,
     chatAdapter: ChatModeAdapter,
     voiceAdapter: VoiceModeAdapter,
     videoAdapter: VideoModeAdapter,
@@ -89,14 +97,45 @@ export class PauseConsultationUseCase {
     }
 
     const mode = toConsultationModeType(row.mode);
-    const affordability = await this.budget.calculateAffordability(row.id, mode);
+    const affordability = await this.budget.calculateAffordability(
+      row.id,
+      mode,
+    );
     const now = new Date();
 
+    const elapsedSec = affordability?.elapsedSeconds ?? 0;
+
+    // A pause is a hard session boundary: close the running row with a pause
+    // reason so history can show it and the next resume opens a new session.
+    if (row.status === ConsultationStatus.ACTIVE) {
+      await this.db
+        .update(consultationSessions)
+        .set({
+          status: ConsultationSessionStatus.COMPLETED,
+          ended_at: now,
+          ended_reason: 'paused',
+          updated_at: now,
+        })
+        .where(
+          and(
+            eq(consultationSessions.consultation_id, row.id),
+            eq(consultationSessions.status, ConsultationSessionStatus.ACTIVE),
+          ),
+        );
+    }
+
+    // Both paths set the pause gate: a paused consultation is not chat-enabled.
+    // A billing hold additionally freezes the meter at this elapsed value.
+    if (command.reason === 'billing_hold') {
+      await this.rooms.holdBilling(row.id, elapsedSec);
+    } else {
+      await this.rooms.clearBillingHold(row.id);
+    }
     await this.getAdapter(mode).onPause(row.id);
 
-    const elapsedSec = affordability?.elapsedSeconds ?? 0;
     const ratePerMin = affordability?.ratePerMinute ?? 0;
-    const consumedAmount = Math.round((elapsedSec / 60) * ratePerMin * 100) / 100;
+    const consumedAmount =
+      Math.round((elapsedSec / 60) * ratePerMin * 100) / 100;
 
     const payload: ConsultationStatePayload = {
       consultationId: row.id,

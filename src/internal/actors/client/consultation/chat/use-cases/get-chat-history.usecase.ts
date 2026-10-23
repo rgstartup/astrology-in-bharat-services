@@ -1,19 +1,19 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { asc, eq, and } from "drizzle-orm";
-import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
-import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import { Inject, Injectable } from '@nestjs/common';
+import { asc, eq, and } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import {
   consultationMessageAttachments,
   consultationMessages,
   consultations,
   consultationSessions,
   media,
-} from "@/core/drizzledb/schema";
-import { ConsultationNotAvailableError } from "../errors";
+} from '@/core/drizzledb/schema';
+import { ConsultationNotAvailableError } from '../errors';
 import {
   ChatHistoryResponseDto,
   toChatHistoryResponse,
-} from "../dto/chat-history-response.dto";
+} from '../dto/chat-history-response.dto';
 
 /** Consultation-scoped message history (ascending, capped). */
 @Injectable()
@@ -39,7 +39,7 @@ export class GetChatHistoryUseCase {
     if (!consultation) {
       throw new ConsultationNotAvailableError(
         consultationId,
-        "Consultation not found or not accessible.",
+        'Consultation not found or not accessible.',
       );
     }
 
@@ -53,6 +53,7 @@ export class GetChatHistoryUseCase {
           mode: consultationSessions.mode,
           startedAt: consultationSessions.started_at,
           endedAt: consultationSessions.ended_at,
+          endedReason: consultationSessions.ended_reason,
         })
         .from(consultationSessions)
         .where(eq(consultationSessions.consultation_id, consultationId))

@@ -3,10 +3,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import type { Server } from 'socket.io';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import {
-  consultationSessions,
-  consultations,
-} from '@/core/drizzledb/schema';
+import { consultationSessions, consultations } from '@/core/drizzledb/schema';
 import {
   ConsultationMode,
   ConsultationSessionStatus,
@@ -15,6 +12,7 @@ import {
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import { ConsultationBudgetEngine } from '../consultation-budget.engine';
+import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
 import { ChatModeAdapter } from '../adapters/chat-mode.adapter';
 import {
   ConsultationStatePayload,
@@ -45,6 +43,7 @@ export class SwitchToChatUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly budget: ConsultationBudgetEngine,
+    private readonly rooms: ConsultationRoomRepository,
     private readonly chatAdapter: ChatModeAdapter,
   ) {}
 
@@ -89,9 +88,11 @@ export class SwitchToChatUseCase {
     const isLive = row.status === ConsultationStatus.ACTIVE;
     const now = new Date();
 
-    // Seconds already burned at the voice/video rate stay burned.
+    // Seconds already burned at the voice/video rate stay burned. A dialog
+    // hold froze them above: release it now so the chat clock can re-anchor.
     const before = await this.budget.calculateAffordability(row.id, mode);
     const elapsedSeconds = before?.elapsedSeconds ?? 0;
+    await this.rooms.clearBillingHold(row.id);
 
     const sessionId = await this.db.transaction(async (tx) => {
       // The running call session is closed; its messages stay in that session.
@@ -175,7 +176,10 @@ export class SwitchToChatUseCase {
       baseSeconds: elapsedSeconds,
     });
 
-    const affordability = await this.budget.calculateAffordability(row.id, 'chat');
+    const affordability = await this.budget.calculateAffordability(
+      row.id,
+      'chat',
+    );
     const state = isLive
       ? 'active'
       : row.status === ConsultationStatus.ACCEPTED
@@ -199,6 +203,12 @@ export class SwitchToChatUseCase {
     server
       .to(SOCKET_ROOMS.EXPERT(row.expert_id))
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.STATE, payload);
+    if (isLive) {
+      // Clear any dialog-hold pause state on both sides: the chat clock is live.
+      server
+        .to(SOCKET_ROOMS.CONSULTATION(row.id))
+        .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.RESUMED, payload);
+    }
 
     return {
       status: 'switched_to_chat',

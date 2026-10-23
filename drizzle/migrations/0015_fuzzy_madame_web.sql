@@ -1,0 +1,1 @@
+ALTER TABLE "consultations"."consultation_sessions" ADD COLUMN "ended_reason" text;

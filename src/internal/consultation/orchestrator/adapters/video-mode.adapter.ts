@@ -32,11 +32,17 @@ export class VideoModeAdapter implements IConsultationModeAdapter {
    * @param consultationId - ID of the consultation being started.
    * @param session - Active session row (unused; kept for interface parity).
    */
-  async onStart(consultationId: number, session: Record<string, any>): Promise<void> {
+  async onStart(
+    consultationId: number,
+    session: Record<string, any>,
+  ): Promise<void> {
     void session;
     await this.rooms.setActiveMode(consultationId, ConsultationMode.VIDEO_CALL);
     await this.rooms.clearPaused(consultationId);
-    this.logger.debug(`[VideoModeAdapter] Started video session for consultation ${consultationId}`);
+    await this.rooms.clearBillingHold(consultationId);
+    this.logger.debug(
+      `[VideoModeAdapter] Started video session for consultation ${consultationId}`,
+    );
   }
 
   /**
@@ -46,7 +52,9 @@ export class VideoModeAdapter implements IConsultationModeAdapter {
    */
   async onPause(consultationId: number): Promise<void> {
     await this.rooms.pauseRoom(consultationId);
-    this.logger.debug(`[VideoModeAdapter] Paused video session for consultation ${consultationId}`);
+    this.logger.debug(
+      `[VideoModeAdapter] Paused video session for consultation ${consultationId}`,
+    );
   }
 
   /**
@@ -56,10 +64,20 @@ export class VideoModeAdapter implements IConsultationModeAdapter {
    * @param consultationId - ID of the consultation being resumed.
    * @param context - Billing re-anchor (fresh timestamp + consumed base seconds).
    */
-  async onResume(consultationId: number, context: ConsultationResumeContext): Promise<void> {
-    await this.rooms.setAnchor(consultationId, context.anchorIso, context.baseSeconds);
+  async onResume(
+    consultationId: number,
+    context: ConsultationResumeContext,
+  ): Promise<void> {
+    await this.rooms.setAnchor(
+      consultationId,
+      context.anchorIso,
+      context.baseSeconds,
+    );
     await this.rooms.clearPaused(consultationId);
-    this.logger.debug(`[VideoModeAdapter] Resumed video session for consultation ${consultationId}`);
+    await this.rooms.clearBillingHold(consultationId);
+    this.logger.debug(
+      `[VideoModeAdapter] Resumed video session for consultation ${consultationId}`,
+    );
   }
 
   /**
@@ -70,10 +88,13 @@ export class VideoModeAdapter implements IConsultationModeAdapter {
    */
   async onEnd(consultationId: number): Promise<void> {
     await this.rooms.clearPaused(consultationId);
+    await this.rooms.clearBillingHold(consultationId);
     await this.rooms.clearAnchor(consultationId);
     await this.rooms.clearBudget(consultationId);
     await this.rooms.clearActiveMode(consultationId);
     await this.rooms.clearMediaReady(consultationId);
-    this.logger.debug(`[VideoModeAdapter] Ended video session for consultation ${consultationId}`);
+    this.logger.debug(
+      `[VideoModeAdapter] Ended video session for consultation ${consultationId}`,
+    );
   }
 }

@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { Server } from 'socket.io';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
@@ -142,6 +142,32 @@ export class EndConsultationUseCase {
             ]),
           ),
         );
+
+      if (!neverStarted) {
+        const [lastPaused] = await tx
+          .select({ id: consultationSessions.id })
+          .from(consultationSessions)
+          .where(
+            and(
+              eq(consultationSessions.consultation_id, command.consultationId),
+              eq(consultationSessions.ended_reason, 'paused'),
+            ),
+          )
+          .orderBy(desc(consultationSessions.id))
+          .limit(1);
+        const [lastSession] = await tx
+          .select({ id: consultationSessions.id })
+          .from(consultationSessions)
+          .where(eq(consultationSessions.consultation_id, command.consultationId))
+          .orderBy(desc(consultationSessions.id))
+          .limit(1);
+        if (lastPaused && lastSession && lastPaused.id === lastSession.id) {
+          await tx
+            .update(consultationSessions)
+            .set({ ended_reason: null, updated_at: now })
+            .where(eq(consultationSessions.id, lastPaused.id));
+        }
+      }
 
       if (neverStarted) {
         await releaseConsultationHold(tx, row.client_id, row.id);

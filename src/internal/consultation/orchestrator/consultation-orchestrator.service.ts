@@ -5,7 +5,10 @@ import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { consultations } from '@/core/drizzledb/schema';
 import { ConsultationStatus } from '@/internal/consultation/enums';
-import { ConsultationRoomRepository } from '../room/consultation-room.repository';
+import {
+  ConsultationRoomRepository,
+  chatPauseTtlMs,
+} from '../room/consultation-room.repository';
 import { ConsultationBudgetEngine } from './consultation-budget.engine';
 import {
   AcceptConsultationUseCase,
@@ -49,6 +52,7 @@ export class ConsultationOrchestratorService {
   private readonly budgetTimers = new Map<number, NodeJS.Timeout>();
   private readonly warningTimers = new Map<number, NodeJS.Timeout>();
   private readonly graceTimers = new Map<number, NodeJS.Timeout>();
+  private readonly holdTimers = new Map<number, NodeJS.Timeout>();
   private bootRearmed = false;
 
   constructor(
@@ -186,7 +190,12 @@ export class ConsultationOrchestratorService {
     command: PauseConsultationCommand,
   ): Promise<ConsultationStatePayload | null> {
     this.cancelBudgetTimer(command.consultationId);
-    return this.pauseUseCase.execute(server, command);
+    this.cancelHoldTimer(command.consultationId);
+    const payload = await this.pauseUseCase.execute(server, command);
+    if (payload && command.reason === 'billing_hold') {
+      this.armHoldExpiry(server, command.consultationId);
+    }
+    return payload;
   }
 
   async resume(
@@ -208,7 +217,9 @@ export class ConsultationOrchestratorService {
     return this.endUseCase.execute(server, command);
   }
 
-  async getStatus(consultationId: number): Promise<ConsultationStatePayload | null> {
+  async getStatus(
+    consultationId: number,
+  ): Promise<ConsultationStatePayload | null> {
     return this.statusUseCase.execute(consultationId);
   }
 
@@ -229,11 +240,20 @@ export class ConsultationOrchestratorService {
     return result;
   }
 
-  async triggerBudgetHold(server: Server, consultationId: number, graceDelayMs?: number) {
+  async triggerBudgetHold(
+    server: Server,
+    consultationId: number,
+    graceDelayMs?: number,
+  ) {
     this.cancelBudgetTimer(consultationId);
+    this.cancelHoldTimer(consultationId);
     const hold = await this.budgetHoldUseCase.execute(server, consultationId);
     if (hold) {
-      this.armGraceTimer(server, consultationId, graceDelayMs ?? hold.graceDurationSeconds * 1000);
+      this.armGraceTimer(
+        server,
+        consultationId,
+        graceDelayMs ?? hold.graceDurationSeconds * 1000,
+      );
     }
   }
 
@@ -285,6 +305,14 @@ export class ConsultationOrchestratorService {
     const live = await this.budget.calculateAffordability(consultationId, mode);
     if (!live) return 'skipped';
 
+    if (await this.rooms.isBillingHeld(consultationId)) {
+      // Dialog hold survived a restart: let the remaining hold TTL lapse, then
+      // release it and re-arm billing (or fall into the budget hold).
+      const ttlMs = await this.rooms.billingHoldTtlMs(consultationId);
+      this.armHoldExpiry(server, consultationId, ttlMs ?? undefined);
+      return 'skipped';
+    }
+
     if (await this.rooms.isPaused(consultationId)) {
       // Paused + broke = interrupted budget hold: re-hold with the leftover
       // paused-key TTL as grace. Paused + funded = manual pause (or a hold
@@ -309,38 +337,50 @@ export class ConsultationOrchestratorService {
     mode: ConsultationModeType,
   ) {
     this.cancelBudgetTimer(consultationId);
-    void this.budget.calculateAffordability(consultationId, mode).then((live) => {
-      if (!live || live.remainingSeconds <= 0) {
-        void this.triggerBudgetHold(server, consultationId);
-        return;
-      }
+    void this.budget
+      .calculateAffordability(consultationId, mode)
+      .then((live) => {
+        if (!live || live.remainingSeconds <= 0) {
+          void this.triggerBudgetHold(server, consultationId);
+          return;
+        }
 
-      // 60-second advance warning before exhaustion if remaining time allows
-      const warningThresholdSec = 60;
-      if (live.remainingSeconds > warningThresholdSec) {
-        const warningDelayMs = (live.remainingSeconds - warningThresholdSec) * 1000;
-        const warningTimer = setTimeout(() => {
-          this.warningTimers.delete(consultationId);
-          const warningPayload: ConsultationBudgetWarningPayload = {
-            consultationId,
-            mode,
-            remainingSeconds: warningThresholdSec,
-            message: '1 minute remaining in consultation.',
-            timestamp: new Date().toISOString(),
-          };
-          server
-            .to(SOCKET_ROOMS.CONSULTATION(consultationId))
-            .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.WARNING, warningPayload);
-        }, Math.min(warningDelayMs, 2_147_483_647));
-        this.warningTimers.set(consultationId, warningTimer);
-      }
+        // 60-second advance warning before exhaustion if remaining time allows
+        const warningThresholdSec = 60;
+        if (live.remainingSeconds > warningThresholdSec) {
+          const warningDelayMs =
+            (live.remainingSeconds - warningThresholdSec) * 1000;
+          const warningTimer = setTimeout(
+            () => {
+              this.warningTimers.delete(consultationId);
+              const warningPayload: ConsultationBudgetWarningPayload = {
+                consultationId,
+                mode,
+                remainingSeconds: warningThresholdSec,
+                message: '1 minute remaining in consultation.',
+                timestamp: new Date().toISOString(),
+              };
+              server
+                .to(SOCKET_ROOMS.CONSULTATION(consultationId))
+                .emit(
+                  SOCKET_EVENTS.CONSULTATION.BUDGET.WARNING,
+                  warningPayload,
+                );
+            },
+            Math.min(warningDelayMs, 2_147_483_647),
+          );
+          this.warningTimers.set(consultationId, warningTimer);
+        }
 
-      const delayMs = Math.max(1000, live.remainingSeconds * 1000);
-      const timer = setTimeout(() => {
-        void this.triggerBudgetHold(server, consultationId);
-      }, Math.min(delayMs, 2_147_483_647));
-      this.budgetTimers.set(consultationId, timer);
-    });
+        const delayMs = Math.max(1000, live.remainingSeconds * 1000);
+        const timer = setTimeout(
+          () => {
+            void this.triggerBudgetHold(server, consultationId);
+          },
+          Math.min(delayMs, 2_147_483_647),
+        );
+        this.budgetTimers.set(consultationId, timer);
+      });
   }
 
   private cancelBudgetTimer(consultationId: number) {
@@ -379,6 +419,57 @@ export class ConsultationOrchestratorService {
     if (timer) {
       clearTimeout(timer);
       this.graceTimers.delete(consultationId);
+    }
+  }
+
+  /**
+   * Releases a dialog-driven billing hold when its safety TTL lapses (the
+   * client left the confirmation open). Resuming re-anchors the clock and
+   * re-arms the budget timer; a broke client falls into the normal hold.
+   *
+   * @param server - Authoritative Socket.IO server instance.
+   * @param consultationId - Consultation whose hold should be released.
+   * @param delayMs - Optional remaining hold window (boot recovery).
+   */
+  private armHoldExpiry(
+    server: Server,
+    consultationId: number,
+    delayMs?: number,
+  ) {
+    this.cancelHoldTimer(consultationId);
+    const timer = setTimeout(() => {
+      this.holdTimers.delete(consultationId);
+      void this.releaseExpiredHold(server, consultationId);
+    }, delayMs ?? chatPauseTtlMs());
+    this.holdTimers.set(consultationId, timer);
+  }
+
+  private async releaseExpiredHold(
+    server: Server,
+    consultationId: number,
+  ): Promise<void> {
+    try {
+      if (!(await this.rooms.isBillingHeld(consultationId))) return;
+      await this.resume(server, {
+        consultationId,
+        actorId: 0,
+        actorType: 'system',
+      });
+    } catch (err) {
+      this.logger.warn(
+        `[BillingHold] Could not release hold on ${consultationId}: ${err}`,
+      );
+      await this.triggerBudgetHold(server, consultationId).catch(
+        () => undefined,
+      );
+    }
+  }
+
+  private cancelHoldTimer(consultationId: number) {
+    const timer = this.holdTimers.get(consultationId);
+    if (timer) {
+      clearTimeout(timer);
+      this.holdTimers.delete(consultationId);
     }
   }
 }

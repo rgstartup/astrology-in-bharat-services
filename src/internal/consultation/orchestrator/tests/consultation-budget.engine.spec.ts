@@ -22,6 +22,7 @@ describe('ConsultationBudgetEngine', () => {
       getActiveMode: vi.fn().mockResolvedValue('CHAT'),
       getBudget: vi.fn().mockResolvedValue(null),
       getAnchor: vi.fn().mockResolvedValue(null),
+      isBillingHeld: vi.fn().mockResolvedValue(false),
     };
 
     const module: TestingModule = await Test.createTestingModule({

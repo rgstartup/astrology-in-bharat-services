@@ -63,6 +63,10 @@ export class ChatHistorySessionDto extends BaseDto {
   @IsISO8601()
   endedAt?: string | null;
 
+  @IsOptional()
+  @IsString()
+  endedReason?: string | null;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ChatHistoryMessageDto)
@@ -86,6 +90,7 @@ export interface ChatHistorySessionRow {
   mode: string;
   startedAt: Date | null;
   endedAt: Date | null;
+  endedReason?: string | null;
 }
 
 /** Raw message shape selected in `GetChatHistoryUseCase`. */
@@ -114,9 +119,17 @@ function windowOwner(
   const at = createdAt.getTime();
   let owner: ChatHistorySessionRow | undefined;
   for (const session of sessions) {
-    const start = session.startedAt ? session.startedAt.getTime() : Number.NEGATIVE_INFINITY;
-    const end = session.endedAt ? session.endedAt.getTime() : Number.POSITIVE_INFINITY;
-    if (start <= at && at <= end && (!owner || session.sessionId > owner.sessionId)) {
+    const start = session.startedAt
+      ? session.startedAt.getTime()
+      : Number.NEGATIVE_INFINITY;
+    const end = session.endedAt
+      ? session.endedAt.getTime()
+      : Number.POSITIVE_INFINITY;
+    if (
+      start <= at &&
+      at <= end &&
+      (!owner || session.sessionId > owner.sessionId)
+    ) {
       owner = session;
     }
   }
@@ -183,6 +196,7 @@ export function toChatHistoryResponse(
       mode: session.mode,
       startedAt: session.startedAt ? session.startedAt.toISOString() : null,
       endedAt: session.endedAt ? session.endedAt.toISOString() : null,
+      endedReason: session.endedReason ?? null,
       messages: buckets.get(session.sessionId) ?? [],
     })),
   });

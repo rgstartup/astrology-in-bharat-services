@@ -12,7 +12,9 @@ export type ConsultationModeType = 'chat' | 'voice' | 'video';
 /**
  * Maps external mode string ('chat' | 'voice' | 'video') to internal ConsultationMode enum.
  */
-export function toConsultationModeEnum(mode: ConsultationModeType): ConsultationMode {
+export function toConsultationModeEnum(
+  mode: ConsultationModeType,
+): ConsultationMode {
   switch (mode) {
     case 'voice':
       return ConsultationMode.AUDIO_CALL;
@@ -27,11 +29,21 @@ export function toConsultationModeEnum(mode: ConsultationModeType): Consultation
 /**
  * Maps internal ConsultationMode enum to external mode string ('chat' | 'voice' | 'video').
  */
-export function toConsultationModeType(mode: ConsultationMode | string): ConsultationModeType {
-  if (mode === ConsultationMode.AUDIO_CALL || mode === 'voice' || mode === 'AUDIO_CALL') {
+export function toConsultationModeType(
+  mode: ConsultationMode | string,
+): ConsultationModeType {
+  if (
+    mode === ConsultationMode.AUDIO_CALL ||
+    mode === 'voice' ||
+    mode === 'AUDIO_CALL'
+  ) {
     return 'voice';
   }
-  if (mode === ConsultationMode.VIDEO_CALL || mode === 'video' || mode === 'VIDEO_CALL') {
+  if (
+    mode === ConsultationMode.VIDEO_CALL ||
+    mode === 'video' ||
+    mode === 'VIDEO_CALL'
+  ) {
     return 'video';
   }
   return 'chat';
@@ -56,6 +68,7 @@ export type LifecycleReason =
   | 'manual'
   | 'insufficient_balance'
   | 'balance_exhausted_timeout'
+  | 'billing_hold'
   | 'client_disconnected'
   | 'expert_disconnected'
   | 'reconnect_timeout'
@@ -109,7 +122,7 @@ export interface PauseConsultationCommand {
 export interface ResumeConsultationCommand {
   consultationId: number;
   actorId: number;
-  actorType: 'client' | 'expert';
+  actorType: 'client' | 'expert' | 'system';
 }
 
 export interface DisconnectConsultationCommand {

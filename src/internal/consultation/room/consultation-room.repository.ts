@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
-import { RedisService } from "@/core/redis/redis.service";
-import "dotenv/config";
+import { Injectable } from '@nestjs/common';
+import { RedisService } from '@/core/redis/redis.service';
+import 'dotenv/config';
 
 /** Redis key for a consultation's live socket room. TTL = request window. */
 export const consultationRoomKey = (consultationId: number): string =>
@@ -8,7 +8,7 @@ export const consultationRoomKey = (consultationId: number): string =>
 
 /** Single source of truth for the chat-request window, in milliseconds. */
 export function chatRequestTtlMs(): number {
-  const ms = parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || "120000", 10);
+  const ms = parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || '120000', 10);
   return Math.max(1, ms);
 }
 
@@ -27,7 +27,7 @@ export function chatRequestTtlSeconds(): number {
  */
 export function consultationMediaTtlSeconds(): number {
   const seconds = parseInt(
-    process.env.CONSULTATION_MEDIA_TTL_SECONDS || "900",
+    process.env.CONSULTATION_MEDIA_TTL_SECONDS || '900',
     10,
   );
   return Number.isFinite(seconds) && seconds > 0 ? seconds : 900;
@@ -40,6 +40,15 @@ export const consultationPausedKey = (consultationId: number): string =>
 /** Redis key for a consultation's resume anchor (no TTL — lifecycle-owned). */
 export const consultationAnchorKey = (consultationId: number): string =>
   `consultation:anchor:${consultationId}`;
+
+/**
+ * Redis key for a dialog-driven billing hold (mode switch / end confirmation).
+ * Unlike the pause gate it does NOT block messaging; it only freezes the
+ * billing clock. TTL = pause window so an abandoned dialog cannot freeze the
+ * meter forever; the orchestrator re-arms billing when it lapses.
+ */
+export const consultationBillingHoldKey = (consultationId: number): string =>
+  `consultation:billing_hold:${consultationId}`;
 
 /**
  * Redis key for a consultation's affordable-minutes snapshot (no TTL —
@@ -82,7 +91,7 @@ export interface MediaReadiness {
 
 /** `JSON.parse` yields `any` — narrow to a plain record before touching fields. */
 function isJsonRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /** Narrow a parsed media-readiness record (`{ c, e }` flags). */
@@ -92,7 +101,7 @@ function isMediaRecord(value: unknown): value is { c: unknown; e: unknown } {
 
 /** Finite, non-negative JSON number (rejects NaN/Infinity/negatives). */
 function isCount(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
 /**
@@ -100,7 +109,7 @@ function isCount(value: unknown): value is number {
  * The expert waits this long for the client to recharge before the chat ends.
  */
 export function chatPauseTtlMs(): number {
-  const ms = parseInt(process.env.CHAT_PAUSE_TTL_MS || "300000", 10);
+  const ms = parseInt(process.env.CHAT_PAUSE_TTL_MS || '300000', 10);
   return Math.max(1, ms);
 }
 
@@ -114,7 +123,7 @@ export class ConsultationRoomRepository {
   constructor(private readonly redis: RedisService) {}
 
   /** Arm the room key; request-window expiry is enforced by the key TTL. */
-  armRoom(consultationId: number, sessionId: number): Promise<"OK" | null> {
+  armRoom(consultationId: number, sessionId: number): Promise<'OK' | null> {
     return this.redis.set(
       consultationRoomKey(consultationId),
       String(sessionId),
@@ -150,7 +159,7 @@ export class ConsultationRoomRepository {
    * Pause live messaging for a consultation (balance exhausted). The key TTL
    * is the expert wait window — expiry means the client never recharged.
    */
-  pauseRoom(consultationId: number): Promise<"OK" | null> {
+  pauseRoom(consultationId: number): Promise<'OK' | null> {
     return this.redis.set(
       consultationPausedKey(consultationId),
       new Date().toISOString(),
@@ -179,6 +188,45 @@ export class ConsultationRoomRepository {
   }
 
   /**
+   * Freeze the billing clock for a dialog-driven hold. Writes the anchor at
+   * `now` carrying the seconds consumed so far, then the hold flag (safety
+   * TTL). Messaging stays open: this is not the balance pause gate.
+   *
+   * @param consultationId - ID of the consultation being held.
+   * @param baseSeconds - Billable seconds consumed up to the hold.
+   */
+  async holdBilling(
+    consultationId: number,
+    baseSeconds: number,
+  ): Promise<void> {
+    await this.setAnchor(consultationId, new Date().toISOString(), baseSeconds);
+    await this.redis.set(
+      consultationBillingHoldKey(consultationId),
+      '1',
+      chatPauseTtlSeconds(),
+    );
+  }
+
+  async isBillingHeld(consultationId: number): Promise<boolean> {
+    const value = await this.redis.get(
+      consultationBillingHoldKey(consultationId),
+    );
+    return value !== null;
+  }
+
+  /** Remaining hold-window milliseconds; null when the hold lapsed/missing. */
+  async billingHoldTtlMs(consultationId: number): Promise<number | null> {
+    const ms = await this.redis.pttl(
+      consultationBillingHoldKey(consultationId),
+    );
+    return ms > 0 ? ms : null;
+  }
+
+  clearBillingHold(consultationId: number): Promise<number> {
+    return this.redis.del(consultationBillingHoldKey(consultationId));
+  }
+
+  /**
    * Resume anchor for the room countdown. `baseSeconds` is the elapsed time
    * already consumed before the resume; the live elapsed is
    * `baseSeconds + (now - anchor)`. Set on `chat:resume`, cleared on
@@ -188,7 +236,7 @@ export class ConsultationRoomRepository {
     consultationId: number,
     anchorIso: string,
     baseSeconds: number,
-  ): Promise<"OK" | null> {
+  ): Promise<'OK' | null> {
     return this.redis.set(
       consultationAnchorKey(consultationId),
       JSON.stringify({ a: anchorIso, b: Math.max(0, Math.floor(baseSeconds)) }),
@@ -208,7 +256,7 @@ export class ConsultationRoomRepository {
     }
     if (!isJsonRecord(parsed)) return null;
     const { a, b } = parsed;
-    if (typeof a !== "string" || Number.isNaN(Date.parse(a))) return null;
+    if (typeof a !== 'string' || Number.isNaN(Date.parse(a))) return null;
     if (!isCount(b)) return null;
     return { anchorIso: a, baseSeconds: Math.floor(b) };
   }
@@ -225,7 +273,7 @@ export class ConsultationRoomRepository {
   setBudget(
     consultationId: number,
     snapshot: BudgetSnapshot,
-  ): Promise<"OK" | null> {
+  ): Promise<'OK' | null> {
     return this.redis.set(
       consultationBudgetKey(consultationId),
       JSON.stringify({
@@ -266,14 +314,14 @@ export class ConsultationRoomRepository {
    * consultation burns at exactly one rate at a time across chat, audio
    * calls, and video calls. No TTL — lifecycle-owned like anchor/budget.
    */
-  setActiveMode(consultationId: number, mode: string): Promise<"OK" | null> {
+  setActiveMode(consultationId: number, mode: string): Promise<'OK' | null> {
     return this.redis.set(consultationModeKey(consultationId), mode);
   }
 
   async getActiveMode(consultationId: number): Promise<string | null> {
     const raw = await this.redis.get(consultationModeKey(consultationId));
     if (!raw) return null;
-    return raw === "CHAT" || raw === "AUDIO_CALL" || raw === "VIDEO_CALL"
+    return raw === 'CHAT' || raw === 'AUDIO_CALL' || raw === 'VIDEO_CALL'
       ? raw
       : null;
   }
@@ -295,7 +343,7 @@ export class ConsultationRoomRepository {
    */
   async markMediaReady(
     consultationId: number,
-    actorType: "client" | "expert",
+    actorType: 'client' | 'expert',
   ): Promise<MediaReadiness> {
     const raw = await this.redis.get(consultationMediaKey(consultationId));
     let client = false;
@@ -312,7 +360,7 @@ export class ConsultationRoomRepository {
         expert = false;
       }
     }
-    if (actorType === "client") client = true;
+    if (actorType === 'client') client = true;
     else expert = true;
     await this.redis.set(
       consultationMediaKey(consultationId),
@@ -335,7 +383,7 @@ export class ConsultationRoomRepository {
    */
   async unmarkMediaReady(
     consultationId: number,
-    actorType: "client" | "expert",
+    actorType: 'client' | 'expert',
   ): Promise<void> {
     const raw = await this.redis.get(consultationMediaKey(consultationId));
     if (!raw) return;
@@ -349,7 +397,7 @@ export class ConsultationRoomRepository {
     } catch {
       return;
     }
-    if (actorType === "client") client = false;
+    if (actorType === 'client') client = false;
     else expert = false;
     if (!client && !expert) {
       await this.redis.del(consultationMediaKey(consultationId));

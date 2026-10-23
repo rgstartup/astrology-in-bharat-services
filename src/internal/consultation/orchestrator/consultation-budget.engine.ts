@@ -14,10 +14,7 @@ import {
   ConsultationMode,
   ConsultationStatus,
 } from '@/internal/consultation/enums';
-import {
-  PricingStatus,
-  PricingTargetAudience,
-} from '@/core/enums';
+import { PricingStatus, PricingTargetAudience } from '@/core/enums';
 import { ConsultationRoomRepository } from '../room/consultation-room.repository';
 import {
   ConsultationModeType,
@@ -77,14 +74,21 @@ export class ConsultationBudgetEngine {
 
     if (!consultation) return null;
 
-    const [rates, spendableBalance, freeInfo, session, redisActiveMode] =
-      await Promise.all([
-        this.fetchRates(consultation.expertId),
-        this.fetchSpendableBalance(consultation.clientId),
-        this.fetchFreeEligibility(consultation.clientId),
-        this.fetchLatestSession(consultationId),
-        this.rooms.getActiveMode(consultationId),
-      ]);
+    const [
+      rates,
+      spendableBalance,
+      freeInfo,
+      session,
+      redisActiveMode,
+      billingHeld,
+    ] = await Promise.all([
+      this.fetchRates(consultation.expertId),
+      this.fetchSpendableBalance(consultation.clientId),
+      this.fetchFreeEligibility(consultation.clientId),
+      this.fetchLatestSession(consultationId),
+      this.rooms.getActiveMode(consultationId),
+      this.rooms.isBillingHeld(consultationId),
+    ]);
 
     if (!rates || spendableBalance === null) return null;
 
@@ -138,13 +142,17 @@ export class ConsultationBudgetEngine {
     const anchorIso = anchor?.anchorIso ?? startedAt;
     const baseSeconds = anchor?.baseSeconds ?? 0;
 
-    const elapsedSeconds = anchorIso
-      ? baseSeconds +
-        Math.max(
-          0,
-          Math.floor((Date.now() - new Date(anchorIso).getTime()) / 1000),
-        )
-      : 0;
+    // A billing hold freezes the clock at the seconds consumed before it:
+    // the anchor was re-written at hold time, so ignore its drift entirely.
+    const elapsedSeconds = billingHeld
+      ? baseSeconds
+      : anchorIso
+        ? baseSeconds +
+          Math.max(
+            0,
+            Math.floor((Date.now() - new Date(anchorIso).getTime()) / 1000),
+          )
+        : 0;
 
     const affordableSeconds = maxMinutes * 60;
     const remainingSeconds = Math.max(0, affordableSeconds - elapsedSeconds);
@@ -229,10 +237,7 @@ export class ConsultationBudgetEngine {
 
     const chat = pick(row.activeChatPrice, row.fallbackChatPrice);
     const voice = pick(row.activeCallPrice, row.fallbackCallPrice);
-    const video = pick(
-      row.activeVideoCallPrice,
-      row.fallbackVideoCallPrice,
-    );
+    const video = pick(row.activeVideoCallPrice, row.fallbackVideoCallPrice);
 
     if (chat === null || voice === null || video === null) return null;
     return { chat, voice, video };
@@ -241,7 +246,9 @@ export class ConsultationBudgetEngine {
   /**
    * Spendable balance = balance in client wallet.
    */
-  private async fetchSpendableBalance(clientId: number): Promise<number | null> {
+  private async fetchSpendableBalance(
+    clientId: number,
+  ): Promise<number | null> {
     const [wallet] = await this.db
       .select({ balance: clientWallets.balance })
       .from(clientWallets)

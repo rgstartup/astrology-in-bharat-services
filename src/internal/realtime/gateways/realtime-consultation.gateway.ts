@@ -223,11 +223,14 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
   ) {
     const actorId =
       identity.actorType === 'expert' ? identity.expertId : identity.id;
+    // Only the client may freeze billing for its confirmation dialogs.
+    const billingHold =
+      identity.actorType === 'client' && dto.reason === 'billing_hold';
     return this.orchestrator.pause(this.server, {
       consultationId: dto.consultationId,
       actorId,
       actorType: identity.actorType === 'client' ? 'client' : 'expert',
-      reason: 'manual',
+      reason: billingHold ? 'billing_hold' : 'manual',
     });
   }
 
@@ -287,7 +290,13 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
       };
     }
     return joinConsultationRoom(
-      { db: this.db, rooms: this.rooms, budget: this.budget, orchestrator: this.orchestrator, voice: this.voice },
+      {
+        db: this.db,
+        rooms: this.rooms,
+        budget: this.budget,
+        orchestrator: this.orchestrator,
+        voice: this.voice,
+      },
       this.server,
       socket,
       dto.consultationId,
@@ -303,7 +312,12 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
     @MessageBody() dto: ConsultationActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
-    return leaveConsultationRoom(socket, dto.consultationId, identity, this.rooms);
+    return leaveConsultationRoom(
+      socket,
+      dto.consultationId,
+      identity,
+      this.rooms,
+    );
   }
 
   @UseGuards(WsAuthGuard)

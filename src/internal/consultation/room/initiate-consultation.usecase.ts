@@ -200,12 +200,12 @@ export class InitiateConsultationUsecase {
             "Consultation belongs to another expert.",
           );
         }
-        if (!OPEN_STATUSES.includes(consultation.status)) {
-          throw new ConsultationNotAvailableError(
-            consultationId,
-            "Consultation is already closed.",
-          );
-        }
+        // if (!OPEN_STATUSES.includes(consultation.status)) {
+        //   throw new ConsultationNotAvailableError(
+        //     consultationId,
+        //     "Consultation is already closed.",
+        //   );
+        // }
 
         const [other] = await tx
           .select()

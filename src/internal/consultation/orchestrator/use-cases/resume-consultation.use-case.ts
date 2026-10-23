@@ -4,11 +4,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { Server } from 'socket.io';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { consultations } from '@/core/drizzledb/schema';
+import { consultationSessions, consultations } from '@/core/drizzledb/schema';
+import {
+  ConsultationSessionStatus,
+  ConsultationStatus,
+} from '@/internal/consultation/enums';
+import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import { ConsultationBudgetEngine } from '../consultation-budget.engine';
@@ -34,11 +39,15 @@ import {
  */
 @Injectable()
 export class ResumeConsultationUseCase {
-  private readonly adapters: Map<ConsultationModeType, IConsultationModeAdapter>;
+  private readonly adapters: Map<
+    ConsultationModeType,
+    IConsultationModeAdapter
+  >;
 
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly budget: ConsultationBudgetEngine,
+    private readonly rooms: ConsultationRoomRepository,
     chatAdapter: ChatModeAdapter,
     voiceAdapter: VoiceModeAdapter,
     videoAdapter: VideoModeAdapter,
@@ -78,14 +87,51 @@ export class ResumeConsultationUseCase {
     if (!row) throw new NotFoundException('Consultation not found');
 
     const mode = toConsultationModeType(row.mode);
-    const affordability = await this.budget.calculateAffordability(row.id, mode);
+    const billingHeld = await this.rooms.isBillingHeld(row.id);
+    const affordability = await this.budget.calculateAffordability(
+      row.id,
+      mode,
+    );
 
     if (!affordability || affordability.remainingSeconds <= 0) {
-      throw new BadRequestException('Insufficient balance to resume consultation');
+      throw new BadRequestException(
+        'Insufficient balance to resume consultation',
+      );
     }
 
     const now = new Date();
     const startedAt = now.toISOString();
+
+    // A resume starts a new session for the same mode. The previous row was
+    // closed by the pause, so history shows both boundaries.
+    if (row.status === ConsultationStatus.ACTIVE) {
+      const [activeSession] = await this.db
+        .select({ id: consultationSessions.id })
+        .from(consultationSessions)
+        .where(
+          and(
+            eq(consultationSessions.consultation_id, row.id),
+            eq(consultationSessions.status, ConsultationSessionStatus.ACTIVE),
+          ),
+        )
+        .limit(1);
+
+      if (!activeSession) {
+        await this.db.insert(consultationSessions).values({
+          consultation_id: row.id,
+          mode: row.mode,
+          status: ConsultationSessionStatus.ACTIVE,
+          started_at: now,
+          created_at: now,
+          updated_at: now,
+        });
+      }
+    }
+
+    // Dialog-driven holds only froze the clock: release them before re-anchoring.
+    if (billingHeld) {
+      await this.rooms.clearBillingHold(row.id);
+    }
 
     await this.getAdapter(mode).onResume(row.id, {
       anchorIso: startedAt,
