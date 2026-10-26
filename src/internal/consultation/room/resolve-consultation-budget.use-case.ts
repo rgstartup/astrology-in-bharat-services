@@ -20,6 +20,7 @@ import {
 } from '@/internal/consultation/enums';
 import { ConsultationRoomRepository } from './consultation-room.repository';
 import type { BudgetSnapshot } from './consultation-room.repository';
+import { PromotionsService } from '@/internal/promotions/promotions.service';
 
 export interface ConsultationBudget {
   /** Display budget: affordable minutes from the current wallet balance. */
@@ -56,7 +57,13 @@ export function effectiveMaxMinutes(
   liveBalance: number,
   ratePerMinute: number,
 ): number {
-  if (snap.freeBasis === 1 || ratePerMinute <= 0) return snap.maxMinutes;
+  if (ratePerMinute <= 0) return snap.maxMinutes;
+  if (snap.freeBasis === 1) {
+    // The free grant is fixed; wallet funds beyond it buy balance-priced
+    // minutes, so a recharged consultation is no longer stuck on the
+    // trial budget (hold/resume would otherwise pin it to 5 minutes).
+    return snap.maxMinutes + Math.floor(liveBalance / ratePerMinute);
+  }
   return snap.maxMinutes + Math.floor((liveBalance - snap.balanceAtSnap) / ratePerMinute);
 }
 
@@ -78,6 +85,7 @@ export class ResolveConsultationBudgetUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly rooms: ConsultationRoomRepository,
+    private readonly promotions: PromotionsService,
   ) {}
 
   async execute(
@@ -106,23 +114,25 @@ export class ResolveConsultationBudgetUseCase {
 
     const mode =
       modeOverride ??
-      (storedMode === ConsultationMode.AUDIO_CALL ||
-      storedMode === ConsultationMode.VIDEO_CALL
+      (storedMode === ConsultationMode.VOICE ||
+      storedMode === ConsultationMode.VIDEO
         ? storedMode
         : ConsultationMode.CHAT);
+    // Promotional free minutes are a chat-only spec; other modes pay.
+    const isEligibleForFree =
+      mode === ConsultationMode.CHAT ? free.isEligibleForFree : false;
+    const freeMinutes = isEligibleForFree ? free.freeMinutes : 0;
     const ratePerMinute =
-      mode === ConsultationMode.AUDIO_CALL
+      mode === ConsultationMode.VOICE
         ? rates.call
-        : mode === ConsultationMode.VIDEO_CALL
+        : mode === ConsultationMode.VIDEO
           ? rates.videoCall
           : rates.chat;
 
     const snap = await this.rooms.getBudget(consultationId);
     const freshMinutes =
-      free.isEligibleForFree || ratePerMinute <= 0
-        ? free.isEligibleForFree
-          ? free.freeMinutes
-          : 0
+      isEligibleForFree || ratePerMinute <= 0
+        ? freeMinutes
         : Math.floor(funds / ratePerMinute);
     // Snapshot wins so the post-hold balance can't shrink the countdown;
     // the wallet delta still lets recharges extend it (no upper cap).
@@ -155,8 +165,8 @@ export class ResolveConsultationBudgetUseCase {
       ratePerMinute,
       mode,
       balance: funds,
-      isEligibleForFree: free.isEligibleForFree,
-      freeMinutes: free.freeMinutes,
+      isEligibleForFree,
+      freeMinutes,
     };
   }
 
@@ -224,22 +234,11 @@ export class ResolveConsultationBudgetUseCase {
   }
 
   private async fetchFreeEligibility(clientId: number) {
-    const [row] = await this.db
-      .select({
-        completedCount:
-          sql<number>`(select count(*)::int from ${consultations} where ${consultations.client_id} = ${clientAccounts.id} and ${consultations.mode} = ${ConsultationMode.CHAT} and ${consultations.status} = ${ConsultationStatus.COMPLETED})`.mapWith(
-            Number,
-          ),
-      })
-      .from(clientAccounts)
-      .where(eq(clientAccounts.id, clientId))
-      .limit(1);
-    const isEligibleForFree =
-      process.env.FREE_CHAT_ENABLED === 'true' &&
-      (row?.completedCount ?? 0) === 0;
-    const freeMinutes = isEligibleForFree
-      ? parseInt(process.env.FREE_CHAT_DURATION_MINS || '5', 10)
-      : 0;
+    // Promotion replaces the env free trial: unspent granted chat seconds.
+    const remainingSeconds =
+      await this.promotions.getActiveChatBenefitSeconds(clientId);
+    const freeMinutes = Math.floor(remainingSeconds / 60);
+    const isEligibleForFree = freeMinutes > 0;
     return { isEligibleForFree, freeMinutes };
   }
 

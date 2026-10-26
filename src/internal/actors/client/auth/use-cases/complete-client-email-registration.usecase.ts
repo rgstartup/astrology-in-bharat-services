@@ -26,12 +26,14 @@ import { OtpPurposeEnum } from '../../../../auth/enums/otp-purpose.enum';
 import { CompleteClientRegisterDto } from '../dto/client-register.dto';
 import { TokenCryptoService } from '../services/token-crypto.service';
 import { IAccessTokenPayloadClient } from '../../../../../shared/types/access-token.payload';
+import { PromotionsService } from '@/internal/promotions/promotions.service';
 
 @Injectable()
 export class CompleteClientEmailRegistrationUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly tokenCrypto: TokenCryptoService,
+    private readonly promotions: PromotionsService,
   ) {}
 
   async execute(
@@ -51,6 +53,9 @@ export class CompleteClientEmailRegistrationUseCase {
 
       // 4. Create / setup client account
       const account = await this.createAccount(tx, updatedUser);
+
+      // 4b. Grant the welcome promotion (idempotent, same tx)
+      await this.promotions.grantWelcomePromotion(account.id, tx);
 
       // 5. Generate tokens and session
       const tokens = await this.getTokens(account);

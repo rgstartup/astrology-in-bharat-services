@@ -60,7 +60,7 @@ export class GetExpertDetailUseCase {
     const [counts] = await this.db
       .select({
         chatCount: sql<number>`count(*) filter (where ${eq(consultations.mode, ConsultationMode.CHAT)})`,
-        callCount: sql<number>`count(*) filter (where ${inArray(consultations.mode, [ConsultationMode.AUDIO_CALL, ConsultationMode.VIDEO_CALL])})`,
+        callCount: sql<number>`count(*) filter (where ${inArray(consultations.mode, [ConsultationMode.VOICE, ConsultationMode.VIDEO])})`,
       })
       .from(consultations)
       .where(

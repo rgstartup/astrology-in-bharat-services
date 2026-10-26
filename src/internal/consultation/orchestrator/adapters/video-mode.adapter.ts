@@ -10,7 +10,7 @@ import type { ConsultationModeType } from '../consultation-orchestrator.types';
 /**
  * Video channel adapter for the consultation orchestrator.
  *
- * Mirrors the chat lifecycle in Redis with VIDEO_CALL as the metered mode.
+ * Mirrors the chat lifecycle in Redis with VIDEO as the metered mode.
  * Media-plane hooks (room teardown, recording stop) land here when video
  * leaves stub.
  */
@@ -27,7 +27,7 @@ export class VideoModeAdapter implements IConsultationModeAdapter {
   constructor(private readonly rooms: ConsultationRoomRepository) {}
 
   /**
-   * Marks VIDEO_CALL as the active metered mode and drops any stale pause gate.
+   * Marks VIDEO as the active metered mode and drops any stale pause gate.
    *
    * @param consultationId - ID of the consultation being started.
    * @param session - Active session row (unused; kept for interface parity).
@@ -37,7 +37,7 @@ export class VideoModeAdapter implements IConsultationModeAdapter {
     session: Record<string, any>,
   ): Promise<void> {
     void session;
-    await this.rooms.setActiveMode(consultationId, ConsultationMode.VIDEO_CALL);
+    await this.rooms.setActiveMode(consultationId, ConsultationMode.VIDEO);
     await this.rooms.clearPaused(consultationId);
     await this.rooms.clearBillingHold(consultationId);
     this.logger.debug(

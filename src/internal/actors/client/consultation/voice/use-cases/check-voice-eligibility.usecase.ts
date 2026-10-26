@@ -60,9 +60,7 @@ export class CheckVoiceEligibilityUsecase {
       this.fetchClientWithWallet(clientId),
     ]);
 
-    const { isEligibleForFree, freeMinutes } = this.decideFreeTrial(
-      client.completedCount,
-    );
+    const { isEligibleForFree, freeMinutes } = this.decideFreeTrial();
     const minBalanceRequired = expert.voicePrice * MIN_PAID_VOICE_MINUTES;
     const hasBalance = this.decideBalance(
       isEligibleForFree,
@@ -133,7 +131,7 @@ export class CheckVoiceEligibilityUsecase {
         balance: clientWallets.balance,
         reserved_balance: clientWallets.reserved_balance,
         completedCount:
-          sql<number>`(select count(*)::int from ${consultations} where ${consultations.client_id} = ${clientAccounts.id} and ${consultations.mode} = ${ConsultationMode.AUDIO_CALL} and ${consultations.status} = ${ConsultationStatus.COMPLETED})`.mapWith(
+          sql<number>`(select count(*)::int from ${consultations} where ${consultations.client_id} = ${clientAccounts.id} and ${consultations.mode} = ${ConsultationMode.VOICE} and ${consultations.status} = ${ConsultationStatus.COMPLETED})`.mapWith(
             Number,
           ),
       })
@@ -152,13 +150,9 @@ export class CheckVoiceEligibilityUsecase {
     };
   }
 
-  private decideFreeTrial(completedCount: number) {
-    const isEligibleForFree =
-      process.env.FREE_CHAT_ENABLED === 'true' && completedCount === 0;
-    const freeMinutes = isEligibleForFree
-      ? parseInt(process.env.FREE_CHAT_DURATION_MINS || '5', 10)
-      : 0;
-    return { isEligibleForFree, freeMinutes };
+  // The v2 promotion is a CHAT spec — voice never gets free minutes.
+  private decideFreeTrial() {
+    return { isEligibleForFree: false, freeMinutes: 0 };
   }
 
   private decideBalance(

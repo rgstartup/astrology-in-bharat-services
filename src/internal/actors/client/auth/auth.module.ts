@@ -21,6 +21,7 @@ import { ClientJwtRefreshStrategy } from './strategies/refresh-jwt.strategy';
 import { ClientJwtAuthGuard } from './guards/auth.guard';
 import { ClientGoogleAuthGuard } from './guards/google-auth.guard';
 import { ClientJwtRefreshAuthGuard } from './guards/refresh-auth.guard';
+import { PromotionsModule } from '@/internal/promotions/promotions.module';
 
 const useCases = [
   InitiateClientEmailRegistrationUseCase,
@@ -37,6 +38,7 @@ const useCases = [
     ExternalModule,
     QueueModule,
     JwtModule,
+    PromotionsModule,
   ],
   controllers: [ClientAuthController],
   providers: [

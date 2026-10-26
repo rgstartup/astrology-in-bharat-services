@@ -304,6 +304,27 @@ export {
 } from './merchant';
 export type { MerchantAccountRow, NewMerchantAccountRow } from './merchant';
 
+// Promotions
+export {
+  PROMOTION_STATUS,
+  PROMOTION_BENEFIT_TYPES,
+  promotionDefinitions,
+  promotionWallets,
+  promotionBenefits,
+  promotionBenefitLedger,
+  promotionWalletsRelations,
+  promotionBenefitsRelations,
+  promotionBenefitLedgerRelations,
+} from './promotions';
+export type {
+  PromotionStatus,
+  PromotionBenefitType,
+  PromotionDefinitionRow,
+  PromotionWalletRow,
+  PromotionBenefitRow,
+  PromotionBenefitLedgerRow,
+} from './promotions';
+
 // Finance
 export {
   // Wallet
@@ -677,6 +698,15 @@ import {
   financialTransactionEntries,
   financialTransactionEntriesRelations,
 } from './finance';
+import {
+  promotionDefinitions,
+  promotionWallets,
+  promotionBenefits,
+  promotionBenefitLedger,
+  promotionWalletsRelations,
+  promotionBenefitsRelations,
+  promotionBenefitLedgerRelations,
+} from './promotions';
 
 /**
  * Combined schema object for `drizzle(pool, { schema })`.
@@ -938,4 +968,13 @@ export const schema = {
   financialTransactionsRelations,
   financialTransactionEntries,
   financialTransactionEntriesRelations,
+
+  // Promotions
+  promotionDefinitions,
+  promotionWallets,
+  promotionBenefits,
+  promotionBenefitLedger,
+  promotionWalletsRelations,
+  promotionBenefitsRelations,
+  promotionBenefitLedgerRelations,
 };

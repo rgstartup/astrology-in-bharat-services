@@ -498,8 +498,8 @@ export class GetEarningsStatsUseCase {
       mode === ConsultationMode.CHAT
         ? eq(consultations.mode, ConsultationMode.CHAT)
         : inArray(consultations.mode, [
-            ConsultationMode.AUDIO_CALL,
-            ConsultationMode.VIDEO_CALL,
+            ConsultationMode.VOICE,
+            ConsultationMode.VIDEO,
           ]);
 
     const rows = await this.db
@@ -531,7 +531,7 @@ export class GetEarningsStatsUseCase {
       client_id: r.client_id,
       expert_id: r.expert_id,
       type:
-        r.mode === ConsultationMode.VIDEO_CALL
+        r.mode === ConsultationMode.VIDEO
           ? CallType.VIDEO
           : CallType.AUDIO,
       mode: r.mode,

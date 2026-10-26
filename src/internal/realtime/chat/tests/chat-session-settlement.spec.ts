@@ -114,7 +114,7 @@ describe('closeActiveChatSessions (disconnect closes live sessions)', () => {
   it('is a no-op when no ACTIVE session exists', async () => {
     const { db } = neverStartedDbMock([
       [{ id: 7 }],
-      [{ mode: 'AUDIO_CALL', client_id: 10, started_at: null }],
+      [{ mode: 'voice', client_id: 10, started_at: null }],
       [],
     ]);
     const { emit, server } = serverMock();
@@ -151,7 +151,7 @@ describe('closeActiveChatSessions (consultation that never started)', () => {
   it('cancels the consultation and refunds the hold', async () => {
     const { db, updates, inserted } = neverStartedDbMock([
       [{ id: 7 }],
-      [{ mode: 'AUDIO_CALL', client_id: 10, started_at: null }],
+      [{ mode: 'voice', client_id: 10, started_at: null }],
       [{ id: 3 }],
       [{ amount: '100' }],
       [],
@@ -188,7 +188,7 @@ describe('closeActiveChatSessions (consultation that never started)', () => {
   it('leaves a consultation that already started untouched', async () => {
     const { db, updates, inserted } = neverStartedDbMock([
       [{ id: 7 }],
-      [{ mode: 'AUDIO_CALL', client_id: 10, started_at: new Date() }],
+      [{ mode: 'voice', client_id: 10, started_at: new Date() }],
       [{ id: 3 }],
     ]);
     const { emit, server } = serverMock();

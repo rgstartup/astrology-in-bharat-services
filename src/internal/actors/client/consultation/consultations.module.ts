@@ -3,6 +3,7 @@ import { PresenceModule } from "@/internal/actors/expert/presence/presence.modul
 import { ConsultationRoomModule } from "@/internal/consultation/room/consultation-room.module";
 import { VoiceModule } from "@/external/voice/voice.module";
 import { RealtimeChatModule } from "@/internal/realtime/chat/realtime-chat.module";
+import { PromotionsModule } from "@/internal/promotions/promotions.module";
 import { ClientChatService } from "./chat/chat.service";
 import { ClientVoiceService } from "./voice/voice.service";
 import { ClientConsultationService } from "./consultation.service";
@@ -13,8 +14,7 @@ import { ClientSessionCompatController } from "./controllers/client-session-comp
 import { CheckChatEligibilityUsecase } from "./chat/use-cases/check-chat-eligibility.usecase";
 import { GetChatHistoryUseCase } from "./chat/use-cases/get-chat-history.usecase";
 import { UploadChatAttachmentUseCase } from "./chat/use-cases/upload-chat-attachment.usecase";
-import { CheckVoiceEligibilityUsecase } from "./voice/use-cases/check-voice-eligibility.usecase";
-import { GetVoiceTokenUsecase } from "./voice/use-cases/get-voice-token.usecase";
+import { CheckVoiceEligibilityUsecase } from "./voice/use-cases/check-voice-eligibility.usecase";import { GetVoiceTokenUsecase } from "./voice/use-cases/get-voice-token.usecase";
 import { InitiateConsultationUsecase } from "@/internal/consultation/room/initiate-consultation.usecase";
 
 /**
@@ -32,6 +32,7 @@ import { InitiateConsultationUsecase } from "@/internal/consultation/room/initia
     ConsultationRoomModule,
     VoiceModule,
     RealtimeChatModule,
+    PromotionsModule,
   ],
   controllers: [
     ClientChatController,

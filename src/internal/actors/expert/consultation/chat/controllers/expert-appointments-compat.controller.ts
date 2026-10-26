@@ -77,7 +77,7 @@ export class ExpertAppointmentsCompatController {
   async getRecentPendingCallSessions(@CurrentProfile() profileId: number) {
     return this.getSessions(
       profileId,
-      [ConsultationMode.AUDIO_CALL, ConsultationMode.VIDEO_CALL],
+      [ConsultationMode.VOICE, ConsultationMode.VIDEO],
       [ConsultationStatus.REQUESTED, ConsultationStatus.ACCEPTED],
     );
   }
@@ -93,7 +93,7 @@ export class ExpertAppointmentsCompatController {
   async getRecentCompletedCallSessions(@CurrentProfile() profileId: number) {
     return this.getSessions(
       profileId,
-      [ConsultationMode.AUDIO_CALL, ConsultationMode.VIDEO_CALL],
+      [ConsultationMode.VOICE, ConsultationMode.VIDEO],
       [ConsultationStatus.COMPLETED],
     );
   }
@@ -133,9 +133,9 @@ export class ExpertAppointmentsCompatController {
     const data = rows.map((r) => {
       const mode = r.mode as ConsultationMode;
       const type =
-        mode === ConsultationMode.VIDEO_CALL
+        mode === ConsultationMode.VIDEO
           ? 'VIDEO'
-          : mode === ConsultationMode.AUDIO_CALL
+          : mode === ConsultationMode.VOICE
             ? 'AUDIO'
             : 'CHAT';
 

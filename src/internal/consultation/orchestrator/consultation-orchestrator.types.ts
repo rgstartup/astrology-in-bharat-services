@@ -17,9 +17,9 @@ export function toConsultationModeEnum(
 ): ConsultationMode {
   switch (mode) {
     case 'voice':
-      return ConsultationMode.AUDIO_CALL;
+      return ConsultationMode.VOICE;
     case 'video':
-      return ConsultationMode.VIDEO_CALL;
+      return ConsultationMode.VIDEO;
     case 'chat':
     default:
       return ConsultationMode.CHAT;
@@ -32,18 +32,10 @@ export function toConsultationModeEnum(
 export function toConsultationModeType(
   mode: ConsultationMode | string,
 ): ConsultationModeType {
-  if (
-    mode === ConsultationMode.AUDIO_CALL ||
-    mode === 'voice' ||
-    mode === 'AUDIO_CALL'
-  ) {
+  if (mode === ConsultationMode.VOICE || mode === 'AUDIO_CALL') {
     return 'voice';
   }
-  if (
-    mode === ConsultationMode.VIDEO_CALL ||
-    mode === 'video' ||
-    mode === 'VIDEO_CALL'
-  ) {
+  if (mode === ConsultationMode.VIDEO || mode === 'VIDEO_CALL') {
     return 'video';
   }
   return 'chat';

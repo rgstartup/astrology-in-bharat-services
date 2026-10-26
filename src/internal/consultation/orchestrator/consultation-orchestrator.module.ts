@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PresenceModule } from '@/internal/actors/expert/presence/presence.module';
 import { VoiceModule } from '@/external/voice';
 import { ConsultationRoomModule } from '../room/consultation-room.module';
+import { PromotionsModule } from '@/internal/promotions/promotions.module';
 import { ConsultationBudgetEngine } from './consultation-budget.engine';
 import { ConsultationOrchestratorService } from './consultation-orchestrator.service';
 import { ChatModeAdapter } from './adapters/chat-mode.adapter';
@@ -38,7 +39,7 @@ const USE_CASES = [
 ];
 
 @Module({
-  imports: [ConsultationRoomModule, PresenceModule, VoiceModule],
+  imports: [ConsultationRoomModule, PresenceModule, VoiceModule, PromotionsModule],
   providers: [
     ConsultationBudgetEngine,
     ConsultationOrchestratorService,

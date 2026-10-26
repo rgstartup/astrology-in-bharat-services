@@ -60,7 +60,7 @@ export class GetVoiceTokenUsecase {
         'Consultation not found.',
       );
     }
-    if (consultation.mode !== ConsultationMode.AUDIO_CALL) {
+    if (consultation.mode !== ConsultationMode.VOICE) {
       throw new ConsultationNotAvailableError(
         consultationId,
         'Consultation is not a voice consultation.',

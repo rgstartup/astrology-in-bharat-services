@@ -21,9 +21,10 @@ describe('effectiveMaxMinutes', () => {
     ).toBe(20);
   });
 
-  it('ignores the wallet delta while on the free grant', () => {
+  it('adds wallet-priced minutes on top of the free grant', () => {
+    // Free grant is fixed (5); live wallet buys rate-priced minutes on top.
     expect(
       effectiveMaxMinutes({ maxMinutes: 5, balanceAtSnap: 600, freeBasis: 1 }, 1100, 25),
-    ).toBe(5);
+    ).toBe(49);
   });
 });

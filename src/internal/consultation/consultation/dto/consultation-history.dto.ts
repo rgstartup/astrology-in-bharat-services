@@ -31,6 +31,12 @@ export class ConsultationHistoryDto {
   gst!: number;
   agent_commission!: number;
   expert_earning!: number;
+  promotional_discount!: number;
+  provider_contribution!: number;
+  platform_subsidy!: number;
+  payable_amount!: number;
+  wallet_deduction!: number;
+  consumed_promotional_seconds!: number;
   expert!: ConsultationExpertDto;
   metadata?: Record<string, unknown>;
 }

@@ -50,6 +50,8 @@ export interface ChatAttachmentMessagePayload {
   messageType: MessageType;
   attachments: { url: string; mimeType: string | null }[];
   timestamp: string;
+  /** Emitting session, so live socket messages bucket to the right timeline. */
+  sessionId?: number | null;
 }
 
 const IDEMPOTENCY_SCOPE = 'chat:attachment:send';
@@ -208,6 +210,7 @@ export class ChatAttachmentMessageService {
         messageType,
         attachments: persisted.attachments,
         timestamp: persisted.createdAt.toISOString(),
+        sessionId: persisted.sessionId,
       };
 
       this.chatGateway.server

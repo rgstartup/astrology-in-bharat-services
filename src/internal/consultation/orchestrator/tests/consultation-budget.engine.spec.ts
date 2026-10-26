@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConsultationBudgetEngine } from '../consultation-budget.engine';
 import { ConsultationRoomRepository } from '../../room/consultation-room.repository';
+import { PromotionsService } from '@/internal/promotions/promotions.service';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 
 describe('ConsultationBudgetEngine', () => {
@@ -19,7 +20,7 @@ describe('ConsultationBudgetEngine', () => {
 
   beforeEach(async () => {
     mockRooms = {
-      getActiveMode: vi.fn().mockResolvedValue('CHAT'),
+      getActiveMode: vi.fn().mockResolvedValue('chat'),
       getBudget: vi.fn().mockResolvedValue(null),
       getAnchor: vi.fn().mockResolvedValue(null),
       isBillingHeld: vi.fn().mockResolvedValue(false),
@@ -30,6 +31,7 @@ describe('ConsultationBudgetEngine', () => {
         ConsultationBudgetEngine,
         { provide: DRIZZLE, useValue: mockDb },
         { provide: ConsultationRoomRepository, useValue: mockRooms },
+        { provide: PromotionsService, useValue: {} },
       ],
     }).compile();
 

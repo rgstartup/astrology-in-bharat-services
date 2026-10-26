@@ -258,7 +258,7 @@ describe('Empirical Backend Challenger Verification Suite', () => {
       const mockConsultation = {
         id: 100,
         status: ConsultationStatus.ACCEPTED,
-        mode: 'AUDIO_CALL',
+        mode: 'voice',
         client_id: 10,
         expert_id: 42,
       };

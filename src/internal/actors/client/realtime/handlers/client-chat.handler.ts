@@ -114,6 +114,7 @@ export class ClientChatHandler {
       attachmentUrl: input.attachmentUrl,
       attachmentType: input.attachmentType,
       timestamp: persisted.createdAt.toISOString(),
+      sessionId: persisted.sessionId,
     };
 
     socket.to(room).emit(SOCKET_EVENTS.CHAT.MESSAGE, messagePayload);

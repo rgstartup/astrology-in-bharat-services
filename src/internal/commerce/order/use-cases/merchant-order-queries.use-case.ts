@@ -166,13 +166,22 @@ export class MerchantOrderQueriesUseCase {
     orderId: number | string,
     merchantId: number | string,
   ): Promise<{ order: Order; merchantItems: OrderItem[] }> {
-    const order = await this.db.query.orders.findFirst({
-      where: eq(orders.id, Number(orderId)),
-      with: {
-        items: { with: { product: true } },
-        client: { with: { user: true } },
-      },
-    });
+    const order =
+      (await this.db.query.orders.findFirst({
+        where: eq(orders.id, Number(orderId)),
+        with: {
+          items: { with: { product: true } },
+          client: { with: { user: true } },
+        },
+      })) ??
+      // Drizzle infer doesn't expose loadable relations on the query type
+      // in this codebase — cast to the row shape the with-clause loads.
+      (undefined as
+        | (OrderRow & {
+            items: (OrderItemRow & { product: ProductRow | null })[];
+            client: ClientAccountRow & { user: UserRow };
+          })
+        | undefined);
 
     if (!order) {
       throw new NotFoundException('Order not found');
@@ -188,7 +197,9 @@ export class MerchantOrderQueriesUseCase {
     }
 
     // Generate OTP if not exists on items
-    let currentOtp = merchantItems.find((i) => i.delivery_otp)?.delivery_otp;
+    let currentOtp = merchantItems.find(
+      (i: { delivery_otp?: string | null }) => i.delivery_otp,
+    )?.delivery_otp;
     if (!currentOtp) {
       currentOtp = Math.floor(100000 + Math.random() * 900000).toString();
       for (const item of merchantItems) {
@@ -237,9 +248,11 @@ export class MerchantOrderQueriesUseCase {
     }
 
     let grossTotal = 0;
-    merchantItems.forEach((item) => {
-      grossTotal += Number(item.price) * (item.quantity || 1);
-    });
+    merchantItems.forEach(
+      (item: { price: string | number; quantity: number | null }) => {
+        grossTotal += Number(item.price) * (item.quantity || 1);
+      },
+    );
 
     // Payout calculation
     const platformSetting = await this.settingRepo.findOne({

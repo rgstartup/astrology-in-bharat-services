@@ -104,6 +104,12 @@ export class GetUnifiedHistoryUseCase {
         tax: consultationBillings.tax,
         ratePerMinute: consultationBillings.rate_per_minute,
         netPayable: consultationBillings.net_payable,
+        promotionalDiscount: consultationBillings.promotional_discount,
+        providerContribution: consultationBillings.provider_contribution,
+        platformSubsidy: consultationBillings.platform_subsidy,
+        payableAmount: consultationBillings.payable_amount,
+        walletDeduction: consultationBillings.wallet_deduction,
+        consumedPromotionalSeconds: consultationBillings.consumed_promotional_seconds,
       })
       .from(consultations)
       .leftJoin(clientAccounts, eq(consultations.client_id, clientAccounts.id))
@@ -203,6 +209,8 @@ export class GetUnifiedHistoryUseCase {
         profile_image: expertImage,
       };
 
+      const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
       return {
         id: row.id,
         displayId,
@@ -214,13 +222,24 @@ export class GetUnifiedHistoryUseCase {
         durationString: this.formatDuration(duration),
         terminatedBy: undefined,
         terminatedReason: 'Normal Closure',
-        total_cost: Math.round(totalCost * 100) / 100,
-        platform_fee: Math.round(platformFee * 100) / 100,
-        gst: Math.round(gst * 100) / 100,
+        total_cost: roundMoney(totalCost),
+        platform_fee: roundMoney(platformFee),
+        gst: roundMoney(gst),
         agent_commission: 0,
-        expert_earning: Math.round(expertEarning * 100) / 100,
-        amount: Math.round(totalCost * 100) / 100,
-        rate: Math.round(rate * 100) / 100,
+        expert_earning: roundMoney(expertEarning),
+        amount: roundMoney(totalCost),
+        rate: roundMoney(rate),
+        promotional_discount: roundMoney(Number(row.promotionalDiscount || 0)),
+        provider_contribution: roundMoney(
+          Number(row.providerContribution || 0),
+        ),
+        platform_subsidy: roundMoney(Number(row.platformSubsidy || 0)),
+        payable_amount: roundMoney(Number(row.payableAmount || 0)),
+        wallet_deduction: roundMoney(Number(row.walletDeduction || 0)),
+        consumed_promotional_seconds: Math.max(
+          0,
+          Math.floor(Number(row.consumedPromotionalSeconds || 0)),
+        ),
         rating: review?.rating || 0,
         comment: review?.comment,
         expert_image: expertImage,
@@ -243,9 +262,9 @@ export class GetUnifiedHistoryUseCase {
     switch (mode) {
       case ConsultationMode.CHAT:
         return ConsultationType.CHAT;
-      case ConsultationMode.AUDIO_CALL:
+      case ConsultationMode.VOICE:
         return ConsultationType.AUDIO_CALL;
-      case ConsultationMode.VIDEO_CALL:
+      case ConsultationMode.VIDEO:
         return ConsultationType.VIDEO_CALL;
       default:
         return ConsultationType.CHAT;
@@ -254,9 +273,9 @@ export class GetUnifiedHistoryUseCase {
 
   private getDisplayId(id: number, mode: ConsultationMode): string {
     switch (mode) {
-      case ConsultationMode.VIDEO_CALL:
+      case ConsultationMode.VIDEO:
         return `AIB-VID-${id}`;
-      case ConsultationMode.AUDIO_CALL:
+      case ConsultationMode.VOICE:
         return `AIB-CALL-${id}`;
       case ConsultationMode.CHAT:
       default:

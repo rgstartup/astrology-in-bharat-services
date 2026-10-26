@@ -93,9 +93,11 @@ export class ExpertChatHandler {
     const senderId =
       identity.actorType === 'expert' ? identity.expertId : identity.id;
 
+    const sessionId = await resolveMessageSessionId(this.db, input.consultationId);
+
     const persisted = await persistChatMessage(this.db, {
       consultationId: input.consultationId,
-      sessionId: await resolveMessageSessionId(this.db, input.consultationId),
+      sessionId,
       senderId,
       senderType: identity.actorType,
       content: input.content,
@@ -113,6 +115,7 @@ export class ExpertChatHandler {
       attachmentUrl: input.attachmentUrl,
       attachmentType: input.attachmentType,
       timestamp: persisted.createdAt.toISOString(),
+      sessionId: persisted.sessionId,
     };
 
     socket.to(room).emit(SOCKET_EVENTS.CHAT.MESSAGE, messagePayload);

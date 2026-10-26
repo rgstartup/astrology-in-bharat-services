@@ -16,6 +16,8 @@ import {
 } from '@/internal/consultation/enums';
 import { PricingStatus, PricingTargetAudience } from '@/core/enums';
 import { ConsultationRoomRepository } from '../room/consultation-room.repository';
+import { effectiveMaxMinutes } from '../room/resolve-consultation-budget.use-case';
+import { PromotionsService } from '@/internal/promotions/promotions.service';
 import {
   ConsultationModeType,
   toConsultationModeEnum,
@@ -50,6 +52,7 @@ export class ConsultationBudgetEngine {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly rooms: ConsultationRoomRepository,
+    private readonly promotions: PromotionsService,
   ) {}
 
   /**
@@ -108,23 +111,18 @@ export class ConsultationBudgetEngine {
 
     const costPerSecond = ratePerMinute > 0 ? ratePerMinute / 60 : 0;
 
-    // Free grant calculation
-    const isEligibleForFree = freeInfo.isEligibleForFree;
-    const freeMinutes = freeInfo.freeMinutes;
+    // Free grant calculation — chat-mode only (the promotion is a chat spec).
+    const isEligibleForFree =
+      freeInfo.isEligibleForFree && resolvedModeStr === 'chat';
+    const freeMinutes = isEligibleForFree ? freeInfo.freeMinutes : 0;
 
     // Snapshot from Redis
     const snap = await this.rooms.getBudget(consultationId);
     let maxMinutes: number;
 
     if (snap) {
-      if (snap.freeBasis === 1 || ratePerMinute <= 0) {
-        maxMinutes = snap.maxMinutes;
-      } else {
-        // Delta since snapshot
-        maxMinutes =
-          snap.maxMinutes +
-          Math.floor((spendableBalance - snap.balanceAtSnap) / ratePerMinute);
-      }
+      // Shared snapshot math: fixed free grant, recharge-aware extension.
+      maxMinutes = effectiveMaxMinutes(snap, spendableBalance, ratePerMinute);
     } else {
       maxMinutes = isEligibleForFree
         ? freeMinutes
@@ -260,25 +258,11 @@ export class ConsultationBudgetEngine {
   }
 
   private async fetchFreeEligibility(clientId: number) {
-    const [row] = await this.db
-      .select({
-        completedCount:
-          sql<number>`(select count(*)::int from ${consultations} where ${consultations.client_id} = ${clientAccounts.id} and ${consultations.mode} = ${ConsultationMode.CHAT} and ${consultations.status} = ${ConsultationStatus.COMPLETED})`.mapWith(
-            Number,
-          ),
-      })
-      .from(clientAccounts)
-      .where(eq(clientAccounts.id, clientId))
-      .limit(1);
-
-    const isEligibleForFree =
-      process.env.FREE_CHAT_ENABLED === 'true' &&
-      (row?.completedCount ?? 0) === 0;
-
-    const freeMinutes = isEligibleForFree
-      ? parseInt(process.env.FREE_CHAT_DURATION_MINS || '5', 10)
-      : 0;
-
+    // Promotion replaces the env free trial: unspent granted chat seconds.
+    const remainingSeconds =
+      await this.promotions.getActiveChatBenefitSeconds(clientId);
+    const freeMinutes = Math.floor(remainingSeconds / 60);
+    const isEligibleForFree = freeMinutes > 0;
     return { isEligibleForFree, freeMinutes };
   }
 

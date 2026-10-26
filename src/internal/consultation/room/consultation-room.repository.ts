@@ -308,8 +308,8 @@ export class ConsultationRoomRepository {
   }
 
   /**
-   * Currently metered mode for the shared budget (CHAT by default). Joins
-   * record their side — chat joins set CHAT, call joins set the declared
+   * Currently metered mode for the shared budget (chat by default). Joins
+   * record their side — chat joins set chat, call joins set the declared
    * audio/video kind — and the budget rate follows the stored value, so one
    * consultation burns at exactly one rate at a time across chat, audio
    * calls, and video calls. No TTL — lifecycle-owned like anchor/budget.
@@ -321,7 +321,10 @@ export class ConsultationRoomRepository {
   async getActiveMode(consultationId: number): Promise<string | null> {
     const raw = await this.redis.get(consultationModeKey(consultationId));
     if (!raw) return null;
-    return raw === 'CHAT' || raw === 'AUDIO_CALL' || raw === 'VIDEO_CALL'
+    if (raw === 'AUDIO_CALL') return 'voice';
+    if (raw === 'VIDEO_CALL') return 'video';
+    if (raw === 'CHAT') return 'chat';
+    return raw === 'chat' || raw === 'voice' || raw === 'video'
       ? raw
       : null;
   }

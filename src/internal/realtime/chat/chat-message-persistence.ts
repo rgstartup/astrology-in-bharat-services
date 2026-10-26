@@ -26,6 +26,8 @@ export interface PersistedChatMessage {
   id: number;
   createdAt: Date;
   attachments: PersistedChatMessageAttachment[];
+  /** Owning session, echoed so socket payloads can bucket live messages. */
+  sessionId: number | null;
 }
 
 /**
@@ -113,7 +115,7 @@ export async function persistChatMessage(
       });
       attachments.push({ url: asset.url, mimeType: asset.mimeType });
     }
-    return { id: row.id, createdAt: row.createdAt, attachments };
+    return { id: row.id, createdAt: row.createdAt, attachments, sessionId: input.sessionId };
   });
 }
 

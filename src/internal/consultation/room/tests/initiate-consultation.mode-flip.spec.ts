@@ -93,7 +93,7 @@ describe('InitiateConsultationUsecase attachSession mode flip', () => {
   it('continuing a completed voice consultation with chat flips the root mode', async () => {
     const { useCase, txUpdateSet } = makeUseCase({
       id: 111,
-      mode: ConsultationMode.AUDIO_CALL,
+      mode: ConsultationMode.VOICE,
       status: ConsultationStatus.COMPLETED,
       client_id: 7,
       expert_id: 3,
@@ -112,7 +112,7 @@ describe('InitiateConsultationUsecase attachSession mode flip', () => {
   it('an open voice consultation still refuses a chat attach', async () => {
     const { useCase, txUpdateSet } = makeUseCase({
       id: 111,
-      mode: ConsultationMode.AUDIO_CALL,
+      mode: ConsultationMode.VOICE,
       status: ConsultationStatus.ACTIVE,
       client_id: 7,
       expert_id: 3,
@@ -127,7 +127,7 @@ describe('InitiateConsultationUsecase attachSession mode flip', () => {
   it('a closed consultation accepts no fresh sessions at all', async () => {
     const { useCase, tx } = makeUseCase({
       id: 111,
-      mode: ConsultationMode.AUDIO_CALL,
+      mode: ConsultationMode.VOICE,
       status: ConsultationStatus.CLOSED,
       client_id: 7,
       expert_id: 3,

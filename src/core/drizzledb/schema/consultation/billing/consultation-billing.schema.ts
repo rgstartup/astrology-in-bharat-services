@@ -87,6 +87,43 @@ export const consultationBillings = consultationsSchema.table(
       { onDelete: 'set null' },
     ),
 
+    // Promotion settlement breakdown (v2 plan financial separation).
+    /** Discounted seconds rate the client did not pay (wallet/public mix). */
+    promotional_discount: numeric('promotional_discount', {
+      precision: 12,
+      scale: 2,
+    })
+      .notNull()
+      .default('0'),
+    /** Expert-side coverage of free minutes (platform → provider flow). */
+    provider_contribution: numeric('provider_contribution', {
+      precision: 12,
+      scale: 2,
+    })
+      .notNull()
+      .default('0'),
+    /** Platform-side absorption of promotional cost. */
+    platform_subsidy: numeric('platform_subsidy', {
+      precision: 12,
+      scale: 2,
+    })
+      .notNull()
+      .default('0'),
+    /** Amount actually payable by the client (gross - promotional discount). */
+    payable_amount: numeric('payable_amount', { precision: 12, scale: 2 })
+      .notNull()
+      .default('0'),
+    /** Held wallet amount actually debited at settlement. */
+    wallet_deduction: numeric('wallet_deduction', { precision: 12, scale: 2 })
+      .notNull()
+      .default('0'),
+    /** Promotional seconds actually consumed by this consultation. */
+    consumed_promotional_seconds: integer('consumed_promotional_seconds')
+      .notNull()
+      .default(0),
+    /** Promotion benefit charged during settlement (promotions schema). */
+    promotion_benefit_id: integer('promotion_benefit_id'),
+
     created_at: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

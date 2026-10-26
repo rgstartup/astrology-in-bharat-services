@@ -20,6 +20,7 @@ import { MediaSource } from '../../../../media/enum';
 import { TokenCryptoService } from '../services/token-crypto.service';
 import { IAccessTokenPayloadClient } from '../../../../../shared/types/access-token.payload';
 import { ClientOAuthDto } from '../dto/client-oauth-user.dto';
+import { PromotionsService } from '@/internal/promotions/promotions.service';
 
 @Injectable()
 export class ClientLoginWithGoogleUseCase {
@@ -28,6 +29,7 @@ export class ClientLoginWithGoogleUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly tokenCrypto: TokenCryptoService,
+    private readonly promotions: PromotionsService,
   ) {}
 
   async execute(
@@ -176,6 +178,9 @@ export class ClientLoginWithGoogleUseCase {
         email: user.email,
       })
       .returning();
+
+    // Brand-new client: grant the welcome promotion in the same tx.
+    await this.promotions.grantWelcomePromotion(newAccount.id, tx);
 
     return newAccount;
   }

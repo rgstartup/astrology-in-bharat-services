@@ -7,9 +7,9 @@
  */
 
 export enum ConsultationMode {
-  CHAT = 'CHAT',
-  AUDIO_CALL = 'AUDIO_CALL',
-  VIDEO_CALL = 'VIDEO_CALL',
+  CHAT = 'chat',
+  VOICE = 'voice',
+  VIDEO = 'video',
 }
 
 /**

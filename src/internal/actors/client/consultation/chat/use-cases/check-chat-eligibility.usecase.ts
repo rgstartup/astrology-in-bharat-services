@@ -25,6 +25,7 @@ import {
 } from "../errors";
 import { PriceNotFoundError } from "@/internal/actors/client/consultation/errors";
 import { ChatEligibilityResponseDto } from "../dto/chat-eligibility-response.dto";
+import { PromotionsService } from "@/internal/promotions/promotions.service";
 
 export const MIN_PAID_CHAT_MINUTES = 1;
 
@@ -45,6 +46,7 @@ export class CheckChatEligibilityUsecase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly presenceService: PresenceService,
+    private readonly promotions: PromotionsService,
   ) {}
 
   async execute(
@@ -56,8 +58,8 @@ export class CheckChatEligibilityUsecase {
       this.fetchClientWithWallet(clientId),
     ]);
 
-    const { isEligibleForFree, freeMinutes } = this.decideFreeTrial(
-      client.completedCount,
+    const { isEligibleForFree, freeMinutes } = await this.decideFreeTrial(
+      clientId,
     );
     const minBalanceRequired = expert.chatPrice * MIN_PAID_CHAT_MINUTES;
     const hasBalance = this.decideBalance(
@@ -148,13 +150,18 @@ export class CheckChatEligibilityUsecase {
     };
   }
 
-  private decideFreeTrial(completedCount: number) {
-    const isEligibleForFree =
-      process.env.FREE_CHAT_ENABLED === "true" && completedCount === 0;
-    const freeMinutes = isEligibleForFree
-      ? parseInt(process.env.FREE_CHAT_DURATION_MINS || "5", 10)
-      : 0;
-    return { isEligibleForFree, freeMinutes };
+  private async decideFreeTrial(clientId: number) {
+    // Promotion replaces the env free trial: eligibility is presence of
+    // unspent granted chat seconds, not chat history (survives retries).
+    const remainingSeconds = await this.promotions
+      .getActiveChatBenefitSeconds(clientId);
+    return this.applyFreeTrial(remainingSeconds);
+  }
+
+  private applyFreeTrial(remainingSeconds: number) {
+    // A partially consumed grant trades as whole minutes, floored.
+    const freeMinutes = Math.floor(remainingSeconds / 60);
+    return { isEligibleForFree: freeMinutes > 0, freeMinutes };
   }
 
   private decideBalance(

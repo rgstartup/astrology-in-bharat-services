@@ -135,7 +135,7 @@ export class InitiateConsultationUsecase {
       freeMinutes = eligibility.freeMinutes;
       minBalanceRequired = eligibility.minBalanceRequired;
     } else {
-      // AUDIO_CALL (voice)
+      // voice
       const eligibility = await this.checkVoiceEligibility.execute(
         client.id,
         expertId,

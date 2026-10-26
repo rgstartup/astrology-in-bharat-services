@@ -88,7 +88,7 @@ describe('joinConsultationRoom', () => {
     );
 
     expect(socket.join).toHaveBeenCalledWith('consultation:100');
-    expect(rooms.setActiveMode).toHaveBeenCalledWith(100, 'CHAT');
+    expect(rooms.setActiveMode).toHaveBeenCalledWith(100, 'chat');
     expect(orchestrator.armBudgetTimer).toHaveBeenCalledWith(server, 100, 'chat');
     expect(voice.generateToken).not.toHaveBeenCalled();
     expect(ack).toMatchObject({
@@ -120,7 +120,7 @@ describe('joinConsultationRoom', () => {
       CLIENT as any,
     );
 
-    expect(rooms.setActiveMode).toHaveBeenCalledWith(100, 'AUDIO_CALL');
+    expect(rooms.setActiveMode).toHaveBeenCalledWith(100, 'voice');
     expect(orchestrator.armBudgetTimer).toHaveBeenCalledWith(server, 100, 'voice');
     expect(ack).toMatchObject({
       mode: 'voice',

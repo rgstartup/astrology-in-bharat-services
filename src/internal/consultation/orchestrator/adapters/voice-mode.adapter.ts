@@ -10,7 +10,7 @@ import type { ConsultationModeType } from '../consultation-orchestrator.types';
 /**
  * Voice channel adapter for the consultation orchestrator.
  *
- * Mirrors the chat lifecycle in Redis with AUDIO_CALL as the metered mode.
+ * Mirrors the chat lifecycle in Redis with VOICE as the metered mode.
  * Media-plane hooks (room hold/unhold) land here when voice leaves stub.
  */
 @Injectable()
@@ -26,7 +26,7 @@ export class VoiceModeAdapter implements IConsultationModeAdapter {
   constructor(private readonly rooms: ConsultationRoomRepository) {}
 
   /**
-   * Marks AUDIO_CALL as the active metered mode and drops any stale pause gate.
+   * Marks VOICE as the active metered mode and drops any stale pause gate.
    *
    * @param consultationId - ID of the consultation being started.
    * @param session - Active session row (unused; kept for interface parity).
@@ -36,7 +36,7 @@ export class VoiceModeAdapter implements IConsultationModeAdapter {
     session: Record<string, any>,
   ): Promise<void> {
     void session;
-    await this.rooms.setActiveMode(consultationId, ConsultationMode.AUDIO_CALL);
+    await this.rooms.setActiveMode(consultationId, ConsultationMode.VOICE);
     await this.rooms.clearPaused(consultationId);
     await this.rooms.clearBillingHold(consultationId);
     this.logger.debug(

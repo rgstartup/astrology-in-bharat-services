@@ -22,6 +22,91 @@ export function consultationHoldReference(consultationId: number): string {
 }
 
 /**
+ * Settles a started consultation's hold: debits what the client actually owes
+ * (`payable`) out of the released hold and refunds the leftover to balance.
+ *
+ * Idempotent like {@link releaseConsultationHold}: any existing RELEASE row
+ * makes a repeat call a no-op, so retries can never double-charge.
+ * Consultations without a hold (free/promotional) settle to zeros.
+ *
+ * @param db - Drizzle connection or transaction to run the settle in.
+ * @param clientId - Client account that owns the wallet.
+ * @param consultationId - Consultation being settled.
+ * @param payable - Amount actually owed for the consumed service.
+ * @returns The debited and refunded amounts (0/0 when nothing was held).
+ */
+export async function settleConsultationHold(
+  db: WalletDb,
+  clientId: number,
+  consultationId: number,
+  payable: number,
+): Promise<{ deduction: number; refund: number }> {
+  const referenceId = consultationHoldReference(consultationId);
+
+  const [hold] = await db
+    .select({ amount: clientTransactions.amount })
+    .from(clientTransactions)
+    .where(
+      and(
+        eq(clientTransactions.reference_id, referenceId),
+        eq(clientTransactions.type, ClientTransactionType.HOLD),
+      ),
+    )
+    .limit(1);
+
+  const [alreadyReleased] = await db
+    .select({ id: clientTransactions.id })
+    .from(clientTransactions)
+    .where(
+      and(
+        eq(clientTransactions.reference_id, referenceId),
+        eq(clientTransactions.type, ClientTransactionType.RELEASE),
+      ),
+    )
+    .limit(1);
+
+  if (!hold || alreadyReleased) return { deduction: 0, refund: 0 };
+
+  const [wallet] = await db
+    .select()
+    .from(clientWallets)
+    .where(eq(clientWallets.client_id, clientId))
+    .limit(1);
+
+  if (!wallet) return { deduction: 0, refund: 0 };
+
+  const now = new Date();
+  const held = Number(hold.amount);
+  const reserved = Number(wallet.reserved_balance);
+  const balance = Number(wallet.balance);
+  const releaseable = Math.min(held, reserved);
+  const deduction = Math.min(releaseable, Math.max(0, payable));
+  const refund = releaseable - deduction;
+
+  await db
+    .update(clientWallets)
+    .set({
+      balance: String(balance + refund),
+      reserved_balance: String(reserved - releaseable),
+      updated_at: now,
+    })
+    .where(eq(clientWallets.id, wallet.id));
+
+  await db.insert(clientTransactions).values({
+    wallet_id: wallet.id,
+    amount: String(releaseable),
+    balance_before: String(balance),
+    balance_after: String(balance + refund),
+    type: ClientTransactionType.RELEASE,
+    purpose: ClientTransactionPurpose.CONSULTATION,
+    reference_id: referenceId,
+    transaction_no: randomUUIDv7(),
+  });
+
+  return { deduction, refund };
+}
+
+/**
  * Releases the wallet hold that was taken when the consultation was
  * requested (balance → reserved) and refunds it to the available balance.
  *
