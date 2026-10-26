@@ -13,6 +13,7 @@ import { ConsultationBudgetEngine } from './consultation-budget.engine';
 import {
   AcceptConsultationUseCase,
   CancelConsultationUseCase,
+  CloseConsultationUseCase,
   EndConsultationUseCase,
   GetConsultationStatusUseCase,
   PauseConsultationUseCase,
@@ -31,6 +32,7 @@ import type { RealtimeSocket } from '@/internal/realtime/types/socket-data.types
 import {
   AcceptConsultationCommand,
   CancelConsultationCommand,
+  CloseConsultationCommand,
   ConsultationBudgetWarningPayload,
   ConsultationEndedPayload,
   ConsultationMediaReadyPayload,
@@ -69,6 +71,7 @@ export class ConsultationOrchestratorService {
     private readonly statusUseCase: GetConsultationStatusUseCase,
     private readonly budgetHoldUseCase: TriggerBudgetHoldUseCase,
     private readonly switchToChatUseCase: SwitchToChatUseCase,
+    private readonly closeUseCase: CloseConsultationUseCase,
     private readonly budget: ConsultationBudgetEngine,
   ) {}
 
@@ -86,6 +89,10 @@ export class ConsultationOrchestratorService {
 
   async reject(server: Server, command: RejectConsultationCommand) {
     return this.rejectUseCase.execute(server, command);
+  }
+
+  async close(server: Server, command: CloseConsultationCommand) {
+    return this.closeUseCase.execute(server, command);
   }
 
   async start(server: Server, command: StartConsultationCommand) {

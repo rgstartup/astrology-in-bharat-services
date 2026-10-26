@@ -170,6 +170,34 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
   }
 
   @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.CONSULTATION.COMMANDS.CLOSE)
+  async handleClose(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: ConsultationActionDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    if (identity.actorType !== 'expert') {
+      return {
+        status: 'ignored',
+        message: 'Only experts can close consultations',
+      };
+    }
+    try {
+      return await this.orchestrator.close(this.server, {
+        consultationId: dto.consultationId,
+        actorId: identity.expertId,
+        actorType: 'expert',
+        reason: dto.reason,
+      });
+    } catch (error: unknown) {
+      return {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Close failed',
+      };
+    }
+  }
+
+  @UseGuards(WsAuthGuard)
   @SubscribeMessage(SOCKET_EVENTS.CONSULTATION.COMMANDS.SWITCH_TO_CHAT)
   async handleSwitchToChat(
     @ConnectedSocket() _socket: RealtimeSocket,

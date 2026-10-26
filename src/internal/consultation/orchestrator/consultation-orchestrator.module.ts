@@ -10,6 +10,7 @@ import { VideoModeAdapter } from './adapters/video-mode.adapter';
 import {
   AcceptConsultationUseCase,
   CancelConsultationUseCase,
+  CloseConsultationUseCase,
   EndConsultationUseCase,
   GetConsultationStatusUseCase,
   PauseConsultationUseCase,
@@ -33,6 +34,7 @@ const USE_CASES = [
   GetConsultationStatusUseCase,
   TriggerBudgetHoldUseCase,
   SwitchToChatUseCase,
+  CloseConsultationUseCase,
 ];
 
 @Module({

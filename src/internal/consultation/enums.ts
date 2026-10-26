@@ -26,6 +26,10 @@ export enum ConsultationStatus {
   REJECTED = 'rejected',
   MISSED = 'missed',
   EXPIRED = 'expired',
+  /** Continuation of a completed consultation: client re-requested, awaiting accept. */
+  REOPENED = 'reopened',
+  /** Expert-closed terminal state: the consultation cannot be continued again. */
+  CLOSED = 'closed',
 }
 
 /**

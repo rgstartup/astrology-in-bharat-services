@@ -6,6 +6,7 @@ export { StartConsultationUseCase } from './start-consultation.use-case';
 export { PauseConsultationUseCase } from './pause-consultation.use-case';
 export { ResumeConsultationUseCase } from './resume-consultation.use-case';
 export { EndConsultationUseCase } from './end-consultation.use-case';
+export { CloseConsultationUseCase } from './close-consultation.use-case';
 export { GetConsultationStatusUseCase } from './get-consultation-status.use-case';
 export { TriggerBudgetHoldUseCase } from './trigger-budget-hold.use-case';
 export { SwitchToChatUseCase } from './switch-to-chat.use-case';

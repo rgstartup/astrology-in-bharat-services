@@ -44,6 +44,7 @@ export const SOCKET_EVENTS = {
       END: "consultation:end",
       GET_STATUS: "consultation:get_status",
       SWITCH_TO_CHAT: "consultation:switch_to_chat",
+      CLOSE: "consultation:close",
     },
 
     // 2. Outbound State Events (Server -> Room / Participants)

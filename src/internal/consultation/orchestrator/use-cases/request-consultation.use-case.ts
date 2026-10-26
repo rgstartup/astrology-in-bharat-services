@@ -58,7 +58,15 @@ export class RequestConsultationUseCase {
       throw new BadRequestException('Only the client can request this consultation');
     }
 
-    if (row.status !== ConsultationStatus.REQUESTED) {
+    // A completed consultation can be continued later: a re-request re-opens
+    // it as REOPENED so the expert gets the incoming event again. An already
+    // REOPENED consultation keeps its status (re-request just re-arms the TTL).
+    const reopen = row.status === ConsultationStatus.COMPLETED;
+    const continuable =
+      row.status === ConsultationStatus.REQUESTED ||
+      row.status === ConsultationStatus.REOPENED ||
+      reopen;
+    if (!continuable) {
       throw new BadRequestException('Consultation cannot be requested');
     }
 
@@ -67,7 +75,11 @@ export class RequestConsultationUseCase {
     const now = new Date();
     await this.db
       .update(consultations)
-      .set({ requested_at: now, updated_at: now })
+      .set({
+        requested_at: now,
+        updated_at: now,
+        ...(reopen ? { status: ConsultationStatus.REOPENED } : {}),
+      })
       .where(eq(consultations.id, row.id));
 
     const mode = toConsultationModeType(row.mode);
@@ -100,6 +112,7 @@ export class RequestConsultationUseCase {
       mode,
       sessionId: pendingSession?.id ?? null,
       maxMinutes: affordability?.maxMinutes ?? 0,
+      ratePerMinute: affordability?.ratePerMinute ?? 0,
       startedAt: affordability?.startedAt ?? null,
       timestamp: new Date().toISOString(),
     };

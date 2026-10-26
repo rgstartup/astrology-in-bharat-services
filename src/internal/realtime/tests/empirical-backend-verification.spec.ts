@@ -90,7 +90,8 @@ describe('Empirical Backend Challenger Verification Suite', () => {
         {} as any,
         {} as any,
         {} as any,
-        budget as any,
+        {} as any,
+    budget as any,
       );
 
       const payload = await orchestrator.mediaReady(server, 100, EXPERT);
@@ -144,7 +145,8 @@ describe('Empirical Backend Challenger Verification Suite', () => {
         {} as any,
         {} as any,
         {} as any,
-        budget as any,
+        {} as any,
+    budget as any,
       );
 
       await orchestrator.mediaReady(server, 100, EXPERT);
@@ -191,7 +193,8 @@ describe('Empirical Backend Challenger Verification Suite', () => {
         {} as any,
         {} as any,
         {} as any,
-        budget as any,
+        {} as any,
+    budget as any,
       );
 
       for (let i = 0; i < 5; i++) {
@@ -408,7 +411,8 @@ describe('Empirical Backend Challenger Verification Suite', () => {
         {} as any,
         {} as any,
         {} as any,
-        budget as any,
+        {} as any,
+    budget as any,
       );
 
       // Mock triggerBudgetHold

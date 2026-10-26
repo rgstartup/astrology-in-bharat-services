@@ -40,6 +40,7 @@ function serviceMock(db: any, rooms: any) {
     {} as any,
     {} as any,
     {} as any,
+    {} as any,
     budget as any,
   );
   return { service, server, emit, startUseCase };

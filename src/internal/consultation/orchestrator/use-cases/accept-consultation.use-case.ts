@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import type { Server } from 'socket.io';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
@@ -53,7 +53,10 @@ export class AcceptConsultationUseCase {
         and(
           eq(consultations.id, command.consultationId),
           eq(consultations.expert_id, command.actorId),
-          eq(consultations.status, ConsultationStatus.REQUESTED),
+          inArray(consultations.status, [
+            ConsultationStatus.REQUESTED,
+            ConsultationStatus.REOPENED,
+          ]),
         ),
       )
       .returning();

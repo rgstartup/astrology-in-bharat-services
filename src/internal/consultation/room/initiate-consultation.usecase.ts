@@ -37,6 +37,7 @@ import { randomUUIDv7 } from "node:crypto";
 /** Consultation states that still block a new request. */
 const OPEN_STATUSES = [
   ConsultationStatus.REQUESTED,
+  ConsultationStatus.REOPENED,
   ConsultationStatus.ACCEPTED,
   ConsultationStatus.ACTIVE,
 ];
@@ -188,10 +189,10 @@ export class InitiateConsultationUsecase {
             "Consultation not found.",
           );
         }
-        if (consultation.mode !== mode) {
+        if (consultation.status === ConsultationStatus.CLOSED) {
           throw new ConsultationNotAvailableError(
             consultationId,
-            `Consultation is not a ${mode} consultation.`,
+            "Consultation is closed.",
           );
         }
         if (consultation.expert_id !== expertId) {
@@ -200,12 +201,21 @@ export class InitiateConsultationUsecase {
             "Consultation belongs to another expert.",
           );
         }
-        // if (!OPEN_STATUSES.includes(consultation.status)) {
-        //   throw new ConsultationNotAvailableError(
-        //     consultationId,
-        //     "Consultation is already closed.",
-        //   );
-        // }
+        // Continuing a completed consultation may switch modes (e.g. "continue
+        // via chat" on a voice thread): the root mode re-points to the
+        // requested mode, mirroring SwitchToChatUseCase's mid-call flip.
+        // Anything else keeps the strict same-mode rule.
+        const modeFlip =
+          consultation.mode !== mode &&
+          consultation.status === ConsultationStatus.COMPLETED;
+        if (consultation.mode !== mode && !modeFlip) {
+          throw new ConsultationNotAvailableError(
+            consultationId,
+            `Consultation is not a ${mode} consultation.`,
+          );
+        }
+        // A completed consultation may be continued later: attaching a new
+        // session to it is allowed (re-open via `RequestConsultationUseCase`).
 
         const [other] = await tx
           .select()
@@ -222,6 +232,13 @@ export class InitiateConsultationUsecase {
 
         if (other) {
           throw new ActiveConsultationExistsError(other);
+        }
+
+        if (modeFlip) {
+          await tx
+            .update(consultations)
+            .set({ mode, updated_at: new Date() })
+            .where(eq(consultations.id, consultation.id));
         }
 
         const [session] = await tx

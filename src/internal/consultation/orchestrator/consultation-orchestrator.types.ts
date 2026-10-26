@@ -131,6 +131,13 @@ export interface DisconnectConsultationCommand {
   actorType: 'client' | 'expert';
 }
 
+export interface CloseConsultationCommand {
+  consultationId: number;
+  actorId: number;
+  actorType: 'expert';
+  reason?: string;
+}
+
 export interface EndConsultationCommand {
   consultationId: number;
   actorId: number;
