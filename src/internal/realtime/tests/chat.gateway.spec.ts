@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RealtimeChatGateway } from '../realtime-chat.gateway';
+import { ChatGateway } from '../gateways/chat.gateway';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
 
@@ -12,8 +12,8 @@ function actorServiceMock() {
   };
 }
 
-describe('RealtimeChatGateway', () => {
-  let gateway: RealtimeChatGateway;
+describe('ChatGateway', () => {
+  let gateway: ChatGateway;
   let mockClientRealtimeService: ReturnType<typeof actorServiceMock>;
   let mockExpertRealtimeService: ReturnType<typeof actorServiceMock>;
 
@@ -28,7 +28,7 @@ describe('RealtimeChatGateway', () => {
     mockClientRealtimeService = actorServiceMock();
     mockExpertRealtimeService = actorServiceMock();
 
-    gateway = new RealtimeChatGateway(
+    gateway = new ChatGateway(
       mockClientRealtimeService as unknown as ClientRealtimeService,
       mockExpertRealtimeService as unknown as ExpertRealtimeService,
       {

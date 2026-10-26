@@ -18,6 +18,7 @@ import {
   ConsultationStatus,
 } from "@/internal/consultation/enums";
 import { PresenceService } from "@/internal/actors/expert/presence/presence.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   releaseConsultationHold,
   settleConsultationHold,
@@ -25,6 +26,7 @@ import {
 import { PromotionsService } from "@/internal/promotions/promotions.service";
 import { SOCKET_EVENTS } from "@/internal/realtime/constants/socket-events.constant";
 import { SOCKET_ROOMS } from "@/internal/realtime/constants/socket-rooms.constant";
+import { CONSULTATION_ENDED_EVENT } from "../consultation-orchestrator.events";
 import { ChatModeAdapter } from "../adapters/chat-mode.adapter";
 import { VoiceModeAdapter } from "../adapters/voice-mode.adapter";
 import { VideoModeAdapter } from "../adapters/video-mode.adapter";
@@ -62,6 +64,7 @@ export class EndConsultationUseCase {
     private readonly presence: PresenceService,
     private readonly budget: ConsultationBudgetEngine,
     private readonly promotions: PromotionsService,
+    private readonly eventEmitter: EventEmitter2,
     chatAdapter: ChatModeAdapter,
     voiceAdapter: VoiceModeAdapter,
     videoAdapter: VideoModeAdapter,
@@ -92,7 +95,7 @@ export class EndConsultationUseCase {
    * @throws NotFoundException If consultation does not exist.
    */
   async execute(
-    server: Server,
+    server: Server | null | undefined,
     command: EndConsultationCommand,
   ): Promise<ConsultationEndedPayload> {
     const [row] = await this.db
@@ -242,9 +245,13 @@ export class EndConsultationUseCase {
       timestamp: now.toISOString(),
     };
 
-    server
-      .to(SOCKET_ROOMS.CONSULTATION(row.id))
-      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED, payload);
+    this.eventEmitter.emit(CONSULTATION_ENDED_EVENT, payload);
+
+    if (server) {
+      server
+        .to(SOCKET_ROOMS.CONSULTATION(row.id))
+        .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED, payload);
+    }
 
     return payload;
   }

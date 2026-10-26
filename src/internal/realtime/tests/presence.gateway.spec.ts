@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RealtimePresenceGateway } from '../gateways/realtime-presence.gateway';
+import { PresenceGateway } from '../gateways/presence.gateway';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
 import { SOCKET_ROOMS } from '../constants/socket-rooms.constant';
 import { ExpertClientStatus } from '@/core/enums';
 
-describe('RealtimePresenceGateway', () => {
-  let gateway: RealtimePresenceGateway;
+describe('PresenceGateway', () => {
+  let gateway: PresenceGateway;
   let mockClientRealtimeService: {
     subscribeExpertPresence: ReturnType<typeof vi.fn>;
     unsubscribeExpertPresence: ReturnType<typeof vi.fn>;
@@ -55,7 +55,7 @@ describe('RealtimePresenceGateway', () => {
       to: vi.fn().mockReturnValue(mockRoom),
     };
 
-    gateway = new RealtimePresenceGateway(
+    gateway = new PresenceGateway(
       mockClientRealtimeService as unknown as ClientRealtimeService,
       mockExpertRealtimeService as unknown as ExpertRealtimeService,
     );

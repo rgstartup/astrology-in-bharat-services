@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { MerchantAuthController } from './controllers/merchant-auth.controller';
+import { AuthController } from './controllers/auth.controller';
+import { JwtLogoutAuthGuard } from './guards/logout-auth.guard';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileModule as ExpertProfileModule } from '../actors/expert/profile/profile.module';
@@ -173,7 +175,8 @@ const handlers = [
     TokenCryptoService,
     SessionRepository,
     AuthTokenService,
+    JwtLogoutAuthGuard,
   ],
-  controllers: [MerchantAuthController],
+  controllers: [AuthController, MerchantAuthController],
 })
 export class AuthModule {}

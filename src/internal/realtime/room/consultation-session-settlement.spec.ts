@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { closeActiveChatSessions } from '../chat-session-settlement';
+import { closeActiveConsultationSessions } from './consultation-session-settlement';
 
 /** Thenable `where()` result that also supports `.returning()`. */
 function whereResult(rows: unknown[]) {
@@ -78,12 +78,12 @@ function neverStartedDbMock(selects: unknown[][]) {
   return { db, updates, inserted };
 }
 
-describe('closeActiveChatSessions (disconnect closes live sessions)', () => {
+describe('closeActiveConsultationSessions (disconnect closes live sessions)', () => {
   it('closes ACTIVE sessions, stamps ended_at, emits consultation:ended', async () => {
     const db = dbMock([{ id: 7 }], [{ id: 3 }]);
     const { emit, server } = serverMock();
 
-    const closed = await closeActiveChatSessions(
+    const closed = await closeActiveConsultationSessions(
       db as any,
       server,
       { clientId: 10 },
@@ -119,7 +119,7 @@ describe('closeActiveChatSessions (disconnect closes live sessions)', () => {
     ]);
     const { emit, server } = serverMock();
 
-    const closed = await closeActiveChatSessions(
+    const closed = await closeActiveConsultationSessions(
       db as any,
       server,
       { expertId: 42 },
@@ -134,7 +134,7 @@ describe('closeActiveChatSessions (disconnect closes live sessions)', () => {
     const db = dbMock([], []);
     const { emit, server } = serverMock();
 
-    const closed = await closeActiveChatSessions(
+    const closed = await closeActiveConsultationSessions(
       db as any,
       server,
       { clientId: 10 },
@@ -147,7 +147,7 @@ describe('closeActiveChatSessions (disconnect closes live sessions)', () => {
   });
 });
 
-describe('closeActiveChatSessions (consultation that never started)', () => {
+describe('closeActiveConsultationSessions (consultation that never started)', () => {
   it('cancels the consultation and refunds the hold', async () => {
     const { db, updates, inserted } = neverStartedDbMock([
       [{ id: 7 }],
@@ -159,7 +159,7 @@ describe('closeActiveChatSessions (consultation that never started)', () => {
     ]);
     const { emit, server } = serverMock();
 
-    const closed = await closeActiveChatSessions(
+    const closed = await closeActiveConsultationSessions(
       db as any,
       server,
       { expertId: 42 },
@@ -193,7 +193,7 @@ describe('closeActiveChatSessions (consultation that never started)', () => {
     ]);
     const { emit, server } = serverMock();
 
-    const closed = await closeActiveChatSessions(
+    const closed = await closeActiveConsultationSessions(
       db as any,
       server,
       { expertId: 42 },

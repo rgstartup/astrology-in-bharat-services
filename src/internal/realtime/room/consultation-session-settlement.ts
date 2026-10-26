@@ -12,7 +12,7 @@ import { SOCKET_EVENTS } from '../constants/socket-events.constant';
 import { SOCKET_ROOMS } from '../constants/socket-rooms.constant';
 import { toConsultationModeType } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
 
-const logger = new Logger('ChatSessionSettlement');
+const logger = new Logger('ConsultationSessionSettlement');
 
 /** Parent states that may own a live session. */
 const OPEN_STATUSES = [ConsultationStatus.ACCEPTED, ConsultationStatus.ACTIVE];
@@ -79,7 +79,7 @@ async function closeNeverStarted(
   });
 
   logger.log(
-    `[ChatSession] Consultation ${consultationId} never started (${endedBy}) — cancelled, refunded ${refunded}.`,
+    `[ConsultationSession] Consultation ${consultationId} never started (${endedBy}) — cancelled, refunded ${refunded}.`,
   );
   server
     .to(SOCKET_ROOMS.CONSULTATION(consultationId))
@@ -142,7 +142,7 @@ async function closeForConsultation(
     .where(eq(consultations.id, consultationId));
 
   logger.log(
-    `[ChatSession] Consultation ${consultationId} sessions closed by ${endedBy} (${closed.length}).`,
+    `[ConsultationSession] Consultation ${consultationId} sessions closed by ${endedBy} (${closed.length}).`,
   );
   server
     .to(SOCKET_ROOMS.CONSULTATION(consultationId))
@@ -157,11 +157,16 @@ async function closeForConsultation(
 
 /**
  * End sessions on transport drop. Finds the actor's open consultations
- * (ACCEPTED/ACTIVE) and closes ACTIVE sessions under each. Either an
- * unwanted disconnect or an implicit chat end lands here — both mean the
- * live session is over. Idempotent: repeat calls find no ACTIVE rows.
+ * (ACCEPTED/ACTIVE) and closes ACTIVE sessions under each across any mode
+ * (chat, voice, video). Idempotent: repeat calls find no ACTIVE rows.
+ *
+ * @param db - Database handle.
+ * @param server - Authoritative Socket.IO server.
+ * @param filter - Identity filter for the disconnecting actor.
+ * @param endedBy - Reason/identifier for the session termination.
+ * @returns Array of settled consultation IDs.
  */
-export async function closeActiveChatSessions(
+export async function closeActiveConsultationSessions(
   db: DrizzleDb,
   server: Server,
   filter: { clientId: number } | { expertId: number },
@@ -185,10 +190,13 @@ export async function closeActiveChatSessions(
       row.id,
       endedBy,
     ).catch((err: Error) => {
-      logger.error(`[ChatSession] Close failed for ${row.id}: ${err.message}`);
+      logger.error(`[ConsultationSession] Close failed for ${row.id}: ${err.message}`);
       return false;
     });
     if (didClose) closed.push(row.id);
   }
   return closed;
 }
+
+/** Legacy alias */
+export const closeActiveChatSessions = closeActiveConsultationSessions;

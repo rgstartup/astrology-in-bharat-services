@@ -21,13 +21,13 @@ import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-
 import { ReadNotificationDto } from '../dto/notification-events.dto';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
-import { REALTIME_GATEWAY_OPTIONS } from './realtime-gateway.options';
+import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
 
 @UseFilters(RealtimeWsExceptionFilter)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @WebSocketGateway(REALTIME_GATEWAY_OPTIONS)
-export class RealtimeNotificationGateway implements OnGatewayInit {
-  private readonly logger = new Logger(RealtimeNotificationGateway.name);
+export class NotificationGateway implements OnGatewayInit {
+  private readonly logger = new Logger(NotificationGateway.name);
 
   constructor(
     private readonly clientRealtimeService: ClientRealtimeService,
@@ -36,7 +36,7 @@ export class RealtimeNotificationGateway implements OnGatewayInit {
 
   afterInit() {
     this.logger.log(
-      '[RealtimeNotificationGateway] Initialized on namespace /realtime',
+      '[NotificationGateway] Initialized on namespace /realtime',
     );
   }
 

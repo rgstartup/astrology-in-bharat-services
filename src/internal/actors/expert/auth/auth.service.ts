@@ -11,6 +11,7 @@ import {
   ExpertLoginWithEmailUseCase,
   ExpertLoginWithGoogleUseCase,
   ExpertRefreshTokenUseCase,
+  ExpertLogoutUseCase,
 } from './use-cases';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class ExpertAuthService {
     private readonly login: ExpertLoginWithEmailUseCase,
     private readonly refresh: ExpertRefreshTokenUseCase,
     private readonly loginWithGoogleUseCase: ExpertLoginWithGoogleUseCase,
+    private readonly logoutUseCase: ExpertLogoutUseCase,
   ) {}
 
   initiateEmailRegistration(dto: InitiateExpertRegisterDto) {
@@ -54,5 +56,20 @@ export class ExpertAuthService {
 
   refreshToken(refreshToken: string) {
     return this.refresh.execute(refreshToken);
+  }
+
+  /**
+   * Logs out the expert by revoking DB session rows, setting availability offline,
+   * and terminating live consultations.
+   *
+   * @param params - Identifiers for user, expert account, and session.
+   * @returns Void promise.
+   */
+  async logout(params: {
+    userId?: number;
+    expertId?: number;
+    sessionId?: string;
+  }): Promise<void> {
+    return this.logoutUseCase.execute(params);
   }
 }

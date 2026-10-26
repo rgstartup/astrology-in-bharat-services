@@ -26,7 +26,7 @@ import {
 } from './use-cases';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
-import { isChatParticipant } from '@/internal/realtime/chat/chat-room-access';
+import { isConsultationParticipant } from '@/internal/realtime/room/consultation-room-access';
 import type { AuthenticatedSocketIdentity } from '@/internal/realtime/types/socket-auth.types';
 import type { RealtimeSocket } from '@/internal/realtime/types/socket-data.types';
 import {
@@ -124,7 +124,7 @@ export class ConsultationOrchestratorService {
     identity: AuthenticatedSocketIdentity,
     _socket?: RealtimeSocket,
   ): Promise<ConsultationMediaReadyPayload | null> {
-    if (!(await isChatParticipant(this.db, consultationId, identity))) {
+    if (!(await isConsultationParticipant(this.db, consultationId, identity))) {
       return null;
     }
     const readiness = await this.rooms.markMediaReady(
@@ -216,7 +216,7 @@ export class ConsultationOrchestratorService {
   }
 
   async end(
-    server: Server,
+    server: Server | null | undefined,
     command: EndConsultationCommand,
   ): Promise<ConsultationEndedPayload> {
     this.cancelBudgetTimer(command.consultationId);

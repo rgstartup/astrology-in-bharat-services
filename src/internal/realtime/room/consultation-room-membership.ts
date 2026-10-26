@@ -12,9 +12,9 @@ import {
 } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
 import {
   getConsultationStatus,
-  isChatParticipant,
-  resolveChatClientName,
-} from '@/internal/realtime/chat/chat-room-access';
+  isConsultationParticipant,
+  resolveConsultationClientName,
+} from './consultation-room-access';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import type { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
 import type { ResolveConsultationBudgetUseCase } from '@/internal/consultation/room/resolve-consultation-budget.use-case';
@@ -81,7 +81,7 @@ export async function refreshVoiceToken(
   consultationId: number,
   identity: AuthenticatedSocketIdentity,
 ): Promise<VoiceTokenAck> {
-  if (!(await isChatParticipant(deps.db, consultationId, identity))) {
+  if (!(await isConsultationParticipant(deps.db, consultationId, identity))) {
     return {
       status: CONSULTATION_ACK_STATUS.IGNORED,
       consultationId,
@@ -102,12 +102,6 @@ export async function refreshVoiceToken(
     consultationId,
     ...(await issueVoiceToken(deps.voice, consultationId, identity)),
   };
-}
-export interface MediaSignalInput {
-  consultationId: number;
-  offer?: Record<string, unknown>;
-  answer?: Record<string, unknown>;
-  candidate?: Record<string, unknown>;
 }
 
 /**
@@ -138,7 +132,7 @@ export async function joinConsultationRoom(
 ): Promise<RoomJoinAck> {
   const { db, rooms, budget, orchestrator } = deps;
 
-  if (!(await isChatParticipant(db, consultationId, identity))) {
+  if (!(await isConsultationParticipant(db, consultationId, identity))) {
     return {
       status: CONSULTATION_ACK_STATUS.IGNORED,
       consultationId,
@@ -177,7 +171,7 @@ export async function joinConsultationRoom(
     .setActiveMode(consultationId, toConsultationModeEnum(mode))
     .catch(() => null);
   const liveBudget = await budget.execute(consultationId).catch(() => null);
-  const clientName = await resolveChatClientName(db, consultationId).catch(
+  const clientName = await resolveConsultationClientName(db, consultationId).catch(
     () => null,
   );
 
@@ -226,24 +220,6 @@ export async function leaveConsultationRoom(
     `Actor ${identity.actorType}:${identity.id} left consultation rooms for ${consultationId} (socket: ${socket.id})`,
   );
   return { status: CONSULTATION_ACK_STATUS.LEFT, consultationId };
-}
-
-/** Fire-and-forget WebRTC relay inside the consultation room. */
-export function relayMediaSignal(
-  socket: RealtimeSocket,
-  event: string,
-  input: MediaSignalInput,
-  identity: AuthenticatedSocketIdentity,
-): void {
-  const room = SOCKET_ROOMS.CONSULTATION(input.consultationId);
-  socket.to(room).emit(event, {
-    consultationId: input.consultationId,
-    senderId: identity.id,
-    senderType: identity.actorType,
-    offer: input.offer,
-    answer: input.answer,
-    candidate: input.candidate,
-  });
 }
 
 /**

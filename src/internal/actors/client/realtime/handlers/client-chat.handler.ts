@@ -14,9 +14,9 @@ import {
   toMessageType,
 } from '@/internal/realtime/chat/chat-message-persistence';
 import {
-  isChatParticipant,
-  resolveChatClientName,
-} from '@/internal/realtime/chat/chat-room-access';
+  isConsultationParticipant,
+  resolveConsultationClientName,
+} from '@/internal/realtime/room/consultation-room-access';
 import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
 import {
   CONSULTATION_ACK_STATUS,
@@ -71,7 +71,7 @@ export class ClientChatHandler {
     status: ConsultationAckStatus;
     message: Record<string, unknown>;
   }> {
-    if (!(await isChatParticipant(this.db, input.consultationId, identity))) {
+    if (!(await isConsultationParticipant(this.db, input.consultationId, identity))) {
       return { status: CONSULTATION_ACK_STATUS.IGNORED, message: {} };
     }
     const room = SOCKET_ROOMS.CONSULTATION(input.consultationId);
@@ -171,7 +171,7 @@ export class ClientChatHandler {
         senderType: identity.actorType,
         sessionId: session?.id ?? null,
         timestamp: new Date().toISOString(),
-        ...(await resolveChatClientName(this.db, consultationId)
+        ...(await resolveConsultationClientName(this.db, consultationId)
           .then((clientName) => (clientName ? { clientName } : {}))
           .catch(() => ({}))),
       });

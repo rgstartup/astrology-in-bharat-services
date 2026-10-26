@@ -24,10 +24,10 @@ import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
 
 /**
- * @deprecated Consolidated into `RealtimeConsultationGateway`.
+ * @deprecated Consolidated into `ConsultationGateway`.
  * All consultation room lifecycle handlers (`consultation:join`, `consultation:leave`,
  * `consultation:media_ready`, `consultation:voice_token`) are now served authoritatively
- * by `RealtimeConsultationGateway` to eliminate duplicate listeners on `/realtime`.
+ * by `ConsultationGateway` to eliminate duplicate listeners on `/realtime`.
  */
 @UseFilters(RealtimeWsExceptionFilter)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))

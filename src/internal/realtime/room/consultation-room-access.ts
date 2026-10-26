@@ -4,10 +4,15 @@ import { clientAccounts, consultations } from '@/core/drizzledb/schema';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 
 /**
- * Room membership check for `chat:{consultationId}`. The requester must be
- * the consultation's client or expert — anything else gets IGNORED.
+ * Validates whether the socket identity is an authoritative participant
+ * (client or expert) of the specified consultation.
+ *
+ * @param db - Drizzle database instance.
+ * @param consultationId - Primary key of the consultation.
+ * @param identity - Authenticated identity attached to the socket.
+ * @returns True if the actor is the client or assigned expert.
  */
-export async function isChatParticipant(
+export async function isConsultationParticipant(
   db: DrizzleDb,
   consultationId: number,
   identity: AuthenticatedSocketIdentity,
@@ -27,9 +32,13 @@ export async function isChatParticipant(
 }
 
 /**
- * Authoritative parent-consultation status for `chat:join` acks, so a client
- * that (re)joins after the verdict still learns the real state instead of
- * waiting on a `chat:accepted` event it already missed.
+ * Authoritative consultation lifecycle status for `consultation:join` acks,
+ * allowing clients or experts reconnecting after state changes to receive
+ * current server truth.
+ *
+ * @param db - Drizzle database instance.
+ * @param consultationId - Primary key of the consultation.
+ * @returns Current consultation status string or null.
  */
 export async function getConsultationStatus(
   db: DrizzleDb,
@@ -44,11 +53,14 @@ export async function getConsultationStatus(
 }
 
 /**
- * Display name of the consultation's client for expert-facing surfaces
- * (`chat:join` ack, `chat:incoming`). Reads the client account name only —
- * no users-table fallback. Null when unresolvable.
+ * Resolves the display name of the consultation's client for expert-facing
+ * room payloads (`consultation:join` ack, `consultation:incoming`).
+ *
+ * @param db - Drizzle database instance.
+ * @param consultationId - Primary key of the consultation.
+ * @returns Name string or null if unresolvable.
  */
-export async function resolveChatClientName(
+export async function resolveConsultationClientName(
   db: DrizzleDb,
   consultationId: number,
 ): Promise<string | null> {
@@ -62,3 +74,7 @@ export async function resolveChatClientName(
     .limit(1);
   return row?.accountName ?? null;
 }
+
+/** Legacy aliases for backward compatibility during transition */
+export const isChatParticipant = isConsultationParticipant;
+export const resolveChatClientName = resolveConsultationClientName;

@@ -30,16 +30,16 @@ import { SubscribePresenceDto } from '../dto/subscribe-presence.dto';
 import { SubscribeManyPresenceDto } from '../dto/subscribe-many-presence.dto';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
-import { REALTIME_GATEWAY_OPTIONS } from './realtime-gateway.options';
+import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
 
 @UseFilters(RealtimeWsExceptionFilter)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @WebSocketGateway(REALTIME_GATEWAY_OPTIONS)
-export class RealtimePresenceGateway implements OnGatewayInit {
+export class PresenceGateway implements OnGatewayInit {
   @WebSocketServer()
   server!: Server;
 
-  private readonly logger = new Logger(RealtimePresenceGateway.name);
+  private readonly logger = new Logger(PresenceGateway.name);
 
   constructor(
     private readonly clientRealtimeService: ClientRealtimeService,
@@ -48,7 +48,7 @@ export class RealtimePresenceGateway implements OnGatewayInit {
 
   afterInit() {
     this.logger.log(
-      '[RealtimePresenceGateway] Initialized on namespace /realtime',
+      '[PresenceGateway] Initialized on namespace /realtime',
     );
   }
 
@@ -125,7 +125,7 @@ export class RealtimePresenceGateway implements OnGatewayInit {
       .emit(SOCKET_EVENTS.PRESENCE.UPDATED, payload);
 
     this.logger.log(
-      `[RealtimePresenceGateway] 📢 Broadcasted presence update: expert ${payload.expertId} is now ${payload.status}`,
+      `[PresenceGateway] 📢 Broadcasted presence update: expert ${payload.expertId} is now ${payload.status}`,
     );
   }
 }

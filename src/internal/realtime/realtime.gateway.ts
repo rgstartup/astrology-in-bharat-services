@@ -12,7 +12,7 @@ import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
 import type { RealtimeSocket } from './types/socket-data.types';
 import type { RealtimeActorType } from './types/socket-auth.types';
-import { REALTIME_GATEWAY_OPTIONS } from './gateways/realtime-gateway.options';
+import { REALTIME_GATEWAY_OPTIONS } from './gateways/gateway.options';
 
 @WebSocketGateway(REALTIME_GATEWAY_OPTIONS)
 export class RealtimeGateway

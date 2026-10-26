@@ -11,6 +11,7 @@ import type { CookieOptions, Request, Response } from "express";
 import { ExpertJwtRefreshAuthGuard } from "../guards/refresh-auth.guard";
 import { ExpertGoogleAuthGuard } from "../guards/google-auth.guard";
 import { ExpertGoogleAuthResult } from "../strategies/google-auth.strategy";
+import { ExpertJwtLogoutAuthGuard } from "../guards/logout-auth.guard";
 import { ExpertAuthService } from "../auth.service";
 import { ExpertLoginDto } from "../dto/expert-login.dto";
 import {
@@ -89,6 +90,52 @@ export class ExpertAuthController {
     const tokens = await this.authService.refreshToken(req.refreshToken);
     this.setCookies(res, tokens);
     return tokens;
+  }
+
+  /**
+   * Logs out the expert, revoking sessions in DB, marking availability offline, and clearing auth cookies.
+   *
+   * Utilizes ExpertJwtLogoutAuthGuard which ignores token expiration so
+   * expired experts can logout without receiving a 401 Unauthorized.
+   *
+   * @param req - Express request holding optional user payload and cookies.
+   * @param res - Express response for clearing cookies.
+   * @returns Success confirmation.
+   */
+  @Get("logout")
+  @Post("logout")
+  @UseGuards(ExpertJwtLogoutAuthGuard)
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = (req as unknown as Record<string, unknown>)["user"] as
+      | { id?: number; user_id?: number }
+      | undefined;
+
+    const cookies = req.cookies as Record<string, string | undefined> | undefined;
+    const refreshToken = cookies?.refreshToken;
+    const sessionId = refreshToken?.split(".")[0];
+
+    await this.authService.logout({
+      userId: user?.user_id,
+      expertId: user?.id,
+      sessionId,
+    });
+
+    this.clearCookies(res);
+    return { success: true, message: "Logged out successfully" };
+  }
+
+  private clearCookies(res: Response) {
+    const options: CookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    };
+    res.clearCookie("accessToken", options);
+    res.clearCookie("refreshToken", options);
   }
 
   private setCookies(

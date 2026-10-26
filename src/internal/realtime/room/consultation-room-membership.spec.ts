@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   joinConsultationRoom,
   leaveConsultationRoom,
-  relayMediaSignal,
   type RoomMembershipDeps,
 } from './consultation-room-membership';
 
@@ -245,25 +244,5 @@ describe('leaveConsultationRoom', () => {
     await leaveConsultationRoom(socket, 100, CLIENT as any, rooms);
 
     expect(rooms.unmarkMediaReady).toHaveBeenCalledWith(100, 'client');
-  });
-});
-
-describe('relayMediaSignal', () => {
-  it('emits into the consultation room', () => {
-    const emit = vi.fn();
-    const socket: any = { to: vi.fn(() => ({ emit })) };
-
-    relayMediaSignal(
-      socket,
-      'consultation:media:offer',
-      { consultationId: 100, offer: { sdp: 'o' } },
-      CLIENT as any,
-    );
-
-    expect(socket.to).toHaveBeenCalledWith('consultation:100');
-    expect(emit).toHaveBeenCalledWith(
-      'consultation:media:offer',
-      expect.objectContaining({ consultationId: 100 }),
-    );
   });
 });

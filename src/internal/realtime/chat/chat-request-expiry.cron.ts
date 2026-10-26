@@ -10,7 +10,7 @@ import {
 } from '@/internal/consultation/enums';
 import { chatRequestTtlSeconds } from '@/internal/consultation/room/consultation-room.repository';
 import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
-import { RealtimeChatGateway } from './realtime-chat.gateway';
+import { ChatGateway } from '../gateways/chat.gateway';
 
 /**
  * Safety net for unanswered chat requests. Every 10s, CHAT consultations
@@ -24,7 +24,7 @@ export class ChatRequestExpiryCron {
 
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
-    private readonly chatGateway: RealtimeChatGateway,
+    private readonly chatGateway: ChatGateway,
     private readonly orchestrator: ConsultationOrchestratorService,
   ) {}
 

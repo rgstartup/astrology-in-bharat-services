@@ -4,9 +4,9 @@ import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import {
-  chatDisconnectGrace,
+  consultationDisconnectGrace,
   hasLiveActorSocket,
-} from '@/internal/realtime/chat/chat-disconnect-grace';
+} from '@/internal/realtime/room/consultation-disconnect-grace';
 import type {
   AuthenticatedSocketIdentity,
   ExpertSocketIdentity,
@@ -22,8 +22,6 @@ import {
   joinConsultationRoom,
   leaveConsultationRoom,
   refreshVoiceToken,
-  relayMediaSignal as relayMediaSignalToRoom,
-  type MediaSignalInput,
 } from '@/internal/realtime/room/consultation-room-membership';
 import { ExpertPresenceHandler } from './handlers/expert-presence.handler';
 import { ExpertNotificationHandler } from './handlers/expert-notification.handler';
@@ -58,8 +56,8 @@ export class ExpertRealtimeService {
     identity: ExpertSocketIdentity,
   ): Promise<void> {
     // Rejoined inside the disconnect grace window — cancel the deferred
-    // session close so a refresh never ends the chat.
-    chatDisconnectGrace.cancel('expert', identity.expertId);
+    // session close so a refresh never ends the consultation.
+    consultationDisconnectGrace.cancel('expert', identity.expertId);
     const expertRoom = SOCKET_ROOMS.EXPERT(identity.expertId);
     await socket.join(expertRoom);
 
@@ -98,7 +96,7 @@ export class ExpertRealtimeService {
     // Another tab still live → not a real leave; a refresh rejoins inside
     // the grace window (cancelled on connect), so the session survives.
     if (hasLiveActorSocket(server, 'expert', identity.expertId)) return;
-    chatDisconnectGrace.arm(
+    consultationDisconnectGrace.arm(
       this.db,
       server,
       'expert',
@@ -293,14 +291,5 @@ export class ExpertRealtimeService {
       consultationId,
       identity,
     );
-  }
-
-  relayMediaSignal(
-    socket: RealtimeSocket,
-    event: string,
-    input: MediaSignalInput,
-    identity: AuthenticatedSocketIdentity,
-  ): void {
-    relayMediaSignalToRoom(socket, event, input, identity);
   }
 }

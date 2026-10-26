@@ -13,6 +13,7 @@ import { CompleteClientEmailRegistrationUseCase } from './use-cases/complete-cli
 import { ClientLoginWithEmailUseCase } from './use-cases/client-login-with-email.usecase';
 import { ClientLoginWithGoogleUseCase } from './use-cases/client-login-with-google.usecase';
 import { ClientRefreshTokenUseCase } from './use-cases/client-refresh-token.usecase';
+import { ClientLogoutUseCase } from './use-cases/client-logout.usecase';
 import { TokenCryptoService } from './services/token-crypto.service';
 import { ClientRegisteredHandler } from './services/client-registered.handler';
 import { ClientJwtStrategy } from './strategies/jwt.strategy';
@@ -21,7 +22,9 @@ import { ClientJwtRefreshStrategy } from './strategies/refresh-jwt.strategy';
 import { ClientJwtAuthGuard } from './guards/auth.guard';
 import { ClientGoogleAuthGuard } from './guards/google-auth.guard';
 import { ClientJwtRefreshAuthGuard } from './guards/refresh-auth.guard';
+import { ClientJwtLogoutAuthGuard } from './guards/logout-auth.guard';
 import { PromotionsModule } from '@/internal/promotions/promotions.module';
+import { ConsultationOrchestratorModule } from '@/internal/consultation/orchestrator/consultation-orchestrator.module';
 
 const useCases = [
   InitiateClientEmailRegistrationUseCase,
@@ -29,6 +32,7 @@ const useCases = [
   ClientLoginWithEmailUseCase,
   ClientLoginWithGoogleUseCase,
   ClientRefreshTokenUseCase,
+  ClientLogoutUseCase,
 ];
 
 @Module({
@@ -39,6 +43,7 @@ const useCases = [
     QueueModule,
     JwtModule,
     PromotionsModule,
+    ConsultationOrchestratorModule,
   ],
   controllers: [ClientAuthController],
   providers: [
@@ -52,6 +57,7 @@ const useCases = [
     ClientJwtAuthGuard,
     ClientGoogleAuthGuard,
     ClientJwtRefreshAuthGuard,
+    ClientJwtLogoutAuthGuard,
     {
       provide: IHasherToken,
       useClass: Argon2PasswordHasher,
@@ -62,6 +68,7 @@ const useCases = [
     ClientJwtAuthGuard,
     ClientGoogleAuthGuard,
     ClientJwtRefreshAuthGuard,
+    ClientJwtLogoutAuthGuard,
   ],
 })
 export class AuthModule {}

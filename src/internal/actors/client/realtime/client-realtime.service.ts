@@ -12,13 +12,11 @@ import {
   joinConsultationRoom,
   leaveConsultationRoom,
   refreshVoiceToken,
-  relayMediaSignal as relayMediaSignalToRoom,
-  type MediaSignalInput,
 } from '@/internal/realtime/room/consultation-room-membership';
 import {
-  chatDisconnectGrace,
+  consultationDisconnectGrace,
   hasLiveActorSocket,
-} from '@/internal/realtime/chat/chat-disconnect-grace';
+} from '@/internal/realtime/room/consultation-disconnect-grace';
 import type {
   AuthenticatedSocketIdentity,
   ClientSocketIdentity,
@@ -56,8 +54,8 @@ export class ClientRealtimeService {
     identity: ClientSocketIdentity,
   ): Promise<void> {
     // Rejoined inside the disconnect grace window — cancel the deferred
-    // session close so a refresh never ends the chat.
-    chatDisconnectGrace.cancel('client', identity.clientId);
+    // session close so a refresh never ends the consultation.
+    consultationDisconnectGrace.cancel('client', identity.clientId);
     const clientRoom = SOCKET_ROOMS.CLIENT(identity.clientId);
     await socket.join(clientRoom);
     this.logger.log(
@@ -76,7 +74,7 @@ export class ClientRealtimeService {
     // Another tab still live → not a real leave; a refresh rejoins inside
     // the grace window (cancelled on connect), so the session survives.
     if (hasLiveActorSocket(server, 'client', identity.clientId)) return;
-    chatDisconnectGrace.arm(
+    consultationDisconnectGrace.arm(
       this.db,
       server,
       'client',
@@ -278,14 +276,5 @@ export class ClientRealtimeService {
       consultationId,
       identity,
     );
-  }
-
-  relayMediaSignal(
-    socket: RealtimeSocket,
-    event: string,
-    input: MediaSignalInput,
-    identity: AuthenticatedSocketIdentity,
-  ): void {
-    relayMediaSignalToRoom(socket, event, input, identity);
   }
 }

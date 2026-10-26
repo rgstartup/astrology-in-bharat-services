@@ -3,19 +3,22 @@ import 'dotenv/config';
 import type { Server } from 'socket.io';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import type { RealtimeActorType } from '../types/socket-auth.types';
-import { closeActiveChatSessions } from './chat-session-settlement';
+import { closeActiveConsultationSessions } from './consultation-session-settlement';
 
 /**
- * Single source of truth for the disconnect grace window, in milliseconds.
- * A transport drop (refresh, network blip, tab close) only ends the session
- * when the actor stays gone past this window. Default 30s.
+ * Single source of truth for the consultation disconnect grace window, in milliseconds.
+ * A transport drop (refresh, network blip, tab close) only ends the active consultation
+ * session when the actor stays gone past this window. Default 30s.
  */
-export function chatDisconnectGraceMs(): number {
-  const ms = parseInt(process.env.CHAT_DISCONNECT_GRACE_MS || '30000', 10);
+export function consultationDisconnectGraceMs(): number {
+  const envVal =
+    process.env.CONSULTATION_DISCONNECT_GRACE_MS ||
+    process.env.CHAT_DISCONNECT_GRACE_MS;
+  const ms = parseInt(envVal || '30000', 10);
   return Math.max(1, ms);
 }
 
-const logger = new Logger('ChatDisconnectGrace');
+const logger = new Logger('ConsultationDisconnectGrace');
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
 
 const graceKey = (actorType: RealtimeActorType, actorId: number): string =>
@@ -38,6 +41,7 @@ function allSockets(server: Server): Iterable<unknown> {
   if (inner instanceof Map) return inner.values();
   return [];
 }
+
 /**
  * True when another socket for the same actor is still connected to this
  * instance (multi-tab). The disconnecting socket is already gone from the
@@ -60,13 +64,12 @@ export function hasLiveActorSocket(
 }
 
 /**
- * Per-actor disconnect grace timers. Armed on transport drop, cancelled on
- * reconnect — a hard refresh rejoins well inside the window, so the session
- * survives. Process-local by nature (same trade-off as the pause/request
- * timers). The deferred close is idempotent: an explicit `chat:end` in the
- * meantime leaves no ACTIVE rows, so a stray fire emits nothing.
+ * Per-actor consultation disconnect grace timers. Armed on transport drop, cancelled on
+ * reconnect — a hard refresh rejoins well inside the window, so the consultation
+ * survives. Process-local by nature. The deferred close is idempotent: an explicit
+ * consultation end in the meantime leaves no ACTIVE rows, so a stray fire emits nothing.
  */
-export const chatDisconnectGrace = {
+export const consultationDisconnectGrace = {
   /** Arm (or re-arm) the grace timer for an actor. */
   arm(
     db: DrizzleDb,
@@ -81,13 +84,13 @@ export const chatDisconnectGrace = {
       graceKey(actorType, actorId),
       setTimeout(() => {
         timers.delete(graceKey(actorType, actorId));
-        closeActiveChatSessions(db, server, filter, endedBy).catch(
+        closeActiveConsultationSessions(db, server, filter, endedBy).catch(
           (err: Error) =>
             logger.error(
-              `[ChatDisconnectGrace] Close failed for ${actorType}:${actorId}: ${err.message}`,
+              `[ConsultationDisconnectGrace] Close failed for ${actorType}:${actorId}: ${err.message}`,
             ),
         );
-      }, chatDisconnectGraceMs()),
+      }, consultationDisconnectGraceMs()),
     );
   },
 
@@ -101,3 +104,7 @@ export const chatDisconnectGrace = {
     }
   },
 };
+
+/** Backward compatibility aliases */
+export const chatDisconnectGrace = consultationDisconnectGrace;
+export const chatDisconnectGraceMs = consultationDisconnectGraceMs;

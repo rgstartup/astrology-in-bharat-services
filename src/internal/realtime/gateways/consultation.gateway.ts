@@ -23,6 +23,7 @@ import { WsAuthGuard } from '../guards/ws-auth.guard';
 import { CurrentWsAuth } from '../decorators/current-ws-auth.decorator';
 import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
 import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
+import type { ConsultationModeType } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
 import {
   joinConsultationRoom,
   leaveConsultationRoom,
@@ -34,8 +35,7 @@ import { VoiceService } from '@/external/voice';
 import { DomainError } from '@/shared/types/domain.error';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
-import type { ConsultationModeType } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
-import { REALTIME_GATEWAY_OPTIONS } from './realtime-gateway.options';
+import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 class ConsultationActionDto {
@@ -63,11 +63,11 @@ class ConsultationJoinDto extends ConsultationActionDto {
 @UseFilters(RealtimeWsExceptionFilter)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @WebSocketGateway(REALTIME_GATEWAY_OPTIONS)
-export class RealtimeConsultationGateway implements OnGatewayInit {
+export class ConsultationGateway implements OnGatewayInit {
   @WebSocketServer()
   server!: Server;
 
-  private readonly logger = new Logger(RealtimeConsultationGateway.name);
+  private readonly logger = new Logger(ConsultationGateway.name);
 
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
@@ -79,7 +79,7 @@ export class RealtimeConsultationGateway implements OnGatewayInit {
 
   afterInit() {
     this.logger.log(
-      '[RealtimeConsultationGateway] Initialized on namespace /realtime',
+      '[ConsultationGateway] Initialized on namespace /realtime',
     );
     void this.orchestrator.onServerReady(this.server);
   }

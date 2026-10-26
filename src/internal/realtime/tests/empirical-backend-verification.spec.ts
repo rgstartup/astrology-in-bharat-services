@@ -5,7 +5,7 @@ import {
   type RoomMembershipDeps,
 } from '../room/consultation-room-membership';
 import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
-import { RealtimeConsultationGateway } from '../gateways/realtime-consultation.gateway';
+import { ConsultationGateway } from '../gateways/consultation.gateway';
 import { RealtimeRoomGateway } from '../room/realtime-room.gateway';
 import { RealtimeModule } from '../realtime.module';
 import { ConsultationStatus, ConsultationSessionStatus } from '@/internal/consultation/enums';
@@ -467,14 +467,14 @@ describe('Empirical Backend Challenger Verification Suite', () => {
       );
       expect(hasRealtimeRoomGateway).toBe(false);
 
-      // Check RealtimeConsultationGateway is a registered provider
-      const hasRealtimeConsultationGateway = moduleProviders.some(
-        (p: any) => p === RealtimeConsultationGateway,
+      // Check ConsultationGateway is a registered provider
+      const hasConsultationGateway = moduleProviders.some(
+        (p: any) => p === ConsultationGateway,
       );
-      expect(hasRealtimeConsultationGateway).toBe(true);
+      expect(hasConsultationGateway).toBe(true);
     });
 
-    it('EMPIRICAL: RealtimeConsultationGateway handleVoiceToken generates token for participant when ACCEPTED or ACTIVE', async () => {
+    it('EMPIRICAL: ConsultationGateway handleVoiceToken generates token for participant when ACCEPTED or ACTIVE', async () => {
       const db = dbMock([
         [PARTICIPANT_ROW],
         [{ status: ConsultationStatus.ACCEPTED }],
@@ -486,7 +486,7 @@ describe('Empirical Backend Challenger Verification Suite', () => {
         })),
       };
 
-      const gateway = new RealtimeConsultationGateway(
+      const gateway = new ConsultationGateway(
         db as any,
         {} as any,
         {} as any,
@@ -507,14 +507,14 @@ describe('Empirical Backend Challenger Verification Suite', () => {
       expect(ack.channelName).toBe('consultation:voice:100');
     });
 
-    it('EMPIRICAL: RealtimeConsultationGateway handleVoiceToken refuses (status: ignored) when consultation is COMPLETED/CANCELLED', async () => {
+    it('EMPIRICAL: ConsultationGateway handleVoiceToken refuses (status: ignored) when consultation is COMPLETED/CANCELLED', async () => {
       const db = dbMock([
         [PARTICIPANT_ROW],
         [{ status: ConsultationStatus.COMPLETED }],
       ]);
       const voice = { generateToken: vi.fn() };
 
-      const gateway = new RealtimeConsultationGateway(
+      const gateway = new ConsultationGateway(
         db as any,
         {} as any,
         {} as any,
@@ -533,11 +533,11 @@ describe('Empirical Backend Challenger Verification Suite', () => {
       expect(voice.generateToken).not.toHaveBeenCalled();
     });
 
-    it('EMPIRICAL: RealtimeConsultationGateway handleVoiceToken refuses non-participants', async () => {
+    it('EMPIRICAL: ConsultationGateway handleVoiceToken refuses non-participants', async () => {
       const db = dbMock([[null]]); // not a participant
       const voice = { generateToken: vi.fn() };
 
-      const gateway = new RealtimeConsultationGateway(
+      const gateway = new ConsultationGateway(
         db as any,
         {} as any,
         {} as any,

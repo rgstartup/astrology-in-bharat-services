@@ -9,6 +9,7 @@ import { ClientLoginDto } from './dto/client-login.dto';
 import { ClientLoginWithEmailUseCase } from './use-cases/client-login-with-email.usecase';
 import { ClientLoginWithGoogleUseCase } from './use-cases/client-login-with-google.usecase';
 import { ClientRefreshTokenUseCase } from './use-cases/client-refresh-token.usecase';
+import { ClientLogoutUseCase } from './use-cases/client-logout.usecase';
 import { Profile } from 'passport-google-oauth20';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class ClientAuthService {
     private readonly clientLoginWithEmailUseCase: ClientLoginWithEmailUseCase,
     private readonly clientLoginWithGoogleUseCase: ClientLoginWithGoogleUseCase,
     private readonly clientRefreshTokenUseCase: ClientRefreshTokenUseCase,
+    private readonly clientLogoutUseCase: ClientLogoutUseCase,
   ) {}
 
   async initiateEmailRegistration(dto: InitiateClientRegisterDto) {
@@ -56,5 +58,19 @@ export class ClientAuthService {
 
   async refreshToken(refreshToken: string, ip?: string, userAgent?: string) {
     return this.clientRefreshTokenUseCase.execute(refreshToken, ip, userAgent);
+  }
+
+  /**
+   * Logs out the client by revoking DB session rows and terminating live consultations.
+   *
+   * @param params - Identifiers for user, client account, and session.
+   * @returns Void promise.
+   */
+  async logout(params: {
+    userId?: number;
+    clientId?: number;
+    sessionId?: string;
+  }): Promise<void> {
+    return this.clientLogoutUseCase.execute(params);
   }
 }

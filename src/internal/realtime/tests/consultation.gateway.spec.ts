@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RealtimeConsultationGateway } from '../gateways/realtime-consultation.gateway';
+import { ConsultationGateway } from '../gateways/consultation.gateway';
 import { ConsultationStatus } from '@/internal/consultation/enums';
 
 function mockDb(participant = true, status: ConsultationStatus = ConsultationStatus.ACTIVE) {
@@ -13,8 +13,8 @@ function mockDb(participant = true, status: ConsultationStatus = ConsultationSta
   return { select: vi.fn(() => ({ from })) };
 }
 
-describe('RealtimeConsultationGateway', () => {
-  let gateway: RealtimeConsultationGateway;
+describe('ConsultationGateway', () => {
+  let gateway: ConsultationGateway;
   let db: any;
   let rooms: any;
   let budget: any;
@@ -74,7 +74,7 @@ describe('RealtimeConsultationGateway', () => {
     server = { to: vi.fn(() => ({ emit })) };
     socket = { id: 'sock-1', join: vi.fn(), leave: vi.fn() };
 
-    gateway = new RealtimeConsultationGateway(
+    gateway = new ConsultationGateway(
       db,
       rooms,
       budget,
@@ -100,7 +100,7 @@ describe('RealtimeConsultationGateway', () => {
 
     it('ignores non-participants requesting voice token', async () => {
       const nonParticipantDb = mockDb(false);
-      const nonPartGateway = new RealtimeConsultationGateway(
+      const nonPartGateway = new ConsultationGateway(
         nonParticipantDb as any,
         rooms,
         budget,

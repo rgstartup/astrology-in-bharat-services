@@ -11,11 +11,12 @@ import { ConsultationRoomModule } from '@/internal/consultation/room/consultatio
 import { VoiceModule } from '@/external/voice';
 import { RealtimeChatModule } from './chat/realtime-chat.module';
 import {
-  RealtimeCallGateway,
-  RealtimeConsultationGateway,
-  RealtimeNotificationGateway,
-  RealtimePresenceGateway,
+  ChatGateway,
+  ConsultationGateway,
+  NotificationGateway,
+  PresenceGateway,
 } from './gateways';
+import { ConsultationEndedHandler } from './events/consultation-ended.handler';
 
 @Module({
   imports: [
@@ -37,11 +38,17 @@ import {
     },
     RealtimeAuthService,
     RealtimeGateway,
-    RealtimeConsultationGateway,
-    RealtimeCallGateway,
-    RealtimeNotificationGateway,
-    RealtimePresenceGateway,
+    ConsultationGateway,
+    NotificationGateway,
+    PresenceGateway,
+    ConsultationEndedHandler,
   ],
-  exports: [RealtimeGateway, RealtimeAuthService, RealtimeChatModule],
+  exports: [
+    RealtimeGateway,
+    ChatGateway,
+    ConsultationGateway,
+    RealtimeAuthService,
+    RealtimeChatModule,
+  ],
 })
 export class RealtimeModule {}

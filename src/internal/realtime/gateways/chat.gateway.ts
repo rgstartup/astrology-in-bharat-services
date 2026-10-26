@@ -7,6 +7,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import {
+  BadRequestException,
   Logger,
   UseFilters,
   UseGuards,
@@ -21,30 +22,31 @@ import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
 import {
-  CallAnswerDto,
-  CallOfferDto,
-  IceCandidateDto,
-} from '../dto/call-events.dto';
+  SendChatMessageDto,
+  TypingChatDto,
+} from '../chat/dto/chat-events.dto';
+import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
-import { REALTIME_GATEWAY_OPTIONS } from './realtime-gateway.options';
+import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
 
 @UseFilters(RealtimeWsExceptionFilter)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @WebSocketGateway(REALTIME_GATEWAY_OPTIONS)
-export class RealtimeCallGateway implements OnGatewayInit {
+export class ChatGateway implements OnGatewayInit {
   @WebSocketServer()
   server!: Server;
 
-  private readonly logger = new Logger(RealtimeCallGateway.name);
+  private readonly logger = new Logger(ChatGateway.name);
 
   constructor(
     private readonly clientRealtimeService: ClientRealtimeService,
     private readonly expertRealtimeService: ExpertRealtimeService,
+    private readonly orchestrator: ConsultationOrchestratorService,
   ) {}
 
   afterInit() {
-    this.logger.log('[RealtimeCallGateway] Initialized on namespace /realtime');
+    this.logger.log('[ChatGateway] Initialized on namespace /realtime');
   }
 
   private forActor(identity: AuthenticatedSocketIdentity) {
@@ -54,46 +56,43 @@ export class RealtimeCallGateway implements OnGatewayInit {
   }
 
   @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.MEDIA.OFFER)
-  handleCallOffer(
+  @SubscribeMessage(SOCKET_EVENTS.CHAT.SEND)
+  async handleChatSend(
     @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: CallOfferDto,
+    @MessageBody() dto: SendChatMessageDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
-    this.forActor(identity).relayMediaSignal(
+    // Guard: only allow sending messages when consultation is active
+    const status = await this.orchestrator.getStatus(dto.consultationId);
+    if (!status || status.state !== 'active') {
+      throw new BadRequestException('Consultation is not active');
+    }
+
+    return this.forActor(identity).sendChatMessage(
+      this.server,
       socket,
-      SOCKET_EVENTS.MEDIA.OFFER,
-      { consultationId: dto.consultationId, offer: dto.offer },
+      {
+        consultationId: dto.consultationId,
+        content: dto.content,
+        attachmentMediaId: dto.attachmentMediaId,
+        attachmentUrl: dto.attachmentUrl,
+        attachmentType: dto.attachmentType,
+      },
       identity,
     );
   }
 
   @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.MEDIA.ANSWER)
-  handleCallAnswer(
+  @SubscribeMessage(SOCKET_EVENTS.CHAT.TYPING)
+  handleChatTyping(
     @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: CallAnswerDto,
+    @MessageBody() dto: TypingChatDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
-    this.forActor(identity).relayMediaSignal(
+    this.forActor(identity).relayChatTyping(
       socket,
-      SOCKET_EVENTS.MEDIA.ANSWER,
-      { consultationId: dto.consultationId, answer: dto.answer },
-      identity,
-    );
-  }
-
-  @UseGuards(WsAuthGuard)
-  @SubscribeMessage(SOCKET_EVENTS.MEDIA.ICE_CANDIDATE)
-  handleCallIceCandidate(
-    @ConnectedSocket() socket: RealtimeSocket,
-    @MessageBody() dto: IceCandidateDto,
-    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
-  ) {
-    this.forActor(identity).relayMediaSignal(
-      socket,
-      SOCKET_EVENTS.MEDIA.ICE_CANDIDATE,
-      { consultationId: dto.consultationId, candidate: dto.candidate },
+      dto.consultationId,
+      dto.isTyping ?? true,
       identity,
     );
   }

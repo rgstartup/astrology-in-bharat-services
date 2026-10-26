@@ -4,31 +4,31 @@ import {
   Inject,
   Injectable,
   Logger,
-} from '@nestjs/common';
-import { createHash } from 'node:crypto';
-import { and, eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+} from "@nestjs/common";
+import { createHash } from "node:crypto";
+import { and, eq } from "drizzle-orm";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
 import {
   commonIdempotencyKeys,
   consultations,
   type NewMediaRow,
-} from '@/core/drizzledb/schema';
-import { MediaSource } from '@/internal/media/enum';
-import { StorageService } from '@/external/storage';
-import { MessageType } from '@/internal/consultation/enums';
-import { ResourceNotFoundError } from '@/shared/errors';
-import { SOCKET_EVENTS } from '../constants/socket-events.constant';
-import { SOCKET_ROOMS } from '../constants/socket-rooms.constant';
+} from "@/core/drizzledb/schema";
+import { MediaSource } from "@/internal/media/enum";
+import { StorageService } from "@/external/storage";
+import { MessageType } from "@/internal/consultation/enums";
+import { ResourceNotFoundError } from "@/shared/errors";
+import { SOCKET_EVENTS } from "../constants/socket-events.constant";
+import { SOCKET_ROOMS } from "../constants/socket-rooms.constant";
 import {
   persistChatMessage,
   resolveMessageSessionId,
   toMessageType,
-} from './chat-message-persistence';
-import { ChatAttachmentMessageError } from './chat-attachment-message.error';
-import { RealtimeChatGateway } from './realtime-chat.gateway';
+} from "./chat-message-persistence";
+import { ChatAttachmentMessageError } from "./chat-attachment-message.error";
+import { ChatGateway } from "../gateways/chat.gateway";
 
-export type ChatAttachmentActorType = 'client' | 'expert';
+export type ChatAttachmentActorType = "client" | "expert";
 
 export interface SendChatAttachmentInput {
   actorType: ChatAttachmentActorType;
@@ -54,21 +54,21 @@ export interface ChatAttachmentMessagePayload {
   sessionId?: number | null;
 }
 
-const IDEMPOTENCY_SCOPE = 'chat:attachment:send';
+const IDEMPOTENCY_SCOPE = "chat:attachment:send";
 const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 
 /** Textless attachment sends keep the real sender; content falls back. */
-const DEFAULT_ATTACHMENT_CONTENT = 'sent an attachment';
+const DEFAULT_ATTACHMENT_CONTENT = "sent an attachment";
 
 /** Composer limit — mirrors the client mime/size guard. */
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
 
 const ALLOWED_MIME_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/avif',
-  'application/pdf',
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "application/pdf",
 ];
 
 /**
@@ -86,7 +86,7 @@ export class ChatAttachmentMessageService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly storage: StorageService,
-    private readonly chatGateway: RealtimeChatGateway,
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   async sendWithAttachment(
@@ -97,7 +97,7 @@ export class ChatAttachmentMessageService {
     const key = input.idempotencyKey?.trim() || null;
     const file = input.file;
 
-    const requestHash = createHash('sha256')
+    const requestHash = createHash("sha256")
       .update(
         JSON.stringify({
           consultationId,
@@ -107,7 +107,7 @@ export class ChatAttachmentMessageService {
           mime: file?.mimetype,
         }),
       )
-      .digest('hex');
+      .digest("hex");
 
     if (key) {
       const replay = await this.claimKey(actorType, actorId, key, requestHash);
@@ -124,18 +124,18 @@ export class ChatAttachmentMessageService {
         .where(eq(consultations.id, consultationId))
         .limit(1);
       const isParticipant =
-        actorType === 'expert'
+        actorType === "expert"
           ? consultation?.expert_id === actorId
           : consultation?.client_id === actorId;
       if (!isParticipant) {
         throw new ResourceNotFoundError(
-          'Consultation',
+          "Consultation",
           consultationId.toString(),
         );
       }
 
       if (!file) {
-        throw new ChatAttachmentMessageError('No file uploaded.');
+        throw new ChatAttachmentMessageError("No file uploaded.");
       }
       if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
         throw new ChatAttachmentMessageError(
@@ -144,7 +144,7 @@ export class ChatAttachmentMessageService {
       }
       if (file.size > MAX_ATTACHMENT_BYTES) {
         throw new ChatAttachmentMessageError(
-          'File size must be less than 50MB.',
+          "File size must be less than 50MB.",
         );
       }
 
@@ -164,23 +164,23 @@ export class ChatAttachmentMessageService {
         });
       } catch {
         throw new ChatAttachmentMessageError(
-          'File upload failed. Please try again.',
+          "File upload failed. Please try again.",
         );
       }
       if (!uploaded.secureUrl) {
         throw new ChatAttachmentMessageError(
-          'File upload did not return a valid file. Please try again.',
+          "File upload did not return a valid file. Please try again.",
         );
       }
 
       const mimeType = uploaded.mimeType || file.mimetype;
       const messageType = toMessageType(
-        mimeType.startsWith('image/') ? 'image' : 'file',
+        mimeType.startsWith("image/") ? "image" : "file",
       );
       const mediaInsert: NewMediaRow = {
         url: uploaded.secureUrl,
         source:
-          uploaded.provider === 'local'
+          uploaded.provider === "local"
             ? MediaSource.LOCAL
             : MediaSource.CLOUDINARY,
         public_id: uploaded.key,
@@ -221,8 +221,8 @@ export class ChatAttachmentMessageService {
         await this.db
           .update(commonIdempotencyKeys)
           .set({
-            status: 'completed',
-            resourceType: 'consultation_message',
+            status: "completed",
+            resourceType: "consultation_message",
             resourceId: persisted.id,
             responseStatus: 201,
             responseBody: payload as unknown as Record<string, unknown>,
@@ -241,14 +241,14 @@ export class ChatAttachmentMessageService {
       if (key) {
         await this.db
           .update(commonIdempotencyKeys)
-          .set({ status: 'failed' })
+          .set({ status: "failed" })
           .where(
             and(
               eq(commonIdempotencyKeys.actorType, actorType),
               eq(commonIdempotencyKeys.actorId, actorId),
               eq(commonIdempotencyKeys.scope, IDEMPOTENCY_SCOPE),
               eq(commonIdempotencyKeys.idempotencyKey, key),
-              eq(commonIdempotencyKeys.status, 'processing'),
+              eq(commonIdempotencyKeys.status, "processing"),
             ),
           );
       }
@@ -276,7 +276,7 @@ export class ChatAttachmentMessageService {
         scope: IDEMPOTENCY_SCOPE,
         idempotencyKey: key,
         requestHash,
-        status: 'processing',
+        status: "processing",
         expiresAt: new Date(Date.now() + IDEMPOTENCY_TTL_MS),
       })
       .onConflictDoNothing({
@@ -302,39 +302,43 @@ export class ChatAttachmentMessageService {
         ),
       )
       .limit(1);
+
     if (!existing) {
       throw new ConflictException(
-        'Attachment send is already in progress. Please retry.',
+        "Attachment send is already in progress. Please retry.",
       );
     }
+
     if (existing.requestHash !== requestHash) {
       throw new BadRequestException(
-        'Idempotency key was already used with a different attachment.',
+        "Idempotency key was already used with a different attachment.",
       );
     }
+
     if (
-      existing.status === 'completed' &&
+      existing.status === "completed" &&
       existing.responseBody !== null &&
-      typeof existing.responseBody === 'object'
+      typeof existing.responseBody === "object"
     ) {
       this.logger.debug(
         `Idempotency replay for ${actorType}:${actorId} key ${key}.`,
       );
       return existing.responseBody as unknown as ChatAttachmentMessagePayload;
     }
-    if (existing.status === 'processing') {
+    if (existing.status === "processing") {
       throw new ConflictException(
-        'Attachment send is already in progress. Please retry.',
+        "Attachment send is already in progress. Please retry.",
       );
     }
     await this.db
       .update(commonIdempotencyKeys)
       .set({
-        status: 'processing',
+        status: "processing",
         requestHash,
         expiresAt: new Date(Date.now() + IDEMPOTENCY_TTL_MS),
       })
       .where(eq(commonIdempotencyKeys.id, existing.id));
+
     return null;
   }
 }

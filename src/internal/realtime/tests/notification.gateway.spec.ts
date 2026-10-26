@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RealtimeNotificationGateway } from '../gateways/realtime-notification.gateway';
+import { NotificationGateway } from '../gateways/notification.gateway';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
 
@@ -14,8 +14,8 @@ function actorServiceMock() {
   };
 }
 
-describe('RealtimeNotificationGateway', () => {
-  let gateway: RealtimeNotificationGateway;
+describe('NotificationGateway', () => {
+  let gateway: NotificationGateway;
   let mockClientRealtimeService: ReturnType<typeof actorServiceMock>;
   let mockExpertRealtimeService: ReturnType<typeof actorServiceMock>;
 
@@ -36,7 +36,7 @@ describe('RealtimeNotificationGateway', () => {
     mockClientRealtimeService = actorServiceMock();
     mockExpertRealtimeService = actorServiceMock();
 
-    gateway = new RealtimeNotificationGateway(
+    gateway = new NotificationGateway(
       mockClientRealtimeService as unknown as ClientRealtimeService,
       mockExpertRealtimeService as unknown as ExpertRealtimeService,
     );

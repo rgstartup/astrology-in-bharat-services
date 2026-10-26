@@ -3,13 +3,11 @@ import { ExpertRealtimeService } from '../expert-realtime.service';
 import {
   joinConsultationRoom,
   leaveConsultationRoom,
-  relayMediaSignal,
 } from '@/internal/realtime/room/consultation-room-membership';
 
 vi.mock('@/internal/realtime/room/consultation-room-membership', () => ({
   joinConsultationRoom: vi.fn(),
   leaveConsultationRoom: vi.fn(),
-  relayMediaSignal: vi.fn(),
 }));
 
 function handlerMock(methods: string[]) {
@@ -157,17 +155,6 @@ describe('ExpertRealtimeService (delegates to domain handlers)', () => {
     expect(orchestrator.mediaReady).toHaveBeenCalledWith(
       server,
       100,
-      identity,
-    );
-  });
-
-  it('relays media signals through the shared membership', () => {
-    const signal = { consultationId: 100, offer: { sdp: 'o' } };
-    service.relayMediaSignal(socket, 'consultation:media:offer', signal, identity);
-    expect(relayMediaSignal).toHaveBeenCalledWith(
-      socket,
-      'consultation:media:offer',
-      signal,
       identity,
     );
   });

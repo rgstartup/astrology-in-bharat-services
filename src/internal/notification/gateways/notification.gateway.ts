@@ -8,7 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { NotificationType } from '../entities/notification.entity';
-import { REALTIME_CORS_OPTIONS } from '../../realtime/gateways/realtime-gateway.options';
+import { REALTIME_CORS_OPTIONS } from '../../realtime/gateways/gateway.options';
 
 @WebSocketGateway({
   cors: REALTIME_CORS_OPTIONS,

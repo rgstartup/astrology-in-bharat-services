@@ -15,7 +15,7 @@ import {
   type ConsultationAckStatus,
 } from '@/internal/realtime/constants/consultation-ack-status.constant';
 import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
-import { isChatParticipant } from '@/internal/realtime/chat/chat-room-access';
+import { isConsultationParticipant } from '@/internal/realtime/room/consultation-room-access';
 import type { AuthenticatedSocketIdentity } from '@/internal/realtime/types/socket-auth.types';
 import type { RealtimeSocket } from '@/internal/realtime/types/socket-data.types';
 
@@ -67,7 +67,7 @@ export class ExpertChatHandler {
     status: ConsultationAckStatus;
     message: Record<string, unknown>;
   }> {
-    if (!(await isChatParticipant(this.db, input.consultationId, identity))) {
+    if (!(await isConsultationParticipant(this.db, input.consultationId, identity))) {
       return { status: CONSULTATION_ACK_STATUS.IGNORED, message: {} };
     }
     const room = SOCKET_ROOMS.CONSULTATION(input.consultationId);
