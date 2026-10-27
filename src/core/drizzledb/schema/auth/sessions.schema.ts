@@ -22,6 +22,9 @@ export const sessions = authSchema.table('sessions', {
   id: uuid('id')
     .primaryKey()
     .$defaultFn(() => uuidv7()),
+  family_id: uuid('family_id')
+    .notNull()
+    .$defaultFn(() => uuidv7()),
   secret_hash: text('secret_hash').notNull(),
   type: text('type')
     .notNull()
@@ -32,6 +35,7 @@ export const sessions = authSchema.table('sessions', {
     .references(() => users.id, { onDelete: 'cascade' }),
   expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
   revoked: boolean('revoked').notNull().default(false),
+  revoked_at: timestamp('revoked_at', { withTimezone: true }),
   ip_address: varchar('ip_address', { length: 100 }),
   user_agent: text('user_agent'),
   created_at: timestamp('created_at', { withTimezone: true })

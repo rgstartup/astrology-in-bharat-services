@@ -38,7 +38,11 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
       'acknowledgeNotificationRead',
     ]);
     chat = handlerMock(['sendChatMessage', 'relayChatTyping']);
-    db = {};
+    db = {
+      select: vi.fn(() => ({
+        from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
+      })),
+    };
     rooms = {};
     budget = {};
     orchestrator = {};
@@ -130,7 +134,8 @@ describe('ClientRealtimeService (delegates to domain handlers)', () => {
   });
 
   it('joins the client room on connect without touching handlers', async () => {
-    await service.handleClientConnect(socket, identity);
+    const server: any = {};
+    await service.handleClientConnect(socket, identity, server);
     expect(socket.join).toHaveBeenCalledWith('client:10');
   });
 });

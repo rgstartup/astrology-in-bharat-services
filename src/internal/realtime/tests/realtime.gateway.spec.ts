@@ -86,7 +86,7 @@ describe('RealtimeGateway (lifecycle only, /realtime namespace)', () => {
       expect(mockSocket.data.auth).toEqual(clientIdentity);
       expect(
         mockClientRealtimeService.handleClientConnect,
-      ).toHaveBeenCalledWith(mockSocket, clientIdentity);
+      ).toHaveBeenCalledWith(mockSocket, clientIdentity, gateway.server);
     });
 
     it('authenticates expert token and routes to expert service', async () => {
@@ -109,7 +109,7 @@ describe('RealtimeGateway (lifecycle only, /realtime namespace)', () => {
       expect(mockSocket.data.auth).toEqual(expertIdentity);
       expect(
         mockExpertRealtimeService.handleExpertConnect,
-      ).toHaveBeenCalledWith(mockSocket, expertIdentity);
+      ).toHaveBeenCalledWith(mockSocket, expertIdentity, gateway.server);
     });
 
     it('handles invalid token by clearing auth data', async () => {

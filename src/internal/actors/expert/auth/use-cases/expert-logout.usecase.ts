@@ -1,11 +1,15 @@
-import { Inject, Injectable, Optional } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { consultations, expertAccounts, sessions } from '@/core/drizzledb/schema';
-import { AvailabilityMode } from '@/core/enums/availability-mode.enum';
-import { ConsultationStatus } from '@/internal/consultation/enums';
-import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
+import { Inject, Injectable, Optional } from "@nestjs/common";
+import { and, eq, inArray } from "drizzle-orm";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import {
+  consultations,
+  expertAccounts,
+  sessions,
+} from "@/core/drizzledb/schema";
+import { AvailabilityMode } from "@/core/enums/availability-mode.enum";
+import { ConsultationStatus } from "@/internal/consultation/enums";
+import { ConsultationOrchestratorService } from "@/internal/consultation/orchestrator/consultation-orchestrator.service";
 
 /**
  * Executes expert logout by revoking authentication sessions in Drizzle,
@@ -57,35 +61,39 @@ export class ExpertLogoutUseCase {
         .set({ availability_mode: AvailabilityMode.UNAVAILABLE })
         .where(eq(expertAccounts.id, expertId));
 
-      if (this.consultationOrchestrator) {
-        const [activeConsultation] = await this.db
-          .select({ id: consultations.id })
-          .from(consultations)
-          .where(
-            and(
-              eq(consultations.expert_id, expertId),
-              inArray(consultations.status, [
-                ConsultationStatus.ACTIVE,
-                ConsultationStatus.ACCEPTED,
-                ConsultationStatus.REQUESTED,
-              ]),
-            ),
-          )
-          .limit(1);
+      await this.findAndCloseActiveConsultation(expertId);
+    }
+  }
 
-        if (activeConsultation) {
-          try {
-            await this.consultationOrchestrator.end(null, {
-              consultationId: activeConsultation.id,
-              actorId: expertId,
-              actorType: 'expert',
-              reason: 'expert_logout',
-            });
-          } catch {
-            // Teardown errors should never fail logout
-          }
-        }
-      }
+  private async findAndCloseActiveConsultation(expertId: number) {
+    if (!this.consultationOrchestrator) return;
+
+    const [activeConsultation] = await this.db
+      .select({ id: consultations.id })
+      .from(consultations)
+      .where(
+        and(
+          eq(consultations.expert_id, expertId),
+          inArray(consultations.status, [
+            ConsultationStatus.ACTIVE,
+            ConsultationStatus.ACCEPTED,
+            ConsultationStatus.REQUESTED,
+          ]),
+        ),
+      )
+      .limit(1);
+
+    if (!activeConsultation) return;
+
+    try {
+      await this.consultationOrchestrator.end(null, {
+        consultationId: activeConsultation.id,
+        actorId: expertId,
+        actorType: "expert",
+        reason: "expert_logout",
+      });
+    } catch {
+      // Teardown errors should never fail logout
     }
   }
 }

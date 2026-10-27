@@ -12,6 +12,7 @@ import { ExpertJwtLogoutAuthGuard } from './guards/logout-auth.guard';
 import { ExpertJwtStrategy } from './strategies/jwt.strategy';
 import { ExpertJwtRefreshStrategy } from './strategies/refresh-jwt.strategy';
 import { ExpertTokenCryptoService } from './services/token-crypto.service';
+import { RefreshTokenCacheService } from '@/internal/auth/services/refresh-token-cache.service';
 import { ExpertRegisteredHandler } from './services/expert-registered.handler';
 import { ExpertGoogleStrategy } from './strategies/google-auth.strategy';
 import { ExpertGoogleAuthGuard } from './guards/google-auth.guard';
@@ -46,6 +47,7 @@ const usecases = [
     ...usecases,
     ExpertAuthService,
     ExpertTokenCryptoService,
+    RefreshTokenCacheService,
     ExpertRegisteredHandler,
     ExpertJwtStrategy,
     ExpertJwtRefreshStrategy,

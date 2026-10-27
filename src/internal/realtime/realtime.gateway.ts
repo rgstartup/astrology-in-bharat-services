@@ -60,9 +60,9 @@ export class RealtimeGateway
     socket.data.auth = identity;
 
     if (identity.actorType === 'client') {
-      await this.clientRealtimeService.handleClientConnect(socket, identity);
+      await this.clientRealtimeService.handleClientConnect(socket, identity, this.server);
     } else if (identity.actorType === 'expert') {
-      await this.expertRealtimeService.handleExpertConnect(socket, identity);
+      await this.expertRealtimeService.handleExpertConnect(socket, identity, this.server);
     }
 
     this.logger.log(

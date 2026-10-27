@@ -141,6 +141,13 @@
       "when": 1793050000000,
       "tag": "0019_promotions_free_minutes",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793100000000,
+      "tag": "0020_sessions_family_id_revoked_at",
+      "breakpoints": true
     }
   ]
 }

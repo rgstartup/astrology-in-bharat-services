@@ -105,15 +105,12 @@ export class ExpertAuthController {
   @Get("logout")
   @Post("logout")
   @UseGuards(ExpertJwtLogoutAuthGuard)
-  async logout(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const user = (req as unknown as Record<string, unknown>)["user"] as
-      | { id?: number; user_id?: number }
-      | undefined;
+      { id?: number; user_id?: number } | undefined;
 
-    const cookies = req.cookies as Record<string, string | undefined> | undefined;
+    const cookies = req.cookies as
+      Record<string, string | undefined> | undefined;
     const refreshToken = cookies?.refreshToken;
     const sessionId = refreshToken?.split(".")[0];
 

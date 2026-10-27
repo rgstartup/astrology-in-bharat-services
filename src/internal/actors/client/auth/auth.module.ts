@@ -15,6 +15,7 @@ import { ClientLoginWithGoogleUseCase } from './use-cases/client-login-with-goog
 import { ClientRefreshTokenUseCase } from './use-cases/client-refresh-token.usecase';
 import { ClientLogoutUseCase } from './use-cases/client-logout.usecase';
 import { TokenCryptoService } from './services/token-crypto.service';
+import { RefreshTokenCacheService } from '@/internal/auth/services/refresh-token-cache.service';
 import { ClientRegisteredHandler } from './services/client-registered.handler';
 import { ClientJwtStrategy } from './strategies/jwt.strategy';
 import { ClientGoogleStrategy } from './strategies/google-auth.strategy';
@@ -50,6 +51,7 @@ const useCases = [
     ClientAuthService,
     ...useCases,
     TokenCryptoService,
+    RefreshTokenCacheService,
     ClientRegisteredHandler,
     ClientJwtStrategy,
     ClientGoogleStrategy,

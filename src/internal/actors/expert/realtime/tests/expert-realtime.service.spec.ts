@@ -77,7 +77,8 @@ describe('ExpertRealtimeService (delegates to domain handlers)', () => {
   });
 
   it('joins the expert room and registers presence on connect', async () => {
-    await service.handleExpertConnect(socket, identity);
+    const server: any = {};
+    await service.handleExpertConnect(socket, identity, server);
     expect(socket.join).toHaveBeenCalledWith('expert:42');
     expect(presence.registerConnection).toHaveBeenCalledWith(42, 's1');
   });

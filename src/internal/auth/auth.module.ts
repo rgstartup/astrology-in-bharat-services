@@ -26,6 +26,7 @@ import { MerchantRegisterUserUseCase } from './use-cases/merchant-register-user.
 import { Argon2PasswordHasher } from './hashing/argon2-password.hasher';
 import { IssueAuthTokensUseCase } from './use-cases/issue-auth-tokens.usecase';
 import { TokenCryptoService } from './tokens/token-crypto.service';
+import { RefreshTokenCacheService } from './services/refresh-token-cache.service';
 import { SessionRepository } from './repositories/session.repository';
 import { UserRegisteredHandler } from './event-handlers/user-registered.handler';
 import { LoginWithGoogleUseCase } from './use-cases/login-with-google.usecase';
@@ -173,10 +174,12 @@ const handlers = [
     },
     AuthPolicy,
     TokenCryptoService,
+    RefreshTokenCacheService,
     SessionRepository,
     AuthTokenService,
     JwtLogoutAuthGuard,
   ],
+  exports: [RefreshTokenCacheService],
   controllers: [AuthController, MerchantAuthController],
 })
 export class AuthModule {}

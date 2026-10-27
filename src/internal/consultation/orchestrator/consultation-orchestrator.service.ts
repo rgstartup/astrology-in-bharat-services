@@ -390,7 +390,7 @@ export class ConsultationOrchestratorService {
       });
   }
 
-  private cancelBudgetTimer(consultationId: number) {
+  cancelBudgetTimer(consultationId: number) {
     const timer = this.budgetTimers.get(consultationId);
     if (timer) {
       clearTimeout(timer);

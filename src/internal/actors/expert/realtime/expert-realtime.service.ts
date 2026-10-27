@@ -1,7 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Server } from 'socket.io';
+import { and, eq } from 'drizzle-orm';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { consultations } from '@/core/drizzledb/schema';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import {
   consultationDisconnectGrace,
@@ -13,6 +15,7 @@ import type {
 } from '@/internal/realtime/types/socket-auth.types';
 import type { RealtimeSocket } from '@/internal/realtime/types/socket-data.types';
 import type { ConsultationModeType } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
+import { toConsultationModeType } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
 import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
 import { ResolveConsultationBudgetUseCase } from '@/internal/consultation/room/resolve-consultation-budget.use-case';
 import { MarkConsultationSessionStartedUseCase } from '@/internal/consultation/room/mark-consultation-session-started.use-case';
@@ -26,6 +29,7 @@ import {
 import { ExpertPresenceHandler } from './handlers/expert-presence.handler';
 import { ExpertNotificationHandler } from './handlers/expert-notification.handler';
 import { ExpertChatHandler } from './handlers/expert-chat.handler';
+import { ConsultationStatus } from '@/internal/consultation/enums';
 
 interface ChatMessageInput {
   consultationId: number;
@@ -54,10 +58,17 @@ export class ExpertRealtimeService {
   async handleExpertConnect(
     socket: RealtimeSocket,
     identity: ExpertSocketIdentity,
+    server: Server,
   ): Promise<void> {
     // Rejoined inside the disconnect grace window — cancel the deferred
     // session close so a refresh never ends the consultation.
     consultationDisconnectGrace.cancel('expert', identity.expertId);
+
+    // Resume billing on any consultation that was ACTIVE when the socket
+    // dropped. The timer was paused on disconnect; re-arming it continues
+    // from the frozen elapsed time via calculateAffordability.
+    await this.resumeActiveConsultationTimers(server, identity.expertId);
+
     const expertRoom = SOCKET_ROOMS.EXPERT(identity.expertId);
     await socket.join(expertRoom);
 
@@ -96,6 +107,12 @@ export class ExpertRealtimeService {
     // Another tab still live → not a real leave; a refresh rejoins inside
     // the grace window (cancelled on connect), so the session survives.
     if (hasLiveActorSocket(server, 'expert', identity.expertId)) return;
+
+    // Pause billing on any ACTIVE consultation this expert is in. The timer
+    // is cancelled (not destroyed) so disconnect time is not charged; resume
+    // re-arms it from the frozen elapsed time when the expert reconnects.
+    await this.pauseActiveConsultationTimers(identity.expertId);
+
     consultationDisconnectGrace.arm(
       this.db,
       server,
@@ -291,5 +308,55 @@ export class ExpertRealtimeService {
       consultationId,
       identity,
     );
+  }
+
+  /**
+   * Cancel the budget timer on every ACTIVE consultation this expert is
+   * participating in. Called on socket disconnect so disconnect time is
+   * not billed. The timer is cancelled (not destroyed) — reconnect
+   * re-arms it from the frozen elapsed time.
+   */
+  private async pauseActiveConsultationTimers(
+    expertId: number,
+  ): Promise<void> {
+    const active = await this.db
+      .select({ id: consultations.id })
+      .from(consultations)
+      .where(
+        and(
+          eq(consultations.expert_id, expertId),
+          eq(consultations.status, ConsultationStatus.ACTIVE),
+        ),
+      );
+    for (const row of active) {
+      this.orchestrator.cancelBudgetTimer(row.id);
+    }
+  }
+
+  /**
+   * Re-arm the budget timer on every ACTIVE consultation this expert is
+   * participating in. Called on reconnect inside the grace window to
+   * resume billing from the frozen elapsed time.
+   */
+  private async resumeActiveConsultationTimers(
+    server: Server,
+    expertId: number,
+  ): Promise<void> {
+    const active = await this.db
+      .select({ id: consultations.id, mode: consultations.mode })
+      .from(consultations)
+      .where(
+        and(
+          eq(consultations.expert_id, expertId),
+          eq(consultations.status, ConsultationStatus.ACTIVE),
+        ),
+      );
+    for (const row of active) {
+      this.orchestrator.armBudgetTimer(
+        server,
+        row.id,
+        toConsultationModeType(row.mode),
+      );
+    }
   }
 }

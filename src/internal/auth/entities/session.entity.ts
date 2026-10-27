@@ -17,6 +17,9 @@ export class Session {
   @UuidPrimaryKeyColumn()
   id!: string;
 
+  @Column({ type: 'uuid' })
+  family_id!: string;
+
   // hashed refresh token (or session secret)
   @Column({ type: 'text' })
   secret_hash!: string;
@@ -34,6 +37,9 @@ export class Session {
 
   @Column({ type: 'bool', default: false })
   revoked!: boolean;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  revoked_at!: Date | null;
 
   @Column({ type: 'character varying', length: 100, nullable: true })
   ip_address!: string | null;

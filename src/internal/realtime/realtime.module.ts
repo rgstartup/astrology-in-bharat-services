@@ -11,7 +11,6 @@ import { ConsultationRoomModule } from '@/internal/consultation/room/consultatio
 import { VoiceModule } from '@/external/voice';
 import { RealtimeChatModule } from './chat/realtime-chat.module';
 import {
-  ChatGateway,
   ConsultationGateway,
   NotificationGateway,
   PresenceGateway,
@@ -45,7 +44,6 @@ import { ConsultationEndedHandler } from './events/consultation-ended.handler';
   ],
   exports: [
     RealtimeGateway,
-    ChatGateway,
     ConsultationGateway,
     RealtimeAuthService,
     RealtimeChatModule,
