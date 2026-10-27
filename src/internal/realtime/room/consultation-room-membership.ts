@@ -8,9 +8,11 @@ import {
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import {
   toConsultationModeEnum,
+  toConsultationModeType,
   type ConsultationModeType,
 } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
 import {
+  getConsultationLifecycle,
   getConsultationStatus,
   isConsultationParticipant,
   resolveConsultationClientName,
@@ -146,7 +148,16 @@ export async function joinConsultationRoom(
     `Actor ${identity.actorType}:${identity.id} joined consultation room ${room} (socket: ${socket.id}, mode: ${mode})`,
   );
 
-  const initialStatus = await getConsultationStatus(db, consultationId);
+  const lifecycle = await getConsultationLifecycle(db, consultationId);
+  const initialStatus = lifecycle?.status ?? null;
+  const authoritativeMode = lifecycle?.mode
+    ? toConsultationModeType(lifecycle.mode)
+    : mode;
+  // If the consultation is already ACTIVE, retain authoritative mode from DB so
+  // background joins or re-joins cannot accidentally downgrade a voice call to chat.
+  const effectiveMode =
+    initialStatus === ConsultationStatus.ACTIVE ? authoritativeMode : mode;
+
   let effectiveStatus = initialStatus;
   if (initialStatus === ConsultationStatus.ACCEPTED) {
     if (mode === 'chat') {
@@ -163,12 +174,12 @@ export async function joinConsultationRoom(
     // Voice/video: the session opens on the second `consultation:media_ready`
     // report, so a client waiting alone in the lobby is never billed.
   } else if (initialStatus === ConsultationStatus.ACTIVE) {
-    orchestrator.armBudgetTimer(server, consultationId, mode);
+    orchestrator.armBudgetTimer(server, consultationId, effectiveMode);
   }
 
-  // Meter at the joined mode's rate: record before reading the budget.
+  // Meter at the effective mode's rate: record before reading the budget.
   await rooms
-    .setActiveMode(consultationId, toConsultationModeEnum(mode))
+    .setActiveMode(consultationId, toConsultationModeEnum(effectiveMode))
     .catch(() => null);
   const liveBudget = await budget.execute(consultationId).catch(() => null);
   const clientName = await resolveConsultationClientName(db, consultationId).catch(
@@ -178,7 +189,7 @@ export async function joinConsultationRoom(
   return {
     status: CONSULTATION_ACK_STATUS.JOINED,
     consultationId,
-    mode,
+    mode: effectiveMode,
     consultationStatus: effectiveStatus,
     ...(liveBudget
       ? {
@@ -188,7 +199,7 @@ export async function joinConsultationRoom(
         }
       : {}),
     ...(clientName ? { clientName } : {}),
-    ...(mode === 'chat'
+    ...(effectiveMode === 'chat'
       ? {}
       : await issueVoiceToken(deps.voice, consultationId, identity)),
   };

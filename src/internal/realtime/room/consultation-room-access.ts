@@ -31,6 +31,32 @@ export async function isConsultationParticipant(
     : row.client_id === identity.id;
 }
 
+export interface ConsultationLifecycleRecord {
+  status: string;
+  mode: string;
+}
+
+/**
+ * Authoritative consultation lifecycle record for `consultation:join` acks,
+ * allowing clients or experts reconnecting after state changes to receive
+ * current server status and mode.
+ *
+ * @param db - Drizzle database instance.
+ * @param consultationId - Primary key of the consultation.
+ * @returns Status and mode record or null.
+ */
+export async function getConsultationLifecycle(
+  db: DrizzleDb,
+  consultationId: number,
+): Promise<ConsultationLifecycleRecord | null> {
+  const [row] = await db
+    .select({ status: consultations.status, mode: consultations.mode })
+    .from(consultations)
+    .where(eq(consultations.id, consultationId))
+    .limit(1);
+  return row ? { status: row.status, mode: row.mode } : null;
+}
+
 /**
  * Authoritative consultation lifecycle status for `consultation:join` acks,
  * allowing clients or experts reconnecting after state changes to receive
@@ -44,11 +70,7 @@ export async function getConsultationStatus(
   db: DrizzleDb,
   consultationId: number,
 ): Promise<string | null> {
-  const [row] = await db
-    .select({ status: consultations.status })
-    .from(consultations)
-    .where(eq(consultations.id, consultationId))
-    .limit(1);
+  const row = await getConsultationLifecycle(db, consultationId);
   return row?.status ?? null;
 }
 
