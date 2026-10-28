@@ -26,7 +26,10 @@ function depsMock(_participant: { client_id: number; expert_id: number }) {
   };
   const orchestrator = {
     armBudgetTimer: vi.fn(),
-    start: vi.fn(async () => ({})),
+    start: vi.fn(async (_s: any, _cmd: any, _arm?: boolean) => ({})),
+    recordJoin: vi.fn(
+      async (_s: any, _cid: number, _at: any, _aid: number) => false,
+    ),
   };
   const markStarted = { execute: vi.fn(async () => null) };
   const voice = {
@@ -160,6 +163,7 @@ describe('joinConsultationRoom', () => {
     const db = dbMock([
       [PARTICIPANT],
       [{ status: 'accepted' }],
+      [{ clientId: 10, expertId: 42, mode: 'chat' }],
       [{ accountName: 'C' }],
     ]);
     const { rooms, budget, orchestrator, markStarted, voice } =
@@ -175,19 +179,64 @@ describe('joinConsultationRoom', () => {
       CLIENT as any,
     );
 
+    // Both-joined gate: a single chat join no longer starts billing.
+    expect(orchestrator.recordJoin).toHaveBeenCalledWith(
+      server,
+      100,
+      'client',
+      10,
+    );
+    expect(orchestrator.start).not.toHaveBeenCalled();
+    expect(ack.status).toBe('joined');
+    expect(ack.consultationStatus).toBe('accepted');
+  });
+
+  it('starts billing when both sides have joined (both-joined gate)', async () => {
+    const db = dbMock([
+      [PARTICIPANT],
+      [{ status: 'accepted' }],
+      [{ clientId: 10, expertId: 42, mode: 'chat' }],
+      [{ accountName: 'C' }],
+    ]);
+    const { rooms, budget, orchestrator, markStarted, voice } =
+      depsMock(PARTICIPANT);
+    vi.mocked(orchestrator.recordJoin).mockImplementation(
+      async (s: any, cid: number, at: 'client' | 'expert', aid: number) => {
+        orchestrator.start(s, { consultationId: cid, actorId: aid, actorType: at }, true);
+        return true;
+      },
+    );
+    const deps = { db, rooms, budget, orchestrator, markStarted, voice } as unknown as RoomMembershipDeps;
+
+    const ack = await joinConsultationRoom(
+      deps,
+      server,
+      socket,
+      100,
+      'chat',
+      CLIENT as any,
+    );
+
+    expect(orchestrator.recordJoin).toHaveBeenCalledWith(
+      server,
+      100,
+      'client',
+      10,
+    );
     expect(orchestrator.start).toHaveBeenCalledWith(server, {
       consultationId: 100,
       actorId: 10,
       actorType: 'client',
-    });
+    }, true);
     expect(ack.status).toBe('joined');
     expect(ack.consultationStatus).toBe('active');
   });
 
-  it('starts billing on the first expert join from accepted', async () => {
+  it('defers billing on the first expert join from accepted', async () => {
     const db = dbMock([
       [PARTICIPANT],
       [{ status: 'accepted' }],
+      [{ clientId: 10, expertId: 42, mode: 'chat' }],
       [{ accountName: 'C' }],
     ]);
     const { rooms, budget, orchestrator, markStarted, voice } =
@@ -196,13 +245,16 @@ describe('joinConsultationRoom', () => {
 
     const ack = await joinConsultationRoom(deps, server, socket, 100, 'chat', EXPERT as any);
 
-    expect(orchestrator.start).toHaveBeenCalledWith(server, {
-      consultationId: 100,
-      actorId: 42,
-      actorType: 'expert',
-    });
+    // Both-joined gate: a single expert join does not start billing yet.
+    expect(orchestrator.recordJoin).toHaveBeenCalledWith(
+      server,
+      100,
+      'expert',
+      42,
+    );
+    expect(orchestrator.start).not.toHaveBeenCalled();
     expect(ack.status).toBe('joined');
-    expect(ack.consultationStatus).toBe('active');
+    expect(ack.consultationStatus).toBe('accepted');
   });
 
   it('is idempotent on subsequent joins when already active', async () => {

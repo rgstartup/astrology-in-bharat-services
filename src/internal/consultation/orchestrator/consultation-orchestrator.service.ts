@@ -95,12 +95,70 @@ export class ConsultationOrchestratorService {
     return this.closeUseCase.execute(server, command);
   }
 
-  async start(server: Server, command: StartConsultationCommand) {
+  async start(server: Server, command: StartConsultationCommand, armBudgetTimer = true) {
     const result = await this.startUseCase.execute(server, command);
-    if (result.payload.state === 'active') {
+    if (result.payload.state === 'active' && armBudgetTimer) {
       this.armBudgetTimer(server, command.consultationId, result.payload.mode);
     }
     return result;
+  }
+
+  /**
+   * Records that a participant has joined the consultation socket room. When
+   * both client and expert are present, flips ACCEPTED -> ACTIVE and anchors
+   * startedAt so the room timer starts live without a page refresh.
+   *
+   * Chat bills from both-joined; voice/video bills from both media_ready, so
+   * voice/video starts with the budget timer disarmed (armed later by
+   * `mediaReady` once both sides report Agora readiness).
+   *
+   * @param server - Authoritative Socket.IO server.
+   * @param consultationId - Consultation being joined.
+   * @param actorType - Joining side (`client` | `expert`).
+   * @param actorId - Joining side's ID.
+   * @returns True when this join completed the both-joined gate.
+   * @throws Propagates database, Redis, or consultation-start errors.
+   */
+  async recordJoin(
+    server: Server,
+    consultationId: number,
+    actorType: 'client' | 'expert',
+    actorId: number,
+  ): Promise<boolean> {
+    const [row] = await this.db
+      .select({
+        clientId: consultations.client_id,
+        expertId: consultations.expert_id,
+        mode: consultations.mode,
+      })
+      .from(consultations)
+      .where(eq(consultations.id, consultationId))
+      .limit(1);
+    if (!row) return false;
+
+    const expectedActorId =
+      actorType === 'client' ? row.clientId : row.expertId;
+    if (actorId !== expectedActorId) return false;
+
+    const bothJoined = await this.rooms.recordPartyJoin(
+      consultationId,
+      actorType,
+      actorId,
+    );
+    if (!bothJoined) return false;
+
+    const status = await this.consultationStatus(consultationId);
+    if (status !== ConsultationStatus.ACCEPTED) return false;
+
+    const mode = toConsultationModeType(row.mode);
+    // Chat bills immediately on both-joined; voice/video waits for media_ready
+    // before arming the budget timer (billing is based on voice time).
+    await this.start(server, {
+      consultationId,
+      actorId: actorType === 'expert' ? row.expertId : row.clientId,
+      actorType,
+    }, mode === 'chat');
+    return true;
   }
 
   /**

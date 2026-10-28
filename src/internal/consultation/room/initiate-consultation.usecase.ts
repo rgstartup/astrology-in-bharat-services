@@ -254,7 +254,7 @@ export class InitiateConsultationUsecase {
       },
     );
 
-    await this.rooms.armRoom(id, sessionId);
+    await this.rooms.armRoom(id, sessionId, clientId, expertId);
 
     // Display math only — no hold on reconnect (already held at creation).
     const balance = await this.readBalance(clientId);
@@ -397,6 +397,8 @@ export class InitiateConsultationUsecase {
     await this.rooms.armRoom(
       consultation.consultationId,
       consultation.sessionId,
+      clientId,
+      expertId,
     );
     await this.rooms.setBudget(consultation.consultationId, {
       maxMinutes: consultation.maxMinutes,

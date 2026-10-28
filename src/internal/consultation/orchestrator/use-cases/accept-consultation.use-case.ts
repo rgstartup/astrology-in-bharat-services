@@ -119,28 +119,32 @@ export class AcceptConsultationUseCase {
     // Targeted per-side delivery: the ACCEPTED room broadcast carries no
     // secret (a token must never fan out to the whole room). Each side picks
     // its token up on its personal room, which both apps join on connect.
-    if (channelName) {
-      if (clientIssued) {
-        server.to(SOCKET_ROOMS.CLIENT(consultation.client_id)).emit(
-          SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED,
-          {
-            ...payload,
-            token: clientIssued.token,
-            tokenExpiresAt: clientIssued.expiresAt.toISOString(),
-          },
-        );
-      }
-      if (expertIssued) {
-        server.to(SOCKET_ROOMS.EXPERT(consultation.expert_id)).emit(
-          SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED,
-          {
-            ...payload,
-            token: expertIssued.token,
-            tokenExpiresAt: expertIssued.expiresAt.toISOString(),
-          },
-        );
-      }
-    }
+    // Always delivered (all modes) so both apps learn the verdict even when
+    // they are not (or no longer) members of the consultation room.
+    server.to(SOCKET_ROOMS.CLIENT(consultation.client_id)).emit(
+      SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED,
+      {
+        ...payload,
+        ...(clientIssued
+          ? {
+              token: clientIssued.token,
+              tokenExpiresAt: clientIssued.expiresAt.toISOString(),
+            }
+          : {}),
+      },
+    );
+    server.to(SOCKET_ROOMS.EXPERT(consultation.expert_id)).emit(
+      SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED,
+      {
+        ...payload,
+        ...(expertIssued
+          ? {
+              token: expertIssued.token,
+              tokenExpiresAt: expertIssued.expiresAt.toISOString(),
+            }
+          : {}),
+      },
+    );
 
     return {
       status: 'accepted',

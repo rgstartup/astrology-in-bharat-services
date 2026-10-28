@@ -6,6 +6,10 @@ import 'dotenv/config';
 export const consultationRoomKey = (consultationId: number): string =>
   `consultation:room:${consultationId}`;
 
+/** Redis key for the expected and joined parties of a consultation room. */
+export const consultationRoomPartiesKey = (consultationId: number): string =>
+  `consultation:room:parties:${consultationId}`;
+
 /** Single source of truth for the chat-request window, in milliseconds. */
 export function chatRequestTtlMs(): number {
   const ms = parseInt(process.env.CHAT_REQUEST_EXPIRY_MS || '120000', 10);
@@ -122,33 +126,118 @@ export function chatPauseTtlSeconds(): number {
 export class ConsultationRoomRepository {
   constructor(private readonly redis: RedisService) {}
 
-  /** Arm the room key; request-window expiry is enforced by the key TTL. */
-  armRoom(consultationId: number, sessionId: number): Promise<'OK' | null> {
-    return this.redis.set(
+  /**
+   * Arm the room and record its expected parties in shared Redis state.
+   * Both keys receive the request-window TTL atomically.
+   *
+   * @param consultationId - Consultation whose room is being armed.
+   * @param sessionId - Pending session associated with this room.
+   * @param clientId - Expected client participant ID.
+   * @param expertId - Expected expert participant ID.
+   * @returns Redis acknowledgement for the room setup.
+   * @throws Propagates Redis errors.
+   */
+  async armRoom(
+    consultationId: number,
+    sessionId: number,
+    clientId: number,
+    expertId: number,
+  ): Promise<'OK' | null> {
+    const parties = JSON.stringify({
+      clientId,
+      expertId,
+      clientJoined: false,
+      expertJoined: false,
+    });
+    const result = await this.redis.eval(
+      "redis.call('SET', KEYS[1], ARGV[1], 'EX', ARGV[3]); " +
+        "redis.call('SET', KEYS[2], ARGV[2], 'EX', ARGV[3]); " +
+        "return 'OK'",
+      2,
       consultationRoomKey(consultationId),
+      consultationRoomPartiesKey(consultationId),
       String(sessionId),
+      parties,
       chatRequestTtlSeconds(),
     );
-  }
-
-  clearRoom(consultationId: number): Promise<number> {
-    return this.redis.del(consultationRoomKey(consultationId));
+    return result === 'OK' ? 'OK' : null;
   }
 
   /**
-   * Re-arm the room TTL from `chat:request` time so the Redis window matches
-   * the expiry timer (the key was first armed earlier, at REST initiate).
-   * False when the key already lapsed — the timer + cron still own expiry.
+   * Record an authenticated party's room join and report when both expected
+   * parties have joined. The operation validates the actor and updates the
+   * shared state atomically across backend instances.
+   *
+   * @param consultationId - Consultation room being joined.
+   * @param actorType - Joining party type.
+   * @param actorId - Authenticated joining party ID.
+   * @returns True when both expected parties have joined; otherwise false.
+   * @throws Propagates Redis errors.
+   */
+  async recordPartyJoin(
+    consultationId: number,
+    actorType: 'client' | 'expert',
+    actorId: number,
+  ): Promise<boolean> {
+    const result = await this.redis.eval(
+      "local raw = redis.call('GET', KEYS[1]); " +
+        "if not raw then return 0 end; " +
+        "local state = cjson.decode(raw); " +
+        "local expected = state[ARGV[1] .. 'Id']; " +
+        "if tostring(expected) ~= ARGV[2] then return 0 end; " +
+        "state[ARGV[1] .. 'Joined'] = true; " +
+        "local ttl = redis.call('PTTL', KEYS[1]); " +
+        "if ttl == -2 then return 0 end; " +
+        "if ttl >= 0 then " +
+        "redis.call('SET', KEYS[1], cjson.encode(state), 'PX', math.max(ttl, 1)); " +
+        "else redis.call('SET', KEYS[1], cjson.encode(state), 'KEEPTTL'); end; " +
+        "if state.clientJoined and state.expertJoined then return 1 end; " +
+        "return 0",
+      1,
+      consultationRoomPartiesKey(consultationId),
+      actorType,
+      actorId,
+    );
+    return Number(result) === 1;
+  }
+
+  /**
+   * Clear the room session and party-join state.
+   *
+   * @param consultationId - Consultation whose room state should be removed.
+   * @returns Number of Redis keys removed.
+   * @throws Propagates Redis errors.
+   */
+  clearRoom(consultationId: number): Promise<number> {
+    return this.redis.del(
+      consultationRoomKey(consultationId),
+      consultationRoomPartiesKey(consultationId),
+    );
+  }
+
+  /**
+   * Refresh the room and party-state TTL from chat-request time.
+   * False when the room key already lapsed.
+   *
+   * @param consultationId - Consultation whose room TTL should be refreshed.
+   * @returns True when the room key still exists and was refreshed.
+   * @throws Propagates Redis errors.
    */
   async refreshRoom(consultationId: number): Promise<boolean> {
     const sessionId = await this.roomSession(consultationId);
     if (!sessionId) return false;
-    await this.redis.set(
+    const result = await this.redis.eval(
+      "if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end; " +
+        "redis.call('EXPIRE', KEYS[1], ARGV[1]); " +
+        "if redis.call('EXISTS', KEYS[2]) == 1 then " +
+        "redis.call('EXPIRE', KEYS[2], ARGV[1]); end; " +
+        "return 1",
+      2,
       consultationRoomKey(consultationId),
-      sessionId,
+      consultationRoomPartiesKey(consultationId),
       chatRequestTtlSeconds(),
     );
-    return true;
+    return Number(result) === 1;
   }
 
   roomSession(consultationId: number): Promise<string | null> {

@@ -160,19 +160,20 @@ export async function joinConsultationRoom(
 
   let effectiveStatus = initialStatus;
   if (initialStatus === ConsultationStatus.ACCEPTED) {
-    if (mode === 'chat') {
-      // Chat has no media handshake: the first join opens the session.
-      const actorId =
-        identity.actorType === 'expert' ? identity.expertId : identity.id;
-      await orchestrator.start(server, {
-        consultationId,
-        actorId,
-        actorType: identity.actorType === 'expert' ? 'expert' : 'client',
-      });
+    // Both-joined gate: the session opens when both client and expert have
+    // joined the socket room (chat bills now; voice/video waits for both
+    // media_ready). A single chat-mode join no longer starts billing early.
+    const actorId =
+      identity.actorType === 'expert' ? identity.expertId : identity.id;
+    const bothJoined = await orchestrator.recordJoin(
+      server,
+      consultationId,
+      identity.actorType,
+      actorId,
+    );
+    if (bothJoined) {
       effectiveStatus = ConsultationStatus.ACTIVE;
     }
-    // Voice/video: the session opens on the second `consultation:media_ready`
-    // report, so a client waiting alone in the lobby is never billed.
   } else if (initialStatus === ConsultationStatus.ACTIVE) {
     orchestrator.armBudgetTimer(server, consultationId, effectiveMode);
   }

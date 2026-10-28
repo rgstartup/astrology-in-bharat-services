@@ -164,6 +164,18 @@ export class StartConsultationUseCase {
       .to(SOCKET_ROOMS.CONSULTATION(row.id))
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.STARTED, payload);
 
+    // Mirror STARTED to both personal rooms so each app gets the startedAt
+    // anchor even if its socket missed the consultation-room broadcast
+    // (e.g. reconnect lost membership). Token-free — secrets never fan out.
+    server.to(SOCKET_ROOMS.CLIENT(row.id)).emit(
+      SOCKET_EVENTS.CONSULTATION.EVENTS.STARTED,
+      payload,
+    );
+    server.to(SOCKET_ROOMS.EXPERT(row.expert_id)).emit(
+      SOCKET_EVENTS.CONSULTATION.EVENTS.STARTED,
+      payload,
+    );
+
     return { status: 'started', consultationId: row.id, payload };
   }
 
