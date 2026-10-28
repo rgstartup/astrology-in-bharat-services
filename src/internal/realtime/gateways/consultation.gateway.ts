@@ -98,11 +98,19 @@ export class ConsultationGateway implements OnGatewayInit {
       };
     }
     await socket.join(SOCKET_ROOMS.CONSULTATION(dto.consultationId));
-    return this.orchestrator.accept(this.server, {
+    const result = await this.orchestrator.accept(this.server, {
       consultationId: dto.consultationId,
       actorId: identity.expertId,
       actorType: 'expert',
     });
+    // Resume path: the client may already be recorded as joined (join
+    // happens before accept). Recording the expert here closes the
+    // both-joined gate on accept itself so the timer starts in realtime
+    // without waiting for a later `consultation:join`.
+    await this.orchestrator
+      .recordJoin(this.server, dto.consultationId, 'expert', identity.expertId)
+      .catch(() => undefined);
+    return result;
   }
 
   @UseGuards(WsAuthGuard)

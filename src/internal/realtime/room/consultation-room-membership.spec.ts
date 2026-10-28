@@ -245,16 +245,42 @@ describe('joinConsultationRoom', () => {
 
     const ack = await joinConsultationRoom(deps, server, socket, 100, 'chat', EXPERT as any);
 
-    // Both-joined gate: a single expert join does not start billing yet.
-    expect(orchestrator.recordJoin).toHaveBeenCalledWith(
-      server,
-      100,
-      'expert',
-      42,
-    );
     expect(orchestrator.start).not.toHaveBeenCalled();
     expect(ack.status).toBe('joined');
     expect(ack.consultationStatus).toBe('accepted');
+  });
+
+  it('records party joins eagerly from the pre-accept resume statuses', async () => {
+    for (const status of ['requested', 'reopened']) {
+      const db = dbMock([
+        [PARTICIPANT],
+        [{ status }],
+        [{ accountName: 'C' }],
+      ]);
+      const { rooms, budget, orchestrator, markStarted, voice } =
+        depsMock(PARTICIPANT);
+      const deps = { db, rooms, budget, orchestrator, markStarted, voice } as unknown as RoomMembershipDeps;
+
+      const ack = await joinConsultationRoom(
+        deps,
+        server,
+        socket,
+        100,
+        'chat',
+        CLIENT as any,
+      );
+
+      // Resume-CTA path: the client lands in the room before expert accept.
+      // The join must be recorded so accept can close the both-joined gate.
+      expect(orchestrator.recordJoin).toHaveBeenCalledWith(
+        server,
+        100,
+        'client',
+        10,
+      );
+      expect(orchestrator.start).not.toHaveBeenCalled();
+      expect(ack.consultationStatus).toBe(status);
+    }
   });
 
   it('is idempotent on subsequent joins when already active', async () => {

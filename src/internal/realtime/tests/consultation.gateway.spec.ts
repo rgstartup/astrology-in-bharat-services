@@ -63,6 +63,7 @@ describe('ConsultationGateway', () => {
       resume: vi.fn(async () => ({ status: 'resumed' })),
       end: vi.fn(async () => ({ status: 'ended' })),
       accept: vi.fn(async () => ({ status: 'accepted' })),
+      recordJoin: vi.fn(async () => false),
       reject: vi.fn(async () => ({ status: 'rejected' })),
       request: vi.fn(async () => ({ status: 'requested' })),
       cancel: vi.fn(async () => ({ status: 'cancelled' })),
@@ -276,6 +277,14 @@ describe('ConsultationGateway', () => {
         actorId: 42,
         actorType: 'expert',
       });
+      // Accept itself registers the expert so a client already recorded in
+      // the both-joined gate closes the gate without waiting for a re-join.
+      expect(orchestrator.recordJoin).toHaveBeenCalledWith(
+        server,
+        100,
+        'expert',
+        42,
+      );
     });
 
     it('rejects client attempts to accept consultation', async () => {

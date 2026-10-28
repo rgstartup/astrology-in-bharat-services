@@ -226,6 +226,8 @@ describe('Empirical Backend Challenger Verification Suite', () => {
       const orchestrator = {
         start: vi.fn(async () => ({ status: 'started' })),
         armBudgetTimer: vi.fn(),
+        // Rework API: single join (peer not recorded) returns false — no start.
+        recordJoin: vi.fn(async () => false),
       };
       const voice = {
         generateToken: vi.fn(async () => ({

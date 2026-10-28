@@ -159,7 +159,15 @@ export async function joinConsultationRoom(
     initialStatus === ConsultationStatus.ACTIVE ? authoritativeMode : mode;
 
   let effectiveStatus = initialStatus;
-  if (initialStatus === ConsultationStatus.ACCEPTED) {
+  // Party joins are recorded eagerly in REQUESTED/REOPENED too: the resume
+  // CTA ("continue via {mode}") lands the client in the room before expert
+  // accept, so a wait-time join must not be lost from the both-joined gate.
+  // start() stays gated on ACCEPTED inside orchestrator.recordJoin.
+  const joinable =
+    initialStatus === ConsultationStatus.REQUESTED ||
+    initialStatus === ConsultationStatus.REOPENED ||
+    initialStatus === ConsultationStatus.ACCEPTED;
+  if (joinable) {
     // Both-joined gate: the session opens when both client and expert have
     // joined the socket room (chat bills now; voice/video waits for both
     // media_ready). A single chat-mode join no longer starts billing early.
