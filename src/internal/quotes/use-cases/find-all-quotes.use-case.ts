@@ -1,16 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Quote } from '../entities/quote.entity';
+import { DrizzleService } from '@/core/drizzledb/drizzle.service';
+import { quotes } from '@/core/drizzledb/schema';
+import type { QuoteRow } from '@/core/drizzledb/schema';
 
+/** Reads every quote from the consultation quote catalog. */
 @Injectable()
 export class FindAllQuotesUseCase {
-  constructor(
-    @InjectRepository(Quote)
-    private readonly quoteRepository: Repository<Quote>,
-  ) {}
+  /**
+   * Creates the use-case with the application's Drizzle database client.
+   *
+   * @param drizzleService Provides the typed Drizzle client.
+   * @returns An initialized quote query use-case instance.
+   * @throws Any error raised while resolving the injected database provider.
+   */
+  constructor(private readonly drizzleService: DrizzleService) {}
 
-  async execute(): Promise<Quote[]> {
-    return this.quoteRepository.find();
+  /**
+   * Returns all persisted quotes.
+   *
+   * @returns Quote rows in database order.
+   * @throws Any database error raised while reading the quote table.
+   */
+  async execute(): Promise<QuoteRow[]> {
+    return this.drizzleService.db.select().from(quotes);
   }
 }

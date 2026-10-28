@@ -1,10 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Quote } from '../entities/quote.entity';
+import { DrizzleService } from '@/core/drizzledb/drizzle.service';
+import { quotes } from '@/core/drizzledb/schema';
+import type { NewQuoteRow, QuoteRow } from '@/core/drizzledb/schema';
 import { CreateQuoteDto } from '../dto/create-quote.dto';
 
-const SEED_QUOTES = [
+const SEED_QUOTES: NewQuoteRow[] = [
   {
     text: 'Astrology is the supreme limb (eye) of the Vedas.',
     author: 'Sage Parasara',
@@ -31,27 +31,58 @@ const SEED_QUOTES = [
   },
 ];
 
+/**
+ * Creates quotes and seeds the consultation quote catalog when it is empty.
+ */
 @Injectable()
 export class CreateQuoteUseCase implements OnModuleInit {
   private readonly logger = new Logger(CreateQuoteUseCase.name);
 
-  constructor(
-    @InjectRepository(Quote)
-    private readonly quoteRepository: Repository<Quote>,
-  ) {}
+  /**
+   * Creates the quote use-case with the application's Drizzle database client.
+   *
+   * @param drizzleService Provides the typed Drizzle client.
+   * @returns An initialized quote use-case instance.
+   * @throws Any error raised while resolving the injected database provider.
+   */
+  constructor(private readonly drizzleService: DrizzleService) {}
 
-  async onModuleInit() {
-    const count = await this.quoteRepository.count();
-    if (count === 0) {
-      this.logger.log('Seeding dummy quotes...');
-      const entities = this.quoteRepository.create(SEED_QUOTES);
-      await this.quoteRepository.save(entities);
-      this.logger.log('Dummy quotes seeded successfully.');
-    }
+  /**
+   * Seeds the quote catalog once when the application starts and the table is empty.
+   *
+   * @returns A promise that resolves after the optional seed insert completes.
+   * @throws Any database error raised while checking or seeding the quote table.
+   */
+  async onModuleInit(): Promise<void> {
+    const existing = await this.drizzleService.db
+      .select({ id: quotes.id })
+      .from(quotes)
+      .limit(1);
+
+    if (existing.length > 0) return;
+
+    this.logger.log('Seeding dummy quotes...');
+    await this.drizzleService.db.insert(quotes).values(SEED_QUOTES);
+    this.logger.log('Dummy quotes seeded successfully.');
   }
 
-  async execute(dto: CreateQuoteDto): Promise<Quote> {
-    const quote = this.quoteRepository.create(dto);
-    return this.quoteRepository.save(quote);
+  /**
+   * Inserts one quote and returns the persisted row.
+   *
+   * @param dto Quote fields to persist.
+   * @returns The inserted quote row, including generated identifiers and timestamps.
+   * @throws Any database error raised while inserting the quote.
+   */
+  async execute(dto: CreateQuoteDto): Promise<QuoteRow> {
+    const [quote] = await this.drizzleService.db
+      .insert(quotes)
+      .values(dto)
+      .returning();
+
+    if (!quote) {
+      throw new Error('Drizzle did not return the inserted quote row.');
+    }
+
+    return quote;
   }
 }

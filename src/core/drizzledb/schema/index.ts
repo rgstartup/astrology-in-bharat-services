@@ -269,6 +269,7 @@ export {
   consultationBillingsStatusEnum,
   reviews,
   reviewsRelations,
+  quotes,
 } from './consultation';
 export type {
   CallSessionRow,
@@ -293,6 +294,8 @@ export type {
   NewConsultationBillingRow,
   ReviewRow,
   NewReviewRow,
+  QuoteRow,
+  NewQuoteRow,
 } from './consultation';
 
 // Merchant
@@ -616,6 +619,7 @@ import {
   consultationBillingsStatusEnum,
   reviews,
   reviewsRelations,
+  quotes,
 } from './consultation';
 import {
   merchantAccounts,
@@ -879,6 +883,7 @@ export const schema = {
   consultationBillingsStatusEnum,
   reviews,
   reviewsRelations,
+  quotes,
 
   // Merchant
   merchantAccounts,

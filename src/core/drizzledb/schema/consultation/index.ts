@@ -83,3 +83,6 @@ export type {
 
 export { reviews, reviewsRelations } from './reviews';
 export type { ReviewRow, NewReviewRow } from './reviews';
+
+export { quotes } from './quotes';
+export type { QuoteRow, NewQuoteRow } from './quotes';

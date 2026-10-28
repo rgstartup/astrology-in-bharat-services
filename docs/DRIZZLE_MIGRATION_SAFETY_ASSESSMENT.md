@@ -55,7 +55,7 @@ Modules with no inbound or outbound TypeORM relations. Can be migrated immediate
 | Module | Location | TypeORM Entities | Use Cases | Next Actions |
 |---|---|---|---|---|
 | **Festival** | `src/internal/festival/` | `Festival` (`festivals`) | 5 CRUD use-cases | Create `festival.schema.ts`, rewrite 5 use-cases to Drizzle, drop `TypeOrmModule`. |
-| **Quotes** | `src/internal/quotes/` | `Quote` (`quotes`) | 5 CRUD use-cases | Create `quotes.schema.ts`, rewrite 5 use-cases to Drizzle, drop `TypeOrmModule`. |
+| **Quotes** | `src/internal/quotes/` | `Quote` (`consultations.quotes`) | 5 CRUD use-cases | **Migrated 2026-10-28:** Drizzle schema at `schema/consultation/quotes/quote.schema.ts`; all 5 use-cases use Drizzle; removed `TypeOrmModule` registration and the `Quote` entity. |
 | **Places** | `src/internal/places/` | `Place`, `PlaceImage` (`places`, `place_images`) | 4 use-cases + cron + Serper cache | Create `places.schema.ts`, rewrite 4 use-cases to Drizzle. |
 | **Locations** | `src/internal/locations/` | `StateEntity`, `DistrictEntity` (`states`, `districts`) | 1 seed use-case | Create `locations.schema.ts`, update seed use-case. |
 | **Calendar** | `src/internal/calendar/` | `CalendarCache` (`calendar_cache`) | 4 use-cases + Panchangam service | Create `calendar.schema.ts`, update cache reads/writes. |
@@ -117,7 +117,6 @@ Must NOT be migrated individually. Require grouped or coordinated changes.
 
 1. **Step 1 — Zero-Risk Standalone Leaf Migrations (Tier 1):**
    - Migrate `FestivalModule` (5 use-cases).
-   - Migrate `QuotesModule` (5 use-cases).
    - Migrate `PlacesModule` (4 use-cases).
    - Migrate `ExpertTodosModule` (4 use-cases).
 2. **Step 2 — Schema-Ready Use-Case Migrations (Tier 2):**
