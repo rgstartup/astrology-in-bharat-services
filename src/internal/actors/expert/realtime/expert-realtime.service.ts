@@ -7,8 +7,10 @@ import { consultations } from '@/core/drizzledb/schema';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
 import {
   consultationDisconnectGrace,
+  consultationDisconnectGraceMs,
   hasLiveActorSocket,
 } from '@/internal/realtime/room/consultation-disconnect-grace';
+import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import type {
   AuthenticatedSocketIdentity,
   ExpertSocketIdentity,
@@ -111,7 +113,24 @@ export class ExpertRealtimeService {
     // Pause billing on any ACTIVE consultation this expert is in. The timer
     // is cancelled (not destroyed) so disconnect time is not charged; resume
     // re-arms it from the frozen elapsed time when the expert reconnects.
-    await this.pauseActiveConsultationTimers(identity.expertId);
+    const pausedConsultationIds = await this.pauseActiveConsultationTimers(
+      identity.expertId,
+    );
+
+    // Tell the peer to freeze its timer/grace UI so the clock stops on both
+    // sides while the disconnect grace window runs. Session stays ACTIVE;
+    // the grace arm below handles resume-or-end.
+    const pauseExpiresInSec = Math.floor(consultationDisconnectGraceMs() / 1000);
+    for (const consultationId of pausedConsultationIds) {
+      server
+        .to(SOCKET_ROOMS.CONSULTATION(consultationId))
+        .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.PAUSED, {
+          consultationId,
+          reason: "expert_disconnect",
+          pauseExpiresInSec,
+          timestamp: new Date().toISOString(),
+        });
+    }
 
     consultationDisconnectGrace.arm(
       this.db,
@@ -315,10 +334,13 @@ export class ExpertRealtimeService {
    * participating in. Called on socket disconnect so disconnect time is
    * not billed. The timer is cancelled (not destroyed) — reconnect
    * re-arms it from the frozen elapsed time.
+   *
+   * @param expertId - Expert owning the consultations.
+   * @returns IDs of the consultations whose timers were paused.
    */
   private async pauseActiveConsultationTimers(
     expertId: number,
-  ): Promise<void> {
+  ): Promise<number[]> {
     const active = await this.db
       .select({ id: consultations.id })
       .from(consultations)
@@ -331,6 +353,7 @@ export class ExpertRealtimeService {
     for (const row of active) {
       this.orchestrator.cancelBudgetTimer(row.id);
     }
+    return active.map((row) => row.id);
   }
 
   /**

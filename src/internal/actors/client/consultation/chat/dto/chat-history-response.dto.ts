@@ -77,6 +77,9 @@ export class ChatHistoryResponseDto extends BaseDto {
   @IsInt()
   consultationId!: number;
 
+  @IsInt()
+  expertId!: number;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ChatHistorySessionDto)
@@ -137,13 +140,14 @@ function windowOwner(
 }
 
 /**
- * Map Drizzle rows to the nested API contract
+ * Map consultation identity and Drizzle rows to the nested API contract
  * consultation → sessions → messages → attachments.
  * The attachment join fans out one row per attachment; rows are regrouped
  * so each message carries its full `attachments` array.
  */
 export function toChatHistoryResponse(
   consultationId: number,
+  expertId: number,
   sessions: ChatHistorySessionRow[],
   rows: ChatHistoryMessageRow[],
 ): ChatHistoryResponseDto {
@@ -190,6 +194,7 @@ export function toChatHistoryResponse(
 
   return ChatHistoryResponseDto.from({
     consultationId,
+    expertId,
     sessions: sessions.map((session) => ({
       sessionId: session.sessionId,
       status: session.status,

@@ -20,13 +20,22 @@ import {
 export class GetChatHistoryUseCase {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
+  /**
+   * Loads a client's consultation, including its owning expert, session
+   * history, and messages for room seeding.
+   *
+   * @param clientId - Authenticated client profile ID.
+   * @param consultationId - Consultation whose room seed is requested.
+   * @returns Consultation identity and its session/message history.
+   * @throws ConsultationNotAvailableError when the client cannot access it.
+   */
   async execute(
     clientId: number,
     consultationId: number,
   ): Promise<ChatHistoryResponseDto> {
     // 1. Validate consultation access
     const [consultation] = await this.db
-      .select({ id: consultations.id })
+      .select({ id: consultations.id, expertId: consultations.expert_id })
       .from(consultations)
       .where(
         and(
@@ -83,6 +92,11 @@ export class GetChatHistoryUseCase {
         .orderBy(asc(consultationMessages.created_at)),
     ]);
 
-    return toChatHistoryResponse(consultationId, sessions, messages);
+    return toChatHistoryResponse(
+      consultationId,
+      consultation.expertId,
+      sessions,
+      messages,
+    );
   }
 }

@@ -18,8 +18,10 @@ import {
 } from '@/internal/realtime/room/consultation-room-membership';
 import {
   consultationDisconnectGrace,
+  consultationDisconnectGraceMs,
   hasLiveActorSocket,
 } from '@/internal/realtime/room/consultation-disconnect-grace';
+import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import type {
   AuthenticatedSocketIdentity,
   ClientSocketIdentity,
@@ -89,7 +91,22 @@ export class ClientRealtimeService {
     // Pause billing on any ACTIVE consultation this client is in. The timer
     // is cancelled (not destroyed) so disconnect time is not charged; resume
     // re-arms it from the frozen elapsed time when the client reconnects.
-    await this.pauseActiveConsultationTimers(identity.clientId);
+    const pausedConsultationIds = await this.pauseActiveConsultationTimers(identity.clientId);
+
+    // Tell the peer to freeze its timer/grace UI so the clock stops on both
+    // sides while the disconnect grace window runs. Session stays ACTIVE;
+    // the grace arm below handles resume-or-end.
+    const pauseExpiresInSec = Math.floor(consultationDisconnectGraceMs() / 1000);
+    for (const consultationId of pausedConsultationIds) {
+      server
+        .to(SOCKET_ROOMS.CONSULTATION(consultationId))
+        .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.PAUSED, {
+          consultationId,
+          reason: "client_disconnect",
+          pauseExpiresInSec,
+          timestamp: new Date().toISOString(),
+        });
+    }
 
     consultationDisconnectGrace.arm(
       this.db,
@@ -300,10 +317,13 @@ export class ClientRealtimeService {
    * participating in. Called on socket disconnect so disconnect time is
    * not billed. The timer is cancelled (not destroyed) — reconnect
    * re-arms it from the frozen elapsed time.
+   *
+   * @param clientId - Client owning the consultations.
+   * @returns IDs of the consultations whose timers were paused.
    */
   private async pauseActiveConsultationTimers(
     clientId: number,
-  ): Promise<void> {
+  ): Promise<number[]> {
     const active = await this.db
       .select({ id: consultations.id })
       .from(consultations)
@@ -316,6 +336,7 @@ export class ClientRealtimeService {
     for (const row of active) {
       this.orchestrator.cancelBudgetTimer(row.id);
     }
+    return active.map((row) => row.id);
   }
 
   /**
