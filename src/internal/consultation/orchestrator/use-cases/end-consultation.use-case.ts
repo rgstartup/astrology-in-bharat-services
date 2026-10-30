@@ -251,6 +251,18 @@ export class EndConsultationUseCase {
       server
         .to(SOCKET_ROOMS.CONSULTATION(row.id))
         .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED, payload);
+
+      // Mirror ENDED to both personal rooms so each app hears the
+      // termination even if its socket dropped the consultation-room
+      // subscription (e.g. reconnect). Matches the STARTED/RESUMED pattern.
+      server.to(SOCKET_ROOMS.CLIENT(row.client_id)).emit(
+        SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED,
+        payload,
+      );
+      server.to(SOCKET_ROOMS.EXPERT(row.expert_id)).emit(
+        SOCKET_EVENTS.CONSULTATION.EVENTS.ENDED,
+        payload,
+      );
     }
 
     return payload;
