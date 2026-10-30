@@ -118,6 +118,10 @@ export class EndConsultationUseCase {
       ? 0
       : (affordability?.elapsedSeconds ?? row.duration_seconds);
 
+    // Capture the latest session id so the ENDED payload carries sessionId,
+    // letting frontend hooks distinguish session 1 from session 2 on continue.
+    let lastSessionId: number | undefined;
+
     await this.db.transaction(async (tx) => {
       await tx
         .update(consultations)
@@ -179,6 +183,7 @@ export class EndConsultationUseCase {
           )
           .orderBy(desc(consultationSessions.id))
           .limit(1);
+        lastSessionId = lastSession?.id ?? undefined;
         if (lastPaused && lastSession && lastPaused.id === lastSession.id) {
           await tx
             .update(consultationSessions)
@@ -238,6 +243,7 @@ export class EndConsultationUseCase {
 
     const payload: ConsultationEndedPayload = {
       consultationId: row.id,
+      sessionId: lastSessionId,
       mode,
       endedBy: String(command.actorId),
       reason: command.reason ?? "manual",
