@@ -115,6 +115,13 @@ export interface ResumeConsultationCommand {
   consultationId: number;
   actorId: number;
   actorType: 'client' | 'expert' | 'system';
+  targetMode?: ConsultationModeType;
+}
+
+export interface ConsultationResumedAckPayload extends ConsultationStatePayload {
+  channelName?: string;
+  token?: string;
+  tokenExpiresAt?: string;
 }
 
 export interface DisconnectConsultationCommand {
@@ -160,6 +167,7 @@ export interface ConsultationMediaReadyPayload {
 }
 export interface ConsultationStatePayload {
   consultationId: number;
+  sessionId?: number;
   mode: ConsultationModeType;
   state: ConsultationLifecycleState;
   reason?: LifecycleReason | string | null;
@@ -175,6 +183,7 @@ export interface ConsultationStatePayload {
 
 export interface ConsultationBudgetHoldPayload {
   consultationId: number;
+  sessionId?: number;
   mode: ConsultationModeType;
   state: 'budget_hold';
   reason: 'insufficient_balance';
@@ -188,6 +197,7 @@ export interface ConsultationBudgetHoldPayload {
 
 export interface ConsultationBudgetTickPayload {
   consultationId: number;
+  sessionId?: number;
   mode: ConsultationModeType;
   remainingSeconds: number;
   elapsedSeconds: number;
@@ -198,6 +208,7 @@ export interface ConsultationBudgetTickPayload {
 
 export interface ConsultationBudgetWarningPayload {
   consultationId: number;
+  sessionId?: number;
   mode: ConsultationModeType;
   remainingSeconds: number;
   message?: string;
@@ -206,6 +217,7 @@ export interface ConsultationBudgetWarningPayload {
 
 export interface ConsultationEndedPayload {
   consultationId: number;
+  sessionId?: number;
   mode: ConsultationModeType;
   endedBy: string;
   reason: LifecycleReason | string;

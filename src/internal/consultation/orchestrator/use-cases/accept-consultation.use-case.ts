@@ -3,8 +3,11 @@ import { and, eq, inArray } from 'drizzle-orm';
 import type { Server } from 'socket.io';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { consultations } from '@/core/drizzledb/schema';
-import { ConsultationStatus } from '@/internal/consultation/enums';
+import {
+  consultationSessions,
+  consultations,
+} from '@/core/drizzledb/schema';
+import { ConsultationSessionStatus, ConsultationStatus } from '@/internal/consultation/enums';
 import { PresenceService } from '@/internal/actors/expert/presence/presence.service';
 import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
@@ -65,6 +68,20 @@ export class AcceptConsultationUseCase {
       throw new BadRequestException('Consultation cannot be accepted');
     }
 
+    // Resolve the latest PENDING consultation_session so frontend hooks can
+    // filter events by sessionId on continue (same consultationId, new session).
+    const [pendingSession] = await this.db
+      .select()
+      .from(consultationSessions)
+      .where(
+        and(
+          eq(consultationSessions.consultation_id, consultation.id),
+          eq(consultationSessions.status, ConsultationSessionStatus.PENDING),
+        ),
+      )
+      .orderBy(desc(consultationSessions.id))
+      .limit(1);
+
     const mode = toConsultationModeType(consultation.mode);
 
     // Mark expert busy
@@ -104,6 +121,7 @@ export class AcceptConsultationUseCase {
 
     const payload = {
       consultationId: consultation.id,
+      sessionId: pendingSession?.id ?? undefined,
       expertId: consultation.expert_id,
       mode,
       maxMinutes: affordability?.maxMinutes ?? 0,

@@ -36,7 +36,7 @@ import { DomainError } from '@/shared/types/domain.error';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
 import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 class ConsultationActionDto {
   @IsNumber()
@@ -46,6 +46,13 @@ class ConsultationActionDto {
   @IsString()
   @IsOptional()
   reason?: string;
+}
+
+class ConsultationResumeDto extends ConsultationActionDto {
+  @IsString()
+  @IsOptional()
+  @IsIn(['chat', 'voice', 'video'])
+  mode?: ConsultationModeType;
 }
 
 class ConsultationRequestDto extends ConsultationActionDto {
@@ -274,6 +281,23 @@ export class ConsultationGateway implements OnGatewayInit {
   @SubscribeMessage(SOCKET_EVENTS.CONSULTATION.COMMANDS.RESUME)
   async handleResume(
     @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: ConsultationResumeDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    const actorId =
+      identity.actorType === 'expert' ? identity.expertId : identity.id;
+    return this.orchestrator.resume(this.server, {
+      consultationId: dto.consultationId,
+      actorId,
+      actorType: identity.actorType === 'client' ? 'client' : 'expert',
+      targetMode: dto.mode,
+    });
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.CONSULTATION.COMMANDS.RESUME_CHAT)
+  async handleResumeChat(
+    @ConnectedSocket() _socket: RealtimeSocket,
     @MessageBody() dto: ConsultationActionDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
@@ -283,6 +307,41 @@ export class ConsultationGateway implements OnGatewayInit {
       consultationId: dto.consultationId,
       actorId,
       actorType: identity.actorType === 'client' ? 'client' : 'expert',
+      targetMode: 'chat',
+    });
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.CONSULTATION.COMMANDS.RESUME_VOICE)
+  async handleResumeVoice(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: ConsultationActionDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    const actorId =
+      identity.actorType === 'expert' ? identity.expertId : identity.id;
+    return this.orchestrator.resume(this.server, {
+      consultationId: dto.consultationId,
+      actorId,
+      actorType: identity.actorType === 'client' ? 'client' : 'expert',
+      targetMode: 'voice',
+    });
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.CONSULTATION.COMMANDS.RESUME_VIDEO)
+  async handleResumeVideo(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: ConsultationActionDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    const actorId =
+      identity.actorType === 'expert' ? identity.expertId : identity.id;
+    return this.orchestrator.resume(this.server, {
+      consultationId: dto.consultationId,
+      actorId,
+      actorType: identity.actorType === 'client' ? 'client' : 'expert',
+      targetMode: 'video',
     });
   }
 

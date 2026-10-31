@@ -1,15 +1,15 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
-import type { Server } from 'socket.io';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { consultations } from '@/core/drizzledb/schema';
-import { ConsultationStatus } from '@/internal/consultation/enums';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { eq } from "drizzle-orm";
+import type { Server } from "socket.io";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import { consultations } from "@/core/drizzledb/schema";
+import { ConsultationStatus } from "@/internal/consultation/enums";
 import {
   ConsultationRoomRepository,
   chatPauseTtlMs,
-} from '../room/consultation-room.repository';
-import { ConsultationBudgetEngine } from './consultation-budget.engine';
+} from "../room/consultation-room.repository";
+import { ConsultationBudgetEngine } from "./consultation-budget.engine";
 import {
   AcceptConsultationUseCase,
   CancelConsultationUseCase,
@@ -23,12 +23,17 @@ import {
   StartConsultationUseCase,
   SwitchToChatUseCase,
   TriggerBudgetHoldUseCase,
-} from './use-cases';
-import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
-import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
-import { isConsultationParticipant } from '@/internal/realtime/room/consultation-room-access';
-import type { AuthenticatedSocketIdentity } from '@/internal/realtime/types/socket-auth.types';
-import type { RealtimeSocket } from '@/internal/realtime/types/socket-data.types';
+} from "./use-cases";
+import {
+  BUDGET_TIMER_RULES_BY_MODE,
+  type BudgetTimerRule,
+  type BudgetTimerRuleContext,
+} from "./consultation-budget-timer-rules";
+import { SOCKET_EVENTS } from "@/internal/realtime/constants/socket-events.constant";
+import { SOCKET_ROOMS } from "@/internal/realtime/constants/socket-rooms.constant";
+import { isConsultationParticipant } from "@/internal/realtime/room/consultation-room-access";
+import type { AuthenticatedSocketIdentity } from "@/internal/realtime/types/socket-auth.types";
+import type { RealtimeSocket } from "@/internal/realtime/types/socket-data.types";
 import {
   AcceptConsultationCommand,
   CancelConsultationCommand,
@@ -37,6 +42,7 @@ import {
   ConsultationEndedPayload,
   ConsultationMediaReadyPayload,
   ConsultationModeType,
+  ConsultationResumedAckPayload,
   ConsultationStatePayload,
   EndConsultationCommand,
   PauseConsultationCommand,
@@ -46,7 +52,7 @@ import {
   StartConsultationCommand,
   SwitchToChatCommand,
   toConsultationModeType,
-} from './consultation-orchestrator.types';
+} from "./consultation-orchestrator.types";
 
 @Injectable()
 export class ConsultationOrchestratorService {
@@ -95,10 +101,35 @@ export class ConsultationOrchestratorService {
     return this.closeUseCase.execute(server, command);
   }
 
-  async start(server: Server, command: StartConsultationCommand, armBudgetTimer = true) {
+  async start(
+    server: Server,
+    command: StartConsultationCommand,
+    rules: BudgetTimerRule[] = [],
+  ) {
     const result = await this.startUseCase.execute(server, command);
-    if (result.payload.state === 'active' && armBudgetTimer) {
-      this.armBudgetTimer(server, command.consultationId, result.payload.mode);
+    const mode = result.payload.mode;
+
+    const ctx: BudgetTimerRuleContext = {
+      consultationId: command.consultationId,
+      mode,
+      status: (await this.consultationStatus(command.consultationId))!,
+      bothMediaReady: await this.rooms.isBothMediaReady(
+        command.consultationId,
+      ),
+    };
+
+    for (const rule of rules) {
+      if (!(await rule.evaluate(ctx))) {
+        return {
+          status: "blocked",
+          consultationId: command.consultationId,
+          error: { rule: rule.name, reason: rule.reason },
+        };
+      }
+    }
+
+    if (result.payload.state === "active") {
+      this.armBudgetTimer(server, command.consultationId, mode);
     }
     return result;
   }
@@ -122,7 +153,7 @@ export class ConsultationOrchestratorService {
   async recordJoin(
     server: Server,
     consultationId: number,
-    actorType: 'client' | 'expert',
+    actorType: "client" | "expert",
     actorId: number,
   ): Promise<boolean> {
     const [row] = await this.db
@@ -137,7 +168,7 @@ export class ConsultationOrchestratorService {
     if (!row) return false;
 
     const expectedActorId =
-      actorType === 'client' ? row.clientId : row.expertId;
+      actorType === "client" ? row.clientId : row.expertId;
     if (actorId !== expectedActorId) return false;
 
     const bothJoined = await this.rooms.recordPartyJoin(
@@ -151,13 +182,17 @@ export class ConsultationOrchestratorService {
     if (status !== ConsultationStatus.ACCEPTED) return false;
 
     const mode = toConsultationModeType(row.mode);
-    // Chat bills immediately on both-joined; voice/video waits for media_ready
-    // before arming the budget timer (billing is based on voice time).
-    await this.start(server, {
-      consultationId,
-      actorId: actorType === 'expert' ? row.expertId : row.clientId,
-      actorType,
-    }, mode === 'chat');
+    // Chat bills on both-joined socket room; voice/video waits for both
+    // media-ready (arm gated by BUDGET_TIMER_RULES_BY_MODE).
+    await this.start(
+      server,
+      {
+        consultationId,
+        actorId: actorType === "expert" ? row.expertId : row.clientId,
+        actorType,
+      },
+      BUDGET_TIMER_RULES_BY_MODE[mode],
+    );
     return true;
   }
 
@@ -201,6 +236,7 @@ export class ConsultationOrchestratorService {
     server
       .to(SOCKET_ROOMS.CONSULTATION(consultationId))
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.MEDIA_READY, payload);
+
     if (readiness.bothReady) {
       await this.startWhenBothConnected(server, consultationId, identity);
     }
@@ -223,14 +259,26 @@ export class ConsultationOrchestratorService {
     consultationId: number,
     identity: AuthenticatedSocketIdentity,
   ): Promise<void> {
-    const status = await this.consultationStatus(consultationId);
-    if (status !== ConsultationStatus.ACCEPTED) return;
-    await this.start(server, {
-      consultationId,
-      actorId:
-        identity.actorType === 'expert' ? identity.expertId : identity.id,
-      actorType: identity.actorType === 'expert' ? 'expert' : 'client',
-    });
+    const [row] = await this.db
+      .select({ mode: consultations.mode })
+      .from(consultations)
+      .where(eq(consultations.id, consultationId))
+      .limit(1);
+    if (!row) return;
+    const mode = toConsultationModeType(row.mode);
+    // start() is idempotent (ACCEPTED->ACTIVE flip is guarded in the use
+    // case). The rules decide whether the budget timer arms: for voice/video
+    // bothMediaReady is now true, so the timer arms here.
+    await this.start(
+      server,
+      {
+        consultationId,
+        actorId:
+          identity.actorType === "expert" ? identity.expertId : identity.id,
+        actorType: identity.actorType === "expert" ? "expert" : "client",
+      },
+      BUDGET_TIMER_RULES_BY_MODE[mode],
+    );
   }
 
   /**
@@ -257,7 +305,7 @@ export class ConsultationOrchestratorService {
     this.cancelBudgetTimer(command.consultationId);
     this.cancelHoldTimer(command.consultationId);
     const payload = await this.pauseUseCase.execute(server, command);
-    if (payload && command.reason === 'billing_hold') {
+    if (payload && command.reason === "billing_hold") {
       this.armHoldExpiry(server, command.consultationId);
     }
     return payload;
@@ -266,7 +314,7 @@ export class ConsultationOrchestratorService {
   async resume(
     server: Server,
     command: ResumeConsultationCommand,
-  ): Promise<ConsultationStatePayload> {
+  ): Promise<ConsultationResumedAckPayload> {
     this.cancelGraceTimer(command.consultationId);
     const result = await this.resumeUseCase.execute(server, command);
     this.armBudgetTimer(server, command.consultationId, result.mode);
@@ -299,8 +347,8 @@ export class ConsultationOrchestratorService {
   async switchToChat(server: Server, command: SwitchToChatCommand) {
     this.cancelBudgetTimer(command.consultationId);
     const result = await this.switchToChatUseCase.execute(server, command);
-    if (result.payload.state === 'active') {
-      this.armBudgetTimer(server, command.consultationId, 'chat');
+    if (result.payload.state === "active") {
+      this.armBudgetTimer(server, command.consultationId, "chat");
     }
     return result;
   }
@@ -348,8 +396,8 @@ export class ConsultationOrchestratorService {
     for (const row of rows) {
       try {
         const outcome = await this.rearmOne(server, row.id, row.mode);
-        if (outcome === 'hold') holds += 1;
-        else if (outcome === 'rearmed') rearmed += 1;
+        if (outcome === "hold") holds += 1;
+        else if (outcome === "rearmed") rearmed += 1;
         else skipped += 1;
       } catch (err) {
         this.logger.warn(`[BootRearm] Skipping consultation ${row.id}: ${err}`);
@@ -365,35 +413,35 @@ export class ConsultationOrchestratorService {
     server: Server,
     consultationId: number,
     storedMode: string,
-  ): Promise<'rearmed' | 'hold' | 'skipped'> {
+  ): Promise<"rearmed" | "hold" | "skipped"> {
     const mode = toConsultationModeType(storedMode);
     const live = await this.budget.calculateAffordability(consultationId, mode);
-    if (!live) return 'skipped';
+    if (!live) return "skipped";
 
     if (await this.rooms.isBillingHeld(consultationId)) {
       // Dialog hold survived a restart: let the remaining hold TTL lapse, then
       // release it and re-arm billing (or fall into the budget hold).
       const ttlMs = await this.rooms.billingHoldTtlMs(consultationId);
       this.armHoldExpiry(server, consultationId, ttlMs ?? undefined);
-      return 'skipped';
+      return "skipped";
     }
 
     if (await this.rooms.isPaused(consultationId)) {
       // Paused + broke = interrupted budget hold: re-hold with the leftover
       // paused-key TTL as grace. Paused + funded = manual pause (or a hold
       // the client already recharged through) — leave it for resume.
-      if (live.remainingSeconds > 0) return 'skipped';
+      if (live.remainingSeconds > 0) return "skipped";
       const graceDelayMs = await this.rooms.pausedTtlMs(consultationId);
       await this.triggerBudgetHold(
         server,
         consultationId,
         graceDelayMs ?? undefined,
       );
-      return 'hold';
+      return "hold";
     }
 
     this.armBudgetTimer(server, consultationId, mode);
-    return 'rearmed';
+    return "rearmed";
   }
 
   armBudgetTimer(
@@ -422,7 +470,7 @@ export class ConsultationOrchestratorService {
                 consultationId,
                 mode,
                 remainingSeconds: warningThresholdSec,
-                message: '1 minute remaining in consultation.',
+                message: "1 minute remaining in consultation.",
                 timestamp: new Date().toISOString(),
               };
               server
@@ -472,8 +520,8 @@ export class ConsultationOrchestratorService {
       void this.end(server, {
         consultationId,
         actorId: 0,
-        actorType: 'system',
-        reason: 'balance_exhausted_timeout',
+        actorType: "system",
+        reason: "balance_exhausted_timeout",
       });
     }, delayMs);
     this.graceTimers.set(consultationId, timer);
@@ -518,7 +566,7 @@ export class ConsultationOrchestratorService {
       await this.resume(server, {
         consultationId,
         actorId: 0,
-        actorType: 'system',
+        actorType: "system",
       });
     } catch (err) {
       this.logger.warn(

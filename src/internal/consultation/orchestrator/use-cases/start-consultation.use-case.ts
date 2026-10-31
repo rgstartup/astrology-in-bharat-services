@@ -151,6 +151,7 @@ export class StartConsultationUseCase {
 
     const payload: ConsultationStatePayload = {
       consultationId: row.id,
+      sessionId: activeSession?.id ?? undefined,
       mode,
       state: 'active',
       startedAt: affordability?.startedAt ?? now.toISOString(),

@@ -467,6 +467,28 @@ export class ConsultationRoomRepository {
   }
 
   /**
+   * Returns true when both client and expert have reported media-ready
+   * (inside Agora) for this consultation. Reads the shared Redis record
+   * written by `markMediaReady`.
+   *
+   * @param consultationId - ID of the consultation.
+   * @returns True when both sides are media-ready; false otherwise.
+   */
+  async isBothMediaReady(consultationId: number): Promise<boolean> {
+    const raw = await this.redis.get(consultationMediaKey(consultationId));
+    if (!raw) return false;
+    try {
+      const parsed: unknown = JSON.parse(raw) as unknown;
+      if (isMediaRecord(parsed)) {
+        return parsed.c === 1 && parsed.e === 1;
+      }
+    } catch {
+      return false;
+    }
+    return false;
+  }
+
+  /**
    * Clear one side's media-ready flag (socket leave before billing starts).
    * Keeps the other side's flag so a transient drop costs one re-ready.
    *

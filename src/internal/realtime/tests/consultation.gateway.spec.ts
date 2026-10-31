@@ -234,6 +234,67 @@ describe('ConsultationGateway', () => {
         consultationId: 100,
         actorId: 42,
         actorType: 'expert',
+        targetMode: undefined,
+      });
+    });
+
+    it('delegates resume with explicit mode to orchestrator', async () => {
+      await gateway.handleResume(
+        socket,
+        { consultationId: 100, mode: 'voice' },
+        clientIdentity,
+      );
+
+      expect(orchestrator.resume).toHaveBeenCalledWith(server, {
+        consultationId: 100,
+        actorId: 10,
+        actorType: 'client',
+        targetMode: 'voice',
+      });
+    });
+
+    it('delegates resume chat command to orchestrator', async () => {
+      await gateway.handleResumeChat(
+        socket,
+        { consultationId: 100 },
+        clientIdentity,
+      );
+
+      expect(orchestrator.resume).toHaveBeenCalledWith(server, {
+        consultationId: 100,
+        actorId: 10,
+        actorType: 'client',
+        targetMode: 'chat',
+      });
+    });
+
+    it('delegates resume voice command to orchestrator', async () => {
+      await gateway.handleResumeVoice(
+        socket,
+        { consultationId: 100 },
+        expertIdentity,
+      );
+
+      expect(orchestrator.resume).toHaveBeenCalledWith(server, {
+        consultationId: 100,
+        actorId: 42,
+        actorType: 'expert',
+        targetMode: 'voice',
+      });
+    });
+
+    it('delegates resume video command to orchestrator', async () => {
+      await gateway.handleResumeVideo(
+        socket,
+        { consultationId: 100 },
+        clientIdentity,
+      );
+
+      expect(orchestrator.resume).toHaveBeenCalledWith(server, {
+        consultationId: 100,
+        actorId: 10,
+        actorType: 'client',
+        targetMode: 'video',
       });
     });
 

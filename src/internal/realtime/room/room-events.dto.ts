@@ -33,3 +33,14 @@ export class VoiceTokenDto {
   @IsPositive()
   consultationId!: number;
 }
+
+export class ResumeRoomDto {
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  consultationId!: number;
+
+  @IsOptional()
+  @IsIn(['chat', 'voice', 'video'])
+  mode?: ConsultationModeType;
+}
