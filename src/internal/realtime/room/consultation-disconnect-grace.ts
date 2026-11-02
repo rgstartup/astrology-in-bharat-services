@@ -1,9 +1,8 @@
-import { Logger } from '@nestjs/common';
-import 'dotenv/config';
-import type { Server } from 'socket.io';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import type { RealtimeActorType } from '../types/socket-auth.types';
-import { closeActiveConsultationSessions } from './consultation-session-settlement';
+import { Logger } from "@nestjs/common";
+import type { Server } from "socket.io";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import type { RealtimeActorType } from "../types/socket-auth.types";
+import { closeActiveConsultationSessions } from "./consultation-session-settlement";
 
 /**
  * Single source of truth for the consultation disconnect grace window, in milliseconds.
@@ -14,11 +13,11 @@ export function consultationDisconnectGraceMs(): number {
   const envVal =
     process.env.CONSULTATION_DISCONNECT_GRACE_MS ||
     process.env.CHAT_DISCONNECT_GRACE_MS;
-  const ms = parseInt(envVal || '30000', 10);
+  const ms = parseInt(envVal || "30000", 10);
   return Math.max(1, ms);
 }
 
-const logger = new Logger('ConsultationDisconnectGrace');
+const logger = new Logger("ConsultationDisconnectGrace");
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
 
 const graceKey = (actorType: RealtimeActorType, actorId: number): string =>
@@ -35,7 +34,7 @@ function allSockets(server: Server): Iterable<unknown> {
   const outer = (server as unknown as { sockets?: unknown }).sockets;
   if (outer instanceof Map) return outer.values();
   const inner =
-    outer && typeof outer === 'object'
+    outer && typeof outer === "object"
       ? (outer as { sockets?: unknown }).sockets
       : undefined;
   if (inner instanceof Map) return inner.values();
@@ -54,10 +53,10 @@ export function hasLiveActorSocket(
 ): boolean {
   for (const candidate of allSockets(server)) {
     const auth = (candidate as { data?: { auth?: unknown } }).data?.auth;
-    if (!auth || typeof auth !== 'object') continue;
+    if (!auth || typeof auth !== "object") continue;
     const record = auth as Record<string, unknown>;
     if (record.actorType !== actorType) continue;
-    const id = actorType === 'client' ? record.clientId : record.expertId;
+    const id = actorType === "client" ? record.clientId : record.expertId;
     if (id === actorId) return true;
   }
   return false;
@@ -81,23 +80,22 @@ export const consultationDisconnectGrace = {
     disbandChannel?: (channelName: string) => Promise<void>,
   ): void {
     this.cancel(actorType, actorId);
-    timers.set(
-      graceKey(actorType, actorId),
-      setTimeout(() => {
-        timers.delete(graceKey(actorType, actorId));
-        closeActiveConsultationSessions(
-          db,
-          server,
-          filter,
-          endedBy,
-          disbandChannel,
-        ).catch((err: Error) =>
-          logger.error(
-            `[ConsultationDisconnectGrace] Close failed for ${actorType}:${actorId}: ${err.message}`,
-          ),
-        );
-      }, consultationDisconnectGraceMs()),
-    );
+    const timer = setTimeout(() => {
+      timers.delete(graceKey(actorType, actorId));
+      closeActiveConsultationSessions(
+        db,
+        server,
+        filter,
+        endedBy,
+        disbandChannel,
+      ).catch((err: Error) =>
+        logger.error(
+          `[ConsultationDisconnectGrace] Close failed for ${actorType}:${actorId}: ${err.message}`,
+        ),
+      );
+    }, consultationDisconnectGraceMs());
+    timer.unref();
+    timers.set(graceKey(actorType, actorId), timer);
   },
 
   /** Cancel the timer — the actor reconnected inside the window. */

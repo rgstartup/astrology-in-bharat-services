@@ -1,37 +1,37 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import type { Server } from 'socket.io';
-import { and, eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { consultations } from '@/core/drizzledb/schema';
-import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import type { Server } from "socket.io";
+import { and, eq } from "drizzle-orm";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import { consultations } from "@/core/drizzledb/schema";
+import { SOCKET_ROOMS } from "@/internal/realtime/constants/socket-rooms.constant";
 import {
   consultationDisconnectGrace,
   consultationDisconnectGraceMs,
   hasLiveActorSocket,
-} from '@/internal/realtime/room/consultation-disconnect-grace';
-import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
+} from "@/internal/realtime/room/consultation-disconnect-grace";
+import { SOCKET_EVENTS } from "@/internal/realtime/constants/socket-events.constant";
 import type {
   AuthenticatedSocketIdentity,
   ExpertSocketIdentity,
-} from '@/internal/realtime/types/socket-auth.types';
-import type { RealtimeSocket } from '@/internal/realtime/types/socket-data.types';
-import type { ConsultationModeType } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
-import { toConsultationModeType } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
-import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
-import { ResolveConsultationBudgetUseCase } from '@/internal/consultation/room/resolve-consultation-budget.use-case';
-import { MarkConsultationSessionStartedUseCase } from '@/internal/consultation/room/mark-consultation-session-started.use-case';
-import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
-import { VoiceService } from '@/external/voice';
+} from "@/internal/realtime/types/socket-auth.types";
+import type { RealtimeSocket } from "@/internal/realtime/types/socket-data.types";
+import type { ConsultationModeType } from "@/internal/consultation/orchestrator/consultation-orchestrator.types";
+import { toConsultationModeType } from "@/internal/consultation/orchestrator/consultation-orchestrator.types";
+import { ConsultationRoomRepository } from "@/internal/consultation/room/consultation-room.repository";
+import { ResolveConsultationBudgetUseCase } from "@/internal/consultation/room/resolve-consultation-budget.use-case";
+import { MarkConsultationSessionStartedUseCase } from "@/internal/consultation/room/mark-consultation-session-started.use-case";
+import { ConsultationOrchestratorService } from "@/internal/consultation/orchestrator/consultation-orchestrator.service";
+import { VoiceService } from "@/external/voice";
 import {
   joinConsultationRoom,
   leaveConsultationRoom,
   refreshVoiceToken,
-} from '@/internal/realtime/room/consultation-room-membership';
-import { ExpertPresenceHandler } from './handlers/expert-presence.handler';
-import { ExpertNotificationHandler } from './handlers/expert-notification.handler';
-import { ExpertChatHandler } from './handlers/expert-chat.handler';
-import { ConsultationStatus } from '@/internal/consultation/enums';
+} from "@/internal/realtime/room/consultation-room-membership";
+import { ExpertPresenceHandler } from "./handlers/expert-presence.handler";
+import { ExpertNotificationHandler } from "./handlers/expert-notification.handler";
+import { ExpertChatHandler } from "./handlers/expert-chat.handler";
+import { ConsultationStatus } from "@/internal/consultation/enums";
 
 interface ChatMessageInput {
   consultationId: number;
@@ -64,7 +64,7 @@ export class ExpertRealtimeService {
   ): Promise<void> {
     // Rejoined inside the disconnect grace window — cancel the deferred
     // session close so a refresh never ends the consultation.
-    consultationDisconnectGrace.cancel('expert', identity.expertId);
+    consultationDisconnectGrace.cancel("expert", identity.expertId);
 
     // Resume billing on any consultation that was ACTIVE when the socket
     // dropped. The timer was paused on disconnect; re-arming it continues
@@ -108,7 +108,7 @@ export class ExpertRealtimeService {
 
     // Another tab still live → not a real leave; a refresh rejoins inside
     // the grace window (cancelled on connect), so the session survives.
-    if (hasLiveActorSocket(server, 'expert', identity.expertId)) return;
+    if (hasLiveActorSocket(server, "expert", identity.expertId)) return;
 
     // Pause billing on any ACTIVE consultation this expert is in. The timer
     // is cancelled (not destroyed) so disconnect time is not charged; resume
@@ -120,7 +120,9 @@ export class ExpertRealtimeService {
     // Tell the peer to freeze its timer/grace UI so the clock stops on both
     // sides while the disconnect grace window runs. Session stays ACTIVE;
     // the grace arm below handles resume-or-end.
-    const pauseExpiresInSec = Math.floor(consultationDisconnectGraceMs() / 1000);
+    const pauseExpiresInSec = Math.floor(
+      consultationDisconnectGraceMs() / 1000,
+    );
     for (const consultationId of pausedConsultationIds) {
       server
         .to(SOCKET_ROOMS.CONSULTATION(consultationId))
@@ -135,10 +137,10 @@ export class ExpertRealtimeService {
     consultationDisconnectGrace.arm(
       this.db,
       server,
-      'expert',
+      "expert",
       identity.expertId,
       { expertId: identity.expertId },
-      'expert_disconnect',
+      "expert_disconnect",
       this.voice.disbandChannel.bind(this.voice),
     );
 
@@ -266,66 +268,6 @@ export class ExpertRealtimeService {
       socket,
       consultationId,
       isTyping,
-      identity,
-    );
-  }
-
-  async acceptChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.chatHandler.acceptChat(
-      server,
-      socket,
-      consultationId,
-      identity,
-    );
-  }
-
-  async rejectChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.chatHandler.rejectChat(
-      server,
-      socket,
-      consultationId,
-      identity,
-    );
-  }
-
-  async endChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.chatHandler.endChat(server, socket, consultationId, identity);
-  }
-
-  async pauseChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.chatHandler.pauseChat(server, socket, consultationId, identity);
-  }
-
-  async resumeChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ) {
-    return this.chatHandler.resumeChat(
-      server,
-      socket,
-      consultationId,
       identity,
     );
   }

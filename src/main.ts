@@ -1,5 +1,7 @@
 process.env.TZ = "UTC"; // Force UTC timezone globally
 
+import "dotenv/config";
+
 import cookieParser from "cookie-parser";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
