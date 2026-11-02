@@ -78,17 +78,23 @@ export const consultationDisconnectGrace = {
     actorId: number,
     filter: { clientId: number } | { expertId: number },
     endedBy: string,
+    disbandChannel?: (channelName: string) => Promise<void>,
   ): void {
     this.cancel(actorType, actorId);
     timers.set(
       graceKey(actorType, actorId),
       setTimeout(() => {
         timers.delete(graceKey(actorType, actorId));
-        closeActiveConsultationSessions(db, server, filter, endedBy).catch(
-          (err: Error) =>
-            logger.error(
-              `[ConsultationDisconnectGrace] Close failed for ${actorType}:${actorId}: ${err.message}`,
-            ),
+        closeActiveConsultationSessions(
+          db,
+          server,
+          filter,
+          endedBy,
+          disbandChannel,
+        ).catch((err: Error) =>
+          logger.error(
+            `[ConsultationDisconnectGrace] Close failed for ${actorType}:${actorId}: ${err.message}`,
+          ),
         );
       }, consultationDisconnectGraceMs()),
     );

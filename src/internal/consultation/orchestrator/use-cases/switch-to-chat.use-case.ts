@@ -14,6 +14,7 @@ import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constan
 import { ConsultationBudgetEngine } from '../consultation-budget.engine';
 import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
 import { ChatModeAdapter } from '../adapters/chat-mode.adapter';
+import { VoiceService } from '@/external/voice';
 import {
   ConsultationStatePayload,
   SwitchToChatCommand,
@@ -45,6 +46,7 @@ export class SwitchToChatUseCase {
     private readonly budget: ConsultationBudgetEngine,
     private readonly rooms: ConsultationRoomRepository,
     private readonly chatAdapter: ChatModeAdapter,
+    private readonly voice: VoiceService,
   ) {}
 
   /**
@@ -167,6 +169,12 @@ export class SwitchToChatUseCase {
       .update(consultations)
       .set({ mode: ConsultationMode.CHAT, updated_at: now })
       .where(eq(consultations.id, row.id));
+
+    // Terminate the underlying Agora RTC channel since the consultation no
+    // longer runs over voice/video.
+    void this.voice
+      .disbandChannel(SOCKET_ROOMS.VOICE_SESSION(row.id))
+      .catch(() => undefined);
 
     // Metered mode -> chat rate, and the clock keeps running from the seconds
     // already consumed.

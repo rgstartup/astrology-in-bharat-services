@@ -115,6 +115,7 @@ export class ClientRealtimeService {
       identity.clientId,
       { clientId: identity.clientId },
       'client_disconnect',
+      this.voice.disbandChannel.bind(this.voice),
     );
   }
 

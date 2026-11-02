@@ -1,22 +1,20 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import AgoraToken from 'agora-token';
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import AgoraToken from "agora-token";
 import type {
   AgoraVoiceModuleOptions,
   IVoiceAdapter,
   VoiceModuleOptions,
   VoiceProvider,
-} from './voice.types';
-import { VOICE_ADAPTER } from './voice.types';
-import {
-  TwilioVoiceConfigurationMissingError,
-} from './errors/voice.errors';
-import { AgoraVoiceAdapter } from './adapters/agora-voice.adapter';
-import { TwilioVoiceAdapter } from './adapters/twilio-voice.adapter';
-import { VoiceService } from './voice.service';
+} from "./voice.types";
+import { VOICE_ADAPTER } from "./voice.types";
+import { TwilioVoiceConfigurationMissingError } from "./errors/voice.errors";
+import { AgoraVoiceAdapter } from "./adapters/agora/voice.adapter";
+import { TwilioVoiceAdapter } from "./adapters/twilio/twilio-voice.adapter";
+import { VoiceService } from "./voice.service";
 
 const DEFAULT_VOICE_TOKEN_TTL_SECONDS = 3600;
-const TWILIO_PROVIDER: VoiceProvider = 'twilio';
+const TWILIO_PROVIDER: VoiceProvider = "twilio";
 
 /**
  * Reads Agora voice configuration from the environment.
@@ -32,8 +30,8 @@ export function resolveAgoraVoiceOptions(
   config: ConfigService,
 ): AgoraVoiceModuleOptions {
   return {
-    appId: config.get<string>('AGORA_APP_ID') || '',
-    appCertificate: config.get<string>('AGORA_APP_CERTIFICATE') || '',
+    appId: config.get<string>("AGORA_APP_ID") || "",
+    appCertificate: config.get<string>("AGORA_APP_CERTIFICATE") || "",
     defaultTtlSeconds: DEFAULT_VOICE_TOKEN_TTL_SECONDS,
     // Both participants must publish: this is a two-way voice consultation.
     role: AgoraToken.RtcRole.PUBLISHER,
@@ -47,8 +45,8 @@ export function resolveAgoraVoiceOptions(
  * @returns `twilio` only when `VOICE_PROVIDER=twilio`; Agora is the default.
  */
 export function resolveVoiceProvider(config: ConfigService): VoiceProvider {
-  const configured = (config.get<string>('VOICE_PROVIDER') ?? '').toLowerCase();
-  return configured === TWILIO_PROVIDER ? TWILIO_PROVIDER : 'agora';
+  const configured = (config.get<string>("VOICE_PROVIDER") ?? "").toLowerCase();
+  return configured === TWILIO_PROVIDER ? TWILIO_PROVIDER : "agora";
 }
 
 /**
@@ -76,11 +74,11 @@ export function resolveVoiceAdapter(config: ConfigService): IVoiceAdapter {
  */
 export function resolveVoiceOptions(config: ConfigService): VoiceModuleOptions {
   const options: VoiceModuleOptions = {
-    accountSid: config.get<string>('TWILIO_ACCOUNT_SID') || '',
-    authToken: config.get<string>('TWILIO_AUTH_TOKEN') || '',
-    apiKey: config.get<string>('TWILIO_API_KEY') || '',
-    apiSecret: config.get<string>('TWILIO_API_SECRET') || '',
-    voiceApplicationSid: config.get<string>('TWILIO_VOICE_APP_SID') || '',
+    accountSid: config.get<string>("TWILIO_ACCOUNT_SID") || "",
+    authToken: config.get<string>("TWILIO_AUTH_TOKEN") || "",
+    apiKey: config.get<string>("TWILIO_API_KEY") || "",
+    apiSecret: config.get<string>("TWILIO_API_SECRET") || "",
+    voiceApplicationSid: config.get<string>("TWILIO_VOICE_APP_SID") || "",
     defaultTtlSeconds: DEFAULT_VOICE_TOKEN_TTL_SECONDS,
   };
   if (

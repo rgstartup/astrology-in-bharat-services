@@ -29,6 +29,7 @@ import { ConsultationOrchestratorService } from '@/internal/consultation/orchest
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
 import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
+import { appendRealtimeLog } from '../logger';
 
 @UseFilters(RealtimeWsExceptionFilter)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -46,7 +47,9 @@ export class ChatGateway implements OnGatewayInit {
   ) {}
 
   afterInit() {
-    this.logger.log('[ChatGateway] Initialized on namespace /realtime');
+    const msg = '[ChatGateway] Initialized on namespace /realtime';
+    this.logger.log(msg);
+    appendRealtimeLog(msg);
   }
 
   private forActor(identity: AuthenticatedSocketIdentity) {

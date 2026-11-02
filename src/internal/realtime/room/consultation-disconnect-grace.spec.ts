@@ -87,7 +87,13 @@ describe('consultationDisconnectGrace arm/cancel', () => {
     consultationDisconnectGrace.arm(db, server, 'client', 10, { clientId: 10 }, 'x');
     expect(mockedClose).not.toHaveBeenCalled();
     vi.advanceTimersByTime(consultationDisconnectGraceMs());
-    expect(mockedClose).toHaveBeenCalledWith(db, server, { clientId: 10 }, 'x');
+    expect(mockedClose).toHaveBeenCalledWith(
+      db,
+      server,
+      { clientId: 10 },
+      'x',
+      undefined,
+    );
   });
 
   it('cancel inside the window prevents the close (refresh rejoins)', () => {

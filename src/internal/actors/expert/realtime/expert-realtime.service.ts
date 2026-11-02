@@ -139,6 +139,7 @@ export class ExpertRealtimeService {
       identity.expertId,
       { expertId: identity.expertId },
       'expert_disconnect',
+      this.voice.disbandChannel.bind(this.voice),
     );
 
     this.logger.log(

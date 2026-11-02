@@ -22,6 +22,7 @@ import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-
 import { JoinRoomDto, LeaveRoomDto, MediaReadyDto, VoiceTokenDto } from './room-events.dto';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
+import { appendRealtimeLog } from '../logger';
 
 /**
  * @deprecated Consolidated into `ConsultationGateway`.
@@ -43,7 +44,10 @@ export class RealtimeRoomGateway implements OnGatewayInit {
   ) {}
 
   afterInit() {
-    this.logger.log('[RealtimeRoomGateway] Initialized on namespace /realtime');
+    const msg =
+      '[RealtimeRoomGateway] Initialized on namespace /realtime';
+    this.logger.log(msg);
+    appendRealtimeLog(msg);
   }
 
   private forActor(identity: AuthenticatedSocketIdentity) {

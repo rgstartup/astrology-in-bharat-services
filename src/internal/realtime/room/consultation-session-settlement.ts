@@ -171,6 +171,7 @@ export async function closeActiveConsultationSessions(
   server: Server,
   filter: { clientId: number } | { expertId: number },
   endedBy: string,
+  disbandChannel?: (channelName: string) => Promise<void>,
 ): Promise<number[]> {
   const owner =
     'clientId' in filter
@@ -178,12 +179,20 @@ export async function closeActiveConsultationSessions(
       : eq(consultations.expert_id, filter.expertId);
 
   const open = await db
-    .select({ id: consultations.id })
+    .select({ id: consultations.id, mode: consultations.mode })
     .from(consultations)
     .where(and(owner, inArray(consultations.status, OPEN_STATUSES)));
 
   const closed: number[] = [];
   for (const row of open) {
+    // Tear down the Agora channel for voice/video consultations once the
+    // grace window expires and no tab reconnects. Best-effort: a failed
+    // disband must not block session settlement.
+    if (row.mode !== 'chat' && disbandChannel) {
+      void disbandChannel(SOCKET_ROOMS.VOICE_SESSION(row.id)).catch(() => {
+        /* swallow: disband is best-effort cleanup */
+      });
+    }
     const didClose = await closeForConsultation(
       db,
       server,

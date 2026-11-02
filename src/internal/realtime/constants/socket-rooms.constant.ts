@@ -10,5 +10,5 @@ export const SOCKET_ROOMS = {
    */
   VOICE_SESSION: (consultationId: string | number) =>
     `consultation:voice:${consultationId}`,
-  GLOBAL_NOTIFICATIONS: () => 'notifications:global',
+  GLOBAL_NOTIFICATIONS: () => "notifications:global",
 } as const;

@@ -5,12 +5,12 @@ import type {
   VoiceModuleOptions,
   VoiceTokenOptions,
   VoiceTokenResult,
-} from '../voice.types';
-import { VOICE_OPTIONS } from '../voice.types';
+} from '../../voice.types';
+import { VOICE_OPTIONS } from '../../voice.types';
 import {
   TwilioVoiceConfigurationMissingError,
   VoiceTokenIssuanceFailedError,
-} from '../errors/voice.errors';
+} from '../../errors/voice.errors';
 
 /**
  * Twilio Programmable Voice adapter.

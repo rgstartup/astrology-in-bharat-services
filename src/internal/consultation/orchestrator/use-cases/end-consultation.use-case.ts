@@ -30,6 +30,7 @@ import { CONSULTATION_ENDED_EVENT } from "../consultation-orchestrator.events";
 import { ChatModeAdapter } from "../adapters/chat-mode.adapter";
 import { VoiceModeAdapter } from "../adapters/voice-mode.adapter";
 import { VideoModeAdapter } from "../adapters/video-mode.adapter";
+import { VoiceService } from "@/external/voice";
 import { ConsultationBudgetEngine } from "../consultation-budget.engine";
 import {
   ConsultationEndedPayload,
@@ -68,6 +69,7 @@ export class EndConsultationUseCase {
     chatAdapter: ChatModeAdapter,
     voiceAdapter: VoiceModeAdapter,
     videoAdapter: VideoModeAdapter,
+    private readonly voiceService: VoiceService,
   ) {
     this.adapters = new Map<ConsultationModeType, IConsultationModeAdapter>([
       ["chat", chatAdapter],
@@ -240,6 +242,14 @@ export class EndConsultationUseCase {
     await this.presence.setIdle(row.expert_id);
 
     await this.getAdapter(mode).onEnd(row.id);
+
+    // Terminate the underlying Agora RTC channel server-side so a running
+    // communication does not linger after the consultation ends.
+    if (mode !== "chat") {
+      void this.voiceService
+        .disbandChannel(SOCKET_ROOMS.VOICE_SESSION(row.id))
+        .catch(() => undefined);
+    }
 
     const payload: ConsultationEndedPayload = {
       consultationId: row.id,

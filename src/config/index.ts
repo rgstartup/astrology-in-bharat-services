@@ -1,9 +1,11 @@
-import emailConfig from './email.config';
-import authConfig from './auth.config';
-import databaseConfig from './db.config';
-import cloudinaryConfig from './cloudinary.config';
-import redisConfig from './redis.config';
-import razorpayConfig from './razorpay.config';
+import emailConfig from "./email.config";
+import authConfig from "./auth.config";
+import databaseConfig from "./db.config";
+import cloudinaryConfig from "./cloudinary.config";
+import redisConfig from "./redis.config";
+import razorpayConfig from "./razorpay.config";
+import consultationConfig from "./consultation.config";
+import agoraConfig from "./agora.config";
 
 export default [
   databaseConfig,
@@ -12,4 +14,6 @@ export default [
   cloudinaryConfig,
   redisConfig,
   razorpayConfig,
+  consultationConfig,
+  agoraConfig,
 ];

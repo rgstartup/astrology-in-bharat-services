@@ -1,7 +1,7 @@
 import type {
   ExpertAccountRow,
   ExpertConsultationPricingRow,
-} from '@/core/drizzledb/schema';
+} from "@/core/drizzledb/schema";
 
 /**
  * Drizzle `numeric` columns come back as strings from the driver — normalize
@@ -12,7 +12,7 @@ import type {
  */
 export function toExpertAccountResponse<T extends ExpertAccountRow>(
   row: T,
-): Omit<T, 'total_earning' | 'gallery' | 'videos' | 'certificates'> & {
+): Omit<T, "total_earning" | "gallery" | "videos" | "certificates"> & {
   total_earning: number;
   gallery: string[] | null;
   videos: string[] | null;
@@ -22,12 +22,12 @@ export function toExpertAccountResponse<T extends ExpertAccountRow>(
     ...row,
     total_earning: Number(row.total_earning),
     gallery:
-      row.gallery != null && row.gallery !== '' ? row.gallery.split(',') : null,
+      row.gallery != null && row.gallery !== "" ? row.gallery.split(",") : null,
     videos:
-      row.videos != null && row.videos !== '' ? row.videos.split(',') : null,
+      row.videos != null && row.videos !== "" ? row.videos.split(",") : null,
     certificates:
-      row.certificates != null && row.certificates !== ''
-        ? row.certificates.split(',')
+      row.certificates != null && row.certificates !== ""
+        ? row.certificates.split(",")
         : null,
   };
 }
@@ -35,11 +35,11 @@ export function toExpertAccountResponse<T extends ExpertAccountRow>(
 export function toExpertPricingResponse<
   T extends Pick<
     ExpertConsultationPricingRow,
-    'chat_price' | 'call_price' | 'video_call_price'
+    "chat_price" | "call_price" | "video_call_price"
   >,
 >(
   row: T,
-): Omit<T, 'chat_price' | 'call_price' | 'video_call_price'> & {
+): Omit<T, "chat_price" | "call_price" | "video_call_price"> & {
   chat_price: number | null;
   call_price: number | null;
   video_call_price: number | null;

@@ -31,6 +31,7 @@ import { SubscribeManyPresenceDto } from '../dto/subscribe-many-presence.dto';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
 import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
+import { appendRealtimeLog } from '../logger';
 
 @UseFilters(RealtimeWsExceptionFilter)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -47,9 +48,10 @@ export class PresenceGateway implements OnGatewayInit {
   ) {}
 
   afterInit() {
-    this.logger.log(
-      '[PresenceGateway] Initialized on namespace /realtime',
-    );
+    const msg =
+      '[PresenceGateway] Initialized on namespace /realtime';
+    this.logger.log(msg);
+    appendRealtimeLog(msg);
   }
 
   @SubscribeMessage(SOCKET_EVENTS.PRESENCE.SUBSCRIBE)

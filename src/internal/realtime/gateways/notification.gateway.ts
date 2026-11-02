@@ -22,6 +22,7 @@ import { ReadNotificationDto } from '../dto/notification-events.dto';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
 import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
+import { appendRealtimeLog } from '../logger';
 
 @UseFilters(RealtimeWsExceptionFilter)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -35,9 +36,10 @@ export class NotificationGateway implements OnGatewayInit {
   ) {}
 
   afterInit() {
-    this.logger.log(
-      '[NotificationGateway] Initialized on namespace /realtime',
-    );
+    const msg =
+      '[NotificationGateway] Initialized on namespace /realtime';
+    this.logger.log(msg);
+    appendRealtimeLog(msg);
   }
 
   private forActor(identity: AuthenticatedSocketIdentity) {

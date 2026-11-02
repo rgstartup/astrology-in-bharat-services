@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import type { ConfigType } from "@nestjs/config";
 import {
   and,
   count,
@@ -31,6 +32,8 @@ import {
 } from "@/core/enums";
 import { toExpertPricingResponse } from "../../account/account.mapper";
 import { PresenceService } from "@/internal/actors/expert/presence/presence.service";
+import { ExpertDiscoveryResponseDto } from "../dto/expert-discovery-response.dto";
+import consultationConfig from "@/config/consultation.config";
 
 type PricingSubqueryResult = {
   id: number;
@@ -58,6 +61,8 @@ export class QueryExpertsUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly presenceService: PresenceService,
+    @Inject(consultationConfig.KEY)
+    private readonly config: ConfigType<typeof consultationConfig>,
   ) {}
 
   private get specializationsSubquery() {
@@ -205,10 +210,18 @@ export class QueryExpertsUseCase {
     });
   }
 
-  async byId(id: number) {
+  /**
+   * Fetches an approved expert profile and calculates minimum reserve amounts.
+   * @param id Expert account identifier.
+   * @returns Expert profile with chat and voice reservation requirements.
+   * @throws NotFoundException when no approved expert has the identifier.
+   */
+  async byId(id: number): Promise<ExpertDiscoveryResponseDto> {
     const [account] = await this.db
       .select({
         id: expertAccounts.id,
+        fallback_chat_price: expertAccounts.chat_price,
+        fallback_call_price: expertAccounts.call_price,
         about: expertAccounts.about,
         languages: expertAccounts.languages,
         name: expertAccounts.name,
@@ -237,8 +250,19 @@ export class QueryExpertsUseCase {
 
     const status = await this.presenceService.getStatus(id);
 
-    return {
-      ...account,
+    const {
+      fallback_chat_price: fallbackChatPrice,
+      fallback_call_price: fallbackVoicePrice,
+      ...profile
+    } = account;
+    const pricing = account.pricing
+      ? toExpertPricingResponse(account.pricing)
+      : null;
+    const chatPrice = pricing?.chat_price ?? fallbackChatPrice ?? null;
+    const voicePrice = pricing?.call_price ?? fallbackVoicePrice ?? null;
+
+    return ExpertDiscoveryResponseDto.fromExpert({
+      ...profile,
       status,
       isAvailableForConsultation: status === ExpertClientStatus.ONLINE,
       lastSeenAt:
@@ -247,10 +271,8 @@ export class QueryExpertsUseCase {
           : null,
       expert_professions: account.professions,
       professions: account.professions,
-      pricing: account.pricing
-        ? toExpertPricingResponse(account.pricing)
-        : null,
-    };
+      pricing,
+    }, { chat_price: chatPrice, call_price: voicePrice }, this.config);
   }
 
   private listWhere(query: QueryExpertsDto): SQL {

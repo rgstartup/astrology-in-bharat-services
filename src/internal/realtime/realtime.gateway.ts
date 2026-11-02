@@ -13,6 +13,7 @@ import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-
 import type { RealtimeSocket } from './types/socket-data.types';
 import type { RealtimeActorType } from './types/socket-auth.types';
 import { REALTIME_GATEWAY_OPTIONS } from './gateways/gateway.options';
+import { appendRealtimeLog } from './logger';
 
 @WebSocketGateway(REALTIME_GATEWAY_OPTIONS)
 export class RealtimeGateway
@@ -30,7 +31,9 @@ export class RealtimeGateway
   ) {}
 
   afterInit() {
-    this.logger.log('[RealtimeGateway] Initialized on namespace /realtime');
+    const msg = '[RealtimeGateway] Initialized on namespace /realtime';
+    this.logger.log(msg);
+    appendRealtimeLog(msg);
   }
 
   async handleConnection(socket: RealtimeSocket): Promise<void> {
@@ -65,9 +68,9 @@ export class RealtimeGateway
       await this.expertRealtimeService.handleExpertConnect(socket, identity, this.server);
     }
 
-    this.logger.log(
-      `[RealtimeGateway] Authenticated ${identity.actorType} ${identity.id} connected (socket: ${socket.id})`,
-    );
+    const connectMsg = `[RealtimeGateway] Authenticated ${identity.actorType} ${identity.id} connected (socket: ${socket.id})`;
+    this.logger.log(connectMsg);
+    appendRealtimeLog(connectMsg);
   }
 
   async handleDisconnect(socket: RealtimeSocket): Promise<void> {
@@ -87,9 +90,9 @@ export class RealtimeGateway
           this.server,
         );
       }
-      this.logger.log(
-        `[RealtimeGateway] Authenticated ${identity.actorType} ${identity.id} disconnected (socket: ${socket.id})`,
-      );
+      const disconnectMsg = `[RealtimeGateway] Authenticated ${identity.actorType} ${identity.id} disconnected (socket: ${socket.id})`;
+      this.logger.log(disconnectMsg);
+      appendRealtimeLog(disconnectMsg);
     } else {
       this.logger.debug(
         `[RealtimeGateway] Anonymous connection disconnected: ${socket.id}`,

@@ -1,17 +1,17 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import AgoraToken from 'agora-token';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import AgoraToken from "agora-token";
 import type {
   AgoraVoiceModuleOptions,
   IVoiceAdapter,
   VoiceTokenOptions,
   VoiceTokenResult,
-} from '../voice.types';
-import { AGORA_VOICE_OPTIONS } from '../voice.types';
+} from "../../voice.types";
+import { AGORA_VOICE_OPTIONS } from "../../voice.types";
 import {
   AgoraVoiceConfigurationMissingError,
   VoiceChannelRequiredError,
   VoiceTokenIssuanceFailedError,
-} from '../errors/voice.errors';
+} from "../../errors/voice.errors";
 
 /** Agora App ID and App Certificate are both exactly 32 hex characters. */
 const AGORA_CREDENTIAL_PATTERN = /^[0-9a-fA-F]{32}$/;
@@ -49,7 +49,8 @@ function resolveRtcTokenBuilder(): AgoraRtcTokenBuilderShape {
     RtcTokenBuilder?: AgoraRtcTokenBuilderShape;
     default?: { RtcTokenBuilder?: AgoraRtcTokenBuilderShape };
   };
-  const builder = moduleShape.RtcTokenBuilder ?? moduleShape.default?.RtcTokenBuilder;
+  const builder =
+    moduleShape.RtcTokenBuilder ?? moduleShape.default?.RtcTokenBuilder;
   if (!builder) {
     throw new VoiceTokenIssuanceFailedError();
   }

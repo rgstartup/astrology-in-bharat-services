@@ -36,6 +36,7 @@ import { DomainError } from '@/shared/types/domain.error';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
 import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
+import { appendRealtimeLog } from '../logger';
 import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 class ConsultationActionDto {
@@ -85,9 +86,10 @@ export class ConsultationGateway implements OnGatewayInit {
   ) {}
 
   afterInit() {
-    this.logger.log(
-      '[ConsultationGateway] Initialized on namespace /realtime',
-    );
+    const msg =
+      '[ConsultationGateway] Initialized on namespace /realtime';
+    this.logger.log(msg);
+    appendRealtimeLog(msg);
     void this.orchestrator.onServerReady(this.server);
   }
 

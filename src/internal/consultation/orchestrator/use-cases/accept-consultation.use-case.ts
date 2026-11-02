@@ -1,22 +1,43 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
-import type { Server } from 'socket.io';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
+import { and, eq, inArray, desc } from "drizzle-orm";
+import type { Server } from "socket.io";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import { consultationSessions, consultations } from "@/core/drizzledb/schema";
 import {
-  consultationSessions,
-  consultations,
-} from '@/core/drizzledb/schema';
-import { ConsultationSessionStatus, ConsultationStatus } from '@/internal/consultation/enums';
-import { PresenceService } from '@/internal/actors/expert/presence/presence.service';
-import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
-import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
-import { VoiceService } from '@/external/voice';
-import { ConsultationBudgetEngine } from '../consultation-budget.engine';
+  ConsultationSessionStatus,
+  ConsultationStatus,
+} from "@/internal/consultation/enums";
+import { PresenceService } from "@/internal/actors/expert/presence/presence.service";
+import { SOCKET_EVENTS } from "@/internal/realtime/constants/socket-events.constant";
+import { SOCKET_ROOMS } from "@/internal/realtime/constants/socket-rooms.constant";
+import {
+  VoiceService,
+  VoiceTokenIssuanceFailedError,
+  type VoiceTokenResult,
+} from "@/external/voice";
+import { ConsultationBudgetEngine } from "../consultation-budget.engine";
 import {
   AcceptConsultationCommand,
   toConsultationModeType,
-} from '../consultation-orchestrator.types';
+} from "../consultation-orchestrator.types";
+
+type AcceptConsultationPayload = {
+  consultationId: number;
+  sessionId: number | undefined;
+  expertId: number;
+  mode: ReturnType<typeof toConsultationModeType>;
+  maxMinutes: number;
+  startedAt: string | null;
+  timestamp: string;
+  channelName?: string;
+};
+
+type MediaCredentials = {
+  channelName: string;
+  clientIssued: VoiceTokenResult;
+  expertIssued: VoiceTokenResult;
+};
 
 /**
  * Handles accepting a requested consultation booking.
@@ -45,6 +66,27 @@ export class AcceptConsultationUseCase {
    * @throws BadRequestException If consultation is not in REQUESTED status or not owned by expert.
    */
   async execute(server: Server, command: AcceptConsultationCommand) {
+    const [requestedConsultation] = await this.db
+      .select()
+      .from(consultations)
+      .where(
+        and(
+          eq(consultations.id, command.consultationId),
+          eq(consultations.expert_id, command.actorId),
+          inArray(consultations.status, [
+            ConsultationStatus.REQUESTED,
+            ConsultationStatus.REOPENED,
+          ]),
+        ),
+      )
+      .limit(1);
+
+    if (!requestedConsultation) {
+      throw new BadRequestException("Consultation cannot be accepted");
+    }
+
+    const mode = toConsultationModeType(requestedConsultation.mode);
+
     const [consultation] = await this.db
       .update(consultations)
       .set({
@@ -65,7 +107,7 @@ export class AcceptConsultationUseCase {
       .returning();
 
     if (!consultation) {
-      throw new BadRequestException('Consultation cannot be accepted');
+      throw new BadRequestException("Consultation cannot be accepted");
     }
 
     // Resolve the latest PENDING consultation_session so frontend hooks can
@@ -82,8 +124,6 @@ export class AcceptConsultationUseCase {
       .orderBy(desc(consultationSessions.id))
       .limit(1);
 
-    const mode = toConsultationModeType(consultation.mode);
-
     // Mark expert busy
     await this.presence.setBusy(consultation.expert_id, consultation.id);
 
@@ -92,56 +132,152 @@ export class AcceptConsultationUseCase {
       mode,
     );
 
-    // Accept-time media credentials for voice/video: mint both sides now so
-    // the apps can join Agora on room open instead of waiting for the first
-    // socket `consultation:join`. Tokens are self-contained (expiry inside),
-    // so no Redis storage — refresh is a stateless re-issue of the same
-    // channel + identity (see `refreshVoiceToken`). Mint failures degrade to
-    // a tokenless accept; the join-time fallback still issues per-join tokens.
-    const channelName =
-      mode === 'voice' || mode === 'video'
-        ? SOCKET_ROOMS.VOICE_SESSION(consultation.id)
-        : undefined;
-    const [clientIssued, expertIssued] = channelName
-      ? await Promise.all([
-          this.voice
-            .generateToken({
-              identity: `client_${consultation.client_id}_consult_${consultation.id}`,
-              channelName,
-            })
-            .catch(() => null),
-          this.voice
-            .generateToken({
-              identity: `expert_${consultation.expert_id}_consult_${consultation.id}`,
-              channelName,
-            })
-            .catch(() => null),
-        ])
-      : [null, null];
-
-    const payload = {
-      consultationId: consultation.id,
+    const acceptanceDetails = {
       sessionId: pendingSession?.id ?? undefined,
-      expertId: consultation.expert_id,
-      mode,
       maxMinutes: affordability?.maxMinutes ?? 0,
       startedAt: affordability?.startedAt ?? null,
+    };
+
+    if (mode === "chat") {
+      return this.acceptChatConsultation(server, consultation, {
+        ...acceptanceDetails,
+        mode,
+      });
+    }
+
+    return this.acceptMediaConsultation(server, consultation, {
+      ...acceptanceDetails,
+      mode,
+    });
+  }
+
+  /**
+   * Mints and validates both participant tokens before the consultation is accepted.
+   * @param consultation Consultation identity and participant IDs.
+   * @returns Valid media credentials for both participants.
+   * @throws VoiceTokenIssuanceFailedError if either token is missing or empty.
+   */
+  private async createMediaCredentials(
+    consultation: Pick<
+      typeof consultations.$inferSelect,
+      "id" | "client_id" | "expert_id"
+    >,
+  ): Promise<MediaCredentials> {
+    const channelName = SOCKET_ROOMS.VOICE_SESSION(consultation.id);
+    const [clientResult, expertResult] = await Promise.allSettled([
+      this.voice.generateToken({
+        identity: `client_${consultation.client_id}_consult_${consultation.id}`,
+        channelName,
+      }),
+      this.voice.generateToken({
+        identity: `expert_${consultation.expert_id}_consult_${consultation.id}`,
+        channelName,
+      }),
+    ]);
+
+    const clientIssued =
+      clientResult.status === "fulfilled" ? clientResult.value : null;
+    const expertIssued =
+      expertResult.status === "fulfilled" ? expertResult.value : null;
+    if (
+      clientResult.status !== "fulfilled" ||
+      expertResult.status !== "fulfilled"
+    ) {
+      throw new VoiceTokenIssuanceFailedError();
+    }
+
+    if (!clientIssued?.token || !expertIssued?.token) {
+      throw new VoiceTokenIssuanceFailedError();
+    }
+
+    return { channelName, clientIssued, expertIssued };
+  }
+
+  /**
+   * Broadcasts a chat acceptance to the consultation and participant rooms.
+   * @param consultation Accepted consultation identity and participant IDs.
+   * @param server Authoritative Socket.IO server instance.
+   * @param acceptance Session and affordability details for the accepted event.
+   * @returns Confirmation status and consultation identifier.
+   */
+  private acceptChatConsultation(
+    server: Server,
+    consultation: Pick<
+      typeof consultations.$inferSelect,
+      "id" | "client_id" | "expert_id"
+    >,
+    acceptance: Omit<
+      Pick<
+        AcceptConsultationPayload,
+        "sessionId" | "mode" | "maxMinutes" | "startedAt"
+      >,
+      "mode"
+    > & { mode: "chat" },
+  ) {
+    const payload: AcceptConsultationPayload = {
+      consultationId: consultation.id,
+      expertId: consultation.expert_id,
+      ...acceptance,
       timestamp: new Date().toISOString(),
-      ...(channelName ? { channelName } : {}),
+    };
+
+    server
+      .to(SOCKET_ROOMS.CONSULTATION(consultation.id))
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED, payload);
+    server
+      .to(SOCKET_ROOMS.CLIENT(consultation.client_id))
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED, payload);
+    server
+      .to(SOCKET_ROOMS.EXPERT(consultation.expert_id))
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED, payload);
+
+    return { status: "accepted", consultationId: consultation.id };
+  }
+
+  /**
+   * Issues media credentials and broadcasts acceptance for voice or video.
+   * @param consultation Accepted consultation identity and participant IDs.
+   * @param server Authoritative Socket.IO server instance.
+   * @param acceptance Session and affordability details for the accepted event.
+   * @returns Confirmation status and any successfully issued expert token.
+   */
+  private async acceptMediaConsultation(
+    server: Server,
+    consultation: Pick<
+      typeof consultations.$inferSelect,
+      "id" | "client_id" | "expert_id"
+    >,
+    acceptance: Omit<
+      Pick<
+        AcceptConsultationPayload,
+        "sessionId" | "mode" | "maxMinutes" | "startedAt"
+      >,
+      "mode"
+    > & { mode: "voice" | "video" },
+  ) {
+    const mediaCredentials = await this.createMediaCredentials(consultation);
+
+    if (!mediaCredentials) throw new VoiceTokenIssuanceFailedError();
+
+    const { channelName, clientIssued, expertIssued } = mediaCredentials;
+
+    const payload: AcceptConsultationPayload = {
+      consultationId: consultation.id,
+      expertId: consultation.expert_id,
+      ...acceptance,
+      timestamp: new Date().toISOString(),
+      channelName,
     };
 
     server
       .to(SOCKET_ROOMS.CONSULTATION(consultation.id))
       .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED, payload);
 
-    // Targeted per-side delivery: the ACCEPTED room broadcast carries no
-    // secret (a token must never fan out to the whole room). Each side picks
-    // its token up on its personal room, which both apps join on connect.
-    // Always delivered (all modes) so both apps learn the verdict even when
-    // they are not (or no longer) members of the consultation room.
-    server.to(SOCKET_ROOMS.CLIENT(consultation.client_id)).emit(
-      SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED,
-      {
+    // Keep media credentials private to each participant's personal room.
+    // These verdicts go to both sides for every mode, including after reconnect.
+    server
+      .to(SOCKET_ROOMS.CLIENT(consultation.client_id))
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED, {
         ...payload,
         ...(clientIssued
           ? {
@@ -149,11 +285,10 @@ export class AcceptConsultationUseCase {
               tokenExpiresAt: clientIssued.expiresAt.toISOString(),
             }
           : {}),
-      },
-    );
-    server.to(SOCKET_ROOMS.EXPERT(consultation.expert_id)).emit(
-      SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED,
-      {
+      });
+    server
+      .to(SOCKET_ROOMS.EXPERT(consultation.expert_id))
+      .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.ACCEPTED, {
         ...payload,
         ...(expertIssued
           ? {
@@ -161,13 +296,12 @@ export class AcceptConsultationUseCase {
               tokenExpiresAt: expertIssued.expiresAt.toISOString(),
             }
           : {}),
-      },
-    );
+      });
 
     return {
-      status: 'accepted',
+      status: "accepted",
       consultationId: consultation.id,
-      ...(channelName && expertIssued
+      ...(expertIssued
         ? {
             token: expertIssued.token,
             tokenExpiresAt: expertIssued.expiresAt.toISOString(),
