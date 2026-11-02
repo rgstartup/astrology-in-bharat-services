@@ -1,25 +1,25 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import type { Server } from 'socket.io';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { ConsultationMode } from '@/internal/consultation/enums';
-import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
-import { SOCKET_ROOMS } from '@/internal/realtime/constants/socket-rooms.constant';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import type { Server } from "socket.io";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import { ConsultationMode } from "@/internal/consultation/enums";
+import { SOCKET_EVENTS } from "@/internal/realtime/constants/socket-events.constant";
+import { SOCKET_ROOMS } from "@/internal/realtime/constants/socket-rooms.constant";
 import {
   persistChatMessage,
   resolveMessageSessionId,
   toMessageType,
-} from '@/internal/realtime/chat/chat-message-persistence';
+} from "@/internal/realtime/chat/chat-message-persistence";
 import {
   CONSULTATION_ACK_STATUS,
   type ConsultationAckStatus,
-} from '@/internal/realtime/constants/consultation-ack-status.constant';
-import { ConsultationRoomRepository } from '@/internal/consultation/room/consultation-room.repository';
-import { isConsultationParticipant } from '@/internal/realtime/room/consultation-room-access';
-import type { AuthenticatedSocketIdentity } from '@/internal/realtime/types/socket-auth.types';
-import type { RealtimeSocket } from '@/internal/realtime/types/socket-data.types';
+} from "@/internal/realtime/constants/consultation-ack-status.constant";
+import { ConsultationRoomRepository } from "@/internal/consultation/room/consultation-room.repository";
+import { isConsultationParticipant } from "@/internal/realtime/room/consultation-room-access";
+import type { AuthenticatedSocketIdentity } from "@/internal/realtime/types/socket-auth.types";
+import type { RealtimeSocket } from "@/internal/realtime/types/socket-data.types";
 
-import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
+import { ConsultationOrchestratorService } from "@/internal/consultation/orchestrator/consultation-orchestrator.service";
 
 export interface ExpertChatPauseAck {
   status: ConsultationAckStatus;
@@ -67,7 +67,13 @@ export class ExpertChatHandler {
     status: ConsultationAckStatus;
     message: Record<string, unknown>;
   }> {
-    if (!(await isConsultationParticipant(this.db, input.consultationId, identity))) {
+    if (
+      !(await isConsultationParticipant(
+        this.db,
+        input.consultationId,
+        identity,
+      ))
+    ) {
       return { status: CONSULTATION_ACK_STATUS.IGNORED, message: {} };
     }
     const room = SOCKET_ROOMS.CONSULTATION(input.consultationId);
@@ -91,9 +97,12 @@ export class ExpertChatHandler {
     }
 
     const senderId =
-      identity.actorType === 'expert' ? identity.expertId : identity.id;
+      identity.actorType === "expert" ? identity.expertId : identity.id;
 
-    const sessionId = await resolveMessageSessionId(this.db, input.consultationId);
+    const sessionId = await resolveMessageSessionId(
+      this.db,
+      input.consultationId,
+    );
 
     const persisted = await persistChatMessage(this.db, {
       consultationId: input.consultationId,
@@ -137,134 +146,5 @@ export class ExpertChatHandler {
       senderType: identity.actorType,
       isTyping,
     });
-  }
-
-  /**
-   * Expert accept → orchestrator accept. Passes the use-case result through
-   * so the accept-time voice token (voice/video only) reaches the accept ack.
-   */
-  async acceptChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ): Promise<{
-    status: ConsultationAckStatus;
-    consultationId: number;
-    token?: string;
-    tokenExpiresAt?: string;
-    channelName?: string;
-  }> {
-    const room = SOCKET_ROOMS.CONSULTATION(consultationId);
-    await socket.join(room);
-    const accepted = await this.orchestrator.accept(server, {
-      consultationId,
-      actorId:
-        identity.actorType === 'expert' ? identity.expertId : identity.id,
-      actorType: 'expert',
-    });
-    return {
-      status: CONSULTATION_ACK_STATUS.ACCEPTED,
-      consultationId,
-      ...(accepted?.token ? { token: accepted.token } : {}),
-      ...(accepted?.tokenExpiresAt
-        ? { tokenExpiresAt: accepted.tokenExpiresAt }
-        : {}),
-      ...(accepted?.channelName ? { channelName: accepted.channelName } : {}),
-    };
-  }
-
-  /** Expert reject → orchestrator reject. */
-  async rejectChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ): Promise<{ status: ConsultationAckStatus; consultationId: number }> {
-    void socket;
-    await this.orchestrator.reject(server, {
-      consultationId,
-      actorId:
-        identity.actorType === 'expert' ? identity.expertId : identity.id,
-      actorType: 'expert',
-      reason: 'expert_rejected',
-    });
-    return {
-      status: CONSULTATION_ACK_STATUS.REJECTED,
-      consultationId,
-    };
-  }
-
-  /** Either actor ends an active chat → orchestrator end. */
-  async endChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ): Promise<{ status: ConsultationAckStatus; consultationId: number }> {
-    void socket;
-    await this.orchestrator.end(server, {
-      consultationId,
-      actorId:
-        identity.actorType === 'expert' ? identity.expertId : identity.id,
-      actorType: identity.actorType === 'expert' ? 'expert' : 'client',
-      reason: 'manual',
-    });
-    return {
-      status: CONSULTATION_ACK_STATUS.ENDED,
-      consultationId,
-    };
-  }
-
-  /** Balance-exhaustion pause → orchestrator pause. */
-  async pauseChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ): Promise<ExpertChatPauseAck> {
-    await socket.join(SOCKET_ROOMS.CONSULTATION(consultationId));
-    const state = await this.orchestrator.pause(server, {
-      consultationId,
-      actorId:
-        identity.actorType === 'expert' ? identity.expertId : identity.id,
-      actorType: identity.actorType === 'expert' ? 'expert' : 'client',
-      reason: 'manual',
-    });
-    if (!state) {
-      return { status: CONSULTATION_ACK_STATUS.IGNORED, consultationId };
-    }
-    return {
-      status: CONSULTATION_ACK_STATUS.PAUSED,
-      consultationId,
-      elapsedSeconds: state.elapsedSeconds,
-      consumedAmount: 0,
-      maxMinutes: state.maxMinutes,
-      mode: ConsultationMode.CHAT,
-    };
-  }
-
-  /** Resume after recharge → orchestrator resume. */
-  async resumeChat(
-    server: Server,
-    socket: RealtimeSocket,
-    consultationId: number,
-    identity: AuthenticatedSocketIdentity,
-  ): Promise<ExpertChatResumeAck> {
-    await socket.join(SOCKET_ROOMS.CONSULTATION(consultationId));
-    const state = await this.orchestrator.resume(server, {
-      consultationId,
-      actorId:
-        identity.actorType === 'expert' ? identity.expertId : identity.id,
-      actorType: identity.actorType === 'expert' ? 'expert' : 'client',
-    });
-    return {
-      status: CONSULTATION_ACK_STATUS.RESUMED,
-      consultationId,
-      maxMinutes: state.maxMinutes,
-      startedAt: state.startedAt ?? new Date().toISOString(),
-      elapsedSeconds: state.elapsedSeconds,
-      mode: ConsultationMode.CHAT,
-    };
   }
 }
