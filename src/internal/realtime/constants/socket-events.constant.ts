@@ -92,6 +92,34 @@ export const SOCKET_EVENTS = {
     ANSWER: "consultation:media:answer",
     ICE_CANDIDATE: "consultation:media:ice_candidate",
   },
+
+  /**
+   * Media control signals for active voice/video consultations.
+   * Inbound commands with ACKs for budget-critical operations.
+   */
+  MEDIA_CONTROL: {
+    // Inbound commands (Client/Expert -> Server)
+    COMMANDS: {
+      MUTE_MIC: "consultation:media_control:mute_mic",
+      UNMUTE_MIC: "consultation:media_control:unmute_mic",
+      MUTE_SPEAKER: "consultation:media_control:mute_speaker",
+      UNMUTE_SPEAKER: "consultation:media_control:unmute_speaker",
+      PAUSE_TIMER: "consultation:media_control:pause_timer",
+      RESUME_TIMER: "consultation:media_control:resume_timer",
+      SWITCH_CAMERA: "consultation:media_control:switch_camera",
+    },
+
+    // Outbound events (Server -> Room/Participants)
+    EVENTS: {
+      MIC_MUTED: "consultation:media_control:mic_muted",
+      MIC_UNMUTED: "consultation:media_control:mic_unmuted",
+      SPEAKER_MUTED: "consultation:media_control:speaker_muted",
+      SPEAKER_UNMUTED: "consultation:media_control:speaker_unmuted",
+      TIMER_PAUSED: "consultation:media_control:timer_paused",
+      TIMER_RESUMED: "consultation:media_control:timer_resumed",
+      CAMERA_SWITCHED: "consultation:media_control:camera_switched",
+    },
+  },
 } as const;
 
 export type SocketEventGroup = keyof typeof SOCKET_EVENTS;

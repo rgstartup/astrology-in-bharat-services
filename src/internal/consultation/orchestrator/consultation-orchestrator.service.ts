@@ -37,6 +37,7 @@ import type { RealtimeSocket } from "@/internal/realtime/types/socket-data.types
 import {
   AcceptConsultationCommand,
   CancelConsultationCommand,
+  CameraSwitchedPayload,
   CloseConsultationCommand,
   ConsultationBudgetWarningPayload,
   ConsultationEndedPayload,
@@ -45,12 +46,22 @@ import {
   ConsultationResumedAckPayload,
   ConsultationStatePayload,
   EndConsultationCommand,
+  MediaControlCommand,
+  MicMutedPayload,
+  MicUnmutedPayload,
+  MuteMicCommand,
+  MuteSpeakerCommand,
   PauseConsultationCommand,
   RejectConsultationCommand,
   RequestConsultationCommand,
   ResumeConsultationCommand,
+  SpeakerMutedPayload,
+  SpeakerUnmutedPayload,
   StartConsultationCommand,
+  SwitchCameraCommand,
   SwitchToChatCommand,
+  TimerPausedPayload,
+  TimerResumedPayload,
   toConsultationModeType,
 } from "./consultation-orchestrator.types";
 
@@ -113,9 +124,7 @@ export class ConsultationOrchestratorService {
       consultationId: command.consultationId,
       mode,
       status: (await this.consultationStatus(command.consultationId))!,
-      bothMediaReady: await this.rooms.isBothMediaReady(
-        command.consultationId,
-      ),
+      bothMediaReady: await this.rooms.isBothMediaReady(command.consultationId),
     };
 
     for (const rule of rules) {
@@ -368,6 +377,107 @@ export class ConsultationOrchestratorService {
         graceDelayMs ?? hold.graceDurationSeconds * 1000,
       );
     }
+  }
+
+  // =========================================================================
+  // Media Control Methods
+  // =========================================================================
+
+  /**
+   * Mutes the caller's microphone and broadcasts to the consultation room.
+   */
+  async muteMic(
+    server: Server,
+    command: MuteMicCommand,
+  ): Promise<MicMutedPayload> {
+    const payload: MicMutedPayload = {
+      consultationId: command.consultationId,
+      actorType: command.actorType,
+      actorId: command.actorId,
+      timestamp: new Date().toISOString(),
+    };
+    server
+      .to(SOCKET_ROOMS.CONSULTATION(command.consultationId))
+      .emit(SOCKET_EVENTS.MEDIA_CONTROL.EVENTS.MIC_MUTED, payload);
+    return payload;
+  }
+
+  /**
+   * Unmutes the caller's microphone and broadcasts to the consultation room.
+   */
+  async unmuteMic(
+    server: Server,
+    command: MuteMicCommand,
+  ): Promise<MicUnmutedPayload> {
+    const payload: MicUnmutedPayload = {
+      consultationId: command.consultationId,
+      actorType: command.actorType,
+      actorId: command.actorId,
+      timestamp: new Date().toISOString(),
+    };
+    server
+      .to(SOCKET_ROOMS.CONSULTATION(command.consultationId))
+      .emit(SOCKET_EVENTS.MEDIA_CONTROL.EVENTS.MIC_UNMUTED, payload);
+    return payload;
+  }
+
+  /**
+   * Mutes the caller's speaker (local playback) and broadcasts to the consultation room.
+   * Note: This is a local preference signal; the remote peer may choose to respect it.
+   */
+  async muteSpeaker(
+    server: Server,
+    command: MuteSpeakerCommand,
+  ): Promise<SpeakerMutedPayload> {
+    const payload: SpeakerMutedPayload = {
+      consultationId: command.consultationId,
+      actorType: command.actorType,
+      actorId: command.actorId,
+      timestamp: new Date().toISOString(),
+    };
+    server
+      .to(SOCKET_ROOMS.CONSULTATION(command.consultationId))
+      .emit(SOCKET_EVENTS.MEDIA_CONTROL.EVENTS.SPEAKER_MUTED, payload);
+    return payload;
+  }
+
+  /**
+   * Unmutes the caller's speaker and broadcasts to the consultation room.
+   */
+  async unmuteSpeaker(
+    server: Server,
+    command: MuteSpeakerCommand,
+  ): Promise<SpeakerUnmutedPayload> {
+    const payload: SpeakerUnmutedPayload = {
+      consultationId: command.consultationId,
+      actorType: command.actorType,
+      actorId: command.actorId,
+      timestamp: new Date().toISOString(),
+    };
+    server
+      .to(SOCKET_ROOMS.CONSULTATION(command.consultationId))
+      .emit(SOCKET_EVENTS.MEDIA_CONTROL.EVENTS.SPEAKER_UNMUTED, payload);
+    return payload;
+  }
+
+  /**
+   * Switches the caller's camera and broadcasts to the consultation room.
+   */
+  async switchCamera(
+    server: Server,
+    command: SwitchCameraCommand,
+  ): Promise<CameraSwitchedPayload> {
+    const payload: CameraSwitchedPayload = {
+      consultationId: command.consultationId,
+      actorType: command.actorType,
+      actorId: command.actorId,
+      cameraId: command.cameraId,
+      timestamp: new Date().toISOString(),
+    };
+    server
+      .to(SOCKET_ROOMS.CONSULTATION(command.consultationId))
+      .emit(SOCKET_EVENTS.MEDIA_CONTROL.EVENTS.CAMERA_SWITCHED, payload);
+    return payload;
   }
 
   /**

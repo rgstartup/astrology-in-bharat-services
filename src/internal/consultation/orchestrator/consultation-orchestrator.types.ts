@@ -154,6 +154,47 @@ export interface SwitchToChatCommand {
 }
 
 /**
+ * Media control command interfaces for active voice/video consultations.
+ */
+export interface MediaControlCommand {
+  consultationId: number;
+  actorId: number;
+  actorType: 'client' | 'expert';
+}
+
+export interface MuteMicCommand extends MediaControlCommand {}
+export interface UnmuteMicCommand extends MediaControlCommand {}
+export interface MuteSpeakerCommand extends MediaControlCommand {}
+export interface UnmuteSpeakerCommand extends MediaControlCommand {}
+export interface PauseTimerCommand extends MediaControlCommand {}
+export interface ResumeTimerCommand extends MediaControlCommand {}
+export interface SwitchCameraCommand extends MediaControlCommand {
+  cameraId?: string;
+}
+
+/**
+ * Media control event payloads broadcast to consultation room.
+ */
+export interface MediaControlPayload {
+  consultationId: number;
+  actorType: 'client' | 'expert';
+  actorId: number;
+  timestamp: string;
+}
+
+export interface MicMutedPayload extends MediaControlPayload {}
+export interface MicUnmutedPayload extends MediaControlPayload {}
+export interface SpeakerMutedPayload extends MediaControlPayload {}
+export interface SpeakerUnmutedPayload extends MediaControlPayload {}
+export interface TimerPausedPayload extends MediaControlPayload {
+  reason?: LifecycleReason;
+}
+export interface TimerResumedPayload extends MediaControlPayload {}
+export interface CameraSwitchedPayload extends MediaControlPayload {
+  cameraId?: string;
+}
+
+/**
  * Outbound Event Payloads.
  */
 export interface ConsultationMediaReadyPayload {

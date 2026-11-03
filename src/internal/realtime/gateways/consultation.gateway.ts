@@ -23,7 +23,7 @@ import { WsAuthGuard } from '../guards/ws-auth.guard';
 import { CurrentWsAuth } from '../decorators/current-ws-auth.decorator';
 import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
 import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
-import type { ConsultationModeType } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
+import type { ConsultationModeType, MediaControlCommand } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
 import {
   joinConsultationRoom,
   leaveConsultationRoom,
@@ -66,6 +66,19 @@ class ConsultationJoinDto extends ConsultationActionDto {
   @IsString()
   @IsNotEmpty()
   mode!: ConsultationModeType;
+}
+
+/** Media control DTOs */
+class MediaControlDto {
+  @IsNumber()
+  @IsNotEmpty()
+  consultationId!: number;
+}
+
+class SwitchCameraDto extends MediaControlDto {
+  @IsString()
+  @IsOptional()
+  cameraId?: string;
 }
 
 @UseFilters(RealtimeWsExceptionFilter)
@@ -271,12 +284,23 @@ export class ConsultationGateway implements OnGatewayInit {
     // Only the client may freeze billing for its confirmation dialogs.
     const billingHold =
       identity.actorType === 'client' && dto.reason === 'billing_hold';
-    return this.orchestrator.pause(this.server, {
+    const actorType =
+      identity.actorType === 'client' ? 'client' : 'expert';
+    const payload = await this.orchestrator.pause(this.server, {
       consultationId: dto.consultationId,
       actorId,
-      actorType: identity.actorType === 'client' ? 'client' : 'expert',
+      actorType,
       reason: billingHold ? 'billing_hold' : 'manual',
     });
+    // Pause local media for voice/video consultations when billing freezes.
+    if (payload) {
+      await this.toggleMediaOnPause(payload.mode, {
+        consultationId: dto.consultationId,
+        actorId,
+        actorType,
+      });
+    }
+    return payload;
   }
 
   @UseGuards(WsAuthGuard)
@@ -288,12 +312,21 @@ export class ConsultationGateway implements OnGatewayInit {
   ) {
     const actorId =
       identity.actorType === 'expert' ? identity.expertId : identity.id;
-    return this.orchestrator.resume(this.server, {
+    const actorType =
+      identity.actorType === 'client' ? 'client' : 'expert';
+    const result = await this.orchestrator.resume(this.server, {
       consultationId: dto.consultationId,
       actorId,
-      actorType: identity.actorType === 'client' ? 'client' : 'expert',
+      actorType,
       targetMode: dto.mode,
     });
+    // Unmute local media for voice/video consultations when billing resumes.
+    await this.toggleMediaOnResume(result.mode, {
+      consultationId: dto.consultationId,
+      actorId,
+      actorType,
+    });
+    return result;
   }
 
   @UseGuards(WsAuthGuard)
@@ -322,12 +355,21 @@ export class ConsultationGateway implements OnGatewayInit {
   ) {
     const actorId =
       identity.actorType === 'expert' ? identity.expertId : identity.id;
-    return this.orchestrator.resume(this.server, {
+    const actorType =
+      identity.actorType === 'client' ? 'client' : 'expert';
+    const result = await this.orchestrator.resume(this.server, {
       consultationId: dto.consultationId,
       actorId,
-      actorType: identity.actorType === 'client' ? 'client' : 'expert',
+      actorType,
       targetMode: 'voice',
     });
+    // Unmute local media when resuming a voice consultation.
+    await this.toggleMediaOnResume(result.mode, {
+      consultationId: dto.consultationId,
+      actorId,
+      actorType,
+    });
+    return result;
   }
 
   @UseGuards(WsAuthGuard)
@@ -339,12 +381,21 @@ export class ConsultationGateway implements OnGatewayInit {
   ) {
     const actorId =
       identity.actorType === 'expert' ? identity.expertId : identity.id;
-    return this.orchestrator.resume(this.server, {
+    const actorType =
+      identity.actorType === 'client' ? 'client' : 'expert';
+    const result = await this.orchestrator.resume(this.server, {
       consultationId: dto.consultationId,
       actorId,
-      actorType: identity.actorType === 'client' ? 'client' : 'expert',
+      actorType,
       targetMode: 'video',
     });
+    // Unmute local media and toggle camera when resuming a video consultation.
+    await this.toggleMediaOnResume(result.mode, {
+      consultationId: dto.consultationId,
+      actorId,
+      actorType,
+    });
+    return result;
   }
 
   @UseGuards(WsAuthGuard)
@@ -452,5 +503,173 @@ export class ConsultationGateway implements OnGatewayInit {
       dto.consultationId,
       identity,
     );
+  }
+
+  // =========================================================================
+  // Media Control Handlers
+  // =========================================================================
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.MEDIA_CONTROL.COMMANDS.MUTE_MIC)
+  async handleMuteMic(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: MediaControlDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.orchestrator.muteMic(this.server, {
+      consultationId: dto.consultationId,
+      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorType: identity.actorType,
+    });
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.MEDIA_CONTROL.COMMANDS.UNMUTE_MIC)
+  async handleUnmuteMic(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: MediaControlDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.orchestrator.unmuteMic(this.server, {
+      consultationId: dto.consultationId,
+      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorType: identity.actorType,
+    });
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.MEDIA_CONTROL.COMMANDS.MUTE_SPEAKER)
+  async handleMuteSpeaker(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: MediaControlDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.orchestrator.muteSpeaker(this.server, {
+      consultationId: dto.consultationId,
+      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorType: identity.actorType,
+    });
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.MEDIA_CONTROL.COMMANDS.UNMUTE_SPEAKER)
+  async handleUnmuteSpeaker(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: MediaControlDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.orchestrator.unmuteSpeaker(this.server, {
+      consultationId: dto.consultationId,
+      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorType: identity.actorType,
+    });
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.MEDIA_CONTROL.COMMANDS.PAUSE_TIMER)
+  async handlePauseTimer(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: MediaControlDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    // Timer pause goes through existing orchestrator.pause with billing_hold reason
+    const actorId =
+      identity.actorType === 'expert' ? identity.expertId : identity.id;
+    const actorType =
+      identity.actorType === 'client' ? 'client' : 'expert';
+    const payload = await this.orchestrator.pause(this.server, {
+      consultationId: dto.consultationId,
+      actorId,
+      actorType,
+      reason: 'billing_hold',
+    });
+    // Pause local media for voice/video consultations when the timer freezes.
+    if (payload) {
+      await this.toggleMediaOnPause(payload.mode, {
+        consultationId: dto.consultationId,
+        actorId,
+        actorType,
+      });
+    }
+    return payload;
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.MEDIA_CONTROL.COMMANDS.RESUME_TIMER)
+  async handleResumeTimer(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: MediaControlDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    // Timer resume goes through existing orchestrator.resume
+    const actorId =
+      identity.actorType === 'expert' ? identity.expertId : identity.id;
+    const actorType =
+      identity.actorType === 'client' ? 'client' : 'expert';
+    const result = await this.orchestrator.resume(this.server, {
+      consultationId: dto.consultationId,
+      actorId,
+      actorType,
+    });
+    // Unmute local media for voice/video consultations when the timer resumes.
+    await this.toggleMediaOnResume(result.mode, {
+      consultationId: dto.consultationId,
+      actorId,
+      actorType,
+    });
+    return result;
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(SOCKET_EVENTS.MEDIA_CONTROL.COMMANDS.SWITCH_CAMERA)
+  async handleSwitchCamera(
+    @ConnectedSocket() _socket: RealtimeSocket,
+    @MessageBody() dto: SwitchCameraDto,
+    @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
+  ) {
+    return this.orchestrator.switchCamera(this.server, {
+      consultationId: dto.consultationId,
+      actorId: identity.actorType === 'expert' ? identity.expertId : identity.id,
+      actorType: identity.actorType,
+      cameraId: dto.cameraId,
+    });
+  }
+
+  /**
+   * Mutes mic and speaker (and toggles camera for video) when a voice/video
+   * consultation is paused. Chat consultations have no media to mute.
+   */
+  private async toggleMediaOnPause(
+    mode: ConsultationModeType,
+    command: MediaControlCommand,
+  ): Promise<void> {
+    if (mode !== 'voice' && mode !== 'video') return;
+    await this.orchestrator.muteMic(this.server, command);
+    await this.orchestrator.muteSpeaker(this.server, command);
+    if (mode === 'video') {
+      await this.orchestrator.switchCamera(this.server, {
+        ...command,
+        cameraId: undefined,
+      });
+    }
+  }
+
+  /**
+   * Unmutes mic and speaker (and toggles camera for video) when a voice/video
+   * consultation resumes. Chat consultations have no media to unmute.
+   */
+  private async toggleMediaOnResume(
+    mode: ConsultationModeType,
+    command: MediaControlCommand,
+  ): Promise<void> {
+    if (mode !== 'voice' && mode !== 'video') return;
+    await this.orchestrator.unmuteMic(this.server, command);
+    await this.orchestrator.unmuteSpeaker(this.server, command);
+    if (mode === 'video') {
+      await this.orchestrator.switchCamera(this.server, {
+        ...command,
+        cameraId: undefined,
+      });
+    }
   }
 }
