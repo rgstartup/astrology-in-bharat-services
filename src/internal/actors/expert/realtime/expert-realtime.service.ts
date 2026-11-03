@@ -318,11 +318,24 @@ export class ExpertRealtimeService {
         ),
       );
     for (const row of active) {
+      const mode = toConsultationModeType(row.mode);
       this.orchestrator.armBudgetTimer(
         server,
         row.id,
-        toConsultationModeType(row.mode),
+        mode,
       );
+      const publicPayload = {
+        consultationId: row.id,
+        mode,
+        state: "active",
+        timestamp: new Date().toISOString(),
+      };
+      server
+        .to(SOCKET_ROOMS.CONSULTATION(row.id))
+        .emit(SOCKET_EVENTS.CONSULTATION.EVENTS.RESUMED, publicPayload);
+      server
+        .to(SOCKET_ROOMS.CONSULTATION(row.id))
+        .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.RESTORED, publicPayload);
     }
   }
 }
