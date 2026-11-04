@@ -39,6 +39,7 @@ import {
   CancelConsultationCommand,
   CameraSwitchedPayload,
   CloseConsultationCommand,
+  ConsultationBudgetTickPayload,
   ConsultationBudgetWarningPayload,
   ConsultationEndedPayload,
   ConsultationMediaReadyPayload,
@@ -72,6 +73,7 @@ export class ConsultationOrchestratorService {
   private readonly warningTimers = new Map<number, NodeJS.Timeout>();
   private readonly graceTimers = new Map<number, NodeJS.Timeout>();
   private readonly holdTimers = new Map<number, NodeJS.Timeout>();
+  private readonly reconciliationTimers = new Map<number, NodeJS.Timeout>();
   private bootRearmed = false;
 
   constructor(
@@ -269,11 +271,14 @@ export class ConsultationOrchestratorService {
     identity: AuthenticatedSocketIdentity,
   ): Promise<void> {
     const [row] = await this.db
-      .select({ mode: consultations.mode })
+      .select({
+        mode: consultations.mode,
+        status: consultations.status,
+      })
       .from(consultations)
       .where(eq(consultations.id, consultationId))
       .limit(1);
-    if (!row) return;
+    if (!row || row.status !== ConsultationStatus.ACCEPTED) return;
     const mode = toConsultationModeType(row.mode);
     // start() is idempotent (ACCEPTED->ACTIVE flip is guarded in the use
     // case). The rules decide whether the budget timer arms: for voice/video
@@ -554,6 +559,13 @@ export class ConsultationOrchestratorService {
     return "rearmed";
   }
 
+  /**
+   * Arm metered budget timer and 30-second reconciliation tick for an active consultation.
+   *
+   * @param server - Authoritative Socket.IO server instance.
+   * @param consultationId - ID of the active consultation.
+   * @param mode - Mode of consultation (chat, voice, video).
+   */
   armBudgetTimer(
     server: Server,
     consultationId: number,
@@ -592,6 +604,7 @@ export class ConsultationOrchestratorService {
             },
             Math.min(warningDelayMs, 2_147_483_647),
           );
+          warningTimer.unref();
           this.warningTimers.set(consultationId, warningTimer);
         }
 
@@ -602,8 +615,77 @@ export class ConsultationOrchestratorService {
           },
           Math.min(delayMs, 2_147_483_647),
         );
+        timer.unref();
         this.budgetTimers.set(consultationId, timer);
+
+        // Schedule periodic 30-second reconciliation tick
+        this.armReconciliationTimer(server, consultationId, mode);
       });
+  }
+
+  /**
+   * Periodic 30-second reconciliation tick. Authoritatively calculates live elapsed
+   * and remaining seconds on the server and broadcasts to both client and expert.
+   *
+   * @param server - Authoritative Socket.IO server instance.
+   * @param consultationId - ID of the active consultation.
+   * @param mode - Mode of consultation.
+   */
+  private armReconciliationTimer(
+    server: Server,
+    consultationId: number,
+    mode: ConsultationModeType,
+  ) {
+    this.cancelReconciliationTimer(consultationId);
+    const interval = setInterval(async () => {
+      try {
+        const live = await this.budget.calculateAffordability(consultationId, mode);
+        if (!live) {
+          this.cancelReconciliationTimer(consultationId);
+          return;
+        }
+
+        if (live.remainingSeconds <= 0) {
+          this.cancelReconciliationTimer(consultationId);
+          void this.triggerBudgetHold(server, consultationId);
+          return;
+        }
+
+        const tickPayload: ConsultationBudgetTickPayload = {
+          consultationId,
+          mode,
+          remainingSeconds: live.remainingSeconds,
+          elapsedSeconds: live.elapsedSeconds,
+          maxMinutes: live.maxMinutes,
+          ratePerMinute: live.ratePerMinute,
+          timestamp: new Date().toISOString(),
+          startedAt: live.startedAt ?? undefined,
+        };
+
+        server
+          .to(SOCKET_ROOMS.CONSULTATION(consultationId))
+          .emit(SOCKET_EVENTS.CONSULTATION.BUDGET.TICK, tickPayload);
+      } catch (err) {
+        this.logger.error(
+          `Failed to emit budget tick for consultation ${consultationId}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }, 30_000);
+    interval.unref();
+    this.reconciliationTimers.set(consultationId, interval);
+  }
+
+  /**
+   * Cancels the active 30-second reconciliation interval for a consultation.
+   *
+   * @param consultationId - ID of the consultation.
+   */
+  private cancelReconciliationTimer(consultationId: number) {
+    const timer = this.reconciliationTimers.get(consultationId);
+    if (timer) {
+      clearInterval(timer);
+      this.reconciliationTimers.delete(consultationId);
+    }
   }
 
   cancelBudgetTimer(consultationId: number) {
@@ -617,6 +699,7 @@ export class ConsultationOrchestratorService {
       clearTimeout(warningTimer);
       this.warningTimers.delete(consultationId);
     }
+    this.cancelReconciliationTimer(consultationId);
   }
 
   private armGraceTimer(

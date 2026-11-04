@@ -16,6 +16,10 @@ const EXPERT = { actorType: 'expert', id: 42, expertId: 42 };
 const PARTICIPANT = [{ client_id: 10, expert_id: 42 }];
 
 function serviceMock(db: any, rooms: any) {
+  const mergedRooms = {
+    isBothMediaReady: vi.fn(async () => true),
+    ...rooms,
+  };
   const emit = vi.fn();
   const server = { to: vi.fn(() => ({ emit })) } as any;
   const startUseCase = {
@@ -28,7 +32,7 @@ function serviceMock(db: any, rooms: any) {
   };
   const service = new ConsultationOrchestratorService(
     db,
-    rooms,
+    mergedRooms as any,
     {} as any,
     {} as any,
     {} as any,
@@ -89,7 +93,7 @@ describe('ConsultationOrchestratorService.mediaReady', () => {
       })),
     };
     const { service, server, emit, startUseCase } = serviceMock(
-      dbMock([PARTICIPANT, [{ status: 'accepted' }]]),
+      dbMock([PARTICIPANT, [{ mode: 'voice', status: 'accepted' }], [{ status: 'accepted' }]]),
       rooms,
     );
 
@@ -116,7 +120,7 @@ describe('ConsultationOrchestratorService.mediaReady', () => {
       })),
     };
     const { service, server, startUseCase } = serviceMock(
-      dbMock([PARTICIPANT, [{ status: 'active' }]]),
+      dbMock([PARTICIPANT, [{ mode: 'voice', status: 'active' }]]),
       rooms,
     );
 
