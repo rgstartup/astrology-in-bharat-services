@@ -60,6 +60,7 @@ export type LifecycleReason =
   | 'manual'
   | 'insufficient_balance'
   | 'balance_exhausted_timeout'
+  | 'dialog_grace_timeout'
   | 'billing_hold'
   | 'client_disconnected'
   | 'expert_disconnected'
@@ -109,6 +110,12 @@ export interface PauseConsultationCommand {
   actorId: number;
   actorType: 'client' | 'expert' | 'system';
   reason?: LifecycleReason;
+  /**
+   * When set, the pause is a cancel-dialog hold: the server arms a grace
+   * timer that ENDS the consultation after this many seconds instead of
+   * releasing the hold, and the payload carries the grace deadline.
+   */
+  graceSeconds?: number;
 }
 
 export interface ResumeConsultationCommand {
@@ -161,6 +168,13 @@ export interface MediaControlCommand {
   actorId: number;
   actorType: 'client' | 'expert';
 }
+
+/**
+ * Grace window the server grants while the client keeps the cancel dialog
+ * open (pauseTimer intent 'cancel_dialog'). After it lapses the server ends
+ * the consultation itself.
+ */
+export const CANCEL_DIALOG_GRACE_SECONDS = 30;
 
 export interface MuteMicCommand extends MediaControlCommand {}
 export interface UnmuteMicCommand extends MediaControlCommand {}
@@ -218,6 +232,9 @@ export interface ConsultationStatePayload {
   maxMinutes: number;
   ratePerMinute: number;
   pauseExpiresInSec?: number;
+  /** ISO deadline after which the consultation auto-ends (cancel-dialog grace). */
+  graceDeadline?: string;
+  graceDurationSeconds?: number;
   consumedAmount?: number;
   timestamp: string;
 }

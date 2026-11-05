@@ -47,6 +47,7 @@ import {
   ConsultationResumedAckPayload,
   ConsultationStatePayload,
   EndConsultationCommand,
+  LifecycleReason,
   MediaControlCommand,
   MicMutedPayload,
   MicUnmutedPayload,
@@ -320,7 +321,17 @@ export class ConsultationOrchestratorService {
     this.cancelHoldTimer(command.consultationId);
     const payload = await this.pauseUseCase.execute(server, command);
     if (payload && command.reason === "billing_hold") {
-      this.armHoldExpiry(server, command.consultationId);
+      if (command.graceSeconds) {
+        // Cancel-dialog hold: grace ends the consultation, it doesn't release.
+        this.armGraceTimer(
+          server,
+          command.consultationId,
+          command.graceSeconds * 1000,
+          "dialog_grace_timeout",
+        );
+      } else {
+        this.armHoldExpiry(server, command.consultationId);
+      }
     }
     return payload;
   }
@@ -360,6 +371,9 @@ export class ConsultationOrchestratorService {
    */
   async switchToChat(server: Server, command: SwitchToChatCommand) {
     this.cancelBudgetTimer(command.consultationId);
+    // A pending cancel-dialog grace/hold must not end the consultation mid-switch.
+    this.cancelGraceTimer(command.consultationId);
+    this.cancelHoldTimer(command.consultationId);
     const result = await this.switchToChatUseCase.execute(server, command);
     if (result.payload.state === "active") {
       this.armBudgetTimer(server, command.consultationId, "chat");
@@ -706,6 +720,7 @@ export class ConsultationOrchestratorService {
     server: Server,
     consultationId: number,
     delayMs: number,
+    reason: LifecycleReason = "balance_exhausted_timeout",
   ) {
     this.cancelGraceTimer(consultationId);
     const timer = setTimeout(() => {
@@ -714,7 +729,7 @@ export class ConsultationOrchestratorService {
         consultationId,
         actorId: 0,
         actorType: "system",
-        reason: "balance_exhausted_timeout",
+        reason,
       });
     }, delayMs);
     this.graceTimers.set(consultationId, timer);

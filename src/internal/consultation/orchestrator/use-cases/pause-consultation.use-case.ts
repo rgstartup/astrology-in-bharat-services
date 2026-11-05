@@ -137,6 +137,7 @@ export class PauseConsultationUseCase {
     const consumedAmount =
       Math.round((elapsedSec / 60) * ratePerMin * 100) / 100;
 
+    const graceSeconds = command.graceSeconds;
     const payload: ConsultationStatePayload = {
       consultationId: row.id,
       mode,
@@ -146,7 +147,15 @@ export class PauseConsultationUseCase {
       elapsedSeconds: elapsedSec,
       maxMinutes: affordability?.maxMinutes ?? 0,
       ratePerMinute: ratePerMin,
-      pauseExpiresInSec: 300,
+      pauseExpiresInSec: graceSeconds ?? 300,
+      ...(graceSeconds
+        ? {
+            graceDurationSeconds: graceSeconds,
+            graceDeadline: new Date(
+              now.getTime() + graceSeconds * 1000,
+            ).toISOString(),
+          }
+        : {}),
       consumedAmount,
       timestamp: now.toISOString(),
     };

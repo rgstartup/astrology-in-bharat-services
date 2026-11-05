@@ -24,6 +24,7 @@ import { CurrentWsAuth } from '../decorators/current-ws-auth.decorator';
 import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
 import { ConsultationOrchestratorService } from '@/internal/consultation/orchestrator/consultation-orchestrator.service';
 import type { ConsultationModeType, MediaControlCommand } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
+import { CANCEL_DIALOG_GRACE_SECONDS } from '@/internal/consultation/orchestrator/consultation-orchestrator.types';
 import {
   joinConsultationRoom,
   leaveConsultationRoom,
@@ -73,6 +74,13 @@ class MediaControlDto {
   @IsNumber()
   @IsNotEmpty()
   consultationId!: number;
+}
+
+class PauseTimerDto extends MediaControlDto {
+  /** 'cancel_dialog' arms the server-side grace window for the cancel dialog. */
+  @IsString()
+  @IsOptional()
+  intent?: string;
 }
 
 class SwitchCameraDto extends MediaControlDto {
@@ -569,7 +577,7 @@ export class ConsultationGateway implements OnGatewayInit {
   @SubscribeMessage(SOCKET_EVENTS.MEDIA_CONTROL.COMMANDS.PAUSE_TIMER)
   async handlePauseTimer(
     @ConnectedSocket() _socket: RealtimeSocket,
-    @MessageBody() dto: MediaControlDto,
+    @MessageBody() dto: PauseTimerDto,
     @CurrentWsAuth() identity: AuthenticatedSocketIdentity,
   ) {
     // Timer pause goes through existing orchestrator.pause with billing_hold reason
@@ -582,6 +590,8 @@ export class ConsultationGateway implements OnGatewayInit {
       actorId,
       actorType,
       reason: 'billing_hold',
+      graceSeconds:
+        dto.intent === 'cancel_dialog' ? CANCEL_DIALOG_GRACE_SECONDS : undefined,
     });
     // Pause local media for voice/video consultations when the timer freezes.
     if (payload) {
