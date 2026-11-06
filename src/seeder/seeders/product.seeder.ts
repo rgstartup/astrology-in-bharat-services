@@ -1399,8 +1399,8 @@ export class ProductSeeder implements Seeder {
       const primaryStock = defaultVariantData?.inventory?.stock || 0;
       const primaryShipping = defaultVariantData?.fulfillment?.shippingFee || 0;
       const primarySku = defaultVariantData?.sku || null;
-      const placeholderCoverUrl = `https://placehold.co/800x800/png?text=${encodeURIComponent(
-        pData.name,
+      const placeholderCoverUrl = `https://picsum.photos/800/800?random=${Math.floor(
+        Math.random() * 1000,
       )}`;
 
       let product = await productRepository.findOne({
@@ -1447,6 +1447,7 @@ export class ProductSeeder implements Seeder {
         product.shipping_charge = primaryShipping;
         product.sku = primarySku;
         product.image_url = placeholderCoverUrl;
+        product.gallery = [placeholderCoverUrl];
         product.is_active = true;
         product.category = pData.categorySlugs[0] || null;
         product = await productRepository.save(product);
@@ -1644,25 +1645,10 @@ export class ProductSeeder implements Seeder {
           }
         }
 
-        // 9. Seed Media and ProductMedia placeholder
-        const variantImageUrl = `https://placehold.co/600x600/png?text=${encodeURIComponent(
-          vData.name,
+        // 9. Seed / update Media and ProductMedia placeholder
+        const variantImageUrl = `https://picsum.photos/600/600?random=${Math.floor(
+          Math.random() * 1000,
         )}`;
-
-        let media = await mediaRepository.findOne({
-          where: { url: variantImageUrl },
-        });
-
-        if (!media) {
-          media = mediaRepository.create({
-            url: variantImageUrl,
-            mime_type: 'image/png',
-            alt_text: vData.name,
-            file_name: `${vData.sku.toLowerCase()}.png`,
-            file_size: 1024,
-          });
-          media = await mediaRepository.save(media);
-        }
 
         let productMedia = await productMediaRepository.findOne({
           where: {
@@ -1670,6 +1656,34 @@ export class ProductSeeder implements Seeder {
             variant_id: variantNumericId,
           },
         });
+
+        let media;
+        if (productMedia) {
+          // Update the existing media record so previously seeded rows
+          // switch from placehold.co to Lorem Picsum on re-runs.
+          media = await mediaRepository.findOne({
+            where: { id: productMedia.media_id },
+          });
+          if (media) {
+            media.url = variantImageUrl;
+            media.mime_type = 'image/jpeg';
+            media.alt_text = vData.name;
+            media.file_name = `${vData.sku.toLowerCase()}.jpg`;
+            media.file_size = 1024;
+            media = await mediaRepository.save(media);
+          }
+        }
+
+        if (!media) {
+          media = mediaRepository.create({
+            url: variantImageUrl,
+            mime_type: 'image/jpeg',
+            alt_text: vData.name,
+            file_name: `${vData.sku.toLowerCase()}.jpg`,
+            file_size: 1024,
+          });
+          media = await mediaRepository.save(media);
+        }
 
         if (!productMedia) {
           productMedia = productMediaRepository.create({

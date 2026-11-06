@@ -72,32 +72,44 @@ export function toProductDetails<T extends ProductRow>(row: T) {
   };
 }
 
-/** Public storefront list item (`find-all`) with computed extras. */
+/** Public storefront list item (`find-all`) with computed extras.
+ *
+ * Price/stock/image come from the product's default variant (the
+ * soon-to-be-deprecated product-level columns must no longer be read here).
+ */
 export function toProductListItem(
   row: ProductRow,
+  variant: {
+    name: string;
+    sku: string | null;
+    is_active: boolean;
+  },
   computed: {
+    price: string | number | null;
+    stock: number | null;
+    image_url: string | null;
     percentage_off: string | number | null;
     likes_count: string | number | null;
   },
 ): ProductWithLikesRaw {
   return {
     id: row.id,
-    name: row.name,
-    sku: row.sku,
+    name: variant.name ?? row.name,
+    sku: variant.sku,
     category: row.category,
     description: row.description,
     short_description: row.short_description,
     product_group: row.product_group,
     type: row.type,
-    price: row.price,
+    price: computed.price == null ? '0' : computed.price.toString(),
     original_price: row.original_price,
-    image_url: row.image_url ?? '',
+    image_url: computed.image_url ?? '',
     gallery: toGallery(row.gallery) as unknown as string,
-    stock: row.stock,
+    stock: computed.stock ?? row.stock,
     merchant_id: row.merchant_id,
     is_shipping_chargeable: row.is_shipping_chargeable,
     shipping_charge: row.shipping_charge,
-    is_active: row.is_active,
+    is_active: variant.is_active,
     created_at: row.created_at,
     updated_at: row.updated_at,
     percentage_off:

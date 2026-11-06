@@ -9,21 +9,21 @@ import {
   text,
   timestamp,
   varchar,
-} from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
-import { DiscountType } from '../../../../../internal/commerce/product/enum';
-import { PricingTargetAudience } from '../../../../../internal/actors/expert/shared/enums/pricing.enum';
-import { productVariants } from './product-variants.schema';
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { DiscountType } from "@/internal/commerce/product/enum";
+import { PricingTargetAudience } from "@/internal/actors/expert/shared/enums/pricing.enum";
+import { productVariants } from "./product-variants.schema";
 
-const commerceSchema = pgSchema('commerce');
+const commerceSchema = pgSchema("commerce");
 
 export const promotionDiscountTypeEnum = pgEnum(
-  'product_variant_promotions_discount_type_enum',
+  "product_variant_promotions_discount_type_enum",
   DiscountType,
 );
 
 export const promotionAudienceEnum = pgEnum(
-  'product_variant_promotions_target_audience_enum',
+  "product_variant_promotions_target_audience_enum",
   PricingTargetAudience,
 );
 
@@ -33,33 +33,33 @@ export const promotionAudienceEnum = pgEnum(
  * Source: src/internal/commerce/product/entities/promotions.entity.ts
  */
 export const productVariantPromotions = commerceSchema.table(
-  'product_variant_promotions',
+  "product_variant_promotions",
   {
-    id: serial('id').primaryKey(),
-    variant_id: bigint('variant_id', { mode: 'number' })
+    id: serial("id").primaryKey(),
+    variant_id: bigint("variant_id", { mode: "number" })
       .notNull()
-      .references(() => productVariants.id, { onDelete: 'cascade' }),
-    name: varchar('name', { length: 255 }).notNull(),
-    description: text('description'),
-    discount_type: promotionDiscountTypeEnum('discount_type').notNull(),
-    discount_value: integer('discount_value').notNull(),
-    target_audience: promotionAudienceEnum('target_audience')
+      .references(() => productVariants.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 255 }).notNull(),
+    description: text("description"),
+    discount_type: promotionDiscountTypeEnum("discount_type").notNull(),
+    discount_value: integer("discount_value").notNull(),
+    target_audience: promotionAudienceEnum("target_audience")
       .notNull()
       .default(PricingTargetAudience.ALL),
-    effective_from: timestamp('effective_from', {
+    effective_from: timestamp("effective_from", {
       withTimezone: true,
     }).notNull(),
-    effective_to: timestamp('effective_to', { withTimezone: true }),
-    is_active: boolean('is_active').notNull().default(true),
-    created_at: timestamp('created_at', { withTimezone: true })
+    effective_to: timestamp("effective_to", { withTimezone: true }),
+    is_active: boolean("is_active").notNull().default(true),
+    created_at: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    updated_at: timestamp('updated_at', { withTimezone: true })
+    updated_at: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
   (t) => [
-    index('idx_product_variant_promotions_lookup').on(
+    index("idx_product_variant_promotions_lookup").on(
       t.variant_id,
       t.target_audience,
       t.is_active,
