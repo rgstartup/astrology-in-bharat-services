@@ -23,36 +23,38 @@ async function bootstrap() {
     }
   ).set("trust proxy", true);
 
-  app.enableCors({
-    origin: (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean | string) => void,
-    ) => {
-      // In dev, echo back ANY origin so mobile LAN, localhost, emulator work with credentials
-      if (!origin || process.env.NODE_ENV !== "production") {
-        callback(null, origin ?? true);
-        return;
-      }
-      const allowedOrigins = [
-        process.env.FRONTEND_URL,
-        process.env.ADMIN_FRONTEND_URL,
-        process.env.ASTROLOGER_FRONTEND_URL,
-        process.env.AGENT_FRONTEND_URL,
-        process.env.MERCHANT_FRONTEND_URL,
-      ].filter(Boolean);
+  // app.enableCors({
+  //   origin: (
+  //     origin: string | undefined,
+  //     callback: (err: Error | null, allow?: boolean | string) => void,
+  //   ) => {
+  //     // In dev, echo back ANY origin so mobile LAN, localhost, emulator work with credentials
+  //     if (!origin || process.env.NODE_ENV !== "production") {
+  //       callback(null, origin ?? true);
+  //       return;
+  //     }
+  //     const allowedOrigins = [
+  //       process.env.FRONTEND_URL,
+  //       process.env.ADMIN_FRONTEND_URL,
+  //       process.env.ASTROLOGER_FRONTEND_URL,
+  //       process.env.AGENT_FRONTEND_URL,
+  //       process.env.MERCHANT_FRONTEND_URL,
+  //     ].filter(Boolean);
 
-      if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-        callback(null, origin);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-    allowedHeaders:
-      "Content-Type, Accept, Authorization, Cookie, Cache-Control, Pragma, Expires, X-Requested-With",
-    exposedHeaders: "Set-Cookie",
-    credentials: true,
-  });
+  //     if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+  //       callback(null, origin);
+  //     } else {
+  //       callback(new Error("Not allowed by CORS"));
+  //     }
+  //   },
+  //   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+  //   allowedHeaders:
+  //     "Content-Type, Accept, Authorization, Cookie, Cache-Control, Pragma, Expires, X-Requested-With",
+  //   exposedHeaders: "Set-Cookie",
+  //   credentials: true,
+  // });
+
+  app.enableCors("*");
 
   app.use(cookieParser());
 

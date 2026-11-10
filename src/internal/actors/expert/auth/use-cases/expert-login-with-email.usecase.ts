@@ -1,11 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { createHash, randomInt } from 'crypto';
 import { and, desc, eq } from 'drizzle-orm';
@@ -19,6 +12,15 @@ import {
 } from '@/core/drizzledb/schema';
 import { OtpPurposeEnum, PlatformEnum, RoleEnum } from '@/core/enums';
 import { type IHasher, IHasherToken } from '@/shared/contracts/hasher.contract';
+import {
+  AccountSuspendedError,
+  EmailNotVerifiedError,
+  InvalidCredentialsError,
+  OtpExpiredError,
+  OtpIncorrectError,
+  OtpMaxAttemptsError,
+  OtpNotFoundError,
+} from '../errors';
 import { ExpertLoginDto } from '../dto/expert-login.dto';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';
 
@@ -72,20 +74,18 @@ export class ExpertLoginWithEmailUseCase {
       dto.password,
     );
     if (!row?.user_password || !valid) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new InvalidCredentialsError();
     }
     if (!row.user_email_verified_at) {
       if (!dto.otp) {
         await this.sendVerificationOtp(row);
-        throw new ConflictException(
-          'Please verify your email first. A new OTP has been sent to your email.',
-        );
+        throw new EmailNotVerifiedError(true);
       }
       await this.verifyAndConsumeOtp(row.user_email, dto.otp);
       await this.markEmailVerified(row.user_id);
     }
     if (row.expert_is_blocked || row.user_is_blocked) {
-      throw new ForbiddenException('Your account has been suspended');
+      throw new AccountSuspendedError();
     }
     return this.issueSession(
       row.expert_id,
@@ -141,21 +141,17 @@ export class ExpertLoginWithEmailUseCase {
       .limit(1);
 
     if (!otpEntry) {
-      throw new BadRequestException('Invalid or expired OTP');
+      throw new OtpNotFoundError();
     }
 
     if (new Date() > otpEntry.expires_at) {
       await this.db.delete(otps).where(eq(otps.id, otpEntry.id));
-      throw new BadRequestException(
-        'OTP has expired. Please request a new OTP.',
-      );
+      throw new OtpExpiredError();
     }
 
     if (otpEntry.attempts >= 5) {
       await this.db.delete(otps).where(eq(otps.id, otpEntry.id));
-      throw new BadRequestException(
-        'Maximum verification attempts exceeded. Please request a new OTP.',
-      );
+      throw new OtpMaxAttemptsError();
     }
 
     const hashedInputOtp = createHash('sha256').update(inputOtp).digest('hex');
@@ -165,7 +161,7 @@ export class ExpertLoginWithEmailUseCase {
         .update(otps)
         .set({ attempts: otpEntry.attempts + 1 })
         .where(eq(otps.id, otpEntry.id));
-      throw new BadRequestException('Invalid OTP');
+      throw new OtpIncorrectError();
     }
 
     await this.db.delete(otps).where(eq(otps.id, otpEntry.id));
