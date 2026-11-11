@@ -5,14 +5,11 @@ import {
 } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import { CreateReviewUseCase } from '../use-cases/create-review.use-case';
-import { GetExpertReviewsUseCase } from '../use-cases/get-expert-reviews.use-case';
 import { GetMerchantReviewsUseCase } from '../use-cases/get-merchant-reviews.use-case';
-import { GetReviewsStatsUseCase } from '../use-cases/get-reviews-stats.use-case';
 import { GetMerchantReviewsStatsUseCase } from '../use-cases/get-merchant-reviews-stats.use-case';
 import { GetAdminReviewsUseCase } from '../use-cases/get-admin-reviews.use-case';
 import { GetAdminReviewsStatsUseCase } from '../use-cases/get-admin-reviews-stats.use-case';
 import { GetApprovedPlatformReviewsUseCase } from '../use-cases/get-approved-platform-reviews.use-case';
-import { GetExpertReviewsByDateUseCase } from '../use-cases/get-expert-reviews-by-date.use-case';
 import { UpdateReviewStatusUseCase } from '../use-cases/update-review-status.use-case';
 import { DeleteReviewUseCase } from '../use-cases/delete-review.use-case';
 import { SendReviewResponseUseCase } from '../use-cases/send-review-response.use-case';
@@ -220,48 +217,7 @@ describe('Consultation Reviews Module', () => {
     });
   });
 
-  describe('GetExpertReviewsUseCase & GetMerchantReviewsUseCase', () => {
-    it('should return paginated expert reviews with client details', async () => {
-      const mockDb = {
-        query: {
-          expertAccounts: {
-            findFirst: vi.fn().mockResolvedValue({ id: 101, user_id: 201 }),
-          },
-          reviews: {
-            findMany: vi.fn().mockResolvedValue([
-              {
-                id: 1,
-                client_id: 10,
-                expert_id: 101,
-                rating: 5,
-                comment: 'Great',
-                review_type: 'expert',
-                status: 'approved',
-                client: {
-                  id: 10,
-                  first_name: 'John',
-                  last_name: 'Doe',
-                  user: { email: 'john@example.com' },
-                },
-              },
-            ]),
-          },
-        },
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([{ total: 1 }]),
-          }),
-        }),
-      } as any;
-
-      const useCase = new GetExpertReviewsUseCase(mockDb);
-      const result = await useCase.execute(101, { page: 1, limit: 10 });
-
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].client?.name).toBe('John Doe');
-      expect(result.total).toBe(1);
-    });
-
+  describe('GetMerchantReviewsUseCase', () => {
     it('should return paginated merchant reviews', async () => {
       const mockDb = {
         query: {
@@ -301,37 +257,7 @@ describe('Consultation Reviews Module', () => {
     });
   });
 
-  describe('GetReviewsStatsUseCase & GetMerchantReviewsStatsUseCase', () => {
-    it('should calculate expert rating breakdown stats', async () => {
-      const mockDb = {
-        query: {
-          expertAccounts: {
-            findFirst: vi.fn().mockResolvedValue({ id: 101, user_id: 201 }),
-          },
-        },
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnValue({
-              groupBy: vi.fn().mockResolvedValue([
-                { rating: 5, count: 6 },
-                { rating: 4, count: 4 },
-              ]),
-            }),
-          }),
-        }),
-      } as any;
-
-      const useCase = new GetReviewsStatsUseCase(mockDb);
-      const result = await useCase.execute(101);
-
-      expect(result).not.toBeNull();
-      expect(result?.rating).toBe(4.6);
-      expect(result?.totalReviews).toBe(10);
-      expect(result?.counts['5']).toBe(6);
-      expect(result?.counts['4']).toBe(4);
-      expect(result?.counts['1']).toBe(0);
-    });
-
+  describe('GetMerchantReviewsStatsUseCase', () => {
     it('should calculate merchant rating breakdown stats', async () => {
       const mockDb = {
         select: vi
@@ -428,7 +354,7 @@ describe('Consultation Reviews Module', () => {
     });
   });
 
-  describe('GetApprovedPlatformReviewsUseCase & GetExpertReviewsByDateUseCase', () => {
+  describe('GetApprovedPlatformReviewsUseCase', () => {
     it('should return approved platform reviews up to limit', async () => {
       const mockDb = {
         query: {
@@ -457,40 +383,6 @@ describe('Consultation Reviews Module', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].user.name).toBe('Happy User');
-    });
-
-    it('should return expert reviews filtered by date range', async () => {
-      const mockDb = {
-        query: {
-          reviews: {
-            findMany: vi.fn().mockResolvedValue([
-              {
-                id: 1,
-                client_id: 10,
-                expert_id: 101,
-                rating: 5,
-                review_type: 'expert',
-                created_at: new Date('2026-01-15'),
-                client: {
-                  id: 10,
-                  first_name: 'Test',
-                  last_name: 'Client',
-                },
-              },
-            ]),
-          },
-        },
-      } as any;
-
-      const useCase = new GetExpertReviewsByDateUseCase(mockDb);
-      const result = await useCase.execute(
-        101,
-        new Date('2026-01-01'),
-        new Date('2026-01-31'),
-      );
-
-      expect(result).toHaveLength(1);
-      expect(result[0].client?.name).toBe('Test Client');
     });
   });
 
@@ -593,10 +485,7 @@ describe('Consultation Reviews Module', () => {
 
   describe('ReviewsService Delegation', () => {
     it('should delegate method calls to appropriate use cases', async () => {
-      const createReviewUseCase = { execute: vi.fn().mockResolvedValue({ id: 1 }) } as any;
-      const getExpertReviewsUseCase = { execute: vi.fn().mockResolvedValue({ data: [] }) } as any;
       const getMerchantReviewsUseCase = { execute: vi.fn().mockResolvedValue({ data: [] }) } as any;
-      const getReviewsStatsUseCase = { execute: vi.fn().mockResolvedValue({ average: 0 }) } as any;
       const getMerchantReviewsStatsUseCase = { execute: vi.fn().mockResolvedValue({ average: 0 }) } as any;
       const getAdminReviewsUseCase = { execute: vi.fn().mockResolvedValue({ data: [] }) } as any;
       const getAdminReviewsStatsUseCase = { execute: vi.fn().mockResolvedValue({ total: 0 }) } as any;
@@ -604,13 +493,9 @@ describe('Consultation Reviews Module', () => {
       const updateReviewStatusUseCase = { execute: vi.fn().mockResolvedValue({ success: true }) } as any;
       const sendReviewResponseUseCase = { execute: vi.fn().mockResolvedValue({ success: true }) } as any;
       const getApprovedPlatformReviewsUseCase = { execute: vi.fn().mockResolvedValue([]) } as any;
-      const getExpertReviewsByDateUseCase = { execute: vi.fn().mockResolvedValue([]) } as any;
 
       const service = new ReviewsService(
-        createReviewUseCase,
-        getExpertReviewsUseCase,
         getMerchantReviewsUseCase,
-        getReviewsStatsUseCase,
         getMerchantReviewsStatsUseCase,
         getAdminReviewsUseCase,
         getAdminReviewsStatsUseCase,
@@ -618,20 +503,10 @@ describe('Consultation Reviews Module', () => {
         updateReviewStatusUseCase,
         sendReviewResponseUseCase,
         getApprovedPlatformReviewsUseCase,
-        getExpertReviewsByDateUseCase,
       );
-
-      await service.createReview(1, {} as any);
-      expect(createReviewUseCase.execute).toHaveBeenCalled();
-
-      await service.getExpertReviews(101, {} as any);
-      expect(getExpertReviewsUseCase.execute).toHaveBeenCalled();
 
       await service.getMerchantReviews(201, {} as any);
       expect(getMerchantReviewsUseCase.execute).toHaveBeenCalled();
-
-      await service.getReviewsStats(101);
-      expect(getReviewsStatsUseCase.execute).toHaveBeenCalled();
 
       await service.getMerchantReviewsStats(201);
       expect(getMerchantReviewsStatsUseCase.execute).toHaveBeenCalled();
@@ -653,9 +528,6 @@ describe('Consultation Reviews Module', () => {
 
       await service.getApprovedPlatformReviews(5);
       expect(getApprovedPlatformReviewsUseCase.execute).toHaveBeenCalled();
-
-      await service.getExpertReviewsByDate(101, new Date(), new Date());
-      expect(getExpertReviewsByDateUseCase.execute).toHaveBeenCalled();
     });
   });
 });

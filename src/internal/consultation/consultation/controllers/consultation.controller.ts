@@ -8,26 +8,26 @@ import {
   Param,
   ParseIntPipe,
   Inject,
-} from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { consultations } from '@/core/drizzledb/schema';
-import { ConsultationStatus } from '@/internal/consultation/enums';
-import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { CurrentProfile } from '@/shared/decorators/current-profile.decorator';
-import { type IUser } from '@/shared/types/access-token.payload';
-import { RoleEnum } from '@/core/enums';
-import { GetUnifiedHistoryUseCase } from '../use-cases/get-unified-history.use-case';
-import { GetUnifiedHistoryDto } from '../dto/get-unified-history.dto';
+} from "@nestjs/common";
+import { and, eq } from "drizzle-orm";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import { consultations } from "@/core/drizzledb/schema";
+import { ConsultationStatus } from "@/internal/consultation/enums";
+import { JwtAuthGuard } from "../../../auth/guards/auth.guard";
+import { CurrentUser } from "@/shared/decorators/current-user.decorator";
+import { CurrentProfile } from "@/shared/decorators/current-profile.decorator";
+import { type IUser } from "@/shared/types/access-token.payload";
+import { RoleEnum } from "@/core/enums";
+import { GetUnifiedHistoryUseCase } from "../use-cases/get-unified-history.use-case";
+import { GetUnifiedHistoryDto } from "../dto/get-unified-history.dto";
 
 /**
  * Controller handling consultation history and session actions.
  */
 @Controller({
-  path: 'consultations',
-  version: '1',
+  path: "consultations",
+  version: "1",
 })
 @UseGuards(JwtAuthGuard)
 export class ConsultationController {
@@ -45,8 +45,8 @@ export class ConsultationController {
    * @param dto - Pagination and search filters.
    * @returns Paginated history list with metadata.
    */
-  @Get('history')
-  @Header('Cache-Control', 'no-store')
+  @Get("history")
+  @Header("Cache-Control", "no-store")
   async getHistory(
     @CurrentProfile() profileId: number,
     @CurrentUser() user: IUser,
@@ -80,8 +80,8 @@ export class ConsultationController {
    * @param sessionId - Consultation ID.
    * @returns Success response indicating outcome.
    */
-  @Post('reject/:sessionId')
-  async reject(@Param('sessionId', ParseIntPipe) sessionId: number) {
+  @Post("reject/:sessionId")
+  async reject(@Param("sessionId", ParseIntPipe) sessionId: number) {
     const now = new Date();
     const [row] = await this.db
       .update(consultations)
@@ -101,10 +101,10 @@ export class ConsultationController {
     if (!row) {
       return {
         success: false,
-        message: 'Session not found or cannot be rejected',
+        message: "Session not found or cannot be rejected",
       };
     }
 
-    return { success: true, message: 'Consultation rejected' };
+    return { success: true, message: "Consultation rejected" };
   }
 }

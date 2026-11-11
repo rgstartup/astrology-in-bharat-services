@@ -14,8 +14,10 @@ import { ClientSessionCompatController } from "./controllers/client-session-comp
 import { CheckChatEligibilityUsecase } from "./chat/use-cases/check-chat-eligibility.usecase";
 import { GetChatHistoryUseCase } from "./chat/use-cases/get-chat-history.usecase";
 import { UploadChatAttachmentUseCase } from "./chat/use-cases/upload-chat-attachment.usecase";
-import { CheckVoiceEligibilityUsecase } from "./voice/use-cases/check-voice-eligibility.usecase";import { GetVoiceTokenUsecase } from "./voice/use-cases/get-voice-token.usecase";
+import { CheckVoiceEligibilityUsecase } from "./voice/use-cases/check-voice-eligibility.usecase";
+import { GetVoiceTokenUsecase } from "./voice/use-cases/get-voice-token.usecase";
 import { InitiateConsultationUsecase } from "@/internal/consultation/room/initiate-consultation.usecase";
+import { ClientReviewsModule } from "./reviews/client-reviews.module";
 
 /**
  * Single client consultation module (chat + voice + unified initiate).
@@ -33,6 +35,7 @@ import { InitiateConsultationUsecase } from "@/internal/consultation/room/initia
     VoiceModule,
     RealtimeChatModule,
     PromotionsModule,
+    ClientReviewsModule,
   ],
   controllers: [
     ClientChatController,

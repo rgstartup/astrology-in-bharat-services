@@ -1,6 +1,5 @@
 import {
   Controller,
-  Post,
   Get,
   Patch,
   Delete,
@@ -15,8 +14,6 @@ import { ReviewsService } from '../reviews.service';
 import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
 import { RolesGuard } from '../../../auth/guards/role.guard';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
-import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
-import { CreateReviewDto } from '../dto/create-review.dto';
 import { GetReviewsDto } from '../dto/get-reviews.dto';
 import { GetAdminReviewsDto } from '../dto/get-admin-reviews.dto';
 
@@ -27,36 +24,12 @@ import { GetAdminReviewsDto } from '../dto/get-admin-reviews.dto';
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
-  // ─── User: Create any review (expert, merchant, platform) ───────────────────
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  async createReview(
-    @CurrentProfile() clientId: number,
-    @Body() body: CreateReviewDto,
-  ) {
-    return this.reviewsService.createReview(clientId, body);
-  }
-
   // ─── Public: Get approved platform reviews for homepage ─────────────────────
   @Get('platform/approved')
   async getApprovedPlatformReviews(
     @Query('limit', new DefaultValuePipe(6), ParseIntPipe) limit: number,
   ) {
     return this.reviewsService.getApprovedPlatformReviews(limit);
-  }
-
-  // ─── Public: Expert reviews ─────────────────────────────────────────────────
-  @Get('expert/:expert_id')
-  async getReviews(
-    @Param('expert_id', ParseIntPipe) expert_id: number,
-    @Query() dto: GetReviewsDto,
-  ) {
-    return this.reviewsService.getExpertReviews(expert_id, dto);
-  }
-
-  @Get('expert/:expert_id/stats')
-  async getStats(@Param('expert_id', ParseIntPipe) expert_id: number) {
-    return this.reviewsService.getReviewsStats(expert_id);
   }
 
   // ─── Public: Merchant reviews ────────────────────────────────────────────────

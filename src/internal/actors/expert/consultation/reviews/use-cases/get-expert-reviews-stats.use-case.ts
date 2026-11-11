@@ -5,7 +5,7 @@ import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { expertAccounts, reviews } from '@/core/drizzledb/schema';
 
 @Injectable()
-export class GetReviewsStatsUseCase {
+export class GetExpertReviewsStatsUseCase {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(expert_id: number) {

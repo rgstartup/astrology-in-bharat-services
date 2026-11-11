@@ -6,7 +6,7 @@ import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { consultations } from '@/core/drizzledb/schema';
 import { ConsultationStatus } from '@/internal/consultation/enums';
 import { WalletService } from '@/internal/finance/wallet/wallet.service';
-import { ReviewsService } from '@/internal/consultation/reviews/reviews.service';
+import { ExpertReviewsService } from '@/internal/actors/expert/consultation/reviews/expert-reviews.service';
 
 /**
  * Computes dashboard statistics for an expert across daily or all-time periods.
@@ -18,7 +18,7 @@ export class GetDashboardStatsUseCase {
     private readonly db: DrizzleDb,
     @Inject(forwardRef(() => WalletService))
     private readonly walletService: DeferredDependency<WalletService>,
-    private readonly reviewsService: ReviewsService,
+    private readonly expertReviewsService: ExpertReviewsService,
   ) {}
 
   /**
@@ -37,7 +37,7 @@ export class GetDashboardStatsUseCase {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const reviewStats = await this.reviewsService.getReviewsStats(expert_id);
+    const reviewStats = await this.expertReviewsService.getExpertReviewsStats(expert_id);
 
     const isToday = type === 'today';
 

@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateReviewUseCase } from './use-cases/create-review.use-case';
-import { GetExpertReviewsUseCase } from './use-cases/get-expert-reviews.use-case';
 import { GetMerchantReviewsUseCase } from './use-cases/get-merchant-reviews.use-case';
-import { GetReviewsStatsUseCase } from './use-cases/get-reviews-stats.use-case';
 import { GetMerchantReviewsStatsUseCase } from './use-cases/get-merchant-reviews-stats.use-case';
 import { GetAdminReviewsUseCase } from './use-cases/get-admin-reviews.use-case';
 import { GetAdminReviewsStatsUseCase } from './use-cases/get-admin-reviews-stats.use-case';
@@ -10,18 +7,13 @@ import { UpdateReviewStatusUseCase } from './use-cases/update-review-status.use-
 import { DeleteReviewUseCase } from './use-cases/delete-review.use-case';
 import { SendReviewResponseUseCase } from './use-cases/send-review-response.use-case';
 import { GetApprovedPlatformReviewsUseCase } from './use-cases/get-approved-platform-reviews.use-case';
-import { GetExpertReviewsByDateUseCase } from './use-cases/get-expert-reviews-by-date.use-case';
-import { CreateReviewDto } from './dto/create-review.dto';
 import { GetReviewsDto } from './dto/get-reviews.dto';
 import { GetAdminReviewsDto } from './dto/get-admin-reviews.dto';
 
 @Injectable()
 export class ReviewsService {
   constructor(
-    private readonly createReviewUseCase: CreateReviewUseCase,
-    private readonly getExpertReviewsUseCase: GetExpertReviewsUseCase,
     private readonly getMerchantReviewsUseCase: GetMerchantReviewsUseCase,
-    private readonly getReviewsStatsUseCase: GetReviewsStatsUseCase,
     private readonly getMerchantReviewsStatsUseCase: GetMerchantReviewsStatsUseCase,
     private readonly getAdminReviewsUseCase: GetAdminReviewsUseCase,
     private readonly getAdminReviewsStatsUseCase: GetAdminReviewsStatsUseCase,
@@ -29,23 +21,10 @@ export class ReviewsService {
     private readonly updateReviewStatusUseCase: UpdateReviewStatusUseCase,
     private readonly sendReviewResponseUseCase: SendReviewResponseUseCase,
     private readonly getApprovedPlatformReviewsUseCase: GetApprovedPlatformReviewsUseCase,
-    private readonly getExpertReviewsByDateUseCase: GetExpertReviewsByDateUseCase,
   ) {}
-
-  async createReview(clientId: number, dto: CreateReviewDto) {
-    return this.createReviewUseCase.execute(clientId, dto);
-  }
-
-  async getExpertReviews(expert_id: number, dto: GetReviewsDto) {
-    return this.getExpertReviewsUseCase.execute(expert_id, dto);
-  }
 
   async getMerchantReviews(merchantId: number, dto: GetReviewsDto) {
     return this.getMerchantReviewsUseCase.execute(merchantId, dto);
-  }
-
-  async getReviewsStats(expert_id: number) {
-    return this.getReviewsStatsUseCase.execute(expert_id);
   }
 
   async getMerchantReviewsStats(merchantId: number) {
@@ -74,17 +53,5 @@ export class ReviewsService {
 
   async getApprovedPlatformReviews(limit?: number) {
     return this.getApprovedPlatformReviewsUseCase.execute(limit);
-  }
-
-  async getExpertReviewsByDate(
-    expert_id: number,
-    startDate: Date,
-    endDate: Date,
-  ) {
-    return this.getExpertReviewsByDateUseCase.execute(
-      expert_id,
-      startDate,
-      endDate,
-    );
   }
 }

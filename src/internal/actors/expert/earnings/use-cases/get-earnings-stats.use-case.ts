@@ -11,7 +11,7 @@ import {
   ConsultationStatus,
 } from '@/internal/consultation/enums';
 import { GetExpertPujasByDateUseCase } from '@/internal/puja-appointment/use-cases/get-expert-pujas-by-date.use-case';
-import { ReviewsService } from '@/internal/consultation/reviews/reviews.service';
+import { ExpertReviewsService } from '@/internal/actors/expert/consultation/reviews/expert-reviews.service';
 import { WalletService } from '@/internal/finance/wallet/wallet.service';
 import { ExpertAccount } from '../../account/entities/account.entity';
 import { GetExpertEarningsStatsDto } from '../dto/get-expert-earnings-stats.dto';
@@ -27,7 +27,7 @@ export class GetEarningsStatsUseCase {
     @Inject(DRIZZLE)
     private readonly db: DrizzleDb,
     private getExpertPujasByDateUseCase: GetExpertPujasByDateUseCase,
-    private reviewsService: ReviewsService,
+    private expertReviewsService: ExpertReviewsService,
     private walletService: WalletService,
   ) {}
 
@@ -109,7 +109,12 @@ export class GetEarningsStatsUseCase {
         endDate,
       ),
       this.getExpertPujasByDateUseCase.execute(expert_id, startDate, endDate),
-      this.reviewsService.getExpertReviewsByDate(expert_id, startDate, endDate),
+      this.expertReviewsService.getExpertReviewsByDate(expert_id, {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        page: 1,
+        limit: 1000,
+      } as any),
     ]);
 
     // --- Data Fetching (Previous Period for Growth) ---
@@ -168,8 +173,8 @@ export class GetEarningsStatsUseCase {
         : 0;
     const consultationsCount = sessions.length + calls.length + pujas.length;
     const average_rating =
-      reviews.length > 0
-        ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
+      reviews.data.length > 0
+        ? reviews.data.reduce((acc, r) => acc + r.rating, 0) / reviews.data.length
         : 0;
 
     // Service Color Mapping

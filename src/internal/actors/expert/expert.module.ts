@@ -12,6 +12,7 @@ import { ExpertProductsModule } from "./products/products.module";
 import { PresenceModule } from "./presence/presence.module";
 import { ExpertRealtimeModule } from "./realtime/expert-realtime.module";
 import { ExpertChatModule } from "./consultation/chat/chat.module";
+import { ExpertReviewsModule } from "./consultation/reviews/expert-reviews.module";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ExpertChatModule } from "./consultation/chat/chat.module";
     PresenceModule,
     ExpertRealtimeModule,
     ExpertChatModule,
+    ExpertReviewsModule,
   ],
   exports: [
     BankAccountsModule,
@@ -43,6 +45,7 @@ import { ExpertChatModule } from "./consultation/chat/chat.module";
     PresenceModule,
     ExpertRealtimeModule,
     ExpertChatModule,
+    ExpertReviewsModule,
   ],
 })
 export class ExpertModule {}
