@@ -14,6 +14,7 @@ import { WalletModule } from '../../../finance/wallet/wallet.module';
 import { ConsultationModule } from '../../../consultation/consultation.module';
 import { OrderModule } from '../../../commerce/order/order.module';
 import { PujaAppointmentModule } from '../../../puja-appointment/puja-appointment.module';
+import { ExpertReviewsModule } from '../consultation/reviews/expert-reviews.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PujaAppointmentModule } from '../../../puja-appointment/puja-appointmen
     forwardRef(() => ConsultationModule),
     forwardRef(() => OrderModule),
     forwardRef(() => PujaAppointmentModule),
+    ExpertReviewsModule,
   ],
   controllers: [ExpertEarningsController, ExpertWalletController],
   providers: [
