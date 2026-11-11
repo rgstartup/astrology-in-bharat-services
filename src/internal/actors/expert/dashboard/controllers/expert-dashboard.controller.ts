@@ -6,7 +6,7 @@ import { type IExpert } from "@/shared/types/access-token.payload";
 import { GetDashboardStatsDto } from "../dto/get-dashboard-stats.dto";
 
 @Controller({
-  path: "expert-dashboard",
+  path: "expert/me/dashboard",
   version: "1",
 })
 @UseGuards(ExpertJwtAuthGuard)

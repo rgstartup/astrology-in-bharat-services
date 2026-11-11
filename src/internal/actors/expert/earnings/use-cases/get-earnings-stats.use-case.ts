@@ -109,7 +109,7 @@ export class GetEarningsStatsUseCase {
         endDate,
       ),
       this.getExpertPujasByDateUseCase.execute(expert_id, startDate, endDate),
-      this.expertReviewsService.getExpertReviewsByDate(expert_id, {
+      this.expertReviewsService.getExpertReviews(expert_id, {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         page: 1,

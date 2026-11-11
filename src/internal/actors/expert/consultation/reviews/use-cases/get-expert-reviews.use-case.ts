@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, between, count, desc, eq } from "drizzle-orm";
 import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
 import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
 import { expertAccounts, reviews } from "@/core/drizzledb/schema";
@@ -27,6 +27,9 @@ export class GetExpertReviewsUseCase {
     const whereClause = and(
       eq(reviews.expert_id, expert.id),
       eq(reviews.status, "approved"),
+      ...(dto.startDate && dto.endDate
+        ? [between(reviews.created_at, new Date(dto.startDate), new Date(dto.endDate))]
+        : []),
     );
 
     const [rows, [totalResult]] = await Promise.all([
