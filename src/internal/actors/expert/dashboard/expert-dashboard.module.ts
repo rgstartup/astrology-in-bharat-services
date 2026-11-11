@@ -5,12 +5,14 @@ import { ExpertDashboardService } from './expert-dashboard.service';
 import { WalletModule } from '../../../finance/wallet/wallet.module';
 import { ConsultationModule } from '../../../consultation/consultation.module';
 import { ExpertAuthModule } from '../auth/auth.module';
+import { ExpertReviewsModule } from '../consultation/reviews/expert-reviews.module';
 
 @Module({
   imports: [
     forwardRef(() => ConsultationModule),
     WalletModule,
     ExpertAuthModule,
+    ExpertReviewsModule,
   ],
   controllers: [ExpertDashboardController],
   providers: [ExpertDashboardService, GetDashboardStatsUseCase],
