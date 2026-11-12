@@ -23,7 +23,8 @@ Quick lookup by keyword:
 - **`call` / `twilio` / `webrtc`**: [BE-02](#be-02--legacy-call-module-27-files), [BE-13](#be-13--twilio-video-stack-externalvideo)
 - **`avatar` / `media` / `video` / `cloudinary` / `storage`**: [BE-03](#be-03--avatar-url-columns-deprecated-for-avatar_id-media-fk), [BE-04](#be-04--expert-generic-upload-endpoints), [BE-05](#be-05--expert-legacy-video-column), [BE-06](#be-06--cloudinaryservice-facade), [FE-06/07/10](#fe-060710--deprecated-dto-fields-uidpublic_id-avataravatar_media-is_available)
 - **`payment` / `razorpay` / `webhook`**: [BE-07](#be-07--validatewebhooksignature-optional-interface-method)
-- **`expert` / `presence` / `availability`**: [BE-04](#be-04--expert-generic-upload-endpoints), [BE-05](#be-05--expert-legacy-video-column), [BE-08](#be-08--expert-is_available-flag), [BE-10](#be-10--expert-profile-module-expertprofilemodule-profilemodulets), [BE-12](#be-12--bankaccountsmodule-bank-accountsmodulets), [FE-09](#fe-09--client-useexpertpresence-shim)
+- **`expert` / `presence` / `availability`**: [BE-04](#be-04--expert-generic-upload-endpoints), [BE-05](#be-05--expert-legacy-video-column), [BE-08](#be-08--expert-is_available-flag), [BE-10](#be-10--expert-profile-module-expertprofilemodule-profilemodulets), [BE-12](#be-12--bankaccountsmodule-bank-accountsmodulets), [BE-14](#be-14--experttodosmodule-expert-todos-modulets), [FE-09](#fe-09--client-useexpertpresence-shim)
+- **`todos` / `expert-todos`**: [BE-14](#be-14--experttodosmodule-expert-todos-modulets)
 - **`wishlist` / `favorites` / `commerce` / `like`**: [BE-09](#be-09--commerce-wishlist-module-wishlistmodulets)
 - **`profile` / `discovery` / `kyc` / `puja`**: [BE-10](#be-10--expert-profile-module-expertprofilemodule-profilemodulets)
 - **`auth` / `safe-fetch` / `balance` / `wallet`**: [FE-01](#fe-01--safe-fetch-legacy-tuple-api), [FE-08](#fe-08--client-refreshbalance-store-method)
@@ -47,10 +48,11 @@ Quick lookup by keyword:
 | BE-07 `validateWebhookSignature` | method (optional) | payment-gateway.interface | Easy | Internal | `payment`, `razorpay`, `webhook`, `gateway`, `signature` | Tracked |
 | BE-08 Expert `is_available` column | column | expert account (+docs) | Moderate | Multiple | `expert`, `availability`, `presence`, `account`, `schema` | Tracked |
 | BE-09 WishlistModule | module (14 files) | `internal/commerce/wishlist/**` | Moderate | Multiple | `wishlist`, `commerce`, `favorites`, `like`, `typeorm`, `module` | Tracked, marked @deprecated 2026-10-09 |
-| BE-10 ExpertProfileModule (`ProfileModule`) | module (22 files) | `internal/actors/expert/profile/**` | Moderate | Multiple | `expert`, `profile`, `discovery`, `account`, `puja`, `kyc`, `typeorm`, `module` | Tracked, marked @deprecated 2026-10-09 |
+| BE-10 ExpertProfileModule (`ProfileModule`) | module (22 files) | `internal/actors/expert/profile/**` | Moderate | Multiple | `expert`, `profile`, `discovery`, `account`, `puja`, `kyc`, `typeorm`, `module` | **Deprecated, need later deletion** (marked @deprecated 2026-10-09) |
 | BE-11 CommissionsModule | module (17 files) | `internal/finance/commissions/**` | Moderate | Multiple | `commissions`, `finance`, `split`, `rule`, `tier`, `typeorm`, `module` | Tracked, marked @deprecated 2026-10-09 |
-| BE-12 BankAccountsModule | module (16 files) | `internal/actors/expert/bank-accounts/**` | Moderate | Multiple | `expert`, `bank-account`, `payout`, `typeorm`, `module` | Tracked, marked @deprecated 2026-10-12 |
+| BE-12 BankAccountsModule | module (16 files) | `internal/actors/expert/bank-accounts/**` | Moderate | Multiple | `expert`, `bank-account`, `payout`, `typeorm`, `module` | **Deprecated, need later deletion** (marked @deprecated 2026-10-12) |
 | BE-13 Twilio video stack | module group (5 files) | `external/video/**` | Easy | Single | `video`, `twilio`, `webrtc`, `external` | Tracked, marked @deprecated 2026-10-16 |
+| BE-14 ExpertTodosModule (`ExpertTodosModule`) | module (7 files) | `internal/actors/expert/todos/**` | Easy | Multiple | `expert`, `todos`, `typeorm`, `module` | **Deprecated, need later deletion** (marked @deprecated 2026-11-12) |
 | FE-01 safe-fetch legacy tuple API | types/functions (4) | `packages/safe-fetch/` | Moderate | Multiple | `safe-fetch`, `api`, `tuple`, `fetch`, `frontend` | Tracked |
 | FE-02 Client `lib/socket.ts` monolith | module | `apps/client/src/lib/socket.ts` | Easy | Internal | `socket`, `realtime`, `client`, `frontend` | Tracked |
 | FE-03 Client `lib/socket/` shims | barrel re-exports | `apps/client/src/lib/socket/` | Unknown | Unknown | `socket`, `shims`, `client`, `frontend` | Tracked |
@@ -343,6 +345,21 @@ Resolved (not inventoried): legacy expert `src/lib/socket.ts` (already removed),
 
 ---
 
+## BE-14 — ExpertTodosModule (`expert-todos.module.ts`)
+
+- **Tags:** `expert`, `todos`, `typeorm`, `module`
+- **Type:** NestJS module group (7 files) — `expert-todos.module.ts`, `expert-todos.service.ts`, `controllers/todos.controller.ts`, 1 entity (`todo.entity.ts`), 4 CRUD use-cases (`create`, `get`, `list`, `remove`, `update`).
+- **File:** `backend/src/internal/actors/expert/todos/expert-todos.module.ts` (marked `@deprecated` 2026-11-12).
+- **Reason:** Standalone leaf TypeORM stack. Deprecated per 2026-11-12 decision — no Drizzle migration planned; scheduled for later deletion once no callers remain.
+- **Replacement:** None.
+- **Consumers:**
+  - DI Imports: none outside its own module (leaf module).
+  - TypeORM registrations: `TypeOrmModule.forFeature([Todo])`.
+- **Dependency level:** Single. **Difficulty:** Easy.
+- **Removal notes:** verify no inbound callers, remove `ExpertTodosModule` import from `expert/expert.module.ts` (if registered), delete `internal/actors/expert/todos/`. No drop-migration needed unless `expert_todos` table exists in prod and must be dropped explicitly (`synchronize: false`).
+
+---
+
 ## FE-01 — safe-fetch legacy tuple API
 
 - **Tags:** `safe-fetch`, `api`, `tuple`, `fetch`, `frontend`
@@ -428,6 +445,9 @@ BE-02, BE-04, BE-05, BE-08, BE-09, BE-10, BE-11, FE-01, FE-05, FE-08 (+ FE-03/FE
 
 ### Requires architectural work
 BE-01 (billing re-home + admin stats + filtered-users + client room page + drop-table migration), BE-03 (dual-ORM column drop + backfill verification).
+
+### Later Deletion — Deprecated, awaiting replacement / no callers
+BE-10 (ExpertProfileModule — migrate consumers to ExpertAccount/Discovery first), BE-12 (BankAccountsModule — re-home payout endpoints first), BE-14 (ExpertTodosModule — verify no inbound callers, then delete).
 
 ### Key migration risks
 1. **Never stub-then-delete:** Oct 2026 incident reducing 52 files to comment-only stubs broke `pnpm build` (96 errors); always restore-then-migrate.

@@ -26,7 +26,7 @@ Per project rules and `.wolf/cerebrum.md`:
 +-------------------------------------------------------------------------------+
 |  🟢 TIER 1: Immediate Standalone Leaf Modules                                  |
 |     - Zero cross-domain FKs, zero shared transactions, isolated CRUD.          |
-|     - Festivals, Quotes, Places, Locations, Calendar Cache, Prokerala, Todos   |
+|     - Festivals, Quotes, Places, Locations, Calendar Cache, Prokerala          |
 +-------------------------------------------------------------------------------+
 |  🟡 TIER 2: Schema Ready (Drizzle Schema Exists, Migrate Use-Cases)           |
 |     - Schemas already in src/core/drizzledb/schema/.                           |
@@ -60,7 +60,6 @@ Modules with no inbound or outbound TypeORM relations. Can be migrated immediate
 | **Locations** | `src/internal/locations/` | `StateEntity`, `DistrictEntity` (`states`, `districts`) | 1 seed use-case | Create `locations.schema.ts`, update seed use-case. |
 | **Calendar** | `src/internal/calendar/` | `CalendarCache` (`calendar_cache`) | 4 use-cases + Panchangam service | Create `calendar.schema.ts`, update cache reads/writes. |
 | **Prokerala** | `src/external/prokerala/` | `ProkeralaCacheEntity` (`prokerala_cache`) | 1 service | Create `prokerala-cache.schema.ts`, update cache service. |
-| **Todos** | `src/internal/actors/expert/todos/` | `Todo` (`expert_todos`) | 4 CRUD use-cases | Create `expert-todos.schema.ts`, rewrite 4 use-cases. |
 
 ---
 
@@ -88,7 +87,6 @@ Modules whose migration removes residual TypeORM dependencies across already-mig
 | **Admin System Settings** | `admin.system_settings` | Unblocks [`merchant-order-queries.usecase.ts`](file:///home/rgstartup/AIB/project/backend/src/internal/commerce/order/use-cases/merchant-order-queries.usecase.ts) which still injects `Repository<SystemSetting>`. |
 | **Admin Audit Logs** | `admin.admin_audit_logs` | Unblocks `toggle-user-block`, `create-sub-admin`, `delete-sub-admin`, and `update-sub-admin`. |
 | **Support Disputes** | `support.disputes`, `support.dispute_messages` | Self-contained dispute management (8 use-cases + support gateway). |
-| **Expert Bank Accounts** | `expert.bank_accounts` | 6 use-cases in `actors/expert/bank-accounts/`; `expertAccounts` table is in Drizzle. Marked `@deprecated` (BE-12). |
 
 ---
 
@@ -113,12 +111,23 @@ Must NOT be migrated individually. Require grouped or coordinated changes.
 
 ---
 
+## 5. Deprecated — Scheduled for Later Deletion (TypeORM entities NOT removed yet)
+
+The following modules are marked `@deprecated`. Their TypeORM entities are kept in place until a replacement stack is authoritative. **Do not migrate to Drizzle — delete when replacement is finalized.**
+
+| Module | Location | TypeORM Entities | Deprecation Ref | Reason / Replacement |
+|---|---|---|---|---|
+| **ExpertProfileModule** | `src/internal/actors/expert/profile/` | `ProfileExpert`, `ExpertPuja` | BE-10 | Replaced by `actors/expert/account/` (`ExpertAccountModule`) + `actors/expert/discovery/` (`ExpertDiscoveryModule`). Migrate consumers (`admin`, `agent`, `puja-appointment`, `consultation/reviews`) first, then delete directory. |
+| **BankAccountsModule** | `src/internal/actors/expert/bank-accounts/` | `BankAccount` | BE-12 | Replacement TBD (Drizzle `expert.bank_accounts` or payout integration). Decouple `WalletModule` / `ExpertModule` imports, re-home expert frontend `/expert/bank-accounts`, then delete directory. |
+| **ExpertTodosModule** | `src/internal/actors/expert/todos/` | `Todo` | BE-14 | Standalone leaf (4 CRUD use-cases). Deprecated per 2026-11-12 decision — no Drizzle migration; delete when no callers remain. |
+
+---
+
 ## 4. Recommended Step-by-Step Rollout Plan
 
 1. **Step 1 — Zero-Risk Standalone Leaf Migrations (Tier 1):**
    - Migrate `FestivalModule` (5 use-cases).
    - Migrate `PlacesModule` (4 use-cases).
-   - Migrate `ExpertTodosModule` (4 use-cases).
 2. **Step 2 — Schema-Ready Use-Case Migrations (Tier 2):**
    - Migrate `CommerceCoupons` use-cases to Drizzle schema.
    - Migrate `ConsultationReviews` use-cases to Drizzle schema.
@@ -126,7 +135,8 @@ Must NOT be migrated individually. Require grouped or coordinated changes.
 3. **Step 3 — High-Value Unblockers (Tier 3):**
    - Create Drizzle schema for `admin.system_settings` + `admin.admin_audit_logs`.
    - Migrate admin settings use-cases and drop `Repository<SystemSetting>` from `commerce/order/use-cases/merchant-order-queries.usecase.ts`.
-   - Migrate `SupportDisputes` and `ExpertBankAccounts`.
+   - Migrate `SupportDisputes`.
+   - **Skip:** `ExpertBankAccounts` is deprecated (BE-12) — scheduled for later deletion, not Drizzle migration.
 4. **Step 4 — Atomic Shared Transaction Migration (Tier 4 Group A):**
    - Migrate `commerce/order` write path + `finance/payments` + `finance/wallet` write path using `DrizzleTx`.
 5. **Step 5 — Legacy Stack Deletion & User Shell Cleanup (Tier 4 Group B & C):**
