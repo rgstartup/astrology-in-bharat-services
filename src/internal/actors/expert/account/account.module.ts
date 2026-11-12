@@ -12,6 +12,7 @@ import { ExpertAstrologyService } from './entities/expert-astrology-service.enti
 import { ExpertConsultationPricing } from './entities/expert-consultation-pricing.entity';
 import { ExpertAccountPujasUseCase } from './use-cases/account-pujas.usecase';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
+import { StorageModule } from '@/external/storage';
 import { GetExpertAccountUseCase } from './use-cases/get-account.usecase';
 import { UpdateExpertAccountAvatarUseCase } from './use-cases/update-account-avatar.usecase';
 import { UpdateExpertAccountIntroVideoUseCase } from './use-cases/update-account-intro-video.usecase';
@@ -32,6 +33,7 @@ import { PresenceModule } from '../presence/presence.module';
     ]),
     ExpertAuthModule,
     CloudinaryModule,
+    StorageModule,
     PresenceModule,
   ],
   controllers: [ExpertAccountController],

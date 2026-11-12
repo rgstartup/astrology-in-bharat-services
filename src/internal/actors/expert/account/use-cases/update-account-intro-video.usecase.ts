@@ -10,8 +10,9 @@ import {
 import { eq } from 'drizzle-orm';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { expertAccounts } from '@/core/drizzledb/schema';
-import { VideoUploadService } from '@/external/cloudinary';
+import { expertAccounts, media } from '@/core/drizzledb/schema';
+import { StorageService } from '@/external/storage';
+import { MediaSource } from '@/internal/media/enum';
 
 const MIN_INTRO_VIDEO_SECONDS = 30;
 const MAX_INTRO_VIDEO_SECONDS = 90;
@@ -23,7 +24,7 @@ export class UpdateExpertAccountIntroVideoUseCase {
   );
 
   constructor(
-    private readonly videoUploadService: VideoUploadService,
+    private readonly storageService: StorageService,
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
@@ -37,20 +38,21 @@ export class UpdateExpertAccountIntroVideoUseCase {
     }
 
     try {
-      const result = await this.videoUploadService.uploadVideo(file, {
-        public_id,
+      const resultFile = await this.storageService.uploadVideo(file, {
+        publicId: public_id,
       });
-      const videoUrl = result.secure_url;
-      const mediaId = result.media?.id ?? null;
 
-      if (!videoUrl) {
+      if (!resultFile) {
         throw new InternalServerErrorException(
           'Video upload did not return a valid secure URL',
         );
       }
 
+      const videoUrl = resultFile.secureUrl;
+
+      // Validate duration (30-90 seconds) using raw Cloudinary response.
       const duration = Number(
-        (result as { duration?: number }).duration ?? 0,
+        (resultFile.raw as { duration?: number | string })?.duration ?? 0,
       );
       if (
         Number.isFinite(duration) &&
@@ -58,19 +60,20 @@ export class UpdateExpertAccountIntroVideoUseCase {
         (duration < MIN_INTRO_VIDEO_SECONDS ||
           duration > MAX_INTRO_VIDEO_SECONDS)
       ) {
-        if (result.public_id) {
-          await this.videoUploadService.deleteVideo(result.public_id);
-        }
+        // Clean up invalid upload.
+        await this.storageService.delete(resultFile.key, {
+          resourceType: 'video',
+        });
         throw new BadRequestException(
           `Video duration must be between ${MIN_INTRO_VIDEO_SECONDS} and ${MAX_INTRO_VIDEO_SECONDS} seconds. Your video is ${Math.round(duration)} seconds.`,
         );
       }
 
-      await this.db.transaction(async (tx) => {
+      const updatedMedia = await this.db.transaction(async (tx) => {
         const [account] = await tx
           .select({
             id: expertAccounts.id,
-            intro_video: expertAccounts.intro_video,
+            intro_video_id: expertAccounts.intro_video_id,
           })
           .from(expertAccounts)
           .where(eq(expertAccounts.id, Number(expertId)))
@@ -80,31 +83,71 @@ export class UpdateExpertAccountIntroVideoUseCase {
           throw new NotFoundException('Expert not found');
         }
 
-        const introVideo = videoUrl || account.intro_video;
         const updated_at = new Date();
+        let intro_video_id: number;
+
+        if (account.intro_video_id) {
+          // Update existing media row.
+          const [resultMedia] = await tx
+            .update(media)
+            .set({
+              url: videoUrl,
+              source: MediaSource.CLOUDINARY,
+              public_id: resultFile.key,
+              mime_type: resultFile.mimeType,
+              file_name: resultFile.originalFilename,
+              file_size: resultFile.size,
+              storage_provider: resultFile.provider,
+              storage_key: resultFile.key,
+              updated_at,
+            })
+            .where(eq(media.id, account.intro_video_id))
+            .returning({ id: media.id });
+
+          intro_video_id = resultMedia.id;
+        } else {
+          // Insert new media row.
+          const [resultMedia] = await tx
+            .insert(media)
+            .values({
+              url: videoUrl,
+              source: MediaSource.CLOUDINARY,
+              public_id: resultFile.key,
+              mime_type: resultFile.mimeType,
+              file_name: resultFile.originalFilename,
+              file_size: resultFile.size,
+              storage_provider: resultFile.provider,
+              storage_key: resultFile.key,
+              created_at: updated_at,
+              updated_at,
+            })
+            .returning({ id: media.id });
+
+          intro_video_id = resultMedia.id;
+        }
 
         const accountPatch: Partial<typeof expertAccounts.$inferInsert> = {
-          intro_video: introVideo,
+          intro_video: videoUrl,
           // Keep legacy `video` column in sync for backward compatibility.
-          video: introVideo,
+          video: videoUrl,
+          intro_video_id,
           updated_at,
         };
-        if (mediaId !== null) {
-          accountPatch.intro_video_id = mediaId;
-        }
 
         await tx
           .update(expertAccounts)
           .set(accountPatch)
           .where(eq(expertAccounts.id, account.id));
+
+        return { id: intro_video_id };
       });
 
       return {
         success: true,
         message: 'Intro video uploaded successfully',
         intro_video: videoUrl,
-        intro_video_id: mediaId,
-        intro_video_media: result.media ?? null,
+        intro_video_id: updatedMedia.id,
+        intro_video_media: updatedMedia,
       };
     } catch (error: unknown) {
       const err = error as Error;
