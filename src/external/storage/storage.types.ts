@@ -76,6 +76,8 @@ export interface StorageUrlOptions {
   format?: string;
   crop?: string;
   transformation?: string;
+  /** Generate a signed delivery URL (Cloudinary `sign_url: true`) */
+  signed?: boolean;
 }
 
 export interface CloudinaryDriverConfig {
@@ -100,6 +102,42 @@ export interface StorageModuleOptions {
 /**
  * GoF Strategy: Common Driver Interface
  */
+export interface SignedUploadParams {
+  signature: string;
+  timestamp: number;
+  apiKey: string;
+  cloudName: string;
+  folder: string;
+  resourceType: string;
+  uploadUrl: string;
+  /** Maximum allowable file size in bytes (for client-side pre-validation) */
+  maxSizeBytes?: number;
+  /** Allowed MIME types (for client-side pre-validation) */
+  allowedMimeTypes?: string[];
+}
+
+export interface VerifiedUpload {
+  publicId: string;
+  secureUrl: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  bytes?: number;
+  resourceType?: string;
+}
+
+export interface SignedUploadOptions {
+  folder?: string;
+  resourceType?: string;
+}
+
+export interface VerifyUploadOptions {
+  folder?: string;
+  resourceType?: string;
+  maxSizeBytes?: number;
+  allowedMimeTypes?: string[];
+}
+
 export interface IStorageDriver {
   readonly name: StorageDriverType;
   upload(file: StorageFileInput, options?: StorageUploadOptions): Promise<StorageUploadResult>;
@@ -107,4 +145,8 @@ export interface IStorageDriver {
   delete(key: string, options?: Record<string, unknown>): Promise<StorageDeleteResult>;
   getUrl(key: string, options?: StorageUrlOptions): string;
   exists(key: string): Promise<boolean>;
+  /** Cloudinary-only: return signature params so the client can upload directly to Cloudinary */
+  getSignedUploadParams?(options?: SignedUploadOptions): Promise<SignedUploadParams>;
+  /** Cloudinary-only: re-fetch the asset from Cloudinary and validate constraints before persisting */
+  verifyUpload?(publicId: string, options?: VerifyUploadOptions): Promise<VerifiedUpload>;
 }

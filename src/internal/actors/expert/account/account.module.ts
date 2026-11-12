@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExpertAuthModule } from '@/internal/actors/expert/auth/auth.module';
 import { User } from '@/internal/users/entities/user.entity';
 import { ExpertAccountController } from './controllers/account.controller';
+import { AvatarController } from './controllers/avatar.controller';
 import { ExpertAccountService } from './account.service';
 import { ExpertAccount } from './entities/account.entity';
 import { ExpertAccountPuja } from './entities/account-puja.entity';
@@ -14,6 +15,7 @@ import { ExpertAccountPujasUseCase } from './use-cases/account-pujas.usecase';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
 import { StorageModule } from '@/external/storage';
 import { GetExpertAccountUseCase } from './use-cases/get-account.usecase';
+import { PersistExpertAccountAvatarUseCase } from './use-cases/persist-expert-account-avatar.usecase';
 import { UpdateExpertAccountAvatarUseCase } from './use-cases/update-account-avatar.usecase';
 import { UpdateExpertAccountIntroVideoUseCase } from './use-cases/update-account-intro-video.usecase';
 import { UpdateExpertAccountUseCase } from './use-cases/update-account.usecase';
@@ -36,10 +38,11 @@ import { PresenceModule } from '../presence/presence.module';
     StorageModule,
     PresenceModule,
   ],
-  controllers: [ExpertAccountController],
+  controllers: [ExpertAccountController, AvatarController],
   providers: [
     ExpertAccountService,
     GetExpertAccountUseCase,
+    PersistExpertAccountAvatarUseCase,
     UpdateExpertAccountAvatarUseCase,
     UpdateExpertAccountIntroVideoUseCase,
     UpdateExpertAccountUseCase,
