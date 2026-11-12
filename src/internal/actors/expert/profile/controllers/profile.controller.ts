@@ -40,6 +40,11 @@ import { type IUser } from '../../../../../shared/types/access-token.payload';
 import { Public } from '../../../../../shared/decorators/public.decorator';
 import { JwtAuthGuard } from '../../../../auth/guards/auth.guard';
 import { getErrorMessage } from '../../../../../shared/utils/get-error-message.util';
+import { StorageService } from '@/external/storage/storage.service';
+import type {
+  SignedUploadOptions,
+  VerifyUploadOptions,
+} from '@/external/storage/storage.types';
 
 @Controller({
   path: 'expert',
@@ -51,7 +56,10 @@ export class ProfileController {
     private readonly profileService: ExpertProfileService,
     private readonly imageUploadService: ImageUploadService,
     private readonly videoUploadService: VideoUploadService,
-  ) {}
+    private readonly storageService: StorageService,
+  ) {
+    console.log('[ProfileController] constructed');
+  }
 
   @Get()
   getProfile(@CurrentUser() user: IUser) {

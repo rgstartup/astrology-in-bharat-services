@@ -58,7 +58,7 @@ export class ExpertAccount {
   @Column({ type: 'text', nullable: true })
   phone!: string | null;
 
-  @Column({ type: 'text', nullable: true, default: 'other' })
+  @Column({ type: 'text', nullable: true, default: 'male' })
   gender!: 'male' | 'female' | 'other';
 
   @Column({ type: 'timestamptz', nullable: true })

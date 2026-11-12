@@ -16,14 +16,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ImageUploadService,
   VideoUploadService,
-} from '../../../../../external/cloudinary';
-import { Public } from '../../../../../shared/decorators/public.decorator';
-import { type IMerchant } from '../../../../../shared/types/access-token.payload';
+} from '@/external/cloudinary';
+import { Public } from '@/shared/decorators/public.decorator';
+import { type IMerchant } from '@/shared/types/access-token.payload';
 import { MerchantJwtAuthGuard } from '../../auth/guards/auth.guard';
 import { CurrentMerchant } from '../../auth/decorators/current-merchant.decorator';
 import { MerchantAccountService } from '../account.service';
 import { UpdateMerchantAccountDto } from '../dto/request/account.dto';
 import { QueryMerchantDto } from '../dto/request/query-merchant.dto';
+import { StorageService } from '@/external/storage/storage.service';
 
 @Controller({ path: 'merchant/account', version: '1' })
 @UseGuards(MerchantJwtAuthGuard)
@@ -32,6 +33,7 @@ export class MerchantAccountController {
     private readonly accountService: MerchantAccountService,
     private readonly imageUploadService: ImageUploadService,
     private readonly videoUploadService: VideoUploadService,
+    private readonly storageService: StorageService,
   ) {}
 
   @Get()
@@ -85,6 +87,54 @@ export class MerchantAccountController {
       message: 'File uploaded successfully',
       path: result.secure_url,
       url: result.secure_url,
+    };
+  }
+
+  @Post('avatar/upload-signature')
+  async avatarUploadSignature(
+    @CurrentMerchant() merchant: IMerchant,
+    @Body() dto: { folder?: string; resourceType?: string },
+  ) {
+    const params = await this.storageService.getSignedUploadParams({
+      folder: dto?.folder ?? 'avatars',
+      resourceType: dto?.resourceType ?? 'image',
+    });
+    return {
+      message: 'Signed upload params generated',
+      data: params,
+    };
+  }
+
+  @Post('avatar/verify')
+  async avatarVerify(
+    @CurrentMerchant() merchant: IMerchant,
+    @Body() dto: {
+      publicId: string;
+      folder?: string;
+      resourceType?: string;
+      maxSizeBytes?: number;
+      allowedMimeTypes?: string[];
+    },
+  ) {
+    const verified = await this.storageService.verifyUpload(dto.publicId, {
+      folder: dto.folder ?? 'avatars',
+      resourceType: dto.resourceType ?? 'image',
+      maxSizeBytes: dto.maxSizeBytes ?? 5 * 1024 * 1024,
+      allowedMimeTypes: dto.allowedMimeTypes ?? [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+      ],
+    });
+
+    // Persist the verified avatar URL on the merchant account record
+    await this.accountService.updateAccount(merchant, {
+      avatar: verified.secureUrl,
+    });
+
+    return {
+      message: 'Avatar verified and updated',
+      data: verified,
     };
   }
 

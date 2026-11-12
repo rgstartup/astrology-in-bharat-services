@@ -40,7 +40,7 @@ export const expertAccounts = expertSchema.table('account', {
   avatar: text('avatar'),
   avatar_id: integer('avatar_id'),
   phone: text('phone'),
-  gender: text('gender').notNull().default('other'),
+  gender: text('gender').notNull().default('male'),
   date_of_birth: timestamp('date_of_birth', { withTimezone: true }),
   specialization: text('specialization'),
   bio: text('bio'),

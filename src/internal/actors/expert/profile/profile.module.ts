@@ -74,4 +74,8 @@ import { ExpertStatusChangedHandler } from './event-handlers/expert-status-chang
   ],
   exports: [ExpertProfileService, GetExpertByIdUseCase, TypeOrmModule],
 })
-export class ProfileModule {}
+export class ProfileModule {
+  constructor() {
+    console.log('[ProfileModule] constructed');
+  }
+}

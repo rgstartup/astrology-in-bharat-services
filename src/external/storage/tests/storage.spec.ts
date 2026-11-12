@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { join } from 'node:path';
 import { promises as fs } from 'node:fs';
 import { PayloadTooLargeException, UnsupportedMediaTypeException } from '@nestjs/common';
@@ -12,6 +12,20 @@ import { CloudinaryDriver } from '../drivers/cloudinary.driver';
 import { FileSizeValidator } from '../validators/file-size.validator';
 import { MimeTypeValidator } from '../validators/mime-type.validator';
 import { CompositeFileValidator } from '../validators/composite.validator';
+
+vi.mock('cloudinary', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('cloudinary')>();
+  return {
+    ...actual,
+    v2: {
+      ...actual.v2,
+      api: {
+        ...actual.v2.api,
+        resource: vi.fn(),
+      },
+    },
+  };
+});
 
 describe('Storage Module (GoF Simplified Architecture)', () => {
   const testDir = join(process.cwd(), 'tmp-storage-test');
@@ -182,6 +196,148 @@ describe('Storage Module (GoF Simplified Architecture)', () => {
       expect(service.getUrl('images/pic.jpg')).toBe('http://loc/uploads/images/pic.jpg');
 
       await fs.rm(testDir, { recursive: true, force: true });
+    });
+  });
+
+  describe('Cloudinary Signed Upload (direct client-to-Cloudinary)', () => {
+    const cloudinary = new CloudinaryDriver({
+      cloudName: 'test-cloud',
+      apiKey: 'test-key',
+      apiSecret: 'test-secret',
+    });
+
+    it('getSignedUploadParams returns signature and upload URL', async () => {
+      const params = await cloudinary.getSignedUploadParams({
+        folder: 'avatars',
+        resourceType: 'image',
+      });
+
+      expect(params.apiKey).toBe('test-key');
+      expect(params.cloudName).toBe('test-cloud');
+      expect(params.folder).toBe('avatars');
+      expect(params.resourceType).toBe('image');
+      expect(params.uploadUrl).toBe(
+        'https://api.cloudinary.com/v1_1/test-cloud/image/upload',
+      );
+      expect(typeof params.signature).toBe('string');
+      expect(params.signature.length).toBeGreaterThan(0);
+      expect(typeof params.timestamp).toBe('number');
+    });
+
+    it('getSignedUploadParams uses defaults when options omitted', async () => {
+      const params = await cloudinary.getSignedUploadParams();
+
+      expect(params.folder).toBe('uploads');
+      expect(params.resourceType).toBe('image');
+      expect(params.uploadUrl).toBe(
+        'https://api.cloudinary.com/v1_1/test-cloud/image/upload',
+      );
+    });
+
+    it('verifyUpload validates asset from Cloudinary', async () => {
+      const { v2 } = await import('cloudinary');
+      vi.mocked(v2.api.resource).mockResolvedValue({
+        public_id: 'avatars/abc123',
+        secure_url: 'https://res.cloudinary.com/test-cloud/image/upload/avatars/abc123.jpg',
+        width: 800,
+        height: 800,
+        format: 'jpg',
+        bytes: 245760,
+        resource_type: 'image',
+      });
+
+      const result = await cloudinary.verifyUpload('avatars/abc123', {
+        folder: 'avatars',
+        resourceType: 'image',
+        maxSizeBytes: 5 * 1024 * 1024,
+        allowedMimeTypes: ['image/jpeg', 'image/png'],
+      });
+
+      expect(v2.api.resource).toHaveBeenCalledWith('avatars/abc123', {
+        resource_type: 'image',
+      });
+      expect(result.publicId).toBe('avatars/abc123');
+      expect(result.secureUrl).toContain('res.cloudinary.com');
+      expect(result.bytes).toBe(245760);
+    });
+
+    it('verifyUpload rejects asset outside signed folder', async () => {
+      const { v2 } = await import('cloudinary');
+      vi.mocked(v2.api.resource).mockResolvedValue({
+        public_id: 'other-folder/abc123',
+        secure_url: 'https://res.cloudinary.com/test-cloud/image/upload/other-folder/abc123.jpg',
+        format: 'jpg',
+        bytes: 1000,
+        resource_type: 'image',
+      });
+
+      await expect(
+        cloudinary.verifyUpload('other-folder/abc123', {
+          folder: 'avatars',
+          resourceType: 'image',
+        }),
+      ).rejects.toThrow('Asset was uploaded outside the signed folder');
+    });
+
+    it('verifyUpload rejects oversized file', async () => {
+      const { v2 } = await import('cloudinary');
+      vi.mocked(v2.api.resource).mockResolvedValue({
+        public_id: 'avatars/big.jpg',
+        secure_url: 'https://res.cloudinary.com/test-cloud/image/upload/avatars/big.jpg',
+        format: 'jpg',
+        bytes: 10 * 1024 * 1024,
+        resource_type: 'image',
+      });
+
+      await expect(
+        cloudinary.verifyUpload('avatars/big.jpg', {
+          folder: 'avatars',
+          resourceType: 'image',
+          maxSizeBytes: 5 * 1024 * 1024,
+        }),
+      ).rejects.toThrow('File exceeds maximum allowed size');
+    });
+
+    it('verifyUpload rejects disallowed mime type', async () => {
+      const { v2 } = await import('cloudinary');
+      vi.mocked(v2.api.resource).mockResolvedValue({
+        public_id: 'avatars/doc.pdf',
+        secure_url: 'https://res.cloudinary.com/test-cloud/image/upload/avatars/doc.pdf',
+        format: 'pdf',
+        bytes: 1000,
+        resource_type: 'image',
+      });
+
+      await expect(
+        cloudinary.verifyUpload('avatars/doc.pdf', {
+          folder: 'avatars',
+          resourceType: 'image',
+          allowedMimeTypes: ['image/jpeg', 'image/png'],
+        }),
+      ).rejects.toThrow('File type image/pdf is not allowed');
+    });
+
+    it('StorageService exposes getSignedUploadParams and verifyUpload', async () => {
+      const factory = new StorageFactory({ defaultDriver: 'cloudinary' });
+      factory.register(cloudinary);
+      const service = new StorageService(factory);
+
+      const params = await service.getSignedUploadParams({ folder: 'avatars' });
+      expect(params.apiKey).toBe('test-key');
+
+      const { v2 } = await import('cloudinary');
+      vi.mocked(v2.api.resource).mockResolvedValue({
+        public_id: 'avatars/abc123',
+        secure_url: 'https://res.cloudinary.com/test-cloud/image/upload/avatars/abc123.jpg',
+        format: 'jpg',
+        bytes: 1000,
+        resource_type: 'image',
+      });
+
+      const verified = await service.verifyUpload('avatars/abc123', {
+        folder: 'avatars',
+      });
+      expect(verified.publicId).toBe('avatars/abc123');
     });
   });
 });

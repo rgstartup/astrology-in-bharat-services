@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import type {
   IStorageDriver,
   StorageDeleteResult,
@@ -7,6 +7,10 @@ import type {
   StorageUploadOptions,
   StorageUploadResult,
   StorageUrlOptions,
+  SignedUploadParams,
+  SignedUploadOptions,
+  VerifiedUpload,
+  VerifyUploadOptions,
 } from './storage.types';
 import { StorageFactory } from './storage.factory';
 
@@ -54,5 +58,23 @@ export class StorageService {
   async exists(key: string, disk?: StorageDriverType): Promise<boolean> {
     const driver = disk ? this.factory.getDriver(disk) : this.factory.getDefaultDriver();
     return driver.exists(key);
+  }
+
+  async getSignedUploadParams(options?: SignedUploadOptions): Promise<SignedUploadParams> {
+    console.log('[StorageService.getSignedUploadParams] options:', JSON.stringify(options));
+    const driver = this.factory.getDefaultDriver();
+    console.log('[StorageService.getSignedUploadParams] driver name:', driver.name);
+    if (!driver.getSignedUploadParams) {
+      throw new BadRequestException('Signed upload is not supported by the default driver');
+    }
+    return driver.getSignedUploadParams(options);
+  }
+
+  async verifyUpload(publicId: string, options?: VerifyUploadOptions): Promise<VerifiedUpload> {
+    const driver = this.factory.getDefaultDriver();
+    if (!driver.verifyUpload) {
+      throw new BadRequestException('Upload verify is not supported by the default driver');
+    }
+    return driver.verifyUpload(publicId, options);
   }
 }

@@ -13,13 +13,18 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
+    console.log('[JwtAuthGuard] canActivate called');
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    if (isPublic) return true;
+    if (isPublic) {
+      console.log('[JwtAuthGuard] route is public, allowing');
+      return true;
+    }
 
+    console.log('[JwtAuthGuard] route is protected, calling super.canActivate');
     return super.canActivate(context);
   }
 }
