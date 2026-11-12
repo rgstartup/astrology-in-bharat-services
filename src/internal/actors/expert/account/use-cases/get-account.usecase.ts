@@ -13,6 +13,7 @@ import {
 } from '@/core/drizzledb/schema';
 import { IExpert } from '@/shared/types/access-token.payload';
 import { PricingStatus, PricingTargetAudience } from '@/core/enums';
+import { ExpertAccountNotFoundError } from '@/internal/actors/expert/specialization/errors';
 import { ExpertAccountResponseDto } from '../dto/response/expert-account-response.dto';
 import { toExpertPricingResponse } from '../account.mapper';
 
@@ -20,7 +21,7 @@ import { toExpertPricingResponse } from '../account.mapper';
 export class GetExpertAccountUseCase {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
-  async execute(expert: IExpert): Promise<ExpertAccountResponseDto | null> {
+  async execute(expert: IExpert): Promise<ExpertAccountResponseDto> {
     const [account] = await this.db
       .select({
         id: expertAccounts.id,
@@ -112,7 +113,7 @@ export class GetExpertAccountUseCase {
       .limit(1);
 
     if (!account) {
-      return null;
+      throw new ExpertAccountNotFoundError();
     }
 
     const mediaIds = [account.avatar_id, account.intro_video_id].filter(

@@ -4,12 +4,13 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { UploadApiOptions, UploadApiResponse, v2 } from 'cloudinary';
 import * as streamifier from 'streamifier';
 import { CLOUDINARY } from './cloudinary.provider';
-import { Media } from '@/internal/media/entities/media.entity';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { media, MediaRow } from '@/core/drizzledb/schema/media/media.schema';
 import { MediaSource } from '@/internal/media/enum';
 
 /**
@@ -17,10 +18,10 @@ import { MediaSource } from '@/internal/media/enum';
  *
  * @interface UploadImageResult
  * @extends {UploadApiResponse}
- * @property {Media} media - The persisted Media entity record from the database.
+ * @property {MediaRow} media - The persisted Media record from the database.
  */
 export type UploadImageResult = UploadApiResponse & {
-  media: Media;
+  media: MediaRow;
 };
 
 /**
@@ -33,8 +34,7 @@ export type UploadImageResult = UploadApiResponse & {
 export class ImageUploadService {
   constructor(
     @Inject(CLOUDINARY) private readonly cloudinary: typeof v2,
-    @InjectRepository(Media)
-    private readonly mediaRepository: Repository<Media>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
   /**
@@ -141,7 +141,10 @@ export class ImageUploadService {
     });
 
     // Soft-delete the matching Media row in the database
-    await this.mediaRepository.softDelete({ public_id: publicId });
+    await this.db
+      .update(media)
+      .set({ deleted_at: new Date() })
+      .where(eq(media.public_id, publicId));
 
     return result;
   }
@@ -208,13 +211,13 @@ export class ImageUploadService {
    * @param {Express.Multer.File} file - Uploaded Multer file containing original metadata.
    * @param {UploadApiResponse} uploadResult - Response object returned by Cloudinary.
    * @param {string} [existingPublicId] - Public ID used to find an existing record to update.
-   * @returns {Promise<Media>} The saved or updated Media entity record.
+   * @returns {Promise<MediaRow>} The saved or updated Media record.
    */
   private async upsertMedia(
     file: Express.Multer.File,
     uploadResult: UploadApiResponse,
     existingPublicId?: string,
-  ): Promise<Media> {
+  ): Promise<MediaRow> {
     // Parse Cloudinary's created_at timestamp
     const timestamp = uploadResult.created_at
       ? new Date(uploadResult.created_at)
@@ -223,11 +226,19 @@ export class ImageUploadService {
     const lookupPublicId = existingPublicId || uploadResult.public_id;
 
     // Check if a media record already exists for this Cloudinary public_id
-    let media = lookupPublicId
-      ? await this.mediaRepository.findOne({
-          where: { public_id: lookupPublicId, source: MediaSource.CLOUDINARY },
-        })
-      : null;
+    const existing = lookupPublicId
+      ? await this.db
+          .select()
+          .from(media)
+          .where(
+            and(
+              eq(media.public_id, lookupPublicId),
+              eq(media.source, MediaSource.CLOUDINARY),
+              isNull(media.deleted_at),
+            ),
+          )
+          .limit(1)
+      : [];
 
     const mimeType =
       file.mimetype ||
@@ -236,29 +247,38 @@ export class ImageUploadService {
       file.originalname || uploadResult.original_filename || null;
     const fileSize = uploadResult.bytes || file.size || null;
 
-    if (media) {
+    if (existing.length > 0) {
       // Update existing record
-      media.url = uploadResult.secure_url;
-      media.public_id = uploadResult.public_id;
-      if (mimeType) media.mime_type = mimeType;
-      if (fileSize) media.file_size = fileSize;
-      if (fileName) media.file_name = fileName;
-      media.updated_at = timestamp;
-      return this.mediaRepository.save(media);
+      const [updated] = await this.db
+        .update(media)
+        .set({
+          url: uploadResult.secure_url,
+          public_id: uploadResult.public_id,
+          ...(mimeType ? { mime_type: mimeType } : {}),
+          ...(fileSize ? { file_size: fileSize } : {}),
+          ...(fileName ? { file_name: fileName } : {}),
+          updated_at: timestamp,
+        })
+        .where(eq(media.id, existing[0].id))
+        .returning();
+      return updated;
     }
 
     // Create new record
-    media = this.mediaRepository.create({
-      url: uploadResult.secure_url,
-      source: MediaSource.CLOUDINARY,
-      public_id: uploadResult.public_id,
-      mime_type: mimeType,
-      file_size: fileSize,
-      file_name: fileName,
-      created_at: timestamp,
-      updated_at: timestamp,
-    });
+    const [created] = await this.db
+      .insert(media)
+      .values({
+        url: uploadResult.secure_url,
+        source: MediaSource.CLOUDINARY,
+        public_id: uploadResult.public_id,
+        mime_type: mimeType,
+        file_size: fileSize,
+        file_name: fileName,
+        created_at: timestamp,
+        updated_at: timestamp,
+      })
+      .returning();
 
-    return this.mediaRepository.save(media);
+    return created;
   }
 }

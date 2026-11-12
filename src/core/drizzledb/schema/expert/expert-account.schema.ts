@@ -92,6 +92,10 @@ export const expertAccounts = expertSchema.table('account', {
     .default(AvailabilityMode.AVAILABLE),
   last_seen_at: timestamp('last_seen_at', { withTimezone: true }),
   about_me: text('about_me'),
+  /** Set when the expert finishes (or skips) the post-registration onboarding wizard. */
+  onboarding_completed_at: timestamp('onboarding_completed_at', {
+    withTimezone: true,
+  }),
   total_earning: numeric('total_earning', { precision: 10, scale: 2 })
     .notNull()
     .default('0'),

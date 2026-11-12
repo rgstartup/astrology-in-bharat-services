@@ -3,34 +3,32 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository, DataSource } from 'typeorm';
-import { Profession } from '../entities/profession.entity';
-import { ExpertProfession } from '../entities/expert-profession.entity';
+import { Inject } from '@nestjs/common';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
+import {
+  expertAccounts,
+  expertProfessions,
+  professions,
+} from '../../../../../core/drizzledb/schema';
 import { SyncExpertProfessionsDto } from '../dto/request/profession.dto';
 import { ExpertProfessionResponseDto } from '../dto/response/profession-response.dto';
 import { IExpert } from '../../../../../shared/types/access-token.payload';
-import { ExpertAccount } from '../../account/entities/account.entity';
 
 @Injectable()
 export class SyncExpertProfessionsUseCase {
-  constructor(
-    @InjectRepository(Profession)
-    private readonly professionRepo: Repository<Profession>,
-    @InjectRepository(ExpertProfession)
-    private readonly expertProfessionRepo: Repository<ExpertProfession>,
-    @InjectRepository(ExpertAccount)
-    private readonly expertAccountRepo: Repository<ExpertAccount>,
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(
     expert: IExpert,
     dto: SyncExpertProfessionsDto,
   ): Promise<ExpertProfessionResponseDto[]> {
-    const expertAccount = await this.expertAccountRepo.findOne({
-      where: { id: expert.sub },
-    });
+    const [expertAccount] = await this.db
+      .select({ id: expertAccounts.id })
+      .from(expertAccounts)
+      .where(eq(expertAccounts.id, expert.sub))
+      .limit(1);
 
     if (!expertAccount) {
       throw new NotFoundException('Expert account not found');
@@ -43,12 +41,15 @@ export class SyncExpertProfessionsUseCase {
     const uniqueProfessionIds = Array.from(new Set(dto.profession_ids));
 
     // Verify all requested professions exist and are active
-    const validProfessions = await this.professionRepo.find({
-      where: {
-        id: In(uniqueProfessionIds),
-        is_active: true,
-      },
-    });
+    const validProfessions = await this.db
+      .select({ id: professions.id })
+      .from(professions)
+      .where(
+        and(
+          inArray(professions.id, uniqueProfessionIds),
+          eq(professions.is_active, true),
+        ),
+      );
 
     if (validProfessions.length !== uniqueProfessionIds.length) {
       throw new BadRequestException(
@@ -62,29 +63,51 @@ export class SyncExpertProfessionsUseCase {
         ? dto.primary_profession_id
         : uniqueProfessionIds[0];
 
-    await this.dataSource.transaction(async (manager) => {
-      // Delete existing associations
-      await manager.delete(ExpertProfession, { expert_id: expert.sub });
+    // Sync semantics: replace the full set in one transaction.
+    await this.db.transaction(async (tx) => {
+      await tx
+        .delete(expertProfessions)
+        .where(eq(expertProfessions.expert_id, expert.sub));
 
-      // Create new associations
-      const newAssociations = uniqueProfessionIds.map((profId) => {
-        return manager.create(ExpertProfession, {
+      await tx.insert(expertProfessions).values(
+        uniqueProfessionIds.map((profession_id) => ({
           expert_id: expert.sub,
-          profession_id: profId,
-          is_primary: profId === primaryId,
-        });
-      });
-
-      await manager.save(ExpertProfession, newAssociations);
+          profession_id,
+          is_primary: profession_id === primaryId,
+        })),
+      );
     });
 
-    // Return the updated list
-    const updated = await this.expertProfessionRepo.find({
-      where: { expert_id: expert.sub },
-      relations: ['profession'],
-      order: { is_primary: 'DESC', created_at: 'ASC' },
-    });
+    // Return the updated list (primary first, then by creation order)
+    const rows = await this.db
+      .select({
+        id: expertProfessions.id,
+        profession_id: expertProfessions.profession_id,
+        is_primary: expertProfessions.is_primary,
+        title: professions.title,
+        slug: professions.slug,
+        icon: professions.icon,
+      })
+      .from(expertProfessions)
+      .innerJoin(
+        professions,
+        eq(professions.id, expertProfessions.profession_id),
+      )
+      .where(eq(expertProfessions.expert_id, expert.sub))
+      .orderBy(
+        desc(expertProfessions.is_primary),
+        asc(expertProfessions.created_at),
+      );
 
-    return updated.map((item) => ExpertProfessionResponseDto.from(item));
+    return rows.map((row) => {
+      const response = new ExpertProfessionResponseDto();
+      response.id = row.id;
+      response.profession_id = row.profession_id;
+      response.is_primary = row.is_primary;
+      response.title = row.title;
+      response.slug = row.slug;
+      response.icon = row.icon;
+      return response;
+    });
   }
 }

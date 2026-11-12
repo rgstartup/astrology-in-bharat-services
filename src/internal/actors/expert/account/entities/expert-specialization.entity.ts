@@ -1,6 +1,7 @@
 import type { Relation } from 'typeorm';
 import {
   CreateDateColumn,
+  Column,
   Entity,
   Index,
   JoinColumn,
@@ -25,6 +26,9 @@ export class ExpertSpecialization {
   @JoinColumn({ name: 'expert_id' })
   expert!: Relation<ExpertAccount>;
 
+  @Column({ type: 'int' })
+  expert_id!: number;
+
   @ManyToOne(
     () => Specialization,
     (specialization) => specialization.expert_specializations,
@@ -34,6 +38,9 @@ export class ExpertSpecialization {
   )
   @JoinColumn({ name: 'specialization_id' })
   specialization!: Relation<Specialization>;
+
+  @Column({ type: 'int' })
+  specialization_id!: number;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

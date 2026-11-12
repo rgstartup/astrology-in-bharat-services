@@ -173,6 +173,13 @@ export class ExpertAccount {
   about_me!: string | null;
 
   @Column({
+    type: 'timestamptz',
+    nullable: true,
+    name: 'onboarding_completed_at',
+  })
+  onboarding_completed_at!: Date | null;
+
+  @Column({
     type: 'decimal',
     precision: 10,
     scale: 2,

@@ -8,6 +8,7 @@ import { ExpertAccountModule } from "./account/account.module";
 import { ExpertDiscoveryModule } from "./discovery/discovery.module";
 import { SpecializationModule } from "./specialization/specialization.module";
 import { ProfessionModule } from "./profession/profession.module";
+import { OnboardingModule } from "./onboarding/onboarding.module";
 import { ExpertProductsModule } from "./products/products.module";
 import { PresenceModule } from "./presence/presence.module";
 import { ExpertRealtimeModule } from "./realtime/expert-realtime.module";
@@ -25,6 +26,7 @@ import { ExpertReviewsModule } from "./consultation/reviews/expert-reviews.modul
     ExpertDiscoveryModule,
     SpecializationModule,
     ProfessionModule,
+    OnboardingModule,
     ExpertProductsModule,
     PresenceModule,
     ExpertRealtimeModule,
@@ -41,6 +43,7 @@ import { ExpertReviewsModule } from "./consultation/reviews/expert-reviews.modul
     ExpertDiscoveryModule,
     SpecializationModule,
     ProfessionModule,
+    OnboardingModule,
     ExpertProductsModule,
     PresenceModule,
     ExpertRealtimeModule,
