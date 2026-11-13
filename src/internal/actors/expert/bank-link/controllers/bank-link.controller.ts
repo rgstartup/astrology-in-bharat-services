@@ -10,7 +10,6 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { ExpertJwtAuthGuard } from "../../auth/guards/auth.guard";
-import { Public } from "@/shared/decorators/public.decorator";
 import { CurrentExpert } from "../../auth/decorators/current-expert.decorator";
 import { type IExpert } from "@/shared/types/access-token.payload";
 import { BankLinkService } from "../bank-link.service";
@@ -29,7 +28,13 @@ export class BankLinkController {
   @Post("link/initiate")
   async initiate(
     @CurrentExpert() expert: IExpert,
-    @Body() body: { redirectUri?: string; accountHolderName?: string; accountNumber?: string; ifsc?: string },
+    @Body()
+    body: {
+      redirectUri?: string;
+      accountHolderName?: string;
+      accountNumber?: string;
+      ifsc?: string;
+    },
   ) {
     return this.bankLinkService.initiate({
       expert,
@@ -47,9 +52,11 @@ export class BankLinkController {
   @Post("link/complete")
   async complete(
     @CurrentExpert() expert: IExpert,
-    @Body() body: { accountHolderName?: string; accountNumber?: string; ifsc?: string },
+    @Body()
+    body: { accountHolderName?: string; accountNumber?: string; ifsc?: string },
   ) {
     return this.bankLinkService.complete({
+      expert,
       accountHolderName: body?.accountHolderName,
       accountNumber: body?.accountNumber,
       ifsc: body?.ifsc,
@@ -66,7 +73,11 @@ export class BankLinkController {
     if (!body?.validationId || body.amount == null) {
       throw new BadRequestException("validationId and amount are required");
     }
-    return this.bankLinkService.validatePennyDrop(body.validationId, body.amount);
+    return this.bankLinkService.validatePennyDrop(
+      expert,
+      body.validationId,
+      body.amount,
+    );
   }
 
   /** List expert's payout account links. */
@@ -93,7 +104,11 @@ export class BankLinkController {
     if (!body?.payoutPlatformAccountId) {
       throw new BadRequestException("payoutPlatformAccountId is required");
     }
-    return this.bankLinkService.setPrimary(expert, undefined, body.payoutPlatformAccountId);
+    return this.bankLinkService.setPrimary(
+      expert,
+      undefined,
+      body.payoutPlatformAccountId,
+    );
   }
 
   /** Delete / unlink payout account. */
