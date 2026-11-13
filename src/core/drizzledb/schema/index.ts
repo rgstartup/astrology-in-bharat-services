@@ -5,8 +5,8 @@ export {
   roleEnum,
   platformEnum,
   adminPermissionEnum,
-} from './users';
-export type { UserRow, NewUserRow } from './users';
+} from "./users";
+export type { UserRow, NewUserRow } from "./users";
 
 // Auth
 export {
@@ -18,7 +18,7 @@ export {
   oauthAccountsRelations,
   usedTokens,
   usedTokensRelations,
-} from './auth';
+} from "./auth";
 export type {
   OtpRow,
   NewOtpRow,
@@ -28,7 +28,7 @@ export type {
   NewOAuthAccountRow,
   UsedTokenRow,
   NewUsedTokenRow,
-} from './auth';
+} from "./auth";
 
 // Client
 export {
@@ -47,7 +47,7 @@ export {
   clientTransactionsRelations,
   clientTransactionTypeEnum,
   clientTransactionPurposeEnum,
-} from './client';
+} from "./client";
 export type {
   ClientAccountRow,
   NewClientAccountRow,
@@ -60,12 +60,14 @@ export type {
   NewClientWalletRechargeRow,
   ClientTransactionRow,
   NewClientTransactionRow,
-} from './client';
+} from "./client";
 
 // Expert
 export {
   expertAccounts,
   expertAccountsRelations,
+  expertPayoutAccounts,
+  expertPayoutAccountsRelations,
   expertKycStatusEnum,
   specializations,
   specializationsRelations,
@@ -86,7 +88,7 @@ export {
   expertProducts,
   expertProductsRelations,
   expertProductRelationTypeEnum,
-} from './expert';
+} from "./expert";
 export type {
   ExpertAccountRow,
   NewExpertAccountRow,
@@ -106,7 +108,7 @@ export type {
   NewExpertAstrologyServiceRow,
   ExpertProductRow,
   NewExpertProductRow,
-} from './expert';
+} from "./expert";
 
 // Commerce
 export {
@@ -166,7 +168,7 @@ export {
   userCouponsRelations,
   wishlists,
   wishlistsRelations,
-} from './commerce';
+} from "./commerce";
 export type {
   ProductRow,
   NewProductRow,
@@ -206,7 +208,7 @@ export type {
   NewUserCouponRow,
   WishlistRow,
   NewWishlistRow,
-} from './commerce';
+} from "./commerce";
 
 // Addresses
 export {
@@ -214,19 +216,19 @@ export {
   addressesRelations,
   addressTypeEnum,
   addressTagEnum,
-} from './addresses';
-export type { AddressRow, NewAddressRow } from './addresses';
+} from "./addresses";
+export type { AddressRow, NewAddressRow } from "./addresses";
 
 // Media
-export { media, mediaSourceEnum } from './media';
-export type { MediaRow, NewMediaRow } from './media';
+export { media, mediaSourceEnum } from "./media";
+export type { MediaRow, NewMediaRow } from "./media";
 
 // Common
-export { commonIdempotencyKeys } from './common';
+export { commonIdempotencyKeys } from "./common";
 export type {
   CommonIdempotencyKeyRow,
   NewCommonIdempotencyKeyRow,
-} from './common';
+} from "./common";
 
 // Support
 export {
@@ -234,8 +236,8 @@ export {
   notificationsRelations,
   notificationTypeEnum,
   NotificationType,
-} from './support';
-export type { NotificationRow, NewNotificationRow } from './support';
+} from "./support";
+export type { NotificationRow, NewNotificationRow } from "./support";
 
 // Consultation
 export {
@@ -270,7 +272,7 @@ export {
   reviews,
   reviewsRelations,
   quotes,
-} from './consultation';
+} from "./consultation";
 export type {
   CallSessionRow,
   NewCallSessionRow,
@@ -296,7 +298,7 @@ export type {
   NewReviewRow,
   QuoteRow,
   NewQuoteRow,
-} from './consultation';
+} from "./consultation";
 
 // Merchant
 export {
@@ -304,8 +306,8 @@ export {
   merchantAccountsRelations,
   merchantStatusEnum,
   MerchantStatus,
-} from './merchant';
-export type { MerchantAccountRow, NewMerchantAccountRow } from './merchant';
+} from "./merchant";
+export type { MerchantAccountRow, NewMerchantAccountRow } from "./merchant";
 
 // Promotions
 export {
@@ -318,7 +320,7 @@ export {
   promotionWalletsRelations,
   promotionBenefitsRelations,
   promotionBenefitLedgerRelations,
-} from './promotions';
+} from "./promotions";
 export type {
   PromotionStatus,
   PromotionBenefitType,
@@ -326,7 +328,7 @@ export type {
   PromotionWalletRow,
   PromotionBenefitRow,
   PromotionBenefitLedgerRow,
-} from './promotions';
+} from "./promotions";
 
 // Finance
 export {
@@ -408,7 +410,7 @@ export {
   financialTransactionsRelations,
   financialTransactionEntries,
   financialTransactionEntriesRelations,
-} from './finance';
+} from "./finance";
 export type {
   WalletRow,
   NewWalletRow,
@@ -456,7 +458,103 @@ export type {
   NewFinancialTransactionRow,
   FinancialTransactionEntryRow,
   NewFinancialTransactionEntryRow,
-} from './finance';
+} from "./finance";
+
+// Payment - Payout Platform Accounts
+export {
+  payoutPlatformAccounts,
+  payoutPlatformAccountsRelations,
+  payoutAccountValidationStatusEnum,
+} from "./payments";
+export type {
+  PayoutPlatformAccountRow,
+  NewPayoutPlatformAccountRow,
+} from "./payments";
+
+// Payment - Payout Provider Accounts
+export {
+  payoutProviderAccounts,
+  payoutProviderAccountsRelations,
+  payoutProviderAccountStatusEnum,
+} from "./payments";
+export type {
+  PayoutProviderAccountRow,
+  NewPayoutProviderAccountRow,
+} from "./payments";
+
+// Payment - Payout Onboardings
+export {
+  payoutOnboardings,
+  payoutOnboardingsRelations,
+  payoutOnboardingStatusEnum,
+  payoutOnboardingActionEnum,
+} from "./payments";
+export type {
+  PayoutOnboardingRow,
+  NewPayoutOnboardingRow,
+} from "./payments";
+
+// Payment - Payout Accounts
+export {
+  payoutAccounts,
+  payoutAccountsRelations,
+  payoutAccountStatusEnum,
+  payoutVerificationStatusEnum,
+} from "./payments";
+export type {
+  PayoutAccountRow,
+  NewPayoutAccountRow,
+} from "./payments";
+
+// Payment - Payout Account References
+export {
+  payoutAccountReferences,
+  payoutAccountReferencesRelations,
+  payoutAccountReferenceTypeEnum,
+} from "./payments";
+export type {
+  PayoutAccountReferenceRow,
+  NewPayoutAccountReferenceRow,
+} from "./payments";
+
+// Payment - Payouts
+export {
+  payouts,
+  payoutsRelations,
+  payoutStatusEnum,
+} from "./payments";
+export type { PayoutRow, NewPayoutRow } from "./payments";
+
+// Payment - Payout Webhook Events
+export {
+  payoutWebhookEvents,
+  payoutWebhookEventsRelations,
+  payoutWebhookProcessingStatusEnum,
+} from "./payments";
+export type {
+  PayoutWebhookEventRow,
+  NewPayoutWebhookEventRow,
+} from "./payments";
+
+// Payment - Merchant Payout Accounts
+export {
+  merchantPayoutAccounts,
+  merchantPayoutAccountsRelations,
+} from "./payments";
+export type {
+  MerchantPayoutAccountRow,
+  NewMerchantPayoutAccountRow,
+} from "./payments";
+
+// Expert - Payout Platform Accounts
+export {
+  expertPayoutPlatformAccounts,
+  expertPayoutPlatformAccountsRelations,
+} from "./expert";
+export type {
+  ExpertPayoutPlatformAccountRow,
+  NewExpertPayoutPlatformAccountRow,
+} from "./expert";
 
 import {
   users,
@@ -464,7 +562,7 @@ import {
   roleEnum,
   platformEnum,
   adminPermissionEnum,
-} from './users';
+} from "./users";
 import {
   otps,
   otpsRelations,
@@ -474,7 +572,7 @@ import {
   oauthAccountsRelations,
   usedTokens,
   usedTokensRelations,
-} from './auth';
+} from "./auth";
 import {
   clientAccounts,
   clientAccountsRelations,
@@ -491,10 +589,12 @@ import {
   clientTransactionsRelations,
   clientTransactionTypeEnum,
   clientTransactionPurposeEnum,
-} from './client';
+} from "./client";
 import {
   expertAccounts,
   expertAccountsRelations,
+  expertPayoutPlatformAccounts,
+  expertPayoutPlatformAccountsRelations,
   expertKycStatusEnum,
   specializations,
   specializationsRelations,
@@ -515,7 +615,7 @@ import {
   expertProducts,
   expertProductsRelations,
   expertProductRelationTypeEnum,
-} from './expert';
+} from "./expert";
 import {
   products,
   productsRelations,
@@ -573,21 +673,21 @@ import {
   userCouponsRelations,
   wishlists,
   wishlistsRelations,
-} from './commerce';
+} from "./commerce";
 import {
   addresses,
   addressesRelations,
   addressTypeEnum,
   addressTagEnum,
-} from './addresses';
-import { media, mediaSourceEnum } from './media';
-import { commonIdempotencyKeys } from './common';
+} from "./addresses";
+import { media, mediaSourceEnum } from "./media";
+import { commonIdempotencyKeys } from "./common";
 import {
   notifications,
   notificationsRelations,
   notificationTypeEnum,
   NotificationType,
-} from './support';
+} from "./support";
 import {
   callSessions,
   callSessionsRelations,
@@ -620,13 +720,13 @@ import {
   reviews,
   reviewsRelations,
   quotes,
-} from './consultation';
+} from "./consultation";
 import {
   merchantAccounts,
   merchantAccountsRelations,
   merchantStatusEnum,
   MerchantStatus,
-} from './merchant';
+} from "./merchant";
 import {
   wallets,
   walletsRelations,
@@ -701,7 +801,7 @@ import {
   financialTransactionsRelations,
   financialTransactionEntries,
   financialTransactionEntriesRelations,
-} from './finance';
+} from "./finance";
 import {
   promotionDefinitions,
   promotionWallets,
@@ -710,8 +810,38 @@ import {
   promotionWalletsRelations,
   promotionBenefitsRelations,
   promotionBenefitLedgerRelations,
-} from './promotions';
-
+} from "./promotions";
+import {
+  paymentProviders,
+  paymentProvidersRelations,
+  providerPurposes,
+  providerPurposesRelations,
+  payoutPlatformAccounts,
+  payoutPlatformAccountsRelations,
+  payoutAccountValidationStatusEnum,
+  payoutProviderAccounts,
+  payoutProviderAccountsRelations,
+  payoutProviderAccountStatusEnum,
+  payoutOnboardings,
+  payoutOnboardingsRelations,
+  payoutOnboardingStatusEnum,
+  payoutOnboardingActionEnum,
+  payoutAccounts,
+  payoutAccountsRelations,
+  payoutAccountStatusEnum,
+  payoutVerificationStatusEnum,
+  payoutAccountReferences,
+  payoutAccountReferencesRelations,
+  payoutAccountReferenceTypeEnum,
+  payouts,
+  payoutsRelations,
+  payoutStatusEnum,
+  payoutWebhookEvents,
+  payoutWebhookEventsRelations,
+  payoutWebhookProcessingStatusEnum,
+  merchantPayoutAccounts,
+  merchantPayoutAccountsRelations,
+} from "./payments";
 /**
  * Combined schema object for `drizzle(pool, { schema })`.
  * Aggregates all domain-dedicated schema tables and relations explicitly.
@@ -754,6 +884,8 @@ export const schema = {
   // Expert
   expertAccounts,
   expertAccountsRelations,
+  expertPayoutPlatformAccounts,
+  expertPayoutPlatformAccountsRelations,
   expertKycStatusEnum,
   specializations,
   specializationsRelations,
@@ -973,6 +1105,51 @@ export const schema = {
   financialTransactionsRelations,
   financialTransactionEntries,
   financialTransactionEntriesRelations,
+
+  // Payment - Platform registry
+  paymentProviders,
+  paymentProvidersRelations,
+  providerPurposes,
+  providerPurposesRelations,
+  payoutPlatformAccounts,
+  payoutPlatformAccountsRelations,
+  payoutAccountValidationStatusEnum,
+
+  // Payment - Payout Provider Accounts
+  payoutProviderAccounts,
+  payoutProviderAccountsRelations,
+  payoutProviderAccountStatusEnum,
+
+  // Payment - Payout Onboardings
+  payoutOnboardings,
+  payoutOnboardingsRelations,
+  payoutOnboardingStatusEnum,
+  payoutOnboardingActionEnum,
+
+  // Payment - Payout Accounts
+  payoutAccounts,
+  payoutAccountsRelations,
+  payoutAccountStatusEnum,
+  payoutVerificationStatusEnum,
+
+  // Payment - Payout Account References
+  payoutAccountReferences,
+  payoutAccountReferencesRelations,
+  payoutAccountReferenceTypeEnum,
+
+  // Payment - Payouts
+  payouts,
+  payoutsRelations,
+  payoutStatusEnum,
+
+  // Payment - Payout Webhook Events
+  payoutWebhookEvents,
+  payoutWebhookEventsRelations,
+  payoutWebhookProcessingStatusEnum,
+
+  // Payment - Merchant Payout Accounts
+  merchantPayoutAccounts,
+  merchantPayoutAccountsRelations,
 
   // Promotions
   promotionDefinitions,

@@ -1,19 +1,12 @@
-// Expert Accounts
-export {
-  expertAccounts,
-  expertAccountsRelations,
-  expertKycStatusEnum,
-} from './expert-account.schema';
+// Expert Account
+export { expertAccounts, expertAccountsRelations, expertKycStatusEnum } from './expert-account.schema';
 export type {
   ExpertAccountRow,
   NewExpertAccountRow,
 } from './expert-account.schema';
 
 // Specializations
-export {
-  specializations,
-  specializationsRelations,
-} from './specializations.schema';
+export { specializations, specializationsRelations } from './specializations.schema';
 export type {
   SpecializationRow,
   NewSpecializationRow,
@@ -21,9 +14,12 @@ export type {
 
 // Professions
 export { professions, professionsRelations } from './professions.schema';
-export type { ProfessionRow, NewProfessionRow } from './professions.schema';
+export type {
+  ProfessionRow,
+  NewProfessionRow,
+} from './professions.schema';
 
-// Profession Specializations (join table)
+// Profession Specializations
 export {
   professionSpecializations,
   professionSpecializationsRelations,
@@ -44,10 +40,7 @@ export type {
 } from './expert-specializations.schema';
 
 // Expert Professions
-export {
-  expertProfessions,
-  expertProfessionsRelations,
-} from './expert-professions.schema';
+export { expertProfessions, expertProfessionsRelations } from './expert-professions.schema';
 export type {
   ExpertProfessionRow,
   NewExpertProfessionRow,
@@ -85,3 +78,23 @@ export type {
   ExpertProductRow,
   NewExpertProductRow,
 } from './expert-products.schema';
+
+// Expert Payout Accounts (relation table linking experts to partner payout accounts)
+export {
+  expertPayoutAccounts,
+  expertPayoutAccountsRelations,
+} from './expert-payout-accounts.schema';
+export type {
+  ExpertPayoutAccountRow,
+  NewExpertPayoutAccountRow,
+} from './expert-payout-accounts.schema';
+
+// Expert Payout Platform Accounts (relation table linking experts to payout platform accounts)
+export {
+  expertPayoutPlatformAccounts,
+  expertPayoutPlatformAccountsRelations,
+} from './expert-payout-platform-accounts.schema';
+export type {
+  ExpertPayoutPlatformAccountRow,
+  NewExpertPayoutPlatformAccountRow,
+} from './expert-payout-platform-accounts.schema';

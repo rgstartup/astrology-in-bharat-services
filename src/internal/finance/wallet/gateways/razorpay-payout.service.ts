@@ -129,7 +129,7 @@ export class RazorpayPayoutService {
     withdrawalId: number,
     amount: number,
     fundAccountId: string,
-  ) {
+  ): Promise<Record<string, unknown>> {
     const accountNumber =
       this.configService.get<RazorpayConfig>('razorpay')?.accountNumber;
 
@@ -160,6 +160,23 @@ export class RazorpayPayoutService {
       throw new InternalServerErrorException(
         `Razorpay Payout Error: ${error.message}`,
       );
+    }
+  }
+
+  /**
+   * Fetch the status of an existing RazorpayX payout.
+   * GET /payouts/{id}
+   */
+  async getPayoutStatus(
+    payoutId: string,
+  ): Promise<Record<string, unknown>> {
+    try {
+      const response = await this.makeRequest(`/payouts/${payoutId}`, 'GET');
+      return response;
+    } catch (err: unknown) {
+      const error = err as Error;
+      this.logger.error('Failed to fetch Razorpay payout status', error);
+      throw error;
     }
   }
 }
