@@ -18,7 +18,7 @@ import {
 } from "../use-cases";
 
 @Controller({
-  path: "expert/payout-onboarding",
+  path: "expert/payout-accounts",
   version: "1",
 })
 export class PayoutOnboardingController {
