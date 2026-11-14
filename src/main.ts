@@ -10,6 +10,7 @@ import { ValidationPipe, ValidationError } from "@nestjs/common";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 import { DomainExceptionFilter } from "./shared/filters/domain-exception.filter";
 import { UnknownExceptionFilter } from "./shared/filters/unknown-exception.filter";
+import { ResponseInterceptor } from "./shared/interceptors/response.interceptor";
 import { ValidationDomainError } from "./shared/errors";
 import { formatValidationErrors } from "./shared/utils/validation-error-formatter.util";
 import { json, urlencoded } from "express";
@@ -98,6 +99,9 @@ async function bootstrap() {
     new HttpExceptionFilter(), // Client mistake
     new DomainExceptionFilter(), // Business rule failed
   );
+
+  // Apply global response interceptor (wraps ALL success responses)
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   //swagger
   const config = new DocumentBuilder()

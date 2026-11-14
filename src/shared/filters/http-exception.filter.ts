@@ -9,6 +9,8 @@ import {
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { appendFileSync } from "fs";
+import { ApiResponse } from "../dto/api-response.dto";
+import { ApiError } from "../dto/api-response.dto";
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -46,12 +48,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? (res as Record<string, unknown>)
         : { message: res };
 
-    response.status(status).json({
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-      ...errorBody,
-      ...(process.env.NODE_ENV === "development" && { stack }),
-    });
+    response.status(status).json(
+      ApiResponse.fail(
+        new ApiError({
+          code: (errorBody["errorCode"] || errorBody["error"] || "HTTP_ERROR") as string,
+          message: (errorBody["message"] || "HTTP error") as string,
+          details: (errorBody["fieldErrors"] ?? errorBody["details"]) as Record<string, unknown> | undefined,
+          path: request.url,
+          timestamp: new Date().toISOString(),
+        }),
+      ),
+    );
   }
 }

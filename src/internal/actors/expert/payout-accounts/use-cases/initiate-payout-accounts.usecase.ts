@@ -5,7 +5,7 @@
  * payout_onboardings attempt row, and calls provider.initiate() to get the
  * onboarding result (form spec or redirect URL).
  */
-import { Inject, Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
@@ -16,6 +16,7 @@ import {
   payoutOnboardings,
 } from '@/core/drizzledb/schema';
 import { PayoutProviderService } from '../payout-provider.service';
+import { PayoutProviderAccountNotConfiguredError } from '../errors';
 import { PayoutOnboardingExpertContext } from '@/external/payout-onboarding/payout-onboarding.interface';
 
 export interface InitiatePayoutOnboardingInput {
@@ -55,9 +56,7 @@ export class InitiatePayoutOnboardingUseCase {
       .limit(1);
 
     if (!providerAccount) {
-      throw new NotFoundException(
-        `No payout provider account configured for provider: ${provider.provider}`,
-      );
+      throw new PayoutProviderAccountNotConfiguredError(provider.provider);
     }
 
     // Create the onboarding attempt row (pending, linked to provider account).

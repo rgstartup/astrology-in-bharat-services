@@ -10,7 +10,7 @@ import { Withdrawal } from '../entities/withdrawal.entity';
 import { WithdrawalStatus } from '../enum';
 import { Transaction } from '../entities/transaction.entity';
 import { TransactionType, TransactionPurpose } from '../enum';
-import { RazorpayPayoutService } from '../gateways/razorpay-payout.service';
+import { RazorpayPayoutService } from '@/internal/actors/expert/payout-accounts/gateways/razorpay-payout.service';
 import { NotificationService } from '@/internal/notification/notification.service';
 import { AdminAuditLog } from '@/internal/actors/admin/entities/admin-audit-log.entity';
 import {

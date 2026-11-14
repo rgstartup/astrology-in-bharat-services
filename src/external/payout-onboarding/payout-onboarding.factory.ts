@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { RazorpayXPayoutAdapter } from "./providers/razorpayx/razorpayx-payout-adapter";
-import { RazorpayPayoutService } from "@/internal/finance/wallet/gateways/razorpay-payout.service";
+import { RazorpayPayoutService } from "@/internal/actors/expert/payout-accounts/gateways/razorpay-payout.service";
 
 /**
  * Resolves the active payout onboarding service from config.

@@ -37,12 +37,12 @@ import { GetAdminRevenueTrendUseCase } from './use-cases/get-admin-revenue-trend
 import { GetWithdrawalsUseCase } from './use-cases/get-withdrawals.use-case';
 import { ReconcileWalletUseCase } from './use-cases/reconcile-wallet.use-case';
 import { StuckWithdrawalJob } from './use-cases/stuck-withdrawal-job.use-case';
-import { RazorpayPayoutService } from './gateways/razorpay-payout.service';
 import { NotificationModule } from '../../notification/notification.module';
 import { BankAccountsModule } from '../../actors/expert/bank-accounts/bank-accounts.module';
 import { CommissionsModule } from '../commissions/commissions.module';
 import { GeneralLedgerEntry } from '../ledger/entities/general-ledger-entry.entity';
 import { QueueModule } from '../../../core/queue/queue.module';
+import { PayoutAccountsModule } from '@/internal/actors/expert/payout-accounts/payout-accounts.module';
 import WalletRepository from './repositories/wallet.repository';
 
 @Module({
@@ -65,6 +65,7 @@ import WalletRepository from './repositories/wallet.repository';
     forwardRef(() => AgentModule),
     CommissionsModule,
     QueueModule,
+    PayoutAccountsModule,
   ],
   providers: [
     WalletService,
@@ -91,10 +92,9 @@ import WalletRepository from './repositories/wallet.repository';
     GetWithdrawalsUseCase,
     ReconcileWalletUseCase,
     StuckWithdrawalJob,
-    RazorpayPayoutService,
     WalletRepository,
   ],
   controllers: [WalletController, PayoutWebhookController],
-  exports: [WalletService, RazorpayPayoutService],
+  exports: [WalletService],
 })
 export class WalletModule {}

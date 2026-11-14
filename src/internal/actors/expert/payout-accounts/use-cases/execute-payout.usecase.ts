@@ -7,7 +7,7 @@
  * 4. Calls provider.createPayout() to move money.
  * 5. Updates the payouts row with provider reference and normalized status.
  */
-import { Inject, Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { eq, and } from 'drizzle-orm';
@@ -21,6 +21,14 @@ import {
 } from '@/core/drizzledb/schema';
 import { PayoutProviderService } from '../payout-provider.service';
 import type { CreatePayoutInput } from '@/external/payout-onboarding/payout-provider.interface';
+import {
+  PayoutAccountNotLinkedError,
+  PayoutAccountNotFoundError,
+  PayoutAccountNotActiveError,
+  NoProviderAccountConfiguredError,
+  NoFundAccountReferenceError,
+  PayoutExecutionFailedError,
+} from '../errors';
 
 export interface ExecutePayoutInput {
   expertId: number;
@@ -58,9 +66,7 @@ export class ExecutePayoutUseCase {
       .limit(1);
 
     if (!link) {
-      throw new NotFoundException(
-        `Payout account ${input.payoutAccountId} not linked to expert ${input.expertId}`,
-      );
+      throw new PayoutAccountNotLinkedError(input.payoutAccountId, input.expertId);
     }
 
     const [account] = await this.db
@@ -74,13 +80,11 @@ export class ExecutePayoutUseCase {
       .limit(1);
 
     if (!account) {
-      throw new NotFoundException(`Payout account not found: ${input.payoutAccountId}`);
+      throw new PayoutAccountNotFoundError(input.payoutAccountId);
     }
 
     if (account.status !== 'active') {
-      throw new BadRequestException(
-        `Payout account is not active (status: ${account.status})`,
-      );
+      throw new PayoutAccountNotActiveError(account.status);
     }
 
     // Idempotency key: caller-provided or derived from expert + account + amount.
@@ -115,9 +119,7 @@ export class ExecutePayoutUseCase {
       .limit(1);
 
     if (!providerAccount) {
-      throw new NotFoundException(
-        `No provider account configured for payout account ${input.payoutAccountId}`,
-      );
+      throw new NoProviderAccountConfiguredError(input.payoutAccountId);
     }
 
     const provider = this.providerService.resolve(providerAccount.code);
@@ -158,9 +160,7 @@ export class ExecutePayoutUseCase {
       .limit(1);
 
     if (!ref) {
-      throw new BadRequestException(
-        `No fund_account reference found for payout account ${input.payoutAccountId}`,
-      );
+      throw new NoFundAccountReferenceError(input.payoutAccountId);
     }
 
     const providerInput: CreatePayoutInput = {
@@ -186,7 +186,9 @@ export class ExecutePayoutUseCase {
           failed_at: new Date(),
         })
         .where(eq(payouts.id, payoutRow.id));
-      throw new BadRequestException('Payout execution failed');
+      throw new PayoutExecutionFailedError(
+        error instanceof Error ? error.message : String(error),
+      );
     }
 
     // Update payouts row with provider reference and normalized status.

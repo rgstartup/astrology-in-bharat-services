@@ -26,7 +26,7 @@ import {
   PayoutOnboardingWebhookEvent,
   PayoutOnboardingExpertContext,
 } from '@/external/payout-onboarding/payout-onboarding.interface';
-import { RazorpayPayoutService } from '@/internal/finance/wallet/gateways/razorpay-payout.service';
+import { RazorpayPayoutService } from '@/internal/actors/expert/payout-accounts/gateways/razorpay-payout.service';
 import { RAZORPAYX_CAPABILITIES } from '../../provider-capability';
 import { mapRazorpayError, PayoutProviderError } from '../../payout-provider.errors';
 

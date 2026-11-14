@@ -2,53 +2,61 @@ import {
   Injectable,
   Logger,
   InternalServerErrorException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { RazorpayConfig } from '../../../../config/razorpay.config';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { HttpClient } from "@nestjs/http-client";
+import { RazorpayConfig } from "@/config/razorpay.config";
 
 @Injectable()
 export class RazorpayPayoutService {
   private readonly logger = new Logger(RazorpayPayoutService.name);
-  constructor(private configService: ConfigService) {}
+  private readonly baseUrl = "https://api.razorpay.com/v1";
+
+  constructor(
+    private configService: ConfigService,
+    private readonly httpClient: HttpClient,
+  ) {}
 
   /**
-   * Helper to make authorized REST calls to RazorpayX APIs
+   * Helper to make authorized REST calls to RazorpayX APIs using NestJS HttpClient (fetch-based)
    */
   private async makeRequest(
     endpoint: string,
     method: string,
     data?: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
-    const config = this.configService.get<RazorpayConfig>('razorpay');
+    const config = this.configService.get<RazorpayConfig>("razorpay");
     const keyId = config?.keyId;
     const keySecret = config?.keySecret;
 
     if (!keyId || !keySecret) {
       throw new InternalServerErrorException(
-        'Razorpay credentials are not configured',
+        "Razorpay credentials are not configured",
       );
     }
 
-    const auth = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+    const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
 
     try {
-      const response = await fetch(`https://api.razorpay.com/v1${endpoint}`, {
-        method,
+      const response = await this.httpClient.request(endpoint, {
+        method: method as any,
         headers: {
           Authorization: `Basic ${auth}`,
-          'Content-Type': 'application/json',
         },
-        body: data ? JSON.stringify(data) : undefined,
+        json: data,
+        responseType: 'json',
       });
 
-      const result = (await response.json()) as Record<string, unknown>;
+      const result = response.data as unknown as Record<string, unknown>;
 
       if (!response.ok) {
-        const resultError = result.error as Record<string, string> | undefined;
+        const resultError = result.error as
+          | Record<string, string>
+          | undefined;
         const errorMsg =
           resultError?.description ||
           (result.message as string | undefined) ||
-          'Unknown Razorpay Error';
+          `HTTP ${response.status}`;
         this.logger.error(
           `Razorpay API Error [${method} ${endpoint}]: ${errorMsg}`,
           result,
@@ -77,17 +85,17 @@ export class RazorpayPayoutService {
   }) {
     try {
       // RazorpayX Contacts API: POST /contacts
-      const response = await this.makeRequest('/contacts', 'POST', {
+      const response = await this.makeRequest("/contacts", "POST", {
         name: user.name || `User ${user.id}`,
         email: user.email || `expert_${user.id}@example.com`,
-        contact: user.phone_number || '9999999999',
-        type: 'vendor',
+        contact: user.phone_number || "9999999999",
+        type: "vendor",
         reference_id: `USER-${user.id}`,
       });
       return response.id as string;
     } catch (err: unknown) {
       const error = err as Error;
-      this.logger.error('Failed to create Razorpay contact', error);
+      this.logger.error("Failed to create Razorpay contact", error);
       throw new InternalServerErrorException(
         `Razorpay Contact Error: ${error.message}`,
       );
@@ -103,9 +111,9 @@ export class RazorpayPayoutService {
   ) {
     try {
       // RazorpayX Fund Accounts API: POST /fund_accounts
-      const response = await this.makeRequest('/fund_accounts', 'POST', {
+      const response = await this.makeRequest("/fund_accounts", "POST", {
         contact_id: contactId,
-        account_type: 'bank_account',
+        account_type: "bank_account",
         bank_account: {
           name: bankDetails.name.trim(),
           ifsc: bankDetails.ifsc.trim().toUpperCase(),
@@ -115,7 +123,7 @@ export class RazorpayPayoutService {
       return response.id as string;
     } catch (err: unknown) {
       const error = err as Error;
-      this.logger.error('Failed to create Razorpay Fund Account', error);
+      this.logger.error("Failed to create Razorpay Fund Account", error);
       throw new InternalServerErrorException(
         `Razorpay Fund Account Error: ${error.message}`,
       );
@@ -131,32 +139,32 @@ export class RazorpayPayoutService {
     fundAccountId: string,
   ): Promise<Record<string, unknown>> {
     const accountNumber =
-      this.configService.get<RazorpayConfig>('razorpay')?.accountNumber;
+      this.configService.get<RazorpayConfig>("razorpay")?.accountNumber;
 
-    if (!accountNumber || accountNumber.includes('ADD_YOUR')) {
+    if (!accountNumber || accountNumber.includes("ADD_YOUR")) {
       throw new InternalServerErrorException(
-        'RazorpayX Account Number is not configured correctly in .env',
+        "RazorpayX Account Number is not configured correctly in .env",
       );
     }
 
     try {
       // RazorpayX Payouts API: POST /payouts
       // Amount in paise (₹1 = 100 paise)
-      const response = await this.makeRequest('/payouts', 'POST', {
+      const response = await this.makeRequest("/payouts", "POST", {
         account_number: accountNumber,
         fund_account_id: fundAccountId,
         amount: Math.round(amount * 100),
-        currency: 'INR',
-        mode: 'IMPS',
-        purpose: 'payout',
+        currency: "INR",
+        mode: "IMPS",
+        purpose: "payout",
         queue_if_low_balance: true,
         reference_id: withdrawalId.toString(),
-        narration: 'Astrology in Bharat Payout',
+        narration: "Astrology in Bharat Payout",
       });
       return response;
     } catch (err: unknown) {
       const error = err as Error;
-      this.logger.error('Failed to initiate Razorpay Payout', error);
+      this.logger.error("Failed to initiate Razorpay Payout", error);
       throw new InternalServerErrorException(
         `Razorpay Payout Error: ${error.message}`,
       );
@@ -167,15 +175,13 @@ export class RazorpayPayoutService {
    * Fetch the status of an existing RazorpayX payout.
    * GET /payouts/{id}
    */
-  async getPayoutStatus(
-    payoutId: string,
-  ): Promise<Record<string, unknown>> {
+  async getPayoutStatus(payoutId: string): Promise<Record<string, unknown>> {
     try {
-      const response = await this.makeRequest(`/payouts/${payoutId}`, 'GET');
+      const response = await this.makeRequest(`/payouts/${payoutId}`, "GET");
       return response;
     } catch (err: unknown) {
       const error = err as Error;
-      this.logger.error('Failed to fetch Razorpay payout status', error);
+      this.logger.error("Failed to fetch Razorpay payout status", error);
       throw error;
     }
   }

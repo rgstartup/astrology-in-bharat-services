@@ -8,16 +8,16 @@
  * On module init, the RazorpayX adapter is registered with the resolver so
  * that `resolver.resolve('razorpayx')` returns the configured provider.
  */
-import { Module, OnModuleInit, Logger } from '@nestjs/common';
+import { Module, OnModuleInit, Logger, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { RazorpayXPayoutAdapter } from './providers/razorpayx/razorpayx-payout-adapter';
 import { PayoutProviderResolver } from './payout-provider.resolver';
 import { PAYOUT_PROVIDER } from './payout-provider.interface';
 import { RazorpayXWebhookController } from './providers/razorpayx/razorpayx-webhook.controller';
-import { WalletModule } from '@/internal/finance/wallet/wallet.module';
+import { PayoutAccountsModule } from '@/internal/actors/expert/payout-accounts/payout-accounts.module';
 
 @Module({
-  imports: [ConfigModule, WalletModule],
+  imports: [ConfigModule, forwardRef(() => PayoutAccountsModule)],
   providers: [
     RazorpayXPayoutAdapter,
     {

@@ -7,7 +7,7 @@
  * to the expert via expert_payout_accounts. Updates payout_onboardings to
  * completed / failed.
  */
-import { Inject, Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { eq, and } from 'drizzle-orm';
@@ -23,6 +23,12 @@ import type { NewPayoutAccountReferenceRow } from '@/core/drizzledb/schema';
 import { PayoutProviderService } from '../payout-provider.service';
 import { EncryptionService } from '@/shared/services/encryption.service';
 import { PayoutOnboardingCompleteInput } from '@/external/payout-onboarding/payout-onboarding.interface';
+import {
+  PayoutOnboardingNotFoundError,
+  PayoutOnboardingAlreadyCompletedError,
+  PayoutOnboardingNoProviderAccountError,
+  ProviderOnboardingCompletionFailedError,
+} from '../errors';
 
 export interface CompletePayoutOnboardingInput {
   expertId: number;
@@ -60,15 +66,15 @@ export class CompletePayoutOnboardingUseCase {
       .limit(1);
 
     if (!onboarding) {
-      throw new NotFoundException(`Payout onboarding not found: ${input.onboardingId}`);
+      throw new PayoutOnboardingNotFoundError(input.onboardingId);
     }
 
     if (onboarding.status === 'completed') {
-      throw new BadRequestException('Onboarding already completed');
+      throw new PayoutOnboardingAlreadyCompletedError();
     }
 
     if (!onboarding.payout_provider_account_id) {
-      throw new BadRequestException('Onboarding has no provider account configured');
+      throw new PayoutOnboardingNoProviderAccountError();
     }
 
     // Resolve provider for this onboarding attempt (use provider account's provider code).
@@ -103,7 +109,10 @@ export class CompletePayoutOnboardingUseCase {
           failure_message: error instanceof Error ? error.message : String(error),
         })
         .where(eq(payoutOnboardings.id, input.onboardingId));
-      throw new BadRequestException('Provider onboarding completion failed');
+      throw new ProviderOnboardingCompletionFailedError(
+        providerAccount.code,
+        error instanceof Error ? error.message : String(error),
+      );
     }
 
     // Create the payout account (internal partner payout destination).

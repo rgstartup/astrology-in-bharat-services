@@ -7,6 +7,8 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { appendFileSync } from 'fs';
+import { ApiResponse } from '../dto/api-response.dto';
+import { ApiError } from '../dto/api-response.dto';
 
 @Catch()
 export class UnknownExceptionFilter implements ExceptionFilter {
@@ -29,11 +31,15 @@ export class UnknownExceptionFilter implements ExceptionFilter {
       );
     } catch {}
 
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'Internal server error',
-      path: req.url,
-      timestamp: new Date().toISOString(),
-    });
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(
+      ApiResponse.fail(
+        new ApiError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Internal server error',
+          path: req.url,
+          timestamp: new Date().toISOString(),
+        }),
+      ),
+    );
   }
 }
