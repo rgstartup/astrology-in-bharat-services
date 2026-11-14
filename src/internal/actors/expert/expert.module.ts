@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { BankAccountsModule } from "./bank-accounts/bank-accounts.module";
+import { BankLinkModule } from "./bank-link/bank-link.module";
 import { ExpertEarningsModule } from "./earnings/expert-earnings.module";
 import { ExpertDashboardModule } from "./dashboard/expert-dashboard.module";
 import { TodosModule } from "./todos/todos.module";
@@ -17,7 +17,7 @@ import { ExpertReviewsModule } from "./consultation/reviews/expert-reviews.modul
 
 @Module({
   imports: [
-    BankAccountsModule,
+    BankLinkModule,
     ExpertEarningsModule,
     ExpertDashboardModule,
     TodosModule,
@@ -34,7 +34,7 @@ import { ExpertReviewsModule } from "./consultation/reviews/expert-reviews.modul
     ExpertReviewsModule,
   ],
   exports: [
-    BankAccountsModule,
+    BankLinkModule,
     ExpertEarningsModule,
     ExpertDashboardModule,
     TodosModule,

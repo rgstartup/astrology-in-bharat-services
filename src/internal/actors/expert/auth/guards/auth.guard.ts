@@ -1,12 +1,12 @@
-import { ExecutionContext, Injectable } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { AuthGuard } from '@nestjs/passport';
-import { Observable } from 'rxjs';
-import { IExpert } from '../../../../../shared/types/access-token.payload';
-import { IS_PUBLIC } from '../../../../../shared/decorators/public.decorator';
+import { ExecutionContext, Injectable } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { AuthGuard } from "@nestjs/passport";
+import { Observable } from "rxjs";
+import { IExpert } from "@/shared/types/access-token.payload";
+import { IS_PUBLIC } from "@/shared/decorators/public.decorator";
 
 @Injectable()
-export class ExpertJwtAuthGuard extends AuthGuard('expert-jwt') {
+export class ExpertJwtAuthGuard extends AuthGuard("expert-jwt") {
   constructor(private readonly reflector: Reflector) {
     super();
   }

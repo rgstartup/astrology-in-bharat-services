@@ -8,6 +8,7 @@ import {
   RefreshBankLinkStatusUseCase,
   SetPrimaryBankLinkUseCase,
   DeleteBankLinkUseCase,
+  ValidatePennyDropUseCase,
 } from "./use-cases";
 import { BankLinkController } from "./controllers/bank-link.controller";
 import { PayoutOnboardingFactory } from "@/external/payout-onboarding/payout-onboarding.factory";
@@ -28,6 +29,7 @@ import { WalletModule } from "@/internal/finance/wallet/wallet.module";
     RefreshBankLinkStatusUseCase,
     SetPrimaryBankLinkUseCase,
     DeleteBankLinkUseCase,
+    ValidatePennyDropUseCase,
     PayoutOnboardingFactory,
     {
       provide: PAYOUT_ONBOARDING_SERVICE,

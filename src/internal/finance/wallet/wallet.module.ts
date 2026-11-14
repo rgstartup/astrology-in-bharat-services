@@ -95,6 +95,6 @@ import WalletRepository from './repositories/wallet.repository';
     WalletRepository,
   ],
   controllers: [WalletController, PayoutWebhookController],
-  exports: [WalletService],
+  exports: [WalletService, RazorpayPayoutService],
 })
 export class WalletModule {}

@@ -1,11 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and } from 'drizzle-orm';
 import { DRIZZLE } from '../../../../../core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '../../../../../core/drizzledb/drizzle.types';
 import {
   expertAccounts,
   expertProfessions,
   expertSpecializations,
+  payoutPlatformAccounts,
+  expertPayoutPlatformAccounts,
 } from '../../../../../core/drizzledb/schema';
 import { IExpert } from '../../../../../shared/types/access-token.payload';
 
@@ -17,7 +19,7 @@ export interface OnboardingStatus {
     specializations: boolean;
     profile_photo: boolean;
   };
-  /** Placeholder until the Razorpay linked-account flow (Plan 2) ships. */
+  /** Whether the expert has an active payout-account link (Plan 2). */
   bank_linked: boolean;
 }
 
@@ -51,6 +53,25 @@ export class GetOnboardingStatusUseCase {
         .limit(1),
     ]);
 
+    // Check if expert has an ACTIVE payout-account link
+    const [activeLink] = await this.db
+      .select({ id: payoutPlatformAccounts.id })
+      .from(payoutPlatformAccounts)
+      .innerJoin(
+        expertPayoutPlatformAccounts,
+        eq(
+          expertPayoutPlatformAccounts.payoutPlatformAccountId,
+          payoutPlatformAccounts.id,
+        ),
+      )
+      .where(
+        and(
+          eq(expertPayoutPlatformAccounts.expertId, expertId),
+          eq(payoutPlatformAccounts.validationStatus, 'VALIDATED'),
+        ),
+      )
+      .limit(1);
+
     return {
       onboarding_completed: Boolean(account?.onboarding_completed_at),
       onboarding_completed_at: account?.onboarding_completed_at
@@ -61,7 +82,7 @@ export class GetOnboardingStatusUseCase {
         specializations: Boolean(specializationRow),
         profile_photo: Boolean(account?.avatar_id ?? account?.avatar),
       },
-      bank_linked: false,
+      bank_linked: Boolean(activeLink),
     };
   }
 }
