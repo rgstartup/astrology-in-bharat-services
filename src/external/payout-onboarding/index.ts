@@ -1,6 +1,6 @@
+export { PAYOUT_PROVIDER } from './payout-provider.interface';
 export type {
   PayoutProvider,
-  PAYOUT_PROVIDER,
   CreatePayoutInput,
   CreatePayoutOutput,
   PayoutStatusOutput,

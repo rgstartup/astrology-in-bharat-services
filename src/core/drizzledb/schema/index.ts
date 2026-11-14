@@ -67,7 +67,9 @@ export {
   expertAccounts,
   expertAccountsRelations,
   expertPayoutAccounts,
+  expertPayoutAccountLinks,
   expertPayoutAccountsRelations,
+  expertPayoutAccountLinksRelations,
   expertKycStatusEnum,
   specializations,
   specializationsRelations,
@@ -555,6 +557,16 @@ export type {
   ExpertPayoutPlatformAccountRow,
   NewExpertPayoutPlatformAccountRow,
 } from "./expert";
+
+// Payment Providers
+export {
+  paymentProviders,
+  paymentProvidersRelations,
+} from "./payments/providers.schema";
+export type {
+  PaymentProviderRow,
+  NewPaymentProviderRow,
+} from "./payments/providers.schema";
 
 import {
   users,

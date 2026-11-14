@@ -89,6 +89,16 @@ export type {
   NewExpertPayoutAccountRow,
 } from './expert-payout-accounts.schema';
 
+// Expert Payout Account Links (linking experts to payout accounts)
+export {
+  expertPayoutAccountLinks,
+  expertPayoutAccountLinksRelations,
+} from './expert-payout-account-links.schema';
+export type {
+  ExpertPayoutAccountLinkRow,
+  NewExpertPayoutAccountLinkRow,
+} from './expert-payout-account-links.schema';
+
 // Expert Payout Platform Accounts (relation table linking experts to payout platform accounts)
 export {
   expertPayoutPlatformAccounts,

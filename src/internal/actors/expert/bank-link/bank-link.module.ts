@@ -19,7 +19,12 @@ import { RazorpayXOnboardingModule } from "@/external/payout-onboarding/provider
 import { WalletModule } from "@/internal/finance/wallet/wallet.module";
 
 @Module({
-  imports: [ConfigModule, ExpertAuthModule, RazorpayXOnboardingModule, WalletModule],
+  imports: [
+    ConfigModule,
+    ExpertAuthModule,
+    RazorpayXOnboardingModule,
+    WalletModule,
+  ],
   controllers: [BankLinkController],
   providers: [
     BankLinkService,
