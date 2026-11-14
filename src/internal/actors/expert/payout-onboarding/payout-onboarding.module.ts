@@ -7,6 +7,7 @@ import {
   InitiatePayoutOnboardingUseCase,
   CompletePayoutOnboardingUseCase,
   ExecutePayoutUseCase,
+  ReconcilePayoutsUseCase,
 } from "./use-cases";
 
 @Module({
@@ -16,12 +17,14 @@ import {
     InitiatePayoutOnboardingUseCase,
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,
+    ReconcilePayoutsUseCase,
     EncryptionService,
   ],
   exports: [
     InitiatePayoutOnboardingUseCase,
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,
+    ReconcilePayoutsUseCase,
   ],
 })
 export class PayoutOnboardingModule {}

@@ -14,6 +14,7 @@ import {
   InitiatePayoutOnboardingUseCase,
   CompletePayoutOnboardingUseCase,
   ExecutePayoutUseCase,
+  ReconcilePayoutsUseCase,
 } from "../use-cases";
 
 @Controller({
@@ -25,6 +26,7 @@ export class PayoutOnboardingController {
     private readonly initiateUseCase: InitiatePayoutOnboardingUseCase,
     private readonly completeUseCase: CompletePayoutOnboardingUseCase,
     private readonly executePayoutUseCase: ExecutePayoutUseCase,
+    private readonly reconcileUseCase: ReconcilePayoutsUseCase,
   ) {}
 
   /** Initiate payout onboarding for an expert.
@@ -111,6 +113,25 @@ export class PayoutOnboardingController {
       currencyCode: body.currencyCode,
       narration: body.narration,
       idempotencyKey: body.idempotencyKey,
+    });
+  }
+
+  /** Reconcile internal payout records against provider state.
+   * Checks payouts with a provider reference against the provider's
+   * current status and updates internal records on mismatch.
+   */
+  @UseGuards(ExpertJwtAuthGuard)
+  @Post("reconcile")
+  async reconcile(
+    @Body()
+    body: {
+      statuses?: string[];
+      limit?: number;
+    },
+  ) {
+    return this.reconcileUseCase.execute({
+      statuses: body?.statuses,
+      limit: body?.limit,
     });
   }
 }
