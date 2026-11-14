@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { RazorpayXOnboardingService } from "./providers/razorpayx/razorpayx-onboarding.service";
+import { RazorpayXPayoutAdapter } from "./providers/razorpayx/razorpayx-payout-adapter";
 import { RazorpayPayoutService } from "@/internal/finance/wallet/gateways/razorpay-payout.service";
 
 /**
@@ -33,7 +33,7 @@ export class PayoutOnboardingFactory {
     let service: any;
     switch (driverKey) {
       case "razorpayx":
-        service = new RazorpayXOnboardingService(
+        service = new RazorpayXPayoutAdapter(
           this.configService,
           this.payoutService,
         );
@@ -42,7 +42,7 @@ export class PayoutOnboardingFactory {
         this.logger.error(
           `Unknown payout platform driver: ${driverKey}. Falling back to razorpayx.`,
         );
-        service = new RazorpayXOnboardingService(
+        service = new RazorpayXPayoutAdapter(
           this.configService,
           this.payoutService,
         );

@@ -1,13 +1,13 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { RazorpayXOnboardingService } from "./razorpayx-onboarding.service";
+import { RazorpayXPayoutAdapter } from "./razorpayx-payout-adapter";
 import { RazorpayXWebhookController } from "./razorpayx-webhook.controller";
 import { WalletModule } from "@/internal/finance/wallet/wallet.module";
 
 @Module({
   imports: [ConfigModule, WalletModule],
-  providers: [RazorpayXOnboardingService],
+  providers: [RazorpayXPayoutAdapter],
   controllers: [RazorpayXWebhookController],
-  exports: [RazorpayXOnboardingService],
+  exports: [RazorpayXPayoutAdapter],
 })
 export class RazorpayXOnboardingModule {}

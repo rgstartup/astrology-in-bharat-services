@@ -8,14 +8,16 @@ import {
   Logger,
 } from "@nestjs/common";
 import { Request, type Response } from "express";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
 import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
 import { Public } from "@/shared/decorators/public.decorator";
 import {
   payoutPlatformAccounts,
+  payoutWebhookEvents,
+  payoutAccountReferences,
 } from "@/core/drizzledb/schema";
-import { RazorpayXOnboardingService } from "./razorpayx-onboarding.service";
+import { RazorpayXPayoutAdapter } from "./razorpayx-payout-adapter";
 
 @Controller({
   path: "webhooks/razorpayx",
@@ -25,7 +27,7 @@ export class RazorpayXWebhookController {
   private readonly logger = new Logger(RazorpayXWebhookController.name);
 
   constructor(
-    private readonly service: RazorpayXOnboardingService,
+    private readonly adapter: RazorpayXPayoutAdapter,
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
@@ -45,13 +47,81 @@ export class RazorpayXWebhookController {
       string | string[] | undefined
     >;
 
-    const event = await this.service.parseWebhook(headers, rawBody);
+    // Parse webhook — adapter verifies X-Razorpay-Signature internally.
+    const event = await this.adapter.parseWebhook(headers, rawBody);
+
+    // Durable log: insert event before processing (idempotent on provider_event_id).
+    let providerEventId: string | null = null;
+    let payoutProviderAccountId: number | null = null;
+    let inserted = false;
+    try {
+      const payload = JSON.parse(rawBody.toString("utf8"));
+      providerEventId = (payload?.id as string) ?? null;
+
+      if (event?.externalAccountId) {
+        const [ref] = await this.db
+          .select({
+            payout_provider_account_id:
+              payoutAccountReferences.payout_provider_account_id,
+          })
+          .from(payoutAccountReferences)
+          .where(
+            and(
+              eq(payoutAccountReferences.reference_type, "fund_account"),
+              eq(
+                payoutAccountReferences.provider_reference,
+                event.externalAccountId,
+              ),
+            ),
+          )
+          .limit(1);
+        payoutProviderAccountId = ref?.payout_provider_account_id ?? null;
+      }
+
+      if (payoutProviderAccountId && providerEventId) {
+        const [row] = await this.db
+          .insert(payoutWebhookEvents)
+          .values({
+            payout_provider_account_id: payoutProviderAccountId,
+            provider_event_id: providerEventId,
+            event_type: event?.eventType ?? "unknown",
+            normalized_event_type: event?.eventType ?? "unknown",
+            payload: null,
+            signature_verified: event !== null,
+            processing_status: event ? "processing" : "failed",
+            failure_message: event
+              ? null
+              : "signature_verification_failed",
+          })
+          .onConflictDoNothing()
+          .returning({ id: payoutWebhookEvents.id });
+        inserted = !!row;
+      }
+    } catch {
+      // invalid JSON — proceed without durable log
+    }
+
+    // Idempotency: skip processing if this event was already handled.
+    if (!inserted && payoutProviderAccountId && providerEventId) {
+      return res.status(200).send("ok");
+    }
 
     if (!event) {
       return res.status(200).send("ignored");
     }
 
     await this.reconcileAccount(event);
+
+    // Mark processed.
+    if (payoutProviderAccountId && providerEventId) {
+      await this.db
+        .update(payoutWebhookEvents)
+        .set({
+          processing_status: "processed",
+          processed_at: new Date(),
+        })
+        .where(eq(payoutWebhookEvents.provider_event_id, providerEventId));
+    }
 
     return res.status(200).send("ok");
   }
