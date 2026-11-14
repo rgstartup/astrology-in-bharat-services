@@ -6,6 +6,7 @@ import { PayoutOnboardingController } from "./controllers/payout-onboarding.cont
 import {
   InitiatePayoutOnboardingUseCase,
   CompletePayoutOnboardingUseCase,
+  ExecutePayoutUseCase,
 } from "./use-cases";
 
 @Module({
@@ -14,8 +15,13 @@ import {
   providers: [
     InitiatePayoutOnboardingUseCase,
     CompletePayoutOnboardingUseCase,
+    ExecutePayoutUseCase,
     EncryptionService,
   ],
-  exports: [InitiatePayoutOnboardingUseCase, CompletePayoutOnboardingUseCase],
+  exports: [
+    InitiatePayoutOnboardingUseCase,
+    CompletePayoutOnboardingUseCase,
+    ExecutePayoutUseCase,
+  ],
 })
 export class PayoutOnboardingModule {}
