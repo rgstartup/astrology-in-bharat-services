@@ -19,8 +19,7 @@ import {
   paymentProviders,
   payoutProviderAccounts,
 } from '@/core/drizzledb/schema';
-import { PayoutProviderResolver, PAYOUT_PROVIDER } from '@/external/payout-onboarding';
-import type { PayoutProvider } from '@/external/payout-onboarding/payout-provider.interface';
+import { PayoutProviderService } from '../payout-provider.service';
 import type { CreatePayoutInput } from '@/external/payout-onboarding/payout-provider.interface';
 
 export interface ExecutePayoutInput {
@@ -42,8 +41,7 @@ export interface ExecutePayoutOutput {
 export class ExecutePayoutUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
-    private readonly resolver: PayoutProviderResolver,
-    @Inject(PAYOUT_PROVIDER) private readonly defaultProvider: PayoutProvider,
+    private readonly providerService: PayoutProviderService,
   ) {}
 
   async execute(input: ExecutePayoutInput): Promise<ExecutePayoutOutput> {
@@ -122,12 +120,7 @@ export class ExecutePayoutUseCase {
       );
     }
 
-    let provider: PayoutProvider;
-    try {
-      provider = this.resolver.resolve(providerAccount.code);
-    } catch {
-      provider = this.defaultProvider;
-    }
+    const provider = this.providerService.resolve(providerAccount.code);
 
     // Create the payouts row (status 'created') before calling the provider.
     const [payoutRow] = await this.db

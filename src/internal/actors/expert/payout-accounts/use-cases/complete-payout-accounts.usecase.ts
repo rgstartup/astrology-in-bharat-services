@@ -20,8 +20,7 @@ import {
   payoutProviderAccounts,
 } from '@/core/drizzledb/schema';
 import type { NewPayoutAccountReferenceRow } from '@/core/drizzledb/schema';
-import { PayoutProviderResolver, PAYOUT_PROVIDER } from '@/external/payout-onboarding';
-import type { PayoutProvider } from '@/external/payout-onboarding/payout-provider.interface';
+import { PayoutProviderService } from '../payout-provider.service';
 import { EncryptionService } from '@/shared/services/encryption.service';
 import { PayoutOnboardingCompleteInput } from '@/external/payout-onboarding/payout-onboarding.interface';
 
@@ -45,8 +44,7 @@ export interface CompletePayoutOnboardingOutput {
 export class CompletePayoutOnboardingUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
-    private readonly resolver: PayoutProviderResolver,
-    @Inject(PAYOUT_PROVIDER) private readonly defaultProvider: PayoutProvider,
+    private readonly providerService: PayoutProviderService,
     private readonly encryptionService: EncryptionService,
   ) {}
 
@@ -84,12 +82,7 @@ export class CompletePayoutOnboardingUseCase {
       .where(eq(payoutProviderAccounts.id, onboarding.payout_provider_account_id))
       .limit(1);
 
-    let provider: PayoutProvider;
-    try {
-      provider = this.resolver.resolve(providerAccount.code);
-    } catch {
-      provider = this.defaultProvider;
-    }
+    const provider = this.providerService.resolve(providerAccount.code);
 
     // Call provider.complete() with bank details or auth code.
     let linkedAccount: any;

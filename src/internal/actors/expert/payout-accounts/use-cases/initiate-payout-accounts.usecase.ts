@@ -15,8 +15,7 @@ import {
   paymentProviders,
   payoutOnboardings,
 } from '@/core/drizzledb/schema';
-import { PayoutProviderResolver, PAYOUT_PROVIDER } from '@/external/payout-onboarding';
-import type { PayoutProvider } from '@/external/payout-onboarding/payout-provider.interface';
+import { PayoutProviderService } from '../payout-provider.service';
 import { PayoutOnboardingExpertContext } from '@/external/payout-onboarding/payout-onboarding.interface';
 
 export interface InitiatePayoutOnboardingInput {
@@ -37,18 +36,12 @@ export interface InitiatePayoutOnboardingOutput {
 export class InitiatePayoutOnboardingUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
-    private readonly resolver: PayoutProviderResolver,
-    @Inject(PAYOUT_PROVIDER) private readonly defaultProvider: PayoutProvider,
+    private readonly providerService: PayoutProviderService,
   ) {}
 
   async execute(input: InitiatePayoutOnboardingInput): Promise<InitiatePayoutOnboardingOutput> {
     // Resolve the provider; fall back to the default (razorpayx) if not registered.
-    let provider: PayoutProvider;
-    try {
-      provider = this.resolver.resolve(input.providerCode);
-    } catch {
-      provider = this.defaultProvider;
-    }
+    const provider = this.providerService.resolve(input.providerCode);
 
     // Look up the provider account config for this provider code (required FK).
     const [providerAccount] = await this.db

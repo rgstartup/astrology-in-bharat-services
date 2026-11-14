@@ -6,9 +6,9 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
-import * as fs from 'fs';
+} from "@nestjs/common";
+import { Request, Response } from "express";
+import { appendFileSync } from "fs";
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -28,12 +28,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
       status === HttpStatus.INTERNAL_SERVER_ERROR
     ) {
       try {
-        fs.appendFileSync(
-          'http-errors.log',
+        appendFileSync(
+          "http-errors.log",
           `${new Date().toISOString()} | ${status} | ${request.url}\n${stack}\nFull Exception: ${JSON.stringify(exception, Object.getOwnPropertyNames(exception || {}))}\n\n`,
         );
       } catch (e) {
-        this.logger.error('Failed to write to log file', e);
+        this.logger.error("Failed to write to log file", e);
       }
     }
 
@@ -42,7 +42,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     const errorBody =
-      typeof res === 'object' && res !== null
+      typeof res === "object" && res !== null
         ? (res as Record<string, unknown>)
         : { message: res };
 
@@ -51,7 +51,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request.url,
       ...errorBody,
-      ...(process.env.NODE_ENV === 'development' && { stack }),
+      ...(process.env.NODE_ENV === "development" && { stack }),
     });
   }
 }

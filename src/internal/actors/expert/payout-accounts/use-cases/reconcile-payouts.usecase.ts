@@ -17,8 +17,7 @@ import {
   payoutProviderAccounts,
   paymentProviders,
 } from '@/core/drizzledb/schema';
-import { PayoutProviderResolver, PAYOUT_PROVIDER } from '@/external/payout-onboarding';
-import type { PayoutProvider } from '@/external/payout-onboarding/payout-provider.interface';
+import { PayoutProviderService } from '../payout-provider.service';
 
 /** Internal payout statuses worth reconciling. Excludes terminal states
  *  that shouldn't change (cancelled, reversed). */
@@ -60,8 +59,7 @@ export interface ReconcilePayoutsOutput {
 export class ReconcilePayoutsUseCase {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
-    private readonly resolver: PayoutProviderResolver,
-    @Inject(PAYOUT_PROVIDER) private readonly defaultProvider: PayoutProvider,
+    private readonly providerService: PayoutProviderService,
   ) {}
 
   async execute(input: ReconcilePayoutsInput = {}): Promise<ReconcilePayoutsOutput> {
@@ -124,12 +122,7 @@ export class ReconcilePayoutsUseCase {
         continue;
       }
 
-      let provider: PayoutProvider;
-      try {
-        provider = this.resolver.resolve(providerAccount.code);
-      } catch {
-        provider = this.defaultProvider;
-      }
+      const provider = this.providerService.resolve(providerAccount.code);
 
       // If provider doesn't support getPayoutStatus, skip this group.
       if (!provider.getPayoutStatus) {

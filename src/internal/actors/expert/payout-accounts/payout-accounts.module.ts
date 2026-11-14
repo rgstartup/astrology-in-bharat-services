@@ -2,7 +2,9 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { EncryptionService } from "@/shared/services/encryption.service";
 import { PayoutProviderModule } from "@/external/payout-onboarding/payout-provider.module";
-import { PayoutOnboardingController } from "./controllers/payout-onboarding.controller";
+import { PayoutAccountsController } from "./controllers/payout-accounts.controller";
+import { PayoutAccountsService } from "./payout-accounts.service";
+import { PayoutProviderService } from "./payout-provider.service";
 import {
   InitiatePayoutOnboardingUseCase,
   CompletePayoutOnboardingUseCase,
@@ -12,8 +14,10 @@ import {
 
 @Module({
   imports: [ConfigModule, PayoutProviderModule],
-  controllers: [PayoutOnboardingController],
+  controllers: [PayoutAccountsController],
   providers: [
+    PayoutAccountsService,
+    PayoutProviderService,
     InitiatePayoutOnboardingUseCase,
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,
@@ -21,10 +25,11 @@ import {
     EncryptionService,
   ],
   exports: [
+    PayoutAccountsService,
     InitiatePayoutOnboardingUseCase,
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,
     ReconcilePayoutsUseCase,
   ],
 })
-export class PayoutOnboardingModule {}
+export class PayoutAccountsModule {}
