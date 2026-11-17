@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-import { BankLinkModule } from "./bank-link/bank-link.module";
 import { ExpertEarningsModule } from "./earnings/expert-earnings.module";
 import { ExpertDashboardModule } from "./dashboard/expert-dashboard.module";
 import { TodosModule } from "./todos/todos.module";
@@ -9,7 +8,7 @@ import { ExpertDiscoveryModule } from "./discovery/discovery.module";
 import { SpecializationModule } from "./specialization/specialization.module";
 import { ProfessionModule } from "./profession/profession.module";
 import { OnboardingModule } from "./onboarding/onboarding.module";
-import { PayoutsAccountsModule } from "@/internal/payouts/accounts/payouts-accounts.module";
+import { PayoutsAccountsModule } from "@/internal/actors/expert/payout-accounts/payouts-accounts.module";
 import { ExpertProductsModule } from "./products/products.module";
 import { PresenceModule } from "./presence/presence.module";
 import { ExpertRealtimeModule } from "./realtime/expert-realtime.module";
@@ -18,7 +17,6 @@ import { ExpertReviewsModule } from "./consultation/reviews/expert-reviews.modul
 
 @Module({
   imports: [
-    BankLinkModule,
     ExpertEarningsModule,
     ExpertDashboardModule,
     TodosModule,
@@ -36,7 +34,6 @@ import { ExpertReviewsModule } from "./consultation/reviews/expert-reviews.modul
     ExpertReviewsModule,
   ],
   exports: [
-    BankLinkModule,
     ExpertEarningsModule,
     ExpertDashboardModule,
     TodosModule,

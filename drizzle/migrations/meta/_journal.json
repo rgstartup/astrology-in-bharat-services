@@ -218,6 +218,13 @@
       "when": 1794894021263,
       "tag": "0030_add_expert_payout_account_links",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794904847683,
+      "tag": "0031_drop_expert_bank_accounts",
+      "breakpoints": true
     }
   ]
 }

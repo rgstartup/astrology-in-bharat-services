@@ -10,7 +10,6 @@ import {
 import { ExpertAccount } from '../../../actors/expert/account/entities/account.entity';
 import { MerchantAccount } from '../../../actors/merchant/account/entities/account.entity';
 import { ProfileAgent } from '../../../actors/agent/entities/profile-agent.entity';
-import { BankAccount } from '../../../actors/expert/bank-accounts/entities/bank-account.entity';
 import { WithdrawalStatus } from '../enum';
 
 @Entity({ schema: 'finance', name: 'withdrawals' })
@@ -46,9 +45,7 @@ export class Withdrawal {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount!: number;
 
-  @ManyToOne(() => BankAccount, { nullable: true })
-  @JoinColumn({ name: 'bank_account_id' })
-  bankAccount!: BankAccount | null;
+  // bank_account_id now a plain nullable column (legacy bank_accounts table dropped).
 
   @Column({ type: 'int', name: 'bank_account_id', nullable: true })
   bank_account_id!: number | null;

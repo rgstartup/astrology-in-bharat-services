@@ -250,33 +250,8 @@ export class RequestWithdrawalUseCase {
           }
         }
 
-        if (!merchantSnapshot.merchant_bank_name && bank_account_id) {
-          const expertProfile = await queryRunner.manager.findOne(
-            ProfileExpert,
-            {
-              where: { id: profileId },
-            },
-          );
-          if (expertProfile) {
-            const bankAccount = (await queryRunner.manager.findOne(
-              'BankAccount',
-              {
-                where: {
-                  id: bank_account_id,
-                  expert_id: expertProfile.id,
-                },
-              },
-            )) as Record<string, unknown>;
-            if (bankAccount) {
-              merchantSnapshot = {
-                merchant_bank_name: bankAccount.bank_name,
-                merchant_account_number: bankAccount.account_number,
-                merchant_ifsc: bankAccount.ifsc_code,
-                merchant_account_holder: bankAccount.account_holder_name,
-              };
-            }
-          }
-        }
+        // Legacy expert bank-account lookup removed (bank_accounts table dropped).
+        // Expert payout details should be resolved from payout accounts in a follow-up.
 
         if (!merchantSnapshot.merchant_bank_name)
           throw new BadRequestException('Invalid bank account selected');

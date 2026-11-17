@@ -38,11 +38,10 @@ import { GetWithdrawalsUseCase } from './use-cases/get-withdrawals.use-case';
 import { ReconcileWalletUseCase } from './use-cases/reconcile-wallet.use-case';
 import { StuckWithdrawalJob } from './use-cases/stuck-withdrawal-job.use-case';
 import { NotificationModule } from '../../notification/notification.module';
-import { BankAccountsModule } from '../../actors/expert/bank-accounts/bank-accounts.module';
 import { CommissionsModule } from '../commissions/commissions.module';
 import { GeneralLedgerEntry } from '../ledger/entities/general-ledger-entry.entity';
 import { QueueModule } from '../../../core/queue/queue.module';
-import { PayoutsAccountsModule } from '@/internal/payouts/accounts/payouts-accounts.module';
+import { PayoutsAccountsModule } from '@/internal/actors/expert/payout-accounts/payouts-accounts.module';
 import { RazorpayXModule } from '@/external/razorpayx/razorpayx.module';
 import WalletRepository from './repositories/wallet.repository';
 
@@ -57,7 +56,6 @@ import WalletRepository from './repositories/wallet.repository';
       GeneralLedgerEntry,
     ]),
     NotificationModule,
-    BankAccountsModule,
     UsersModule,
     forwardRef(() => AdminModule),
     forwardRef(() => ExpertProfileModule),

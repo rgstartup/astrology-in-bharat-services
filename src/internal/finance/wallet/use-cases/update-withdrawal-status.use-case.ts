@@ -156,35 +156,14 @@ export class UpdateWithdrawalStatusUseCase {
           profile.razorpay_contact_id = newContactId;
         }
 
-        // 2. Get or Create Fund Account
-        type BankAccountInfo = {
-          id?: string;
-          account_holder_name?: string;
-          account_number?: string;
-          ifsc_code?: string;
-          razorpay_fund_account_id?: string;
-        };
-        let bankAccount: BankAccountInfo | null = null;
-        if (withdrawal.bank_account_id) {
-          bankAccount = (await queryRunner.manager.findOne('BankAccount', {
-            where: { id: withdrawal.bank_account_id },
-          })) as unknown as BankAccountInfo;
-        }
-
-        // Sanitize and Validate bank details (prefer snapshot from withdrawal record)
+        // 2. Get or Create Fund Account (legacy BankAccount table dropped; use snapshot only)
         const accountName = String(
-          withdrawal.merchant_account_holder ||
-            bankAccount?.account_holder_name ||
-            '',
+          withdrawal.merchant_account_holder || '',
         ).trim();
         const accountNumber = String(
-          withdrawal.merchant_account_number ||
-            bankAccount?.account_number ||
-            '',
+          withdrawal.merchant_account_number || '',
         ).trim();
-        const ifsc = String(
-          withdrawal.merchant_ifsc || bankAccount?.ifsc_code || '',
-        )
+        const ifsc = String(withdrawal.merchant_ifsc || '')
           .trim()
           .toUpperCase();
 
@@ -201,32 +180,16 @@ export class UpdateWithdrawalStatusUseCase {
         }
 
         let tempFundAccountId = '';
-
-        if (!bankAccount || !bankAccount.razorpay_fund_account_id) {
-          // Create fund account on the fly
-          const fundAccountId =
-            await this.razorpayPayoutService.getOrCreateFundAccount(
-              profile.razorpay_contact_id,
-              {
-                name: accountName,
-                account: accountNumber,
-                ifsc: ifsc,
-              },
-            );
-
-          // If we have a permanent BankAccount record, save the fund account ID there
-          if (bankAccount) {
-            await queryRunner.manager.update(
-              'BankAccount',
-              { id: bankAccount.id },
-              { razorpay_fund_account_id: fundAccountId },
-            );
-          }
-
-          tempFundAccountId = fundAccountId;
-        } else {
-          tempFundAccountId = bankAccount.razorpay_fund_account_id;
-        }
+        // Create fund account on the fly
+        tempFundAccountId =
+          await this.razorpayPayoutService.getOrCreateFundAccount(
+            profile.razorpay_contact_id,
+            {
+              name: accountName,
+              account: accountNumber,
+              ifsc: ifsc,
+            },
+          );
 
         // 3. Initiate Payout
         const payoutResponse = await this.razorpayPayoutService.initiatePayout(
