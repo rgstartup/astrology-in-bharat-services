@@ -89,6 +89,7 @@ export class PayoutAccountsController {
    * Checks payouts with a provider reference against the provider's
    * current status and updates internal records on mismatch.
    */
+  @UseGuards(ExpertJwtAuthGuard)
   @Post("reconcile")
   async reconcile(@Body() dto: ReconcilePayoutsDto) {
     return this.payoutAccountsService.reconcilePayouts({

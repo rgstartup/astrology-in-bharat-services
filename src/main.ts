@@ -15,6 +15,7 @@ import { ValidationDomainError } from "./shared/errors";
 import { formatValidationErrors } from "./shared/utils/validation-error-formatter.util";
 import { json, urlencoded } from "express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { RequestMethod } from "@nestjs/common";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -53,6 +54,21 @@ async function bootstrap() {
       "Content-Type, Accept, Authorization, Cookie, Cache-Control, Pragma, Expires, X-Requested-With",
     exposedHeaders: "Set-Cookie",
     credentials: true,
+  });
+
+  // Built-in CSRF protection (NestJS 12.1+) — trusts frontend origins
+  app.enableCsrfProtection({
+    trustedOrigins: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3003",
+      "http://localhost:8000",
+      "http://localhost:3004",
+    ],
+    exclude: [
+      // Webhooks come from external providers (RazorpayX, etc.) — they pass signature verification instead
+      { path: "webhooks/razorpayx", method: RequestMethod.POST },
+    ],
   });
 
   app.use(cookieParser());
@@ -116,12 +132,6 @@ async function bootstrap() {
   SwaggerModule.setup("docs", app, documentFactory);
 
   await app.listen(process.env.PORT!);
-
-  // // Set timeout after the server is initialized
-  // const server = app.getHttpServer();
-  // if (server && typeof server.setTimeout === 'function') {
-  //   server.setTimeout(300000); // 5 minutes timeout for large file uploads
-  // }
 }
 bootstrap()
   .then(() => console.log(`app started running on port ${process.env.PORT}`))
