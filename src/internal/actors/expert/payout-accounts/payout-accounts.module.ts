@@ -11,6 +11,7 @@ import type { PayoutProvider } from "@/external/payout-onboarding/payout-provide
 import type { PayoutOnboardingService } from "@/external/payout-onboarding/payout-onboarding.interface";
 import { PayoutAccountsController } from "./controllers/payout-accounts.controller";
 import { RazorpayXWebhookController } from "@/external/payout-onboarding/providers/razorpayx/razorpayx-webhook.controller";
+import { RazorpayXWebhookService } from "./services/razorpayx-webhook.service";
 import { PayoutAccountsService } from "./payout-accounts.service";
 import { PayoutProviderService } from "./payout-provider.service";
 import { RazorpayPayoutService } from "./gateways/razorpay-payout.service";
@@ -40,6 +41,7 @@ import {
     RazorpayPayoutService,
     RazorpayXPayoutAdapter,
     RazorpayXOnboardingAdapter,
+    RazorpayXWebhookService,
     InitiatePayoutOnboardingUseCase,
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,
@@ -59,6 +61,7 @@ import {
     RazorpayPayoutService,
     RazorpayXPayoutAdapter,
     RazorpayXOnboardingAdapter,
+    RazorpayXWebhookService,
     PAYOUT_PROVIDER,
     PAYOUT_ONBOARDING_SERVICE,
     InitiatePayoutOnboardingUseCase,
