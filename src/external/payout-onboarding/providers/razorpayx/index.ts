@@ -1,3 +1,3 @@
 export { RazorpayXWebhookController } from "./razorpayx-webhook.controller";
 export { RazorpayXOnboardingModule } from "./razorpayx-onboarding.module";
-export { RazorpayXPayoutAdapter } from "./razorpayx-payout-adapter";
+export { RazorpayXPayoutAdapter } from "@/internal/actors/expert/payout-accounts/providers/razorpayx/razorpayx-payout-adapter";

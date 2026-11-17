@@ -15,15 +15,13 @@ import { PayoutOnboardingFactory } from "@/external/payout-onboarding/payout-onb
 import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payout-onboarding/payout-onboarding.interface";
 import { EncryptionService } from "@/shared/services/encryption.service";
 import { ExpertAuthModule } from "../auth/auth.module";
-import { RazorpayXOnboardingModule } from "@/external/payout-onboarding/providers";
-import { WalletModule } from "@/internal/finance/wallet/wallet.module";
+import { PayoutAccountsModule } from "@/internal/actors/expert/payout-accounts/payout-accounts.module";
 
 @Module({
   imports: [
     ConfigModule,
     ExpertAuthModule,
-    RazorpayXOnboardingModule,
-    WalletModule,
+    PayoutAccountsModule,
   ],
   controllers: [BankLinkController],
   providers: [
@@ -36,11 +34,6 @@ import { WalletModule } from "@/internal/finance/wallet/wallet.module";
     DeleteBankLinkUseCase,
     ValidatePennyDropUseCase,
     PayoutOnboardingFactory,
-    {
-      provide: PAYOUT_ONBOARDING_SERVICE,
-      useFactory: (factory: PayoutOnboardingFactory) => factory.resolve(),
-      inject: [PayoutOnboardingFactory],
-    },
     EncryptionService,
   ],
   exports: [BankLinkService],

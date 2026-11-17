@@ -27,8 +27,8 @@ import {
   PayoutOnboardingExpertContext,
 } from '@/external/payout-onboarding/payout-onboarding.interface';
 import { RazorpayPayoutService } from '@/internal/actors/expert/payout-accounts/gateways/razorpay-payout.service';
-import { RAZORPAYX_CAPABILITIES } from '../../provider-capability';
-import { mapRazorpayError, PayoutProviderError } from '../../payout-provider.errors';
+import { RAZORPAYX_CAPABILITIES } from '@/external/payout-onboarding/provider-capability';
+import { mapRazorpayError, PayoutProviderError } from '@/external/payout-onboarding/payout-provider.errors';
 
 @Injectable()
 export class RazorpayXPayoutAdapter implements PayoutProvider {
