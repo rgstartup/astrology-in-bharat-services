@@ -172,7 +172,7 @@ export class ExpertRealtimeService {
   }
 
   async acknowledgeNotificationRead(
-    notificationId: string,
+    notificationId: number,
     identity: AuthenticatedSocketIdentity,
   ) {
     return this.notificationHandler.acknowledgeNotificationRead(

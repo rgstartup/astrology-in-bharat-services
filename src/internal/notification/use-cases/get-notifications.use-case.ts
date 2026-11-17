@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification, ProfileType } from '../entities/notification.entity';
-import { FindOptionsWhere } from 'typeorm';
+import { FindOptionsWhere, FindOptionsOrder } from 'typeorm';
 import { RoleEnum } from '../../users/enums/Role.enum';
 import { GetNotificationsDto } from '../dto/get-notifications.dto';
+import { parseSort } from '@/shared/sorting/sort.parser';
 
 @Injectable()
 export class GetNotificationsUseCase {
@@ -20,9 +21,20 @@ export class GetNotificationsUseCase {
   ) {
     const { limit, offset } = dto;
     const where = this.buildWhere(profileId, profileType);
+
+    const sortOptions = parseSort(dto.sort);
+    const defaultOrder: FindOptionsOrder<Notification> = {
+      created_at: 'DESC',
+    };
+    const order: FindOptionsOrder<Notification> = sortOptions.length > 0
+      ? Object.fromEntries(
+          sortOptions.map(({ field, direction }) => [field, direction]),
+        ) as FindOptionsOrder<Notification>
+      : defaultOrder;
+
     const [data, totalCount] = await this.notificationRepo.findAndCount({
       where,
-      order: { created_at: 'DESC' },
+      order,
       take: limit,
       skip: offset,
     });

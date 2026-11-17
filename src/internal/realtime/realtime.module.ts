@@ -45,6 +45,7 @@ import { ConsultationEndedHandler } from './events/consultation-ended.handler';
   exports: [
     RealtimeGateway,
     ConsultationGateway,
+    NotificationGateway,
     RealtimeAuthService,
     RealtimeChatModule,
   ],

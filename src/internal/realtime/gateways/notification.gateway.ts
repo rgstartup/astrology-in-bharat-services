@@ -4,6 +4,7 @@ import {
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import {
   Logger,
@@ -12,6 +13,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { Server } from 'socket.io';
 import { SOCKET_EVENTS } from '../constants/socket-events.constant';
 import { WsAuthGuard } from '../guards/ws-auth.guard';
 import { CurrentWsAuth } from '../decorators/current-ws-auth.decorator';
@@ -19,6 +21,7 @@ import { RealtimeWsExceptionFilter } from '../filters/ws-exception.filter';
 import { ClientRealtimeService } from '@/internal/actors/client/realtime/client-realtime.service';
 import { ExpertRealtimeService } from '@/internal/actors/expert/realtime/expert-realtime.service';
 import { ReadNotificationDto } from '../dto/notification-events.dto';
+import { SOCKET_ROOMS } from '../constants/socket-rooms.constant';
 import type { AuthenticatedSocketIdentity } from '../types/socket-auth.types';
 import type { RealtimeSocket } from '../types/socket-data.types';
 import { REALTIME_GATEWAY_OPTIONS } from './gateway.options';
@@ -34,6 +37,9 @@ export class NotificationGateway implements OnGatewayInit {
     private readonly clientRealtimeService: ClientRealtimeService,
     private readonly expertRealtimeService: ExpertRealtimeService,
   ) {}
+
+  @WebSocketServer()
+  server!: Server;
 
   afterInit() {
     const msg =
@@ -68,5 +74,17 @@ export class NotificationGateway implements OnGatewayInit {
       dto.notificationId,
       identity,
     );
+  }
+
+  /** Push a new notification to a specific expert's room. */
+  emitToExpert(
+    expertId: string | number,
+    event: string,
+    payload: unknown,
+  ): void {
+    if (!this.server) {
+      return;
+    }
+    this.server.to(SOCKET_ROOMS.EXPERT(expertId)).emit(event, payload);
   }
 }

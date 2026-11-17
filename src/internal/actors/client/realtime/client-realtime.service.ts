@@ -152,7 +152,7 @@ export class ClientRealtimeService {
   }
 
   async acknowledgeNotificationRead(
-    notificationId: string,
+    notificationId: number,
     identity: AuthenticatedSocketIdentity,
   ) {
     return this.notificationHandler.acknowledgeNotificationRead(

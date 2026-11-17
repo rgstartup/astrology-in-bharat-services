@@ -20,9 +20,9 @@ export class ClientNotificationHandler {
   }
 
   async acknowledgeNotificationRead(
-    notificationId: string,
+    notificationId: number,
     identity: AuthenticatedSocketIdentity,
-  ): Promise<{ status: string; notificationId: string }> {
+  ): Promise<{ status: string; notificationId: number }> {
     this.logger.debug(
       `Actor ${identity.actorType}:${identity.id} read notification ${notificationId}`,
     );

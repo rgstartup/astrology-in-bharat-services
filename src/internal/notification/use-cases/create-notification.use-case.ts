@@ -8,6 +8,10 @@ import {
 } from '../entities/notification.entity';
 import { NotificationGateway } from '../gateways/notification.gateway';
 import { RoleEnum } from '../../users/enums/Role.enum';
+import {
+  NotificationGateway as RealtimeNotificationGateway,
+} from '@/internal/realtime/gateways/notification.gateway';
+import { SOCKET_EVENTS } from '@/internal/realtime/constants/socket-events.constant';
 
 @Injectable()
 export class CreateNotificationUseCase {
@@ -15,6 +19,7 @@ export class CreateNotificationUseCase {
     @InjectRepository(Notification)
     private readonly notificationRepo: Repository<Notification>,
     private readonly notificationGateway: NotificationGateway,
+    private readonly realtimeNotificationGateway: RealtimeNotificationGateway,
   ) {}
 
   async execute(
@@ -41,6 +46,16 @@ export class CreateNotificationUseCase {
         'new_notification',
         savedNotification,
       );
+
+      // Also fan-out to the modern /realtime namespace so expert dashboard
+      // sockets (joined to `expert:{id}`) receive the notification live.
+      if (profileType === RoleEnum.EXPERT) {
+        this.realtimeNotificationGateway.emitToExpert(
+          profileId,
+          SOCKET_EVENTS.NOTIFICATION.NEW,
+          { notification: savedNotification },
+        );
+      }
     } catch (err) {
       console.error(`[CreateNotification] Failed to emit via socket:`, err);
     }

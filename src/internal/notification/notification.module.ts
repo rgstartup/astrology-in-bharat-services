@@ -8,9 +8,10 @@ import { CreateNotificationUseCase } from './use-cases/create-notification.use-c
 import { GetNotificationsUseCase } from './use-cases/get-notifications.use-case';
 import { MarkAsReadUseCase } from './use-cases/mark-as-read.use-case';
 import { ClearAllNotificationsUseCase } from './use-cases/clear-all-notifications.use-case';
+import { RealtimeModule } from '@/internal/realtime/realtime.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification])],
+  imports: [TypeOrmModule.forFeature([Notification]), RealtimeModule],
   controllers: [NotificationController],
   providers: [
     NotificationGateway,

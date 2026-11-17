@@ -1,10 +1,11 @@
-import { IsInt, IsNotEmpty, IsPositive, IsString } from 'class-validator';
+import { IsInt, IsPositive } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ReadNotificationDto {
-  @IsString()
-  @IsNotEmpty()
-  notificationId!: string;
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  notificationId!: number;
 }
 
 export class SubscribeNotificationDto {
