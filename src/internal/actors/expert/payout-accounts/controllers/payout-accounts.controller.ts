@@ -5,6 +5,8 @@ import {
   Body,
   UseGuards,
   Get,
+  ParseIntPipe,
+  Param,
 } from "@nestjs/common";
 import { ExpertJwtAuthGuard } from "@/internal/actors/expert/auth/guards/auth.guard";
 import { CurrentExpert } from "@/internal/actors/expert/auth/decorators/current-expert.decorator";
@@ -15,8 +17,6 @@ import {
   CompletePayoutOnboardingDto,
   ExecutePayoutDto,
   ReconcilePayoutsDto,
-  RemovePayoutAccountDto,
-  SetPrimaryPayoutAccountDto,
 } from "../dto";
 
 @Controller({
@@ -106,11 +106,11 @@ export class PayoutAccountsController {
   @Delete(":payoutAccountId")
   async removePayoutAccount(
     @CurrentExpert() expert: IExpert,
-    @Body() dto: RemovePayoutAccountDto,
+    @Param("payoutAccountId", ParseIntPipe) payoutAccountId: number,
   ) {
     return this.payoutAccountsService.removePayoutAccount({
       expertId: expert.sub,
-      payoutAccountId: dto.payoutAccountId,
+      payoutAccountId,
     });
   }
 
@@ -119,11 +119,11 @@ export class PayoutAccountsController {
   @Post(":payoutAccountId/set-primary")
   async setPrimaryPayoutAccount(
     @CurrentExpert() expert: IExpert,
-    @Body() dto: SetPrimaryPayoutAccountDto,
+    @Param("payoutAccountId", ParseIntPipe) payoutAccountId: number,
   ) {
     return this.payoutAccountsService.setPrimaryPayoutAccount({
       expertId: expert.sub,
-      payoutAccountId: dto.payoutAccountId,
+      payoutAccountId,
     });
   }
 }
