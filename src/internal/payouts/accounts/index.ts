@@ -1,10 +1,10 @@
 export { PayoutsAccountsModule } from './payouts-accounts.module';
 export { PayoutAccountsService } from './payout-accounts.service';
 export { PayoutProviderService } from './payout-provider.service';
-export { RazorpayPayoutService } from './gateways/razorpay-payout.service';
-export { RazorpayXPayoutAdapter } from './providers/razorpayx/razorpayx-payout-adapter';
-export { RazorpayXOnboardingAdapter } from './providers/razorpayx/razorpayx-onboarding-adapter';
-export { RazorpayXWebhookService } from './services/razorpayx-webhook.service';
+export { RazorpayPayoutService } from '@/external/razorpayx/gateways/razorpay-payout.service';
+export { RazorpayXPayoutAdapter } from '@/external/razorpayx/providers/razorpayx-payout-adapter';
+export { RazorpayXOnboardingAdapter } from '@/external/razorpayx/providers/razorpayx-onboarding-adapter';
+export { RazorpayXWebhookService } from '@/external/razorpayx/services/razorpayx-webhook.service';
 export {
   InitiatePayoutOnboardingUseCase,
   CompletePayoutOnboardingUseCase,

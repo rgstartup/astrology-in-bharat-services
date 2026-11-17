@@ -1,47 +1,36 @@
 /**
- * RazorpayX payout provider adapter.
+ * RazorpayX payout onboarding adapter.
  *
- * Implements `PayoutProvider` for RazorpayX:
- *   - Onboarding: Contact + Fund Account creation, penny-drop validation
- *   - Payout execution: POST /payouts, GET /payouts/{id}
- *   - Webhook: X-Razorpay-Signature verification + event parsing
- *
- * Reuses `RazorpayPayoutService` for the low-level RazorpayX API calls.
- * Maps RazorpayX-specific errors to normalized `PayoutProviderError`s.
+ * Implements `PayoutOnboardingService` for RazorpayX:
+ *   - Initiate: returns form spec (account_holder_name, account_number, ifsc)
+ *   - Complete: creates contact + fund account via RazorpayPayoutService
+ *   - Status: reads from local validation_status column
+ *   - Penny-drop: validates amount > 0
+ *   - Webhook: parses RazorpayX fund_account events
  */
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHmac, timingSafeEqual } from 'crypto';
 import {
-  PayoutProvider,
-  CreatePayoutInput,
-  CreatePayoutOutput,
-  PayoutStatusOutput,
-  PAYOUT_PROVIDER,
-} from '@/external/payouts/onboarding/payout-provider.interface';
-import {
+  PayoutOnboardingService,
   PayoutOnboardingInitiateOutput,
   PayoutOnboardingLinkedAccount,
   PayoutOnboardingAccountStatus,
   PayoutOnboardingWebhookEvent,
   PayoutOnboardingExpertContext,
+  PayoutOnboardingCompleteInput,
 } from '@/external/payouts/onboarding/payout-onboarding.interface';
-import { RazorpayPayoutService } from '@/internal/payouts/accounts/gateways/razorpay-payout.service';
-import { RAZORPAYX_CAPABILITIES } from '@/external/payouts/onboarding/provider-capability';
-import { mapRazorpayError, PayoutProviderError } from '@/external/payouts/onboarding/payout-provider.errors';
+import { RazorpayPayoutService } from '@/external/razorpayx/gateways/razorpay-payout.service';
 
 @Injectable()
-export class RazorpayXPayoutAdapter implements PayoutProvider {
+export class RazorpayXOnboardingAdapter implements PayoutOnboardingService {
   readonly provider = 'razorpayx';
-  readonly capabilities = RAZORPAYX_CAPABILITIES;
-  private readonly logger = new Logger(RazorpayXPayoutAdapter.name);
+  private readonly logger = new Logger(RazorpayXOnboardingAdapter.name);
 
   constructor(
     private readonly configService: ConfigService,
     private readonly payoutService: RazorpayPayoutService,
   ) {}
-
-  // ── Onboarding ──────────────────────────────────────────────────────
 
   async initiate(
     _ctx: PayoutOnboardingExpertContext,
@@ -53,13 +42,9 @@ export class RazorpayXPayoutAdapter implements PayoutProvider {
     };
   }
 
-  async complete(input: {
-    code?: string;
-    state?: string;
-    accountHolderName?: string;
-    accountNumber?: string;
-    ifsc?: string;
-  }): Promise<PayoutOnboardingLinkedAccount> {
+  async complete(
+    input: PayoutOnboardingCompleteInput,
+  ): Promise<PayoutOnboardingLinkedAccount> {
     if (!input.accountHolderName || !input.accountNumber || !input.ifsc) {
       throw new BadRequestException(
         'accountHolderName, accountNumber and ifsc are required',
@@ -184,90 +169,4 @@ export class RazorpayXPayoutAdapter implements PayoutProvider {
       raw: payload,
     };
   }
-
-  // ── Payout execution ────────────────────────────────────────────────
-
-  async createPayout(input: CreatePayoutInput): Promise<CreatePayoutOutput> {
-    try {
-      const response = await this.payoutService.initiatePayout(
-        Number(input.payoutId),
-        input.amount,
-        input.destinationId,
-      );
-
-      const providerReference =
-        (response.id as string) ??
-        (response.reference_id as string) ??
-        String(input.payoutId);
-
-      const status = this.normalizePayoutStatus(
-        (response.status as string | undefined) ?? 'created',
-      );
-
-      return {
-        providerPayoutReference: providerReference,
-        status,
-        raw: response,
-      };
-    } catch (err: unknown) {
-      throw this.mapError(err);
-    }
-  }
-
-  async getPayoutStatus(
-    providerPayoutReference: string,
-  ): Promise<PayoutStatusOutput> {
-    try {
-      const response = await this.payoutService.getPayoutStatus(
-        providerPayoutReference,
-      );
-
-      const status = this.normalizePayoutStatus(
-        (response.status as string | undefined) ?? 'created',
-      );
-
-      return {
-        providerPayoutReference,
-        status,
-        raw: response,
-      };
-    } catch (err: unknown) {
-      throw this.mapError(err);
-    }
-  }
-
-  private normalizePayoutStatus(providerStatus: string): CreatePayoutOutput['status'] {
-    const s = (providerStatus ?? '').toLowerCase();
-    switch (s) {
-      case 'pending':
-      case 'created':
-        return 'created';
-      case 'queued':
-        return 'queued';
-      case 'processing':
-      case 'processing':
-        return 'processing';
-      case 'paid':
-      case 'processed':
-      case 'completed':
-        return 'completed';
-      case 'failed':
-        return 'failed';
-      case 'cancelled':
-      case 'canceled':
-        return 'cancelled';
-      case 'reversed':
-        return 'reversed';
-      default:
-        return 'created';
-    }
-  }
-
-  mapError(err: unknown): PayoutProviderError {
-    return mapRazorpayError(err, this.provider);
-  }
 }
-
-export { RAZORPAYX_CAPABILITIES };
-export { PayoutProviderError };
-export { mapRazorpayError };

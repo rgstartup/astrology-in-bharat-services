@@ -43,6 +43,7 @@ import { CommissionsModule } from '../commissions/commissions.module';
 import { GeneralLedgerEntry } from '../ledger/entities/general-ledger-entry.entity';
 import { QueueModule } from '../../../core/queue/queue.module';
 import { PayoutsAccountsModule } from '@/internal/payouts/accounts/payouts-accounts.module';
+import { RazorpayXModule } from '@/external/razorpayx/razorpayx.module';
 import WalletRepository from './repositories/wallet.repository';
 
 @Module({
@@ -66,6 +67,7 @@ import WalletRepository from './repositories/wallet.repository';
     CommissionsModule,
     QueueModule,
     PayoutsAccountsModule,
+    RazorpayXModule,
   ],
   providers: [
     WalletService,

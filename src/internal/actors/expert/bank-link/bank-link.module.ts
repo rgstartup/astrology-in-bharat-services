@@ -16,12 +16,14 @@ import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payouts/onboarding/payout-
 import { EncryptionService } from "@/shared/services/encryption.service";
 import { ExpertAuthModule } from "../auth/auth.module";
 import { PayoutsAccountsModule } from "@/internal/payouts/accounts/payouts-accounts.module";
+import { RazorpayXModule } from "@/external/razorpayx/razorpayx.module";
 
 @Module({
   imports: [
     ConfigModule,
     ExpertAuthModule,
     PayoutsAccountsModule,
+    RazorpayXModule,
   ],
   controllers: [BankLinkController],
   providers: [

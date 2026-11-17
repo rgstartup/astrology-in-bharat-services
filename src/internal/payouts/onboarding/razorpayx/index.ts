@@ -1,1 +1,1 @@
-export { RazorpayXOnboardingAdapter } from './razorpayx-onboarding-adapter';
+export { RazorpayXOnboardingAdapter } from '@/external/razorpayx/providers/razorpayx-onboarding-adapter';

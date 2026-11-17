@@ -7,7 +7,7 @@ import {
   payoutWebhookEvents,
   payoutAccountReferences,
 } from "@/core/drizzledb/schema";
-import { RazorpayXPayoutAdapter } from "@/internal/payouts/accounts/providers/razorpayx/razorpayx-payout-adapter";
+import { RazorpayXPayoutAdapter } from "@/external/razorpayx/providers/razorpayx-payout-adapter";
 
 @Injectable()
 export class RazorpayXWebhookService {

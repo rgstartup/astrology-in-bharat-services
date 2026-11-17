@@ -7,16 +7,12 @@ import { EncryptionService } from "@/shared/services/encryption.service";
 import { PAYOUT_PROVIDER } from "@/external/payouts/onboarding/payout-provider.interface";
 import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payouts/onboarding/payout-onboarding.interface";
 import { PayoutProviderModule, PayoutProviderResolver } from "@/external/payouts";
+import { RazorpayXModule } from "@/external/razorpayx/razorpayx.module";
 import type { PayoutProvider } from "@/external/payouts/onboarding/payout-provider.interface";
 import type { PayoutOnboardingService } from "@/external/payouts/onboarding/payout-onboarding.interface";
 import { PayoutAccountsController } from "./controllers/payout-accounts.controller";
-import { RazorpayXWebhookController } from "./controllers/razorpayx-webhook.controller";
-import { RazorpayXWebhookService } from "./services/razorpayx-webhook.service";
 import { PayoutAccountsService } from "./payout-accounts.service";
 import { PayoutProviderService } from "./payout-provider.service";
-import { RazorpayPayoutService } from "./gateways/razorpay-payout.service";
-import { RazorpayXPayoutAdapter } from "./providers/razorpayx/razorpayx-payout-adapter";
-import { RazorpayXOnboardingAdapter } from "./providers/razorpayx/razorpayx-onboarding-adapter";
 import {
   InitiatePayoutOnboardingUseCase,
   CompletePayoutOnboardingUseCase,
@@ -29,41 +25,24 @@ import {
     ConfigModule,
     EventEmitterModule,
     PayoutProviderModule,
+    RazorpayXModule,
     HttpClientModule.register({
       baseUrl: "https://api.razorpay.com/v1",
       timeout: 30000 as Duration,
     }),
   ],
-  controllers: [PayoutAccountsController, RazorpayXWebhookController],
+  controllers: [PayoutAccountsController],
   providers: [
     PayoutAccountsService,
     PayoutProviderService,
-    RazorpayPayoutService,
-    RazorpayXPayoutAdapter,
-    RazorpayXOnboardingAdapter,
-    RazorpayXWebhookService,
     InitiatePayoutOnboardingUseCase,
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,
     ReconcilePayoutsUseCase,
     EncryptionService,
-    {
-      provide: PAYOUT_PROVIDER,
-      useExisting: RazorpayXPayoutAdapter,
-    },
-    {
-      provide: PAYOUT_ONBOARDING_SERVICE,
-      useExisting: RazorpayXOnboardingAdapter,
-    },
   ],
   exports: [
     PayoutAccountsService,
-    RazorpayPayoutService,
-    RazorpayXPayoutAdapter,
-    RazorpayXOnboardingAdapter,
-    RazorpayXWebhookService,
-    PAYOUT_PROVIDER,
-    PAYOUT_ONBOARDING_SERVICE,
     InitiatePayoutOnboardingUseCase,
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,
