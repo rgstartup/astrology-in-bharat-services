@@ -18,6 +18,7 @@ import {
   CompletePayoutOnboardingUseCase,
   ExecutePayoutUseCase,
   ReconcilePayoutsUseCase,
+  ListPayoutLinksUseCase,
 } from "./use-cases";
 
 @Module({
@@ -39,6 +40,7 @@ import {
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,
     ReconcilePayoutsUseCase,
+    ListPayoutLinksUseCase,
     EncryptionService,
   ],
   exports: [
@@ -47,6 +49,7 @@ import {
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,
     ReconcilePayoutsUseCase,
+    ListPayoutLinksUseCase,
   ],
 })
 export class PayoutsAccountsModule implements OnModuleInit {
