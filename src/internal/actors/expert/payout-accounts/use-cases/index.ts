@@ -2,3 +2,4 @@ export { InitiatePayoutOnboardingUseCase } from './initiate-payout-accounts.usec
 export { CompletePayoutOnboardingUseCase } from './complete-payout-accounts.usecase';
 export { ExecutePayoutUseCase } from './execute-payout.usecase';
 export { ReconcilePayoutsUseCase } from './reconcile-payouts.usecase';
+export { ListPayoutLinksUseCase } from './list-payout-links.usecase';

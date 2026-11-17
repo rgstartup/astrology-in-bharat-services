@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  Get,
-} from "@nestjs/common";
+import { Controller, Post, Body, UseGuards, Get } from "@nestjs/common";
 import { ExpertJwtAuthGuard } from "@/internal/actors/expert/auth/guards/auth.guard";
 import { CurrentExpert } from "@/internal/actors/expert/auth/decorators/current-expert.decorator";
 import { type IExpert } from "@/shared/types/access-token.payload";
@@ -63,9 +57,9 @@ export class PayoutAccountsController {
 
   /** List expert's payout account links. */
   @UseGuards(ExpertJwtAuthGuard)
-  @Get("links")
+  @Get()
   async listLinks(@CurrentExpert() expert: IExpert) {
-    return { expertId: expert.sub };
+    return this.payoutAccountsService.listLinks({ expertId: expert.sub });
   }
 
   /** Execute a payout from the expert's linked payout account. */

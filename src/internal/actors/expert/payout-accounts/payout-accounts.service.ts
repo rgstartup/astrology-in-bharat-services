@@ -4,6 +4,7 @@ import {
   CompletePayoutOnboardingUseCase,
   ExecutePayoutUseCase,
   ReconcilePayoutsUseCase,
+  ListPayoutLinksUseCase,
 } from "./use-cases";
 import type {
   InitiatePayoutOnboardingInput,
@@ -15,6 +16,7 @@ import type {
 } from "./use-cases/complete-payout-accounts.usecase";
 import type { ExecutePayoutInput, ExecutePayoutOutput } from "./use-cases/execute-payout.usecase";
 import type { ReconcilePayoutsInput, ReconcilePayoutsOutput } from "./use-cases/reconcile-payouts.usecase";
+import type { ListPayoutLinksOutput } from "./use-cases/list-payout-links.usecase";
 
 /**
  * Payout accounts entry point for experts.
@@ -30,6 +32,7 @@ export class PayoutAccountsService {
     private readonly completeUseCase: CompletePayoutOnboardingUseCase,
     private readonly executePayoutUseCase: ExecutePayoutUseCase,
     private readonly reconcileUseCase: ReconcilePayoutsUseCase,
+    private readonly listLinksUseCase: ListPayoutLinksUseCase,
   ) {}
 
   initiateOnboarding(
@@ -50,5 +53,9 @@ export class PayoutAccountsService {
 
   reconcilePayouts(input?: ReconcilePayoutsInput): Promise<ReconcilePayoutsOutput> {
     return this.reconcileUseCase.execute(input ?? {});
+  }
+
+  listLinks(input: { expertId: number }): Promise<ListPayoutLinksOutput> {
+    return this.listLinksUseCase.execute(input);
   }
 }
