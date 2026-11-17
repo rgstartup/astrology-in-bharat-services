@@ -211,6 +211,13 @@
       "when": 1794574427078,
       "tag": "0029_add_payout_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1794894021263,
+      "tag": "0030_add_expert_payout_account_links",
+      "breakpoints": true
     }
   ]
 }

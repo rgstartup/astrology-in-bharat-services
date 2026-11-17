@@ -163,7 +163,10 @@ export class CompletePayoutOnboardingUseCase {
     }
 
     if (references.length > 0) {
-      await this.db.insert(payoutAccountReferences).values(references);
+      await this.db
+        .insert(payoutAccountReferences)
+        .values(references)
+        .onConflictDoNothing();
     }
 
     // Link the payout account to the expert.
