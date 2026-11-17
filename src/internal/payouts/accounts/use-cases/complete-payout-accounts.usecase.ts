@@ -22,7 +22,7 @@ import {
 import type { NewPayoutAccountReferenceRow } from '@/core/drizzledb/schema';
 import { PayoutProviderService } from '../payout-provider.service';
 import { EncryptionService } from '@/shared/services/encryption.service';
-import { PayoutOnboardingCompleteInput } from '@/external/payout-onboarding/payout-onboarding.interface';
+import { PayoutOnboardingCompleteInput } from '@/external/payouts/onboarding/payout-onboarding.interface';
 import {
   PayoutOnboardingNotFoundError,
   PayoutOnboardingAlreadyCompletedError,

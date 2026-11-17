@@ -7,8 +7,8 @@ import {
   payoutPlatformAccounts,
   expertPayoutPlatformAccounts,
 } from "@/core/drizzledb/schema";
-import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payout-onboarding/payout-onboarding.interface";
-import type { PayoutOnboardingService, PayoutOnboardingExpertContext, PayoutOnboardingInitiateOutput } from "@/external/payout-onboarding/payout-onboarding.interface";
+import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payouts/onboarding/payout-onboarding.interface";
+import type { PayoutOnboardingService, PayoutOnboardingExpertContext, PayoutOnboardingInitiateOutput } from "@/external/payouts/onboarding/payout-onboarding.interface";
 import { IExpert } from "@/shared/types/access-token.payload";
 import { BankLinkAlreadyActiveError } from '../errors/bank-link-already-active.error';
 

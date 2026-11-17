@@ -15,7 +15,7 @@ import {
   PayoutOnboardingAccountStatus,
   PayoutOnboardingWebhookEvent,
   PayoutOnboardingExpertContext,
-} from '@/external/payout-onboarding/payout-onboarding.interface';
+} from '@/external/payouts/onboarding/payout-onboarding.interface';
 import { ProviderCapability, ProviderCapabilityProfile } from './provider-capability';
 import { PayoutProviderError } from './payout-provider.errors';
 

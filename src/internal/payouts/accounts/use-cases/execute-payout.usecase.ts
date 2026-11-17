@@ -20,7 +20,7 @@ import {
   payoutProviderAccounts,
 } from '@/core/drizzledb/schema';
 import { PayoutProviderService } from '../payout-provider.service';
-import type { CreatePayoutInput } from '@/external/payout-onboarding/payout-provider.interface';
+import type { CreatePayoutInput } from '@/external/payouts/onboarding/payout-provider.interface';
 import {
   PayoutAccountNotLinkedError,
   PayoutAccountNotFoundError,

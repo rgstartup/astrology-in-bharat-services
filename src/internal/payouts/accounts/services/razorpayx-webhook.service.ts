@@ -7,8 +7,7 @@ import {
   payoutWebhookEvents,
   payoutAccountReferences,
 } from "@/core/drizzledb/schema";
-import { RazorpayXPayoutAdapter } from "@/internal/actors/expert/payout-accounts/providers/razorpayx/razorpayx-payout-adapter";
-import type { Request } from "express";
+import { RazorpayXPayoutAdapter } from "@/internal/payouts/accounts/providers/razorpayx/razorpayx-payout-adapter";
 
 @Injectable()
 export class RazorpayXWebhookService {
@@ -66,9 +65,7 @@ export class RazorpayXWebhookService {
             payload: null,
             signature_verified: event !== null,
             processing_status: event ? "processing" : "failed",
-            failure_message: event
-              ? null
-              : "signature_verification_failed",
+            failure_message: event ? null : "signature_verification_failed",
           })
           .onConflictDoNothing()
           .returning({ id: payoutWebhookEvents.id });

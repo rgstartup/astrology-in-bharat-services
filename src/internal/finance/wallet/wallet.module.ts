@@ -42,7 +42,7 @@ import { BankAccountsModule } from '../../actors/expert/bank-accounts/bank-accou
 import { CommissionsModule } from '../commissions/commissions.module';
 import { GeneralLedgerEntry } from '../ledger/entities/general-ledger-entry.entity';
 import { QueueModule } from '../../../core/queue/queue.module';
-import { PayoutAccountsModule } from '@/internal/actors/expert/payout-accounts/payout-accounts.module';
+import { PayoutsAccountsModule } from '@/internal/payouts/accounts/payouts-accounts.module';
 import WalletRepository from './repositories/wallet.repository';
 
 @Module({
@@ -65,7 +65,7 @@ import WalletRepository from './repositories/wallet.repository';
     forwardRef(() => AgentModule),
     CommissionsModule,
     QueueModule,
-    PayoutAccountsModule,
+    PayoutsAccountsModule,
   ],
   providers: [
     WalletService,

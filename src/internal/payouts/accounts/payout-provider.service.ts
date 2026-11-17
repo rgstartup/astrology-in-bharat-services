@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { PayoutProviderResolver, PAYOUT_PROVIDER } from "@/external/payout-onboarding";
-import type { PayoutProvider } from "@/external/payout-onboarding/payout-provider.interface";
+import { PayoutProviderResolver, PAYOUT_PROVIDER } from "@/external/payouts";
+import type { PayoutProvider } from "@/external/payouts/onboarding/payout-provider.interface";
 
 /**
  * Facade over `PayoutProviderResolver` + the default `PAYOUT_PROVIDER`.

@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { Request, type Response } from "express";
 import { Public } from "@/shared/decorators/public.decorator";
-import { RazorpayXWebhookService } from "@/internal/actors/expert/payout-accounts/services/razorpayx-webhook.service";
+import { RazorpayXWebhookService } from "@/internal/payouts/accounts/services/razorpayx-webhook.service";
 
 @Controller({
   path: "webhooks/razorpayx",

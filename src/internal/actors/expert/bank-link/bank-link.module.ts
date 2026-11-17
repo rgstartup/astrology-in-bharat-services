@@ -11,17 +11,17 @@ import {
   ValidatePennyDropUseCase,
 } from "./use-cases";
 import { BankLinkController } from "./controllers/bank-link.controller";
-import { PayoutOnboardingFactory } from "@/external/payout-onboarding/payout-onboarding.factory";
-import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payout-onboarding/payout-onboarding.interface";
+import { PayoutOnboardingFactory } from "@/external/payouts/onboarding/payout-onboarding.factory";
+import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payouts/onboarding/payout-onboarding.interface";
 import { EncryptionService } from "@/shared/services/encryption.service";
 import { ExpertAuthModule } from "../auth/auth.module";
-import { PayoutAccountsModule } from "@/internal/actors/expert/payout-accounts/payout-accounts.module";
+import { PayoutsAccountsModule } from "@/internal/payouts/accounts/payouts-accounts.module";
 
 @Module({
   imports: [
     ConfigModule,
     ExpertAuthModule,
-    PayoutAccountsModule,
+    PayoutsAccountsModule,
   ],
   controllers: [BankLinkController],
   providers: [

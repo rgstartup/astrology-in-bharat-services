@@ -1,0 +1,1 @@
+export { RazorpayXOnboardingAdapter } from './razorpayx-onboarding-adapter';

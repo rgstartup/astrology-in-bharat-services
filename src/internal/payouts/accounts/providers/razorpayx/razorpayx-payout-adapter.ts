@@ -18,17 +18,17 @@ import {
   CreatePayoutOutput,
   PayoutStatusOutput,
   PAYOUT_PROVIDER,
-} from '@/external/payout-onboarding/payout-provider.interface';
+} from '@/external/payouts/onboarding/payout-provider.interface';
 import {
   PayoutOnboardingInitiateOutput,
   PayoutOnboardingLinkedAccount,
   PayoutOnboardingAccountStatus,
   PayoutOnboardingWebhookEvent,
   PayoutOnboardingExpertContext,
-} from '@/external/payout-onboarding/payout-onboarding.interface';
-import { RazorpayPayoutService } from '@/internal/actors/expert/payout-accounts/gateways/razorpay-payout.service';
-import { RAZORPAYX_CAPABILITIES } from '@/external/payout-onboarding/provider-capability';
-import { mapRazorpayError, PayoutProviderError } from '@/external/payout-onboarding/payout-provider.errors';
+} from '@/external/payouts/onboarding/payout-onboarding.interface';
+import { RazorpayPayoutService } from '@/internal/payouts/accounts/gateways/razorpay-payout.service';
+import { RAZORPAYX_CAPABILITIES } from '@/external/payouts/onboarding/provider-capability';
+import { mapRazorpayError, PayoutProviderError } from '@/external/payouts/onboarding/payout-provider.errors';
 
 @Injectable()
 export class RazorpayXPayoutAdapter implements PayoutProvider {

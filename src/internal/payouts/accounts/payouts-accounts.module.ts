@@ -4,13 +4,13 @@ import { HttpClientModule } from "@nestjs/http-client";
 import { EventEmitterModule, EventEmitter2 } from "@nestjs/event-emitter";
 import type { Duration } from "@nestjs/http-client";
 import { EncryptionService } from "@/shared/services/encryption.service";
-import { PAYOUT_PROVIDER } from "@/external/payout-onboarding/payout-provider.interface";
-import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payout-onboarding/payout-onboarding.interface";
-import { PayoutProviderModule, PayoutProviderResolver } from "@/external/payout-onboarding";
-import type { PayoutProvider } from "@/external/payout-onboarding/payout-provider.interface";
-import type { PayoutOnboardingService } from "@/external/payout-onboarding/payout-onboarding.interface";
+import { PAYOUT_PROVIDER } from "@/external/payouts/onboarding/payout-provider.interface";
+import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payouts/onboarding/payout-onboarding.interface";
+import { PayoutProviderModule, PayoutProviderResolver } from "@/external/payouts";
+import type { PayoutProvider } from "@/external/payouts/onboarding/payout-provider.interface";
+import type { PayoutOnboardingService } from "@/external/payouts/onboarding/payout-onboarding.interface";
 import { PayoutAccountsController } from "./controllers/payout-accounts.controller";
-import { RazorpayXWebhookController } from "@/external/payout-onboarding/providers/razorpayx/razorpayx-webhook.controller";
+import { RazorpayXWebhookController } from "./controllers/razorpayx-webhook.controller";
 import { RazorpayXWebhookService } from "./services/razorpayx-webhook.service";
 import { PayoutAccountsService } from "./payout-accounts.service";
 import { PayoutProviderService } from "./payout-provider.service";
@@ -70,7 +70,7 @@ import {
     ReconcilePayoutsUseCase,
   ],
 })
-export class PayoutAccountsModule implements OnModuleInit {
+export class PayoutsAccountsModule implements OnModuleInit {
   constructor(
     private readonly eventEmitter: EventEmitter2,
     @Inject(PAYOUT_PROVIDER) private readonly payoutProvider: PayoutProvider,

@@ -19,8 +19,8 @@ import {
   PayoutOnboardingWebhookEvent,
   PayoutOnboardingExpertContext,
   PayoutOnboardingCompleteInput,
-} from '@/external/payout-onboarding/payout-onboarding.interface';
-import { RazorpayPayoutService } from '@/internal/actors/expert/payout-accounts/gateways/razorpay-payout.service';
+} from '@/external/payouts/onboarding/payout-onboarding.interface';
+import { RazorpayPayoutService } from '@/internal/payouts/accounts/gateways/razorpay-payout.service';
 
 @Injectable()
 export class RazorpayXOnboardingAdapter implements PayoutOnboardingService {

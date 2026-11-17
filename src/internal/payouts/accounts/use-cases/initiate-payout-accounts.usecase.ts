@@ -17,7 +17,7 @@ import {
 } from '@/core/drizzledb/schema';
 import { PayoutProviderService } from '../payout-provider.service';
 import { PayoutProviderAccountNotConfiguredError } from '../errors';
-import { PayoutOnboardingExpertContext } from '@/external/payout-onboarding/payout-onboarding.interface';
+import { PayoutOnboardingExpertContext } from '@/external/payouts/onboarding/payout-onboarding.interface';
 
 export interface InitiatePayoutOnboardingInput {
   expertId: number;

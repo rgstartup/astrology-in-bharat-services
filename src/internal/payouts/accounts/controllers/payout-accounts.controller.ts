@@ -5,8 +5,8 @@ import {
   UseGuards,
   Get,
 } from "@nestjs/common";
-import { ExpertJwtAuthGuard } from "../../auth/guards/auth.guard";
-import { CurrentExpert } from "../../auth/decorators/current-expert.decorator";
+import { ExpertJwtAuthGuard } from "@/internal/actors/expert/auth/guards/auth.guard";
+import { CurrentExpert } from "@/internal/actors/expert/auth/decorators/current-expert.decorator";
 import { type IExpert } from "@/shared/types/access-token.payload";
 import { PayoutAccountsService } from "../payout-accounts.service";
 import {
