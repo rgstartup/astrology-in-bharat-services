@@ -103,12 +103,19 @@ export class RazorpayPayoutService {
   }
 
   /**
-   * Create or find a Fund Account for the expert's bank details
+   * Create or find a Fund Account for the expert's bank details.
+   * Returns the fund account id plus bank display fields returned by RazorpayX
+   * (last-4 account number, IFSC) so they can be stored for expert UX.
    */
   async getOrCreateFundAccount(
     contactId: string,
     bankDetails: { name: string; account: string; ifsc: string },
-  ) {
+  ): Promise<{
+    fundAccountId: string;
+    accountNumberMasked?: string;
+    bankName?: string;
+    ifsc?: string;
+  }> {
     try {
       // RazorpayX Fund Accounts API: POST /fund_accounts
       const response = await this.makeRequest("/fund_accounts", "POST", {
@@ -120,7 +127,16 @@ export class RazorpayPayoutService {
           account_number: bankDetails.account.trim(),
         },
       });
-      return response.id as string;
+      const bankAccount = (response as Record<string, unknown>)?.bank_account as
+        | Record<string, unknown>
+        | undefined;
+      const accountNumber = bankAccount?.account_number as string | undefined;
+      return {
+        fundAccountId: response.id as string,
+        accountNumberMasked: accountNumber ? accountNumber.slice(-4) : undefined,
+        bankName: bankAccount?.bank_name as string | undefined,
+        ifsc: bankAccount?.ifsc as string | undefined,
+      };
     } catch (err: unknown) {
       const error = err as Error;
       this.logger.error("Failed to create Razorpay Fund Account", error);

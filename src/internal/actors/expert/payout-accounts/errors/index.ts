@@ -9,3 +9,4 @@ export { PayoutAccountNotActiveError } from './payout-account-not-active.error';
 export { NoProviderAccountConfiguredError } from './no-provider-account-configured.error';
 export { NoFundAccountReferenceError } from './no-fund-account-reference.error';
 export { PayoutExecutionFailedError } from './payout-execution-failed.error';
+export { PayoutAccountIsPrimaryError } from './payout-account-is-primary.error';

@@ -181,7 +181,7 @@ export class UpdateWithdrawalStatusUseCase {
 
         let tempFundAccountId = '';
         // Create fund account on the fly
-        tempFundAccountId =
+        const fundAccountResult =
           await this.razorpayPayoutService.getOrCreateFundAccount(
             profile.razorpay_contact_id,
             {
@@ -190,6 +190,7 @@ export class UpdateWithdrawalStatusUseCase {
               ifsc: ifsc,
             },
           );
+        tempFundAccountId = fundAccountResult.fundAccountId;
 
         // 3. Initiate Payout
         const payoutResponse = await this.razorpayPayoutService.initiatePayout(

@@ -3,3 +3,5 @@ export { CompletePayoutOnboardingUseCase } from './complete-payout-accounts.usec
 export { ExecutePayoutUseCase } from './execute-payout.usecase';
 export { ReconcilePayoutsUseCase } from './reconcile-payouts.usecase';
 export { ListPayoutLinksUseCase } from './list-payout-links.usecase';
+export { RemovePayoutAccountUseCase } from './remove-payout-account.usecase';
+export { SetPrimaryPayoutAccountUseCase } from './set-primary-payout-account.usecase';

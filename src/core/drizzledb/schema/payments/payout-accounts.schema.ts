@@ -59,6 +59,12 @@ export const payoutAccounts = paymentSchema.table(
     display_name: text('display_name'),
     /** Safe identifier/fingerprint for display (e.g. last-4 account). */
     account_fingerprint: text('account_fingerprint'),
+    /** Last 4 digits of bank account number — safe to display for expert UX. */
+    account_number_masked: text('account_number_masked'),
+    /** Bank name (nullable — may not be available from all providers). */
+    bank_name: text('bank_name'),
+    /** IFSC code (nullable for VPA/wallet types). */
+    ifsc: text('ifsc'),
     is_primary: boolean('is_primary').notNull().default(false),
     /** Non-sensitive provider-specific data (JSON). */
     provider_metadata: json('provider_metadata').$type<

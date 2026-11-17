@@ -5,6 +5,8 @@ import {
   ExecutePayoutUseCase,
   ReconcilePayoutsUseCase,
   ListPayoutLinksUseCase,
+  RemovePayoutAccountUseCase,
+  SetPrimaryPayoutAccountUseCase,
 } from "./use-cases";
 import type {
   InitiatePayoutOnboardingInput,
@@ -16,7 +18,15 @@ import type {
 } from "./use-cases/complete-payout-accounts.usecase";
 import type { ExecutePayoutInput, ExecutePayoutOutput } from "./use-cases/execute-payout.usecase";
 import type { ReconcilePayoutsInput, ReconcilePayoutsOutput } from "./use-cases/reconcile-payouts.usecase";
-import type { ListPayoutLinksOutput } from "./use-cases/list-payout-links.usecase";
+import type { PayoutLinkItem } from "./use-cases/list-payout-links.usecase";
+import type {
+  RemovePayoutAccountInput,
+  RemovePayoutAccountOutput,
+} from "./use-cases/remove-payout-account.usecase";
+import type {
+  SetPrimaryPayoutAccountInput,
+  SetPrimaryPayoutAccountOutput,
+} from "./use-cases/set-primary-payout-account.usecase";
 
 /**
  * Payout accounts entry point for experts.
@@ -33,6 +43,8 @@ export class PayoutAccountsService {
     private readonly executePayoutUseCase: ExecutePayoutUseCase,
     private readonly reconcileUseCase: ReconcilePayoutsUseCase,
     private readonly listLinksUseCase: ListPayoutLinksUseCase,
+    private readonly removePayoutAccountUseCase: RemovePayoutAccountUseCase,
+    private readonly setPrimaryPayoutAccountUseCase: SetPrimaryPayoutAccountUseCase,
   ) {}
 
   initiateOnboarding(
@@ -55,7 +67,19 @@ export class PayoutAccountsService {
     return this.reconcileUseCase.execute(input ?? {});
   }
 
-  listLinks(input: { expertId: number }): Promise<ListPayoutLinksOutput> {
-    return this.listLinksUseCase.execute(input);
+  listLinks(input: { expertId: number }): Promise<PayoutLinkItem[]> {
+    return this.listLinksUseCase.execute(input).then((result) => result.links);
+  }
+
+  removePayoutAccount(
+    input: RemovePayoutAccountInput,
+  ): Promise<RemovePayoutAccountOutput> {
+    return this.removePayoutAccountUseCase.execute(input);
+  }
+
+  setPrimaryPayoutAccount(
+    input: SetPrimaryPayoutAccountInput,
+  ): Promise<SetPrimaryPayoutAccountOutput> {
+    return this.setPrimaryPayoutAccountUseCase.execute(input);
   }
 }

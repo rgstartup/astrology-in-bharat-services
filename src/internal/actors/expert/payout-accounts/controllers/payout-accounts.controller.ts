@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards, Get } from "@nestjs/common";
+import {
+  Delete,
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+} from "@nestjs/common";
 import { ExpertJwtAuthGuard } from "@/internal/actors/expert/auth/guards/auth.guard";
 import { CurrentExpert } from "@/internal/actors/expert/auth/decorators/current-expert.decorator";
 import { type IExpert } from "@/shared/types/access-token.payload";
@@ -8,6 +15,8 @@ import {
   CompletePayoutOnboardingDto,
   ExecutePayoutDto,
   ReconcilePayoutsDto,
+  RemovePayoutAccountDto,
+  SetPrimaryPayoutAccountDto,
 } from "../dto";
 
 @Controller({
@@ -57,7 +66,7 @@ export class PayoutAccountsController {
 
   /** List expert's payout account links. */
   @UseGuards(ExpertJwtAuthGuard)
-  @Get()
+  @Get("links")
   async listLinks(@CurrentExpert() expert: IExpert) {
     return this.payoutAccountsService.listLinks({ expertId: expert.sub });
   }
@@ -89,6 +98,32 @@ export class PayoutAccountsController {
     return this.payoutAccountsService.reconcilePayouts({
       statuses: dto.statuses,
       limit: dto.limit,
+    });
+  }
+
+  /** Remove (unlink) a payout account from the expert. */
+  @UseGuards(ExpertJwtAuthGuard)
+  @Delete(":payoutAccountId")
+  async removePayoutAccount(
+    @CurrentExpert() expert: IExpert,
+    @Body() dto: RemovePayoutAccountDto,
+  ) {
+    return this.payoutAccountsService.removePayoutAccount({
+      expertId: expert.sub,
+      payoutAccountId: dto.payoutAccountId,
+    });
+  }
+
+  /** Set a payout account as the expert's primary. */
+  @UseGuards(ExpertJwtAuthGuard)
+  @Post(":payoutAccountId/set-primary")
+  async setPrimaryPayoutAccount(
+    @CurrentExpert() expert: IExpert,
+    @Body() dto: SetPrimaryPayoutAccountDto,
+  ) {
+    return this.payoutAccountsService.setPrimaryPayoutAccount({
+      expertId: expert.sub,
+      payoutAccountId: dto.payoutAccountId,
     });
   }
 }

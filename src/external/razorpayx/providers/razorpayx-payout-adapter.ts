@@ -71,7 +71,7 @@ export class RazorpayXPayoutAdapter implements PayoutProvider {
       name: input.accountHolderName,
     });
 
-    const fundAccountId = await this.payoutService.getOrCreateFundAccount(
+    const fundAccountResult = await this.payoutService.getOrCreateFundAccount(
       contactId,
       {
         name: input.accountHolderName,
@@ -81,9 +81,12 @@ export class RazorpayXPayoutAdapter implements PayoutProvider {
     );
 
     return {
-      externalAccountId: fundAccountId,
+      externalAccountId: fundAccountResult.fundAccountId,
       accessToken: '',
-      raw: { fundAccountId, contactId },
+      raw: { fundAccountId: fundAccountResult.fundAccountId, contactId },
+      accountNumberMasked: fundAccountResult.accountNumberMasked ?? undefined,
+      bankName: fundAccountResult.bankName ?? undefined,
+      ifsc: fundAccountResult.ifsc ?? undefined,
     };
   }
 

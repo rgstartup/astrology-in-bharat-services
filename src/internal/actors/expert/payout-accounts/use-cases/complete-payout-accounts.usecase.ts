@@ -125,6 +125,9 @@ export class CompletePayoutOnboardingUseCase {
         account_type: 'bank_account',
         display_name: input.accountHolderName ?? linkedAccount.accountHolderName ?? null,
         account_fingerprint: linkedAccount.accountFingerprint ?? null,
+        account_number_masked: linkedAccount.accountNumberMasked ?? null,
+        bank_name: linkedAccount.bankName ?? null,
+        ifsc: linkedAccount.ifsc ?? null,
         is_primary: false,
         provider_metadata: linkedAccount.raw ?? null,
         verified_at: new Date(),
@@ -169,11 +172,17 @@ export class CompletePayoutOnboardingUseCase {
         .onConflictDoNothing();
     }
 
-    // Link the payout account to the expert.
+    // Link the payout account to the expert. Set as primary if this is the
+    // expert's first linked payout account.
+    const existingLinks = await this.db
+      .select({ id: expertPayoutAccountLinks.id })
+      .from(expertPayoutAccountLinks)
+      .where(eq(expertPayoutAccountLinks.expert_id, input.expertId));
+
     await this.db.insert(expertPayoutAccountLinks).values({
       expert_id: input.expertId,
       payout_account_id: accountRow.id,
-      is_primary: false,
+      is_primary: existingLinks.length === 0,
     });
 
     // Mark onboarding completed.

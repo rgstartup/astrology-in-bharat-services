@@ -43,6 +43,14 @@ export interface PayoutOnboardingLinkedAccount {
   readonly refreshToken?: string;
   /** When the access token expires (ISO string), if known. */
   readonly tokenExpiresAt?: string;
+  /** Last 4 digits of bank account number — safe to display for expert UX. */
+  readonly accountNumberMasked?: string;
+  /** Bank name (nullable — may not be available from all providers). */
+  readonly bankName?: string;
+  /** IFSC code (nullable for VPA/wallet types). */
+  readonly ifsc?: string;
+  /** Safe identifier/fingerprint for display (e.g. last-4 account). */
+  readonly accountFingerprint?: string;
   /** Provider-specific extra payload to store verbatim. */
   readonly raw: Record<string, unknown>;
 }

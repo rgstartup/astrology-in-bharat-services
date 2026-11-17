@@ -1,17 +1,23 @@
 /**
  * List the payout accounts linked to an expert.
  *
- * Joins expert_payout_account_links -> payments.payout_accounts so the
- * frontend can render each linked account (id, display name, status, etc.)
- * without exposing sensitive bank details.
+ * Joins expert_payout_account_links -> payments.payout_accounts ->
+ * payments.payout_provider_accounts -> payments.payment_providers, with a
+ * left join to payments.payout_account_references for the external account
+ * id. Returns one row per linked account shaped to the frontend
+ * PayoutAccountLink contract.
  */
 import { Inject, Injectable } from "@nestjs/common";
 import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
 import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
-import { eq } from "drizzle-orm";
+import { eq, and, isNotNull } from "drizzle-orm";
 import {
   expertPayoutAccountLinks,
   payoutAccounts,
+  payoutProviderAccounts,
+  paymentProviders,
+  payoutAccountReferences,
+  payoutAccountReferenceTypeEnum,
 } from "@/core/drizzledb/schema";
 
 export interface ListPayoutLinksInput {
@@ -20,13 +26,21 @@ export interface ListPayoutLinksInput {
 
 export interface PayoutLinkItem {
   id: number;
-  displayName: string | null;
-  accountType: string;
-  status: string;
-  verificationStatus: string;
-  accountFingerprint: string | null;
+  paymentProvider: string;
+  providerProduct: string;
+  onboardingStatus: string;
+  accountStatus: string | null;
+  externalAccountId: string | null;
+  isActive: boolean;
   isPrimary: boolean;
-  createdAt: Date;
+  activatedAt: string | null;
+  createdAt: string;
+  /** Last 4 digits of bank account number — safe to display for expert UX. */
+  accountNumberMasked: string | null;
+  /** Bank name (nullable — may not be available from all providers). */
+  bankName: string | null;
+  /** IFSC code (nullable for VPA/wallet types). */
+  ifsc: string | null;
 }
 
 export interface ListPayoutLinksOutput {
@@ -43,12 +57,16 @@ export class ListPayoutLinksUseCase {
     const rows = await this.db
       .select({
         id: payoutAccounts.id,
-        displayName: payoutAccounts.display_name,
-        accountType: payoutAccounts.account_type,
-        status: payoutAccounts.status,
-        verificationStatus: payoutAccounts.verification_status,
-        accountFingerprint: payoutAccounts.account_fingerprint,
+        paymentProvider: paymentProviders.code,
+        providerProduct: payoutProviderAccounts.name,
+        onboardingStatus: payoutAccounts.status,
+        accountStatus: payoutAccounts.verification_status,
+        externalAccountId: payoutAccountReferences.provider_reference,
+        accountNumberMasked: payoutAccounts.account_number_masked,
+        bankName: payoutAccounts.bank_name,
+        ifsc: payoutAccounts.ifsc,
         isPrimary: expertPayoutAccountLinks.is_primary,
+        activatedAt: payoutAccounts.verified_at,
         createdAt: payoutAccounts.created_at,
       })
       .from(expertPayoutAccountLinks)
@@ -59,19 +77,54 @@ export class ListPayoutLinksUseCase {
           payoutAccounts.id,
         ),
       )
+      .innerJoin(
+        payoutProviderAccounts,
+        eq(
+          payoutAccounts.payout_provider_account_id,
+          payoutProviderAccounts.id,
+        ),
+      )
+      .innerJoin(
+        paymentProviders,
+        eq(
+          payoutProviderAccounts.provider_id,
+          paymentProviders.id,
+        ),
+      )
+      .leftJoin(
+        payoutAccountReferences,
+        and(
+          eq(
+            payoutAccountReferences.payout_account_id,
+            payoutAccounts.id,
+          ),
+          eq(
+            payoutAccountReferences.reference_type,
+            "external_account",
+          ),
+          isNotNull(payoutAccountReferences.provider_reference),
+        ),
+      )
       .where(eq(expertPayoutAccountLinks.expert_id, input.expertId))
       .orderBy(payoutAccounts.created_at);
 
     return {
       links: rows.map((row) => ({
         id: row.id,
-        displayName: row.displayName,
-        accountType: row.accountType,
-        status: row.status,
-        verificationStatus: row.verificationStatus,
-        accountFingerprint: row.accountFingerprint,
+        paymentProvider: row.paymentProvider,
+        providerProduct: row.providerProduct,
+        onboardingStatus: row.onboardingStatus,
+        accountStatus: row.accountStatus,
+        externalAccountId: row.externalAccountId,
+        isActive: row.onboardingStatus === "active",
         isPrimary: row.isPrimary,
-        createdAt: row.createdAt,
+        activatedAt: row.activatedAt
+          ? new Date(row.activatedAt).toISOString()
+          : null,
+        createdAt: new Date(row.createdAt).toISOString(),
+        accountNumberMasked: row.accountNumberMasked,
+        bankName: row.bankName,
+        ifsc: row.ifsc,
       })),
     };
   }
