@@ -1,7 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { asc, count, desc, eq, type SQL } from "drizzle-orm";
+import { asc, count, desc, eq } from "drizzle-orm";
 import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
 import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import { parseSort } from "@/shared/sorting/sort.parser";
+import { SortOption } from "@/shared/sorting/sort.types";
 import { notifications } from "@/core/drizzledb/schema";
 import { GetExpertNotificationsDto } from "../dto/get-expert-notifications.dto";
 
@@ -13,33 +15,7 @@ const notificationSortColumns = {
   type: notifications.type,
 } as const;
 
-type SortDirection = "asc" | "desc";
-
-interface SortSpec {
-  field: keyof typeof notificationSortColumns;
-  direction: SortDirection;
-}
-
-/**
- * Parses the `sort` query string produced by `SortDto`, e.g.
- * `created_at-desc,id-asc` → `[{ field: "created_at", direction: "desc" }, ...]`.
- * Invalid/unknown fields are skipped; empty input returns `[]`.
- */
-function parseSort(sort?: string): SortSpec[] {
-  if (!sort) return [];
-
-  return sort
-    .split(",")
-    .map((part) => part.trim().split("-"))
-    .filter(([field, dir]) => {
-      const validDir = dir === "asc" || dir === "desc";
-      return field in notificationSortColumns && validDir;
-    })
-    .map(([field, dir]) => ({
-      field: field as keyof typeof notificationSortColumns,
-      direction: dir as SortDirection,
-    }));
-}
+type NotificationSortField = keyof typeof notificationSortColumns;
 
 /**
  * Retrieves a paginated, sortable list of notifications for a given expert.
@@ -54,9 +30,9 @@ export class GetExpertNotificationsUseCase {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async execute(expertId: number, dto: GetExpertNotificationsDto) {
-    const sortSpecs = parseSort(dto.sort);
+    const sortSpecs = parseSort<NotificationSortField>(dto.sort);
 
-    const orderBy: SQL[] =
+    const orderBy =
       sortSpecs.length > 0
         ? sortSpecs.map(({ field, direction }) => {
             const column = notificationSortColumns[field] ?? notifications.created_at;
