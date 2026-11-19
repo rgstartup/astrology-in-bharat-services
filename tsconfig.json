@@ -27,5 +27,6 @@
         "./src/*"
       ]
     }
-  }
+  },
+  "exclude": ["archive", "dist", "node_modules"]
 }

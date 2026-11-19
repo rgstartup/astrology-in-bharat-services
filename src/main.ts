@@ -13,6 +13,7 @@ import { UnknownExceptionFilter } from "./shared/filters/unknown-exception.filte
 import { ResponseInterceptor } from "./shared/interceptors/response.interceptor";
 import { ValidationDomainError } from "./shared/errors";
 import { formatValidationErrors } from "./shared/utils/validation-error-formatter.util";
+import { CorrelationMiddleware } from "./shared/middleware/correlation.middleware";
 import { json, urlencoded } from "express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { RequestMethod } from "@nestjs/common";
@@ -72,6 +73,7 @@ async function bootstrap() {
   });
 
   app.use(cookieParser());
+  app.use(new CorrelationMiddleware().use);
 
   // Increase payload limit for large base64 strings (images)
   // And capture rawBody for webhook signature verification
@@ -109,11 +111,11 @@ async function bootstrap() {
     }),
   );
 
-  // Apply global exception filter
+  // Apply global exception filters (ordered: most specific to least specific catch-all)
   app.useGlobalFilters(
-    new UnknownExceptionFilter(), // Bug / crash
-    new HttpExceptionFilter(), // Client mistake
     new DomainExceptionFilter(), // Business rule failed
+    new HttpExceptionFilter(), // Client mistake
+    new UnknownExceptionFilter(), // Bug / crash catch-all
   );
 
   // Apply global response interceptor (wraps ALL success responses)

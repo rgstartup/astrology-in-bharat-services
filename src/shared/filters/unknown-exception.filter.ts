@@ -1,45 +1,5 @@
-// src/common/filters/unknown-exception.filter.ts
-import {
-  Catch,
-  ExceptionFilter,
-  ArgumentsHost,
-  HttpStatus,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
-import { appendFileSync } from 'fs';
-import { ApiResponse } from '../dto/api-response.dto';
-import { ApiError } from '../dto/api-response.dto';
-
-@Catch()
-export class UnknownExceptionFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const res = ctx.getResponse<Response>();
-    const req = ctx.getRequest<Request>();
-
-    // 🔴 Log aggressively (replace with Winston/Sentry/etc)
-    console.error('Unhandled exception:', exception);
-    try {
-      appendFileSync(
-        '../../../logs/unhandled-errors.log',
-        new Date().toISOString() +
-          '\n' +
-          String(exception) +
-          '\n' +
-          ((exception as Error)?.stack || '') +
-          '\n\n',
-      );
-    } catch {}
-
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(
-      ApiResponse.fail(
-        new ApiError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Internal server error',
-          path: req.url,
-          timestamp: new Date().toISOString(),
-        }),
-      ),
-    );
-  }
-}
+/**
+ * Legacy compatibility bridge.
+ * Canonical implementation now lives in `@/shared/http/responses`.
+ */
+export { UnknownExceptionFilter } from '@/shared/http/responses';
