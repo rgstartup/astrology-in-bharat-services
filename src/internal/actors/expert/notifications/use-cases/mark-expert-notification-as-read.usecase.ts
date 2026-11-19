@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
 import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
 import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
