@@ -32,10 +32,10 @@ export class ExpertNotificationsController {
   ) {
     const { data, totalCount } =
       await this.notificationsService.getNotifications(expert.sub, dto);
-    return ApiResponse.paginated(data, dto.page ?? 1, dto.limit ?? 20, totalCount);
+    return ApiResponse.paginated(data, dto.page, dto.limit, totalCount);
   }
 
-  @Get("unread-count")
+  @Get("count")
   async getUnreadCount(@CurrentExpert() expert: IExpert) {
     const count = await this.notificationsService.getUnreadCount(expert.sub);
     return { count };
@@ -50,8 +50,8 @@ export class ExpertNotificationsController {
     return { success: true };
   }
 
-  @Delete("all")
-  async clearAll(@CurrentExpert() expert: IExpert) {
+  @Delete()
+  async deleteAll(@CurrentExpert() expert: IExpert) {
     await this.notificationsService.clearAll(expert.sub);
     return { success: true };
   }
