@@ -1,7 +1,7 @@
-import { SortDto } from "@/shared/sorting/sort.dto";
+import { IsBoolean, IsOptional } from "class-validator";
 
-export const EXPERT_NOTIFICATION_SORT_FIELDS = ["is_read"] as const;
-
-const ExpertNotificationCountSortDto = SortDto(EXPERT_NOTIFICATION_SORT_FIELDS);
-
-export class GetExpertNotificationsCountDto extends ExpertNotificationCountSortDto {}
+export class GetExpertNotificationsCountDto {
+  @IsOptional()
+  @IsBoolean()
+  is_read: boolean = true;
+}

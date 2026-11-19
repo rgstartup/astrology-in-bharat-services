@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 import {
   ClearExpertNotificationsUseCase,
   GetExpertNotificationsUseCase,
-  GetExpertUnreadCountUseCase,
+  GetExpertNotificationsCountUseCase,
   MarkExpertNotificationAsReadUseCase,
-} from './use-cases';
-import { GetExpertNotificationsDto } from './dto/get-expert-notifications.dto';
-
+} from "./use-cases";
+import { GetExpertNotificationsDto } from "./dto/get-expert-notifications.dto";
 /**
  * Service for expert-specific notification management.
  *
@@ -20,7 +19,7 @@ import { GetExpertNotificationsDto } from './dto/get-expert-notifications.dto';
 export class ExpertNotificationsService {
   constructor(
     private readonly getNotificationsUseCase: GetExpertNotificationsUseCase,
-    private readonly getUnreadCountUseCase: GetExpertUnreadCountUseCase,
+    private readonly getExpertNotificationsCountUseCase: GetExpertNotificationsCountUseCase,
     private readonly markAsReadUseCase: MarkExpertNotificationAsReadUseCase,
     private readonly clearAllUseCase: ClearExpertNotificationsUseCase,
   ) {}
@@ -28,18 +27,15 @@ export class ExpertNotificationsService {
   /**
    * Retrieves a paginated, sortable list of notifications for an expert.
    */
-  async getNotifications(
-    expertId: number,
-    dto: GetExpertNotificationsDto,
-  ) {
+  async getNotifications(expertId: number, dto: GetExpertNotificationsDto) {
     return this.getNotificationsUseCase.execute(expertId, dto);
   }
 
   /**
    * Retrieves the count of unread notifications for an expert.
    */
-  async getUnreadCount(expertId: number) {
-    return this.getUnreadCountUseCase.execute(expertId);
+  async getCount(expertId: number, is_read: boolean) {
+    return this.getExpertNotificationsCountUseCase.execute(expertId, is_read);
   }
 
   /**

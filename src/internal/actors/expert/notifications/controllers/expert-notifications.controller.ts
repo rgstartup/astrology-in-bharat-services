@@ -14,6 +14,7 @@ import { CurrentExpert } from "../../auth/decorators/current-expert.decorator";
 import { type IExpert } from "@/shared/types/access-token.payload";
 import { GetExpertNotificationsDto } from "../dto/get-expert-notifications.dto";
 import { ApiResponse } from "@/shared/http/responses";
+import { GetExpertNotificationsCountDto } from "../dto/get-expert-notifications-count.dto";
 
 @Controller({
   path: "expert/me/notifications",
@@ -36,8 +37,14 @@ export class ExpertNotificationsController {
   }
 
   @Get("count")
-  async getUnreadCount(@CurrentExpert() expert: IExpert) {
-    const count = await this.notificationsService.getUnreadCount(expert.sub);
+  async getCount(
+    @CurrentExpert() expert: IExpert,
+    @Query() dto: GetExpertNotificationsCountDto,
+  ) {
+    const count = await this.notificationsService.getCount(
+      expert.sub,
+      dto.is_read,
+    );
     return { count };
   }
 
@@ -47,12 +54,16 @@ export class ExpertNotificationsController {
     @Param("id", ParseIntPipe) id: number,
   ) {
     await this.notificationsService.markAsRead(expert.sub, id);
-    return { success: true };
+    return ApiResponse.ok(true, {
+      message: "Notification marked read successfully",
+    });
   }
 
   @Delete()
-  async deleteAll(@CurrentExpert() expert: IExpert) {
+  async clearAll(@CurrentExpert() expert: IExpert) {
     await this.notificationsService.clearAll(expert.sub);
-    return { success: true };
+    return ApiResponse.ok(true, {
+      message: "All notifications cleared successfully",
+    });
   }
 }

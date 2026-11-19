@@ -1,8 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { notifications } from '@/core/drizzledb/schema';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { and, eq } from "drizzle-orm";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import { notifications } from "@/core/drizzledb/schema";
+import { ResourceNotFoundError } from "@/shared/errors";
 
 /**
  * Marks a specific notification as read for a given expert.
@@ -29,7 +30,7 @@ export class MarkExpertNotificationAsReadUseCase {
       .limit(1);
 
     if (!notification) {
-      throw new NotFoundException('Notification not found');
+      throw new ResourceNotFoundError("notification", notificationId);
     }
 
     await this.db

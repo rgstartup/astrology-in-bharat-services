@@ -12,17 +12,17 @@ import { notifications } from "@/core/drizzledb/schema";
  * @throws {Error} When the database query fails
  */
 @Injectable()
-export class GetExpertUnreadCountUseCase {
+export class GetExpertNotificationsCountUseCase {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
-  async execute(expertId: number) {
+  async execute(expertId: number, is_read: boolean) {
     const [{ count: countResult }] = await this.db
       .select({ count: count() })
       .from(notifications)
       .where(
         and(
           eq(notifications.expert_id, Number(expertId)),
-          eq(notifications.is_read, false),
+          eq(notifications.is_read, is_read),
         ),
       );
 

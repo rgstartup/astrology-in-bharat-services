@@ -30,12 +30,7 @@ export class GetExpertNotificationsUseCase {
   async execute(expertId: number, dto: GetExpertNotificationsDto) {
     const sortSpecs = parseSort(dto.sort);
 
-    const orderBy = drizzleSortMapper(
-      sortSpecs,
-      notificationSortColumns,
-      notifications.created_at,
-      "desc",
-    );
+    const orderBy = drizzleSortMapper(sortSpecs, notificationSortColumns);
 
     const data = await this.db
       .select()
