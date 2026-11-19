@@ -69,7 +69,61 @@ export class ApiResponse {
     items: T[],
     pagination: PaginationMeta,
     options?: ApiResponseOptions,
+  ): PaginatedApiResponse<T>;
+
+  /**
+   * Creates a paginated collection response envelope from simple pagination values.
+   * Derives totalPages, hasNextPage, and hasPreviousPage automatically.
+   *
+   * @template T
+   * @param {T[]} items - Array of items for current page.
+   * @param {number} page - Current 1-based page number.
+   * @param {number} limit - Maximum items per page requested.
+   * @param {number} totalItems - Total count of items matching filter criteria.
+   * @param {ApiResponseOptions} [options] - Optional correlation ID and message.
+   * @returns {PaginatedApiResponse<T>}
+   */
+  static paginated<T>(
+    items: T[],
+    page: number,
+    limit: number,
+    totalItems: number,
+    options?: ApiResponseOptions,
+  ): PaginatedApiResponse<T>;
+
+  static paginated<T>(
+    items: T[],
+    paginationOrPage: PaginationMeta | number,
+    limitOrOptions?: PaginationMeta | number | ApiResponseOptions,
+    totalCountOrOptions?: number | ApiResponseOptions,
+    options?: ApiResponseOptions,
   ): PaginatedApiResponse<T> {
+    let pagination: PaginationMeta;
+    let opts: ApiResponseOptions | undefined;
+
+    if (typeof paginationOrPage === 'number') {
+      // New form: paginated(items, page, limit, totalCount, options?)
+      const page = paginationOrPage;
+      const limit = limitOrOptions as number;
+      const totalItems = totalCountOrOptions as number;
+      opts = options;
+      const totalPages = Math.ceil(totalItems / limit);
+      pagination = {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+        total: totalItems,
+        hasPrevPage: page > 1,
+      };
+    } else {
+      // Existing form: paginated(items, pagination, options?)
+      pagination = paginationOrPage;
+      opts = limitOrOptions as ApiResponseOptions | undefined;
+    }
+
     const totalItems =
       pagination.totalItems !== undefined
         ? pagination.totalItems
@@ -97,8 +151,8 @@ export class ApiResponse {
 
     const meta: ResponseMeta & { pagination: PaginationMeta } = {
       timestamp: new Date().toISOString(),
-      requestId: options?.requestId ?? '',
-      message: options?.message,
+      requestId: opts?.requestId ?? '',
+      message: opts?.message,
       pagination: normalizedPagination,
     };
 

@@ -107,6 +107,32 @@ describe('Standardized API Response Architecture', () => {
       expect(plain.data).toEqual(items);
     });
 
+    it('creates paginated response from simple page/limit/totalItems and derives meta, excluded on wire', () => {
+      const items = [{ id: 'prod_123', name: 'Gemstone' }];
+
+      const response = ApiResponse.paginated(items, 2, 20, 120, {
+        requestId: 'req_abc123',
+      });
+
+      expect(response).toBeInstanceOf(PaginatedApiResponse);
+      expect(response.success).toBe(true);
+      expect(response.type).toBe('paginated');
+      expect(response.data).toEqual(items);
+      expect(response.meta.pagination.page).toBe(2);
+      expect(response.meta.pagination.limit).toBe(20);
+      expect(response.meta.pagination.totalItems).toBe(120);
+      expect(response.meta.pagination.totalPages).toBe(6);
+      expect(response.meta.pagination.hasNextPage).toBe(true);
+      expect(response.meta.pagination.hasPreviousPage).toBe(true);
+      expect(response.meta.pagination.total).toBe(120);
+      expect(response.meta.pagination.hasPrevPage).toBe(true);
+
+      const plain = instanceToPlain(response) as Record<string, unknown>;
+      expect('type' in plain).toBe(false);
+      expect(plain.success).toBe(true);
+      expect(plain.data).toEqual(items);
+    });
+
     it('creates empty response with type empty, excluded on wire', () => {
       const response = ApiResponse.empty({ requestId: 'req_abc123' });
 
