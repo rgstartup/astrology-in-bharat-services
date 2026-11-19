@@ -24,9 +24,7 @@ export class ExpertDashboardController {
       dto.startDate,
       dto.endDate,
     );
-    return {
-      success: true,
-      data: stats,
-    };
+
+    return stats;
   }
 }

@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Transaction } from '../entities/transaction.entity';
+import { Injectable, Inject } from '@nestjs/common';
+import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
+import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
+import { transactions } from '@/core/drizzledb/schema';
 import { GetWalletUseCase } from './get-wallet.use-case';
 import { TransactionType, TransactionPurpose } from '../enum';
 import { WalletKey } from '../entities/wallet.entity';
@@ -9,8 +10,7 @@ import { WalletKey } from '../entities/wallet.entity';
 @Injectable()
 export class GetTotalEarningsUseCase {
   constructor(
-    @InjectRepository(Transaction)
-    private readonly transactionRepository: Repository<Transaction>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly getWalletUseCase: GetWalletUseCase,
   ) {}
 
@@ -21,36 +21,30 @@ export class GetTotalEarningsUseCase {
   ): Promise<number> {
     const wallet = await this.getWalletUseCase.execute(profileId, walletKey);
 
-    const query = this.transactionRepository
-      .createQueryBuilder('transaction')
-      .where('transaction.wallet_id = :walletId', { walletId: wallet.id })
-      .andWhere('transaction.type = :type', { type: TransactionType.CREDIT })
-      .andWhere('transaction.purpose IN (:...purposes)', {
-        purposes: [
-          TransactionPurpose.CONSULTATION,
-          TransactionPurpose.PRODUCT_PURCHASE,
-          TransactionPurpose.AGENT_COMMISSION,
-          TransactionPurpose.PUJA_CONFIRMATION,
-        ],
-      });
+    const conditions = [
+      eq(transactions.wallet_id, wallet.id),
+      eq(transactions.type, TransactionType.CREDIT),
+      inArray(transactions.purpose, [
+        TransactionPurpose.CONSULTATION,
+        TransactionPurpose.PRODUCT_PURCHASE,
+        TransactionPurpose.AGENT_COMMISSION,
+        TransactionPurpose.PUJA_CONFIRMATION,
+      ]),
+    ];
 
     if (options.startDate) {
-      query.andWhere('transaction.created_at >= :startDate', {
-        startDate: options.startDate,
-      });
+      conditions.push(gte(transactions.created_at, options.startDate));
     }
 
     if (options.endDate) {
-      query.andWhere('transaction.created_at <= :endDate', {
-        endDate: options.endDate,
-      });
+      conditions.push(lte(transactions.created_at, options.endDate));
     }
 
-    const result: unknown = await query
-      .select('SUM(transaction.amount)', 'sum')
-      .getRawOne();
+    const result = await this.db
+      .select({ sum: sql<string>`coalesce(sum(${transactions.amount}), '0')` })
+      .from(transactions)
+      .where(and(...conditions));
 
-    const typedResult = result as { sum: string | null } | undefined;
-    return Number(typedResult?.sum) || 0;
+    return Number(result[0]?.sum) || 0;
   }
 }

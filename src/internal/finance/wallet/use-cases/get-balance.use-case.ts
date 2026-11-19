@@ -11,6 +11,6 @@ export class GetBalanceUseCase {
     walletKey: WalletKey,
   ): Promise<number> {
     const wallet = await this.getWalletUseCase.execute(profileId, walletKey);
-    return wallet.balance;
+    return Number(wallet.balance);
   }
 }

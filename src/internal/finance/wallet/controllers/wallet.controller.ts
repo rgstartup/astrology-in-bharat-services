@@ -1,13 +1,13 @@
-import { Controller, Get, UseGuards, Query } from '@nestjs/common';
-import { WalletService } from '../wallet.service';
-import { JwtAuthGuard } from '../../../auth/guards/auth.guard';
-import { CurrentProfile } from '../../../../shared/decorators/current-profile.decorator';
+import { Controller, Get, UseGuards, Query } from "@nestjs/common";
+import { WalletService } from "../wallet.service";
+import { JwtAuthGuard } from "../../../auth/guards/auth.guard";
+import { CurrentProfile } from "@/shared/decorators/current-profile.decorator";
 
-import { GetTransactionsDto } from '../dto/get-transactions.dto';
+import { GetTransactionsDto } from "../dto/get-transactions.dto";
 
 @Controller({
-  path: 'wallet',
-  version: '1',
+  path: "wallet",
+  version: "1",
 })
 @UseGuards(JwtAuthGuard)
 export class WalletController {
@@ -15,22 +15,22 @@ export class WalletController {
 
   @Get()
   getWallet(@CurrentProfile() clientProfileId: string) {
-    return this.walletService.getWallet(clientProfileId, 'client_id');
+    return this.walletService.getWallet(clientProfileId, "client_id");
   }
 
-  @Get('balance')
+  @Get("balance")
   getBalance(@CurrentProfile() clientProfileId: string) {
-    return this.walletService.getBalance(clientProfileId, 'client_id');
+    return this.walletService.getBalance(clientProfileId, "client_id");
   }
 
-  @Get('transactions')
+  @Get("transactions")
   getTransactions(
     @CurrentProfile() clientProfileId: string,
     @Query() dto: GetTransactionsDto,
   ) {
     return this.walletService.getTransactions(
       clientProfileId,
-      'client_id',
+      "client_id",
       dto,
     );
   }
