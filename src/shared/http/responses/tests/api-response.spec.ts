@@ -477,5 +477,31 @@ describe('Standardized API Response Architecture', () => {
         process.env.NODE_ENV = originalEnv;
       }
     });
+
+    it('executes DomainExceptionFilter for DomainError when filters are registered in reverse (Unknown -> Http -> Domain)', () => {
+      // In NestJS, RouterExceptionFilters calls filters.reverse() on the registered global filters.
+      // Therefore, registering [Unknown, Http, Domain] results in [Domain, Http, Unknown] evaluation order at runtime.
+      const domainFilter = new DomainExceptionFilter();
+      const httpFilter = new HttpExceptionFilter();
+      const unknownFilter = new UnknownExceptionFilter();
+
+      const registeredFilters = [unknownFilter, httpFilter, domainFilter];
+      const runtimeFilters = [...registeredFilters].reverse();
+
+      const domainError = new ResourceNotFoundError('User', 'u_123');
+
+      const filterMetadata = runtimeFilters.map((filter) => {
+        const exceptionMetatypes = Reflect.getMetadata('__exceptionMetatypes__', filter.constructor) || [];
+        return { filter, exceptionMetatypes };
+      });
+
+      const matched = filterMetadata.find(
+        ({ exceptionMetatypes }) =>
+          !exceptionMetatypes.length ||
+          exceptionMetatypes.some((meta: unknown) => domainError instanceof (meta as any)),
+      );
+
+      expect(matched?.filter).toBe(domainFilter);
+    });
   });
 });

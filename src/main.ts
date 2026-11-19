@@ -111,11 +111,14 @@ async function bootstrap() {
     }),
   );
 
-  // Apply global exception filters (ordered: most specific to least specific catch-all)
+  // Apply global exception filters.
+  // Note: NestJS reverses the filters array at runtime when resolving handlers (router-exception-filters.js: filters.reverse()),
+  // so filters must be passed in reverse order (catch-all first, most specific last)
+  // to ensure DomainExceptionFilter -> HttpExceptionFilter -> UnknownExceptionFilter execution order.
   app.useGlobalFilters(
-    new DomainExceptionFilter(), // Business rule failed
-    new HttpExceptionFilter(), // Client mistake
-    new UnknownExceptionFilter(), // Bug / crash catch-all
+    new UnknownExceptionFilter(), // Bug / crash catch-all (evaluated last)
+    new HttpExceptionFilter(), // Client mistake (evaluated second)
+    new DomainExceptionFilter(), // Business rule failed (evaluated first)
   );
 
   // Apply global response interceptor (wraps ALL success responses)
