@@ -52,12 +52,6 @@ export class UpdateStatusUseCase {
       );
     }
 
-    if (isAvailable && profile.kyc_status !== 'approved') {
-      throw new ForbiddenException(
-        'Your account is inactive. You cannot go online.',
-      );
-    }
-
     // Business Logic: Prevent going offline if there are active sessions
     if (isAvailable === false) {
       const [countRow] = await this.db

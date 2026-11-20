@@ -115,11 +115,6 @@ export class RequestWithdrawalUseCase {
         });
       if (!profile_expert)
         throw new BadRequestException('Expert profile not found');
-      if (profile_expert.kyc_status !== 'approved') {
-        throw new BadRequestException(
-          'Your KYC is not approved. Please complete verification to withdraw funds.',
-        );
-      }
       ownerIdField = 'w.expert_id';
     } else if (walletKey === 'merchant_id') {
       const profile_merchant = await this.dataSource

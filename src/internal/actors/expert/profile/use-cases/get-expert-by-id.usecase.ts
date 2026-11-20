@@ -15,12 +15,11 @@ export class GetExpertByIdUseCase {
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
       .leftJoinAndSelect('profile.addresses', 'addresses')
-      .where('profile.id = :id', { id })
-      .andWhere("LOWER(profile.kyc_status) IN ('approved', 'active')");
+      .where('profile.id = :id', { id });
 
     const expert = await queryBuilder.getOne();
     console.log(
-      `[GetExpertByIdUseCase] ID: ${id}, Expert found: ${!!expert}, Status matches: ${!!expert && ['approved', 'active'].includes(expert.kyc_status?.toLowerCase())}`,
+      `[GetExpertByIdUseCase] ID: ${id}, Expert found: ${!!expert}`,
     );
 
     if (!expert) {

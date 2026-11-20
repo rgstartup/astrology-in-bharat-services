@@ -32,10 +32,7 @@ export class ListExpertsUseCase {
     const queryBuilder = this.profileRepo
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
-      .leftJoinAndSelect('profile.addresses', 'addresses')
-      .where('LOWER(profile.kyc_status) IN (:...statuses)', {
-        statuses: ['approved', 'active'],
-      });
+      .leftJoinAndSelect('profile.addresses', 'addresses');
 
     // Filter: Search by expert name
     if (query.q && query.q.trim()) {

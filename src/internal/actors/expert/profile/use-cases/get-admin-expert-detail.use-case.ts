@@ -93,7 +93,6 @@ export class GetExpertDetailUseCase {
       rating: profile?.rating || 0,
       consultation_count: chatCount + callCount,
       total_earnings: total_earnings,
-      kyc_status: profile?.kyc_status || 'pending',
       rejection_reason: profile?.rejection_reason || null,
       intro_video_url:
         profile?.video ||

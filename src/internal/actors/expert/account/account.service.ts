@@ -6,7 +6,6 @@ import { UpdateExpertAccountAvatarUseCase } from './use-cases/update-account-ava
 import { UpdateExpertAccountIntroVideoUseCase } from './use-cases/update-account-intro-video.usecase';
 import { UpdateExpertAccountUseCase } from './use-cases/update-account.usecase';
 import { UpdateExpertAccountStatusUseCase } from './use-cases/update-account-status.usecase';
-import { ExpertKycStatus } from '@/internal/actors/expert/shared/enums/kyc-status.enum';
 import { ExpertAccountPujasUseCase } from './use-cases/account-pujas.usecase';
 import { ExpertPujaDto } from '@/internal/actors/expert/profile/dto/expert-puja.dto';
 
@@ -56,10 +55,6 @@ export class ExpertAccountService {
 
   updateStatus(expert: IExpert, isAvailable: boolean) {
     return this.updateStatusUseCase.execute(expert, isAvailable);
-  }
-
-  updateKycStatus(id: number, status: ExpertKycStatus, reason?: string) {
-    return this.updateStatusUseCase.updateKyc(id, status, reason);
   }
 
   upsertPuja(expert: IExpert, dto: ExpertPujaDto, id?: number) {

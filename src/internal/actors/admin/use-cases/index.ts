@@ -35,7 +35,6 @@ export {
   type ToggleUserBlockInput,
 } from './toggle-user-block.use-case';
 export { UpdateDisputeStatusUseCase } from './update-dispute-status.use-case';
-export { UpdateExpertStatusUseCase } from './update-expert-status.use-case';
 export { UpdateListingStatusAdminUseCase } from './update-listing-status-admin.use-case';
 export { UpdateMerchantStatusAdminUseCase } from './update-merchant-status-admin.use-case';
 export {

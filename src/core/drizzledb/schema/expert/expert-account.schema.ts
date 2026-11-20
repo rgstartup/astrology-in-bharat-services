@@ -13,15 +13,9 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from '../users/users.schema';
-import { ExpertKycStatus } from '@/internal/actors/expert/shared/enums/kyc-status.enum';
 import { AvailabilityMode } from '@/core/enums/availability-mode.enum';
 
 const expertSchema = pgSchema('expert');
-
-export const expertKycStatusEnum = pgEnum(
-  'account_kyc_status_enum',
-  ExpertKycStatus,
-);
 
 /**
  * Drizzle mirror of `ExpertAccount` (`expert.account` TypeORM entity).
@@ -50,9 +44,6 @@ export const expertAccounts = expertSchema.table('account', {
   total_likes: integer('total_likes').notNull().default(0),
   total_reviews: integer('total_reviews').notNull().default(0),
   rating: doublePrecision('rating').notNull().default(0),
-  kyc_status: expertKycStatusEnum('kyc_status')
-    .notNull()
-    .default(ExpertKycStatus.PENDING),
   rejection_reason: text('rejection_reason'),
   consultation_count: integer('consultation_count').notNull().default(0),
   phone_number: text('phone_number'),

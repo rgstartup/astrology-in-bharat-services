@@ -40,7 +40,6 @@ import { GetLiveSessionsDto } from '../dto/get-live-sessions.dto';
 import { TerminateSessionDto } from '../dto/terminate-session.dto';
 import { GetWithdrawalsDto } from '../dto/get-withdrawals.dto';
 import { UpdateWithdrawalStatusDto } from '../dto/update-withdrawal-status.dto';
-import { UpdateExpertStatusDto } from '../dto/update-expert-status.dto';
 import { AssignCouponBulkDto } from '../dto/assign-coupon-bulk.dto';
 import { GetAdminMerchantsDto } from '../dto/get-merchants.dto';
 import { GetAgentsDto } from '../dto/get-agents.dto';
@@ -150,15 +149,6 @@ export class AdminController {
   @Get('experts/:id')
   async getExpertDetail(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.getExpertDetail(id);
-  }
-  @RequirePermissions(AdminPermission.EXPERT_MANAGEMENT)
-  @Patch('experts/:id/status')
-  async updateExpertStatus(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdateExpertStatusDto,
-  ) {
-    await this.adminService.updateExpertStatus(id, body);
-    return { success: true };
   }
   @RequirePermissions(AdminPermission.USER_MANAGEMENT)
   @Patch('clients/:id/block')

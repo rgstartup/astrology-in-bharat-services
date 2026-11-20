@@ -1,5 +1,5 @@
 // Expert Account
-export { expertAccounts, expertAccountsRelations, expertKycStatusEnum } from './expert-account.schema';
+export { expertAccounts, expertAccountsRelations } from './expert-account.schema';
 export type {
   ExpertAccountRow,
   NewExpertAccountRow,

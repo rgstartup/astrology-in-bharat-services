@@ -27,9 +27,6 @@ export enum AdminPermission {
   // Analytics & Settings
   ANALYTICS_DASHBOARD = 'analytics_dashboard',
   SETTINGS = 'settings',
-
-  // KYC
-  KYC_REVIEW = 'kyc_review',
 }
 
 export const ALL_PERMISSIONS = Object.values(AdminPermission);

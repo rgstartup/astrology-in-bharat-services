@@ -38,7 +38,6 @@ import { GetLiveSessionsDto } from './dto/get-live-sessions.dto';
 import { TerminateSessionDto } from './dto/terminate-session.dto';
 import { GetWithdrawalsDto } from './dto/get-withdrawals.dto';
 import { UpdateWithdrawalStatusDto } from './dto/update-withdrawal-status.dto';
-import { UpdateExpertStatusDto } from './dto/update-expert-status.dto';
 import { GetAdminMerchantsDto } from './dto/get-merchants.dto';
 import { GetAgentsDto } from './dto/get-agents.dto';
 import { GetAdminListingsDto } from './dto/get-listings.dto';
@@ -95,7 +94,6 @@ export class AdminService {
     private readonly terminateSessionUseCase: TerminateSessionUseCase,
     private readonly getAdminWithdrawalsUseCase: GetAdminWithdrawalsUseCase,
     private readonly updateWithdrawalStatusUseCase: UpdateWithdrawalStatusUseCase,
-    private readonly updateExpertStatusUseCase: UpdateExpertStatusUseCase,
     private readonly getAdminDisputesUseCase: GetAdminDisputesUseCase,
     private readonly updateDisputeStatusUseCase: UpdateDisputeStatusUseCase,
     private readonly toggleUserBlockUseCase: ToggleUserBlockUseCase,
@@ -251,10 +249,6 @@ export class AdminService {
     return this.updateDisputeStatusUseCase.execute(id, dto);
   }
 
-  async updateExpertStatus(id: number, dto: UpdateExpertStatusDto) {
-    return this.updateExpertStatusUseCase.execute(id, dto);
-  }
-
   async getDisputeMessages(disputeId: number) {
     return this.supportService.getAdminMessages(disputeId);
   }
@@ -273,7 +267,7 @@ export class AdminService {
 
   async updateMerchantStatus(
     id: number,
-    data: { status: string; kycStatus?: string },
+    data: { status: string },
   ) {
     return this.updateMerchantStatusAdminUseCase.execute(id, data);
   }

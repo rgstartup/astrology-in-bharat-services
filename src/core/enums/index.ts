@@ -22,7 +22,6 @@ export { EarningAppliesRole } from './earning-applies-role.enum';
 export { EarningEventType } from './earning-event-type.enum';
 export { EarningRateType } from './earning-rate-type.enum';
 export { ExpertClientStatus } from './expert-client-status.enum';
-export { ExpertKycStatus } from './expert-kyc-status.enum';
 export { ExpertProductRelationType } from './expert-product-relation-type.enum';
 export { FavoriteItemType } from './favorite-item-type.enum';
 export {

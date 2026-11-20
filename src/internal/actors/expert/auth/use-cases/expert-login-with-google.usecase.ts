@@ -16,7 +16,6 @@ import {
   type UserRow,
 } from '@/core/drizzledb/schema';
 import { MediaSource, PlatformEnum, RoleEnum } from '@/core/enums';
-import { ExpertKycStatus } from '@/internal/actors/expert/shared/enums/kyc-status.enum';
 import { ExpertTokenCryptoService } from '../services/token-crypto.service';
 import { ExpertOAuthDto } from '../dto/expert-oauth-user.dto';
 
@@ -187,7 +186,6 @@ export class ExpertLoginWithGoogleUseCase {
         avatar: user.avatar,
         gender: 'other',
         experience_in_years: 0,
-        kyc_status: ExpertKycStatus.PENDING,
       })
       .returning();
 

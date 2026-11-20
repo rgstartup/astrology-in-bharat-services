@@ -13,7 +13,6 @@ import {
 import { ColumnNumericTransformer } from '@/shared/transformers/numeric.transformer';
 import { User } from '@/internal/users/entities/user.entity';
 import { Media } from '@/internal/media/entities/media.entity';
-import { ExpertKycStatus } from '@/internal/actors/expert/shared/enums/kyc-status.enum';
 import { ExpertSpecialization } from './expert-specialization.entity';
 import { ExpertConsultationPricing } from './expert-consultation-pricing.entity';
 import { ExpertProfession } from '@/internal/actors/expert/profession/entities/expert-profession.entity';
@@ -87,14 +86,6 @@ export class ExpertAccount {
 
   @Column({ type: 'float', default: 0 })
   rating!: number;
-
-  @Column({
-    type: 'enum',
-    enum: ExpertKycStatus,
-    default: ExpertKycStatus.PENDING,
-    name: 'kyc_status',
-  })
-  kyc_status!: ExpertKycStatus;
 
   @Column({ type: 'text', nullable: true, name: 'rejection_reason' })
   rejection_reason?: string | null;

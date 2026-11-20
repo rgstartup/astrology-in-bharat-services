@@ -91,9 +91,6 @@ export class ProfileExpert {
   @Column({ type: 'float', default: 0 })
   rating!: number;
 
-  @Column({ default: 'pending', name: 'kyc_status' })
-  kyc_status!: string;
-
   @Column({ type: 'text', nullable: true, name: 'rejection_reason' })
   rejection_reason?: string | null;
 

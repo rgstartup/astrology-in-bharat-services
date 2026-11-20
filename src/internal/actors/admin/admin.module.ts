@@ -57,7 +57,6 @@ import { GetLiveSessionsUseCase } from './use-cases/get-live-sessions.use-case';
 import { TerminateSessionUseCase } from './use-cases/terminate-session.use-case';
 import { GetAdminWithdrawalsUseCase } from './use-cases/get-admin-withdrawals.use-case';
 import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-status.use-case';
-import { UpdateExpertStatusUseCase } from './use-cases/update-expert-status.use-case';
 import { GetAdminDisputesUseCase } from './use-cases/get-admin-disputes.use-case';
 import { UpdateDisputeStatusUseCase } from './use-cases/update-dispute-status.use-case';
 import { UpdateSupportSettingsUseCase } from './use-cases/update-support-settings.use-case';
@@ -137,7 +136,6 @@ import { GetPlatformStatsUseCase } from './use-cases/get-platform-stats.use-case
     TerminateSessionUseCase,
     GetAdminWithdrawalsUseCase,
     UpdateWithdrawalStatusUseCase,
-    UpdateExpertStatusUseCase,
     GetAdminDisputesUseCase,
     UpdateDisputeStatusUseCase,
     UpdateSupportSettingsUseCase,

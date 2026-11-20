@@ -70,7 +70,7 @@ export {
   expertPayoutAccountLinks,
   expertPayoutAccountsRelations,
   expertPayoutAccountLinksRelations,
-  expertKycStatusEnum,
+
   specializations,
   specializationsRelations,
   professions,
@@ -607,7 +607,7 @@ import {
   expertAccountsRelations,
   expertPayoutPlatformAccounts,
   expertPayoutPlatformAccountsRelations,
-  expertKycStatusEnum,
+
   specializations,
   specializationsRelations,
   professions,
@@ -898,7 +898,7 @@ export const schema = {
   expertAccountsRelations,
   expertPayoutPlatformAccounts,
   expertPayoutPlatformAccountsRelations,
-  expertKycStatusEnum,
+
   specializations,
   specializationsRelations,
   professions,

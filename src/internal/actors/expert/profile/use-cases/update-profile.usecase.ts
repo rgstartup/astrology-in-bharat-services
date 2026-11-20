@@ -110,14 +110,6 @@ export class UpdateProfileUseCase {
         profile.bank_details = dto.bank_details;
 
       if (dto.documents !== undefined) {
-        if (
-          profile.kyc_status === 'approved' ||
-          profile.kyc_status === 'active'
-        ) {
-          throw new ForbiddenException(
-            'Your account is verified. You cannot modify your verified documents. Please contact Admin.',
-          );
-        }
         profile.documents = dto.documents as unknown as Record<
           string,
           unknown
@@ -184,14 +176,6 @@ export class UpdateProfileUseCase {
         const newNameStr = newName?.trim() || '';
 
         if (currentNameStr !== newNameStr && currentNameStr !== '') {
-          if (
-            profile.kyc_status === 'approved' ||
-            profile.kyc_status === 'active'
-          ) {
-            throw new ForbiddenException(
-              'Your account is verified. You cannot change your name. Please contact Admin.',
-            );
-          }
         }
 
         await queryRunner.manager.update(

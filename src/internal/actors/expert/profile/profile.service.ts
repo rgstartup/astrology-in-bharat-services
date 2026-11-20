@@ -12,7 +12,6 @@ import { UpdateProfileUseCase } from './use-cases/update-profile.usecase';
 import { UpdateStatusUseCase } from './use-cases/update-status.usecase';
 import { ListExpertsUseCase } from './use-cases/list-experts.usecase';
 import { GetExpertByIdUseCase } from './use-cases/get-expert-by-id.usecase';
-import { UpdateKycStatusUseCase } from './use-cases/update-kyc-status.usecase';
 import { GetTopRatedExpertsUseCase } from './use-cases/get-top-rated-experts.usecase';
 import { GetExpertByUserIdUseCase } from './use-cases/get-expert-by-user-id.usecase';
 import { UpsertPujaUseCase } from './use-cases/puja/upsert-puja.usecase';
@@ -34,7 +33,6 @@ export class ExpertProfileService {
     private readonly updateStatusUseCase: UpdateStatusUseCase,
     private readonly listExpertsUseCase: ListExpertsUseCase,
     private readonly getExpertByIdUseCase: GetExpertByIdUseCase,
-    private readonly updateKycStatusUseCase: UpdateKycStatusUseCase,
     private readonly getTopRatedExpertsUseCase: GetTopRatedExpertsUseCase,
     private readonly getExpertByUserIdUseCase: GetExpertByUserIdUseCase,
     private readonly upsertPujaUseCase: UpsertPujaUseCase,
@@ -72,10 +70,6 @@ export class ExpertProfileService {
 
   async getExpertById(id: number) {
     return this.getExpertByIdUseCase.execute(id);
-  }
-
-  async updateKycStatus(expert_id: number, status: string, reason?: string) {
-    return this.updateKycStatusUseCase.execute(expert_id, status, reason);
   }
 
   async getTopRatedExperts(limit: number = 3) {

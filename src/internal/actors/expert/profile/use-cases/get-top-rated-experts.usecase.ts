@@ -17,7 +17,6 @@ export class GetTopRatedExpertsUseCase {
       .createQueryBuilder('profile')
       .leftJoinAndSelect('profile.user', 'user')
       .leftJoinAndSelect('profile.addresses', 'addresses')
-      .where("LOWER(profile.kyc_status) IN ('approved', 'active')")
       .orderBy('profile.rating', 'DESC')
       .take(limit);
 

@@ -51,7 +51,7 @@ export class FindUsersByRoleUseCase {
 
     if (role === 'expert') {
       if (status && status !== 'all' && status !== '') {
-        query.andWhere('profile_expert.kyc_status = :status', { status });
+        // kyc_status column removed; status filter no longer applies
       }
 
       // Use raw subqueries to avoid TypeORM subquery builder bugs
@@ -102,7 +102,6 @@ export class FindUsersByRoleUseCase {
         experience_in_years: user.experience_in_years ?? pe.experience_in_years,
         rating: user.rating ?? pe.rating,
         consultation_count: user.consultation_count ?? pe.consultation_count,
-        kyc_status: user.kyc_status || pe.kyc_status,
         rejection_reason: user.rejection_reason ?? pe.rejection_reason,
         languages:
           user.languages ||

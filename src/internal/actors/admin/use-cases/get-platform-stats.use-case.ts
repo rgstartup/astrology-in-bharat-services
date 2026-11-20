@@ -22,8 +22,7 @@ export class GetPlatformStatsUseCase {
         `(SELECT COUNT(*)
       FROM public.users u
       INNER JOIN expert.profile e ON e.user_id = u.id
-      WHERE u.platform = 'expert'
-        AND e.kyc_status = 'approved') AS verified_experts`,
+      WHERE u.platform = 'expert') AS verified_experts`,
 
         `(SELECT COUNT(*)
       FROM commerce.product_orders

@@ -26,7 +26,6 @@ import { QueryExpertsDto } from "../dto/query-experts.dto";
 import { PaginatedResponseDto } from "@/shared/dto/paginated-response.dto";
 import {
   ExpertClientStatus,
-  ExpertKycStatus,
   PricingStatus,
   PricingTargetAudience,
 } from "@/core/enums";
@@ -187,7 +186,6 @@ export class QueryExpertsUseCase {
         pricing: this.pricingSubquery,
       })
       .from(expertAccounts)
-      .where(eq(expertAccounts.kyc_status, ExpertKycStatus.APPROVED))
       .orderBy(desc(expertAccounts.rating))
       .limit(limit);
 
@@ -240,7 +238,6 @@ export class QueryExpertsUseCase {
       .from(expertAccounts)
       .where(
         and(
-          eq(expertAccounts.kyc_status, ExpertKycStatus.APPROVED),
           eq(expertAccounts.id, Number(id)),
         ),
       )
@@ -276,8 +273,6 @@ export class QueryExpertsUseCase {
   }
 
   private listWhere(query: QueryExpertsDto): SQL {
-    // eq(expertAccounts.kyc_status, ExpertKycStatus.APPROVED),
-
     const conditions: SQL[] = [];
 
     if (query?.q) {

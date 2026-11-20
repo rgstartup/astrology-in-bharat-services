@@ -132,7 +132,6 @@ export class UserRepository extends BaseService<User> {
       .createQueryBuilder('user')
       .innerJoin(ProfileExpert, 'expert', 'expert.user_id = user.id')
       .where(':role = ANY(user.roles)', { role: RoleEnum.EXPERT })
-      .andWhere('expert.kyc_status = :status', { status: 'approved' })
       .getCount();
   }
 }

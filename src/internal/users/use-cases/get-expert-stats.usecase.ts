@@ -21,27 +21,18 @@ export class GetExpertStatsUseCase {
       .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
       .select([
         'COUNT(*) AS total_experts',
-        'COUNT(*) FILTER (WHERE profile.kyc_status = :approved) AS active_experts',
-        'COUNT(*) FILTER (WHERE profile.kyc_status = :pending) AS pending_experts',
-        'COUNT(*) FILTER (WHERE profile.kyc_status = :rejected) AS rejected_experts',
         'COUNT(*) FILTER (WHERE "user".is_blocked = true) AS blocked_experts',
         'COUNT(*) FILTER (WHERE "user".created_at >= :today) AS recent_experts',
       ])
       .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
       .setParameters({
         role: RoleEnum.EXPERT,
-        approved: 'approved',
-        pending: 'pending',
-        rejected: 'rejected',
         today,
       })
       .getRawOne();
 
     return {
       totalExperts: Number(result.total_experts),
-      activeExperts: Number(result.active_experts),
-      pendingExperts: Number(result.pending_experts),
-      rejectedExperts: Number(result.rejected_experts),
       blockedExperts: Number(result.blocked_experts),
       recentExperts: Number(result.recent_experts),
       trends: {

@@ -21,7 +21,6 @@ import { UpdateProfileUseCase } from './use-cases/update-profile.usecase';
 import { UpdateStatusUseCase } from './use-cases/update-status.usecase';
 import { ListExpertsUseCase } from './use-cases/list-experts.usecase';
 import { GetExpertByIdUseCase } from './use-cases/get-expert-by-id.usecase';
-import { UpdateKycStatusUseCase } from './use-cases/update-kyc-status.usecase';
 import { GetTopRatedExpertsUseCase } from './use-cases/get-top-rated-experts.usecase';
 import { GetExpertByUserIdUseCase } from './use-cases/get-expert-by-user-id.usecase';
 import { UpsertPujaUseCase } from './use-cases/puja/upsert-puja.usecase';
@@ -33,7 +32,6 @@ import { UpdateProfileWithQueryRunnerUseCase } from './use-cases/update-profile-
 import { GetExpertDetailUseCase } from './use-cases/get-admin-expert-detail.use-case';
 
 import { ExpertPuja } from './entities/expert-puja.entity';
-import { KycStatusChangedHandler } from './event-handlers/kyc-status-changed.handler';
 import { ExpertStatusChangedHandler } from './event-handlers/expert-status-changed.handler';
 
 /**
@@ -58,7 +56,6 @@ import { ExpertStatusChangedHandler } from './event-handlers/expert-status-chang
     UpdateStatusUseCase,
     ListExpertsUseCase,
     GetExpertByIdUseCase,
-    UpdateKycStatusUseCase,
     GetTopRatedExpertsUseCase,
     GetExpertByUserIdUseCase,
     UpsertPujaUseCase,
@@ -69,7 +66,6 @@ import { ExpertStatusChangedHandler } from './event-handlers/expert-status-chang
     UpdatePujaLikesUseCase,
     UpdateProfileWithQueryRunnerUseCase,
 
-    KycStatusChangedHandler,
     ExpertStatusChangedHandler,
   ],
   exports: [ExpertProfileService, GetExpertByIdUseCase, TypeOrmModule],

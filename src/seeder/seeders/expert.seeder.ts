@@ -12,7 +12,6 @@ import {
   PricingStatus,
   PricingTargetAudience,
 } from '../../internal/actors/expert/shared/enums/pricing.enum';
-import { ExpertKycStatus } from '../../internal/actors/expert/shared/enums/kyc-status.enum';
 import { ProfileExpert } from '../../internal/actors/expert/profile/entities/profile-expert.entity';
 import { Wallet } from '../../internal/finance/wallet/entities/wallet.entity';
 import { Profession } from '../../internal/actors/expert/profession/entities/profession.entity';
@@ -432,7 +431,6 @@ export class ExpertSeeder implements Seeder {
           total_likes: data.account.totalLikes,
           total_reviews: data.account.totalReviews,
           rating: data.account.rating,
-          kyc_status: ExpertKycStatus.APPROVED,
           consultation_count: data.account.consultationCount,
           price: data.pricing.chatPrice,
           chat_price: data.pricing.chatPrice,
@@ -462,7 +460,6 @@ export class ExpertSeeder implements Seeder {
         account.total_likes = data.account.totalLikes;
         account.total_reviews = data.account.totalReviews;
         account.rating = data.account.rating;
-        account.kyc_status = ExpertKycStatus.APPROVED;
         account.consultation_count = data.account.consultationCount;
         account.price = data.pricing.chatPrice;
         account.chat_price = data.pricing.chatPrice;
@@ -496,7 +493,6 @@ export class ExpertSeeder implements Seeder {
           total_likes: data.account.totalLikes,
           total_reviews: data.account.totalReviews,
           rating: data.account.rating,
-          kyc_status: 'approved',
           consultation_count: data.account.consultationCount,
           price: data.pricing.chatPrice,
           chat_price: data.pricing.chatPrice,
@@ -522,7 +518,6 @@ export class ExpertSeeder implements Seeder {
         profile.total_likes = data.account.totalLikes;
         profile.total_reviews = data.account.totalReviews;
         profile.rating = data.account.rating;
-        profile.kyc_status = 'approved';
         profile.consultation_count = data.account.consultationCount;
         profile.price = data.pricing.chatPrice;
         profile.chat_price = data.pricing.chatPrice;
