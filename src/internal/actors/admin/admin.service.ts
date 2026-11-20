@@ -1,64 +1,63 @@
-import type { DeferredDependency } from '@/shared/types/deferred-dependency.type';
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { asc, count, eq, inArray, sql } from 'drizzle-orm';
-import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
-import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
-import { consultations, consultationMessages } from '@/core/drizzledb/schema';
-import { ConsultationStatus } from '@/internal/consultation/enums';
-import { GetAdminDashboardStatsUseCase } from './use-cases/get-admin-dashboard-stats.use-case';
-import { GetAdminUserGrowthStatsUseCase } from './use-cases/get-admin-user-growth-stats.use-case';
-import { GetExpertDetailUseCase } from './use-cases/get-expert-detail.use-case';
+import type { DeferredDependency } from "@/shared/types/deferred-dependency.type";
+import { Injectable, Inject, forwardRef } from "@nestjs/common";
+import { asc, count, eq, inArray, sql } from "drizzle-orm";
+import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
+import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
+import { consultations, consultationMessages } from "@/core/drizzledb/schema";
+import { ConsultationStatus } from "@/internal/consultation/enums";
+import { GetAdminDashboardStatsUseCase } from "./use-cases/get-admin-dashboard-stats.use-case";
+import { GetAdminUserGrowthStatsUseCase } from "./use-cases/get-admin-user-growth-stats.use-case";
+import { GetExpertDetailUseCase } from "./use-cases/get-expert-detail.use-case";
 import {
   GetFilteredUsersUseCase,
   FilterCriteria,
-} from './use-cases/get-filtered-users.use-case';
+} from "./use-cases/get-filtered-users.use-case";
 
-import { CreateAgentUseCase } from './use-cases/create-agent.use-case';
-import { GetAgentsUseCase } from './use-cases/get-agents.use-case';
-import { GetAgentStatsUseCase } from './use-cases/get-agent-stats.use-case';
-import { GetAdminListingsUseCase } from './use-cases/get-admin-listings.use-case';
-import { GetAdminRevenueTrendUseCase } from './use-cases/get-admin-revenue-trend.use-case';
-import { GetAdminEarningsBreakdownUseCase } from './use-cases/get-admin-earnings-breakdown.use-case';
-import { GetAdminTopExpertsUseCase } from './use-cases/get-admin-top-experts.use-case';
-import { GetAdminMerchantsUseCase } from './use-cases/get-admin-merchants.use-case';
-import { UpdateMerchantStatusAdminUseCase } from './use-cases/update-merchant-status-admin.use-case';
-import { UpdateListingStatusAdminUseCase } from './use-cases/update-listing-status-admin.use-case';
-import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
-import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
-import { CreateAgentDto } from './dto/create-agent.dto';
-import { WalletService } from '@/internal/finance/wallet/wallet.service';
-import { SupportService } from '@/internal/support/support.service';
-import { RoleEnum } from '@/internal/users/enums/Role.enum';
-import { GetSystemSettingsUseCase } from './use-cases/get-system-settings.use-case';
+import { CreateAgentUseCase } from "./use-cases/create-agent.use-case";
+import { GetAgentsUseCase } from "./use-cases/get-agents.use-case";
+import { GetAgentStatsUseCase } from "./use-cases/get-agent-stats.use-case";
+import { GetAdminListingsUseCase } from "./use-cases/get-admin-listings.use-case";
+import { GetAdminRevenueTrendUseCase } from "./use-cases/get-admin-revenue-trend.use-case";
+import { GetAdminEarningsBreakdownUseCase } from "./use-cases/get-admin-earnings-breakdown.use-case";
+import { GetAdminTopExpertsUseCase } from "./use-cases/get-admin-top-experts.use-case";
+import { GetAdminMerchantsUseCase } from "./use-cases/get-admin-merchants.use-case";
+import { UpdateMerchantStatusAdminUseCase } from "./use-cases/update-merchant-status-admin.use-case";
+import { UpdateListingStatusAdminUseCase } from "./use-cases/update-listing-status-admin.use-case";
+import { GetAdminMerchantSalesOverviewUseCase } from "./use-cases/get-admin-merchant-sales-overview.use-case";
+import { GetAdminMerchantSalesDetailsUseCase } from "./use-cases/get-admin-merchant-sales-details.use-case";
+import { CreateAgentDto } from "./dto/create-agent.dto";
+import { WalletService } from "@/internal/finance/wallet/wallet.service";
+import { SupportService } from "@/internal/support/support.service";
+import { RoleEnum } from "@/internal/users/enums/Role.enum";
+import { GetSystemSettingsUseCase } from "./use-cases/get-system-settings.use-case";
 
 // New DTO imports
-import { GetClientsDto } from './dto/get-clients.dto';
-import { GetExpertsDto } from './dto/get-experts.dto';
-import { GetLiveSessionsDto } from './dto/get-live-sessions.dto';
-import { TerminateSessionDto } from './dto/terminate-session.dto';
-import { GetWithdrawalsDto } from './dto/get-withdrawals.dto';
-import { UpdateWithdrawalStatusDto } from './dto/update-withdrawal-status.dto';
-import { GetAdminMerchantsDto } from './dto/get-merchants.dto';
-import { GetAgentsDto } from './dto/get-agents.dto';
-import { GetAdminListingsDto } from './dto/get-listings.dto';
-import { GetDisputesDto } from './dto/get-disputes.dto';
-import { UpdateDisputeStatusDto } from './dto/update-dispute-status.dto';
+import { GetClientsDto } from "./dto/get-clients.dto";
+import { GetExpertsDto } from "./dto/get-experts.dto";
+import { GetLiveSessionsDto } from "./dto/get-live-sessions.dto";
+import { TerminateSessionDto } from "./dto/terminate-session.dto";
+import { GetWithdrawalsDto } from "./dto/get-withdrawals.dto";
+import { UpdateWithdrawalStatusDto } from "./dto/update-withdrawal-status.dto";
+import { GetAdminMerchantsDto } from "./dto/get-merchants.dto";
+import { GetAgentsDto } from "./dto/get-agents.dto";
+import { GetAdminListingsDto } from "./dto/get-listings.dto";
+import { GetDisputesDto } from "./dto/get-disputes.dto";
+import { UpdateDisputeStatusDto } from "./dto/update-dispute-status.dto";
 
 // New Use Case imports
-import { GetAdminClientsUseCase } from './use-cases/get-admin-clients.use-case';
-import { GetAdminExpertsUseCase } from './use-cases/get-admin-experts.use-case';
-import { GetLiveSessionsUseCase } from './use-cases/get-live-sessions.use-case';
-import { TerminateSessionUseCase } from './use-cases/terminate-session.use-case';
-import { GetAdminWithdrawalsUseCase } from './use-cases/get-admin-withdrawals.use-case';
-import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-status.use-case';
-import { UpdateExpertStatusUseCase } from './use-cases/update-expert-status.use-case';
-import { GetAdminDisputesUseCase } from './use-cases/get-admin-disputes.use-case';
-import { UpdateDisputeStatusUseCase } from './use-cases/update-dispute-status.use-case';
+import { GetAdminClientsUseCase } from "./use-cases/get-admin-clients.use-case";
+import { GetAdminExpertsUseCase } from "./use-cases/get-admin-experts.use-case";
+import { GetLiveSessionsUseCase } from "./use-cases/get-live-sessions.use-case";
+import { TerminateSessionUseCase } from "./use-cases/terminate-session.use-case";
+import { GetAdminWithdrawalsUseCase } from "./use-cases/get-admin-withdrawals.use-case";
+import { UpdateWithdrawalStatusUseCase } from "./use-cases/update-withdrawal-status.use-case";
+import { GetAdminDisputesUseCase } from "./use-cases/get-admin-disputes.use-case";
+import { UpdateDisputeStatusUseCase } from "./use-cases/update-dispute-status.use-case";
 import {
   ToggleUserBlockUseCase,
   ToggleUserBlockInput,
-} from './use-cases/toggle-user-block.use-case';
-import { GetPlatformStatsUseCase } from './use-cases/get-platform-stats.use-case';
+} from "./use-cases/toggle-user-block.use-case";
+import { GetPlatformStatsUseCase } from "./use-cases/get-platform-stats.use-case";
 
 @Injectable()
 export class AdminService {
@@ -265,10 +264,7 @@ export class AdminService {
     return this.getAdminMerchantsUseCase.execute(dto);
   }
 
-  async updateMerchantStatus(
-    id: number,
-    data: { status: string },
-  ) {
+  async updateMerchantStatus(id: number, data: { status: string }) {
     return this.updateMerchantStatusAdminUseCase.execute(id, data);
   }
 
