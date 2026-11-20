@@ -9,7 +9,7 @@ import {
   integer,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { payoutProviderAccounts } from './payout-provider-accounts.schema';
+import { payoutProviderConfigs } from './payout-provider-configs.schema';
 
 const paymentSchema = pgSchema('payments');
 
@@ -51,10 +51,10 @@ export const payoutOnboardings = paymentSchema.table(
   'payout_onboardings',
   {
     id: serial('id').primaryKey(),
-    /** FK to payout_provider_accounts — the provider config selected for this attempt. */
+    /** FK to payout_provider_configs — the provider config selected for this attempt. */
     payout_provider_account_id: integer('payout_provider_account_id')
       .notNull()
-      .references(() => payoutProviderAccounts.id, { onDelete: 'restrict' }),
+      .references(() => payoutProviderConfigs.id, { onDelete: 'restrict' }),
     status: payoutOnboardingStatusEnum('status')
       .notNull()
       .default('pending'),
@@ -91,9 +91,9 @@ export const payoutOnboardings = paymentSchema.table(
 export const payoutOnboardingsRelations = relations(
   payoutOnboardings,
   ({ one }) => ({
-    providerAccount: one(payoutProviderAccounts, {
+    providerAccount: one(payoutProviderConfigs, {
       fields: [payoutOnboardings.payout_provider_account_id],
-      references: [payoutProviderAccounts.id],
+      references: [payoutProviderConfigs.id],
     }),
   }),
 );

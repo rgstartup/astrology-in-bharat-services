@@ -1,6 +1,6 @@
 import { boolean, integer, pgSchema, serial, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { expertAccounts } from './expert-account.schema';
+import { expertAccounts } from '../../expert/expert-account.schema';
 import { payoutPlatformAccounts } from '../payments/payout-platform-accounts.schema';
 
 const expertSchema = pgSchema('expert');

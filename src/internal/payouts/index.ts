@@ -4,7 +4,6 @@ export { PayoutProviderService } from '@/internal/actors/expert/payout-accounts/
 export { RazorpayPayoutService } from '@/external/razorpayx/gateways/razorpay-payout.service';
 export { RazorpayXPayoutAdapter } from '@/external/razorpayx/providers/razorpayx-payout-adapter';
 export { RazorpayXOnboardingAdapter } from '@/external/razorpayx/providers/razorpayx-onboarding-adapter';
-export { RazorpayXWebhookService } from '@/external/razorpayx/services/razorpayx-webhook.service';
 export {
   InitiatePayoutOnboardingUseCase,
   CompletePayoutOnboardingUseCase,

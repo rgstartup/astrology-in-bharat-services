@@ -11,7 +11,7 @@ import { DRIZZLE } from '@/core/drizzledb/drizzle.constants';
 import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { eq } from 'drizzle-orm';
 import {
-  payoutProviderAccounts,
+  payoutProviderConfigs,
   paymentProviders,
   payoutOnboardings,
 } from '@/core/drizzledb/schema';
@@ -46,11 +46,11 @@ export class InitiatePayoutOnboardingUseCase {
 
     // Look up the provider account config for this provider code (required FK).
     const [providerAccount] = await this.db
-      .select({ id: payoutProviderAccounts.id })
-      .from(payoutProviderAccounts)
+      .select({ id: payoutProviderConfigs.id })
+      .from(payoutProviderConfigs)
       .innerJoin(
         paymentProviders,
-        eq(payoutProviderAccounts.provider_id, paymentProviders.id),
+        eq(payoutProviderConfigs.provider_id, paymentProviders.id),
       )
       .where(eq(paymentProviders.code, provider.provider))
       .limit(1);

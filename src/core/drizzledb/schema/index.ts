@@ -462,26 +462,15 @@ export type {
   NewFinancialTransactionEntryRow,
 } from "./finance";
 
-// Payment - Payout Platform Accounts
+// Payment - Payout Provider Configs
 export {
-  payoutPlatformAccounts,
-  payoutPlatformAccountsRelations,
-  payoutAccountValidationStatusEnum,
+  payoutProviderConfigs,
+  payoutProviderConfigsRelations,
+  payoutProviderConfigStatusEnum,
 } from "./payments";
 export type {
-  PayoutPlatformAccountRow,
-  NewPayoutPlatformAccountRow,
-} from "./payments";
-
-// Payment - Payout Provider Accounts
-export {
-  payoutProviderAccounts,
-  payoutProviderAccountsRelations,
-  payoutProviderAccountStatusEnum,
-} from "./payments";
-export type {
-  PayoutProviderAccountRow,
-  NewPayoutProviderAccountRow,
+  PayoutProviderConfigRow,
+  NewPayoutProviderConfigRow,
 } from "./payments";
 
 // Payment - Payout Onboardings
@@ -502,6 +491,8 @@ export {
   payoutAccountsRelations,
   payoutAccountStatusEnum,
   payoutVerificationStatusEnum,
+  payoutAccountTypeEnum,
+  payoutAccountOnboardingStatusEnum,
 } from "./payments";
 export type {
   PayoutAccountRow,
@@ -547,16 +538,6 @@ export type {
   MerchantPayoutAccountRow,
   NewMerchantPayoutAccountRow,
 } from "./payments";
-
-// Expert - Payout Platform Accounts
-export {
-  expertPayoutPlatformAccounts,
-  expertPayoutPlatformAccountsRelations,
-} from "./expert";
-export type {
-  ExpertPayoutPlatformAccountRow,
-  NewExpertPayoutPlatformAccountRow,
-} from "./expert";
 
 // Payment Providers
 export {
@@ -605,8 +586,6 @@ import {
 import {
   expertAccounts,
   expertAccountsRelations,
-  expertPayoutPlatformAccounts,
-  expertPayoutPlatformAccountsRelations,
 
   specializations,
   specializationsRelations,
@@ -828,12 +807,9 @@ import {
   paymentProvidersRelations,
   providerPurposes,
   providerPurposesRelations,
-  payoutPlatformAccounts,
-  payoutPlatformAccountsRelations,
-  payoutAccountValidationStatusEnum,
-  payoutProviderAccounts,
-  payoutProviderAccountsRelations,
-  payoutProviderAccountStatusEnum,
+  payoutProviderConfigs,
+  payoutProviderConfigsRelations,
+  payoutProviderConfigStatusEnum,
   payoutOnboardings,
   payoutOnboardingsRelations,
   payoutOnboardingStatusEnum,
@@ -842,6 +818,8 @@ import {
   payoutAccountsRelations,
   payoutAccountStatusEnum,
   payoutVerificationStatusEnum,
+  payoutAccountTypeEnum,
+  payoutAccountOnboardingStatusEnum,
   payoutAccountReferences,
   payoutAccountReferencesRelations,
   payoutAccountReferenceTypeEnum,
@@ -896,8 +874,6 @@ export const schema = {
   // Expert
   expertAccounts,
   expertAccountsRelations,
-  expertPayoutPlatformAccounts,
-  expertPayoutPlatformAccountsRelations,
 
   specializations,
   specializationsRelations,
@@ -1123,14 +1099,11 @@ export const schema = {
   paymentProvidersRelations,
   providerPurposes,
   providerPurposesRelations,
-  payoutPlatformAccounts,
-  payoutPlatformAccountsRelations,
-  payoutAccountValidationStatusEnum,
 
-  // Payment - Payout Provider Accounts
-  payoutProviderAccounts,
-  payoutProviderAccountsRelations,
-  payoutProviderAccountStatusEnum,
+  // Payment - Payout Provider Configs
+  payoutProviderConfigs,
+  payoutProviderConfigsRelations,
+  payoutProviderConfigStatusEnum,
 
   // Payment - Payout Onboardings
   payoutOnboardings,
@@ -1143,6 +1116,8 @@ export const schema = {
   payoutAccountsRelations,
   payoutAccountStatusEnum,
   payoutVerificationStatusEnum,
+  payoutAccountTypeEnum,
+  payoutAccountOnboardingStatusEnum,
 
   // Payment - Payout Account References
   payoutAccountReferences,

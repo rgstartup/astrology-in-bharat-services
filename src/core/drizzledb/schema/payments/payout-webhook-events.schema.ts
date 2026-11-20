@@ -11,7 +11,7 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { payoutProviderAccounts } from './payout-provider-accounts.schema';
+import { payoutProviderConfigs } from './payout-provider-configs.schema';
 
 const paymentSchema = pgSchema('payments');
 
@@ -33,10 +33,10 @@ export const payoutWebhookEvents = paymentSchema.table(
   'payout_webhook_events',
   {
     id: serial('id').primaryKey(),
-    /** FK to payout_provider_accounts — the provider account this event belongs to. */
+    /** FK to payout_provider_configs — the provider config this event belongs to. */
     payout_provider_account_id: integer('payout_provider_account_id')
       .notNull()
-      .references(() => payoutProviderAccounts.id, { onDelete: 'restrict' }),
+      .references(() => payoutProviderConfigs.id, { onDelete: 'restrict' }),
     provider_event_id: text('provider_event_id').notNull(),
     event_type: text('event_type').notNull(),
     normalized_event_type: text('normalized_event_type'),
@@ -69,9 +69,9 @@ export const payoutWebhookEvents = paymentSchema.table(
 export const payoutWebhookEventsRelations = relations(
   payoutWebhookEvents,
   ({ one }) => ({
-    providerAccount: one(payoutProviderAccounts, {
+    providerAccount: one(payoutProviderConfigs, {
       fields: [payoutWebhookEvents.payout_provider_account_id],
-      references: [payoutProviderAccounts.id],
+      references: [payoutProviderConfigs.id],
     }),
   }),
 );

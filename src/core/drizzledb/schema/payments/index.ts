@@ -29,27 +29,16 @@ export type {
   NewPartnerPayoutAccountRow,
 } from './partner-payout-accounts.schema';
 
-// Payout Platform Accounts (direct API — RazorpayX penny-drop)
+// Payout Provider Configs (platform provider configurations)
 export {
-  payoutPlatformAccounts,
-  payoutPlatformAccountsRelations,
-  payoutAccountValidationStatusEnum,
-} from './payout-platform-accounts.schema';
+  payoutProviderConfigs,
+  payoutProviderConfigsRelations,
+  payoutProviderConfigStatusEnum,
+} from './payout-provider-configs.schema';
 export type {
-  PayoutPlatformAccountRow,
-  NewPayoutPlatformAccountRow,
-} from './payout-platform-accounts.schema';
-
-// Payout Provider Accounts (platform provider configurations)
-export {
-  payoutProviderAccounts,
-  payoutProviderAccountsRelations,
-  payoutProviderAccountStatusEnum,
-} from './payout-provider-accounts.schema';
-export type {
-  PayoutProviderAccountRow,
-  NewPayoutProviderAccountRow,
-} from './payout-provider-accounts.schema';
+  PayoutProviderConfigRow,
+  NewPayoutProviderConfigRow,
+} from './payout-provider-configs.schema';
 
 // Payout Onboardings (onboarding attempt lifecycle)
 export {
@@ -69,6 +58,8 @@ export {
   payoutAccountsRelations,
   payoutAccountStatusEnum,
   payoutVerificationStatusEnum,
+  payoutAccountTypeEnum,
+  payoutAccountOnboardingStatusEnum,
 } from './payout-accounts.schema';
 export type {
   PayoutAccountRow,

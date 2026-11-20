@@ -14,7 +14,7 @@ import { eq, and, isNotNull } from "drizzle-orm";
 import {
   expertPayoutAccountLinks,
   payoutAccounts,
-  payoutProviderAccounts,
+  payoutProviderConfigs,
   paymentProviders,
   payoutAccountReferences,
   payoutAccountReferenceTypeEnum,
@@ -35,12 +35,8 @@ export interface PayoutLinkItem {
   isPrimary: boolean;
   activatedAt: string | null;
   createdAt: string;
-  /** Last 4 digits of bank account number — safe to display for expert UX. */
-  accountNumberMasked: string | null;
-  /** Bank name (nullable — may not be available from all providers). */
-  bankName: string | null;
-  /** IFSC code (nullable for VPA/wallet types). */
-  ifsc: string | null;
+  /** Type-specific structured details (bank_account: account_number_masked/bank_name/ifsc; vpa: vpa_id; wallet: wallet_handle; card: last4/brand). */
+  details: Record<string, unknown> | null;
 }
 
 export interface ListPayoutLinksOutput {
@@ -58,13 +54,11 @@ export class ListPayoutLinksUseCase {
       .select({
         id: payoutAccounts.id,
         paymentProvider: paymentProviders.code,
-        providerProduct: payoutProviderAccounts.name,
+        providerProduct: payoutProviderConfigs.name,
         onboardingStatus: payoutAccounts.status,
         accountStatus: payoutAccounts.verification_status,
         externalAccountId: payoutAccountReferences.provider_reference,
-        accountNumberMasked: payoutAccounts.account_number_masked,
-        bankName: payoutAccounts.bank_name,
-        ifsc: payoutAccounts.ifsc,
+        details: payoutAccounts.details,
         isPrimary: expertPayoutAccountLinks.is_primary,
         activatedAt: payoutAccounts.verified_at,
         createdAt: payoutAccounts.created_at,
@@ -78,16 +72,16 @@ export class ListPayoutLinksUseCase {
         ),
       )
       .innerJoin(
-        payoutProviderAccounts,
+        payoutProviderConfigs,
         eq(
           payoutAccounts.payout_provider_account_id,
-          payoutProviderAccounts.id,
+          payoutProviderConfigs.id,
         ),
       )
       .innerJoin(
         paymentProviders,
         eq(
-          payoutProviderAccounts.provider_id,
+          payoutProviderConfigs.provider_id,
           paymentProviders.id,
         ),
       )
@@ -122,9 +116,7 @@ export class ListPayoutLinksUseCase {
           ? new Date(row.activatedAt).toISOString()
           : null,
         createdAt: new Date(row.createdAt).toISOString(),
-        accountNumberMasked: row.accountNumberMasked,
-        bankName: row.bankName,
-        ifsc: row.ifsc,
+        details: row.details,
       })),
     };
   }

@@ -61,6 +61,7 @@ export class PayoutAccountsController {
       ifsc: dto.ifsc,
       code: dto.code,
       state: dto.state,
+      account_type: dto.account_type,
     });
   }
 

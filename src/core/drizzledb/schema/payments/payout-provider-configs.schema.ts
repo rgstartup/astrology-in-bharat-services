@@ -16,15 +16,15 @@ import { paymentProviders } from './providers.schema';
 const paymentSchema = pgSchema('payments');
 
 /**
- * Payout provider account status — lifecycle of a platform's configured provider account.
+ * Payout provider config status — lifecycle of a platform's configured provider config.
  */
-export const payoutProviderAccountStatusEnum = pgEnum(
-  'payout_provider_account_status_enum',
+export const payoutProviderConfigStatusEnum = pgEnum(
+  'payout_provider_config_status_enum',
   ['ACTIVE', 'INACTIVE', 'DISABLED'],
 );
 
 /**
- * Platform's configured payout provider account.
+ * Platform's configured payout provider config.
  *
  * Represents a provider integration/configuration (not an individual partner).
  * Stores only a credentials_reference (env var or secrets manager key), never
@@ -34,8 +34,8 @@ export const payoutProviderAccountStatusEnum = pgEnum(
  * Related to payout_onboardings and payouts so the selected provider config is
  * persisted for the lifetime of each onboarding attempt and payout request.
  */
-export const payoutProviderAccounts = paymentSchema.table(
-  'payout_provider_accounts',
+export const payoutProviderConfigs = paymentSchema.table(
+  'payout_provider_configs',
   {
     id: serial('id').primaryKey(),
     /** FK to payment_providers catalog (razorpay, stripe, paypal, cashfree…). */
@@ -52,7 +52,7 @@ export const payoutProviderAccounts = paymentSchema.table(
     credentials_reference: text('credentials_reference').notNull(),
     /** Non-secret provider-specific configuration (JSON). */
     configuration: json('configuration').$type<Record<string, unknown> | null>(),
-    status: payoutProviderAccountStatusEnum('status')
+    status: payoutProviderConfigStatusEnum('status')
       .notNull()
       .default('ACTIVE'),
     created_at: timestamp('created_at', { withTimezone: true })
@@ -64,22 +64,22 @@ export const payoutProviderAccounts = paymentSchema.table(
   },
   (table) => ({
     providerIdx: uniqueIndex(
-      'payout_provider_accounts_provider_environment_idx',
+      'payout_provider_configs_provider_environment_idx',
     ).on(table.provider_id, table.environment),
   }),
 );
 
-export const payoutProviderAccountsRelations = relations(
-  payoutProviderAccounts,
+export const payoutProviderConfigsRelations = relations(
+  payoutProviderConfigs,
   ({ one }) => ({
     provider: one(paymentProviders, {
-      fields: [payoutProviderAccounts.provider_id],
+      fields: [payoutProviderConfigs.provider_id],
       references: [paymentProviders.id],
     }),
   }),
 );
 
-export type PayoutProviderAccountRow =
-  typeof payoutProviderAccounts.$inferSelect;
-export type NewPayoutProviderAccountRow =
-  typeof payoutProviderAccounts.$inferInsert;
+export type PayoutProviderConfigRow =
+  typeof payoutProviderConfigs.$inferSelect;
+export type NewPayoutProviderConfigRow =
+  typeof payoutProviderConfigs.$inferInsert;

@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { payoutAccounts } from './payout-accounts.schema';
-import { payoutProviderAccounts } from './payout-provider-accounts.schema';
+import { payoutProviderConfigs } from './payout-provider-configs.schema';
 
 const paymentSchema = pgSchema('payments');
 
@@ -53,7 +53,7 @@ export const payoutAccountReferences = paymentSchema.table(
     /** Which provider config owns this resource reference. */
     payout_provider_account_id: integer('payout_provider_account_id')
       .notNull()
-      .references(() => payoutProviderAccounts.id, { onDelete: 'restrict' }),
+      .references(() => payoutProviderConfigs.id, { onDelete: 'restrict' }),
     reference_type: payoutAccountReferenceTypeEnum('reference_type')
       .notNull(),
     provider_reference: text('provider_reference').notNull(),
@@ -89,9 +89,9 @@ export const payoutAccountReferencesRelations = relations(
       fields: [payoutAccountReferences.payout_account_id],
       references: [payoutAccounts.id],
     }),
-    providerAccount: one(payoutProviderAccounts, {
+    providerAccount: one(payoutProviderConfigs, {
       fields: [payoutAccountReferences.payout_provider_account_id],
-      references: [payoutProviderAccounts.id],
+      references: [payoutProviderConfigs.id],
     }),
   }),
 );

@@ -3,18 +3,26 @@ import { eq, and } from "drizzle-orm";
 import { DRIZZLE } from "@/core/drizzledb/drizzle.constants";
 import type { DrizzleDb } from "@/core/drizzledb/drizzle.types";
 import {
-  payoutPlatformAccounts,
-  payoutWebhookEvents,
+  payoutAccounts,
   payoutAccountReferences,
+  payoutWebhookEvents,
 } from "@/core/drizzledb/schema";
-import { RazorpayXPayoutAdapter } from "@/external/razorpayx/providers/razorpayx-payout-adapter";
+import { PayoutProviderService } from "../payout-provider.service";
 
+/**
+ * System 1 webhook handler for fund-account validation events.
+ *
+ * Replaces RazorpayXWebhookService (System 2). On `account.activated` it sets
+ * `payout_accounts.onboarding_status = VALIDATED`; on `account.rejected` it
+ * sets `FAILED`. The account is located via `payout_account_references`
+ * (reference_type = 'fund_account', provider_reference = external account id).
+ */
 @Injectable()
-export class RazorpayXWebhookService {
-  private readonly logger = new Logger(RazorpayXWebhookService.name);
+export class PayoutValidationWebhookService {
+  private readonly logger = new Logger(PayoutValidationWebhookService.name);
 
   constructor(
-    private readonly adapter: RazorpayXPayoutAdapter,
+    private readonly providerService: PayoutProviderService,
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
   ) {}
 
@@ -22,8 +30,11 @@ export class RazorpayXWebhookService {
     rawBody: Buffer,
     headers: Record<string, string | string[] | undefined>,
   ): Promise<{ processed: boolean; message: string }> {
+    // Resolve the active provider to parse/verify the webhook.
+    const provider = this.providerService.resolve("razorpayx");
+
     // Parse webhook — adapter verifies X-Razorpay-Signature internally.
-    const event = await this.adapter.parseWebhook(headers, rawBody);
+    const event = await provider.parseWebhook(headers, rawBody);
 
     // Durable log: insert event before processing (idempotent on provider_event_id).
     let providerEventId: string | null = null;
@@ -101,9 +112,8 @@ export class RazorpayXWebhookService {
   }
 
   /**
-   * RazorpayX fund account status is not exposed via a public GET endpoint,
-   * so the local `validation_status` column is the source of truth.
-   * Webhook events flip that status so the onboarding flow stays in sync.
+   * Updates `payout_accounts.onboarding_status` based on the fund-account
+   * validation event. The account is located through `payout_account_references`.
    */
   private async reconcileAccount(event: {
     externalAccountId: string;
@@ -113,13 +123,12 @@ export class RazorpayXWebhookService {
 
     if (!externalAccountId) {
       this.logger.warn(
-        "RazorpayX webhook: missing external account id; skipping reconciliation",
+        "Payout validation webhook: missing external account id; skipping reconciliation",
       );
       return;
     }
 
     let status: "VALIDATED" | "FAILED";
-    let failureReason: string | undefined;
 
     switch (eventType) {
       case "account.activated":
@@ -127,32 +136,49 @@ export class RazorpayXWebhookService {
         break;
       case "account.rejected":
         status = "FAILED";
-        failureReason = "provider rejected fund account";
         break;
       default:
         this.logger.log(
-          `RazorpayX webhook: unhandled event type ${eventType} for account ${externalAccountId}`,
+          `Payout validation webhook: unhandled event type ${eventType} for account ${externalAccountId}`,
         );
         return;
     }
 
+    // Find the payout account via its fund_account reference.
+    const [ref] = await this.db
+      .select({ payout_account_id: payoutAccountReferences.payout_account_id })
+      .from(payoutAccountReferences)
+      .where(
+        and(
+          eq(payoutAccountReferences.reference_type, "fund_account"),
+          eq(payoutAccountReferences.provider_reference, externalAccountId),
+        ),
+      )
+      .limit(1);
+
+    if (!ref?.payout_account_id) {
+      this.logger.warn(
+        `Payout validation webhook: no payout account reference found for ${externalAccountId}`,
+      );
+      return;
+    }
+
     const [updated] = await this.db
-      .update(payoutPlatformAccounts)
+      .update(payoutAccounts)
       .set({
-        validationStatus: status,
-        failureReason,
-        updatedAt: new Date(),
+        onboarding_status: status,
+        updated_at: new Date(),
       })
-      .where(eq(payoutPlatformAccounts.platformFundId, externalAccountId))
+      .where(eq(payoutAccounts.id, ref.payout_account_id))
       .returning();
 
     if (updated) {
       this.logger.log(
-        `RazorpayX webhook: account ${externalAccountId} -> ${status}`,
+        `Payout validation webhook: account ${externalAccountId} -> ${status}`,
       );
     } else {
       this.logger.warn(
-        `RazorpayX webhook: no payout platform account found for ${externalAccountId}`,
+        `Payout validation webhook: no payout account found for reference ${externalAccountId}`,
       );
     }
   }

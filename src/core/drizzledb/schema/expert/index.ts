@@ -98,13 +98,3 @@ export type {
   ExpertPayoutAccountLinkRow,
   NewExpertPayoutAccountLinkRow,
 } from './expert-payout-account-links.schema';
-
-// Expert Payout Platform Accounts (relation table linking experts to payout platform accounts)
-export {
-  expertPayoutPlatformAccounts,
-  expertPayoutPlatformAccountsRelations,
-} from './expert-payout-platform-accounts.schema';
-export type {
-  ExpertPayoutPlatformAccountRow,
-  NewExpertPayoutPlatformAccountRow,
-} from './expert-payout-platform-accounts.schema';

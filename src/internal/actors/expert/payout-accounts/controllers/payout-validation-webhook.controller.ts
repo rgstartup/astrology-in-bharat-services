@@ -7,14 +7,16 @@ import {
 } from "@nestjs/common";
 import { Request, type Response } from "express";
 import { Public } from "@/shared/decorators/public.decorator";
-import { RazorpayXWebhookService } from "@/external/razorpayx/services/razorpayx-webhook.service";
+import { PayoutValidationWebhookService } from "@/internal/actors/expert/payout-accounts/services/payout-validation-webhook.service";
 
 @Controller({
-  path: "webhooks/razorpayx",
+  path: "webhooks/payout-validation",
   version: "1",
 })
-export class RazorpayXWebhookController {
-  constructor(private readonly webhookService: RazorpayXWebhookService) {}
+export class PayoutValidationWebhookController {
+  constructor(
+    private readonly webhookService: PayoutValidationWebhookService,
+  ) {}
 
   @Post()
   @Public()

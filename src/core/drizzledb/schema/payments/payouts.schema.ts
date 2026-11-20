@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { payoutAccounts } from './payout-accounts.schema';
-import { payoutProviderAccounts } from './payout-provider-accounts.schema';
+import { payoutProviderConfigs } from './payout-provider-configs.schema';
 
 const paymentSchema = pgSchema('payments');
 
@@ -38,10 +38,10 @@ export const payouts = paymentSchema.table(
     payout_account_id: integer('payout_account_id')
       .notNull()
       .references(() => payoutAccounts.id, { onDelete: 'restrict' }),
-    /** FK to payout_provider_accounts — provider config used at initiation time. */
+    /** FK to payout_provider_configs — provider config used at initiation time. */
     payout_provider_account_id: integer('payout_provider_account_id')
       .notNull()
-      .references(() => payoutProviderAccounts.id, { onDelete: 'restrict' }),
+      .references(() => payoutProviderConfigs.id, { onDelete: 'restrict' }),
     /** Amount in minor units (e.g. paise for INR). */
     amount: integer('amount').notNull(),
     currency_code: text('currency_code').notNull().default('INR'),
@@ -86,9 +86,9 @@ export const payoutsRelations = relations(payouts, ({ one }) => ({
     fields: [payouts.payout_account_id],
     references: [payoutAccounts.id],
   }),
-  providerAccount: one(payoutProviderAccounts, {
+  providerAccount: one(payoutProviderConfigs, {
     fields: [payouts.payout_provider_account_id],
-    references: [payoutProviderAccounts.id],
+    references: [payoutProviderConfigs.id],
   }),
 }));
 

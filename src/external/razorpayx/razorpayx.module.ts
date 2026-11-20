@@ -7,8 +7,6 @@ import { PAYOUT_ONBOARDING_SERVICE } from "@/external/payouts/onboarding/payout-
 import { RazorpayPayoutService } from "./gateways/razorpay-payout.service";
 import { RazorpayXPayoutAdapter } from "./providers/razorpayx-payout-adapter";
 import { RazorpayXOnboardingAdapter } from "./providers/razorpayx-onboarding-adapter";
-import { RazorpayXWebhookService } from "./services/razorpayx-webhook.service";
-import { RazorpayXWebhookController } from "./services/razorpayx-webhook.controller";
 
 @Module({
   imports: [
@@ -18,12 +16,11 @@ import { RazorpayXWebhookController } from "./services/razorpayx-webhook.control
       timeout: 30000 as Duration,
     }),
   ],
-  controllers: [RazorpayXWebhookController],
+  controllers: [],
   providers: [
     RazorpayPayoutService,
     RazorpayXPayoutAdapter,
     RazorpayXOnboardingAdapter,
-    RazorpayXWebhookService,
     {
       provide: PAYOUT_PROVIDER,
       useExisting: RazorpayXPayoutAdapter,
@@ -37,7 +34,6 @@ import { RazorpayXWebhookController } from "./services/razorpayx-webhook.control
     RazorpayPayoutService,
     RazorpayXPayoutAdapter,
     RazorpayXOnboardingAdapter,
-    RazorpayXWebhookService,
     PAYOUT_PROVIDER,
     PAYOUT_ONBOARDING_SERVICE,
   ],

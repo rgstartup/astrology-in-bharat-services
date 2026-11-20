@@ -1,5 +1,6 @@
 import { IsInt, IsString, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { payoutAccountTypeEnum } from '@/core/drizzledb/schema';
 
 export class CompletePayoutOnboardingDto {
   @IsInt()
@@ -25,4 +26,8 @@ export class CompletePayoutOnboardingDto {
   @IsOptional()
   @IsString()
   state?: string;
+
+  @IsOptional()
+  @IsString()
+  account_type?: (typeof payoutAccountTypeEnum.enumValues)[number];
 }

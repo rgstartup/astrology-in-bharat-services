@@ -1,6 +1,7 @@
 import {
   index,
   json,
+  jsonb,
   pgEnum,
   pgSchema,
   serial,
@@ -10,7 +11,7 @@ import {
   boolean,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { payoutProviderAccounts } from './payout-provider-accounts.schema';
+import { payoutProviderConfigs } from './payout-provider-configs.schema';
 
 const paymentSchema = pgSchema('payments');
 
@@ -31,6 +32,22 @@ export const payoutVerificationStatusEnum = pgEnum(
 );
 
 /**
+ * Payout account type — determines which fields are required in `details`.
+ */
+export const payoutAccountTypeEnum = pgEnum(
+  'payout_account_type_enum',
+  ['bank_account', 'vpa', 'wallet', 'card', 'other'],
+);
+
+/**
+ * Onboarding status — lifecycle of a payout account's provider onboarding.
+ */
+export const payoutAccountOnboardingStatusEnum = pgEnum(
+  'payout_account_onboarding_status_enum',
+  ['PENDING', 'INITIATED', 'VALIDATED', 'FAILED'],
+);
+
+/**
  * Internal payout account record — the platform's view of a partner's payout
  * destination or connected payout relationship. Provider-independent; no
  * sensitive bank details stored here unless encrypted.
@@ -42,29 +59,27 @@ export const payoutAccounts = paymentSchema.table(
   'payout_accounts',
   {
     id: serial('id').primaryKey(),
-    /** FK to payout_provider_accounts — provider config used for this account. */
+    /** FK to payout_provider_configs — provider config used for this account. */
     payout_provider_account_id: integer('payout_provider_account_id')
       .notNull()
-      .references(() => payoutProviderAccounts.id, { onDelete: 'restrict' }),
+      .references(() => payoutProviderConfigs.id, { onDelete: 'restrict' }),
     status: payoutAccountStatusEnum('status')
       .notNull()
       .default('pending'),
     verification_status: payoutVerificationStatusEnum('verification_status')
       .notNull()
       .default('not_started'),
-    account_type: text('account_type').notNull().default('bank_account'),
+    account_type: payoutAccountTypeEnum('account_type').notNull().default('bank_account'),
     country_code: text('country_code').notNull().default('IN'),
     currency_code: text('currency_code').notNull().default('INR'),
     /** Safe display name only — no bank details. */
     display_name: text('display_name'),
     /** Safe identifier/fingerprint for display (e.g. last-4 account). */
     account_fingerprint: text('account_fingerprint'),
-    /** Last 4 digits of bank account number — safe to display for expert UX. */
-    account_number_masked: text('account_number_masked'),
-    /** Bank name (nullable — may not be available from all providers). */
-    bank_name: text('bank_name'),
-    /** IFSC code (nullable for VPA/wallet types). */
-    ifsc: text('ifsc'),
+    /** Type-specific structured details (bank_account: account_number_masked/bank_name/ifsc; vpa: vpa_id; wallet: wallet_handle; card: last4/brand). */
+    details: jsonb('details').$type<Record<string, unknown> | null>(),
+    /** Onboarding lifecycle status. */
+    onboarding_status: payoutAccountOnboardingStatusEnum('onboarding_status').notNull().default('PENDING'),
     is_primary: boolean('is_primary').notNull().default(false),
     /** Non-sensitive provider-specific data (JSON). */
     provider_metadata: json('provider_metadata').$type<
@@ -89,9 +104,9 @@ export const payoutAccounts = paymentSchema.table(
 export const payoutAccountsRelations = relations(
   payoutAccounts,
   ({ one }) => ({
-    providerAccount: one(payoutProviderAccounts, {
+    providerAccount: one(payoutProviderConfigs, {
       fields: [payoutAccounts.payout_provider_account_id],
-      references: [payoutProviderAccounts.id],
+      references: [payoutProviderConfigs.id],
     }),
   }),
 );

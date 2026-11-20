@@ -11,8 +11,10 @@ import { RazorpayXModule } from "@/external/razorpayx/razorpayx.module";
 import type { PayoutProvider } from "@/external/payouts/onboarding/payout-provider.interface";
 import type { PayoutOnboardingService } from "@/external/payouts/onboarding/payout-onboarding.interface";
 import { PayoutAccountsController } from "./controllers/payout-accounts.controller";
+import { PayoutValidationWebhookController } from "./controllers/payout-validation-webhook.controller";
 import { PayoutAccountsService } from "./payout-accounts.service";
 import { PayoutProviderService } from "./payout-provider.service";
+import { PayoutValidationWebhookService } from "./services/payout-validation-webhook.service";
 import {
   InitiatePayoutOnboardingUseCase,
   CompletePayoutOnboardingUseCase,
@@ -34,10 +36,11 @@ import {
       timeout: 30000 as Duration,
     }),
   ],
-  controllers: [PayoutAccountsController],
+  controllers: [PayoutAccountsController, PayoutValidationWebhookController],
   providers: [
     PayoutAccountsService,
     PayoutProviderService,
+    PayoutValidationWebhookService,
     InitiatePayoutOnboardingUseCase,
     CompletePayoutOnboardingUseCase,
     ExecutePayoutUseCase,

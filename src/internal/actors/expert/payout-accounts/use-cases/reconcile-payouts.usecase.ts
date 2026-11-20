@@ -14,7 +14,7 @@ import type { DrizzleDb } from '@/core/drizzledb/drizzle.types';
 import { eq, inArray, isNotNull, and } from 'drizzle-orm';
 import {
   payouts,
-  payoutProviderAccounts,
+  payoutProviderConfigs,
   paymentProviders,
 } from '@/core/drizzledb/schema';
 import { PayoutProviderService } from '../payout-provider.service';
@@ -104,12 +104,12 @@ export class ReconcilePayoutsUseCase {
       // Resolve provider for this account.
       const [providerAccount] = await this.db
         .select({ code: paymentProviders.code })
-        .from(payoutProviderAccounts)
+        .from(payoutProviderConfigs)
         .innerJoin(
           paymentProviders,
-          eq(payoutProviderAccounts.provider_id, paymentProviders.id),
+          eq(payoutProviderConfigs.provider_id, paymentProviders.id),
         )
-        .where(eq(payoutProviderAccounts.id, providerAccountId))
+        .where(eq(payoutProviderConfigs.id, providerAccountId))
         .limit(1);
 
       if (!providerAccount) {

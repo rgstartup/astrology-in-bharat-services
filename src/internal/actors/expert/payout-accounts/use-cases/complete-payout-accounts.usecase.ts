@@ -17,7 +17,8 @@ import {
   payoutAccountReferences,
   expertPayoutAccountLinks,
   paymentProviders,
-  payoutProviderAccounts,
+  payoutProviderConfigs,
+  payoutAccountTypeEnum,
 } from '@/core/drizzledb/schema';
 import type { NewPayoutAccountReferenceRow } from '@/core/drizzledb/schema';
 import { PayoutProviderService } from '../payout-provider.service';
@@ -28,6 +29,7 @@ import {
   PayoutOnboardingAlreadyCompletedError,
   PayoutOnboardingNoProviderAccountError,
   ProviderOnboardingCompletionFailedError,
+  InvalidPayoutAccountDetailsError,
 } from '../errors';
 
 export interface CompletePayoutOnboardingInput {
@@ -38,6 +40,7 @@ export interface CompletePayoutOnboardingInput {
   ifsc?: string;
   code?: string;
   state?: string;
+  account_type?: (typeof payoutAccountTypeEnum.enumValues)[number];
 }
 
 export interface CompletePayoutOnboardingOutput {
@@ -80,12 +83,12 @@ export class CompletePayoutOnboardingUseCase {
     // Resolve provider for this onboarding attempt (use provider account's provider code).
     const [providerAccount] = await this.db
       .select({ code: paymentProviders.code })
-      .from(payoutProviderAccounts)
+      .from(payoutProviderConfigs)
       .innerJoin(
         paymentProviders,
-        eq(payoutProviderAccounts.provider_id, paymentProviders.id),
+        eq(payoutProviderConfigs.provider_id, paymentProviders.id),
       )
-      .where(eq(payoutProviderAccounts.id, onboarding.payout_provider_account_id))
+      .where(eq(payoutProviderConfigs.id, onboarding.payout_provider_account_id))
       .limit(1);
 
     const provider = this.providerService.resolve(providerAccount.code);
@@ -115,6 +118,16 @@ export class CompletePayoutOnboardingUseCase {
       );
     }
 
+    // Build type-specific details from provider completion response.
+    const accountType: (typeof payoutAccountTypeEnum.enumValues)[number] =
+      input.account_type ?? 'bank_account';
+
+    const details: Record<string, unknown> = buildPayoutAccountDetails(
+      accountType,
+      linkedAccount,
+    );
+    validatePayoutAccountDetails(accountType, details);
+
     // Create the payout account (internal partner payout destination).
     const [accountRow] = await this.db
       .insert(payoutAccounts)
@@ -122,12 +135,11 @@ export class CompletePayoutOnboardingUseCase {
         payout_provider_account_id: onboarding.payout_provider_account_id,
         status: 'active',
         verification_status: 'verified',
-        account_type: 'bank_account',
+        account_type: accountType,
         display_name: input.accountHolderName ?? linkedAccount.accountHolderName ?? null,
         account_fingerprint: linkedAccount.accountFingerprint ?? null,
-        account_number_masked: linkedAccount.accountNumberMasked ?? null,
-        bank_name: linkedAccount.bankName ?? null,
-        ifsc: linkedAccount.ifsc ?? null,
+        details,
+        onboarding_status: 'VALIDATED',
         is_primary: false,
         provider_metadata: linkedAccount.raw ?? null,
         verified_at: new Date(),
@@ -201,5 +213,56 @@ export class CompletePayoutOnboardingUseCase {
       status: 'active',
       providerReference: linkedAccount.externalAccountId ?? linkedAccount.fundAccountId ?? '',
     };
+  }
+}
+
+/**
+ * Builds the type-specific `details` JSONB payload from the provider's
+ * completion response. Bank fields come from typed linkedAccount properties;
+ * VPA/wallet/card fields come from the provider's raw payload.
+ */
+function buildPayoutAccountDetails(
+  accountType: (typeof payoutAccountTypeEnum.enumValues)[number],
+  linkedAccount: any,
+): Record<string, unknown> {
+  const raw = linkedAccount?.raw ?? {};
+  switch (accountType) {
+    case 'bank_account':
+      return {
+        account_number_masked: linkedAccount.accountNumberMasked ?? null,
+        bank_name: linkedAccount.bankName ?? null,
+        ifsc: linkedAccount.ifsc ?? null,
+      };
+    case 'vpa':
+      return { vpa_id: raw.vpa_id ?? null };
+    case 'wallet':
+      return { wallet_handle: raw.wallet_handle ?? null };
+    case 'card':
+      return { last4: raw.last4 ?? null, brand: raw.brand ?? null };
+    default:
+      return {};
+  }
+}
+
+/**
+ * Rejects `details` payloads missing required keys for the given `account_type`.
+ * Throws `InvalidPayoutAccountDetailsError` when validation fails.
+ */
+function validatePayoutAccountDetails(
+  accountType: (typeof payoutAccountTypeEnum.enumValues)[number],
+  details: Record<string, unknown>,
+): void {
+  const required: Record<string, string[]> = {
+    bank_account: ['account_number_masked', 'bank_name', 'ifsc'],
+    vpa: ['vpa_id'],
+    wallet: ['wallet_handle'],
+    card: ['last4', 'brand'],
+    other: [],
+  };
+  const missing = (required[accountType] ?? []).filter(
+    (key) => details[key] === undefined || details[key] === null,
+  );
+  if (missing.length > 0) {
+    throw new InvalidPayoutAccountDetailsError(accountType, missing);
   }
 }

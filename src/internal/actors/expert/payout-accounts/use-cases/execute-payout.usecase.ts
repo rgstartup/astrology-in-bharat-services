@@ -17,7 +17,7 @@ import {
   payoutAccountReferences,
   expertPayoutAccountLinks,
   paymentProviders,
-  payoutProviderAccounts,
+  payoutProviderConfigs,
 } from '@/core/drizzledb/schema';
 import { PayoutProviderService } from '../payout-provider.service';
 import type { CreatePayoutInput } from '@/external/payouts/onboarding/payout-provider.interface';
@@ -110,12 +110,12 @@ export class ExecutePayoutUseCase {
     // Resolve provider via the provider account config linked to this payout account.
     const [providerAccount] = await this.db
       .select({ code: paymentProviders.code })
-      .from(payoutProviderAccounts)
+      .from(payoutProviderConfigs)
       .innerJoin(
         paymentProviders,
-        eq(payoutProviderAccounts.provider_id, paymentProviders.id),
+        eq(payoutProviderConfigs.provider_id, paymentProviders.id),
       )
-      .where(eq(payoutProviderAccounts.id, account.payout_provider_account_id))
+      .where(eq(payoutProviderConfigs.id, account.payout_provider_account_id))
       .limit(1);
 
     if (!providerAccount) {
