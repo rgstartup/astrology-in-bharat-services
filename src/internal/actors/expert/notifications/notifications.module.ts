@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import {
   ClearExpertNotificationsUseCase,
   GetExpertNotificationsUseCase,
-  GetExpertUnreadCountUseCase,
+  GetExpertNotificationsCountUseCase,
   MarkExpertNotificationAsReadUseCase,
 } from './use-cases';
 import { ExpertNotificationsController } from './controllers/expert-notifications.controller';
@@ -15,7 +15,7 @@ import { ExpertAuthModule } from '../auth/auth.module';
   providers: [
     ExpertNotificationsService,
     GetExpertNotificationsUseCase,
-    GetExpertUnreadCountUseCase,
+    GetExpertNotificationsCountUseCase,
     MarkExpertNotificationAsReadUseCase,
     ClearExpertNotificationsUseCase,
   ],

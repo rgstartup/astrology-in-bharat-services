@@ -1,8 +1,8 @@
-export { ExpertNotificationsModule } from './notifications.module';
-export { ExpertNotificationsService } from './notifications.service';
+export { ExpertNotificationsModule } from "./notifications.module";
+export { ExpertNotificationsService } from "./notifications.service";
 export {
   GetExpertNotificationsUseCase,
-  GetExpertUnreadCountUseCase,
+  GetExpertNotificationsCountUseCase,
   MarkExpertNotificationAsReadUseCase,
   ClearExpertNotificationsUseCase,
-} from './use-cases';
+} from "./use-cases";
